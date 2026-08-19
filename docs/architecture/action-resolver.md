@@ -9,6 +9,8 @@ system snapshots. Damage durability planning can include absorption plans that c
 incoming damage into health, shields, or another Actor resource.
 When damage supplies a `saveOutcomePolicy`, the resolver can adjust per-target damage amounts from
 the already-resolved save outcomes, such as half damage on a successful save.
+When effects supply condition definitions, it can also plan condition consequences for selected,
+hit, or save-matching targets while carrying duration, spell-origin, and concentration metadata.
 
 ## Current Flow
 
@@ -25,6 +27,7 @@ Action item
 -> optional DamageAdjustmentResolver per-target adjustment
 -> optional HealingResolver healing consequence
 -> optional target durability damage/absorption/healing mutation plans
+-> optional EffectResolver condition mutation plans
 -> ResourceResolver payment plan
 -> Actor resource mutation plan
 -> optional explicit-authority ResolutionTransaction commit
@@ -62,11 +65,15 @@ successfully.
   planning
 - optionally resolves supplied healing components through `HealingResolver`
 - optionally records target durability mutation plans for damage and healing
+- optionally plans condition effect consequences through `EffectResolver`
+- filters save-gated condition effects from already-resolved save outcomes
+- carries duration, spell-origin, source, and concentration metadata on condition mutation plans
 - resolves Action item activation cost through `ResourceResolver`
 - records a target-selection consequence when targets are resolved
 - records an attack-resolution consequence when attack data is supplied
 - records a damage-resolution consequence when damage data is supplied
 - records a healing-resolution consequence when healing data is supplied
+- records an effects-resolution consequence when condition effect data is supplied
 - records a resource-payment consequence
 - records target durability and resource-payment mutation plans
 - returns an `ActionResult`
@@ -94,19 +101,21 @@ The current resolver does not:
 - derive attack bonuses or target defenses from Actor documents
 - derive save bonuses or save DCs from Actor documents
 - roll dice
-- apply condition/effect consequences
+- commit condition/effect consequences to ActiveEffect documents
+- tick durations or break concentration
 - open reaction windows
 - create chat output
 
-Those are future ActionResolver slices. The optional attack, save, damage, and healing steps consume
-already-known numeric roll, defense/DC, damage, and healing data; they do not own roll UI or Foundry
-statistic gathering. WeaponSizePolicy integration scales structural dice and records provenance for
-explicitly manufactured weapon damage, but it does not roll those dice or invent final damage
-amounts. This module exists so current action use already enters the same pipeline shape that those
-slices will extend.
+Those are future ActionResolver slices. The optional attack, save, damage, healing, and condition
+steps consume already-known numeric roll, defense/DC, damage, healing, and effect-definition data;
+they do not own roll UI, Foundry statistic gathering, ActiveEffect document commits, duration
+ticking, or concentration checks. WeaponSizePolicy integration scales structural dice and records
+provenance for explicitly manufactured weapon damage, but it does not roll those dice or invent
+final damage amounts. This module exists so current action use already enters the same pipeline
+shape that those slices will extend.
 
 ## Next Resolver Slice
 
-The next resolver slice should wire condition/effect consequences into ActionResolver or extend
-EffectResolver from conditions to generic ActiveEffect creation/removal. Direct Actor durability
-mutation remains outside DamageResolver itself.
+The next resolver slice should either commit planned condition effects through an explicit Foundry
+adapter/transaction path or extend EffectResolver from conditions to generic ActiveEffect
+creation/removal. Direct Actor durability mutation remains outside DamageResolver itself.

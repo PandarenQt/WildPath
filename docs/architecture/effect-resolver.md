@@ -11,6 +11,7 @@ condition id + signed level delta
 -> condition definition lookup
 -> existing condition snapshot lookup
 -> create/update/delete/noop mutation plan
+-> duration/source/origin/concentration lifecycle metadata
 -> explicit Foundry commit adapter
 ```
 
@@ -23,6 +24,10 @@ condition id + signed level delta
 - supports leveled conditions such as Exhaustion
 - clamps leveled conditions to their configured maximum
 - returns explicit `create`, `update`, `delete`, or `noop` plans
+- carries plain duration metadata for fixed, turn-based, combat-based, or scheduled expiry
+- carries source/origin refs so spell-based conditions can be traced without live document handles
+- carries concentration metadata so a future concentration resolver can remove linked effects when
+  concentration breaks
 - consumes plain condition snapshots or Actor `effects` collections
 - does not mutate ActiveEffect documents
 
@@ -41,12 +46,16 @@ adapter that delegates to `WildPathConditionEffect.applyDelta`.
 EffectResolver does not:
 
 - apply generic ActiveEffects
-- resolve effect durations
+- resolve, tick, or expire durations
 - create condition ticking schedules
-- attach effects as ActionResolver consequences
+- commit ActionResolver condition consequences
+- check or break concentration
 - commit effects through `ResolutionTransaction`
 - open reaction windows
 - create chat output
 
 Those should land as small effect slices. Conditions are first because they already have a stable
 document implementation and give the rest of the system a concrete effect contract to build on.
+Save-based applicability belongs in `ActionResolver` after `SaveResolver` outcomes exist; duration
+and concentration lifecycle enforcement belongs in a future effect/concentration adapter rather
+than in condition data preparation or sheet rendering.

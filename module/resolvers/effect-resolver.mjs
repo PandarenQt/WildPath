@@ -1,4 +1,8 @@
 import {WILDPATH} from "../config.mjs";
+import {
+  createEntityRef,
+  normalizeEntityRef
+} from "../helpers/entity-refs.mjs";
 
 export const EFFECT_RESOLVER_CODES = Object.freeze({
   OK: "OK",
@@ -25,6 +29,10 @@ export function planConditionEffect({
   target=null,
   existingConditions=null,
   conditionDefinitions=WILDPATH.CONDITIONS,
+  duration=null,
+  concentration=null,
+  source=null,
+  origin=null,
   metadata={}
 }={}) {
   const id = normalizeConditionId(conditionId ?? type);
@@ -36,6 +44,10 @@ export function planConditionEffect({
       conditionId: id,
       levels,
       target,
+      duration,
+      concentration,
+      source,
+      origin,
       metadata
     });
   }
@@ -47,6 +59,10 @@ export function planConditionEffect({
       conditionId: id,
       levels,
       target,
+      duration,
+      concentration,
+      source,
+      origin,
       metadata
     });
   }
@@ -70,6 +86,15 @@ export function planConditionEffect({
     existingEffectUuid: existing?.uuid ?? null,
     target: clonePlain(target) ?? null,
     definition: clonePlain(definition) ?? {},
+    duration: normalizeConditionDuration(duration ?? metadata?.duration),
+    concentration: normalizeConditionConcentration(concentration ?? metadata?.concentration, {
+      source: source ?? metadata?.source,
+      origin: origin ?? metadata?.origin
+    }),
+    sourceRef: normalizeEffectReference(source ?? metadata?.source),
+    originRef: normalizeEffectReference(origin ?? metadata?.origin),
+    source: clonePlain(source) ?? null,
+    origin: clonePlain(origin) ?? null,
     metadata: clonePlain(metadata) ?? {}
   };
 
@@ -88,6 +113,10 @@ export function planConditionEffect({
     existingCondition: clonePlain(existing) ?? null,
     mutationPlan: plan,
     target: clonePlain(target) ?? null,
+    duration: plan.duration,
+    concentration: plan.concentration,
+    sourceRef: plan.sourceRef,
+    originRef: plan.originRef,
     metadata: clonePlain(metadata) ?? {}
   };
 }
@@ -102,6 +131,10 @@ export async function executeConditionEffect({
   target=null,
   existingConditions=null,
   conditionDefinitions=WILDPATH.CONDITIONS,
+  duration=null,
+  concentration=null,
+  source=null,
+  origin=null,
   commitConditionPlan=null,
   metadata={}
 }={}) {
@@ -113,6 +146,10 @@ export async function executeConditionEffect({
     target,
     existingConditions,
     conditionDefinitions,
+    duration,
+    concentration,
+    source,
+    origin,
     metadata
   });
   if ( !conditionPlan.ok ) return conditionPlan;
@@ -266,6 +303,59 @@ function normalizeConditionId(value) {
   return String(value);
 }
 
+function normalizeConditionDuration(duration) {
+  if ( duration == null || duration === false ) return null;
+  if ( typeof duration === "number" || typeof duration === "string" ) {
+    const rounds = Number(duration);
+    return Number.isFinite(rounds) && rounds >= 0
+      ? {unit: "round", value: Math.floor(rounds)}
+      : null;
+  }
+  if ( typeof duration !== "object" ) return null;
+
+  const normalized = clonePlain(duration) ?? {};
+  return Object.keys(normalized).length ? normalized : null;
+}
+
+function normalizeConditionConcentration(concentration, {source=null, origin=null}={}) {
+  if ( concentration == null || concentration === false ) return null;
+  if ( concentration === true ) {
+    return {
+      required: true,
+      sourceRef: normalizeEffectReference(source),
+      originRef: normalizeEffectReference(origin),
+      breakRemovesEffect: true
+    };
+  }
+  if ( typeof concentration !== "object" ) return null;
+
+  const normalized = clonePlain(concentration) ?? {};
+  normalized.required = normalized.required ?? true;
+  normalized.sourceRef = normalizeEffectReference(normalized.source ?? normalized.sourceRef ?? source);
+  normalized.originRef = normalizeEffectReference(normalized.origin ?? normalized.originRef ?? origin);
+  normalized.breakRemovesEffect = normalized.breakRemovesEffect ?? true;
+  return Object.keys(normalized).length ? normalized : null;
+}
+
+function normalizeEffectReference(value) {
+  if ( value == null || value === "" ) return null;
+  if ( typeof value === "string" ) return (normalizeEntityRef(value) ?? value.trim()) || null;
+  if ( typeof value !== "object" ) return null;
+
+  const explicit = normalizeEntityRef(value, {
+    kind: value.refKind ?? value.kind ?? value.type ?? null,
+    scope: value.scope ?? value.sceneId ?? null,
+    sceneId: value.sceneId ?? null
+  });
+  if ( explicit ) return explicit;
+
+  const kind = value.refKind ?? value.kind ?? value.type ?? null;
+  const id = value.refId ?? value.id ?? value.slug ?? null;
+  return createEntityRef(kind, id, {
+    scope: value.scope ?? value.sceneId ?? null
+  });
+}
+
 function normalizeLevels(value) {
   const number = Number(value);
   if ( !Number.isFinite(number) || !Number.isInteger(number) ) return null;
@@ -288,7 +378,7 @@ function clampLevel(level, maxLevel) {
   return Math.min(Math.max(Math.floor(level), 1), maxLevel);
 }
 
-function conditionFailure(code, {reason, conditionId, levels, target, metadata}) {
+function conditionFailure(code, {reason, conditionId, levels, target, duration, concentration, source, origin, metadata}) {
   return {
     ok: false,
     code,
@@ -299,6 +389,13 @@ function conditionFailure(code, {reason, conditionId, levels, target, metadata})
     reason,
     mutationPlan: null,
     target: clonePlain(target) ?? null,
+    duration: normalizeConditionDuration(duration ?? metadata?.duration),
+    concentration: normalizeConditionConcentration(concentration ?? metadata?.concentration, {
+      source: source ?? metadata?.source,
+      origin: origin ?? metadata?.origin
+    }),
+    sourceRef: normalizeEffectReference(source ?? metadata?.source),
+    originRef: normalizeEffectReference(origin ?? metadata?.origin),
     metadata: clonePlain(metadata) ?? {}
   };
 }

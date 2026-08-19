@@ -53,7 +53,9 @@ The finished game system name is **Wild Path**.
   events, optional attack resolution for supplied roll/defense data, optional save resolution for
   supplied save/DC data, optional damage resolution for supplied structured components,
   manufactured weapon-size damage scaling, save-outcome damage policies, and ResourceResolver
-  mutation plans.
+  mutation plans. It can also plan condition effect consequences for selected, hit, or save-matching
+  targets while carrying duration, spell-origin, and concentration metadata for a later Foundry
+  effect adapter.
 - `module/resolvers/target-resolver.mjs` wraps target-set eligibility, refinement decisions,
   required-target failures, self-targeting, and selection request state for future ActionResolver
   integration.
@@ -71,8 +73,8 @@ The finished game system name is **Wild Path**.
   vulnerability, damage reduction, and absorption that can convert incoming damage into healing,
   shields, or other resources before durability mutation planning.
 - `module/resolvers/effect-resolver.mjs` plans condition effect changes as explicit
-  create/update/delete/noop mutation plans and is now the resolver boundary used by
-  `WildPathActor#toggleCondition`.
+  create/update/delete/noop mutation plans with duration/source/origin/concentration lifecycle
+  metadata and is now the resolver boundary used by `WildPathActor#toggleCondition`.
 - `module/helpers/weapon-sizing.mjs` provides the WeaponSizePolicy foundation: size comparison,
   2014/2024/house policy providers, structured wieldability results, and structured
   weapon-size damage scaling for explicitly marked damage components.
@@ -184,10 +186,12 @@ current action-bar and combat-carousel view-model foundation. See
 
 ## Near-Term Order
 
-1. Add generic ActiveEffect create/update/delete planning on top of the condition-first
+1. Commit planned condition effects through an explicit Foundry adapter/transaction path.
+2. Add generic ActiveEffect create/update/delete planning on top of the condition-first
    EffectResolver boundary.
-2. Wire planned condition/effect consequences into ActionResolver.
-3. Start writing new pure contract-heavy modules in TypeScript once a pinned `typescript`
+3. Add a concentration/effect-lifecycle resolver that consumes condition plan metadata and combat
+   timeline events without putting spell logic in sheets or condition data preparation.
+4. Start writing new pure contract-heavy modules in TypeScript once a pinned `typescript`
    dev dependency and `typecheck` script are added.
 
 Keep every slice small, testable, and compatible with synthetic Token Actors.

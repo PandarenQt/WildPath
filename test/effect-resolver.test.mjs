@@ -144,6 +144,41 @@ test("EffectResolver reports invalid condition ids and invalid level deltas", ()
   assert.equal(invalidDelta.code, EFFECT_RESOLVER_CODES.INVALID_LEVEL_DELTA);
 });
 
+test("EffectResolver carries duration, concentration, source, and origin metadata on condition plans", () => {
+  const result = planConditionEffect({
+    conditionId: "prone",
+    levels: 1,
+    conditionDefinitions: CONDITION_DEFINITIONS,
+    duration: {
+      unit: "round",
+      value: 1,
+      expires: "sourceTurnEnd"
+    },
+    concentration: true,
+    source: "actor:caster",
+    origin: "item:hold-person",
+    metadata: {
+      spell: "hold-person"
+    }
+  });
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(result.duration, {
+    unit: "round",
+    value: 1,
+    expires: "sourceTurnEnd"
+  });
+  assert.deepEqual(result.concentration, {
+    required: true,
+    sourceRef: "actor:caster",
+    originRef: "item:hold-person",
+    breakRemovesEffect: true
+  });
+  assert.equal(result.sourceRef, "actor:caster");
+  assert.equal(result.originRef, "item:hold-person");
+  assert.equal(result.mutationPlan.metadata.spell, "hold-person");
+});
+
 test("EffectResolver execution requires an explicit commit adapter for mutating condition plans", async () => {
   const result = await executeConditionEffect({
     actor: {effects: []},

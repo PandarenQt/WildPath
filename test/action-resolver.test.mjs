@@ -84,6 +84,17 @@ function damageComponent(id="base", amount=6, damageType="slashing") {
   return {id, amount, damageType};
 }
 
+const CONDITION_DEFINITIONS = {
+  restrained: {
+    id: "restrained",
+    name: "Restrained"
+  },
+  prone: {
+    id: "prone",
+    name: "Prone"
+  }
+};
+
 test("ActionResolver plans current cost-only action resolution without mutating Actor system", () => {
   const system = actorSystem(1);
   const result = planActionResolution({
@@ -392,6 +403,74 @@ test("ActionResolver can apply save outcome policies to per-target damage", () =
   assert.equal(rogueDamage.components[0].metadata.saveOutcomeDamagePolicy.multiplier, 0.5);
   assert.equal(rogueDamage.components[0].metadata.saveOutcomeDamagePolicy.originalAmount, 9);
   assert.equal(ogreDamage.components[0].metadata.saveOutcomeDamagePolicy, undefined);
+});
+
+test("ActionResolver plans save-gated condition effects only for matching save outcomes", () => {
+  const result = planActionResolution({
+    actorSystem: actorSystem(1),
+    action: action(),
+    source: {actorId: "caster"},
+    targeting: {
+      required: true,
+      candidates: [
+        saveCandidate("rogue", 18),
+        saveCandidate("ogre", 9)
+      ]
+    },
+    save: {
+      saveKey: "dex",
+      dc: {value: 15, ability: "dex"}
+    },
+    effects: {
+      conditionDefinitions: CONDITION_DEFINITIONS,
+      conditions: [{
+        conditionId: "restrained",
+        saveOutcomePolicy: {applyOn: ["failure"]},
+        duration: {
+          unit: "round",
+          value: 1,
+          expires: "sourceTurnEnd"
+        },
+        concentration: true,
+        origin: "item:ensnaring-strike"
+      }]
+    }
+  });
+
+  const effectsStep = result.steps.find(step => step.stage === ACTION_RESOLUTION_STAGES.EFFECTS);
+  const effectResolution = effectsStep.data.effectResolution;
+  const conditionPlan = effectResolution.conditionPlans[0];
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(result.mutationPlans.map(plan => plan.type), ["conditionEffect", "resourcePayment"]);
+  assert.deepEqual(effectResolution.conditionPlans.map(plan => plan.target.id), ["ogre"]);
+  assert.deepEqual(effectResolution.skipped.map(entry => entry.target.id), ["rogue"]);
+  assert.equal(conditionPlan.conditionId, "restrained");
+  assert.equal(conditionPlan.mutationPlan.metadata.saveOutcome, "failure");
+  assert.equal(conditionPlan.mutationPlan.duration.expires, "sourceTurnEnd");
+  assert.equal(conditionPlan.mutationPlan.concentration.required, true);
+  assert.equal(conditionPlan.mutationPlan.concentration.originRef, "item:ensnaring-strike");
+});
+
+test("ActionResolver fails before payment when condition effect data is invalid", () => {
+  const result = planActionResolution({
+    actorSystem: actorSystem(1),
+    action: action(),
+    source: {actorId: "caster"},
+    targets: [{id: "target-a", actorId: "actor-target"}],
+    effects: {
+      conditionDefinitions: CONDITION_DEFINITIONS,
+      conditions: [{
+        conditionId: "not-real"
+      }]
+    }
+  });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.code, ACTION_RESOLVER_CODES.EFFECTS_FAILED);
+  assert.equal(result.steps.at(-1).stage, ACTION_RESOLUTION_STAGES.EFFECTS);
+  assert.equal(result.events.some(event => event.type === AUTOMATION_EVENT_TYPES.PAYMENT_REQUIRED), false);
+  assert.equal(result.mutationPlans.length, 0);
 });
 
 test("ActionResolver applies WeaponSizePolicy to manufactured weapon damage before resolution", () => {

@@ -34,8 +34,10 @@ import {resolveActionTargets} from "./target-resolver.mjs";
 import {resolveWeaponDamageScaling} from "../helpers/weapon-sizing.mjs";
 import {
   SAVE_RESOLVER_CODES,
+  SAVE_OUTCOMES,
   resolveSaveTargets
 } from "./save-resolver.mjs";
+import {planConditionEffect} from "./effect-resolver.mjs";
 
 export const ACTION_RESOLVER_CODES = Object.freeze({
   OK: "OK",
@@ -44,6 +46,7 @@ export const ACTION_RESOLVER_CODES = Object.freeze({
   SAVE_FAILED: "SAVE_FAILED",
   DAMAGE_FAILED: "DAMAGE_FAILED",
   HEALING_FAILED: "HEALING_FAILED",
+  EFFECTS_FAILED: "EFFECTS_FAILED",
   PAYMENT_UNAVAILABLE: "PAYMENT_UNAVAILABLE",
   RESOURCE_COMMIT_FAILED: "RESOURCE_COMMIT_FAILED",
   MUTATION_COMMIT_FAILED: "MUTATION_COMMIT_FAILED",
@@ -62,6 +65,7 @@ export function planActionResolution({
   save=null,
   damage=null,
   healing=null,
+  effects=null,
   durability=null,
   context={},
   policies={},
@@ -285,6 +289,34 @@ export function planActionResolution({
     });
   }
 
+  if ( shouldResolveEffects(effects) ) {
+    const effectResolution = resolveActionEffects({
+      effects,
+      targetResolution,
+      attackResolution,
+      saveResolution,
+      actionContext
+    });
+    if ( !effectResolution.ok ) {
+      return failActionResult(result, {
+        stage: ACTION_RESOLUTION_STAGES.EFFECTS,
+        code: ACTION_RESOLVER_CODES.EFFECTS_FAILED,
+        reason: effectResolution.code,
+        data: {effectResolution}
+      });
+    }
+
+    result = addResolutionStep(result, {
+      stage: ACTION_RESOLUTION_STAGES.EFFECTS,
+      consequences: [{
+        type: "effectsResolved",
+        effectResolution
+      }],
+      mutationPlans: effectResolution.mutationPlans,
+      data: {effectResolution}
+    });
+  }
+
   const payment = resolveActorResourcePayment({
     actorSystem,
     cost: actionActivationCost(action),
@@ -343,6 +375,7 @@ export async function executeActionResolution({
   save=null,
   damage=null,
   healing=null,
+  effects=null,
   durability=null,
   targetActors=null,
   authority=null,
@@ -361,6 +394,7 @@ export async function executeActionResolution({
     save,
     damage,
     healing,
+    effects,
     durability: executionDurability,
     context,
     policies,
@@ -552,6 +586,12 @@ function shouldResolveHealing(healing) {
   return !!healing;
 }
 
+function shouldResolveEffects(effects) {
+  if ( Array.isArray(effects) ) return effects.length > 0;
+  if ( !effects ) return false;
+  return !!effects.condition || !!effects.conditions?.length;
+}
+
 function finalTargetRefs(targetResolution) {
   return (targetResolution.refinement?.finalTargets ?? []).map(candidate => candidate.target ?? candidate);
 }
@@ -681,6 +721,320 @@ function resolveHealingDurability({healing, durability, healingResolution, actio
       ...(options.metadata ?? {})
     }
   });
+}
+
+function resolveActionEffects({effects, targetResolution, attackResolution, saveResolution, actionContext}) {
+  const requests = normalizeActionConditionEffectRequests({effects, actionContext});
+  const conditionPlans = [];
+  const mutationPlans = [];
+  const skipped = [];
+  const failures = [];
+
+  for ( const request of requests ) {
+    const targetSelection = conditionEffectTargetsForRequest({
+      request,
+      targetResolution,
+      attackResolution,
+      saveResolution,
+      actionContext
+    });
+    if ( !targetSelection.ok ) {
+      failures.push({
+        code: targetSelection.code,
+        reason: targetSelection.reason,
+        request
+      });
+      continue;
+    }
+    skipped.push(...targetSelection.skipped);
+
+    for ( const entry of targetSelection.entries ) {
+      const metadata = {
+        ...(request.metadata ?? {}),
+        target: entry.target,
+        ...(entry.saveResult ? {
+          saveOutcome: entry.saveResult.outcome,
+          saveSuccess: entry.saveResult.success
+        } : {})
+      };
+      const conditionPlan = planConditionEffect({
+        conditionId: request.conditionId,
+        type: request.type,
+        levels: request.levels,
+        target: entry.target,
+        existingConditions: existingConditionsForEffectTarget(request, entry),
+        conditionDefinitions: request.conditionDefinitions,
+        duration: request.duration,
+        concentration: request.concentration,
+        source: request.source,
+        origin: request.origin,
+        metadata
+      });
+
+      if ( !conditionPlan.ok ) {
+        failures.push({
+          code: conditionPlan.code,
+          reason: conditionPlan.reason,
+          request,
+          target: entry.target,
+          conditionPlan
+        });
+        continue;
+      }
+
+      conditionPlans.push(conditionPlan);
+      mutationPlans.push(conditionPlan.mutationPlan);
+    }
+  }
+
+  if ( failures.length ) {
+    return {
+      ok: false,
+      code: failures[0].code,
+      resolver: "ActionResolver",
+      effectType: "condition",
+      conditionPlans,
+      mutationPlans,
+      skipped,
+      failures,
+      context: {
+        action: actionContext.action,
+        source: actionContext.source
+      }
+    };
+  }
+
+  return {
+    ok: true,
+    code: ACTION_RESOLVER_CODES.OK,
+    resolver: "ActionResolver",
+    effectType: "condition",
+    conditionPlans,
+    mutationPlans,
+    skipped,
+    failures: [],
+    context: {
+      action: actionContext.action,
+      source: actionContext.source
+    }
+  };
+}
+
+function normalizeActionConditionEffectRequests({effects, actionContext}) {
+  const root = Array.isArray(effects) ? {} : effects ?? {};
+  const entries = Array.isArray(effects)
+    ? effects
+    : [
+        ...(Array.isArray(root.conditions) ? root.conditions : []),
+        ...(root.condition ? [root.condition] : [])
+      ];
+
+  return entries
+    .filter(entry => entry && typeof entry === "object")
+    .map((entry, index) => ({
+      ...entry,
+      conditionId: entry.conditionId ?? entry.id ?? entry.slug ?? entry.type ?? null,
+      levels: entry.levels ?? entry.delta ?? entry.levelDelta ?? 1,
+      conditionDefinitions: entry.conditionDefinitions ?? root.conditionDefinitions ?? root.definitions,
+      existingConditions: entry.existingConditions ?? root.existingConditions ?? null,
+      existingConditionsByTarget: entry.existingConditionsByTarget ?? root.existingConditionsByTarget ?? null,
+      duration: entry.duration ?? root.duration ?? null,
+      concentration: entry.concentration ?? root.concentration ?? null,
+      source: entry.source ?? root.source ?? actionContext.source,
+      origin: entry.origin ?? entry.spell ?? root.origin ?? root.spell ?? actionContext.action,
+      saveOutcomePolicy: entry.saveOutcomePolicy ?? entry.savePolicy ?? root.saveOutcomePolicy ?? root.savePolicy ?? null,
+      metadata: {
+        ...(root.metadata ?? {}),
+        ...(entry.metadata ?? {}),
+        effectIndex: index
+      }
+    }));
+}
+
+function conditionEffectTargetsForRequest({request, targetResolution, attackResolution, saveResolution, actionContext}) {
+  const savePolicy = normalizeConditionSaveOutcomePolicy(request.saveOutcomePolicy);
+  if ( savePolicy && !saveResolution ) {
+    return {
+      ok: false,
+      code: "MISSING_SAVE_RESOLUTION",
+      reason: "A save-gated condition effect requires a save resolution.",
+      entries: [],
+      skipped: []
+    };
+  }
+
+  if ( savePolicy ) {
+    const entries = [];
+    const skipped = [];
+    for ( const saveResult of saveResolution.results.filter(result => result.code !== SAVE_RESOLVER_CODES.TARGET_SKIPPED) ) {
+      if ( saveResult.ok && conditionSavePolicyMatches(saveResult, savePolicy) ) {
+        entries.push({
+          target: saveResult.target,
+          targetContext: saveResult.targetContext,
+          saveResult
+        });
+      } else {
+        skipped.push({
+          reason: saveResult.ok ? "save outcome policy did not match" : saveResult.reason,
+          target: saveResult.target,
+          saveResult
+        });
+      }
+    }
+    return {ok: true, code: ACTION_RESOLVER_CODES.OK, entries, skipped};
+  }
+
+  if ( request.targetContexts?.length ) {
+    return {
+      ok: true,
+      code: ACTION_RESOLVER_CODES.OK,
+      entries: request.targetContexts.map(targetContext => ({
+        target: targetContext.target ?? targetContext,
+        targetContext,
+        saveResult: null
+      })),
+      skipped: []
+    };
+  }
+
+  if ( request.targets?.length ) {
+    return {
+      ok: true,
+      code: ACTION_RESOLVER_CODES.OK,
+      entries: request.targets.map(target => ({
+        target,
+        targetContext: {target, selected: true},
+        saveResult: null
+      })),
+      skipped: []
+    };
+  }
+
+  if ( attackResolution ) {
+    return {
+      ok: true,
+      code: ACTION_RESOLVER_CODES.OK,
+      entries: attackResolution.hits.map(hit => ({
+        target: hit.target,
+        targetContext: hit.targetContext ?? {target: hit.target, selected: true},
+        saveResult: null
+      })),
+      skipped: attackResolution.misses.map(miss => ({
+        reason: "attack did not hit",
+        target: miss.target,
+        attackResult: miss
+      }))
+    };
+  }
+
+  const targetContexts = targetResolution?.targetContexts ?? [];
+  if ( targetContexts.length ) {
+    return {
+      ok: true,
+      code: ACTION_RESOLVER_CODES.OK,
+      entries: targetContexts
+        .filter(targetContext => targetContext.selected !== false && !targetContext.excluded)
+        .map(targetContext => ({
+          target: targetContext.target ?? targetContext,
+          targetContext,
+          saveResult: null
+        })),
+      skipped: targetContexts
+        .filter(targetContext => targetContext.selected === false || targetContext.excluded)
+        .map(targetContext => ({
+          reason: "target was not selected",
+          target: targetContext.target ?? targetContext
+        }))
+    };
+  }
+
+  return {
+    ok: true,
+    code: ACTION_RESOLVER_CODES.OK,
+    entries: (actionContext.targets ?? []).map(target => ({
+      target,
+      targetContext: {target, selected: true},
+      saveResult: null
+    })),
+    skipped: []
+  };
+}
+
+function normalizeConditionSaveOutcomePolicy(policy) {
+  if ( !policy ) return null;
+  const tokens = Array.isArray(policy)
+    ? policy
+    : typeof policy === "object"
+      ? policy.applyOn ?? policy.outcomes ?? policy.outcome ?? []
+      : [policy];
+  const normalized = new Set([].concat(tokens).map(normalizeConditionSaveOutcomeToken).filter(Boolean));
+  if ( normalized.has("any") ) return {any: true, outcomes: new Set(), successStates: new Set()};
+  return {
+    any: false,
+    outcomes: new Set([...normalized].filter(token => token.startsWith("outcome:")).map(token => token.slice(8))),
+    successStates: new Set([...normalized].filter(token => token.startsWith("success:")).map(token => token.slice(8) === "true"))
+  };
+}
+
+function normalizeConditionSaveOutcomeToken(value) {
+  const token = String(value ?? "").trim().toLowerCase().replace(/[-_\s]/g, "");
+  switch ( token ) {
+    case "any":
+    case "all":
+      return "any";
+    case "success":
+    case "succeeded":
+    case "passed":
+    case "pass":
+      return "success:true";
+    case "failure":
+    case "failed":
+    case "fail":
+      return "success:false";
+    case "criticalsuccess":
+      return `outcome:${SAVE_OUTCOMES.CRITICAL_SUCCESS}`;
+    case "criticalfailure":
+      return `outcome:${SAVE_OUTCOMES.CRITICAL_FAILURE}`;
+    default:
+      return Object.values(SAVE_OUTCOMES).includes(value) ? `outcome:${value}` : null;
+  }
+}
+
+function conditionSavePolicyMatches(saveResult, policy) {
+  if ( policy.any ) return true;
+  if ( policy.outcomes.has(saveResult.outcome) ) return true;
+  return policy.successStates.has(saveResult.success);
+}
+
+function existingConditionsForEffectTarget(request, entry) {
+  const byTarget = request.existingConditionsByTarget;
+  const target = entry.target ?? {};
+  const keys = [
+    target.ref,
+    target.id,
+    target.actorId,
+    target.tokenId,
+    target.uuid
+  ].filter(Boolean);
+
+  if ( byTarget instanceof Map ) {
+    for ( const key of keys ) {
+      if ( byTarget.has(key) ) return byTarget.get(key);
+    }
+  } else if ( byTarget && typeof byTarget === "object" ) {
+    for ( const key of keys ) {
+      if ( byTarget[key] ) return byTarget[key];
+    }
+  }
+
+  if ( typeof request.existingConditions === "function" ) {
+    return request.existingConditions({
+      target,
+      targetContext: entry.targetContext,
+      saveResult: entry.saveResult
+    });
+  }
+  return request.existingConditions;
 }
 
 function normalizeDamageDurabilityOptions(options) {

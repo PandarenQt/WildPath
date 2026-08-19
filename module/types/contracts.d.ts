@@ -162,6 +162,12 @@ export interface ConditionEffectMutationPlan {
   readonly existingEffectUuid: string | null;
   readonly target: unknown;
   readonly definition: Readonly<Record<string, unknown>>;
+  readonly duration: Readonly<Record<string, unknown>> | null;
+  readonly concentration: Readonly<Record<string, unknown>> | null;
+  readonly sourceRef: EntityRef | string | null;
+  readonly originRef: EntityRef | string | null;
+  readonly source: unknown;
+  readonly origin: unknown;
   readonly metadata: Readonly<Record<string, unknown>>;
 }
 
@@ -176,6 +182,10 @@ export interface ConditionEffectResult {
   readonly stacking?: boolean;
   readonly fromLevel?: number | null;
   readonly toLevel?: number | null;
+  readonly duration?: Readonly<Record<string, unknown>> | null;
+  readonly concentration?: Readonly<Record<string, unknown>> | null;
+  readonly sourceRef?: EntityRef | string | null;
+  readonly originRef?: EntityRef | string | null;
   readonly mutationPlan: ConditionEffectMutationPlan | null;
   readonly committed?: boolean;
   readonly reason?: string | null;

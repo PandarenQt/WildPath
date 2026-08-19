@@ -32,8 +32,9 @@ automation foundation needs, per `AGENTS.md` sections 4 and 8 and the architectu
   save data to `SaveResolver`, optionally delegates supplied damage components to
   `DamageResolver`, applies WeaponSizePolicy to explicitly manufactured weapon-size damage data,
   applies save-outcome damage policies, optionally resolves healing components, attaches
-  damage/healing durability plans, can commit target durability plans with explicit authority
-  through `ResolutionTransaction`, and delegates payment planning to `ResourceResolver`.
+  damage/healing durability plans, optionally plans condition effects with save-outcome, duration,
+  spell-origin, and concentration metadata, can commit target durability plans with explicit
+  authority through `ResolutionTransaction`, and delegates payment planning to `ResourceResolver`.
 - `module/resolvers/target-resolver.mjs` now wraps target-set eligibility, refinement decisions,
   required-target failures, self-targeting, and selection request state.
 - `module/resolvers/attack-resolver.mjs` now resolves already-known attack totals against target
@@ -58,7 +59,8 @@ automation foundation needs, per `AGENTS.md` sections 4 and 8 and the architectu
 - `module/resolvers/target-mutation-commit-resolver.mjs` commits target mutation plans only when
   supplied target Actors and explicit authority.
 - `module/resolvers/effect-resolver.mjs` now plans condition effect create/update/delete/noop
-  changes and provides an explicit commit-adapter boundary for Foundry ActiveEffect mutation.
+  changes, carries duration/source/origin/concentration metadata, and provides an explicit
+  commit-adapter boundary for Foundry ActiveEffect mutation.
 - `WildPathActor#toggleCondition` now enters `EffectResolver` before delegating Foundry document
   mutation to `WildPathConditionEffect.applyDelta`.
 - `WildPathActor#getStatistic(domain)` plus `WildPathStatistic`/`WildPathModifier` are the
@@ -76,7 +78,7 @@ call into `ActionResolver`; resolvers should not call UI code.
 
 | Module | File | Responsibility |
 |---|---|---|
-| `ActionResolver` | `module/resolvers/action-resolver.mjs` | Current target-aware, attack-capable, save-capable, weapon-size-aware, save-damage-policy-aware, damage/healing-capable entry point for supplied plain data; should grow into roll requests, effects, and post-resolution hooks. |
+| `ActionResolver` | `module/resolvers/action-resolver.mjs` | Current target-aware, attack-capable, save-capable, weapon-size-aware, save-damage-policy-aware, damage/healing-capable, condition-effect-planning entry point for supplied plain data; should grow into roll requests, effect commits, and post-resolution hooks. |
 | `TargetResolver` | `module/resolvers/target-resolver.mjs` | Resolves and validates self, explicit, and precomputed target sets for ActionResolver and future UI adapters. |
 | `AttackResolver` | `module/resolvers/attack-resolver.mjs` | Current pure attack-vs-defense outcome resolver for known roll totals and target defenses. |
 | `SaveResolver` | `module/resolvers/save-resolver.mjs` | Current pure save-vs-DC outcome resolver for known save totals and DCs. |
@@ -86,7 +88,7 @@ call into `ActionResolver`; resolvers should not call UI code.
 | `DurabilityResolver` | `module/resolvers/durability-resolver.mjs` | Current Actor durability mutation planner for already-resolved damage/healing amounts. |
 | `TargetMutationCommitResolver` | `module/resolvers/target-mutation-commit-resolver.mjs` | Commits target mutation plans to supplied Actors with explicit authority. |
 | `ResolutionTransaction` | `module/resolvers/resolution-transaction-resolver.mjs` | Commits ordered Actor update operations and rolls back committed updates if a later operation fails. |
-| `EffectResolver` | `module/resolvers/effect-resolver.mjs` | Current condition create/update/delete/noop planner and commit-adapter boundary; general ActiveEffect planning remains future work. |
+| `EffectResolver` | `module/resolvers/effect-resolver.mjs` | Current condition create/update/delete/noop planner with lifecycle metadata and commit-adapter boundary; general ActiveEffect planning remains future work. |
 | `ResourceResolver` | `module/resolvers/resource-resolver.mjs` | Generalizes action cost validation and payment mutation planning; refund-on-cancel waits for cancellation/reaction slices. |
 | `ReactionResolver` | `module/resolvers/reaction-resolver.mjs` | Offer eligible reactions at defined interrupt points, then resume the parent resolution. |
 | `AreaResolver` | `module/resolvers/area-resolver.mjs` | Resolve instantaneous and persistent areas plus enter/leave/start-turn/end-turn triggers. |
@@ -101,6 +103,9 @@ explicitly manufactured weapon-size damage data, and save-outcome policies can a
 damage before DamageResolver totals it; see `docs/architecture/weapon-size.md`.
 ActionResolver can now attach and execute durability mutation plans for adjusted damage and
 resolved healing when a Foundry adapter supplies target Actor system snapshots, target Actors, and
-explicit authority. Target durability and source payment commits now run through
-ResolutionTransaction. The next resolver slice should extend EffectResolver from condition-only
-planning toward generic ActiveEffect planning or wire condition consequences into ActionResolver.
+explicit authority. It can also plan condition effect consequences for selected, hit, or
+save-matching targets while carrying duration, spell-origin, and concentration metadata for a
+future Foundry effect adapter. Target durability and source payment commits now run through
+ResolutionTransaction. The next resolver slice should either commit condition effect plans through
+an explicit Foundry adapter/transaction path or extend EffectResolver from condition-only planning
+toward generic ActiveEffect planning.
