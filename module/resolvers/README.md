@@ -66,6 +66,12 @@ automation foundation needs, per `AGENTS.md` sections 4 and 8 and the architectu
   condition-effect mutations against supplied target Actors.
 - `module/resolvers/effect-lifecycle-resolver.mjs` consumes committed condition metadata plus
   timeline/concentration break events and returns condition removal mutation plans.
+- `module/resolvers/effect-lifecycle-commit-resolver.mjs` runs lifecycle planning for supplied
+  Actors and commits resulting condition removals through the target mutation transaction path
+  with explicit authority.
+- `wildpath.mjs` now adapts `combatStart` and `combatTurn` into semantic timeline events on the
+  active GM client, resets the incoming combatant's turn resources, and runs effect lifecycle
+  commits for combatant Actors.
 - `WildPathActor#toggleCondition` now enters `EffectResolver` before delegating Foundry document
   mutation to `WildPathConditionEffect.applyDelta`.
 - `WildPathActor#getStatistic(domain)` plus `WildPathStatistic`/`WildPathModifier` are the
@@ -96,6 +102,7 @@ call into `ActionResolver`; resolvers should not call UI code.
 | `EffectResolver` | `module/resolvers/effect-resolver.mjs` | Current condition create/update/delete/noop planner with lifecycle metadata and commit-adapter boundary; general ActiveEffect planning remains future work. |
 | `ConditionEffectCommitResolver` | `module/resolvers/condition-effect-commit-resolver.mjs` | Commits planned condition effects to supplied target Actors and restores snapshots on rollback. |
 | `EffectLifecycleResolver` | `module/resolvers/effect-lifecycle-resolver.mjs` | Plans condition removal when committed duration/concentration metadata expires or breaks. |
+| `EffectLifecycleCommitResolver` | `module/resolvers/effect-lifecycle-commit-resolver.mjs` | Commits lifecycle condition removals for supplied Actors with explicit authority and transaction rollback. |
 | `ResourceResolver` | `module/resolvers/resource-resolver.mjs` | Generalizes action cost validation and payment mutation planning; refund-on-cancel waits for cancellation/reaction slices. |
 | `ReactionResolver` | `module/resolvers/reaction-resolver.mjs` | Offer eligible reactions at defined interrupt points, then resume the parent resolution. |
 | `AreaResolver` | `module/resolvers/area-resolver.mjs` | Resolve instantaneous and persistent areas plus enter/leave/start-turn/end-turn triggers. |
@@ -115,6 +122,7 @@ save-matching targets while carrying duration, spell-origin, and concentration m
 execute those plans through the same target mutation authority and transaction path. Target
 durability, target condition effects, and source payment commits now run through
 ResolutionTransaction. EffectLifecycleResolver can now turn committed duration/concentration
-metadata into condition removal plans. The next resolver slice should either connect lifecycle
-planning to Foundry combat/concentration hooks with authority guards or extend EffectResolver from
+metadata into condition removal plans, and EffectLifecycleCommitResolver can commit those plans
+from Foundry combat start/turn hook events on the active GM client. The next resolver slice should
+either add concentration-save decision events into this lifecycle path or extend EffectResolver from
 condition-only planning toward generic ActiveEffect planning.

@@ -17,8 +17,12 @@ import WildPathActiveEffect from "./module/documents/active-effect.mjs";
 import WildPathActorSheet from "./module/applications/actor-sheet.mjs";
 import WildPathItemSheet from "./module/applications/item-sheet.mjs";
 
-import {getIncomingCombatant} from "./module/helpers/combat.mjs";
+import {
+  getCombatLifecycleEvents,
+  getIncomingCombatant
+} from "./module/helpers/combat.mjs";
 import {MOVEMENT_MEASUREMENT_MODES} from "./module/helpers/movement.mjs";
+import {executeEffectLifecycleCommit} from "./module/resolvers/effect-lifecycle-commit-resolver.mjs";
 
 /* -------------------------------------------- */
 /*  Init                                         */
@@ -117,11 +121,61 @@ Hooks.once("init", () => {
  * @param {object} updateData
  * @returns {Promise<void>}
  */
-async function onCombatTurnChange(combat, updateData) {
-  if ( !game.user?.isGM ) return;
+async function onCombatTurnChange(combat, updateData, {hook="combatTurn"}={}) {
+  const authority = currentGMCommitAuthority();
+  if ( !authority.canCommit ) return;
+
   const combatant = getIncomingCombatant(combat, updateData);
   if ( combatant?.actor ) await combatant.actor.startTurn();
+
+  const events = getCombatLifecycleEvents(combat, updateData, {hook});
+  if ( !events.length ) return;
+
+  const lifecycle = await executeEffectLifecycleCommit({
+    actors: combatActors(combat),
+    events,
+    authority,
+    metadata: {hook}
+  });
+  if ( !lifecycle.ok ) {
+    console.warn("Wild Path | Effect lifecycle commit failed", lifecycle);
+  }
 }
 
-Hooks.on("combatTurn", (combat, updateData) => onCombatTurnChange(combat, updateData));
-Hooks.on("combatStart", (combat, updateData) => onCombatTurnChange(combat, updateData));
+function currentGMCommitAuthority() {
+  const activeGM = activeGMUser();
+  const userId = game.user?.id ?? null;
+  const isGM = game.user?.isGM === true;
+  const canCommit = isGM && (!activeGM || activeGM.id === userId);
+  return {
+    isGM,
+    canCommit,
+    userId,
+    activeUserId: activeGM?.id ?? null,
+    activeGMId: activeGM?.id ?? null
+  };
+}
+
+function activeGMUser() {
+  return collectionContents(game.users)
+    .filter(user => user?.active && user.isGM)
+    .sort((a, b) => String(a.id).localeCompare(String(b.id)))[0] ?? null;
+}
+
+function combatActors(combat) {
+  return collectionContents(combat?.combatants ?? combat?.turns ?? [])
+    .map(combatant => combatant?.actor)
+    .filter(Boolean);
+}
+
+function collectionContents(collection) {
+  if ( collection == null ) return [];
+  if ( Array.isArray(collection) ) return collection;
+  if ( collection instanceof Map ) return [...collection.values()];
+  if ( typeof collection.values === "function" ) return [...collection.values()];
+  if ( typeof collection === "object" ) return Object.values(collection);
+  return [];
+}
+
+Hooks.on("combatTurn", (combat, updateData) => onCombatTurnChange(combat, updateData, {hook: "combatTurn"}));
+Hooks.on("combatStart", (combat, updateData) => onCombatTurnChange(combat, updateData, {hook: "combatStart"}));

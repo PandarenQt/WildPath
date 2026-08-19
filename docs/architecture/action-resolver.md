@@ -121,7 +121,7 @@ pipeline shape that those slices will extend.
 
 ## Next Resolver Slice
 
-The next resolver slice should either connect EffectLifecycleResolver to Foundry
-combat/concentration hooks with authority guards or extend EffectResolver from conditions to
-generic ActiveEffect creation/removal. Direct Actor durability mutation remains outside
-DamageResolver itself.
+The next resolver slice should either add concentration-save decision events into the
+EffectLifecycleCommitResolver path or extend EffectResolver from conditions to generic
+ActiveEffect creation/removal. Direct Actor durability mutation remains outside DamageResolver
+itself.

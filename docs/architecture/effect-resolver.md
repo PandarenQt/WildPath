@@ -53,6 +53,12 @@ condition id + signed level delta
 - plans condition removal when linked concentration metadata breaks
 - returns mutation plans instead of mutating ActiveEffects
 
+`module/resolvers/effect-lifecycle-commit-resolver.mjs`:
+
+- runs lifecycle planning for supplied Actors
+- commits resulting condition removals through `TargetMutationCommitResolver`
+- requires explicit authority and uses `ResolutionTransaction`
+
 `WildPathActor#toggleCondition()` now enters this resolver and supplies the Foundry-specific commit
 adapter that delegates to `WildPathConditionEffect.applyDelta`.
 
@@ -70,6 +76,7 @@ EffectResolver does not:
 
 Those should land as small effect slices. Conditions are first because they already have a stable
 document implementation and give the rest of the system a concrete effect contract to build on.
-Save-based applicability belongs in `ActionResolver` after `SaveResolver` outcomes exist; duration
-and concentration lifecycle enforcement belongs in a future effect/concentration adapter rather
-than in condition data preparation or sheet rendering.
+Save-based applicability belongs in `ActionResolver` after `SaveResolver` outcomes exist. Duration
+and concentration lifecycle enforcement belongs in effect lifecycle adapters rather than in
+condition data preparation or sheet rendering; the current Foundry adapter covers combat start/turn
+duration events, while concentration-save decisions remain future work.

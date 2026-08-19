@@ -204,6 +204,18 @@ export interface EffectLifecycleResult {
   readonly metadata: Readonly<Record<string, unknown>>;
 }
 
+export interface EffectLifecycleCommitResult {
+  readonly ok: boolean;
+  readonly code: string;
+  readonly resolver: "EffectLifecycleCommitResolver";
+  readonly lifecycleResults: readonly EffectLifecycleResult[];
+  readonly mutationPlans: readonly ConditionEffectMutationPlan[];
+  readonly failures: readonly unknown[];
+  readonly targetOperations: unknown;
+  readonly transaction: ResolutionTransactionResult | null;
+  readonly metadata: Readonly<Record<string, unknown>>;
+}
+
 export interface ResolverSuccess<TCode extends string = "OK", TData extends object = Record<string, never>> {
   readonly ok: true;
   readonly code: TCode;

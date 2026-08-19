@@ -23,7 +23,9 @@ Supported lifecycle events include:
 - turn start/end
 - rest start/complete
 
-Foundry combat hooks should eventually adapt into this event shape before triggering automation.
+Foundry combat hooks now begin adapting into this event shape through
+`module/helpers/combat.mjs#getCombatLifecycleEvents()`. The current adapter covers
+`combatStart` and `combatTurn`; combat end, rest, and movement-region hooks remain future slices.
 The combat carousel should read the same timeline state rather than maintaining independent turn
 state.
 
@@ -67,8 +69,9 @@ resolvers should use the emitted events to plan and commit mutations through the
 and transaction layers.
 
 `EffectLifecycleResolver` now consumes this event shape to plan condition removals when committed
-duration metadata expires. Foundry combat hooks still need an adapter that turns real combat
-updates into these timeline events and commits the resulting mutation plans with authority guards.
+duration metadata expires. `wildpath.mjs` supplies combat start/turn events on the active GM client
+and commits resulting condition-removal plans through `EffectLifecycleCommitResolver`,
+`TargetMutationCommitResolver`, and `ResolutionTransaction`.
 
 ## Future Consumers
 

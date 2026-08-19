@@ -3,6 +3,10 @@
 `module/resolvers/effect-lifecycle-resolver.mjs` is the pure bridge between committed condition
 effect metadata and later removal plans.
 
+`module/resolvers/effect-lifecycle-commit-resolver.mjs` is the Foundry-facing commit bridge that
+accepts supplied Actors, lifecycle events, and explicit authority, then commits any resulting
+condition removal plans through `TargetMutationCommitResolver` and `ResolutionTransaction`.
+
 ## Current Flow
 
 ```text
@@ -33,17 +37,27 @@ The returned `conditionEffect` mutation plans can be committed by
 `TargetMutationCommitResolver`/`ResolutionTransaction` when a Foundry adapter supplies target
 Actors and explicit authority.
 
+`executeEffectLifecycleCommit()`:
+
+- runs `planEffectLifecycle()` for supplied target Actors
+- builds a target Actor lookup from opaque `actor:` and `uuid:` refs
+- refuses mutation commits without explicit GM/authority data
+- batches committed condition removals through the existing transaction path
+
+`wildpath.mjs` currently adapts `combatStart` and `combatTurn` into semantic lifecycle events,
+guards execution to the active GM, resets the incoming combatant's turn resources, and asks
+`EffectLifecycleCommitResolver` to remove expired condition effects.
+
 ## What It Does Not Do Yet
 
 EffectLifecycleResolver does not:
 
-- listen to Foundry combat hooks
-- decide which client is authoritative
 - roll concentration saves
 - decide whether concentration was broken
 - decrement and persist remaining duration counters
 - create chat output or UI prompts
 - apply generic non-condition ActiveEffects
 
-Those remain integration and future resolver slices. This module only converts already-known
-timeline/concentration events into explicit condition removal plans.
+Those remain future resolver slices. The pure planner only converts already-known
+timeline/concentration events into explicit condition removal plans; the current Foundry hook
+adapter only supplies combat start/turn events.
