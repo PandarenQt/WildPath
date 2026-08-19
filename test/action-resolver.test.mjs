@@ -34,6 +34,22 @@ function action(cost={allOf: [{capability: ECONOMY_CAPABILITIES.ACTION, amount: 
   };
 }
 
+function attackCandidate(id, defense=null) {
+  return {
+    id,
+    target: {
+      id,
+      actorId: `actor-${id}`,
+      tokenId: `token-${id}`,
+      disposition: "enemy",
+      defenses: defense == null ? {} : {ac: {value: defense}}
+    },
+    actor: {id: `actor-${id}`, name: id},
+    disposition: "enemy",
+    kind: "creature"
+  };
+}
+
 test("ActionResolver plans current cost-only action resolution without mutating Actor system", () => {
   const system = actorSystem(1);
   const result = planActionResolution({
@@ -86,6 +102,68 @@ test("ActionResolver can resolve explicit targets before payment", () => {
   ]);
   assert.deepEqual(result.context.targets.map(target => target.id), ["target-a"]);
   assert.equal(result.steps.find(step => step.stage === ACTION_RESOLUTION_STAGES.TARGETING).code, "OK");
+});
+
+test("ActionResolver can resolve an attack after targeting and before payment", () => {
+  const result = planActionResolution({
+    actorSystem: actorSystem(1),
+    action: action(),
+    source: {actorId: "actor-a"},
+    targeting: {
+      required: true,
+      candidates: [
+        attackCandidate("orc", 14),
+        attackCandidate("knight", 19)
+      ],
+      eligibilityPolicy: {dispositions: ["enemy"]}
+    },
+    attack: {
+      roll: {total: 17, die: 12}
+    }
+  });
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(result.steps.map(step => step.stage), [
+    ACTION_RESOLUTION_STAGES.VALIDATION,
+    ACTION_RESOLUTION_STAGES.TARGETING,
+    ACTION_RESOLUTION_STAGES.ROLL,
+    ACTION_RESOLUTION_STAGES.RESOURCE_PAYMENT,
+    ACTION_RESOLUTION_STAGES.COMPLETE
+  ]);
+  assert.deepEqual(result.events.map(event => event.type), [
+    AUTOMATION_EVENT_TYPES.ACTION_DECLARED,
+    AUTOMATION_EVENT_TYPES.TARGETS_SELECTED,
+    AUTOMATION_EVENT_TYPES.ATTACK_ROLL,
+    AUTOMATION_EVENT_TYPES.ATTACK_HIT,
+    AUTOMATION_EVENT_TYPES.ATTACK_MISS,
+    AUTOMATION_EVENT_TYPES.PAYMENT_REQUIRED
+  ]);
+  const attackStep = result.steps.find(step => step.stage === ACTION_RESOLUTION_STAGES.ROLL);
+  assert.deepEqual(attackStep.data.attackResolution.hits.map(hit => hit.target.id), ["orc"]);
+  assert.deepEqual(attackStep.data.attackResolution.misses.map(miss => miss.target.id), ["knight"]);
+  assert.deepEqual(result.mutationPlans[0].plan.updates, {"system.resources.action.value": 0});
+});
+
+test("ActionResolver stops before payment when attack data is invalid", () => {
+  const result = planActionResolution({
+    actorSystem: actorSystem(1),
+    action: action(),
+    source: {actorId: "actor-a"},
+    targeting: {
+      required: true,
+      candidates: [attackCandidate("unknown")]
+    },
+    attack: {
+      roll: {total: 17, die: 12}
+    }
+  });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.code, ACTION_RESOLVER_CODES.ATTACK_FAILED);
+  assert.equal(result.steps.at(-1).stage, ACTION_RESOLUTION_STAGES.ROLL);
+  assert.equal(result.errors[0].reason, "MISSING_DEFENSE");
+  assert.equal(result.events.some(event => event.type === AUTOMATION_EVENT_TYPES.PAYMENT_REQUIRED), false);
+  assert.equal(result.mutationPlans.length, 0);
 });
 
 test("ActionResolver stops before payment when required targets are missing", () => {
@@ -151,6 +229,35 @@ test("ActionResolver execution commits resource plans and emits payment committe
     AUTOMATION_EVENT_TYPES.PAYMENT_COMMITTED
   ]);
   assert.equal(result.steps.at(-1).stage, ACTION_RESOLUTION_STAGES.COMPLETE);
+});
+
+test("ActionResolver execution commits payment after an attack miss", async () => {
+  const calls = [];
+  const actor = {
+    id: "actor-a",
+    name: "Aria",
+    type: "character",
+    system: actorSystem(1),
+    async update(updates) {
+      calls.push(updates);
+    }
+  };
+  const result = await executeActionResolution({
+    actor,
+    action: action(),
+    targeting: {
+      required: true,
+      candidates: [attackCandidate("armored", 20)]
+    },
+    attack: {
+      roll: {total: 12, die: 7}
+    }
+  });
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(calls, [{"system.resources.action.value": 0}]);
+  assert.equal(result.events.some(event => event.type === AUTOMATION_EVENT_TYPES.ATTACK_MISS), true);
+  assert.equal(result.events.at(-1).type, AUTOMATION_EVENT_TYPES.PAYMENT_COMMITTED);
 });
 
 test("ActionResolver execution supports zero-cost actions without Actor updates", async () => {

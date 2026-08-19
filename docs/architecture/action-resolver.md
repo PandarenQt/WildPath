@@ -1,7 +1,8 @@
 # ActionResolver
 
-`module/resolvers/action-resolver.mjs` is now the current action entry point, but it intentionally
-implements only the existing cost-only behavior.
+`module/resolvers/action-resolver.mjs` is now the current action entry point. It handles the
+existing cost behavior plus optional target validation and optional attack-outcome resolution when
+callers provide the required plain data.
 
 ## Current Flow
 
@@ -10,6 +11,7 @@ Action item
 -> ActionContext
 -> ActionResult
 -> optional TargetResolver target validation
+-> optional AttackResolver attack outcome
 -> ResourceResolver payment plan
 -> Actor resource mutation plan
 -> optional Actor update commit
@@ -18,12 +20,15 @@ Action item
 The resolver emits semantic automation events for:
 
 - action declared
+- targets selected, when target data or target requirements are supplied
+- attack roll
+- attack hit
+- attack miss
 - payment required
 - payment committed
 
 The payment committed event is emitted only by the execution adapter after the Actor update step
 returns successfully.
-The targets selected event is emitted only when target data or target requirements are supplied.
 
 ## What It Does Now
 
@@ -32,8 +37,10 @@ The targets selected event is emitted only when target data or target requiremen
 - builds an `ActionContext`
 - validates source/action basics
 - optionally resolves targets through `TargetResolver`
+- optionally resolves supplied attack roll data through `AttackResolver`
 - resolves Action item activation cost through `ResourceResolver`
 - records a target-selection consequence when targets are resolved
+- records an attack-resolution consequence when attack data is supplied
 - records a resource-payment consequence
 - records a resource-payment mutation plan
 - returns an `ActionResult`
@@ -53,19 +60,20 @@ The current resolver does not:
 
 - prompt for targets
 - validate ranges
-- resolve attacks or saves
+- derive attack bonuses or target defenses from Actor documents
+- resolve saves
 - roll dice
 - apply damage or healing
 - apply ActiveEffects
 - open reaction windows
 - create chat output
 
-Those are future ActionResolver slices. The pure `AttackResolver` foundation exists separately, but
-this module does not call it yet. This module exists so current action use already enters the same
-pipeline shape that those slices will extend.
+Those are future ActionResolver slices. The optional attack step consumes already-known numeric roll
+and defense data; it does not own roll UI or Foundry statistic gathering. This module exists so
+current action use already enters the same pipeline shape that those slices will extend.
 
 ## Next Resolver Slice
 
-The next resolver slice should wire AttackResolver into an optional attack step, using the target
-contexts already attached by the optional TargetResolver step and statistic-derived attack/defense
-numbers gathered by a Foundry adapter.
+The next resolver slice should add a basic SaveResolver or DamageResolver. Damage should wait for
+structured damage components so later weapon-size policy can scale only components explicitly marked
+as weapon-size-scalable.

@@ -16,6 +16,9 @@ The resolver accepts already-known numeric roll data. That numeric data can come
 physical dice entry, imported roll results, or later roll-request UI. Once the number exists, attack
 outcome logic is the same.
 
+`ActionResolver` can now call this resolver as an optional step after target validation and before
+resource payment planning.
+
 ## What It Does Now
 
 `resolveAttackAgainstDefense()`:
@@ -50,6 +53,6 @@ then pass plain values into this resolver.
 
 ## Next Integration
 
-The next action slice can add an optional attack step to `ActionResolver` after targeting and before
-damage/effects. That integration should use `WildPathActor#getStatistic(domain)` for attack bonuses
-and target defenses, then pass the derived numbers into this resolver.
+Foundry adapters still need to use `WildPathActor#getStatistic(domain)` for attack bonuses and
+target defenses, then pass the derived numbers into this resolver. Later DamageResolver work should
+consume attack outcomes without moving hit/miss logic into damage code.

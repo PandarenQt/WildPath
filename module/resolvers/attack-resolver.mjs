@@ -217,6 +217,8 @@ function resolveTargetDefense(targetContext, defenseKey, fallback) {
     targetContext.defenses?.[key],
     targetContext.target?.defense,
     targetContext.target?.defenses?.[key],
+    targetContext.target?.target?.defense,
+    targetContext.target?.target?.defenses?.[key],
     targetContext.target?.actor?.defense,
     targetContext.target?.actor?.defenses?.[key],
     fallback
@@ -275,12 +277,12 @@ function normalizeTargetContext(targetContext={}) {
 
 function normalizeTargetRef(target={}) {
   return {
-    id: target.id ?? target.target?.id ?? target.uuid ?? null,
-    uuid: target.uuid ?? target.target?.uuid ?? null,
-    actorId: target.actorId ?? target.actor?.id ?? null,
-    tokenId: target.tokenId ?? target.token?.id ?? null,
-    name: target.name ?? target.actor?.name ?? target.token?.name ?? null,
-    type: target.type ?? target.kind ?? null
+    id: target.target?.id ?? target.id ?? target.uuid ?? null,
+    uuid: target.target?.uuid ?? target.uuid ?? null,
+    actorId: target.target?.actorId ?? target.actorId ?? target.actor?.id ?? null,
+    tokenId: target.target?.tokenId ?? target.tokenId ?? target.token?.id ?? null,
+    name: target.target?.name ?? target.name ?? target.actor?.name ?? target.token?.name ?? null,
+    type: target.target?.type ?? target.type ?? target.kind ?? null
   };
 }
 

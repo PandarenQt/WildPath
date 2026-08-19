@@ -1,14 +1,14 @@
-# Resolvers (planned)
+# Resolvers
 
-No resolver implementation exists yet. This folder documents the next modules the automation
-foundation needs, per `AGENTS.md` sections 4 and 8 and the architecture notes in
+This folder contains the first resolver implementations and documents the next modules the
+automation foundation needs, per `AGENTS.md` sections 4 and 8 and the architecture notes in
 `CORE_AUTOMATION_FOUNDATION.md`.
 
 ## Current State
 
 - `WildPathActor#canUseAction` / `#useAction` currently validate and spend an Action item's
-  resource cost through `computeActionCostMap`. There is no targeting, rolling, damage, or
-  effect application pipeline yet.
+  resource cost through `ActionResolver` and `ResourceResolver`. Sheet-driven action use remains
+  cost-only until a Foundry adapter supplies target and attack data.
 - `module/helpers/action-economy.mjs` now provides generic payment discovery, payment commit, and
   refresh primitives that `ResourceResolver` should wrap at the Foundry boundary.
 - `module/helpers/automation-events.mjs` now provides semantic event normalization, trigger
@@ -22,11 +22,13 @@ foundation needs, per `AGENTS.md` sections 4 and 8 and the architecture notes in
   behavior.
 - `module/resolvers/action-resolver.mjs` now wraps the current Action item flow in
   `ActionContext` / `ActionResult`, optionally delegates target validation to `TargetResolver`,
-  and delegates payment to `ResourceResolver`.
+  optionally delegates supplied attack data to `AttackResolver`, and delegates payment to
+  `ResourceResolver`.
 - `module/resolvers/target-resolver.mjs` now wraps target-set eligibility, refinement decisions,
   required-target failures, self-targeting, and selection request state.
 - `module/resolvers/attack-resolver.mjs` now resolves already-known attack totals against target
-  defenses as pure per-target outcomes. It is not wired into ActionResolver execution yet.
+  defenses as pure per-target outcomes. `ActionResolver` can call it when an action plan includes
+  attack roll data.
 - `WildPathActor#getStatistic(domain)` plus `WildPathStatistic`/`WildPathModifier` are the
   calculation engine resolvers should build on for attack bonuses, save DCs, damage bonuses,
   resistance, and similar derived values.
@@ -42,9 +44,9 @@ resolvers should not call UI code.
 
 | Module | File | Responsibility |
 |---|---|---|
-| `ActionResolver` | `module/resolvers/action-resolver.mjs` | Current target-aware, cost-only entry point; should grow into roll, outcome, consequences, effects, post-resolution hooks. |
+| `ActionResolver` | `module/resolvers/action-resolver.mjs` | Current target-aware and attack-capable entry point for supplied plain data; should grow into roll requests, consequences, effects, and post-resolution hooks. |
 | `TargetResolver` | `module/resolvers/target-resolver.mjs` | Resolves and validates self, explicit, and precomputed target sets for ActionResolver and future UI adapters. |
-| `AttackResolver` | `module/resolvers/attack-resolver.mjs` | Current pure attack-vs-defense outcome resolver; should be wired after targeting once roll requests and statistic-derived defenses exist. |
+| `AttackResolver` | `module/resolvers/attack-resolver.mjs` | Current pure attack-vs-defense outcome resolver for known roll totals and target defenses. |
 | `SaveResolver` | `module/resolvers/save-resolver.mjs` | Resolve saving throws against DCs derived through the same statistic engine. |
 | `DamageResolver` | `module/resolvers/damage-resolver.mjs` | Resolve damage components through resistance, immunity, and vulnerability into structured results. |
 | `HealingResolver` | `module/resolvers/healing-resolver.mjs` | Resolve healing/resource restoration as structured results before mutation. |
@@ -56,5 +58,6 @@ resolvers should not call UI code.
 ## Sequencing Note
 
 Land these in small vertical stages: data/interface, pure rules behavior, resolution integration,
-Foundry adapter, then UI. `ActionResolver`, `TargetResolver`, and the pure `AttackResolver`
-foundation are now in place for the first cost/target/attack shape.
+Foundry adapter, then UI. `ActionResolver`, `TargetResolver`, and `AttackResolver` are now in place
+for the first cost/target/attack shape. DamageResolver should come before the full WeaponSizePolicy
+expansion so damage components can carry provenance and weapon-size-scaling metadata.

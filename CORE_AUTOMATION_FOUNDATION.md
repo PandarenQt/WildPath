@@ -43,12 +43,14 @@ The finished game system name is **Wild Path**.
   resource update paths and is now the payment boundary used by `WildPathActor#useAction`.
 - `module/resolvers/action-resolver.mjs` wraps the current Action flow in
   `ActionContext`/`ActionResult`, optional TargetResolver validation, semantic target/payment
-  events, and ResourceResolver mutation plans.
+  events, optional attack resolution for supplied roll/defense data, and ResourceResolver mutation
+  plans.
 - `module/resolvers/target-resolver.mjs` wraps target-set eligibility, refinement decisions,
   required-target failures, self-targeting, and selection request state for future ActionResolver
   integration.
 - `module/resolvers/attack-resolver.mjs` resolves already-known attack totals against target
-  defenses as pure structured outcomes. It is not wired into ActionResolver execution yet.
+  defenses as pure structured outcomes. `ActionResolver` can call it when an action plan includes
+  attack data.
 
 ## Resolution Pipeline
 
@@ -131,13 +133,17 @@ foundation. See `docs/architecture/events-and-reactions.md` for the automation e
 trigger foundation. See `docs/architecture/action-resolution.md` for the common action-context
 and action-result envelope. See `docs/architecture/resource-resolution.md` for the current
 resource payment resolver boundary. See `docs/architecture/action-resolver.md` for the current
-cost-only ActionResolver entry point. See `docs/architecture/target-resolver.md` for the current
-target validation bridge. See `docs/architecture/attack-resolver.md` for the current pure
-attack-outcome resolver.
+target-aware and attack-capable ActionResolver entry point. See
+`docs/architecture/target-resolver.md` for the current target validation bridge. See
+`docs/architecture/attack-resolver.md` for the current pure attack-outcome resolver.
 
 ## Near-Term Order
 
-1. Wire the pure AttackResolver into ActionResolver behind an optional attack step.
-2. Add save/damage/healing/effect slices one at a time.
+1. Add a basic SaveResolver or DamageResolver slice.
+2. Add structured damage components with provenance for base weapon damage versus additional
+   damage.
+3. Expand the current weapon-sizing helper into the full WeaponSizePolicy system after
+   DamageResolver can preserve component provenance.
+4. Add healing/effect slices one at a time.
 
 Keep every slice small, testable, and compatible with synthetic Token Actors.

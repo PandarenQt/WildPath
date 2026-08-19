@@ -19,11 +19,13 @@ import {
   commitActorResourceMutationPlan,
   resolveActorResourcePayment
 } from "./resource-resolver.mjs";
+import {resolveAttackTargets} from "./attack-resolver.mjs";
 import {resolveActionTargets} from "./target-resolver.mjs";
 
 export const ACTION_RESOLVER_CODES = Object.freeze({
   OK: "OK",
   TARGETING_FAILED: "TARGETING_FAILED",
+  ATTACK_FAILED: "ATTACK_FAILED",
   PAYMENT_UNAVAILABLE: "PAYMENT_UNAVAILABLE",
   RESOURCE_COMMIT_FAILED: "RESOURCE_COMMIT_FAILED"
 });
@@ -36,6 +38,7 @@ export function planActionResolution({
   source=null,
   targets=[],
   targeting=null,
+  attack=null,
   context={},
   policies={},
   selectedPaymentOptionId=null,
@@ -51,8 +54,9 @@ export function planActionResolution({
   let result = beginActionResult(actionContext);
   if ( result.status === ACTION_RESULT_STATUS.FAILED ) return result;
 
+  let targetResolution = null;
   if ( shouldResolveTargets({targeting, actionContext}) ) {
-    const targetResolution = resolveActionTargets({
+    targetResolution = resolveActionTargets({
       source: actionContext.source,
       targetSet: targeting?.targetSet ?? actionContext.targetSet,
       candidates: targeting?.candidates ?? [],
@@ -91,6 +95,40 @@ export function planActionResolution({
         targetContexts: targetResolution.targetContexts
       }],
       data: {targetResolution}
+    });
+  }
+
+  if ( shouldResolveAttack(attack) ) {
+    const attackResolution = resolveAttackTargets({
+      roll: attack.roll,
+      targetContexts: attack.targetContexts ?? targetResolution?.targetContexts ?? [],
+      targets: attack.targets ?? (targetResolution ? [] : actionContext.targets),
+      defense: attack.defense ?? null,
+      defenseKey: attack.defenseKey ?? "ac",
+      policy: {...(policies.attack ?? {}), ...(attack.policy ?? {})},
+      context: {
+        action: actionContext.action,
+        source: actionContext.source,
+        ...(attack.context ?? {})
+      }
+    });
+    if ( !attackResolution.ok ) {
+      return failActionResult(result, {
+        stage: ACTION_RESOLUTION_STAGES.ROLL,
+        code: ACTION_RESOLVER_CODES.ATTACK_FAILED,
+        reason: attackResolution.code,
+        data: {attackResolution}
+      });
+    }
+
+    result = addResolutionStep(result, {
+      stage: ACTION_RESOLUTION_STAGES.ROLL,
+      events: attackEvents(actionContext, attackResolution),
+      consequences: [{
+        type: "attackResolved",
+        attackResolution
+      }],
+      data: {attackResolution}
     });
   }
 
@@ -148,6 +186,7 @@ export async function executeActionResolution({
   source=null,
   targets=[],
   targeting=null,
+  attack=null,
   context={},
   policies={},
   selectedPaymentOptionId=null
@@ -158,6 +197,7 @@ export async function executeActionResolution({
     source: source ?? actorSource(actor),
     targets,
     targeting,
+    attack,
     context,
     policies,
     selectedPaymentOptionId,
@@ -229,6 +269,33 @@ function shouldResolveTargets({targeting, actionContext}) {
   return !!targeting || !!actionContext.targetSet || !!actionContext.targets?.length;
 }
 
+function shouldResolveAttack(attack) {
+  return !!attack;
+}
+
 function finalTargetRefs(targetResolution) {
   return (targetResolution.refinement?.finalTargets ?? []).map(candidate => candidate.target ?? candidate);
+}
+
+function attackEvents(actionContext, attackResolution) {
+  const events = [createActionLifecycleEvent(actionContext, {
+    type: AUTOMATION_EVENT_TYPES.ATTACK_ROLL,
+    phase: AUTOMATION_EVENT_PHASES.AFTER,
+    data: {attackResolution}
+  })];
+  if ( attackResolution.hits.length ) {
+    events.push(createActionLifecycleEvent(actionContext, {
+      type: AUTOMATION_EVENT_TYPES.ATTACK_HIT,
+      phase: AUTOMATION_EVENT_PHASES.AFTER,
+      data: {attackResults: attackResolution.hits}
+    }));
+  }
+  if ( attackResolution.misses.length ) {
+    events.push(createActionLifecycleEvent(actionContext, {
+      type: AUTOMATION_EVENT_TYPES.ATTACK_MISS,
+      phase: AUTOMATION_EVENT_PHASES.AFTER,
+      data: {attackResults: attackResolution.misses}
+    }));
+  }
+  return events;
 }
