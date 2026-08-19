@@ -53,6 +53,9 @@ The finished game system name is **Wild Path**.
   attack data.
 - `module/resolvers/damage-resolver.mjs` provides structured damage components, damage-type
   totals, target damage result shells, and weapon-size-scaling metadata/provenance.
+- `module/helpers/weapon-sizing.mjs` provides the WeaponSizePolicy foundation: size comparison,
+  2014/2024/house policy providers, structured wieldability results, and structured
+  weapon-size damage scaling for explicitly marked damage components.
 
 ## Resolution Pipeline
 
@@ -138,14 +141,15 @@ resource payment resolver boundary. See `docs/architecture/action-resolver.md` f
 target-aware and attack-capable ActionResolver entry point. See
 `docs/architecture/target-resolver.md` for the current target validation bridge. See
 `docs/architecture/attack-resolver.md` for the current pure attack-outcome resolver. See
-`docs/architecture/damage-resolver.md` for the current structured damage-component foundation.
+`docs/architecture/damage-resolver.md` for the current structured damage-component foundation. See
+`docs/architecture/weapon-size.md` for the WeaponSizePolicy foundation and its separation from
+Heavy, Reach, creature size, and damage execution.
 
 ## Near-Term Order
 
-1. Add a basic SaveResolver slice or begin the WeaponSizePolicy expansion.
-2. Expand the current weapon-sizing helper into the full WeaponSizePolicy system on top of
-   DamageResolver's component provenance.
-3. Wire DamageResolver into ActionResolver after attack outcomes.
+1. Wire DamageResolver into ActionResolver after attack outcomes.
+2. Wire WeaponSizePolicy into damage planning for manufactured weapon attacks only.
+3. Add a basic SaveResolver slice.
 4. Add healing/effect slices one at a time.
 
 Keep every slice small, testable, and compatible with synthetic Token Actors.

@@ -62,5 +62,5 @@ resolvers should not call UI code.
 Land these in small vertical stages: data/interface, pure rules behavior, resolution integration,
 Foundry adapter, then UI. `ActionResolver`, `TargetResolver`, `AttackResolver`, and the structured
 DamageResolver foundation are now in place for the first cost/target/attack/damage-component shape.
-The full WeaponSizePolicy expansion can build on DamageResolver's provenance and
-weapon-size-scaling metadata.
+The WeaponSizePolicy foundation builds on DamageResolver's provenance and weapon-size-scaling
+metadata; see `docs/architecture/weapon-size.md`.
