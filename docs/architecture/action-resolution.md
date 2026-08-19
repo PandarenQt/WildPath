@@ -20,8 +20,11 @@ The current pure foundation is `module/helpers/action-resolution.mjs`.
 - emitted events
 - metadata
 
-It deliberately stores references and structured data, not live Foundry documents. Foundry
-adapters can build this context from Actors, Items, Tokens, selected targets, and Scene state.
+It deliberately stores references and structured data, not live Foundry documents. New resolver
+work should prefer the opaque string refs from `module/helpers/entity-refs.mjs`, with legacy
+`actorId`/`tokenId` fields carried only as compatibility metadata while the pipeline migrates.
+Foundry adapters can build this context from Actors, Items, Tokens, selected targets, and Scene
+state.
 
 ## ActionResult
 

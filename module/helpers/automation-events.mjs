@@ -1,4 +1,9 @@
 import {ECONOMY_CAPABILITIES, resolvePaymentOptions, selectDefaultPaymentOption} from "./action-economy.mjs";
+import {
+  ENTITY_REF_KINDS,
+  normalizeEntityRef as normalizeEntityRefString,
+  parseEntityRef
+} from "./entity-refs.mjs";
 import {evaluatePredicate} from "./predicates.mjs";
 
 export const AUTOMATION_EVENT_PHASES = Object.freeze({
@@ -69,13 +74,14 @@ export function createAutomationEvent({
   metadata={}
 }={}) {
   if ( !type ) throw new Error("AutomationEvent requires a type.");
+  const normalizedSource = source ? normalizeEntityRef(source) : normalizeEntityRef({actorId, tokenId});
   return {
     id: id == null ? null : String(id),
     type,
     phase,
-    actorId: actorId ?? source?.actorId ?? null,
-    tokenId: tokenId ?? source?.tokenId ?? null,
-    source: source ? normalizeEntityRef(source) : normalizeEntityRef({actorId, tokenId}),
+    actorId: actorId ?? normalizedSource.actorId,
+    tokenId: tokenId ?? normalizedSource.tokenId,
+    source: normalizedSource,
     targets: targets.map(normalizeEntityRef),
     tags: uniqueStrings(tags),
     data: clonePlain(data) ?? {},
@@ -351,13 +357,20 @@ function defaultReactionCost() {
 }
 
 function normalizeEntityRef(entity={}) {
+  const data = entity && typeof entity === "object" ? entity : {};
+  const ref = normalizeEntityRefString(entity);
+  const parsed = parseEntityRef(ref);
+  const actorId = data.actorId ?? data.actor?.id ?? (parsed.kind === ENTITY_REF_KINDS.ACTOR ? parsed.id : null);
+  const tokenId = data.tokenId ?? data.token?.id ?? (parsed.kind === ENTITY_REF_KINDS.TOKEN ? parsed.id : null);
+
   return {
-    id: entity.id ?? entity.tokenId ?? entity.actorId ?? null,
-    actorId: entity.actorId ?? entity.actor?.id ?? null,
-    tokenId: entity.tokenId ?? entity.token?.id ?? null,
-    type: entity.type ?? null,
-    disposition: entity.disposition ?? null,
-    tags: uniqueStrings(entity.tags ?? [])
+    ref,
+    id: data.id ?? tokenId ?? actorId ?? parsed.id ?? null,
+    actorId,
+    tokenId,
+    type: data.type ?? null,
+    disposition: data.disposition ?? null,
+    tags: uniqueStrings(data.tags ?? [])
   };
 }
 

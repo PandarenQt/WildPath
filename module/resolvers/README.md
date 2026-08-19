@@ -17,6 +17,9 @@ automation foundation needs, per `AGENTS.md` sections 4 and 8 and the architectu
 - `module/helpers/action-resolution.mjs` now provides the plain `ActionContext` and `ActionResult`
   envelopes that resolver modules should share for steps, events, consequences, mutation plans,
   errors, and audit traces.
+- `module/helpers/entity-refs.mjs` now provides opaque string references for cross-layer identity.
+  New resolver code should pass `ref` strings and treat `{actorId, tokenId}` fields as transitional
+  compatibility data.
 - `module/resolvers/resource-resolver.mjs` now wraps action-economy payment discovery and maps
   selected payment plans to Actor update paths. `ActionResolver` uses it for the current cost-only
   behavior.
@@ -47,9 +50,9 @@ automation foundation needs, per `AGENTS.md` sections 4 and 8 and the architectu
 ## Planned Modules
 
 Each resolver should live as a plain `.mjs` module under `module/resolvers/`. Keep core
-rules/domain behavior testable under Node, with Foundry document reads/writes isolated to thin
-integration methods. Sheets, the Token HUD, and chat rendering should call into `ActionResolver`;
-resolvers should not call UI code.
+rules/domain behavior testable under Node, pass opaque entity refs as strings, and isolate Foundry
+document reads/writes to thin integration methods. Sheets, the Token HUD, and chat rendering should
+call into `ActionResolver`; resolvers should not call UI code.
 
 | Module | File | Responsibility |
 |---|---|---|

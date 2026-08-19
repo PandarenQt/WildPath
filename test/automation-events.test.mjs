@@ -28,10 +28,25 @@ test("automation events normalize source, targets, tags, and payload without mut
 
   data.attack.total = 1;
   assert.equal(event.actorId, "attacker");
+  assert.equal(event.source.ref, "token:token-a");
   assert.equal(event.source.tokenId, "token-a");
+  assert.equal(event.targets[0].ref, "token:token-d");
   assert.deepEqual(event.targets.map(target => target.actorId), ["defender"]);
   assert.deepEqual(event.tags, ["melee"]);
   assert.equal(event.data.attack.total, 18);
+});
+
+test("automation events accept opaque string references", () => {
+  const event = createAutomationEvent({
+    type: AUTOMATION_EVENT_TYPES.TURN_STARTED,
+    source: "actor:actor-a",
+    targets: ["token:scene-a.token-b"]
+  });
+
+  assert.equal(event.actorId, "actor-a");
+  assert.equal(event.source.ref, "actor:actor-a");
+  assert.equal(event.targets[0].ref, "token:scene-a.token-b");
+  assert.equal(event.targets[0].tokenId, "token-b");
 });
 
 test("trigger collection matches event type, phase, target, tags, and predicate", () => {

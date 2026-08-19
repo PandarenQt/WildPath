@@ -50,10 +50,25 @@ test("action context normalizes references and clones mutable inputs", () => {
   assert.equal(context.action.id, "strike");
   assert.equal(context.action.name, "Strike");
   assert.deepEqual(context.action.tags, ["weapon-attack"]);
+  assert.equal(context.source.ref, "token:token-a");
   assert.equal(context.source.actorId, "actor-a");
+  assert.equal(context.targets[0].ref, "token:token-b");
   assert.equal(context.targets[0].actorId, "actor-b");
   assert.equal(context.resources[0].current, 1);
   assert.equal(context.policies.allowActionForSpentBonusAction, true);
+});
+
+test("action contexts can be built from opaque string references", () => {
+  const context = createActionContext({
+    action: {id: "strike"},
+    source: "actor:actor-a",
+    targets: ["token:scene-a.token-b"]
+  });
+
+  assert.equal(context.source.ref, "actor:actor-a");
+  assert.equal(context.source.actorId, "actor-a");
+  assert.equal(context.targets[0].ref, "token:scene-a.token-b");
+  assert.equal(context.targets[0].tokenId, "token-b");
 });
 
 test("context validation reports missing action and source explicitly", () => {
@@ -132,7 +147,9 @@ test("successful results expose a compact audit trace", () => {
   assert.equal(success.ok, true);
   assert.equal(trace.status, ACTION_RESULT_STATUS.SUCCEEDED);
   assert.equal(trace.actionId, "strike");
+  assert.equal(trace.sourceRef, "token:token-a");
   assert.equal(trace.sourceActorId, "actor-a");
+  assert.deepEqual(trace.targetRefs, ["token:token-b"]);
   assert.deepEqual(trace.targetIds, ["target-1"]);
   assert.equal(trace.consequenceCount, 1);
   assert.equal(trace.mutationPlanCount, 1);

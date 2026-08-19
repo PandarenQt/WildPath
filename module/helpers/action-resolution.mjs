@@ -3,6 +3,11 @@ import {
   AUTOMATION_EVENT_TYPES,
   createAutomationEvent
 } from "./automation-events.mjs";
+import {
+  ENTITY_REF_KINDS,
+  normalizeEntityRef as normalizeEntityRefString,
+  parseEntityRef
+} from "./entity-refs.mjs";
 
 export const ACTION_RESOLUTION_STAGES = Object.freeze({
   DECLARATION: "declaration",
@@ -75,7 +80,7 @@ export function validateActionContext(context) {
   if ( !context?.action?.id && !context?.action?.uuid ) {
     errors.push({code: ACTION_RESULT_CODES.MISSING_ACTION, reason: "action is required"});
   }
-  if ( !context?.source?.actorId && !context?.actorId ) {
+  if ( !context?.source?.ref && !context?.source?.actorId && !context?.actorId ) {
     errors.push({code: ACTION_RESULT_CODES.MISSING_SOURCE, reason: "source actor is required"});
   }
 
@@ -312,7 +317,9 @@ export function createActionResolutionTrace(result) {
     status: result.status,
     code: result.code,
     actionId: result.context?.action?.id ?? null,
+    sourceRef: result.context?.source?.ref ?? null,
     sourceActorId: result.context?.source?.actorId ?? null,
+    targetRefs: result.context?.targets?.map(target => target.ref).filter(Boolean) ?? [],
     targetIds: result.context?.targets?.map(target => target.id).filter(Boolean) ?? [],
     stages: result.steps.map(step => ({
       stage: step.stage,
@@ -344,15 +351,23 @@ function normalizeActionRef(action={}) {
 }
 
 function normalizeEntityRef(entity={}) {
+  const data = entity && typeof entity === "object" ? entity : {};
+  const ref = normalizeEntityRefString(entity);
+  const parsed = parseEntityRef(ref);
+  const actorId = data.actorId ?? data.actor?.id ?? (parsed.kind === ENTITY_REF_KINDS.ACTOR ? parsed.id : null);
+  const tokenId = data.tokenId ?? data.token?.id ?? (parsed.kind === ENTITY_REF_KINDS.TOKEN ? parsed.id : null);
+  const uuid = data.uuid ?? (parsed.kind === ENTITY_REF_KINDS.UUID ? parsed.id : null);
+
   return {
-    id: entity.id ?? entity.tokenId ?? entity.actorId ?? entity.uuid ?? null,
-    uuid: entity.uuid ?? null,
-    actorId: entity.actorId ?? entity.actor?.id ?? null,
-    tokenId: entity.tokenId ?? entity.token?.id ?? null,
-    name: entity.name ?? entity.actor?.name ?? entity.token?.name ?? null,
-    type: entity.type ?? null,
-    disposition: entity.disposition ?? null,
-    tags: uniqueStrings(entity.tags ?? [])
+    ref,
+    id: data.id ?? tokenId ?? actorId ?? uuid ?? parsed.id ?? null,
+    uuid,
+    actorId,
+    tokenId,
+    name: data.name ?? data.actor?.name ?? data.token?.name ?? null,
+    type: data.type ?? null,
+    disposition: data.disposition ?? null,
+    tags: uniqueStrings(data.tags ?? [])
   };
 }
 

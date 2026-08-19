@@ -40,6 +40,9 @@ The finished game system name is **Wild Path**.
   dispatch planning, and reaction-window eligibility checks against action-economy resources.
 - `module/helpers/action-resolution.mjs` provides pure `ActionContext` and `ActionResult`
   envelopes for validation steps, semantic events, consequences, mutation plans, and audit traces.
+- `module/helpers/entity-refs.mjs` provides the opaque string-reference contract (`actor:...`,
+  `token:scene.token`, `uuid:...`) that future domain and resolver code should pass instead of
+  live Foundry documents or cross-layer object handles.
 - `module/resolvers/resource-resolver.mjs` maps generic action-economy payment plans to Actor
   resource update paths and is now the payment boundary used by `WildPathActor#useAction`.
 - `module/resolvers/action-resolver.mjs` wraps the current Action flow in
@@ -153,7 +156,9 @@ target-aware, attack-capable, and save-capable ActionResolver entry point. See
 `docs/architecture/damage-resolver.md` for the current structured damage-component foundation. See
 `docs/architecture/durability-resolution.md` for the current Actor durability mutation planner. See
 `docs/architecture/weapon-size.md` for the WeaponSizePolicy foundation and its separation from
-Heavy, Reach, creature size, and damage execution.
+Heavy, Reach, creature size, and damage execution. See
+`docs/architecture/abstraction-layers.md` for the string-reference boundary that keeps rules,
+resolvers, Foundry adapters, and UI separated.
 
 ## Near-Term Order
 
