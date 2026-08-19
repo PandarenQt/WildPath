@@ -1,10 +1,11 @@
 # Core Automation Foundation
 
-WildPath is currently an early Foundry VTT V14 system scaffold. The codebase has data models,
+Wild Path is currently an early Foundry VTT V14 system scaffold. The codebase has data models,
 resource pools, action cost spending, declarative modifiers, conditions, and basic sheets. It
 does not yet have the full BG3-style action resolution pipeline.
 
 This document records the intended architecture so future implementation work has a clear target.
+The finished game system name is **Wild Path**.
 
 ## Current Baseline
 
@@ -16,6 +17,16 @@ This document records the intended architecture so future implementation work ha
   New mechanics should build on that domain/modifier model rather than creating one-off math.
 - Resource max calculation is idempotent: persisted `base`/`bonus` values combine with transient
   per-prepare `modifierBonus` values.
+- `module/helpers/action-economy.mjs` provides pure payment discovery/commit/refresh primitives
+  for extensible action-economy resources.
+- `module/helpers/movement.mjs` derives spendable movement budgets from canonical movement speed
+  using distance or field measurement.
+- Tactical grid and area topology are documented as a future gated milestone: gridded AoE should
+  resolve to authoritative `GridFootprint` field sets, not Euclidean templates snapped to a grid.
+- `module/helpers/targeting.mjs` provides pure target candidates, target sets, eligibility,
+  refinement decisions, selection requests, and per-target override carriers.
+- `module/helpers/inventory.mjs` provides pure inventory spaces, access grants, weight policies,
+  transfer planning/commit, capacity checks, and containment-cycle prevention.
 
 ## Resolution Pipeline
 
@@ -60,6 +71,39 @@ The first resolver implementations should live under `module/resolvers/`:
 - `AreaResolver`: handles instantaneous and persistent areas plus movement/turn triggers.
 
 See `module/resolvers/README.md` for the concrete file-path map.
+
+## Tactical Grid And Areas
+
+For gridded Wild Path combat, the grid is the geometry. Rules define semantic shape and size; the
+active tactical grid defines adjacency, direction, source-border placement, and affected fields.
+Ordinary creature-originated Lines and Cones should originate from an eligible source Token's
+tactical boundary vertex rather than token center.
+
+This milestone is gated behind the core resolver/rules foundations and should land before
+movement-path automation, opportunity attacks, auras, emanations, persistent hazards, and large
+spell/content implementation. See `docs/architecture/tactical-grid.md` and
+`docs/architecture/areas.md`.
+
+## Targeting And Inventory
+
+Targeting separates physical inclusion, base eligibility, target refinement, and per-target
+resolution state. Inventory separates space ownership, access grants, containment, transfer
+planning, and weight propagation. These foundations intentionally avoid UI assumptions and Foundry
+document mutation. See `docs/architecture/targeting.md` and `docs/architecture/inventory.md`.
+
+## Product Experience Goals
+
+- Action bar: a tactical command surface driven by resolver availability results.
+- Combat carousel: turn order and combat-resource state driven by the same combat/economy services
+  as automation.
+- Point-budget randomizer loop: reusable budgeted generators for encounters, summons, treasure,
+  character/NPC creation, magic item generation, and similar GM tools.
+- Homebrew Content Builder: a release-target, non-programmer authoring experience that compiles
+  familiar tabletop configuration into executable Wild Path mechanics.
+
+See `docs/architecture/product-experience.md` for the product-facing direction, and
+`docs/architecture/action-economy.md` for the current economy/movement foundation. See
+`docs/architecture/homebrew-content-builder.md` for the finished-product builder standard.
 
 ## Near-Term Order
 

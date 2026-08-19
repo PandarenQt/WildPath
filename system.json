@@ -1,7 +1,7 @@
 {
   "id": "wildpath",
-  "title": "WildPath",
-  "description": "A highly customizable FoundryVTT system providing the foundations for conditions, modifiers, resource pools, and BG3-style action economy.",
+  "title": "Wild Path",
+  "description": "A highly customizable Foundry VTT system providing the foundations for conditions, modifiers, resource pools, and BG3-style action economy.",
   "version": "0.0.1",
   "compatibility": {
     "minimum": 14,
@@ -9,7 +9,7 @@
   },
   "authors": [
     {
-      "name": "WildPath"
+      "name": "Wild Path"
     }
   ],
   "esmodules": [
