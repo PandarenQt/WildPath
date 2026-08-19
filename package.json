@@ -1,0 +1,13 @@
+{
+  "name": "wildpath",
+  "private": true,
+  "version": "0.0.1",
+  "description": "WildPath FoundryVTT system. This package.json exists only to run the unit tests for pure rules/domain logic (module/helpers/**) via Node's built-in test runner - no build step or npm dependencies are required for the system itself.",
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
