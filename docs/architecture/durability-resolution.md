@@ -16,6 +16,11 @@ The resolver does not read canvas state, inspect selected targets, apply resista
 decide who has authority to update a document. Callers provide the target Actor system data and a
 resolved amount.
 
+`module/resolvers/damage-durability-resolver.mjs` is the pure bridge from resolved per-target
+damage to target Actor durability mutation plans. It accepts target Actor systems through opaque
+string refs such as `actor:abc123` or transitional raw ids, then delegates each target amount to
+`DurabilityResolver`.
+
 ## What It Does Now
 
 `createActorDamageMutationPlan()`:
@@ -42,13 +47,21 @@ resolved amount.
 - is the thin Foundry adapter that calls `actor.update()`
 - treats no-op plans as successful without calling `update()`
 
+`planDamageDurabilityMutations()`:
+
+- consumes a successful `DamageResolver` target resolution
+- looks up each target Actor system by string ref/id
+- returns one durability mutation plan per resolved damage target
+- reports missing target Actor systems explicitly
+- skips already-skipped damage targets without creating no-op document updates
+
 ## What It Does Not Do Yet
 
 DurabilityResolver does not:
 
 - apply resistance, immunity, vulnerability, or absorption
-- choose target Actors from target refs
-- coordinate multiple target updates
+- choose concrete Foundry target Actors from target refs
+- coordinate or commit multiple target Actor updates
 - open reaction windows
 - create chat output
 - decide GM/socket authority

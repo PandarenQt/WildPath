@@ -27,6 +27,15 @@ function actorSystem(actionValue=1) {
   };
 }
 
+function targetActorSystem(value=14, max=20) {
+  return {
+    resources: {
+      health: {value, max}
+    },
+    pools: []
+  };
+}
+
 function action(cost={allOf: [{capability: ECONOMY_CAPABILITIES.ACTION, amount: 1}]}) {
   return {
     id: "strike",
@@ -271,6 +280,53 @@ test("ActionResolver can resolve damage for attack hits before payment", () => {
     "resourcePayment"
   ]);
   assert.deepEqual(result.mutationPlans[0].plan.updates, {"system.resources.action.value": 0});
+});
+
+test("ActionResolver can attach target durability plans to resolved damage", () => {
+  const orcSystem = targetActorSystem(14, 20);
+  const result = planActionResolution({
+    actorSystem: actorSystem(1),
+    action: action(),
+    source: {actorId: "actor-a"},
+    targets: [{id: "orc", actorId: "actor-orc", tokenId: "token-orc"}],
+    damage: {
+      components: [damageComponent("slash", 6, "slashing")]
+    },
+    durability: {
+      targetSystems: {
+        "actor:actor-orc": orcSystem
+      }
+    }
+  });
+
+  assert.equal(result.ok, true);
+  const damageStep = result.steps.find(step => step.stage === ACTION_RESOLUTION_STAGES.CONSEQUENCE);
+  assert.deepEqual(damageStep.data.damageResolution.totals, {orc: 6});
+  assert.equal(damageStep.data.durabilityResolution.ok, true);
+  assert.deepEqual(damageStep.data.durabilityResolution.mutationPlans[0].plan.updates, {
+    "system.resources.health.value": 8
+  });
+  assert.deepEqual(result.mutationPlans.map(plan => plan.type), ["durabilityDamage", "resourcePayment"]);
+  assert.equal(orcSystem.resources.health.value, 14);
+});
+
+test("ActionResolver stops before payment when requested durability target systems are missing", () => {
+  const result = planActionResolution({
+    actorSystem: actorSystem(1),
+    action: action(),
+    source: {actorId: "actor-a"},
+    targets: [{id: "orc", actorId: "actor-orc"}],
+    damage: {
+      components: [damageComponent("slash", 6, "slashing")]
+    },
+    durability: true
+  });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.code, ACTION_RESOLVER_CODES.DAMAGE_FAILED);
+  assert.equal(result.steps.at(-1).stage, ACTION_RESOLUTION_STAGES.CONSEQUENCE);
+  assert.equal(result.events.some(event => event.type === AUTOMATION_EVENT_TYPES.PAYMENT_REQUIRED), false);
+  assert.equal(result.mutationPlans.length, 0);
 });
 
 test("ActionResolver can apply save outcome policies to per-target damage", () => {
@@ -568,6 +624,36 @@ test("ActionResolver execution commits payment after an attack miss", async () =
   assert.deepEqual(calls, [{"system.resources.action.value": 0}]);
   assert.equal(result.events.some(event => event.type === AUTOMATION_EVENT_TYPES.ATTACK_MISS), true);
   assert.equal(result.events.at(-1).type, AUTOMATION_EVENT_TYPES.PAYMENT_COMMITTED);
+});
+
+test("ActionResolver execution refuses uncommitted target durability plans", async () => {
+  const calls = [];
+  const actor = {
+    id: "actor-a",
+    name: "Aria",
+    type: "character",
+    system: actorSystem(1),
+    async update(updates) {
+      calls.push(updates);
+    }
+  };
+  const result = await executeActionResolution({
+    actor,
+    action: action(),
+    targets: [{id: "orc", actorId: "actor-orc"}],
+    damage: {
+      components: [damageComponent("slash", 6, "slashing")]
+    },
+    durability: {
+      targetSystems: {
+        "actor:actor-orc": targetActorSystem()
+      }
+    }
+  });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.code, ACTION_RESOLVER_CODES.MUTATION_COMMIT_UNSUPPORTED);
+  assert.deepEqual(calls, []);
 });
 
 test("ActionResolver execution supports zero-cost actions without Actor updates", async () => {

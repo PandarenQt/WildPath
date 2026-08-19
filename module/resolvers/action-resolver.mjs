@@ -24,6 +24,7 @@ import {
   DAMAGE_RESOLVER_CODES,
   resolveDamageTargets
 } from "./damage-resolver.mjs";
+import {planDamageDurabilityMutations} from "./damage-durability-resolver.mjs";
 import {resolveActionTargets} from "./target-resolver.mjs";
 import {resolveWeaponDamageScaling} from "../helpers/weapon-sizing.mjs";
 import {
@@ -38,7 +39,8 @@ export const ACTION_RESOLVER_CODES = Object.freeze({
   SAVE_FAILED: "SAVE_FAILED",
   DAMAGE_FAILED: "DAMAGE_FAILED",
   PAYMENT_UNAVAILABLE: "PAYMENT_UNAVAILABLE",
-  RESOURCE_COMMIT_FAILED: "RESOURCE_COMMIT_FAILED"
+  RESOURCE_COMMIT_FAILED: "RESOURCE_COMMIT_FAILED",
+  MUTATION_COMMIT_UNSUPPORTED: "MUTATION_COMMIT_UNSUPPORTED"
 });
 
 /* -------------------------------------------- */
@@ -52,6 +54,7 @@ export function planActionResolution({
   attack=null,
   save=null,
   damage=null,
+  durability=null,
   context={},
   policies={},
   selectedPaymentOptionId=null,
@@ -199,13 +202,33 @@ export function planActionResolution({
       });
     }
 
+    const durabilityResolution = resolveDamageDurability({
+      damage,
+      durability,
+      damageResolution,
+      actionContext
+    });
+    if ( durabilityResolution && !durabilityResolution.ok ) {
+      return failActionResult(result, {
+        stage: ACTION_RESOLUTION_STAGES.CONSEQUENCE,
+        code: ACTION_RESOLVER_CODES.DAMAGE_FAILED,
+        reason: durabilityResolution.code,
+        data: {damageResolution, durabilityResolution}
+      });
+    }
+
     result = addResolutionStep(result, {
       stage: ACTION_RESOLUTION_STAGES.CONSEQUENCE,
       consequences: [{
         type: "damageResolved",
-        damageResolution
+        damageResolution,
+        ...(durabilityResolution ? {durabilityResolution} : {})
       }],
-      data: {damageResolution}
+      mutationPlans: durabilityResolution?.mutationPlans ?? [],
+      data: {
+        damageResolution,
+        ...(durabilityResolution ? {durabilityResolution} : {})
+      }
     });
   }
 
@@ -266,6 +289,7 @@ export async function executeActionResolution({
   attack=null,
   save=null,
   damage=null,
+  durability=null,
   context={},
   policies={},
   selectedPaymentOptionId=null
@@ -279,6 +303,7 @@ export async function executeActionResolution({
     attack,
     save,
     damage,
+    durability,
     context,
     policies,
     selectedPaymentOptionId,
@@ -286,6 +311,16 @@ export async function executeActionResolution({
   });
   if ( result.status === ACTION_RESULT_STATUS.FAILED || result.status === ACTION_RESULT_STATUS.CANCELLED ) {
     return result;
+  }
+
+  const unsupportedMutationPlans = result.mutationPlans.filter(plan => plan.type !== "resourcePayment");
+  if ( unsupportedMutationPlans.length ) {
+    return failActionResult(result, {
+      stage: ACTION_RESOLUTION_STAGES.CONSEQUENCE,
+      code: ACTION_RESOLVER_CODES.MUTATION_COMMIT_UNSUPPORTED,
+      reason: "executeActionResolution does not yet have a commit adapter for target mutation plans",
+      data: {mutationPlans: unsupportedMutationPlans}
+    });
   }
 
   for ( const mutationPlan of result.mutationPlans.filter(plan => plan.type === "resourcePayment") ) {
@@ -443,6 +478,27 @@ function resolveActionDamage({damage, targetResolution, attackResolution, saveRe
     ...result,
     weaponDamageScaling: preparedDamage.weaponDamageScaling
   } : result;
+}
+
+function resolveDamageDurability({damage, durability, damageResolution, actionContext}) {
+  const options = normalizeDamageDurabilityOptions(durability ?? damage?.durability);
+  if ( !options ) return null;
+  return planDamageDurabilityMutations({
+    damageResolution,
+    targetSystems: options.targetSystems ?? {},
+    resourceId: options.resourceId ?? "health",
+    source: actionContext.source,
+    metadata: {
+      action: actionContext.action,
+      ...(options.metadata ?? {})
+    }
+  });
+}
+
+function normalizeDamageDurabilityOptions(options) {
+  if ( options === true ) return {};
+  if ( !options ) return null;
+  return options;
 }
 
 function componentsForTargetFromSaveOutcomePolicy({damage, saveResolution}) {
