@@ -765,6 +765,105 @@ test("ActionResolver execution commits target absorption plans with active GM au
   assert.deepEqual(sourceCalls, [{"system.resources.action.value": 0}]);
 });
 
+test("ActionResolver execution rolls target mutations back when source payment commit fails", async () => {
+  const sourceCalls = [];
+  const targetCalls = [];
+  const actor = {
+    id: "actor-a",
+    name: "Aria",
+    type: "character",
+    system: actorSystem(1),
+    async update(updates) {
+      sourceCalls.push(updates);
+      throw new Error("payment failed");
+    }
+  };
+  const targetActor = {
+    id: "actor-orc",
+    system: targetActorSystem(14, 20),
+    async update(updates) {
+      targetCalls.push(updates);
+    }
+  };
+  const result = await executeActionResolution({
+    actor,
+    action: action(),
+    targets: [{id: "orc", actorId: "actor-orc"}],
+    damage: {
+      components: [damageComponent("slash", 6, "slashing")]
+    },
+    durability: true,
+    targetActors: {"actor:actor-orc": targetActor},
+    authority: {isGM: true, userId: "gm-a", activeGMId: "gm-a"}
+  });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.code, ACTION_RESOLVER_CODES.RESOURCE_COMMIT_FAILED);
+  assert.deepEqual(sourceCalls, [{"system.resources.action.value": 0}]);
+  assert.deepEqual(targetCalls, [
+    {"system.resources.health.value": 8},
+    {"system.resources.health.value": 14}
+  ]);
+  assert.equal(result.steps.at(-1).data.transaction.rolledBack, true);
+});
+
+test("ActionResolver execution rolls back earlier target mutations when a later target commit fails", async () => {
+  const sourceCalls = [];
+  const orcCalls = [];
+  const knightCalls = [];
+  const actor = {
+    id: "actor-a",
+    name: "Aria",
+    type: "character",
+    system: actorSystem(1),
+    async update(updates) {
+      sourceCalls.push(updates);
+    }
+  };
+  const orcActor = {
+    id: "actor-orc",
+    system: targetActorSystem(14, 20),
+    async update(updates) {
+      orcCalls.push(updates);
+    }
+  };
+  const knightActor = {
+    id: "actor-knight",
+    system: targetActorSystem(16, 20),
+    async update(updates) {
+      knightCalls.push(updates);
+      throw new Error("target failed");
+    }
+  };
+  const result = await executeActionResolution({
+    actor,
+    action: action(),
+    targets: [
+      {id: "orc", actorId: "actor-orc"},
+      {id: "knight", actorId: "actor-knight"}
+    ],
+    damage: {
+      components: [damageComponent("slash", 6, "slashing")]
+    },
+    durability: true,
+    targetActors: {
+      "actor:actor-orc": orcActor,
+      "actor:actor-knight": knightActor
+    },
+    authority: {isGM: true, userId: "gm-a", activeGMId: "gm-a"}
+  });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.code, ACTION_RESOLVER_CODES.MUTATION_COMMIT_FAILED);
+  assert.deepEqual(sourceCalls, []);
+  assert.deepEqual(orcCalls, [
+    {"system.resources.health.value": 8},
+    {"system.resources.health.value": 14}
+  ]);
+  assert.deepEqual(knightCalls, [{"system.resources.health.value": 10}]);
+  assert.equal(result.steps.at(-1).data.transaction.rolledBack, true);
+});
+
 test("ActionResolver execution commits target healing durability plans with active GM authority", async () => {
   const sourceCalls = [];
   const targetCalls = [];

@@ -27,7 +27,7 @@ Action item
 -> optional target durability damage/absorption/healing mutation plans
 -> ResourceResolver payment plan
 -> Actor resource mutation plan
--> optional explicit-authority Actor update commits
+-> optional explicit-authority ResolutionTransaction commit
 ```
 
 The resolver emits semantic automation events for:
@@ -43,8 +43,8 @@ The resolver emits semantic automation events for:
 - payment required
 - payment committed
 
-The payment committed event is emitted only by the execution adapter after the Actor update step
-returns successfully.
+The payment committed event is emitted only by the execution adapter after the transaction returns
+successfully.
 
 ## What It Does Now
 
@@ -75,8 +75,11 @@ returns successfully.
 
 - runs the same planning flow
 - can derive target Actor system snapshots from supplied target Actors
-- commits target durability mutation plans only with explicit authority
-- commits resource mutation plans through `actor.update()`
+- prepares target durability transaction operations only with explicit authority
+- commits target durability and source resource-payment operations through a single
+  `ResolutionTransaction`
+- rolls back already-committed target/source updates in reverse order when a later Actor update
+  fails
 - returns the resulting `ActionResult`
 
 `WildPathActor#useAction()` now uses `executeActionResolution()` while preserving its current
@@ -94,7 +97,6 @@ The current resolver does not:
 - apply ActiveEffects
 - open reaction windows
 - create chat output
-- rollback partial multi-Actor commits
 
 Those are future ActionResolver slices. The optional attack, save, damage, and healing steps consume
 already-known numeric roll, defense/DC, damage, and healing data; they do not own roll UI or Foundry
@@ -105,5 +107,6 @@ slices will extend.
 
 ## Next Resolver Slice
 
-The next resolver slice should add transaction/rollback behavior for multi-Actor commits. Direct
-Actor durability mutation remains outside DamageResolver itself.
+The next resolver slice should start effect application in small pieces: conditions first, then
+general ActiveEffect creation/removal. Direct Actor durability mutation remains outside
+DamageResolver itself.

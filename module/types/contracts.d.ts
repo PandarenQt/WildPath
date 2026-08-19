@@ -129,6 +129,26 @@ export interface MutationPlan {
   readonly [key: string]: unknown;
 }
 
+export interface ResolutionTransactionOperation {
+  readonly id: string | null;
+  readonly type: string;
+  readonly actorRef: string | null;
+  readonly updates: Readonly<Record<string, unknown>>;
+  readonly rollbackUpdates: Readonly<Record<string, unknown>>;
+  readonly rollbackAvailable: boolean;
+  readonly metadata: Readonly<Record<string, unknown>>;
+}
+
+export interface ResolutionTransactionResult {
+  readonly ok: boolean;
+  readonly code: string;
+  readonly committed: readonly ResolutionTransactionOperation[];
+  readonly rollbacks: readonly ResolutionTransactionOperation[];
+  readonly failures: readonly unknown[];
+  readonly rolledBack: boolean;
+  readonly metadata: Readonly<Record<string, unknown>>;
+}
+
 export interface ResolverSuccess<TCode extends string = "OK", TData extends object = Record<string, never>> {
   readonly ok: true;
   readonly code: TCode;

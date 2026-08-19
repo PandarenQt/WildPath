@@ -1,4 +1,5 @@
 import {resolveTargetLookupValue, targetLookupRefs} from "../helpers/target-actor-refs.mjs";
+import {createActorUpdateTransactionOperation} from "./resolution-transaction-resolver.mjs";
 import {commitActorDurabilityMutationPlan} from "./durability-resolver.mjs";
 
 export const TARGET_MUTATION_COMMIT_CODES = Object.freeze({
@@ -8,6 +9,78 @@ export const TARGET_MUTATION_COMMIT_CODES = Object.freeze({
   COMMIT_NOT_AUTHORIZED: "COMMIT_NOT_AUTHORIZED",
   COMMIT_FAILED: "COMMIT_FAILED"
 });
+
+/* -------------------------------------------- */
+
+export function prepareTargetMutationCommitOperations({
+  mutationPlans=[],
+  targetActors={},
+  authority=null,
+  commitPlan=defaultCommitPlan,
+  metadata={}
+}={}) {
+  if ( !mutationPlans.length ) {
+    return {
+      ok: true,
+      code: TARGET_MUTATION_COMMIT_CODES.NO_MUTATION_PLANS,
+      operations: [],
+      failures: [],
+      metadata: clonePlain(metadata) ?? {}
+    };
+  }
+
+  const operations = [];
+  const failures = [];
+  for ( const [index, mutationPlan] of mutationPlans.entries() ) {
+    const target = mutationPlan.target ?? mutationPlan.plan?.target ?? {};
+    const actor = resolveTargetActor(targetActors, target, mutationPlan);
+    if ( !actor ) {
+      failures.push({
+        code: TARGET_MUTATION_COMMIT_CODES.TARGET_ACTOR_NOT_FOUND,
+        reason: "No target Actor supplied for mutation plan.",
+        mutationPlan: clonePlain(mutationPlan),
+        targetRefs: targetLookupRefs(target)
+      });
+      break;
+    }
+
+    const authorization = evaluateCommitAuthority(authority, {mutationPlan, target, actor});
+    if ( !authorization.ok ) {
+      failures.push({
+        code: TARGET_MUTATION_COMMIT_CODES.COMMIT_NOT_AUTHORIZED,
+        reason: authorization.reason,
+        mutationPlan: clonePlain(mutationPlan),
+        targetRefs: targetLookupRefs(target),
+        authority: authorization.authority
+      });
+      break;
+    }
+
+    operations.push(createActorUpdateTransactionOperation({
+      id: `target:${index}:${mutationPlan.type}`,
+      type: mutationPlan.type,
+      actorRef: mutationPlan.targetRef ?? targetLookupRefs(target)[0] ?? null,
+      actor,
+      mutationPlan: mutationPlan.plan,
+      metadata: {
+        ...(clonePlain(metadata) ?? {}),
+        role: "targetMutation",
+        target: clonePlain(target),
+        targetRefs: targetLookupRefs(target),
+        mutationPlan: clonePlain(mutationPlan)
+      },
+      commit: () => commitPlan(actor, mutationPlan.plan, mutationPlan)
+    }));
+  }
+
+  return {
+    ok: failures.length === 0,
+    code: failures[0]?.code ?? TARGET_MUTATION_COMMIT_CODES.OK,
+    operations: failures.length ? [] : operations,
+    failures,
+    metadata: clonePlain(metadata) ?? {}
+  };
+}
 
 /* -------------------------------------------- */
 

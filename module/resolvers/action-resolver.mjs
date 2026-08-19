@@ -15,11 +15,13 @@ import {
   AUTOMATION_EVENT_TYPES
 } from "../helpers/automation-events.mjs";
 import {
-  RESOURCE_RESOLUTION_CODES,
-  commitActorResourceMutationPlan,
   resolveActorResourcePayment
 } from "./resource-resolver.mjs";
-import {commitTargetMutationPlans} from "./target-mutation-commit-resolver.mjs";
+import {prepareTargetMutationCommitOperations} from "./target-mutation-commit-resolver.mjs";
+import {
+  createActorUpdateTransactionOperation,
+  executeResolutionTransaction
+} from "./resolution-transaction-resolver.mjs";
 import {resolveAttackTargets} from "./attack-resolver.mjs";
 import {
   DAMAGE_RESOLVER_CODES,
@@ -369,45 +371,19 @@ export async function executeActionResolution({
     return result;
   }
 
-  let targetCommit = null;
-  const targetMutationPlans = result.mutationPlans.filter(plan => plan.type !== "resourcePayment");
-  if ( targetMutationPlans.length ) {
-    const unsupportedMutationPlans = targetMutationPlans.filter(plan => !isSupportedTargetMutationPlan(plan));
-    if ( unsupportedMutationPlans.length ) {
-      return failActionResult(result, {
-        stage: ACTION_RESOLUTION_STAGES.CONSEQUENCE,
-        code: ACTION_RESOLVER_CODES.MUTATION_COMMIT_UNSUPPORTED,
-        reason: "executeActionResolution does not yet have a commit adapter for these target mutation plans",
-        data: {mutationPlans: unsupportedMutationPlans}
-      });
-    }
-
-    targetCommit = await commitTargetMutationPlans({
-      mutationPlans: targetMutationPlans,
-      targetActors,
-      authority,
-      metadata: {action: result.context?.action ?? null}
+  const transactionCommit = await executeActionMutationTransaction({
+    result,
+    actor,
+    targetActors,
+    authority
+  });
+  if ( !transactionCommit.ok ) {
+    return failActionResult(result, {
+      stage: transactionCommit.stage,
+      code: transactionCommit.code,
+      reason: transactionCommit.reason,
+      data: transactionCommit.data
     });
-    if ( !targetCommit.ok ) {
-      return failActionResult(result, {
-        stage: ACTION_RESOLUTION_STAGES.CONSEQUENCE,
-        code: ACTION_RESOLVER_CODES.MUTATION_COMMIT_FAILED,
-        reason: targetCommit.code,
-        data: {targetCommit}
-      });
-    }
-  }
-
-  for ( const mutationPlan of result.mutationPlans.filter(plan => plan.type === "resourcePayment") ) {
-    const committed = await commitActorResourceMutationPlan(actor, mutationPlan.plan);
-    if ( !committed ) {
-      return failActionResult(result, {
-        stage: ACTION_RESOLUTION_STAGES.RESOURCE_PAYMENT,
-        code: ACTION_RESOLVER_CODES.RESOURCE_COMMIT_FAILED,
-        reason: RESOURCE_RESOLUTION_CODES.COMMIT_FAILED,
-        data: {mutationPlan}
-      });
-    }
   }
 
   const committed = addResolutionStep(result, {
@@ -423,10 +399,76 @@ export async function executeActionResolution({
     })],
     data: {
       committed: true,
-      ...(targetCommit ? {targetCommit} : {})
+      transaction: transactionCommit.transaction
     }
   });
   return succeedActionResult(committed);
+}
+
+/* -------------------------------------------- */
+
+async function executeActionMutationTransaction({result, actor, targetActors, authority}) {
+  const targetMutationPlans = result.mutationPlans.filter(plan => plan.type !== "resourcePayment");
+  const paymentMutationPlans = result.mutationPlans.filter(plan => plan.type === "resourcePayment");
+  const unsupportedMutationPlans = targetMutationPlans.filter(plan => !isSupportedTargetMutationPlan(plan));
+  if ( unsupportedMutationPlans.length ) {
+    return {
+      ok: false,
+      stage: ACTION_RESOLUTION_STAGES.CONSEQUENCE,
+      code: ACTION_RESOLVER_CODES.MUTATION_COMMIT_UNSUPPORTED,
+      reason: "executeActionResolution does not yet have a commit adapter for these target mutation plans",
+      data: {mutationPlans: unsupportedMutationPlans}
+    };
+  }
+
+  const targetOperations = prepareTargetMutationCommitOperations({
+    mutationPlans: targetMutationPlans,
+    targetActors,
+    authority,
+    metadata: {action: result.context?.action ?? null}
+  });
+  if ( !targetOperations.ok ) {
+    return {
+      ok: false,
+      stage: ACTION_RESOLUTION_STAGES.CONSEQUENCE,
+      code: ACTION_RESOLVER_CODES.MUTATION_COMMIT_FAILED,
+      reason: targetOperations.code,
+      data: {targetOperations}
+    };
+  }
+
+  const sourceOperations = paymentMutationPlans.map((mutationPlan, index) => createActorUpdateTransactionOperation({
+    id: `source:${index}:resourcePayment`,
+    type: "resourcePayment",
+    actorRef: actor?.uuid ?? (actor?.id ? `actor:${actor.id}` : null),
+    actor,
+    mutationPlan: mutationPlan.plan,
+    metadata: {
+      role: "sourcePayment",
+      action: result.context?.action ?? null,
+      mutationPlan
+    }
+  }));
+  const transaction = await executeResolutionTransaction({
+    operations: [...targetOperations.operations, ...sourceOperations],
+    metadata: {action: result.context?.action ?? null}
+  });
+  if ( transaction.ok ) {
+    return {
+      ok: true,
+      transaction
+    };
+  }
+
+  const failedOperation = transaction.commitFailure?.operation ?? transaction.failures[0]?.operation ?? null;
+  const sourcePaymentFailed = failedOperation?.type === "resourcePayment";
+  return {
+    ok: false,
+    stage: sourcePaymentFailed ? ACTION_RESOLUTION_STAGES.RESOURCE_PAYMENT : ACTION_RESOLUTION_STAGES.CONSEQUENCE,
+    code: sourcePaymentFailed ? ACTION_RESOLVER_CODES.RESOURCE_COMMIT_FAILED : ACTION_RESOLVER_CODES.MUTATION_COMMIT_FAILED,
+    reason: transaction.code,
+    data: {transaction}
+  };
 }
 
 /* -------------------------------------------- */

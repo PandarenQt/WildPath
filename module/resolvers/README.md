@@ -23,14 +23,17 @@ automation foundation needs, per `AGENTS.md` sections 4 and 8 and the architectu
 - `module/resolvers/resource-resolver.mjs` now wraps action-economy payment discovery and maps
   selected payment plans to Actor update paths. `ActionResolver` uses it for the current cost-only
   behavior.
+- `module/resolvers/resolution-transaction-resolver.mjs` now commits ordered Actor update
+  operations with preflight rollback requirements and reverse-order rollback on later commit
+  failure.
 - `module/resolvers/action-resolver.mjs` now wraps the current Action item flow in
   `ActionContext` / `ActionResult`, optionally delegates target validation to `TargetResolver`,
   optionally delegates supplied attack data to `AttackResolver`, optionally delegates supplied
   save data to `SaveResolver`, optionally delegates supplied damage components to
   `DamageResolver`, applies WeaponSizePolicy to explicitly manufactured weapon-size damage data,
   applies save-outcome damage policies, optionally resolves healing components, attaches
-  damage/healing durability plans, can commit target durability plans with explicit authority, and
-  delegates payment to `ResourceResolver`.
+  damage/healing durability plans, can commit target durability plans with explicit authority
+  through `ResolutionTransaction`, and delegates payment planning to `ResourceResolver`.
 - `module/resolvers/target-resolver.mjs` now wraps target-set eligibility, refinement decisions,
   required-target failures, self-targeting, and selection request state.
 - `module/resolvers/attack-resolver.mjs` now resolves already-known attack totals against target
@@ -78,8 +81,9 @@ call into `ActionResolver`; resolvers should not call UI code.
 | `HealingResolver` | `module/resolvers/healing-resolver.mjs` | Resolves healing/resource restoration as structured target results before mutation. |
 | `DurabilityResolver` | `module/resolvers/durability-resolver.mjs` | Current Actor durability mutation planner for already-resolved damage/healing amounts. |
 | `TargetMutationCommitResolver` | `module/resolvers/target-mutation-commit-resolver.mjs` | Commits target mutation plans to supplied Actors with explicit authority. |
+| `ResolutionTransaction` | `module/resolvers/resolution-transaction-resolver.mjs` | Commits ordered Actor update operations and rolls back committed updates if a later operation fails. |
 | `EffectResolver` | `module/resolvers/effect-resolver.mjs` | Apply/remove ActiveEffects and conditions as resolved consequences of actions. |
-| `ResourceResolver` | `module/resolvers/resource-resolver.mjs` | Generalizes action cost validation and payment mutation planning; refund-on-cancel waits for transaction support. |
+| `ResourceResolver` | `module/resolvers/resource-resolver.mjs` | Generalizes action cost validation and payment mutation planning; refund-on-cancel waits for cancellation/reaction slices. |
 | `ReactionResolver` | `module/resolvers/reaction-resolver.mjs` | Offer eligible reactions at defined interrupt points, then resume the parent resolution. |
 | `AreaResolver` | `module/resolvers/area-resolver.mjs` | Resolve instantaneous and persistent areas plus enter/leave/start-turn/end-turn triggers. |
 
@@ -93,5 +97,6 @@ explicitly manufactured weapon-size damage data, and save-outcome policies can a
 damage before DamageResolver totals it; see `docs/architecture/weapon-size.md`.
 ActionResolver can now attach and execute durability mutation plans for adjusted damage and
 resolved healing when a Foundry adapter supplies target Actor system snapshots, target Actors, and
-explicit authority. The next durability slice is transaction/rollback behavior for multi-Actor
-commits.
+explicit authority. Target durability and source payment commits now run through
+ResolutionTransaction. The next resolver slice should begin effect application in small,
+condition-first stages.

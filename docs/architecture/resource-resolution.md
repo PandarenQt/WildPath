@@ -33,7 +33,9 @@ The resolver maps selected economy resource ids back to the current Actor data s
 - custom pool ids -> `system.pools.{index}.value`
 
 Planning does not mutate the Actor system object. It returns update paths plus before/after payment
-trace data. `commitActorResourceMutationPlan()` is the thin adapter that calls `actor.update()`.
+trace data. `commitActorResourceMutationPlan()` remains a thin adapter that calls
+`actor.update()`, while `ActionResolver` now commits action payment through
+`ResolutionTransaction` so target updates can roll back if payment fails.
 
 ## Current Integration
 
@@ -47,11 +49,10 @@ resolver while preserving the current cost-only behavior.
 
 ## Deferred Work
 
-Future `ActionResolver` should call `ResourceResolver` through `ActionContext` / `ActionResult`
-and place payment mutation inside a full `ResolutionTransaction`. That transaction should decide:
+Future resource slices should decide:
 
 - when to reserve resources
 - when reactions may interrupt
-- when to commit or refund
-- which client has authority to apply Actor updates
+- when to refund after user cancellation or reaction interrupts
+- how non-Actor resource stores should join the transaction boundary
 - how to report failures to chat/UI without hiding resolver errors

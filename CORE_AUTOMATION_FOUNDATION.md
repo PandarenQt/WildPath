@@ -45,6 +45,9 @@ The finished game system name is **Wild Path**.
   live Foundry documents or cross-layer object handles.
 - `module/resolvers/resource-resolver.mjs` maps generic action-economy payment plans to Actor
   resource update paths and is now the payment boundary used by `WildPathActor#useAction`.
+- `module/resolvers/resolution-transaction-resolver.mjs` provides ordered Actor update commit
+  operations with preflight rollback requirements and reverse-order rollback when a later commit
+  fails.
 - `module/resolvers/action-resolver.mjs` wraps the current Action flow in
   `ActionContext`/`ActionResult`, optional TargetResolver validation, semantic target/payment
   events, optional attack resolution for supplied roll/defense data, optional save resolution for
@@ -159,8 +162,9 @@ See `docs/architecture/combat-timeline.md` for the combat timeline, durations, a
 foundation. See `docs/architecture/events-and-reactions.md` for the automation event and reaction
 trigger foundation. See `docs/architecture/action-resolution.md` for the common action-context
 and action-result envelope. See `docs/architecture/resource-resolution.md` for the current
-resource payment resolver boundary. See `docs/architecture/action-resolver.md` for the current
-target-aware, attack-capable, and save-capable ActionResolver entry point. See
+resource payment resolver boundary. See `docs/architecture/resolution-transaction.md` for the
+current ordered Actor update transaction boundary. See `docs/architecture/action-resolver.md` for
+the current target-aware, attack-capable, and save-capable ActionResolver entry point. See
 `docs/architecture/target-resolver.md` for the current target validation bridge. See
 `docs/architecture/attack-resolver.md` for the current pure attack-outcome resolver. See
 `docs/architecture/save-resolver.md` for the current pure save-outcome resolver. See
@@ -175,9 +179,8 @@ current action-bar and combat-carousel view-model foundation. See
 
 ## Near-Term Order
 
-1. Add transaction/rollback behavior for multi-Actor action commits.
-2. Start writing new pure contract-heavy modules in TypeScript once a pinned `typescript`
+1. Start writing new pure contract-heavy modules in TypeScript once a pinned `typescript`
    dev dependency and `typecheck` script are added.
-3. Add effect slices one at a time.
+2. Add effect slices one at a time.
 
 Keep every slice small, testable, and compatible with synthetic Token Actors.

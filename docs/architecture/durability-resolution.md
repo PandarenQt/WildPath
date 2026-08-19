@@ -78,6 +78,12 @@ healing.
 - calls the thin Actor update adapter for durability plans
 - reports missing actors, authorization failures, and commit failures explicitly
 
+`prepareTargetMutationCommitOperations()`:
+
+- performs the same target Actor lookup and authority checks without mutating documents
+- returns `ResolutionTransaction` operations for ActionResolver execution
+- carries rollback updates from each durability mutation plan
+
 ## What It Does Not Do Yet
 
 DurabilityResolver does not:
@@ -85,6 +91,5 @@ DurabilityResolver does not:
 - discover concrete Foundry target Actors from canvas state
 - open reaction windows
 - create chat output
-- rollback partial multi-Actor commits
 
-Those belong in later ActionResolver/transaction and Foundry adapter slices.
+Those belong in later ActionResolver, reaction, UI, socket, and Foundry adapter slices.

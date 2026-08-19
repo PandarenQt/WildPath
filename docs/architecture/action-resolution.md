@@ -53,6 +53,10 @@ These are intentionally separate:
 A resolver can therefore do dry-run previews, reaction prompts, and rollback-safe validation before
 changing Actor, Item, ActiveEffect, Combat, or Scene state.
 
+`module/resolvers/resolution-transaction-resolver.mjs` is the current Actor update transaction
+boundary. It commits prepared operations in order, requires rollback updates before any non-noop
+write, and rolls already-committed operations back in reverse order if a later commit fails.
+
 ## Current Boundary
 
 This helper does not:
@@ -84,6 +88,7 @@ This foundation is intended for:
 - `HealingResolver`
 - `EffectResolver`
 - `ReactionResolver`
+- `ResolutionTransaction`
 - homebrew test/preview mode
 - action bar availability explanations
 - debug/audit traces
