@@ -151,7 +151,7 @@ Battlefield highlights should be derived from this state, not stored as UI-only 
 
 ## AoE Integration
 
-When the tactical grid foundation exists, the adapter should be:
+When the tactical grid foundation exists, the adapter flow is:
 
 ```text
 GridFootprint
@@ -163,3 +163,9 @@ GridFootprint
 ```
 
 Refinement must not mutate the `GridFootprint`; preview and resolution footprints remain the same.
+
+`module/helpers/area-targeting.mjs` implements the current pure bridge from an already-computed
+`GridFootprint` and token footprints into physical `TargetCandidate` objects. It intentionally does
+not calculate area geometry. Static bursts, lines, cones, emanations, and source-border placement
+belong to the tactical grid/area layer; this bridge only asks which token footprints intersect the
+field set that layer produced.
