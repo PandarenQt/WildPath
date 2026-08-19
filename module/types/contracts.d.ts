@@ -259,6 +259,19 @@ export interface ConcentrationCheckResolutionResult {
   readonly metadata: Readonly<Record<string, unknown>>;
 }
 
+export interface ConcentrationCheckCommitResult {
+  readonly ok: boolean;
+  readonly code: string;
+  readonly resolver: "ConcentrationCheckCommitResolver";
+  readonly checkResolution: ConcentrationCheckResolutionResult | null;
+  readonly lifecycleCommit: EffectLifecycleCommitResult | null;
+  readonly decisionEvents: readonly unknown[];
+  readonly breakEvents: readonly unknown[];
+  readonly mutationPlans: readonly ConditionEffectMutationPlan[];
+  readonly failures: readonly unknown[];
+  readonly metadata: Readonly<Record<string, unknown>>;
+}
+
 export interface EffectLifecycleCommitResult {
   readonly ok: boolean;
   readonly code: string;

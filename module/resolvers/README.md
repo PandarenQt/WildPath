@@ -109,6 +109,7 @@ call into `ActionResolver`; resolvers should not call UI code.
 | `EffectLifecycleResolver` | `module/resolvers/effect-lifecycle-resolver.mjs` | Plans condition removal when committed duration/concentration metadata expires or breaks. |
 | `EffectLifecycleCommitResolver` | `module/resolvers/effect-lifecycle-commit-resolver.mjs` | Commits lifecycle condition removals for supplied Actors with explicit authority and transaction rollback. |
 | `ConcentrationResolver` | `module/resolvers/concentration-resolver.mjs` | Plans concentration check requests from adjusted damage, resolves supplied digital/physical check results through SaveResolver, normalizes known concentration save decisions, and emits lifecycle break events for failed decisions. |
+| `ConcentrationCheckCommitResolver` | `module/resolvers/concentration-check-commit-resolver.mjs` | Bridges supplied concentration check results into EffectLifecycleCommitResolver with explicit authority and no prompt/UI dependency. |
 | `ResourceResolver` | `module/resolvers/resource-resolver.mjs` | Generalizes action cost validation and payment mutation planning; refund-on-cancel waits for cancellation/reaction slices. |
 | `ReactionResolver` | `module/resolvers/reaction-resolver.mjs` | Offer eligible reactions at defined interrupt points, then resume the parent resolution. |
 | `AreaResolver` | `module/resolvers/area-resolver.mjs` | Resolve instantaneous and persistent areas plus enter/leave/start-turn/end-turn triggers. |
@@ -132,5 +133,7 @@ metadata into condition removal plans, and EffectLifecycleCommitResolver can com
 from Foundry combat start/turn hook events on the active GM client. ConcentrationResolver can now
 feed failed concentration save decisions into that same lifecycle path, plan concentration check
 requests from adjusted damage, and resolve supplied check totals/outcomes into the same event shape.
-The next resolver slice should either add a Foundry/UI adapter for concentration check prompts/results or extend EffectResolver from condition-only planning toward
+ConcentrationCheckCommitResolver now bridges those supplied check results into the lifecycle commit
+path with explicit authority. The next resolver slice should either add a Foundry/UI prompt adapter
+for concentration check result entry or extend EffectResolver from condition-only planning toward
 generic ActiveEffect planning.

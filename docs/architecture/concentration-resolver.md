@@ -56,6 +56,9 @@ This lets a later dice adapter, physical-dice prompt, or GM-entered result provi
 total or explicit outcome. The concentration resolver still owns the save comparison and lifecycle
 signal shape.
 
+For the adapter-facing path that immediately commits resulting lifecycle removals, see
+`docs/architecture/concentration-check-commit-resolver.md`.
+
 ## What It Does Not Do Yet
 
 ConcentrationResolver does not:
