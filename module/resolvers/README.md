@@ -64,6 +64,8 @@ automation foundation needs, per `AGENTS.md` sections 4 and 8 and the architectu
   commit-adapter boundary for Foundry ActiveEffect mutation.
 - `module/resolvers/condition-effect-commit-resolver.mjs` commits and rolls back planned
   condition-effect mutations against supplied target Actors.
+- `module/resolvers/effect-lifecycle-resolver.mjs` consumes committed condition metadata plus
+  timeline/concentration break events and returns condition removal mutation plans.
 - `WildPathActor#toggleCondition` now enters `EffectResolver` before delegating Foundry document
   mutation to `WildPathConditionEffect.applyDelta`.
 - `WildPathActor#getStatistic(domain)` plus `WildPathStatistic`/`WildPathModifier` are the
@@ -93,6 +95,7 @@ call into `ActionResolver`; resolvers should not call UI code.
 | `ResolutionTransaction` | `module/resolvers/resolution-transaction-resolver.mjs` | Commits ordered Actor update/custom operations and rolls back committed updates/effects if a later operation fails. |
 | `EffectResolver` | `module/resolvers/effect-resolver.mjs` | Current condition create/update/delete/noop planner with lifecycle metadata and commit-adapter boundary; general ActiveEffect planning remains future work. |
 | `ConditionEffectCommitResolver` | `module/resolvers/condition-effect-commit-resolver.mjs` | Commits planned condition effects to supplied target Actors and restores snapshots on rollback. |
+| `EffectLifecycleResolver` | `module/resolvers/effect-lifecycle-resolver.mjs` | Plans condition removal when committed duration/concentration metadata expires or breaks. |
 | `ResourceResolver` | `module/resolvers/resource-resolver.mjs` | Generalizes action cost validation and payment mutation planning; refund-on-cancel waits for cancellation/reaction slices. |
 | `ReactionResolver` | `module/resolvers/reaction-resolver.mjs` | Offer eligible reactions at defined interrupt points, then resume the parent resolution. |
 | `AreaResolver` | `module/resolvers/area-resolver.mjs` | Resolve instantaneous and persistent areas plus enter/leave/start-turn/end-turn triggers. |
@@ -111,6 +114,7 @@ explicit authority. It can also plan condition effect consequences for selected,
 save-matching targets while carrying duration, spell-origin, and concentration metadata, then
 execute those plans through the same target mutation authority and transaction path. Target
 durability, target condition effects, and source payment commits now run through
-ResolutionTransaction. The next resolver slice should either add concentration/effect-lifecycle
-handling for committed condition metadata or extend EffectResolver from condition-only planning
-toward generic ActiveEffect planning.
+ResolutionTransaction. EffectLifecycleResolver can now turn committed duration/concentration
+metadata into condition removal plans. The next resolver slice should either connect lifecycle
+planning to Foundry combat/concentration hooks with authority guards or extend EffectResolver from
+condition-only planning toward generic ActiveEffect planning.

@@ -66,6 +66,10 @@ The helper does not mutate Actors, Items, ActiveEffects, or Foundry Combat docum
 resolvers should use the emitted events to plan and commit mutations through the normal authority
 and transaction layers.
 
+`EffectLifecycleResolver` now consumes this event shape to plan condition removals when committed
+duration metadata expires. Foundry combat hooks still need an adapter that turns real combat
+updates into these timeline events and commits the resulting mutation plans with authority guards.
+
 ## Future Consumers
 
 This foundation is intended for:
@@ -73,7 +77,7 @@ This foundation is intended for:
 - combat carousel state
 - turn-start resource refresh
 - condition ticking
-- duration expiry
+- duration expiry through EffectLifecycleResolver
 - delayed effects
 - persistent area triggers
 - reaction windows

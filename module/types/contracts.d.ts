@@ -191,6 +191,19 @@ export interface ConditionEffectResult {
   readonly reason?: string | null;
 }
 
+export interface EffectLifecycleResult {
+  readonly ok: boolean;
+  readonly code: string;
+  readonly resolver: "EffectLifecycleResolver";
+  readonly conditionPlans: readonly ConditionEffectResult[];
+  readonly mutationPlans: readonly ConditionEffectMutationPlan[];
+  readonly expired: readonly unknown[];
+  readonly concentrationBroken: readonly unknown[];
+  readonly unchanged: readonly unknown[];
+  readonly failures: readonly unknown[];
+  readonly metadata: Readonly<Record<string, unknown>>;
+}
+
 export interface ResolverSuccess<TCode extends string = "OK", TData extends object = Record<string, never>> {
   readonly ok: true;
   readonly code: TCode;

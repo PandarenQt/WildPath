@@ -46,6 +46,13 @@ condition id + signed level delta
 - returns snapshots that `ResolutionTransaction` can use for rollback
 - restores created, updated, and deleted condition effects when a later transaction operation fails
 
+`module/resolvers/effect-lifecycle-resolver.mjs`:
+
+- reads committed condition lifecycle metadata
+- plans condition removal when duration metadata expires
+- plans condition removal when linked concentration metadata breaks
+- returns mutation plans instead of mutating ActiveEffects
+
 `WildPathActor#toggleCondition()` now enters this resolver and supplies the Foundry-specific commit
 adapter that delegates to `WildPathConditionEffect.applyDelta`.
 
@@ -54,9 +61,9 @@ adapter that delegates to `WildPathConditionEffect.applyDelta`.
 EffectResolver does not:
 
 - apply generic ActiveEffects
-- resolve, tick, or expire durations
+- decrement and persist remaining duration counters
 - create condition ticking schedules
-- check or break concentration
+- roll concentration checks or decide that concentration broke
 - commit generic non-condition effects through `ResolutionTransaction`
 - open reaction windows
 - create chat output

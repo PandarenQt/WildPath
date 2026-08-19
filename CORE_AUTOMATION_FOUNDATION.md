@@ -78,6 +78,9 @@ The finished game system name is **Wild Path**.
 - `module/resolvers/condition-effect-commit-resolver.mjs` commits planned condition-effect
   mutations to supplied target Actors and restores created, updated, or deleted condition snapshots
   when the surrounding transaction rolls back.
+- `module/resolvers/effect-lifecycle-resolver.mjs` consumes committed condition metadata,
+  timeline events, and concentration break refs/events, then plans condition removals without
+  mutating ActiveEffect documents directly.
 - `module/helpers/weapon-sizing.mjs` provides the WeaponSizePolicy foundation: size comparison,
   2014/2024/house policy providers, structured wieldability results, and structured
   weapon-size damage scaling for explicitly marked damage components.
@@ -180,7 +183,8 @@ the current target-aware, attack-capable, and save-capable ActionResolver entry 
 `docs/architecture/damage-resolver.md` for the current structured damage-component foundation. See
 `docs/architecture/durability-resolution.md` for the current Actor durability mutation planner. See
 `docs/architecture/effect-resolver.md` for the current condition-first EffectResolver boundary. See
-`docs/architecture/weapon-size.md` for the WeaponSizePolicy foundation and its separation from
+`docs/architecture/effect-lifecycle-resolver.md` for duration/concentration condition removal
+planning. See `docs/architecture/weapon-size.md` for the WeaponSizePolicy foundation and its separation from
 Heavy, Reach, creature size, and damage execution. See
 `docs/architecture/abstraction-layers.md` for the string-reference boundary that keeps rules,
 resolvers, Foundry adapters, and UI separated. See `docs/architecture/ui-ux-layer.md` for the
@@ -189,8 +193,8 @@ current action-bar and combat-carousel view-model foundation. See
 
 ## Near-Term Order
 
-1. Add a concentration/effect-lifecycle resolver that consumes condition plan metadata and combat
-   timeline events without putting spell logic in sheets or condition data preparation.
+1. Connect EffectLifecycleResolver to Foundry combat/concentration events with the same authority
+   guards used by action transactions.
 2. Add generic ActiveEffect create/update/delete planning on top of the condition-first
    EffectResolver boundary.
 3. Start writing new pure contract-heavy modules in TypeScript once a pinned `typescript`
