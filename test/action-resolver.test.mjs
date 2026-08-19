@@ -95,6 +95,81 @@ const CONDITION_DEFINITIONS = {
   }
 };
 
+function conditionTargetActor(id, effects=[]) {
+  const actor = {
+    id,
+    system: targetActorSystem(14, 20),
+    effects: [],
+    effectCreates: [],
+    effectUpdates: [],
+    effectDeletes: [],
+    async createEmbeddedDocuments(documentName, documents) {
+      assert.equal(documentName, "ActiveEffect");
+      const created = documents.map(document => createFakeConditionEffect(actor, {
+        id: document.id ?? `effect-${actor.effects.length + 1}`,
+        ...document
+      }));
+      actor.effects.push(...created);
+      actor.effectCreates.push(...created.map(effect => effect.toObject()));
+      return created;
+    }
+  };
+  actor.effects = effects.map(effect => createFakeConditionEffect(actor, effect));
+  return actor;
+}
+
+function createFakeConditionEffect(actor, data) {
+  const effect = {
+    id: data.id ?? data._id ?? `effect-${data.system?.type ?? "condition"}`,
+    uuid: data.uuid ?? null,
+    type: data.type ?? "condition",
+    name: data.name ?? data.system?.type ?? "Condition",
+    img: data.img ?? null,
+    statuses: data.statuses ?? [data.system?.type].filter(Boolean),
+    system: structuredClone(data.system ?? {}),
+    duration: structuredClone(data.duration ?? null),
+    origin: data.origin ?? null,
+    flags: structuredClone(data.flags ?? {}),
+    async update(updates) {
+      actor.effectUpdates.push({id: effect.id, updates: structuredClone(updates)});
+      applyDocumentUpdates(effect, updates);
+      return effect;
+    },
+    async delete() {
+      actor.effectDeletes.push(effect.id);
+      actor.effects = actor.effects.filter(candidate => candidate !== effect);
+      return true;
+    },
+    toObject() {
+      return {
+        id: effect.id,
+        uuid: effect.uuid,
+        type: effect.type,
+        name: effect.name,
+        img: effect.img,
+        statuses: structuredClone(effect.statuses),
+        system: structuredClone(effect.system),
+        duration: structuredClone(effect.duration),
+        origin: effect.origin,
+        flags: structuredClone(effect.flags)
+      };
+    }
+  };
+  return effect;
+}
+
+function applyDocumentUpdates(document, updates) {
+  for ( const [path, value] of Object.entries(updates) ) {
+    const parts = path.split(".");
+    let cursor = document;
+    for ( const part of parts.slice(0, -1) ) {
+      cursor[part] ??= {};
+      cursor = cursor[part];
+    }
+    cursor[parts.at(-1)] = structuredClone(value);
+  }
+}
+
 test("ActionResolver plans current cost-only action resolution without mutating Actor system", () => {
   const system = actorSystem(1);
   const result = planActionResolution({
@@ -762,6 +837,35 @@ test("ActionResolver execution requires explicit authority for target durability
   assert.deepEqual(calls, []);
 });
 
+test("ActionResolver execution requires explicit authority for condition effect commits", async () => {
+  const sourceCalls = [];
+  const targetActor = conditionTargetActor("actor-ogre");
+  const actor = {
+    id: "actor-a",
+    name: "Aria",
+    type: "character",
+    system: actorSystem(1),
+    async update(updates) {
+      sourceCalls.push(updates);
+    }
+  };
+  const result = await executeActionResolution({
+    actor,
+    action: action(),
+    targets: [{id: "ogre", actorId: "actor-ogre"}],
+    effects: {
+      conditionDefinitions: CONDITION_DEFINITIONS,
+      conditions: [{conditionId: "prone"}]
+    },
+    targetActors: {"actor:actor-ogre": targetActor}
+  });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.code, ACTION_RESOLVER_CODES.MUTATION_COMMIT_FAILED);
+  assert.deepEqual(sourceCalls, []);
+  assert.equal(targetActor.effects.length, 0);
+});
+
 test("ActionResolver execution commits target durability plans with active GM authority", async () => {
   const sourceCalls = [];
   const targetCalls = [];
@@ -796,6 +900,45 @@ test("ActionResolver execution commits target durability plans with active GM au
   assert.equal(result.ok, true);
   assert.deepEqual(targetCalls, [{"system.resources.health.value": 8}]);
   assert.deepEqual(sourceCalls, [{"system.resources.action.value": 0}]);
+  assert.equal(result.events.at(-1).type, AUTOMATION_EVENT_TYPES.PAYMENT_COMMITTED);
+});
+
+test("ActionResolver execution commits condition effect plans with active GM authority", async () => {
+  const sourceCalls = [];
+  const targetActor = conditionTargetActor("actor-ogre");
+  const actor = {
+    id: "actor-a",
+    name: "Aria",
+    type: "character",
+    system: actorSystem(1),
+    async update(updates) {
+      sourceCalls.push(updates);
+    }
+  };
+  const result = await executeActionResolution({
+    actor,
+    action: action(),
+    targets: [{id: "ogre", actorId: "actor-ogre"}],
+    effects: {
+      conditionDefinitions: CONDITION_DEFINITIONS,
+      conditions: [{
+        conditionId: "prone",
+        duration: {unit: "round", value: 1},
+        concentration: true,
+        origin: "item:trip"
+      }]
+    },
+    targetActors: {"actor:actor-ogre": targetActor},
+    authority: {isGM: true, userId: "gm-a", activeGMId: "gm-a"}
+  });
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(sourceCalls, [{"system.resources.action.value": 0}]);
+  assert.equal(targetActor.effects.length, 1);
+  assert.equal(targetActor.effects[0].system.type, "prone");
+  assert.deepEqual(targetActor.effects[0].duration, {unit: "round", value: 1});
+  assert.equal(targetActor.effects[0].origin, "item:trip");
+  assert.equal(targetActor.effects[0].flags.wildpath.conditionEffect.concentration.required, true);
   assert.equal(result.events.at(-1).type, AUTOMATION_EVENT_TYPES.PAYMENT_COMMITTED);
 });
 
@@ -883,6 +1026,40 @@ test("ActionResolver execution rolls target mutations back when source payment c
     {"system.resources.health.value": 8},
     {"system.resources.health.value": 14}
   ]);
+  assert.equal(result.steps.at(-1).data.transaction.rolledBack, true);
+});
+
+test("ActionResolver execution rolls condition effects back when source payment commit fails", async () => {
+  const sourceCalls = [];
+  const targetActor = conditionTargetActor("actor-ogre");
+  const actor = {
+    id: "actor-a",
+    name: "Aria",
+    type: "character",
+    system: actorSystem(1),
+    async update(updates) {
+      sourceCalls.push(updates);
+      throw new Error("payment failed");
+    }
+  };
+  const result = await executeActionResolution({
+    actor,
+    action: action(),
+    targets: [{id: "ogre", actorId: "actor-ogre"}],
+    effects: {
+      conditionDefinitions: CONDITION_DEFINITIONS,
+      conditions: [{conditionId: "prone"}]
+    },
+    targetActors: {"actor:actor-ogre": targetActor},
+    authority: {isGM: true, userId: "gm-a", activeGMId: "gm-a"}
+  });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.code, ACTION_RESOLVER_CODES.RESOURCE_COMMIT_FAILED);
+  assert.deepEqual(sourceCalls, [{"system.resources.action.value": 0}]);
+  assert.equal(targetActor.effectCreates.length, 1);
+  assert.deepEqual(targetActor.effectDeletes, ["effect-1"]);
+  assert.equal(targetActor.effects.length, 0);
   assert.equal(result.steps.at(-1).data.transaction.rolledBack, true);
 });
 

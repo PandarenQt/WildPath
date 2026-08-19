@@ -168,7 +168,7 @@ async function commitFailedTransaction({
   const rollbackResults = [];
   const rollbackFailures = [];
   for ( const operation of [...committedOperations].reverse() ) {
-    if ( !Object.keys(operation.updates ?? {}).length ) continue;
+    if ( !Object.keys(operation.updates ?? {}).length && typeof operation.rollback !== "function" ) continue;
     try {
       const ok = await (operation.rollback ?? rollbackOperation)(operation);
       const summary = operationSummary(operation, ok ? "rolledBack" : "rollbackFailed");

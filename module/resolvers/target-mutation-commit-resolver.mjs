@@ -1,6 +1,10 @@
 import {resolveTargetLookupValue, targetLookupRefs} from "../helpers/target-actor-refs.mjs";
 import {createActorUpdateTransactionOperation} from "./resolution-transaction-resolver.mjs";
 import {commitActorDurabilityMutationPlan} from "./durability-resolver.mjs";
+import {
+  commitConditionEffectMutationPlan,
+  rollbackConditionEffectMutationPlan
+} from "./condition-effect-commit-resolver.mjs";
 
 export const TARGET_MUTATION_COMMIT_CODES = Object.freeze({
   OK: "OK",
@@ -17,6 +21,7 @@ export function prepareTargetMutationCommitOperations({
   targetActors={},
   authority=null,
   commitPlan=defaultCommitPlan,
+  rollbackPlan=null,
   metadata={}
 }={}) {
   if ( !mutationPlans.length ) {
@@ -56,12 +61,15 @@ export function prepareTargetMutationCommitOperations({
       break;
     }
 
+    const innerPlan = mutationPlan.plan ?? mutationPlan;
+    const rollbackCommitPlan = rollbackPlan ?? defaultRollbackPlanFor(mutationPlan);
+    let commitResult = null;
     operations.push(createActorUpdateTransactionOperation({
       id: `target:${index}:${mutationPlan.type}`,
       type: mutationPlan.type,
       actorRef: mutationPlan.targetRef ?? targetLookupRefs(target)[0] ?? null,
       actor,
-      mutationPlan: mutationPlan.plan,
+      mutationPlan: innerPlan,
       metadata: {
         ...(clonePlain(metadata) ?? {}),
         role: "targetMutation",
@@ -69,7 +77,14 @@ export function prepareTargetMutationCommitOperations({
         targetRefs: targetLookupRefs(target),
         mutationPlan: clonePlain(mutationPlan)
       },
-      commit: () => commitPlan(actor, mutationPlan.plan, mutationPlan)
+      commit: async () => {
+        commitResult = await commitPlan(actor, innerPlan, mutationPlan);
+        if ( commitResult?.ok === false ) throw new Error(commitResult.reason ?? commitResult.code ?? "Target mutation commit failed.");
+        return commitResult !== false;
+      },
+      ...(rollbackCommitPlan ? {
+        rollback: () => rollbackCommitPlan(actor, innerPlan, mutationPlan, commitResult)
+      } : {})
     }));
   }
 
@@ -129,11 +144,12 @@ export async function commitTargetMutationPlans({
     }
 
     try {
-      const ok = await commitPlan(actor, mutationPlan.plan, mutationPlan);
-      if ( !ok ) {
+      const innerPlan = mutationPlan.plan ?? mutationPlan;
+      const commitResult = await commitPlan(actor, innerPlan, mutationPlan);
+      if ( commitResult === false || commitResult?.ok === false ) {
         failures.push({
           code: TARGET_MUTATION_COMMIT_CODES.COMMIT_FAILED,
-          reason: "Target Actor commit adapter returned false.",
+          reason: commitResult?.reason ?? "Target Actor commit adapter returned false.",
           mutationPlan: clonePlain(mutationPlan),
           targetRefs: targetLookupRefs(target)
         });
@@ -236,7 +252,14 @@ function normalizeAuthorityResult(result) {
 }
 
 async function defaultCommitPlan(actor, mutationPlan) {
+  if ( mutationPlan?.type === "conditionEffect" ) return commitConditionEffectMutationPlan(actor, mutationPlan);
   return commitActorDurabilityMutationPlan(actor, mutationPlan);
+}
+
+function defaultRollbackPlanFor(mutationPlan) {
+  const type = mutationPlan.type ?? mutationPlan.plan?.type ?? null;
+  if ( type === "conditionEffect" ) return rollbackConditionEffectMutationPlan;
+  return null;
 }
 
 function clonePlain(value) {

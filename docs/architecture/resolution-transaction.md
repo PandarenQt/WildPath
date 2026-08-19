@@ -20,6 +20,7 @@ mutation plans
 - turns a mutation plan into a commit operation
 - carries the live Actor only at the Foundry adapter boundary
 - derives rollback updates from durability `path/from` data or resource-payment `payments`
+- accepts custom commit/rollback callbacks for document operations such as condition effects
 - marks non-noop operations unsafe when rollback data is missing
 
 `executeResolutionTransaction()`:
@@ -27,7 +28,8 @@ mutation plans
 - refuses unsafe operations before any Actor update is attempted
 - commits operations in order
 - treats no-op updates as successful
-- rolls back already-committed operations in reverse order when a later commit fails
+- rolls back already-committed Actor updates or custom rollback operations in reverse order when a
+  later commit fails
 - reports commit and rollback failures separately
 
 `ActionResolver` currently uses this transaction for:
@@ -35,10 +37,11 @@ mutation plans
 - target durability damage
 - target durability absorption
 - target durability healing
+- target condition effects
 - source resource payment
 
 Target durability commits still require explicit authority before they become transaction
-operations.
+operations. Target condition-effect commits use the same authority gate.
 
 ## What It Does Not Do Yet
 
@@ -48,7 +51,7 @@ ResolutionTransaction does not:
 - decide who has authority
 - reserve resources before reaction windows
 - retry socket handoffs
-- mutate Items, ActiveEffects, Combat, Scenes, or Regions
+- mutate Items, Combat, Scenes, or Regions
 - guarantee database-level atomicity across Foundry documents
 
 It is a best-effort ordered rollback layer over explicit mutation plans. Future Foundry adapter and

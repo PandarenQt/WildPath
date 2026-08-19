@@ -11,6 +11,8 @@ When damage supplies a `saveOutcomePolicy`, the resolver can adjust per-target d
 the already-resolved save outcomes, such as half damage on a successful save.
 When effects supply condition definitions, it can also plan condition consequences for selected,
 hit, or save-matching targets while carrying duration, spell-origin, and concentration metadata.
+During execution, condition effects commit through the same explicit-authority target mutation
+transaction path as durability.
 
 ## Current Flow
 
@@ -83,7 +85,8 @@ successfully.
 - runs the same planning flow
 - can derive target Actor system snapshots from supplied target Actors
 - prepares target durability transaction operations only with explicit authority
-- commits target durability and source resource-payment operations through a single
+- prepares target condition-effect transaction operations only with explicit authority
+- commits target durability, target condition effects, and source resource-payment operations through a single
   `ResolutionTransaction`
 - rolls back already-committed target/source updates in reverse order when a later Actor update
   fails
@@ -101,21 +104,23 @@ The current resolver does not:
 - derive attack bonuses or target defenses from Actor documents
 - derive save bonuses or save DCs from Actor documents
 - roll dice
-- commit condition/effect consequences to ActiveEffect documents
+- commit generic non-condition ActiveEffects
 - tick durations or break concentration
 - open reaction windows
 - create chat output
 
 Those are future ActionResolver slices. The optional attack, save, damage, healing, and condition
 steps consume already-known numeric roll, defense/DC, damage, healing, and effect-definition data;
-they do not own roll UI, Foundry statistic gathering, ActiveEffect document commits, duration
-ticking, or concentration checks. WeaponSizePolicy integration scales structural dice and records
-provenance for explicitly manufactured weapon damage, but it does not roll those dice or invent
-final damage amounts. This module exists so current action use already enters the same pipeline
-shape that those slices will extend.
+they do not own roll UI, Foundry statistic gathering, generic ActiveEffect document commits,
+duration ticking, or concentration checks. Condition effects can commit when execution receives
+target Actors and explicit authority; the commit adapter rolls back condition creates, updates, and
+deletes if a later transaction operation fails. WeaponSizePolicy integration scales structural dice
+and records provenance for explicitly manufactured weapon damage, but it does not roll those dice
+or invent final damage amounts. This module exists so current action use already enters the same
+pipeline shape that those slices will extend.
 
 ## Next Resolver Slice
 
-The next resolver slice should either commit planned condition effects through an explicit Foundry
-adapter/transaction path or extend EffectResolver from conditions to generic ActiveEffect
+The next resolver slice should either add concentration/effect-lifecycle handling for committed
+condition metadata or extend EffectResolver from conditions to generic ActiveEffect
 creation/removal. Direct Actor durability mutation remains outside DamageResolver itself.

@@ -563,7 +563,7 @@ function targetActorSystemsFromActors(targetActors) {
 }
 
 function isSupportedTargetMutationPlan(plan) {
-  return ["durabilityDamage", "durabilityHealing", "durabilityAbsorption"].includes(plan.type);
+  return ["durabilityDamage", "durabilityHealing", "durabilityAbsorption", "conditionEffect"].includes(plan.type);
 }
 
 function shouldResolveTargets({targeting, actionContext}) {

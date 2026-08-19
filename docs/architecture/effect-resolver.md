@@ -12,7 +12,7 @@ condition id + signed level delta
 -> existing condition snapshot lookup
 -> create/update/delete/noop mutation plan
 -> duration/source/origin/concentration lifecycle metadata
--> explicit Foundry commit adapter
+-> explicit Foundry commit adapter or ActionResolver transaction operation
 ```
 
 ## What It Does Now
@@ -38,6 +38,14 @@ condition id + signed level delta
 - skips no-op commits
 - returns structured commit failures instead of throwing resolver errors
 
+`module/resolvers/condition-effect-commit-resolver.mjs`:
+
+- commits condition creates, updates, deletes, and no-ops against supplied target Actors
+- persists duration/source/origin/concentration metadata onto condition ActiveEffects
+- applies signed level deltas against current target Actor state at commit time
+- returns snapshots that `ResolutionTransaction` can use for rollback
+- restores created, updated, and deleted condition effects when a later transaction operation fails
+
 `WildPathActor#toggleCondition()` now enters this resolver and supplies the Foundry-specific commit
 adapter that delegates to `WildPathConditionEffect.applyDelta`.
 
@@ -48,9 +56,8 @@ EffectResolver does not:
 - apply generic ActiveEffects
 - resolve, tick, or expire durations
 - create condition ticking schedules
-- commit ActionResolver condition consequences
 - check or break concentration
-- commit effects through `ResolutionTransaction`
+- commit generic non-condition effects through `ResolutionTransaction`
 - open reaction windows
 - create chat output
 
