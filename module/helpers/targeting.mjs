@@ -202,31 +202,45 @@ export function applyTargetPredicate(targetSet, predicate, context={}) {
  * @param {object} options
  * @returns {object}
  */
-export function createTargetSelectionRequest({targetSet, policy={}, context={}}) {
-  const selected = defaultSelectedIds(targetSet.candidates, policy, context);
+export function createTargetSelectionRequest({targetSet, policy={}, decisions=[], context={}}) {
+  const preview = decisions.length ? refineTargetSet({targetSet, policy, decisions, context}) : null;
+  const selected = preview ? new Set(preview.selected) : defaultSelectedIds(targetSet.candidates, policy, context);
+  const excluded = new Set(preview?.excluded ?? []);
+  const overridden = new Set(Object.keys(preview?.overrides ?? {}));
   const allowed = new Set(policy.allowedOperations ?? [TARGET_OPERATIONS.SELECT, TARGET_OPERATIONS.DESELECT]);
   return {
     candidates: targetSet.candidates.map(candidate => {
       const eligible = !!candidate.eligibility?.ok;
       const predicate = evaluateSelectionPredicate(candidate, policy, context);
       const currentlySelected = selected.has(candidate.id);
+      const selectable = eligible && predicate.ok && allowed.has(TARGET_OPERATIONS.SELECT) && !currentlySelected;
+      const deselectable = eligible && predicate.ok && allowed.has(TARGET_OPERATIONS.DESELECT) && currentlySelected;
+      const overridable = eligible && predicate.ok && allowed.has(TARGET_OPERATIONS.OVERRIDE);
+      const excludable = eligible && predicate.ok && allowed.has(TARGET_OPERATIONS.EXCLUDE);
       return {
         targetId: candidate.id,
         eligible,
         physicallyInArea: true,
         selected: currentlySelected,
-        selectable: eligible && predicate.ok && allowed.has(TARGET_OPERATIONS.SELECT) && !currentlySelected,
-        deselectable: eligible && predicate.ok && allowed.has(TARGET_OPERATIONS.DESELECT) && currentlySelected,
-        protected: false,
+        excluded: excluded.has(candidate.id),
+        selectable,
+        deselectable,
+        excludable,
+        overridable,
+        protected: overridden.has(candidate.id),
+        cannotChange: !(selectable || deselectable || excludable || overridable),
         ineligibleReason: eligible ? null : candidate.eligibility?.reason ?? candidate.eligibility?.code,
         predicateReason: predicate.ok ? null : predicate.reason
       };
     }),
     currentlySelected: [...selected],
+    currentlyExcluded: [...excluded],
+    currentlyProtected: [...overridden],
     requiredMin: evaluateLimit(policy.minSelections ?? policy.minChoices ?? 0, context),
     allowedMax: evaluateLimit(policy.maxSelections ?? policy.maxChoices ?? targetSet.candidates.length, context),
     chooser: policy.chooser ?? "source-controller",
-    reason: policy.reason ?? null
+    reason: policy.reason ?? null,
+    validation: preview?.validation ?? []
   };
 }
 

@@ -140,12 +140,18 @@ future GM inspection.
 
 - physically in area
 - selected
+- excluded
+- protected/overridden
 - selectable
 - deselectable
+- excludable
+- overridable
+- cannot change
 - ineligible
 - predicate rejection reason
 - chooser
 - required/allowed counts
+- validation when preview decisions are supplied
 
 Battlefield highlights should be derived from this state, not stored as UI-only color decisions.
 

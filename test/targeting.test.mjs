@@ -210,6 +210,31 @@ test("selection request exposes future UI battlefield states", () => {
   assert.equal(request.candidates.find(c => c.targetId === "enemy").selectable, false);
 });
 
+test("selection request previews excluded, protected, and cannot-change states", () => {
+  const set = resolveTargetEligibility(createTargetSet([
+    candidate("excluded", {disposition: "ally"}),
+    candidate("protected", {disposition: "ally"}),
+    candidate("locked", {disposition: "enemy"})
+  ]));
+  const request = createTargetSelectionRequest({
+    targetSet: set,
+    policy: {
+      allowedOperations: [TARGET_OPERATIONS.EXCLUDE, TARGET_OPERATIONS.OVERRIDE],
+      selectionPredicate: {not: {equals: {path: "disposition", value: "enemy"}}}
+    },
+    decisions: [
+      {operation: TARGET_OPERATIONS.EXCLUDE, targetId: "excluded"},
+      attachTargetOverride("protected", {type: TARGET_OVERRIDE_TYPES.AUTOMATIC_SUCCESS})
+    ]
+  });
+
+  assert.deepEqual(request.currentlyExcluded, ["excluded"]);
+  assert.deepEqual(request.currentlyProtected, ["protected"]);
+  assert.equal(request.candidates.find(c => c.targetId === "excluded").excluded, true);
+  assert.equal(request.candidates.find(c => c.targetId === "protected").protected, true);
+  assert.equal(request.candidates.find(c => c.targetId === "locked").cannotChange, true);
+});
+
 test("TargetSet operations add, remove, filter, partition, and apply predicates immutably", () => {
   const original = createTargetSet([
     candidate("ally", {disposition: "ally"}),
