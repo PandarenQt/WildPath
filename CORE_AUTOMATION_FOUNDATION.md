@@ -70,6 +70,9 @@ The finished game system name is **Wild Path**.
 - `module/helpers/ui-view-models.mjs` provides the first pure UI/UX state layer for action-bar
   availability and combat-carousel turn state, with command payloads and opaque refs instead of
   DOM, canvas, or Foundry document coupling.
+- `tsconfig.json` and `module/types/contracts.d.ts` provide the first non-disruptive TypeScript
+  migration scaffold for shared refs, resolver results, mutation plans, action context, and UI view
+  models. JavaScript remains the runtime implementation until individual modules are converted.
 
 ## Resolution Pipeline
 
@@ -164,12 +167,15 @@ target-aware, attack-capable, and save-capable ActionResolver entry point. See
 Heavy, Reach, creature size, and damage execution. See
 `docs/architecture/abstraction-layers.md` for the string-reference boundary that keeps rules,
 resolvers, Foundry adapters, and UI separated. See `docs/architecture/ui-ux-layer.md` for the
-current action-bar and combat-carousel view-model foundation.
+current action-bar and combat-carousel view-model foundation. See
+`docs/architecture/typescript-migration.md` for the staged TypeScript adoption plan.
 
 ## Near-Term Order
 
 1. Connect resolved target damage/healing to target Actor durability mutation plans.
 2. Add resistance/immunity/vulnerability handling before durability mutation.
-3. Add effect slices one at a time.
+3. Start writing new pure contract-heavy modules in TypeScript once a pinned `typescript`
+   dev dependency and `typecheck` script are added.
+4. Add effect slices one at a time.
 
 Keep every slice small, testable, and compatible with synthetic Token Actors.

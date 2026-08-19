@@ -5,6 +5,7 @@ should not need to know whether a target came from a world Actor, an unlinked To
 button, the action bar, the combat carousel, or a future randomizer tool.
 
 The current pure helper is `module/helpers/entity-refs.mjs`.
+The shared TypeScript contract names for these refs live in `module/types/contracts.d.ts`.
 
 ## Reference Contract
 
