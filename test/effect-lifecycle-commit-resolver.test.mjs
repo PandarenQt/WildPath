@@ -1,6 +1,7 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
 import {TIMELINE_EVENT_TYPES} from "../module/helpers/combat-timeline.mjs";
+import {CONCENTRATION_EVENT_TYPES} from "../module/resolvers/concentration-resolver.mjs";
 import {
   EFFECT_LIFECYCLE_COMMIT_CODES,
   executeEffectLifecycleCommit,
@@ -97,6 +98,85 @@ test("EffectLifecycleCommitResolver noops when no lifecycle mutation is due", as
   assert.equal(result.code, EFFECT_LIFECYCLE_COMMIT_CODES.NO_MUTATION_PLANS);
   assert.equal(effect.deleted, undefined);
   assert.equal(actor.effects.length, 1);
+});
+
+test("EffectLifecycleCommitResolver removes linked effects when a concentration save fails", async () => {
+  const {actor, effect} = actorWithCondition({
+    concentration: {
+      required: true,
+      sourceRef: "actor:caster",
+      originRef: "item:spell",
+      breakRemovesEffect: true
+    }
+  });
+  const result = await executeEffectLifecycleCommit({
+    actors: [actor],
+    concentrationDecisions: [{
+      actorId: "caster",
+      success: false,
+      dc: 10,
+      total: 7
+    }],
+    authority: {isGM: true, userId: "gm-a", activeGMId: "gm-a"},
+    conditionDefinitions: CONDITION_DEFINITIONS
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.code, EFFECT_LIFECYCLE_COMMIT_CODES.OK);
+  assert.equal(result.concentration.breakEvents.length, 1);
+  assert.equal(effect.deleted, true);
+  assert.equal(actor.effects.length, 0);
+  assert.deepEqual(result.mutationPlans[0].metadata.lifecycle.reasons, ["concentrationBroken"]);
+});
+
+test("EffectLifecycleCommitResolver keeps linked effects when concentration is maintained", async () => {
+  const {actor, effect} = actorWithCondition({
+    concentration: {
+      required: true,
+      sourceRef: "actor:caster",
+      breakRemovesEffect: true
+    }
+  });
+  const result = await executeEffectLifecycleCommit({
+    actors: [actor],
+    concentrationDecisions: [{
+      sourceRef: "actor:caster",
+      success: true
+    }],
+    authority: {isGM: true, userId: "gm-a", activeGMId: "gm-a"},
+    conditionDefinitions: CONDITION_DEFINITIONS
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.code, EFFECT_LIFECYCLE_COMMIT_CODES.NO_MUTATION_PLANS);
+  assert.equal(result.concentration.maintained.length, 1);
+  assert.equal(effect.deleted, undefined);
+  assert.equal(actor.effects.length, 1);
+});
+
+test("EffectLifecycleCommitResolver accepts concentration save events", async () => {
+  const {actor, effect} = actorWithCondition({
+    concentration: {
+      required: true,
+      sourceRef: "actor:caster",
+      breakRemovesEffect: true
+    }
+  });
+  const result = await executeEffectLifecycleCommit({
+    actors: [actor],
+    events: [{
+      type: CONCENTRATION_EVENT_TYPES.SAVE_RESOLVED,
+      data: {
+        sourceRef: "actor:caster",
+        outcome: "failed"
+      }
+    }],
+    authority: {isGM: true, userId: "gm-a", activeGMId: "gm-a"},
+    conditionDefinitions: CONDITION_DEFINITIONS
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(effect.deleted, true);
 });
 
 test("EffectLifecycleCommitResolver rejects lifecycle commits without authority", async () => {

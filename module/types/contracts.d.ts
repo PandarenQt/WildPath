@@ -204,10 +204,22 @@ export interface EffectLifecycleResult {
   readonly metadata: Readonly<Record<string, unknown>>;
 }
 
+export interface ConcentrationDecisionResult {
+  readonly ok: boolean;
+  readonly code: string;
+  readonly resolver: "ConcentrationResolver";
+  readonly breakEvents: readonly unknown[];
+  readonly maintained: readonly unknown[];
+  readonly ignored: readonly unknown[];
+  readonly failures: readonly unknown[];
+  readonly metadata: Readonly<Record<string, unknown>>;
+}
+
 export interface EffectLifecycleCommitResult {
   readonly ok: boolean;
   readonly code: string;
   readonly resolver: "EffectLifecycleCommitResolver";
+  readonly concentration: ConcentrationDecisionResult | null;
   readonly lifecycleResults: readonly EffectLifecycleResult[];
   readonly mutationPlans: readonly ConditionEffectMutationPlan[];
   readonly failures: readonly unknown[];

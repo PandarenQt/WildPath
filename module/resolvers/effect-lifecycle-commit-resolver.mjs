@@ -3,6 +3,7 @@ import {
   actorRef,
   uuidRef
 } from "../helpers/entity-refs.mjs";
+import {resolveConcentrationDecisions} from "./concentration-resolver.mjs";
 import {planEffectLifecycle} from "./effect-lifecycle-resolver.mjs";
 import {executeResolutionTransaction} from "./resolution-transaction-resolver.mjs";
 import {prepareTargetMutationCommitOperations} from "./target-mutation-commit-resolver.mjs";
@@ -22,17 +23,26 @@ export async function executeEffectLifecycleCommit({
   actors=[],
   events=[],
   concentrationBreaks=[],
+  concentrationDecisions=[],
   targetActors=null,
   authority=null,
   conditionDefinitions=WILDPATH.CONDITIONS,
   metadata={}
 }={}) {
+  const concentration = resolveConcentrationDecisions({
+    decisions: concentrationDecisions,
+    events,
+    metadata
+  });
+  const lifecycleEvents = [...collectionContents(events), ...concentration.breakEvents];
+  const lifecycleBreaks = collectionContents(concentrationBreaks);
   const actorList = uniqueActors(collectionContents(actors));
   if ( !actorList.length ) {
     return lifecycleCommitResult({
       ok: true,
       code: EFFECT_LIFECYCLE_COMMIT_CODES.NO_ACTORS,
       metadata,
+      concentration,
       lifecycleResults: [],
       mutationPlans: []
     });
@@ -45,8 +55,8 @@ export async function executeEffectLifecycleCommit({
     const result = planEffectLifecycle({
       actor,
       effects: actor.effects ?? [],
-      events,
-      concentrationBreaks,
+      events: lifecycleEvents,
+      concentrationBreaks: lifecycleBreaks,
       conditionDefinitions,
       metadata: {
         ...(clonePlain(metadata) ?? {}),
@@ -63,6 +73,7 @@ export async function executeEffectLifecycleCommit({
       ok: false,
       code: EFFECT_LIFECYCLE_COMMIT_CODES.PLAN_FAILED,
       metadata,
+      concentration,
       lifecycleResults,
       mutationPlans,
       failures
@@ -74,6 +85,7 @@ export async function executeEffectLifecycleCommit({
       ok: true,
       code: EFFECT_LIFECYCLE_COMMIT_CODES.NO_MUTATION_PLANS,
       metadata,
+      concentration,
       lifecycleResults,
       mutationPlans
     });
@@ -93,6 +105,7 @@ export async function executeEffectLifecycleCommit({
       ok: false,
       code: EFFECT_LIFECYCLE_COMMIT_CODES.COMMIT_PREP_FAILED,
       metadata,
+      concentration,
       lifecycleResults,
       mutationPlans,
       failures: targetOperations.failures,
@@ -112,6 +125,7 @@ export async function executeEffectLifecycleCommit({
     ok: transaction.ok,
     code: transaction.ok ? EFFECT_LIFECYCLE_COMMIT_CODES.OK : EFFECT_LIFECYCLE_COMMIT_CODES.TRANSACTION_FAILED,
     metadata,
+    concentration,
     lifecycleResults,
     mutationPlans,
     failures: transaction.failures,
@@ -136,6 +150,7 @@ function lifecycleCommitResult({
   ok,
   code,
   metadata,
+  concentration=null,
   lifecycleResults,
   mutationPlans,
   failures=[],
@@ -146,6 +161,7 @@ function lifecycleCommitResult({
     ok,
     code,
     resolver: "EffectLifecycleCommitResolver",
+    concentration,
     lifecycleResults,
     mutationPlans,
     failures,

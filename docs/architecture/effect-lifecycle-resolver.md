@@ -7,6 +7,9 @@ effect metadata and later removal plans.
 accepts supplied Actors, lifecycle events, and explicit authority, then commits any resulting
 condition removal plans through `TargetMutationCommitResolver` and `ResolutionTransaction`.
 
+`module/resolvers/concentration-resolver.mjs` can feed this lifecycle path by turning
+already-resolved failed concentration save decisions into `concentration.broken` events.
+
 ## Current Flow
 
 ```text
@@ -40,6 +43,7 @@ Actors and explicit authority.
 `executeEffectLifecycleCommit()`:
 
 - runs `planEffectLifecycle()` for supplied target Actors
+- normalizes supplied concentration save decisions before lifecycle planning
 - builds a target Actor lookup from opaque `actor:` and `uuid:` refs
 - refuses mutation commits without explicit GM/authority data
 - batches committed condition removals through the existing transaction path
@@ -53,11 +57,13 @@ guards execution to the active GM, resets the incoming combatant's turn resource
 EffectLifecycleResolver does not:
 
 - roll concentration saves
-- decide whether concentration was broken
+- decide whether a concentration check is required
+- compute concentration DCs
 - decrement and persist remaining duration counters
 - create chat output or UI prompts
 - apply generic non-condition ActiveEffects
 
 Those remain future resolver slices. The pure planner only converts already-known
 timeline/concentration events into explicit condition removal plans; the current Foundry hook
-adapter only supplies combat start/turn events.
+adapter supplies combat start/turn events, and ConcentrationResolver supplies break events after a
+concentration decision is already known.
