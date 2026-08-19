@@ -4,6 +4,7 @@ import {
   INVENTORY_CODES,
   INVENTORY_OPERATIONS,
   INVENTORY_WEIGHT_POLICY,
+  createInventoryDebugSnapshot,
   calculateInventoryWeights,
   calculateSpaceInternalWeight,
   commitInventoryTransfer,
@@ -13,6 +14,7 @@ import {
   planInventoryTransfer,
   wouldCreateContainmentCycle
 } from "../module/helpers/inventory.mjs";
+import {createInMemoryInventoryRepository} from "../module/helpers/inventory-repository.mjs";
 
 const actorA = {type: "actor", id: "actor-a"};
 const actorB = {type: "actor", id: "actor-b"};
@@ -268,4 +270,76 @@ test("self containment and recursive containment cycles are rejected", () => {
     ignoreAccess: true
   });
   assert.equal(plan.code, INVENTORY_CODES.CONTAINMENT_CYCLE);
+});
+
+test("inventory debug snapshot exposes access provenance, containment, and weight trace", () => {
+  const state = baseState({
+    spaces: [
+      {id: "bag.space", host: {type: "item", id: "bag"}, parentItemId: "bag", weightPolicy: INVENTORY_WEIGHT_POLICY.TRACK_BUT_IGNORE_FOR_CARRIER}
+    ],
+    items: [
+      {
+        id: "bag",
+        label: "Bag",
+        spaceId: "a.personal",
+        weight: 2,
+        containsSpaceIds: ["bag.space"],
+        accessGrants: [{spaceId: "bag.space", granteePolicy: "holder", operations: [INVENTORY_OPERATIONS.VIEW]}]
+      },
+      {id: "gem", label: "Gem", spaceId: "bag.space", weight: 5}
+    ]
+  });
+  const snapshot = createInventoryDebugSnapshot(state, {actorRef: actorA});
+
+  assert.equal(snapshot.counts.spaces, 3);
+  assert.equal(snapshot.counts.items, 2);
+  assert.deepEqual(snapshot.containment, [{itemId: "bag", spaceId: "bag.space"}]);
+  assert.equal(snapshot.spaces.find(space => space.id === "bag.space").accessible, true);
+  assert.equal(snapshot.spaces.find(space => space.id === "bag.space").internalWeight, 5);
+  assert.equal(snapshot.access.find(entry => entry.spaceId === "bag.space").sources[0].type, "item");
+  assert.equal(snapshot.weights.total, 2);
+});
+
+test("in-memory inventory repository plans and commits without exposing mutable state", async () => {
+  const repository = createInMemoryInventoryRepository(baseState({
+    items: [{id: "apple", label: "Apple", quantity: 2, spaceId: "a.personal"}]
+  }));
+
+  const loaded = await repository.loadState();
+  loaded.items[0].quantity = 99;
+  assert.equal((await repository.loadState()).items[0].quantity, 2);
+
+  const plan = await repository.planTransfer({
+    itemId: "apple",
+    sourceSpaceId: "a.personal",
+    destinationSpaceId: "b.personal",
+    actorRef: actorA,
+    quantity: 1,
+    ignoreAccess: true
+  });
+  assert.equal(plan.ok, true);
+
+  const committed = await repository.commitTransfer(plan);
+  assert.equal(committed.ok, true);
+  const after = await repository.loadState();
+  assert.equal(after.items.find(item => item.id === "apple").quantity, 1);
+  assert.equal(after.items.find(item => item.id === plan.newItemId).spaceId, "b.personal");
+});
+
+test("in-memory inventory repository keeps failed transfers from mutating state", async () => {
+  const repository = createInMemoryInventoryRepository(baseState({
+    spaces: [{id: "tiny", host: {type: "world", id: "tiny"}, capacity: {maxItems: 0}}],
+    items: [{id: "stone", label: "Stone", spaceId: "a.personal"}]
+  }));
+  const result = await repository.transferItem({
+    itemId: "stone",
+    sourceSpaceId: "a.personal",
+    destinationSpaceId: "tiny",
+    actorRef: actorA,
+    ignoreAccess: true
+  });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.code, INVENTORY_CODES.CAPACITY_EXCEEDED);
+  assert.equal((await repository.listContents("a.personal"))[0].id, "stone");
 });

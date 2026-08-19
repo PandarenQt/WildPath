@@ -115,3 +115,29 @@ Future Foundry integration should use an `InventoryRepository` adapter responsib
 saving, listing contents, resolving references, and committing transfer transactions.
 
 Domain code should not directly manipulate arbitrary Foundry storage documents.
+
+The current pure boundary is `createInMemoryInventoryRepository()` in
+`module/helpers/inventory-repository.mjs`. It is not the finished persistence implementation; it is
+the method contract and test harness for future Foundry-backed adapters.
+
+Repository responsibilities:
+
+- load and save normalized inventory state
+- list spaces and contents
+- resolve space/item references
+- query accessible spaces
+- plan transfers without mutation
+- commit transfer plans transactionally
+- expose weight and debug snapshots
+
+## Debug And Audit
+
+`createInventoryDebugSnapshot()` preserves structured inspection data for developer tools and
+future UI:
+
+- spaces and contents
+- access operations and provenance
+- access grants
+- containment edges
+- internal weight per space
+- actor weight trace when an actor context is supplied

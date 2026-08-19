@@ -124,6 +124,79 @@ export function eligibleTargetSet(targetSet) {
 
 /* -------------------------------------------- */
 
+export function targetSetContains(targetSet, targetId) {
+  return targetSet.candidates.some(candidate => candidate.id === String(targetId));
+}
+
+/* -------------------------------------------- */
+
+export function addTargetCandidate(targetSet, candidate) {
+  return createTargetSet([...targetSet.candidates, candidate], {
+    footprint: targetSet.footprint,
+    metadata: targetSet.metadata
+  });
+}
+
+/* -------------------------------------------- */
+
+export function removeTargetCandidate(targetSet, targetId) {
+  return {
+    ...targetSet,
+    candidates: targetSet.candidates.filter(candidate => candidate.id !== String(targetId)).map(cloneCandidate),
+    metadata: clonePlain(targetSet.metadata ?? {})
+  };
+}
+
+/* -------------------------------------------- */
+
+export function filterTargetSet(targetSet, predicate, context={}) {
+  return {
+    ...targetSet,
+    candidates: targetSet.candidates.filter(candidate => {
+      return evaluatePredicate(predicate, targetPredicateContext(candidate, context)).ok;
+    }).map(cloneCandidate),
+    metadata: clonePlain(targetSet.metadata ?? {})
+  };
+}
+
+/* -------------------------------------------- */
+
+export function partitionTargetSet(targetSet, predicate, context={}) {
+  const matching = [];
+  const rest = [];
+  for ( const candidate of targetSet.candidates ) {
+    const result = evaluatePredicate(predicate, targetPredicateContext(candidate, context));
+    (result.ok ? matching : rest).push(candidate);
+  }
+  return {
+    matching: createTargetSet(matching, {footprint: targetSet.footprint, metadata: targetSet.metadata}),
+    rest: createTargetSet(rest, {footprint: targetSet.footprint, metadata: targetSet.metadata})
+  };
+}
+
+/* -------------------------------------------- */
+
+export function applyTargetPredicate(targetSet, predicate, context={}) {
+  const results = targetSet.candidates.map(candidate => {
+    const result = evaluatePredicate(predicate, targetPredicateContext(candidate, context));
+    return {
+      targetId: candidate.id,
+      ok: result.ok,
+      code: result.code,
+      reason: result.reason ?? null
+    };
+  });
+  return {
+    ok: results.every(result => result.ok),
+    results,
+    matching: targetSet.candidates.filter(candidate => results.find(r => r.targetId === candidate.id)?.ok).map(cloneCandidate),
+    rejected: targetSet.candidates.filter(candidate => !results.find(r => r.targetId === candidate.id)?.ok)
+      .map(cloneCandidate)
+  };
+}
+
+/* -------------------------------------------- */
+
 /**
  * Build structured state for future interactive targeting UI.
  * @param {object} options
@@ -206,6 +279,10 @@ export function refineTargetSet({targetSet, policy={}, decisions=[], context={}}
   const finalTargets = targetSet.candidates.filter(candidate => selected.has(candidate.id) && !excluded.has(candidate.id))
     .map(cloneCandidate);
   const excludedTargets = targetSet.candidates.filter(candidate => excluded.has(candidate.id)).map(cloneCandidate);
+  const decisionTargetIds = new Set(decisions.map(decision => decision.targetId));
+  const unchanged = targetSet.candidates.filter(candidate => {
+    return selected.has(candidate.id) && !excluded.has(candidate.id) && !decisionTargetIds.has(candidate.id);
+  }).map(cloneCandidate);
 
   return {
     ok: validation.length === 0,
@@ -216,9 +293,11 @@ export function refineTargetSet({targetSet, policy={}, decisions=[], context={}}
     excluded: [...excluded],
     finalTargets,
     excludedTargets,
+    unchanged,
     overrides: Object.fromEntries([...overrides.entries()].map(([id, values]) => [id, values.map(clonePlain)])),
     marks: Object.fromEntries(marks),
     decisions: decisions.map(clonePlain),
+    selectionDecisions: decisions.map(clonePlain),
     validation,
     targetContexts: buildTargetContexts(targetSet.candidates, selected, excluded, overrides)
   };
@@ -231,6 +310,48 @@ export function attachTargetOverride(decision, override, source=null) {
     operation: TARGET_OPERATIONS.OVERRIDE,
     targetId: decision.targetId ?? decision,
     override: {...override, source: source ? clonePlain(source) : override.source ?? null}
+  };
+}
+
+/* -------------------------------------------- */
+
+export function createTargetRefinementTrace(result, {label=null}={}) {
+  const selected = new Set(result.selected ?? []);
+  const excluded = new Set(result.excluded ?? []);
+  const overrides = result.overrides ?? {};
+  const marks = result.marks ?? {};
+  const candidates = result.physicalCandidates ?? result.candidates ?? [];
+
+  return {
+    label,
+    ok: result.ok ?? true,
+    code: result.code ?? TARGET_CODES.OK,
+    footprint: result.footprint ?? null,
+    counts: {
+      physical: candidates.length,
+      selected: selected.size,
+      excluded: excluded.size,
+      final: result.finalTargets?.length ?? 0,
+      overridden: Object.keys(overrides).length
+    },
+    validation: (result.validation ?? []).map(clonePlain),
+    targets: candidates.map(candidate => {
+      const targetOverrides = overrides[candidate.id] ?? [];
+      return {
+        targetId: candidate.id,
+        target: clonePlain(candidate.target),
+        actor: candidate.actor ? clonePlain(candidate.actor) : null,
+        physicallyInArea: true,
+        selected: selected.has(candidate.id),
+        excluded: excluded.has(candidate.id),
+        eligibility: clonePlain(candidate.eligibility ?? {ok: true, code: TARGET_CODES.OK}),
+        status: targetTraceStatus(candidate, selected, excluded, targetOverrides),
+        occupiedFields: candidate.occupiedFields.map(clonePlain),
+        intersectingFields: candidate.intersectingFields.map(clonePlain),
+        overrides: targetOverrides.map(clonePlain),
+        mark: marks[candidate.id] ?? null
+      };
+    })
   };
 }
 
@@ -329,6 +450,14 @@ function buildTargetContexts(candidates, selected, excluded, overrides) {
       overrides: (overrides.get(candidate.id) ?? []).map(clonePlain),
       results: []
     }));
+}
+
+function targetTraceStatus(candidate, selected, excluded, overrides) {
+  if ( excluded.has(candidate.id) ) return "excluded";
+  if ( !candidate.eligibility?.ok ) return "ineligible";
+  if ( overrides.length ) return "overridden";
+  if ( selected.has(candidate.id) ) return "selected";
+  return "unselected";
 }
 
 function evaluateLimit(expression, context) {

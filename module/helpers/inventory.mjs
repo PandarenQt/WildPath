@@ -259,6 +259,66 @@ export function wouldCreateContainmentCycle(state, itemId, destinationSpaceId) {
 
 /* -------------------------------------------- */
 
+export function createInventoryDebugSnapshot(state, {actorRef=null}={}) {
+  const access = actorRef ? getAccessibleInventorySpaces(actorRef, state) : [];
+  const accessBySpace = new Map(access.map(entry => [entry.space.id, entry]));
+  const weights = actorRef ? calculateInventoryWeights(state, actorRef) : null;
+
+  return {
+    actor: actorRef ? normalizeActorRef(actorRef) : null,
+    counts: {
+      spaces: state.spaces.length,
+      items: state.items.length,
+      grants: allAccessGrants(state).length
+    },
+    spaces: state.spaces.map(space => {
+      const spaceAccess = accessBySpace.get(space.id);
+      return {
+        id: space.id,
+        label: space.label,
+        host: clonePlain(space.host),
+        parentItemId: space.parentItemId,
+        weightPolicy: clonePlain(space.weightPolicy),
+        capacity: clonePlain(space.capacity ?? {}),
+        contents: inventorySpaceContents(state, space.id).map(item => ({
+          id: item.id,
+          label: item.label,
+          quantity: item.quantity,
+          weight: item.weight,
+          containsSpaceIds: [...item.containsSpaceIds]
+        })),
+        internalWeight: calculateSpaceInternalWeight(state, space.id),
+        accessible: !!spaceAccess,
+        accessOperations: spaceAccess?.operations ?? [],
+        accessSources: spaceAccess?.sources ?? []
+      };
+    }),
+    access: access.map(entry => ({
+      spaceId: entry.space.id,
+      operations: [...entry.operations],
+      sources: entry.sources.map(clonePlain),
+      weightPolicy: clonePlain(entry.weightPolicy)
+    })),
+    grants: allAccessGrants(state).map(grant => ({
+      id: grant.id,
+      spaceId: grant.spaceId,
+      operations: [...grant.operations],
+      active: grant.active,
+      source: clonePlain(grant.source),
+      sourceItemId: grant.sourceItemId ?? null,
+      grantee: grant.grantee ? clonePlain(grant.grantee) : null,
+      granteePolicy: grant.granteePolicy ?? null
+    })),
+    containment: state.items.flatMap(item => item.containsSpaceIds.map(spaceId => ({
+      itemId: item.id,
+      spaceId
+    }))),
+    weights
+  };
+}
+
+/* -------------------------------------------- */
+
 function allAccessGrants(state) {
   return [
     ...(state.accessGrants ?? []),

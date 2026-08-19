@@ -5,12 +5,19 @@ import {
   TARGET_DEFAULT_SELECTION,
   TARGET_OPERATIONS,
   TARGET_OVERRIDE_TYPES,
+  addTargetCandidate,
+  applyTargetPredicate,
   attachTargetOverride,
   createTargetCandidate,
+  createTargetRefinementTrace,
   createTargetSelectionRequest,
   createTargetSet,
+  filterTargetSet,
+  partitionTargetSet,
   refineTargetSet,
-  resolveTargetEligibility
+  removeTargetCandidate,
+  resolveTargetEligibility,
+  targetSetContains
 } from "../module/helpers/targeting.mjs";
 
 function candidate(id, data={}) {
@@ -201,4 +208,47 @@ test("selection request exposes future UI battlefield states", () => {
 
   assert.equal(request.candidates.find(c => c.targetId === "ally").selectable, true);
   assert.equal(request.candidates.find(c => c.targetId === "enemy").selectable, false);
+});
+
+test("TargetSet operations add, remove, filter, partition, and apply predicates immutably", () => {
+  const original = createTargetSet([
+    candidate("ally", {disposition: "ally"}),
+    candidate("enemy", {disposition: "enemy"})
+  ]);
+  const added = addTargetCandidate(original, candidate("object", {disposition: "neutral"}));
+  const removed = removeTargetCandidate(added, "enemy");
+  const allies = filterTargetSet(added, {equals: {path: "disposition", value: "ally"}});
+  const partition = partitionTargetSet(added, {equals: {path: "disposition", value: "enemy"}});
+  const applied = applyTargetPredicate(added, {oneOf: {path: "disposition", values: ["ally", "enemy"]}});
+
+  assert.equal(targetSetContains(original, "object"), false);
+  assert.equal(targetSetContains(added, "object"), true);
+  assert.deepEqual(removed.candidates.map(t => t.id), ["ally", "object"]);
+  assert.deepEqual(allies.candidates.map(t => t.id), ["ally"]);
+  assert.deepEqual(partition.matching.candidates.map(t => t.id), ["enemy"]);
+  assert.deepEqual(partition.rest.candidates.map(t => t.id), ["ally", "object"]);
+  assert.equal(applied.ok, false);
+  assert.deepEqual(applied.rejected.map(t => t.id), ["object"]);
+});
+
+test("target refinement trace preserves audit data for selected, excluded, and overridden targets", () => {
+  const set = resolveTargetEligibility(createTargetSet([
+    candidate("excluded"),
+    candidate("protected"),
+    candidate("normal")
+  ], {footprint: {id: "aoe"}}));
+  const result = refineTargetSet({targetSet: set, decisions: [
+    {operation: TARGET_OPERATIONS.EXCLUDE, targetId: "excluded"},
+    attachTargetOverride("protected", {type: TARGET_OVERRIDE_TYPES.ZERO_DAMAGE}, {type: "feature", slug: "ward"})
+  ]});
+  const trace = createTargetRefinementTrace(result, {label: "audit"});
+
+  assert.equal(trace.label, "audit");
+  assert.equal(trace.footprint.id, "aoe");
+  assert.equal(trace.counts.physical, 3);
+  assert.equal(trace.targets.find(t => t.targetId === "excluded").status, "excluded");
+  assert.equal(trace.targets.find(t => t.targetId === "protected").status, "overridden");
+  assert.equal(trace.targets.find(t => t.targetId === "normal").status, "selected");
+  assert.equal(result.unchanged.length, 1);
+  assert.equal(result.selectionDecisions.length, 2);
 });

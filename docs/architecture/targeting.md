@@ -51,6 +51,17 @@ for debugging and trace output.
 
 The helper de-duplicates candidates by stable target id and merges field intersections.
 
+It also provides small result-based operations:
+
+- `addTargetCandidate`
+- `removeTargetCandidate`
+- `targetSetContains`
+- `filterTargetSet`
+- `partitionTargetSet`
+- `applyTargetPredicate`
+
+These operations return new structures rather than mutating candidate membership in place.
+
 ## Eligibility
 
 Base eligibility is applied after physical inclusion. The current helper supports ordinary
@@ -107,6 +118,21 @@ Per-target overrides are carried into `targetContexts`:
 
 The helper does not implement save/damage semantics. It preserves structured override data for the
 future resolution layer.
+
+## Debug And Audit
+
+`createTargetRefinementTrace()` converts a refinement result into structured inspection data:
+
+- physical candidate count
+- selected/excluded/final target counts
+- target status (`selected`, `excluded`, `overridden`, `ineligible`, `unselected`)
+- eligibility details
+- field intersections
+- overrides and marks
+- validation failures
+
+This is meant for developer tools, automation traces, chat summaries, undo/replay records, and
+future GM inspection.
 
 ## Selection Requests
 
