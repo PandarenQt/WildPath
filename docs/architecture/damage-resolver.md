@@ -2,8 +2,8 @@
 
 `module/resolvers/damage-resolver.mjs` is the pure structured-damage foundation for action damage.
 `module/resolvers/damage-adjustment-resolver.mjs` applies per-target immunity, resistance,
-vulnerability, and damage reduction after damage is resolved and before durability mutation plans
-are created.
+vulnerability, damage absorption, and damage reduction after damage is resolved and before
+durability mutation plans are created.
 
 ## Current Flow
 
@@ -50,7 +50,10 @@ present on the damage components that this resolver totals.
 
 - applies immunity first
 - applies resistance and vulnerability as multipliers, with floor rounding by default
-- applies damage reduction after typed multipliers
+- applies damage absorption after typed multipliers and before ordinary reductions
+- supports flat, scaled, and already-rolled absorption amounts
+- records which resource receives absorbed damage
+- applies damage reduction after absorption
 - supports flat, scaled, and already-rolled reduction amounts
 - keeps original and adjusted totals for audit
 
@@ -92,5 +95,6 @@ operate on already-scaled dice, and WeaponSizePolicy scales only components mark
 ## Next Integration
 
 Foundry adapters still need to gather damage rolls and Actor durability fields before document
-mutation. `ActionResolver` can now attach durability plans for adjusted damage and can execute them
-when supplied target Actors plus explicit commit authority.
+mutation. `ActionResolver` can now attach durability plans for adjusted damage, including
+absorption-to-resource plans, and can execute them when supplied target Actors plus explicit commit
+authority.

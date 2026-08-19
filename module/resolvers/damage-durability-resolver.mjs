@@ -9,7 +9,10 @@ import {
   mergeDamageAdjustmentProfiles
 } from "./damage-adjustment-resolver.mjs";
 import {DAMAGE_RESOLVER_CODES} from "./damage-resolver.mjs";
-import {createActorDamageMutationPlan} from "./durability-resolver.mjs";
+import {
+  createActorDamageMutationPlan,
+  createActorHealingMutationPlan
+} from "./durability-resolver.mjs";
 
 export const DAMAGE_DURABILITY_RESOLUTION_CODES = Object.freeze({
   OK: "OK",
@@ -21,7 +24,8 @@ export const DAMAGE_DURABILITY_RESOLUTION_CODES = Object.freeze({
 });
 
 export const DAMAGE_DURABILITY_MUTATION_TYPES = Object.freeze({
-  DAMAGE: "durabilityDamage"
+  DAMAGE: "durabilityDamage",
+  ABSORPTION: "durabilityAbsorption"
 });
 
 /* -------------------------------------------- */
@@ -94,7 +98,8 @@ export function planDamageDurabilityMutations({
       continue;
     }
 
-    const mutationPlan = createActorDamageMutationPlan(actorSystem, {
+    const planningSystem = clonePlain(actorSystem);
+    const mutationPlan = createActorDamageMutationPlan(planningSystem, {
       damageResult: adjusted.damageResult,
       resourceId,
       source,
@@ -123,6 +128,22 @@ export function planDamageDurabilityMutations({
       target: clonePlain(target),
       plan: mutationPlan
     });
+    applyMutationPlanToActorSystemSnapshot(planningSystem, mutationPlan);
+
+    const absorptionPlans = createAbsorptionMutationPlans({
+      actorSystem: planningSystem,
+      absorptionResults: adjusted.absorptionResults ?? [],
+      source,
+      target,
+      originalDamageResult: damageResult,
+      adjustedDamageResult: adjusted.damageResult,
+      metadata
+    });
+    failures.push(...absorptionPlans.failures);
+    for ( const absorptionPlan of absorptionPlans.mutationPlans ) {
+      mutationPlans.push(absorptionPlan);
+      applyMutationPlanToActorSystemSnapshot(planningSystem, absorptionPlan.plan);
+    }
   }
 
   return {
@@ -148,6 +169,70 @@ function adjustDamageForTarget({damageResult, target, adjustments, adjustmentPro
   const targetProfile = resolveTargetLookupValue(adjustmentProfiles, target, damageResult) ?? null;
   const profile = mergeDamageAdjustmentProfiles(adjustments, targetProfile);
   return adjustDamageResult(damageResult, profile);
+}
+
+function createAbsorptionMutationPlans({
+  actorSystem,
+  absorptionResults=[],
+  source=null,
+  target=null,
+  originalDamageResult=null,
+  adjustedDamageResult=null,
+  metadata={}
+}={}) {
+  const mutationPlans = [];
+  const failures = [];
+  for ( const absorption of absorptionResults.filter(result => (result.absorbedAmount ?? 0) > 0) ) {
+    const mutationPlan = createActorHealingMutationPlan(actorSystem, {
+      amount: absorption.absorbedAmount,
+      resourceId: absorption.resourceId ?? "health",
+      source,
+      target,
+      metadata: {
+        absorption: clonePlain(absorption),
+        originalDamageResult: clonePlain(originalDamageResult),
+        adjustedDamageResult: clonePlain(adjustedDamageResult),
+        ...metadata
+      }
+    });
+    if ( !mutationPlan.ok ) {
+      failures.push({
+        code: DAMAGE_DURABILITY_RESOLUTION_CODES.DURABILITY_PLANNING_FAILED,
+        reason: mutationPlan.reason,
+        target: clonePlain(target),
+        targetRefs: targetLookupRefs(target),
+        absorption: clonePlain(absorption),
+        mutationPlan
+      });
+      continue;
+    }
+
+    mutationPlans.push({
+      type: DAMAGE_DURABILITY_MUTATION_TYPES.ABSORPTION,
+      resolver: "DurabilityResolver",
+      targetRef: preferredTargetRef(target),
+      target: clonePlain(target),
+      plan: mutationPlan
+    });
+  }
+  return {mutationPlans, failures};
+}
+
+function applyMutationPlanToActorSystemSnapshot(actorSystem, mutationPlan) {
+  for ( const [path, value] of Object.entries(mutationPlan?.updates ?? {}) ) {
+    const systemPath = path.startsWith("system.") ? path.slice("system.".length) : path;
+    setByPath(actorSystem, systemPath, value);
+  }
+}
+
+function setByPath(object, path, value) {
+  const parts = String(path).split(".").filter(Boolean);
+  let cursor = object;
+  for ( const part of parts.slice(0, -1) ) {
+    if ( cursor?.[part] == null ) return;
+    cursor = cursor[part];
+  }
+  if ( cursor && parts.length ) cursor[parts.at(-1)] = value;
 }
 
 function damageDurabilityFailure(code, {reason, targetSystems, resourceId, source, metadata, damageResolution=null}) {

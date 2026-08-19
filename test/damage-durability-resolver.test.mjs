@@ -64,6 +64,54 @@ test("damage durability bridge applies target damage adjustments before HP plann
   assert.equal(result.mutationPlans[0].plan.metadata.originalDamageResult.total, 15);
 });
 
+test("damage durability bridge plans absorption as ordered resource gain after remaining damage", () => {
+  const damageResolution = resolveDamageTargets({
+    components: [{id: "flame", amount: 10, damageType: "fire"}],
+    targets: [{id: "salamander", actorId: "actor-salamander"}]
+  });
+  const result = planDamageDurabilityMutations({
+    damageResolution,
+    targetSystems: {"actor:actor-salamander": actorSystem(10, 20)},
+    adjustmentProfiles: {
+      "actor:actor-salamander": {
+        absorptions: [{id: "fire-feed", damageTypes: ["fire"], scale: 0.5, resourceId: "health"}]
+      }
+    }
+  });
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(result.mutationPlans.map(plan => plan.type), ["durabilityDamage", "durabilityAbsorption"]);
+  assert.deepEqual(result.mutationPlans[0].plan.updates, {"system.resources.health.value": 5});
+  assert.deepEqual(result.mutationPlans[1].plan.updates, {"system.resources.health.value": 10});
+  assert.equal(result.mutationPlans[1].plan.metadata.absorption.absorbedAmount, 5);
+});
+
+test("damage durability bridge can absorb damage into a custom resource pool", () => {
+  const damageResolution = resolveDamageTargets({
+    components: [{id: "force", amount: 8, damageType: "force"}],
+    targets: [{id: "mage", actorId: "actor-mage"}]
+  });
+  const result = planDamageDurabilityMutations({
+    damageResolution,
+    targetSystems: {
+      "actor:actor-mage": {
+        resources: {health: {value: 20, max: 20}},
+        pools: [{id: "ward", value: 2, max: 10}]
+      }
+    },
+    adjustmentProfiles: {
+      "actor:actor-mage": {
+        absorptions: [{id: "arcane-ward", damageTypes: ["force"], amount: 3, resourceId: "ward"}]
+      }
+    }
+  });
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(result.mutationPlans.map(plan => plan.type), ["durabilityDamage", "durabilityAbsorption"]);
+  assert.deepEqual(result.mutationPlans[0].plan.updates, {"system.resources.health.value": 15});
+  assert.deepEqual(result.mutationPlans[1].plan.updates, {"system.pools.0.value": 5});
+});
+
 test("damage durability bridge can look up target systems by raw ids or Map refs", () => {
   const damageResolution = resolveDamageTargets({
     components: [{id: "bolt", amount: 3, damageType: "force"}],

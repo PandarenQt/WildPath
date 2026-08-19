@@ -64,3 +64,40 @@ test("rolled damage reduction requires an already resolved amount", () => {
   assert.equal(result.ok, false);
   assert.equal(result.code, DAMAGE_ADJUSTMENT_CODES.INVALID_REDUCTION);
 });
+
+test("damage absorption converts incoming damage before ordinary reductions", () => {
+  const result = adjustDamageResult({
+    ok: true,
+    components: [
+      {id: "flame", amount: 12, damageType: "fire"},
+      {id: "slash", amount: 4, damageType: "slashing"}
+    ],
+    total: 16
+  }, {
+    absorptions: [{id: "fire-heart", damageTypes: ["fire"], scale: 0.5, resourceId: "health"}],
+    reductions: [{id: "armor", amount: 2}]
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.damageResult.total, 8);
+  assert.deepEqual(result.damageResult.byDamageType, {fire: 4, slashing: 4});
+  assert.deepEqual(result.absorptionResults, [{
+    kind: "absorption",
+    id: "fire-heart",
+    absorptionType: "scaled",
+    resourceId: "health",
+    requestedAmount: 6,
+    absorbedAmount: 6,
+    remainingAmount: 0,
+    metadata: {}
+  }]);
+});
+
+test("rolled damage absorption requires an already resolved amount", () => {
+  const result = adjustDamageResult(damageResult(), {
+    absorptions: [{id: "warding-plate", type: "rolled", formula: "1d6", resourceId: "ward"}]
+  });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.code, DAMAGE_ADJUSTMENT_CODES.INVALID_ABSORPTION);
+});

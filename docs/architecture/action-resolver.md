@@ -5,7 +5,8 @@ existing cost behavior plus optional target validation and optional attack-outco
 callers provide the required plain data. It can also resolve supplied saving throws, resolve
 structured damage and healing components as consequences, apply WeaponSizePolicy to explicitly
 manufactured weapon damage, and attach target durability mutation plans when supplied target Actor
-system snapshots.
+system snapshots. Damage durability planning can include absorption plans that convert part of the
+incoming damage into health, shields, or another Actor resource.
 When damage supplies a `saveOutcomePolicy`, the resolver can adjust per-target damage amounts from
 the already-resolved save outcomes, such as half damage on a successful save.
 
@@ -23,7 +24,7 @@ Action item
 -> optional DamageResolver damage consequence
 -> optional DamageAdjustmentResolver per-target adjustment
 -> optional HealingResolver healing consequence
--> optional target durability mutation plans
+-> optional target durability damage/absorption/healing mutation plans
 -> ResourceResolver payment plan
 -> Actor resource mutation plan
 -> optional explicit-authority Actor update commits
@@ -57,7 +58,8 @@ returns successfully.
 - optionally applies WeaponSizePolicy to manufactured weapon damage components marked as scalable
 - optionally applies save-outcome damage policies such as `success: "half"`
 - optionally resolves supplied damage components through `DamageResolver`
-- optionally applies target damage adjustments before durability planning
+- optionally applies target damage adjustments, reductions, and absorptions before durability
+  planning
 - optionally resolves supplied healing components through `HealingResolver`
 - optionally records target durability mutation plans for damage and healing
 - resolves Action item activation cost through `ResourceResolver`
@@ -103,5 +105,5 @@ slices will extend.
 
 ## Next Resolver Slice
 
-The next resolver slice should add absorption and then transaction/rollback behavior for
-multi-Actor commits. Direct Actor durability mutation remains outside DamageResolver itself.
+The next resolver slice should add transaction/rollback behavior for multi-Actor commits. Direct
+Actor durability mutation remains outside DamageResolver itself.

@@ -720,6 +720,51 @@ test("ActionResolver execution commits target durability plans with active GM au
   assert.equal(result.events.at(-1).type, AUTOMATION_EVENT_TYPES.PAYMENT_COMMITTED);
 });
 
+test("ActionResolver execution commits target absorption plans with active GM authority", async () => {
+  const sourceCalls = [];
+  const targetCalls = [];
+  const actor = {
+    id: "actor-a",
+    name: "Aria",
+    type: "character",
+    system: actorSystem(1),
+    async update(updates) {
+      sourceCalls.push(updates);
+    }
+  };
+  const targetActor = {
+    id: "actor-salamander",
+    system: targetActorSystem(10, 20),
+    async update(updates) {
+      targetCalls.push(updates);
+    }
+  };
+  const result = await executeActionResolution({
+    actor,
+    action: action(),
+    targets: [{id: "salamander", actorId: "actor-salamander"}],
+    damage: {
+      components: [{id: "flame", amount: 10, damageType: "fire"}]
+    },
+    durability: {
+      adjustmentProfiles: {
+        "actor:actor-salamander": {
+          absorptions: [{id: "fire-feed", damageTypes: ["fire"], scale: 0.5, resourceId: "health"}]
+        }
+      }
+    },
+    targetActors: {"actor:actor-salamander": targetActor},
+    authority: {isGM: true, userId: "gm-a", activeGMId: "gm-a"}
+  });
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(targetCalls, [
+    {"system.resources.health.value": 5},
+    {"system.resources.health.value": 10}
+  ]);
+  assert.deepEqual(sourceCalls, [{"system.resources.action.value": 0}]);
+});
+
 test("ActionResolver execution commits target healing durability plans with active GM authority", async () => {
   const sourceCalls = [];
   const targetCalls = [];

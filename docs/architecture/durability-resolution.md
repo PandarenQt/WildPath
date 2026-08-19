@@ -8,6 +8,7 @@ resources such as health.
 ```text
 Actor system resource snapshot
 -> adjusted damage or resolved healing amount
+-> optional post-damage absorption resource gain
 -> clamped resource update plan
 -> optional explicit-authority target Actor commit adapter
 ```
@@ -19,7 +20,9 @@ Actor system data and a resolved amount.
 `module/resolvers/damage-durability-resolver.mjs` is the pure bridge from resolved per-target
 damage to target Actor durability mutation plans. It accepts target Actor systems and optional
 damage adjustment profiles through opaque string refs such as `actor:abc123` or transitional raw
-ids, then delegates each adjusted target amount to `DurabilityResolver`.
+ids, then delegates each adjusted target amount to `DurabilityResolver`. Absorption plans are
+planned after the remaining damage against a cloned Actor-system snapshot, so damage and absorption
+against the same resource produce ordered updates without mutating caller data.
 
 `module/resolvers/healing-durability-resolver.mjs` mirrors that bridge for resolved per-target
 healing.
@@ -56,6 +59,8 @@ healing.
 - applies optional target damage adjustment profiles before mutation planning
 - looks up each target Actor system by string ref/id
 - returns one durability mutation plan per resolved damage target
+- returns ordered absorption mutation plans when a damage adjustment converts incoming damage into
+  healing, shields, or another Actor resource
 - reports missing target Actor systems explicitly
 - skips already-skipped damage targets without creating no-op document updates
 
@@ -77,7 +82,6 @@ healing.
 
 DurabilityResolver does not:
 
-- apply absorption
 - discover concrete Foundry target Actors from canvas state
 - open reaction windows
 - create chat output

@@ -1,13 +1,15 @@
 export const DAMAGE_ADJUSTMENT_CODES = Object.freeze({
   OK: "OK",
   INVALID_DAMAGE_RESULT: "INVALID_DAMAGE_RESULT",
-  INVALID_REDUCTION: "INVALID_REDUCTION"
+  INVALID_REDUCTION: "INVALID_REDUCTION",
+  INVALID_ABSORPTION: "INVALID_ABSORPTION"
 });
 
 export const DAMAGE_ADJUSTMENT_KINDS = Object.freeze({
   IMMUNITY: "immunity",
   RESISTANCE: "resistance",
   VULNERABILITY: "vulnerability",
+  ABSORPTION: "absorption",
   REDUCTION: "reduction"
 });
 
@@ -16,6 +18,8 @@ export const DAMAGE_REDUCTION_TYPES = Object.freeze({
   SCALED: "scaled",
   ROLLED: "rolled"
 });
+
+export const DAMAGE_ABSORPTION_TYPES = DAMAGE_REDUCTION_TYPES;
 
 /* -------------------------------------------- */
 
@@ -31,17 +35,26 @@ export function adjustDamageResult(damageResult, profile={}) {
   }
 
   const normalizedProfile = normalizeDamageAdjustmentProfile(profile);
-  const failures = normalizedProfile.reductions
-    .filter(reduction => !isValidReduction(reduction))
-    .map(reduction => ({
-      code: DAMAGE_ADJUSTMENT_CODES.INVALID_REDUCTION,
-      reason: `damage reduction ${reduction.id ?? reduction.type} requires a finite non-negative amount or scale`,
-      reduction
-    }));
+  const failures = [
+    ...normalizedProfile.reductions
+      .filter(reduction => !isValidReduction(reduction))
+      .map(reduction => ({
+        code: DAMAGE_ADJUSTMENT_CODES.INVALID_REDUCTION,
+        reason: `damage reduction ${reduction.id ?? reduction.type} requires a finite non-negative amount or scale`,
+        reduction
+      })),
+    ...normalizedProfile.absorptions
+      .filter(absorption => !isValidAbsorption(absorption))
+      .map(absorption => ({
+        code: DAMAGE_ADJUSTMENT_CODES.INVALID_ABSORPTION,
+        reason: `damage absorption ${absorption.id ?? absorption.type} requires a finite non-negative amount or scale`,
+        absorption
+      }))
+  ];
   if ( failures.length ) {
     return {
       ok: false,
-      code: DAMAGE_ADJUSTMENT_CODES.INVALID_REDUCTION,
+      code: failures[0].code,
       damageResult: clonePlain(damageResult),
       failures,
       applications: []
@@ -50,7 +63,8 @@ export function adjustDamageResult(damageResult, profile={}) {
 
   const originalComponents = damageResult.components.map(component => normalizeDamageComponentForAdjustment(component));
   const typed = applyTypedAdjustments(originalComponents, normalizedProfile);
-  const reduced = applyReductions(typed.components, normalizedProfile);
+  const absorbed = applyAbsorptions(typed.components, normalizedProfile);
+  const reduced = applyReductions(absorbed.components, normalizedProfile);
   const adjustedComponents = reduced.components.map(component => ({
     ...component,
     metadata: {
@@ -60,7 +74,7 @@ export function adjustDamageResult(damageResult, profile={}) {
   })).map(({adjustments, ...component}) => component);
   const originalTotal = originalComponents.reduce((sum, component) => sum + component.amount, 0);
   const adjustedTotal = adjustedComponents.reduce((sum, component) => sum + component.amount, 0);
-  const applications = [...typed.applications, ...reduced.applications];
+  const applications = [...typed.applications, ...absorbed.applications, ...reduced.applications];
 
   return {
     ok: true,
@@ -75,9 +89,11 @@ export function adjustDamageResult(damageResult, profile={}) {
         profileId: normalizedProfile.id,
         originalTotal,
         adjustedTotal,
+        absorptionResults: absorbed.absorptionResults,
         applications
       }
     },
+    absorptionResults: absorbed.absorptionResults,
     applications,
     failures: []
   };
@@ -101,6 +117,7 @@ export function normalizeDamageAdjustmentProfile(profile={}) {
       kind: DAMAGE_ADJUSTMENT_KINDS.VULNERABILITY,
       multiplier: 2
     }),
+    absorptions: normalizeAbsorptions(profile.absorptions ?? profile.damageAbsorptions ?? profile.absorption),
     reductions: normalizeReductions(profile.reductions ?? profile.damageReductions ?? profile.reduction),
     metadata: clonePlain(profile.metadata ?? {}) ?? {}
   };
@@ -115,6 +132,7 @@ export function mergeDamageAdjustmentProfiles(...profiles) {
     immunities: normalized.flatMap(profile => profile.immunities),
     resistances: normalized.flatMap(profile => profile.resistances),
     vulnerabilities: normalized.flatMap(profile => profile.vulnerabilities),
+    absorptions: normalized.flatMap(profile => profile.absorptions),
     reductions: normalized.flatMap(profile => profile.reductions),
     metadata: Object.assign({}, ...normalized.map(profile => profile.metadata ?? {}))
   };
@@ -166,6 +184,66 @@ function applyTypedAdjustmentsToComponents(components, profile) {
     applications.push(...adjusted.applications);
   }
   return {components: adjustedComponents, applications};
+}
+
+function applyAbsorptions(components, profile) {
+  let adjustedComponents = components.map(component => ({...component, adjustments: [...(component.adjustments ?? [])]}));
+  const applications = [];
+  const absorptionResults = [];
+  for ( const absorption of profile.absorptions ) {
+    const matchingTotal = adjustedComponents
+      .filter(component => matchesComponent(component, absorption))
+      .reduce((sum, component) => sum + component.amount, 0);
+    const absorptionAmount = absorptionAmountFor(absorption, matchingTotal, profile.rounding);
+    if ( absorptionAmount <= 0 || matchingTotal <= 0 ) {
+      const result = {
+        kind: DAMAGE_ADJUSTMENT_KINDS.ABSORPTION,
+        id: absorption.id,
+        absorptionType: absorption.type,
+        resourceId: absorption.resourceId,
+        requestedAmount: absorptionAmount,
+        absorbedAmount: 0,
+        remainingAmount: absorptionAmount,
+        metadata: clonePlain(absorption.metadata) ?? {}
+      };
+      applications.push(result);
+      absorptionResults.push(result);
+      continue;
+    }
+
+    let remaining = absorptionAmount;
+    let absorbedAmount = 0;
+    adjustedComponents = adjustedComponents.map(component => {
+      if ( remaining <= 0 || !matchesComponent(component, absorption) || component.amount <= 0 ) return component;
+      const absorbed = Math.min(component.amount, remaining);
+      remaining -= absorbed;
+      absorbedAmount += absorbed;
+      return adjustedComponent(component, component.amount - absorbed, [{
+        kind: DAMAGE_ADJUSTMENT_KINDS.ABSORPTION,
+        id: absorption.id,
+        absorptionType: absorption.type,
+        resourceId: absorption.resourceId,
+        requestedAmount: absorptionAmount,
+        absorbedAmount: absorbed,
+        remainingAmount: remaining,
+        metadata: clonePlain(absorption.metadata) ?? {}
+      }]);
+    });
+    const result = {
+      kind: DAMAGE_ADJUSTMENT_KINDS.ABSORPTION,
+      id: absorption.id,
+      absorptionType: absorption.type,
+      resourceId: absorption.resourceId,
+      requestedAmount: absorptionAmount,
+      absorbedAmount,
+      remainingAmount: remaining,
+      metadata: clonePlain(absorption.metadata) ?? {}
+    };
+    applications.push(result);
+    absorptionResults.push(result);
+  }
+
+  return {components: adjustedComponents, applications, absorptionResults};
 }
 
 function applyReductions(components, profile) {
@@ -240,9 +318,25 @@ function reductionAmountFor(reduction, matchingTotal, rounding) {
   }
 }
 
+function absorptionAmountFor(absorption, matchingTotal, rounding) {
+  switch ( absorption.type ) {
+    case DAMAGE_ABSORPTION_TYPES.SCALED:
+      return roundAmount(matchingTotal * absorption.scale, absorption.rounding ?? rounding);
+    case DAMAGE_ABSORPTION_TYPES.ROLLED:
+    case DAMAGE_ABSORPTION_TYPES.FLAT:
+    default:
+      return absorption.amount;
+  }
+}
+
 function isValidReduction(reduction) {
   if ( reduction.type === DAMAGE_REDUCTION_TYPES.SCALED ) return finiteNumber(reduction.scale) != null && reduction.scale >= 0;
   return finiteNumber(reduction.amount) != null && reduction.amount >= 0;
+}
+
+function isValidAbsorption(absorption) {
+  if ( absorption.type === DAMAGE_ABSORPTION_TYPES.SCALED ) return finiteNumber(absorption.scale) != null && absorption.scale >= 0;
+  return finiteNumber(absorption.amount) != null && absorption.amount >= 0;
 }
 
 function matchesComponent(component, adjustment) {
@@ -295,12 +389,51 @@ function normalizeReductions(value) {
   });
 }
 
+function normalizeAbsorptions(value) {
+  return normalizeAdjustmentEntries(value).map((entry, index) => {
+    if ( typeof entry === "number" ) {
+      return {
+        id: `absorption:${index}`,
+        type: DAMAGE_ABSORPTION_TYPES.FLAT,
+        amount: entry,
+        scale: null,
+        resourceId: "health",
+        damageTypes: [],
+        tags: [],
+        metadata: {}
+      };
+    }
+
+    const type = normalizeAbsorptionType(entry.type, entry);
+    return {
+      id: entry.id ?? `absorption:${index}`,
+      type,
+      amount: finiteNumber(entry.amount ?? entry.value ?? entry.flat ?? entry.rolled ?? entry.roll),
+      scale: finiteNumber(entry.scale ?? entry.multiplier ?? entry.percent ?? entry.percentage),
+      formula: entry.formula ?? entry.dice?.formula ?? null,
+      resourceId: String(entry.resourceId ?? entry.resource ?? entry.targetResourceId ?? "health"),
+      damageTypes: uniqueStrings(entry.damageTypes ?? entry.types ?? entry.damageType),
+      tags: uniqueStrings(entry.tags ?? []),
+      rounding: entry.rounding ?? null,
+      metadata: clonePlain(entry.metadata ?? {}) ?? {}
+    };
+  });
+}
+
 function normalizeReductionType(type, entry) {
   const normalized = String(type ?? "").toLowerCase();
   if ( Object.values(DAMAGE_REDUCTION_TYPES).includes(normalized) ) return normalized;
   if ( entry.scale != null || entry.percent != null || entry.percentage != null ) return DAMAGE_REDUCTION_TYPES.SCALED;
   if ( entry.rolled != null || entry.roll != null || entry.formula != null || entry.dice ) return DAMAGE_REDUCTION_TYPES.ROLLED;
   return DAMAGE_REDUCTION_TYPES.FLAT;
+}
+
+function normalizeAbsorptionType(type, entry) {
+  const normalized = String(type ?? "").toLowerCase();
+  if ( Object.values(DAMAGE_ABSORPTION_TYPES).includes(normalized) ) return normalized;
+  if ( entry.scale != null || entry.percent != null || entry.percentage != null ) return DAMAGE_ABSORPTION_TYPES.SCALED;
+  if ( entry.rolled != null || entry.roll != null || entry.formula != null || entry.dice ) return DAMAGE_ABSORPTION_TYPES.ROLLED;
+  return DAMAGE_ABSORPTION_TYPES.FLAT;
 }
 
 function normalizeAdjustmentEntries(value) {
@@ -317,7 +450,7 @@ function normalizeAdjustmentEntries(value) {
 }
 
 function isSingleAdjustmentObject(value) {
-  return ["id", "damageType", "damageTypes", "types", "tags", "amount", "value", "flat", "scale", "rolled", "roll", "formula", "dice", "multiplier", "type"]
+  return ["id", "damageType", "damageTypes", "types", "tags", "amount", "value", "flat", "scale", "rolled", "roll", "formula", "dice", "multiplier", "type", "resourceId", "resource", "targetResourceId"]
     .some(key => Object.hasOwn(value, key));
 }
 

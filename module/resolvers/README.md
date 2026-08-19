@@ -42,14 +42,15 @@ automation foundation needs, per `AGENTS.md` sections 4 and 8 and the architectu
   totals, target damage result shells, and weapon-size-scaling metadata/provenance. `ActionResolver`
   can call it when an action plan includes damage data.
 - `module/resolvers/damage-adjustment-resolver.mjs` now applies immunity, resistance,
-  vulnerability, and flat/scaled/already-rolled damage reduction before durability planning.
+  vulnerability, flat/scaled/already-rolled damage absorption, and flat/scaled/already-rolled
+  damage reduction before durability planning.
 - `module/resolvers/healing-resolver.mjs` now provides structured healing components and
   per-target healing totals.
 - `module/resolvers/durability-resolver.mjs` now plans Actor health/custom-pool damage and healing
   update paths without mutating Actor data directly.
 - `module/resolvers/damage-durability-resolver.mjs` now bridges successful per-target damage
   results into target Actor durability mutation plans when an adapter supplies target systems by
-  opaque refs or transitional ids.
+  opaque refs or transitional ids, including ordered post-damage absorption plans.
 - `module/resolvers/healing-durability-resolver.mjs` does the same for per-target healing results.
 - `module/resolvers/target-mutation-commit-resolver.mjs` commits target mutation plans only when
   supplied target Actors and explicit authority.
@@ -73,7 +74,7 @@ call into `ActionResolver`; resolvers should not call UI code.
 | `AttackResolver` | `module/resolvers/attack-resolver.mjs` | Current pure attack-vs-defense outcome resolver for known roll totals and target defenses. |
 | `SaveResolver` | `module/resolvers/save-resolver.mjs` | Current pure save-vs-DC outcome resolver for known save totals and DCs. |
 | `DamageResolver` | `module/resolvers/damage-resolver.mjs` | Current structured damage-component foundation, optionally called by ActionResolver; critical handling remains future work. |
-| `DamageAdjustmentResolver` | `module/resolvers/damage-adjustment-resolver.mjs` | Applies per-target immunity, resistance, vulnerability, and damage reduction before durability mutation planning. |
+| `DamageAdjustmentResolver` | `module/resolvers/damage-adjustment-resolver.mjs` | Applies per-target immunity, resistance, vulnerability, absorption, and damage reduction before durability mutation planning. |
 | `HealingResolver` | `module/resolvers/healing-resolver.mjs` | Resolves healing/resource restoration as structured target results before mutation. |
 | `DurabilityResolver` | `module/resolvers/durability-resolver.mjs` | Current Actor durability mutation planner for already-resolved damage/healing amounts. |
 | `TargetMutationCommitResolver` | `module/resolvers/target-mutation-commit-resolver.mjs` | Commits target mutation plans to supplied Actors with explicit authority. |
@@ -92,5 +93,5 @@ explicitly manufactured weapon-size damage data, and save-outcome policies can a
 damage before DamageResolver totals it; see `docs/architecture/weapon-size.md`.
 ActionResolver can now attach and execute durability mutation plans for adjusted damage and
 resolved healing when a Foundry adapter supplies target Actor system snapshots, target Actors, and
-explicit authority. The next durability slice is absorption and then transaction/rollback behavior
-for multi-Actor commits.
+explicit authority. The next durability slice is transaction/rollback behavior for multi-Actor
+commits.
