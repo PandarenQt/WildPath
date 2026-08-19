@@ -1,4 +1,7 @@
-import {TIMELINE_EVENT_TYPES} from "./combat-timeline.mjs";
+import {
+  DURATION_UNITS,
+  TIMELINE_EVENT_TYPES
+} from "./combat-timeline.mjs";
 
 /**
  * Resolve the Combatant whose turn is beginning from a combat turn-change update.
@@ -84,6 +87,55 @@ export function getCombatLifecycleEvents(combat, updateData={}, {hook="combatTur
 
 /* -------------------------------------------- */
 
+/**
+ * Convert a Combat deletion/end hook into a semantic combat-end lifecycle event.
+ * @param {object} combat
+ * @returns {object[]}
+ */
+export function getCombatEndLifecycleEvents(combat) {
+  if ( !combat ) return [];
+  const round = normalizePositiveInteger(combat.round, 1);
+  const turn = normalizeNonNegativeInteger(combat.turn, 0);
+  const combatant = combat.turns?.[turn] ?? combat.combatant ?? null;
+  return [
+    createCombatLifecycleEvent(TIMELINE_EVENT_TYPES.COMBAT_END, combat, combatant, {round, turn})
+  ];
+}
+
+/* -------------------------------------------- */
+
+/**
+ * Convert a rest action into semantic rest lifecycle events for duration expiry.
+ * @param {object} [options]
+ * @param {object|null} [options.actor]
+ * @param {object[]} [options.actors]
+ * @param {"shortRest"|"longRest"} [options.restType]
+ * @param {string} [options.type]
+ * @returns {object[]}
+ */
+export function getRestLifecycleEvents({
+  actor=null,
+  actors=[],
+  restType=DURATION_UNITS.SHORT_REST,
+  type=TIMELINE_EVENT_TYPES.REST_COMPLETE
+}={}) {
+  if ( ![DURATION_UNITS.SHORT_REST, DURATION_UNITS.LONG_REST].includes(restType) ) return [];
+  const actorIds = uniqueStrings([actor, ...actors].map(entry => entry?.id ?? entry?.actorId ?? entry));
+  return [{
+    type,
+    restType,
+    actorIds,
+    round: null,
+    turn: null,
+    combatId: null,
+    combatantId: null,
+    actorId: actorIds[0] ?? null,
+    tokenId: null
+  }];
+}
+
+/* -------------------------------------------- */
+
 function createCombatLifecycleEvent(type, combat, combatant, {round, turn}) {
   return {
     type,
@@ -104,4 +156,8 @@ function normalizePositiveInteger(value, fallback) {
 function normalizeNonNegativeInteger(value, fallback) {
   const number = Number(value);
   return Number.isFinite(number) && number >= 0 ? Math.floor(number) : fallback;
+}
+
+function uniqueStrings(values) {
+  return [...new Set(values.filter(value => value != null && value !== "").map(String))];
 }

@@ -1,10 +1,15 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
 import {
+  getCombatEndLifecycleEvents,
   getCombatLifecycleEvents,
-  getIncomingCombatant
+  getIncomingCombatant,
+  getRestLifecycleEvents
 } from "../module/helpers/combat.mjs";
-import {TIMELINE_EVENT_TYPES} from "../module/helpers/combat-timeline.mjs";
+import {
+  DURATION_UNITS,
+  TIMELINE_EVENT_TYPES
+} from "../module/helpers/combat-timeline.mjs";
 
 test("getIncomingCombatant resolves from updateData.turn, not the stale combat.combatant", () => {
   // Regression test for the V14 hook-ordering bug: combatTurn/combatStart fire before the
@@ -92,4 +97,42 @@ test("getCombatLifecycleEvents emits combat start timeline events", () => {
   ]);
   assert.equal(events[0].combatId, "combat-a");
   assert.equal(events[2].actorId, "actor-a");
+});
+
+test("getCombatEndLifecycleEvents emits active combat end context", () => {
+  const combat = {
+    id: "combat-a",
+    round: 3,
+    turn: 1,
+    turns: [
+      {id: "combatant-a", actorId: "actor-a"},
+      {id: "combatant-b", actorId: "actor-b", tokenId: "token-b"}
+    ]
+  };
+  const events = getCombatEndLifecycleEvents(combat);
+
+  assert.deepEqual(events.map(event => event.type), [TIMELINE_EVENT_TYPES.COMBAT_END]);
+  assert.equal(events[0].combatId, "combat-a");
+  assert.equal(events[0].round, 3);
+  assert.equal(events[0].turn, 1);
+  assert.equal(events[0].combatantId, "combatant-b");
+  assert.equal(events[0].actorId, "actor-b");
+  assert.equal(events[0].tokenId, "token-b");
+});
+
+test("getRestLifecycleEvents emits rest completion actor context", () => {
+  const events = getRestLifecycleEvents({
+    actor: {id: "actor-a"},
+    actors: [{id: "actor-b"}, "actor-c"],
+    restType: DURATION_UNITS.LONG_REST
+  });
+
+  assert.deepEqual(events.map(event => event.type), [TIMELINE_EVENT_TYPES.REST_COMPLETE]);
+  assert.equal(events[0].restType, DURATION_UNITS.LONG_REST);
+  assert.deepEqual(events[0].actorIds, ["actor-a", "actor-b", "actor-c"]);
+  assert.equal(events[0].actorId, "actor-a");
+});
+
+test("getRestLifecycleEvents ignores unsupported recovery types", () => {
+  assert.deepEqual(getRestLifecycleEvents({restType: "turn"}), []);
 });

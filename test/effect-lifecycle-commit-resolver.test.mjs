@@ -1,6 +1,9 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import {TIMELINE_EVENT_TYPES} from "../module/helpers/combat-timeline.mjs";
+import {
+  DURATION_UNITS,
+  TIMELINE_EVENT_TYPES
+} from "../module/helpers/combat-timeline.mjs";
 import {CONCENTRATION_EVENT_TYPES} from "../module/resolvers/concentration-resolver.mjs";
 import {
   EFFECT_LIFECYCLE_COMMIT_CODES,
@@ -98,6 +101,31 @@ test("EffectLifecycleCommitResolver noops when no lifecycle mutation is due", as
   assert.equal(result.code, EFFECT_LIFECYCLE_COMMIT_CODES.NO_MUTATION_PLANS);
   assert.equal(effect.deleted, undefined);
   assert.equal(actor.effects.length, 1);
+});
+
+test("EffectLifecycleCommitResolver commits rest-duration condition removals", async () => {
+  const {actor, effect} = actorWithCondition({
+    duration: {
+      unit: DURATION_UNITS.LONG_REST,
+      value: 1
+    }
+  });
+  const result = await executeEffectLifecycleCommit({
+    actors: [actor],
+    events: [{
+      type: TIMELINE_EVENT_TYPES.REST_COMPLETE,
+      restType: DURATION_UNITS.LONG_REST,
+      actorIds: ["target"],
+      actorId: "target"
+    }],
+    authority: {isGM: true, userId: "gm-a", activeGMId: "gm-a"},
+    conditionDefinitions: CONDITION_DEFINITIONS
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.code, EFFECT_LIFECYCLE_COMMIT_CODES.OK);
+  assert.equal(effect.deleted, true);
+  assert.deepEqual(result.mutationPlans[0].metadata.lifecycle.reasons, ["durationExpired"]);
 });
 
 test("EffectLifecycleCommitResolver removes linked effects when a concentration save fails", async () => {

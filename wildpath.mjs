@@ -18,6 +18,7 @@ import WildPathActorSheet from "./module/applications/actor-sheet.mjs";
 import WildPathItemSheet from "./module/applications/item-sheet.mjs";
 
 import {
+  getCombatEndLifecycleEvents,
   getCombatLifecycleEvents,
   getIncomingCombatant
 } from "./module/helpers/combat.mjs";
@@ -142,6 +143,24 @@ async function onCombatTurnChange(combat, updateData, {hook="combatTurn"}={}) {
   }
 }
 
+async function onCombatEnd(combat) {
+  const authority = currentGMCommitAuthority();
+  if ( !authority.canCommit ) return;
+
+  const events = getCombatEndLifecycleEvents(combat);
+  if ( !events.length ) return;
+
+  const lifecycle = await executeEffectLifecycleCommit({
+    actors: combatActors(combat),
+    events,
+    authority,
+    metadata: {hook: "deleteCombat"}
+  });
+  if ( !lifecycle.ok ) {
+    console.warn("Wild Path | Combat-end lifecycle commit failed", lifecycle);
+  }
+}
+
 function currentGMCommitAuthority() {
   const activeGM = activeGMUser();
   const userId = game.user?.id ?? null;
@@ -179,3 +198,4 @@ function collectionContents(collection) {
 
 Hooks.on("combatTurn", (combat, updateData) => onCombatTurnChange(combat, updateData, {hook: "combatTurn"}));
 Hooks.on("combatStart", (combat, updateData) => onCombatTurnChange(combat, updateData, {hook: "combatStart"}));
+Hooks.on("deleteCombat", combat => onCombatEnd(combat));

@@ -94,9 +94,11 @@ The finished game system name is **Wild Path**.
 - `module/resolvers/concentration-check-commit-resolver.mjs` bridges supplied concentration check
   results into `EffectLifecycleCommitResolver`, preserving explicit authority and the
   transaction-backed lifecycle mutation path.
-- `wildpath.mjs` adapts `combatStart` and `combatTurn` into semantic timeline events on the active
-  GM client, resets the incoming combatant's turn resources, and commits due condition lifecycle
-  removals for combatant Actors.
+- `wildpath.mjs` adapts `combatStart`, `combatTurn`, and combat deletion/end into semantic
+  timeline events on the active GM client, resets the incoming combatant's turn resources, and
+  commits due condition lifecycle removals for combatant Actors.
+- `WildPathActor#rest()` now restores rest-based resources and emits rest completion lifecycle
+  events for duration expiry through the same explicit-authority commit path.
 - `module/helpers/weapon-sizing.mjs` provides the WeaponSizePolicy foundation: size comparison,
   2014/2024/house policy providers, structured wieldability results, and structured
   weapon-size damage scaling for explicitly marked damage components.
@@ -207,7 +209,7 @@ result commit bridge. See `docs/architecture/weapon-size.md` for the WeaponSizeP
 and its separation from Heavy, Reach, creature size, and damage execution. See
 `docs/architecture/abstraction-layers.md` for the string-reference boundary that keeps rules,
 resolvers, Foundry adapters, and UI separated. See `docs/architecture/ui-ux-layer.md` for the
-current action-bar and combat-carousel view-model foundation. See
+current action-bar, combat-carousel, and concentration-prompt view-model foundation. See
 `docs/architecture/typescript-migration.md` for the staged TypeScript adoption plan.
 
 ## Near-Term Order
@@ -215,10 +217,9 @@ current action-bar and combat-carousel view-model foundation. See
 1. Add a Foundry ApplicationV2/dialog adapter that renders the concentration check prompt view
    model, collects roll totals or explicit physical-dice outcomes, and submits them to
    ConcentrationCheckCommitResolver.
-2. Add combat-end/rest lifecycle adapters for duration expiry.
-3. Add generic ActiveEffect create/update/delete planning on top of the condition-first
+2. Add generic ActiveEffect create/update/delete planning on top of the condition-first
    EffectResolver boundary.
-4. Start writing new pure contract-heavy modules in TypeScript once a pinned `typescript`
+3. Start writing new pure contract-heavy modules in TypeScript once a pinned `typescript`
    dev dependency and `typecheck` script are added.
 
 Keep every slice small, testable, and compatible with synthetic Token Actors.

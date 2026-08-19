@@ -130,8 +130,8 @@ execute those plans through the same target mutation authority and transaction p
 durability, target condition effects, and source payment commits now run through
 ResolutionTransaction. EffectLifecycleResolver can now turn committed duration/concentration
 metadata into condition removal plans, and EffectLifecycleCommitResolver can commit those plans
-from Foundry combat start/turn hook events on the active GM client. ConcentrationResolver can now
-feed failed concentration save decisions into that same lifecycle path, plan concentration check
+from Foundry combat start/turn/end hook events and Actor rest completion. ConcentrationResolver can
+now feed failed concentration save decisions into that same lifecycle path, plan concentration check
 requests from adjusted damage, and resolve supplied check totals/outcomes into the same event shape.
 ConcentrationCheckCommitResolver now bridges those supplied check results into the lifecycle commit
 path with explicit authority. The next resolver slice should either add a Foundry/UI prompt adapter

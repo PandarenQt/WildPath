@@ -2,7 +2,9 @@ import {WildPathModifier, WildPathStatistic} from "../helpers/modifiers.mjs";
 import WildPathConditionEffect from "../data/active-effect/condition.mjs";
 import {executeActionResolution} from "../resolvers/action-resolver.mjs";
 import {executeConditionEffect} from "../resolvers/effect-resolver.mjs";
+import {executeEffectLifecycleCommit} from "../resolvers/effect-lifecycle-commit-resolver.mjs";
 import {resolveActorResourcePayment} from "../resolvers/resource-resolver.mjs";
+import {getRestLifecycleEvents} from "../helpers/combat.mjs";
 
 /**
  * The Actor document subclass for the WildPath system.
@@ -241,6 +243,19 @@ export default class WildPathActor extends Actor {
       if ( pool.recovery === recovery ) updates[`system.pools.${index}.value`] = pool.max;
     });
     if ( !foundry.utils.isEmpty(updates) ) await this.update(updates);
+
+    const events = getRestLifecycleEvents({actor: this, restType: recovery});
+    if ( !events.length ) return;
+
+    const lifecycle = await executeEffectLifecycleCommit({
+      actors: [this],
+      events,
+      authority: actorLifecycleCommitAuthority(this),
+      metadata: {hook: "actorRest", recovery}
+    });
+    if ( !lifecycle.ok ) {
+      console.warn("Wild Path | Rest lifecycle commit failed", lifecycle);
+    }
   }
 
   /* -------------------------------------------- */
@@ -281,4 +296,17 @@ export default class WildPathActor extends Actor {
     }
     if ( !foundry.utils.isEmpty(deltas) ) await this.spendResources(deltas, {force: true});
   }
+}
+
+function actorLifecycleCommitAuthority(actor) {
+  const user = globalThis.game?.user ?? null;
+  const ownsActor = user ? actor?.testUserPermission?.(user, "OWNER") === true : false;
+  const canCommit = user?.isGM === true || actor?.isOwner === true
+    || ownsActor;
+  return {
+    isGM: user?.isGM === true,
+    canCommit,
+    userId: user?.id ?? null,
+    actorId: actor?.id ?? null
+  };
 }
