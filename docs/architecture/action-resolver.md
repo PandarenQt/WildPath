@@ -61,6 +61,5 @@ pipeline shape that those slices will extend.
 
 ## Next Resolver Slice
 
-`TargetResolver` should be next. It can consume the existing targeting and area-targeting helpers,
-then attach final target contexts to the `ActionResult` before attack/save/damage resolution is
-introduced.
+The next ActionResolver slice should integrate `TargetResolver`, attach final target contexts to
+the `ActionResult`, and emit `targets.selected` before attack/save/damage resolution is introduced.

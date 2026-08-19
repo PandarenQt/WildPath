@@ -43,6 +43,9 @@ The finished game system name is **Wild Path**.
   resource update paths and is now the payment boundary used by `WildPathActor#useAction`.
 - `module/resolvers/action-resolver.mjs` wraps the current cost-only Action flow in
   `ActionContext`/`ActionResult`, semantic payment events, and ResourceResolver mutation plans.
+- `module/resolvers/target-resolver.mjs` wraps target-set eligibility, refinement decisions,
+  required-target failures, self-targeting, and selection request state for future ActionResolver
+  integration.
 
 ## Resolution Pipeline
 
@@ -125,11 +128,12 @@ foundation. See `docs/architecture/events-and-reactions.md` for the automation e
 trigger foundation. See `docs/architecture/action-resolution.md` for the common action-context
 and action-result envelope. See `docs/architecture/resource-resolution.md` for the current
 resource payment resolver boundary. See `docs/architecture/action-resolver.md` for the current
-cost-only ActionResolver entry point.
+cost-only ActionResolver entry point. See `docs/architecture/target-resolver.md` for the current
+target validation bridge.
 
 ## Near-Term Order
 
-1. Add `TargetResolver` and tests for target validation.
+1. Integrate `TargetResolver` into `ActionResolver` for actions that declare target requirements.
 2. Add attack/save/damage/healing/effect slices one at a time.
 
 Keep every slice small, testable, and compatible with synthetic Token Actors.
