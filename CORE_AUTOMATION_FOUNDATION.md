@@ -67,6 +67,9 @@ The finished game system name is **Wild Path**.
 - `module/helpers/weapon-sizing.mjs` provides the WeaponSizePolicy foundation: size comparison,
   2014/2024/house policy providers, structured wieldability results, and structured
   weapon-size damage scaling for explicitly marked damage components.
+- `module/helpers/ui-view-models.mjs` provides the first pure UI/UX state layer for action-bar
+  availability and combat-carousel turn state, with command payloads and opaque refs instead of
+  DOM, canvas, or Foundry document coupling.
 
 ## Resolution Pipeline
 
@@ -158,7 +161,8 @@ target-aware, attack-capable, and save-capable ActionResolver entry point. See
 `docs/architecture/weapon-size.md` for the WeaponSizePolicy foundation and its separation from
 Heavy, Reach, creature size, and damage execution. See
 `docs/architecture/abstraction-layers.md` for the string-reference boundary that keeps rules,
-resolvers, Foundry adapters, and UI separated.
+resolvers, Foundry adapters, and UI separated. See `docs/architecture/ui-ux-layer.md` for the
+current action-bar and combat-carousel view-model foundation.
 
 ## Near-Term Order
 

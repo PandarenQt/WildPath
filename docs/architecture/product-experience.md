@@ -10,11 +10,17 @@ actions, bonus actions, reactions, movement budgets, class/feature actions, cons
 contextual abilities. Disabled states should be driven by structured resolver availability reasons,
 not UI-only checks.
 
+The first implementation slice is `module/helpers/ui-view-models.mjs`, which creates render-ready
+action-bar state from actor resources and action-economy payment discovery.
+
 ## Combat Carousel
 
 The combat carousel should show turn order, current/next actors, resource refresh context, reaction
 availability, and important statuses. It should call into the same turn/resource services as the
 automation layer rather than maintaining its own combat state.
+
+The first implementation slice is `module/helpers/ui-view-models.mjs`, which creates carousel
+entries from combat timeline data and opaque entity refs.
 
 ## Point-Budget Randomizer Loop
 

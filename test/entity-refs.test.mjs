@@ -17,6 +17,7 @@ test("entity refs encode document identity as opaque strings", () => {
   assert.equal(actorRef("actor-a"), "actor:actor-a");
   assert.equal(tokenRef("token-a", {sceneId: "scene-a"}), "token:scene-a.token-a");
   assert.equal(uuidRef("Actor.actor-a.Item.sword"), "uuid:Actor.actor-a.Item.sword");
+  assert.equal(createEntityRef("combat", "combat-a"), "combat:combat-a");
   assert.equal(createEntityRef("Homebrew Thing", "id"), null);
 });
 

@@ -4,6 +4,7 @@ export const ENTITY_REF_KINDS = Object.freeze({
   ITEM: "item",
   EFFECT: "effect",
   SCENE: "scene",
+  COMBAT: "combat",
   COMBATANT: "combatant",
   USER: "user",
   UUID: "uuid",
