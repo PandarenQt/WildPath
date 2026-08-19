@@ -20,8 +20,9 @@ foundation needs, per `AGENTS.md` sections 4 and 8 and the architecture notes in
 - `module/resolvers/resource-resolver.mjs` now wraps action-economy payment discovery and maps
   selected payment plans to Actor update paths. `ActionResolver` uses it for the current cost-only
   behavior.
-- `module/resolvers/action-resolver.mjs` now wraps the current cost-only Action item flow in
-  `ActionContext` / `ActionResult` and delegates payment to `ResourceResolver`.
+- `module/resolvers/action-resolver.mjs` now wraps the current Action item flow in
+  `ActionContext` / `ActionResult`, optionally delegates target validation to `TargetResolver`,
+  and delegates payment to `ResourceResolver`.
 - `module/resolvers/target-resolver.mjs` now wraps target-set eligibility, refinement decisions,
   required-target failures, self-targeting, and selection request state.
 - `WildPathActor#getStatistic(domain)` plus `WildPathStatistic`/`WildPathModifier` are the
@@ -39,8 +40,8 @@ resolvers should not call UI code.
 
 | Module | File | Responsibility |
 |---|---|---|
-| `ActionResolver` | `module/resolvers/action-resolver.mjs` | Current cost-only entry point; should grow into validate, target, cost, roll, outcome, consequences, effects, post-resolution hooks. |
-| `TargetResolver` | `module/resolvers/target-resolver.mjs` | Resolves and validates self, explicit, and precomputed target sets; ActionResolver integration is next. |
+| `ActionResolver` | `module/resolvers/action-resolver.mjs` | Current target-aware, cost-only entry point; should grow into roll, outcome, consequences, effects, post-resolution hooks. |
+| `TargetResolver` | `module/resolvers/target-resolver.mjs` | Resolves and validates self, explicit, and precomputed target sets for ActionResolver and future UI adapters. |
 | `AttackResolver` | `module/resolvers/attack-resolver.mjs` | Resolve attack rolls against target defenses using `getStatistic`-derived modifiers. |
 | `SaveResolver` | `module/resolvers/save-resolver.mjs` | Resolve saving throws against DCs derived through the same statistic engine. |
 | `DamageResolver` | `module/resolvers/damage-resolver.mjs` | Resolve damage components through resistance, immunity, and vulnerability into structured results. |

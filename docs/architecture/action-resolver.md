@@ -9,6 +9,7 @@ implements only the existing cost-only behavior.
 Action item
 -> ActionContext
 -> ActionResult
+-> optional TargetResolver target validation
 -> ResourceResolver payment plan
 -> Actor resource mutation plan
 -> optional Actor update commit
@@ -22,6 +23,7 @@ The resolver emits semantic automation events for:
 
 The payment committed event is emitted only by the execution adapter after the Actor update step
 returns successfully.
+The targets selected event is emitted only when target data or target requirements are supplied.
 
 ## What It Does Now
 
@@ -29,7 +31,9 @@ returns successfully.
 
 - builds an `ActionContext`
 - validates source/action basics
+- optionally resolves targets through `TargetResolver`
 - resolves Action item activation cost through `ResourceResolver`
+- records a target-selection consequence when targets are resolved
 - records a resource-payment consequence
 - records a resource-payment mutation plan
 - returns an `ActionResult`
@@ -61,5 +65,5 @@ pipeline shape that those slices will extend.
 
 ## Next Resolver Slice
 
-The next ActionResolver slice should integrate `TargetResolver`, attach final target contexts to
-the `ActionResult`, and emit `targets.selected` before attack/save/damage resolution is introduced.
+The next resolver slices should add attack/save/damage/healing/effect resolution one at a time,
+using the target contexts already attached by the optional TargetResolver step.

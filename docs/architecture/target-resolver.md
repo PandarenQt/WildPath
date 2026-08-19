@@ -63,6 +63,6 @@ into this resolver.
 
 ## Next Integration
 
-The next ActionResolver slice should call TargetResolver when an action declares target
-requirements, attach final target contexts to the `ActionResult`, and emit a semantic
-`targets.selected` event before payment, attack, save, damage, or effect resolution continues.
+ActionResolver can now call TargetResolver when target data or target requirements are supplied.
+Future Foundry adapters still need to gather user-selected Tokens, area target candidates, and
+range context before invoking that optional step.

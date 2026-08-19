@@ -5,8 +5,10 @@ import {
   beginActionResult,
   createActionContext,
   createActionLifecycleEvent,
+  createActionResult,
   failActionResult,
-  succeedActionResult
+  succeedActionResult,
+  withActionTargets
 } from "../helpers/action-resolution.mjs";
 import {
   AUTOMATION_EVENT_PHASES,
@@ -17,9 +19,11 @@ import {
   commitActorResourceMutationPlan,
   resolveActorResourcePayment
 } from "./resource-resolver.mjs";
+import {resolveActionTargets} from "./target-resolver.mjs";
 
 export const ACTION_RESOLVER_CODES = Object.freeze({
   OK: "OK",
+  TARGETING_FAILED: "TARGETING_FAILED",
   PAYMENT_UNAVAILABLE: "PAYMENT_UNAVAILABLE",
   RESOURCE_COMMIT_FAILED: "RESOURCE_COMMIT_FAILED"
 });
@@ -31,20 +35,64 @@ export function planActionResolution({
   action,
   source=null,
   targets=[],
+  targeting=null,
   context={},
   policies={},
   selectedPaymentOptionId=null,
   complete=true
 }={}) {
-  const actionContext = createActionContext({
+  let actionContext = createActionContext({
     ...context,
     action: actionRef(action),
     source: source ?? context.source,
     targets: targets.length ? targets : context.targets ?? [],
     policies: {...(context.policies ?? {}), ...policies}
   });
-  const started = beginActionResult(actionContext);
-  if ( started.status === ACTION_RESULT_STATUS.FAILED ) return started;
+  let result = beginActionResult(actionContext);
+  if ( result.status === ACTION_RESULT_STATUS.FAILED ) return result;
+
+  if ( shouldResolveTargets({targeting, actionContext}) ) {
+    const targetResolution = resolveActionTargets({
+      source: actionContext.source,
+      targetSet: targeting?.targetSet ?? actionContext.targetSet,
+      candidates: targeting?.candidates ?? [],
+      targets: (targeting?.targets?.length ? targeting.targets : actionContext.targets) ?? [],
+      eligibilityPolicy: targeting?.eligibilityPolicy ?? {},
+      refinementPolicy: targeting?.refinementPolicy ?? {},
+      decisions: targeting?.decisions ?? [],
+      context: {action: actionContext.action, ...(targeting?.context ?? {})},
+      required: targeting?.required ?? false,
+      metadata: targeting?.metadata ?? {}
+    });
+    if ( !targetResolution.ok ) {
+      return failActionResult(result, {
+        stage: ACTION_RESOLUTION_STAGES.TARGETING,
+        code: ACTION_RESOLVER_CODES.TARGETING_FAILED,
+        reason: targetResolution.code,
+        data: {targetResolution}
+      });
+    }
+
+    actionContext = withActionTargets(
+      actionContext,
+      finalTargetRefs(targetResolution),
+      targetResolution.refinement
+    );
+    result = createActionResult({...result, context: actionContext});
+    result = addResolutionStep(result, {
+      stage: ACTION_RESOLUTION_STAGES.TARGETING,
+      events: [createActionLifecycleEvent(actionContext, {
+        type: AUTOMATION_EVENT_TYPES.TARGETS_SELECTED,
+        phase: AUTOMATION_EVENT_PHASES.AFTER,
+        data: {targetResolution}
+      })],
+      consequences: [{
+        type: "targetsSelected",
+        targetContexts: targetResolution.targetContexts
+      }],
+      data: {targetResolution}
+    });
+  }
 
   const payment = resolveActorResourcePayment({
     actorSystem,
@@ -54,7 +102,7 @@ export function planActionResolution({
     selectedPaymentOptionId
   });
   if ( !payment.ok ) {
-    return failActionResult(started, {
+    return failActionResult(result, {
       stage: ACTION_RESOLUTION_STAGES.RESOURCE_PAYMENT,
       code: ACTION_RESOLVER_CODES.PAYMENT_UNAVAILABLE,
       reason: payment.code,
@@ -70,7 +118,7 @@ export function planActionResolution({
       mutationPlan: payment.mutationPlan
     }
   });
-  const withPayment = addResolutionStep(started, {
+  const withPayment = addResolutionStep(result, {
     stage: ACTION_RESOLUTION_STAGES.RESOURCE_PAYMENT,
     events: [paymentRequiredEvent],
     consequences: [{
@@ -99,6 +147,7 @@ export async function executeActionResolution({
   action,
   source=null,
   targets=[],
+  targeting=null,
   context={},
   policies={},
   selectedPaymentOptionId=null
@@ -108,6 +157,7 @@ export async function executeActionResolution({
     action,
     source: source ?? actorSource(actor),
     targets,
+    targeting,
     context,
     policies,
     selectedPaymentOptionId,
@@ -173,4 +223,12 @@ function actorSource(actor) {
     name: actor.name ?? null,
     type: actor.type ?? "actor"
   };
+}
+
+function shouldResolveTargets({targeting, actionContext}) {
+  return !!targeting || !!actionContext.targetSet || !!actionContext.targets?.length;
+}
+
+function finalTargetRefs(targetResolution) {
+  return (targetResolution.refinement?.finalTargets ?? []).map(candidate => candidate.target ?? candidate);
 }

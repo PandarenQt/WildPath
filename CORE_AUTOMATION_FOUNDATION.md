@@ -41,8 +41,9 @@ The finished game system name is **Wild Path**.
   envelopes for validation steps, semantic events, consequences, mutation plans, and audit traces.
 - `module/resolvers/resource-resolver.mjs` maps generic action-economy payment plans to Actor
   resource update paths and is now the payment boundary used by `WildPathActor#useAction`.
-- `module/resolvers/action-resolver.mjs` wraps the current cost-only Action flow in
-  `ActionContext`/`ActionResult`, semantic payment events, and ResourceResolver mutation plans.
+- `module/resolvers/action-resolver.mjs` wraps the current Action flow in
+  `ActionContext`/`ActionResult`, optional TargetResolver validation, semantic target/payment
+  events, and ResourceResolver mutation plans.
 - `module/resolvers/target-resolver.mjs` wraps target-set eligibility, refinement decisions,
   required-target failures, self-targeting, and selection request state for future ActionResolver
   integration.
@@ -133,7 +134,6 @@ target validation bridge.
 
 ## Near-Term Order
 
-1. Integrate `TargetResolver` into `ActionResolver` for actions that declare target requirements.
-2. Add attack/save/damage/healing/effect slices one at a time.
+1. Add attack/save/damage/healing/effect slices one at a time.
 
 Keep every slice small, testable, and compatible with synthetic Token Actors.
