@@ -71,6 +71,24 @@ the TargetSet when any occupied field overlaps an Area under the default any-ove
 The `GridFootprint` produced for preview must be the same field set committed and later consumed by
 targeting. Rendering should follow that field set rather than becoming a separate mechanical input.
 
+## Placement To Targeting Bridge
+
+`module/helpers/tactical-area-resolution.mjs` composes placed tactical areas with target
+resolution. It accepts an already placed area, or performs source-boundary placement first, then
+passes the exact resolved `GridFootprint` into `area-targeting.mjs`.
+
+This bridge preserves:
+
+- placement provenance
+- selected source Token and Actor
+- selected origin vertex
+- preview/commit/resolution footprint identity
+- physical target candidates
+- eligibility and refinement output
+- per-target contexts and overrides
+
+Invalid source-boundary clicks reject before targeting runs.
+
 ## Persistent Areas
 
 Persistent areas should store or deterministically reconstruct the same `GridFootprint` produced

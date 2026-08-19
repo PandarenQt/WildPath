@@ -27,6 +27,8 @@ The finished game system name is **Wild Path**.
   footprint distance/reach, boundary vertices, and debug data for TokenGridFootprints.
 - `module/helpers/tactical-areas.mjs` provides pure radial, line, cone, wall, and source-boundary
   placement helpers with preview/commit/resolution footprint identity.
+- `module/helpers/tactical-area-resolution.mjs` composes placed tactical areas with target
+  resolution while preserving placement provenance and the exact resolved field set.
 - `module/helpers/targeting.mjs` provides pure target candidates, target sets, eligibility,
   refinement decisions, selection requests, and per-target override carriers.
 - `module/helpers/inventory.mjs` provides pure inventory spaces, access grants, weight policies,

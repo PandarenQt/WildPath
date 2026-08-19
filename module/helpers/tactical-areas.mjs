@@ -478,6 +478,8 @@ function nearestDirection(vector, topology) {
     return {ok: false, code: TACTICAL_AREA_CODES.INVALID_DIRECTION, reason: "direction must not be zero"};
   }
   const directions = getGridDirections(normalizedTopology, {includeDiagonals: normalizedTopology === GRID_TOPOLOGIES.SQUARE});
+  const exact = directions.find(candidate => directionKey(candidate, normalizedTopology) === directionKey(vector, normalizedTopology));
+  if ( exact ) return {ok: true, code: TACTICAL_AREA_CODES.OK, direction: normalizeDirection(exact, normalizedTopology)};
   const best = [...directions].sort((a, b) => {
     const projection = dotDirection(b, vector, normalizedTopology) - dotDirection(a, vector, normalizedTopology);
     if ( projection ) return projection;
