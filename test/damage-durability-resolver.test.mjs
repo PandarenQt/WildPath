@@ -64,6 +64,58 @@ test("damage durability bridge applies target damage adjustments before HP plann
   assert.equal(result.mutationPlans[0].plan.metadata.originalDamageResult.total, 15);
 });
 
+test("damage durability bridge plans concentration checks from adjusted damage", () => {
+  const damageResolution = resolveDamageTargets({
+    components: [
+      {id: "flame", amount: 30, damageType: "fire"},
+      {id: "slash", amount: 5, damageType: "slashing"}
+    ],
+    targets: [{id: "mage", actorId: "actor-mage"}]
+  });
+  const result = planDamageDurabilityMutations({
+    damageResolution,
+    targetSystems: {"actor:actor-mage": actorSystem(40, 40)},
+    adjustmentProfiles: {
+      "actor:actor-mage": {
+        resistances: ["fire"]
+      }
+    },
+    concentration: {
+      states: {
+        "actor:actor-mage": {
+          active: true,
+          actorId: "actor-mage",
+          originRef: "item:hex"
+        }
+      }
+    }
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.adjustedDamageResults[0].total, 20);
+  assert.equal(result.concentration.checkRequests.length, 1);
+  assert.equal(result.concentration.checkRequests[0].damageTaken, 20);
+  assert.equal(result.concentration.checkRequests[0].dc, 10);
+  assert.equal(result.concentration.checkRequests[0].originRef, "item:hex");
+});
+
+test("damage durability bridge can plan higher concentration DCs", () => {
+  const damageResolution = resolveDamageTargets({
+    components: [{id: "bolt", amount: 28, damageType: "force"}],
+    targets: [{id: "mage", actorId: "actor-mage"}]
+  });
+  const result = planDamageDurabilityMutations({
+    damageResolution,
+    targetSystems: {"actor:actor-mage": actorSystem(40, 40)},
+    concentration: {
+      states: {"actor:actor-mage": true}
+    }
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.concentration.checkRequests[0].dc, 14);
+});
+
 test("damage durability bridge plans absorption as ordered resource gain after remaining damage", () => {
   const damageResolution = resolveDamageTargets({
     components: [{id: "flame", amount: 10, damageType: "fire"}],

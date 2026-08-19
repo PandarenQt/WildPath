@@ -55,7 +55,8 @@ automation foundation needs, per `AGENTS.md` sections 4 and 8 and the architectu
   update paths without mutating Actor data directly.
 - `module/resolvers/damage-durability-resolver.mjs` now bridges successful per-target damage
   results into target Actor durability mutation plans when an adapter supplies target systems by
-  opaque refs or transitional ids, including ordered post-damage absorption plans.
+  opaque refs or transitional ids, including ordered post-damage absorption plans and optional
+  concentration check requests from adjusted damage totals.
 - `module/resolvers/healing-durability-resolver.mjs` does the same for per-target healing results.
 - `module/resolvers/target-mutation-commit-resolver.mjs` commits target mutation plans only when
   supplied target Actors and explicit authority.
@@ -70,8 +71,9 @@ automation foundation needs, per `AGENTS.md` sections 4 and 8 and the architectu
   Actors and commits resulting condition removals through the target mutation transaction path
   with explicit authority.
 - `module/resolvers/concentration-resolver.mjs` normalizes already-resolved concentration save
-  decisions or semantic decision events into maintained/broken/ignored results, and turns failures
-  into lifecycle break events for `EffectLifecycleCommitResolver`.
+  decisions or semantic decision events into maintained/broken/ignored results, turns failures
+  into lifecycle break events for `EffectLifecycleCommitResolver`, and plans concentration check
+  requests from adjusted damage plus supplied concentration state snapshots.
 - `wildpath.mjs` now adapts `combatStart` and `combatTurn` into semantic timeline events on the
   active GM client, resets the incoming combatant's turn resources, and runs effect lifecycle
   commits for combatant Actors.
@@ -106,7 +108,7 @@ call into `ActionResolver`; resolvers should not call UI code.
 | `ConditionEffectCommitResolver` | `module/resolvers/condition-effect-commit-resolver.mjs` | Commits planned condition effects to supplied target Actors and restores snapshots on rollback. |
 | `EffectLifecycleResolver` | `module/resolvers/effect-lifecycle-resolver.mjs` | Plans condition removal when committed duration/concentration metadata expires or breaks. |
 | `EffectLifecycleCommitResolver` | `module/resolvers/effect-lifecycle-commit-resolver.mjs` | Commits lifecycle condition removals for supplied Actors with explicit authority and transaction rollback. |
-| `ConcentrationResolver` | `module/resolvers/concentration-resolver.mjs` | Normalizes known concentration save decisions and emits lifecycle break events for failed decisions. |
+| `ConcentrationResolver` | `module/resolvers/concentration-resolver.mjs` | Plans concentration check requests from adjusted damage, normalizes known concentration save decisions, and emits lifecycle break events for failed decisions. |
 | `ResourceResolver` | `module/resolvers/resource-resolver.mjs` | Generalizes action cost validation and payment mutation planning; refund-on-cancel waits for cancellation/reaction slices. |
 | `ReactionResolver` | `module/resolvers/reaction-resolver.mjs` | Offer eligible reactions at defined interrupt points, then resume the parent resolution. |
 | `AreaResolver` | `module/resolvers/area-resolver.mjs` | Resolve instantaneous and persistent areas plus enter/leave/start-turn/end-turn triggers. |
@@ -128,6 +130,7 @@ durability, target condition effects, and source payment commits now run through
 ResolutionTransaction. EffectLifecycleResolver can now turn committed duration/concentration
 metadata into condition removal plans, and EffectLifecycleCommitResolver can commit those plans
 from Foundry combat start/turn hook events on the active GM client. ConcentrationResolver can now
-feed failed concentration save decisions into that same lifecycle path. The next resolver slice
-should either add concentration-check requirement/DC planning after damage is applied or extend
-EffectResolver from condition-only planning toward generic ActiveEffect planning.
+feed failed concentration save decisions into that same lifecycle path and plan concentration check
+requests from adjusted damage. The next resolver slice should either add a Foundry/UI adapter for
+concentration check prompts/results or extend EffectResolver from condition-only planning toward
+generic ActiveEffect planning.

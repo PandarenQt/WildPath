@@ -3,7 +3,7 @@
 `module/resolvers/damage-resolver.mjs` is the pure structured-damage foundation for action damage.
 `module/resolvers/damage-adjustment-resolver.mjs` applies per-target immunity, resistance,
 vulnerability, damage absorption, and damage reduction after damage is resolved and before
-durability mutation plans are created.
+durability mutation plans and concentration check requests are created.
 
 ## Current Flow
 
@@ -14,6 +14,7 @@ damage components
 -> scalable/unscaled component partition
 -> optional per-target damage results
 -> optional per-target damage adjustment
+-> optional concentration check planning from adjusted damage
 ```
 
 The resolver accepts already-known numeric component amounts. It does not roll dice. Dice are
@@ -57,6 +58,10 @@ present on the damage components that this resolver totals.
 - supports flat, scaled, and already-rolled reduction amounts
 - keeps original and adjusted totals for audit
 
+`DamageDurabilityResolver` can pass these adjusted totals to `ConcentrationResolver`, so
+concentration DCs use the final damage taken after immunity, resistance, vulnerability,
+absorption, and reduction.
+
 ## Component Provenance
 
 Damage components should describe why they exist rather than relying on label parsing.
@@ -85,6 +90,7 @@ DamageResolver does not:
 - apply Actor HP or resource mutations
 - apply target damage overrides
 - implement critical hits
+- roll or prompt concentration saves
 - create chat output
 
 Those remain separate slices. Damage adjustment is handled by `DamageAdjustmentResolver` rather
@@ -94,7 +100,7 @@ operate on already-scaled dice, and WeaponSizePolicy scales only components mark
 
 ## Next Integration
 
-Foundry adapters still need to gather damage rolls and Actor durability fields before document
-mutation. `ActionResolver` can now attach durability plans for adjusted damage, including
-absorption-to-resource plans, and can execute them when supplied target Actors plus explicit commit
-authority.
+Foundry adapters still need to gather damage rolls, Actor durability fields, and concentration
+state before document mutation or prompts. `ActionResolver` can now attach durability plans for
+adjusted damage, including absorption-to-resource plans, and can expose concentration check
+requests when supplied concentration state snapshots are present.

@@ -215,6 +215,35 @@ export interface ConcentrationDecisionResult {
   readonly metadata: Readonly<Record<string, unknown>>;
 }
 
+export interface ConcentrationCheckRequest {
+  readonly id: string;
+  readonly type: "damage" | string;
+  readonly actorId: string | null;
+  readonly actorRef: EntityRef | string | null;
+  readonly sourceRef: EntityRef | string | null;
+  readonly originRef: EntityRef | string | null;
+  readonly itemRef: EntityRef | string | null;
+  readonly target: unknown;
+  readonly targetRef: EntityRef | string | null;
+  readonly damageTaken: number;
+  readonly dc: number;
+  readonly saveKey: string;
+  readonly ability: string;
+  readonly damageResult: unknown;
+  readonly metadata: Readonly<Record<string, unknown>>;
+}
+
+export interface ConcentrationCheckPlanningResult {
+  readonly ok: boolean;
+  readonly code: string;
+  readonly resolver: "ConcentrationResolver";
+  readonly checkRequests: readonly ConcentrationCheckRequest[];
+  readonly skipped: readonly unknown[];
+  readonly failures: readonly unknown[];
+  readonly policy: Readonly<Record<string, unknown>>;
+  readonly metadata: Readonly<Record<string, unknown>>;
+}
+
 export interface EffectLifecycleCommitResult {
   readonly ok: boolean;
   readonly code: string;

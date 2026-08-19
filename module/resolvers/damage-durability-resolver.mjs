@@ -8,6 +8,7 @@ import {
   adjustDamageResult,
   mergeDamageAdjustmentProfiles
 } from "./damage-adjustment-resolver.mjs";
+import {planConcentrationChecks} from "./concentration-resolver.mjs";
 import {DAMAGE_RESOLVER_CODES} from "./damage-resolver.mjs";
 import {
   createActorDamageMutationPlan,
@@ -35,6 +36,7 @@ export function planDamageDurabilityMutations({
   targetSystems={},
   adjustments=null,
   adjustmentProfiles={},
+  concentration=null,
   resourceId="health",
   source=null,
   metadata={}
@@ -62,6 +64,7 @@ export function planDamageDurabilityMutations({
   const mutationPlans = [];
   const failures = [];
   const skipped = [];
+  const adjustedDamageResults = [];
   for ( const damageResult of damageResolution.results ?? [] ) {
     if ( damageResult.code === DAMAGE_RESOLVER_CODES.TARGET_SKIPPED ) {
       skipped.push(clonePlain(damageResult));
@@ -121,6 +124,7 @@ export function planDamageDurabilityMutations({
       continue;
     }
 
+    adjustedDamageResults.push(adjusted.damageResult);
     mutationPlans.push({
       type: DAMAGE_DURABILITY_MUTATION_TYPES.DAMAGE,
       resolver: "DurabilityResolver",
@@ -150,11 +154,56 @@ export function planDamageDurabilityMutations({
     ok: failures.length === 0,
     code: failures[0]?.code ?? DAMAGE_DURABILITY_RESOLUTION_CODES.OK,
     mutationPlans,
+    adjustedDamageResults,
+    concentration: planConcentrationForAdjustedDamage({
+      concentration,
+      adjustedDamageResults,
+      targetSystems,
+      metadata
+    }),
     failures,
     skipped,
     resourceId,
     metadata: clonePlain(metadata) ?? {}
   };
+}
+
+/* -------------------------------------------- */
+
+function planConcentrationForAdjustedDamage({concentration, adjustedDamageResults, targetSystems, metadata}) {
+  const options = normalizeConcentrationPlanningOptions(concentration);
+  if ( !options ) return null;
+  return planConcentrationChecks({
+    damageResults: adjustedDamageResults,
+    concentrationStates: options.states,
+    targetSystems,
+    policy: options.policy,
+    metadata: {
+      ...(clonePlain(metadata) ?? {}),
+      ...(clonePlain(options.metadata) ?? {})
+    }
+  });
+}
+
+function normalizeConcentrationPlanningOptions(concentration) {
+  if ( concentration === true ) return {states: true, policy: {}, metadata: {}};
+  if ( !concentration ) return null;
+  if ( typeof concentration !== "object" ) return null;
+
+  const policyKeys = ["minimumDC", "baseDC", "damageDivisor", "halfDamageDivisor", "rounding", "minimumDamage", "damageAmountPath", "saveKey", "ability"];
+  const hasExplicitShape = Object.hasOwn(concentration, "states")
+    || Object.hasOwn(concentration, "concentrationStates")
+    || Object.hasOwn(concentration, "policy");
+  const hasOnlyPolicyShape = policyKeys.some(key => Object.hasOwn(concentration, key));
+  if ( hasExplicitShape || hasOnlyPolicyShape ) {
+    return {
+      states: concentration.states ?? concentration.concentrationStates ?? true,
+      policy: concentration.policy ?? (hasOnlyPolicyShape ? concentration : {}),
+      metadata: concentration.metadata ?? {}
+    };
+  }
+
+  return {states: concentration, policy: {}, metadata: {}};
 }
 
 /* -------------------------------------------- */

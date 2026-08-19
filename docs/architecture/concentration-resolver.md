@@ -1,7 +1,7 @@
 # Concentration Resolver
 
-`module/resolvers/concentration-resolver.mjs` is the pure decision-normalization layer for
-concentration. It does not roll dice and does not mutate Actors or ActiveEffects.
+`module/resolvers/concentration-resolver.mjs` is the pure concentration planning and
+decision-normalization layer. It does not roll dice and does not mutate Actors or ActiveEffects.
 
 ## Current Flow
 
@@ -14,7 +14,24 @@ or concentration.saveResolved event
 -> condition removal transaction path
 ```
 
+```text
+adjusted damage result
++ supplied concentration state
+-> concentration check request
+-> later dice/physical-roll adapter
+-> concentration.saveResolved decision event
+```
+
 ## What It Does Now
+
+`planConcentrationChecks()`:
+
+- accepts adjusted damage results from `DamageDurabilityResolver`
+- uses final damage taken after resistance, reduction, and absorption
+- requires supplied concentration state snapshots or target-system concentration state
+- computes the default concentration DC as `max(10, floor(damageTaken / 2))`
+- supports custom minimum DC, damage divisor, rounding, minimum damage, save key, and ability
+- returns check request data without rolling or mutating documents
 
 `resolveConcentrationDecisions()`:
 
@@ -32,12 +49,12 @@ path after the numeric save outcome is known.
 
 ConcentrationResolver does not:
 
-- decide when a concentration check is required
-- compute the concentration DC from damage or rules variants
+- discover live Foundry damage events
+- discover concentration state from live Actor documents
 - roll digital dice
 - prompt for physical dice
 - decide advantage/disadvantage or bonuses
 - emit chat output
 
-Those belong in future action/damage/concentration adapter slices. This module only turns a known
-decision into a stable lifecycle signal.
+Those belong in future action/damage/concentration adapter slices. This module only plans required
+checks from already-adjusted damage and turns known decisions into stable lifecycle signals.

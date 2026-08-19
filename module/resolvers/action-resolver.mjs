@@ -683,6 +683,7 @@ function resolveDamageDurability({damage, durability, damageResolution, actionCo
     targetSystems: options.targetSystems ?? {},
     adjustments: options.adjustments ?? options.damageAdjustments ?? null,
     adjustmentProfiles: options.adjustmentProfiles ?? options.targetAdjustments ?? {},
+    concentration: options.concentration ?? damage?.concentration ?? null,
     resourceId: options.resourceId ?? "health",
     source: actionContext.source,
     metadata: {

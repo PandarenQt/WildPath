@@ -72,6 +72,8 @@ The finished game system name is **Wild Path**.
 - `module/resolvers/damage-adjustment-resolver.mjs` applies per-target immunity, resistance,
   vulnerability, damage reduction, and absorption that can convert incoming damage into healing,
   shields, or other resources before durability mutation planning.
+- `module/resolvers/damage-durability-resolver.mjs` can now expose adjusted damage results and
+  optional concentration check requests after target damage adjustment and before mutation commit.
 - `module/resolvers/effect-resolver.mjs` plans condition effect changes as explicit
   create/update/delete/noop mutation plans with duration/source/origin/concentration lifecycle
   metadata and is now the resolver boundary used by `WildPathActor#toggleCondition`.
@@ -85,8 +87,9 @@ The finished game system name is **Wild Path**.
   Actors and commits resulting condition removals through the explicit-authority target mutation
   transaction path.
 - `module/resolvers/concentration-resolver.mjs` accepts already-resolved concentration save
-  decisions or semantic decision events, classifies maintained/broken/ignored results, and turns
-  failures into lifecycle break events without rolling dice or mutating documents.
+  decisions or semantic decision events, classifies maintained/broken/ignored results, turns
+  failures into lifecycle break events, and plans concentration check requests from adjusted damage
+  without rolling dice or mutating documents.
 - `wildpath.mjs` adapts `combatStart` and `combatTurn` into semantic timeline events on the active
   GM client, resets the incoming combatant's turn resources, and commits due condition lifecycle
   removals for combatant Actors.
@@ -203,7 +206,8 @@ current action-bar and combat-carousel view-model foundation. See
 
 ## Near-Term Order
 
-1. Add concentration-check requirement planning and DC calculation after damage is applied.
+1. Add a Foundry/UI adapter for concentration check prompts and result entry, feeding
+   `concentration.saveResolved` events back into EffectLifecycleCommitResolver.
 2. Add combat-end/rest lifecycle adapters for duration expiry.
 3. Add generic ActiveEffect create/update/delete planning on top of the condition-first
    EffectResolver boundary.

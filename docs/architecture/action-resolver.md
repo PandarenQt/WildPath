@@ -7,6 +7,8 @@ structured damage and healing components as consequences, apply WeaponSizePolicy
 manufactured weapon damage, and attach target durability mutation plans when supplied target Actor
 system snapshots. Damage durability planning can include absorption plans that convert part of the
 incoming damage into health, shields, or another Actor resource.
+When damage supplies concentration state snapshots, adjusted damage can also produce concentration
+check requests for a later prompt/result adapter.
 When damage supplies a `saveOutcomePolicy`, the resolver can adjust per-target damage amounts from
 the already-resolved save outcomes, such as half damage on a successful save.
 When effects supply condition definitions, it can also plan condition consequences for selected,
@@ -27,6 +29,7 @@ Action item
 -> optional save-outcome damage policy
 -> optional DamageResolver damage consequence
 -> optional DamageAdjustmentResolver per-target adjustment
+-> optional concentration check requests from adjusted damage
 -> optional HealingResolver healing consequence
 -> optional target durability damage/absorption/healing mutation plans
 -> optional EffectResolver condition mutation plans
@@ -65,6 +68,7 @@ successfully.
 - optionally resolves supplied damage components through `DamageResolver`
 - optionally applies target damage adjustments, reductions, and absorptions before durability
   planning
+- optionally plans concentration check requests from final adjusted damage totals
 - optionally resolves supplied healing components through `HealingResolver`
 - optionally records target durability mutation plans for damage and healing
 - optionally plans condition effect consequences through `EffectResolver`
@@ -104,6 +108,7 @@ The current resolver does not:
 - derive attack bonuses or target defenses from Actor documents
 - derive save bonuses or save DCs from Actor documents
 - roll dice
+- prompt for concentration checks or apply concentration save results
 - commit generic non-condition ActiveEffects
 - tick durations or break concentration
 - open reaction windows
@@ -112,15 +117,15 @@ The current resolver does not:
 Those are future ActionResolver slices. The optional attack, save, damage, healing, and condition
 steps consume already-known numeric roll, defense/DC, damage, healing, and effect-definition data;
 they do not own roll UI, Foundry statistic gathering, generic ActiveEffect document commits,
-duration ticking, or concentration checks. Condition effects can commit when execution receives
-target Actors and explicit authority; the commit adapter rolls back condition creates, updates, and
-deletes if a later transaction operation fails. WeaponSizePolicy integration scales structural dice
-and records provenance for explicitly manufactured weapon damage, but it does not roll those dice
-or invent final damage amounts. This module exists so current action use already enters the same
-pipeline shape that those slices will extend.
+duration ticking, or concentration prompts/results. Condition effects can commit when execution
+receives target Actors and explicit authority; the commit adapter rolls back condition creates,
+updates, and deletes if a later transaction operation fails. WeaponSizePolicy integration scales
+structural dice and records provenance for explicitly manufactured weapon damage, but it does not
+roll those dice or invent final damage amounts. This module exists so current action use already
+enters the same pipeline shape that those slices will extend.
 
 ## Next Resolver Slice
 
-The next resolver slice should either add concentration-check requirement/DC planning after damage
-is applied or extend EffectResolver from conditions to generic ActiveEffect creation/removal.
+The next resolver slice should either add a Foundry/UI adapter for concentration check
+prompts/results or extend EffectResolver from conditions to generic ActiveEffect creation/removal.
 Direct Actor durability mutation remains outside DamageResolver itself.

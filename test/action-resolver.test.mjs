@@ -396,6 +396,41 @@ test("ActionResolver can attach target durability plans to resolved damage", () 
   assert.equal(orcSystem.resources.health.value, 14);
 });
 
+test("ActionResolver can attach concentration check requests after adjusted damage", () => {
+  const mageSystem = targetActorSystem(40, 40);
+  const result = planActionResolution({
+    actorSystem: actorSystem(1),
+    action: action(),
+    source: {actorId: "actor-a"},
+    targets: [{id: "mage", actorId: "actor-mage"}],
+    damage: {
+      components: [damageComponent("force", 28, "force")],
+      concentration: {
+        states: {
+          "actor:actor-mage": {
+            active: true,
+            actorId: "actor-mage",
+            originRef: "item:spell"
+          }
+        }
+      }
+    },
+    durability: {
+      targetSystems: {
+        "actor:actor-mage": mageSystem
+      }
+    }
+  });
+
+  assert.equal(result.ok, true);
+  const damageStep = result.steps.find(step => step.stage === ACTION_RESOLUTION_STAGES.CONSEQUENCE);
+  const concentration = damageStep.data.durabilityResolution.concentration;
+  assert.equal(concentration.checkRequests.length, 1);
+  assert.equal(concentration.checkRequests[0].dc, 14);
+  assert.equal(concentration.checkRequests[0].originRef, "item:spell");
+  assert.deepEqual(result.mutationPlans.map(plan => plan.type), ["durabilityDamage", "resourcePayment"]);
+});
+
 test("ActionResolver stops before payment when requested durability target systems are missing", () => {
   const result = planActionResolution({
     actorSystem: actorSystem(1),
