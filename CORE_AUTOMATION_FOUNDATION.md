@@ -86,10 +86,11 @@ The finished game system name is **Wild Path**.
 - `module/resolvers/effect-lifecycle-commit-resolver.mjs` runs lifecycle planning for supplied
   Actors and commits resulting condition removals through the explicit-authority target mutation
   transaction path.
-- `module/resolvers/concentration-resolver.mjs` accepts already-resolved concentration save
-  decisions or semantic decision events, classifies maintained/broken/ignored results, turns
-  failures into lifecycle break events, and plans concentration check requests from adjusted damage
-  without rolling dice or mutating documents.
+- `module/resolvers/concentration-resolver.mjs` plans concentration check requests from adjusted
+  damage, resolves supplied digital/physical check results through `SaveResolver`, accepts
+  already-resolved concentration save decisions or semantic decision events, classifies
+  maintained/broken/ignored results, and turns failures into lifecycle break events without
+  rolling dice or mutating documents.
 - `wildpath.mjs` adapts `combatStart` and `combatTurn` into semantic timeline events on the active
   GM client, resets the incoming combatant's turn resources, and commits due condition lifecycle
   removals for combatant Actors.
@@ -196,8 +197,8 @@ the current target-aware, attack-capable, and save-capable ActionResolver entry 
 `docs/architecture/durability-resolution.md` for the current Actor durability mutation planner. See
 `docs/architecture/effect-resolver.md` for the current condition-first EffectResolver boundary. See
 `docs/architecture/effect-lifecycle-resolver.md` for duration/concentration condition removal
-planning. See `docs/architecture/concentration-resolver.md` for the current concentration decision
-normalization boundary. See `docs/architecture/weapon-size.md` for the WeaponSizePolicy foundation
+planning. See `docs/architecture/concentration-resolver.md` for the current concentration check
+planning, result resolution, and decision normalization boundary. See `docs/architecture/weapon-size.md` for the WeaponSizePolicy foundation
 and its separation from Heavy, Reach, creature size, and damage execution. See
 `docs/architecture/abstraction-layers.md` for the string-reference boundary that keeps rules,
 resolvers, Foundry adapters, and UI separated. See `docs/architecture/ui-ux-layer.md` for the
@@ -206,8 +207,9 @@ current action-bar and combat-carousel view-model foundation. See
 
 ## Near-Term Order
 
-1. Add a Foundry/UI adapter for concentration check prompts and result entry, feeding
-   `concentration.saveResolved` events back into EffectLifecycleCommitResolver.
+1. Add a Foundry/UI adapter for concentration check prompts and result entry, feeding supplied
+   roll totals or explicit physical-dice outcomes into ConcentrationResolver and then into
+   EffectLifecycleCommitResolver.
 2. Add combat-end/rest lifecycle adapters for duration expiry.
 3. Add generic ActiveEffect create/update/delete planning on top of the condition-first
    EffectResolver boundary.

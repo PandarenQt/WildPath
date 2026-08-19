@@ -18,8 +18,9 @@ or concentration.saveResolved event
 adjusted damage result
 + supplied concentration state
 -> concentration check request
--> later dice/physical-roll adapter
+-> supplied digital/physical roll result
 -> concentration.saveResolved decision event
+-> maintained / broken / ignored classification
 ```
 
 ## What It Does Now
@@ -42,8 +43,18 @@ adjusted damage result
 - preserves source/origin/actor/item refs as opaque strings
 - leaves all document mutation to `EffectLifecycleCommitResolver`
 
-This lets a later dice adapter, physical-dice prompt, or GM-entered result feed the same lifecycle
-path after the numeric save outcome is known.
+`resolveConcentrationCheckResults()`:
+
+- accepts concentration check requests from `planConcentrationChecks()`
+- matches supplied results by request id, actor ref/id, source ref, or target ref
+- resolves numeric totals against the request DC through `SaveResolver`
+- also accepts explicit GM-entered maintained/failed outcomes for physical dice workflows
+- returns `concentration.saveResolved` events plus the derived break events
+- reports missing or malformed results explicitly instead of assuming success or failure
+
+This lets a later dice adapter, physical-dice prompt, or GM-entered result provide only the roll
+total or explicit outcome. The concentration resolver still owns the save comparison and lifecycle
+signal shape.
 
 ## What It Does Not Do Yet
 
@@ -57,4 +68,5 @@ ConcentrationResolver does not:
 - emit chat output
 
 Those belong in future action/damage/concentration adapter slices. This module only plans required
-checks from already-adjusted damage and turns known decisions into stable lifecycle signals.
+checks from already-adjusted damage, resolves supplied check results, and turns known decisions into
+stable lifecycle signals.

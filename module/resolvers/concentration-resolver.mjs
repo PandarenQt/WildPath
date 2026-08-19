@@ -7,6 +7,7 @@ import {
   resolveTargetLookupValue,
   targetLookupRefs
 } from "../helpers/target-actor-refs.mjs";
+import {resolveSaveAgainstDC} from "./save-resolver.mjs";
 
 export const CONCENTRATION_EVENT_TYPES = Object.freeze({
   SAVE_RESOLVED: "concentration.saveResolved",
@@ -17,7 +18,11 @@ export const CONCENTRATION_EVENT_TYPES = Object.freeze({
 export const CONCENTRATION_CODES = Object.freeze({
   OK: "OK",
   NO_DECISIONS: "NO_DECISIONS",
-  NO_CHECKS_REQUIRED: "NO_CHECKS_REQUIRED"
+  NO_CHECKS_REQUIRED: "NO_CHECKS_REQUIRED",
+  NO_CHECK_REQUESTS: "NO_CHECK_REQUESTS",
+  NO_CHECK_RESULTS: "NO_CHECK_RESULTS",
+  MISSING_CHECK_RESULT: "MISSING_CHECK_RESULT",
+  INVALID_CHECK_RESULT: "INVALID_CHECK_RESULT"
 });
 
 export const CONCENTRATION_OUTCOMES = Object.freeze({
@@ -153,6 +158,458 @@ export function planConcentrationChecks({
     policy: normalizedPolicy,
     metadata: clonePlain(metadata) ?? {}
   };
+}
+
+/* -------------------------------------------- */
+
+export function resolveConcentrationCheckResults({
+  checkRequests=[],
+  checkPlanning=null,
+  concentrationChecks=null,
+  results=[],
+  rolls=[],
+  policy={},
+  metadata={}
+}={}) {
+  const requests = normalizeConcentrationCheckRequests({checkRequests, checkPlanning, concentrationChecks});
+  const normalizedPolicy = normalizeConcentrationResultPolicy(policy);
+  if ( !requests.length ) {
+    return concentrationCheckResult({
+      ok: true,
+      code: CONCENTRATION_CODES.NO_CHECK_REQUESTS,
+      policy: normalizedPolicy,
+      metadata
+    });
+  }
+
+  const decisionEvents = [];
+  const missing = [];
+  const failures = [];
+
+  for ( const request of requests ) {
+    const supplied = resolveSuppliedConcentrationCheckResult({request, rolls, results, requests});
+    if ( !supplied ) {
+      missing.push(missingConcentrationCheckResult(request));
+      continue;
+    }
+
+    const resolved = resolveConcentrationCheckResult({request, supplied, policy: normalizedPolicy, metadata});
+    if ( !resolved.ok ) {
+      failures.push(resolved);
+      continue;
+    }
+
+    decisionEvents.push(resolved.event);
+  }
+
+  const decisions = decisionEvents.map(event => event.data);
+  const decisionSummary = resolveConcentrationDecisions({events: decisionEvents, metadata});
+  const ok = failures.length === 0 && (missing.length === 0 || !normalizedPolicy.requireAllResults);
+  return concentrationCheckResult({
+    ok,
+    code: concentrationCheckResultCode({decisionEvents, missing, failures}),
+    decisionEvents,
+    decisions,
+    breakEvents: decisionSummary.breakEvents,
+    maintained: decisionSummary.maintained,
+    ignored: decisionSummary.ignored,
+    missing,
+    failures,
+    policy: normalizedPolicy,
+    metadata
+  });
+}
+
+/* -------------------------------------------- */
+
+function normalizeConcentrationCheckRequests({checkRequests, checkPlanning, concentrationChecks}) {
+  const sources = [
+    checkRequestContents(checkRequests),
+    checkRequestContents(checkPlanning),
+    checkRequestContents(concentrationChecks)
+  ];
+  return sources.find(source => source.length)?.map(request => clonePlain(request)) ?? [];
+}
+
+function checkRequestContents(value) {
+  if ( isConcentrationCheckRequestLike(value) ) return [value];
+  if ( value?.checkRequests ) return collectionContents(value.checkRequests).filter(isConcentrationCheckRequestLike);
+  return collectionContents(value).filter(isConcentrationCheckRequestLike);
+}
+
+function isConcentrationCheckRequestLike(value) {
+  return Boolean(value && typeof value === "object" && value.id && value.dc != null);
+}
+
+function normalizeConcentrationResultPolicy(policy={}) {
+  const data = policy && typeof policy === "object" ? policy : {};
+  const savePolicy = clonePlain(data.savePolicy ?? data.savingThrowPolicy ?? {}) ?? {};
+  for ( const key of [
+    "successOnTie",
+    "naturalCriticalSuccesses",
+    "naturalCriticalFailures",
+    "criticalSuccessThreshold",
+    "criticalFailureThreshold"
+  ] ) {
+    if ( data[key] != null && savePolicy[key] == null ) savePolicy[key] = data[key];
+  }
+  return {
+    requireAllResults: data.requireAllResults ?? true,
+    savePolicy,
+    metadata: clonePlain(data.metadata ?? {}) ?? {}
+  };
+}
+
+function resolveSuppliedConcentrationCheckResult({request, rolls, results, requests}) {
+  for ( const collection of [results, rolls] ) {
+    const match = findConcentrationCheckResult(collection, request, requests.length);
+    if ( match ) return match;
+  }
+  return null;
+}
+
+function findConcentrationCheckResult(collection, request, requestCount) {
+  const entries = keyedConcentrationResultEntries(collection);
+  if ( !entries.length ) return null;
+
+  const requestRefs = concentrationCheckLookupRefs(request);
+  for ( const entry of entries ) {
+    const resultRefs = concentrationCheckResultLookupRefs(entry.value, entry.key);
+    if ( resultRefs.some(ref => requestRefs.includes(ref)) ) {
+      return {
+        value: entry.value,
+        key: entry.key,
+        matchedBy: resultRefs.find(ref => requestRefs.includes(ref)) ?? null
+      };
+    }
+  }
+
+  if ( requestCount === 1 && entries.length === 1 ) {
+    return {
+      value: entries[0].value,
+      key: entries[0].key,
+      matchedBy: "single-check"
+    };
+  }
+  return null;
+}
+
+function keyedConcentrationResultEntries(collection) {
+  if ( collection == null ) return [];
+  if ( isConcentrationCheckResultLike(collection) || finiteNumber(collection) != null ) {
+    return [{key: null, value: collection}];
+  }
+  if ( Array.isArray(collection) ) {
+    return collection.map((value, index) => ({key: String(index), value}));
+  }
+  if ( collection instanceof Map ) {
+    return [...collection.entries()].map(([key, value]) => ({key: String(key), value}));
+  }
+  if ( collection instanceof Set ) {
+    return [...collection.values()].map((value, index) => ({key: String(index), value}));
+  }
+  if ( typeof collection === "object" ) {
+    return Object.entries(collection).map(([key, value]) => ({key, value}));
+  }
+  return [];
+}
+
+function isConcentrationCheckResultLike(value) {
+  if ( !value || typeof value !== "object" ) return false;
+  return [
+    "requestId",
+    "checkId",
+    "actorRef",
+    "actorId",
+    "sourceRef",
+    "targetRef",
+    "total",
+    "value",
+    "roll",
+    "save",
+    "success",
+    "passed",
+    "failed",
+    "outcome",
+    "result",
+    "status"
+  ].some(key => value[key] != null);
+}
+
+function concentrationCheckLookupRefs(request) {
+  return uniqueStrings([
+    request.id,
+    request.ref,
+    request.actorId,
+    actorIdRef(request.actorId),
+    normalizeRef(request.actorRef),
+    normalizeRef(request.sourceRef),
+    normalizeRef(request.originRef),
+    normalizeRef(request.itemRef),
+    normalizeRef(request.targetRef),
+    normalizeRef(request.target?.ref),
+    request.target?.id,
+    request.target?.actorId,
+    actorIdRef(request.target?.actorId),
+    ...targetLookupRefs(request.target ?? {})
+  ]);
+}
+
+function concentrationCheckResultLookupRefs(result, key) {
+  const data = result && typeof result === "object" ? result : {};
+  const resultData = data.data && typeof data.data === "object" ? data.data : {};
+  return uniqueStrings([
+    key,
+    data.requestId,
+    data.checkId,
+    data.id,
+    data.ref,
+    data.actorId,
+    resultData.requestId,
+    resultData.checkId,
+    resultData.id,
+    resultData.ref,
+    resultData.actorId,
+    actorIdRef(data.actorId ?? resultData.actorId),
+    normalizeRef(data.actorRef ?? resultData.actorRef),
+    normalizeRef(data.sourceRef ?? resultData.sourceRef),
+    normalizeRef(data.originRef ?? resultData.originRef),
+    normalizeRef(data.itemRef ?? resultData.itemRef),
+    normalizeRef(data.targetRef ?? resultData.targetRef),
+    normalizeRef(data.target?.ref ?? resultData.target?.ref),
+    data.target?.id ?? resultData.target?.id,
+    data.target?.actorId ?? resultData.target?.actorId,
+    actorIdRef(data.target?.actorId ?? resultData.target?.actorId)
+  ]);
+}
+
+function resolveConcentrationCheckResult({request, supplied, policy, metadata}) {
+  const input = normalizeConcentrationCheckResultInput(supplied.value);
+  const explicitOutcome = normalizeOutcome(input.source ?? {}, input.data ?? {});
+  const dc = finiteNumber(input.dc ?? request.dc);
+  const explicitDecision = explicitOutcome !== CONCENTRATION_OUTCOMES.IGNORED;
+
+  if ( explicitDecision ) {
+    return createResolvedConcentrationCheck({
+      request,
+      supplied,
+      input,
+      outcome: explicitOutcome,
+      success: explicitOutcome === CONCENTRATION_OUTCOMES.MAINTAINED,
+      dc,
+      saveResult: null,
+      policy,
+      metadata
+    });
+  }
+
+  const saveResult = resolveSaveAgainstDC({
+    roll: input.roll,
+    dc: {
+      value: dc,
+      slug: request.saveKey ?? "concentration",
+      ability: request.ability ?? null,
+      source: {requestId: request.id}
+    },
+    target: request.target ?? {id: request.targetRef, actorId: request.actorId},
+    policy: policy.savePolicy,
+    context: {
+      requestId: request.id,
+      checkType: request.type,
+      matchedBy: supplied.matchedBy,
+      resolver: "ConcentrationResolver"
+    }
+  });
+
+  if ( !saveResult.ok ) {
+    return {
+      ok: false,
+      code: CONCENTRATION_CODES.INVALID_CHECK_RESULT,
+      saveCode: saveResult.code,
+      reason: saveResult.reason,
+      request: clonePlain(request),
+      result: clonePlain(supplied.value),
+      saveResult,
+      matchedBy: supplied.matchedBy
+    };
+  }
+
+  return createResolvedConcentrationCheck({
+    request,
+    supplied,
+    input,
+    outcome: saveResult.success ? CONCENTRATION_OUTCOMES.MAINTAINED : CONCENTRATION_OUTCOMES.BROKEN,
+    success: saveResult.success,
+    dc: saveResult.dc.value,
+    saveResult,
+    policy,
+    metadata
+  });
+}
+
+function normalizeConcentrationCheckResultInput(value) {
+  const source = finiteNumber(value) != null ? {total: finiteNumber(value)} : (value ?? {});
+  const data = source.data && typeof source.data === "object" ? source.data : {};
+  const result = source.result && typeof source.result === "object" ? source.result : {};
+  const rollSource = source.roll ?? source.save ?? data.roll ?? data.save ?? result.roll ?? result.save ?? source;
+  const metadata = {
+    ...(clonePlain(source.metadata ?? {}) ?? {}),
+    ...(clonePlain(data.metadata ?? {}) ?? {})
+  };
+
+  return {
+    source: clonePlain(source) ?? {},
+    data: clonePlain(data) ?? {},
+    dc: finiteNumber(source.dc ?? source.difficulty ?? source.targetDC ?? data.dc ?? data.difficulty ?? result.dc),
+    roll: {
+      total: finiteNumber(rollSource?.total ?? rollSource?.value ?? rollSource?.amount),
+      die: finiteNumber(rollSource?.die ?? rollSource?.natural ?? rollSource?.d20),
+      ability: rollSource?.ability ?? rollSource?.slug ?? rollSource?.key ?? null,
+      formula: rollSource?.formula ?? null,
+      mode: rollSource?.mode ?? null,
+      statistic: rollSource?.statistic ? clonePlain(rollSource.statistic) : null,
+      modifiers: Array.isArray(rollSource?.modifiers) ? rollSource.modifiers.map(clonePlain) : [],
+      metadata
+    }
+  };
+}
+
+function createResolvedConcentrationCheck({request, supplied, input, outcome, success, dc, saveResult, policy, metadata}) {
+  const total = finiteNumber(input.roll.total);
+  const margin = total != null && dc != null ? total - dc : null;
+  const event = concentrationSaveResolvedEvent({
+    request,
+    supplied,
+    input,
+    outcome,
+    success,
+    total,
+    dc,
+    margin,
+    saveResult,
+    policy,
+    metadata
+  });
+  return {
+    ok: true,
+    code: CONCENTRATION_CODES.OK,
+    outcome,
+    success,
+    total,
+    dc,
+    margin,
+    event,
+    request: clonePlain(request),
+    result: clonePlain(supplied.value),
+    saveResult: clonePlain(saveResult)
+  };
+}
+
+function concentrationSaveResolvedEvent({
+  request,
+  supplied,
+  input,
+  outcome,
+  success,
+  total,
+  dc,
+  margin,
+  saveResult,
+  policy,
+  metadata
+}) {
+  const sourceRef = normalizeRef(request.sourceRef) ?? normalizeRef(request.actorRef) ?? actorIdRef(request.actorId);
+  const actorRefValue = normalizeRef(request.actorRef) ?? actorIdRef(request.actorId);
+  const originRef = normalizeRef(request.originRef);
+  const itemRef = normalizeRef(request.itemRef);
+  const targetRef = normalizeRef(request.targetRef);
+  const data = {
+    requestId: request.id,
+    checkType: request.type,
+    ref: sourceRef ?? actorRefValue,
+    sourceRef,
+    actorRef: actorRefValue,
+    actorId: request.actorId ?? null,
+    originRef,
+    itemRef,
+    targetRef,
+    success,
+    outcome,
+    total,
+    dc,
+    margin,
+    damageTaken: request.damageTaken ?? null,
+    roll: clonePlain(input.roll),
+    result: clonePlain(input.source),
+    saveResult: clonePlain(saveResult),
+    checkRequest: clonePlain(request)
+  };
+
+  return {
+    type: CONCENTRATION_EVENT_TYPES.SAVE_RESOLVED,
+    ref: data.ref,
+    sourceRef,
+    actorRef: actorRefValue,
+    actorId: data.actorId,
+    originRef,
+    itemRef,
+    targetRef,
+    data,
+    metadata: {
+      ...(clonePlain(metadata) ?? {}),
+      ...(clonePlain(policy.metadata) ?? {}),
+      ...(clonePlain(request.metadata) ?? {}),
+      ...(clonePlain(input.roll.metadata) ?? {}),
+      requestId: request.id,
+      matchedBy: supplied.matchedBy,
+      saveOutcome: saveResult?.outcome ?? null
+    }
+  };
+}
+
+function missingConcentrationCheckResult(request) {
+  return {
+    code: CONCENTRATION_CODES.MISSING_CHECK_RESULT,
+    reason: "concentration check result is required",
+    request: clonePlain(request),
+    refs: concentrationCheckLookupRefs(request)
+  };
+}
+
+function concentrationCheckResult({
+  ok,
+  code,
+  decisionEvents=[],
+  decisions=[],
+  breakEvents=[],
+  maintained=[],
+  ignored=[],
+  missing=[],
+  failures=[],
+  policy={},
+  metadata={}
+}) {
+  return {
+    ok,
+    code,
+    resolver: "ConcentrationResolver",
+    decisionEvents,
+    decisions,
+    breakEvents,
+    maintained,
+    ignored,
+    missing,
+    failures,
+    policy,
+    metadata: clonePlain(metadata) ?? {}
+  };
+}
+
+function concentrationCheckResultCode({decisionEvents, missing, failures}) {
+  if ( failures.length ) return CONCENTRATION_CODES.INVALID_CHECK_RESULT;
+  if ( missing.length && !decisionEvents.length ) return CONCENTRATION_CODES.NO_CHECK_RESULTS;
+  if ( missing.length ) return CONCENTRATION_CODES.MISSING_CHECK_RESULT;
+  return CONCENTRATION_CODES.OK;
 }
 
 /* -------------------------------------------- */
@@ -410,6 +867,8 @@ function normalizeRef(value) {
 }
 
 function finiteNumber(value) {
+  if ( value == null || value === "" ) return null;
+  if ( typeof value === "object" || typeof value === "function" || typeof value === "boolean" ) return null;
   const number = Number(value);
   return Number.isFinite(number) ? number : null;
 }
