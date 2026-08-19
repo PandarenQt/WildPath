@@ -1,67 +1,394 @@
-.wildpath.sheet {
+.wildpath.sheet,
+.wildpath.actor-sheet {
+  --wp-border: rgba(90, 82, 70, 0.35);
+  --wp-surface: rgba(255, 255, 255, 0.58);
+  --wp-surface-strong: rgba(255, 255, 255, 0.82);
+  --wp-muted: rgba(45, 42, 38, 0.68);
+  --wp-accent: #2f6f68;
+  --wp-accent-contrast: #ffffff;
+  --wp-warning: #8a5f23;
+  --wp-danger: #8a3434;
   font-family: var(--font-primary, sans-serif);
 }
 
-.wildpath .sheet-header {
+.wildpath.actor-sheet {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.wildpath .sheet-header .profile-img {
-  width: 48px;
-  height: 48px;
-  border: none;
-}
-
-.wildpath section {
-  margin-block: 0.5rem;
-}
-
-.wildpath .abilities,
-.wildpath .resources {
-  display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 0.75rem;
+  min-height: 100%;
+  padding: 0.75rem;
+  overflow: auto;
 }
 
-.wildpath .ability,
-.wildpath .resource {
-  display: flex;
+.wildpath.actor-sheet .sheet-header {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) auto;
   align-items: center;
-  gap: 0.25rem;
-}
-
-.wildpath .ability input,
-.wildpath .resource input {
-  width: 3em;
-}
-
-.wildpath .conditions {
-  display: flex;
-  gap: 0.25rem;
-}
-
-.wildpath .condition {
-  opacity: 0.4;
-}
-
-.wildpath .condition.active {
-  opacity: 1;
-  outline: 2px solid var(--color-warm-2, orange);
-}
-
-.wildpath .item-list,
-.wildpath .effect-list {
-  list-style: none;
-  padding: 0;
+  gap: 0.75rem;
   margin: 0;
 }
 
-.wildpath .item-list li,
-.wildpath .effect-list li {
+.wildpath.actor-sheet .profile-img {
+  width: 72px;
+  height: 72px;
+  border: 1px solid var(--wp-border);
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.wildpath.actor-sheet .actor-title {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.wildpath.actor-sheet .actor-name {
+  width: 100%;
+  min-width: 0;
+  height: 2.25rem;
+  border: 1px solid transparent;
+  background: transparent;
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.wildpath.actor-sheet .actor-name:focus {
+  border-color: var(--wp-accent);
+  background: var(--wp-surface-strong);
+}
+
+.wildpath.actor-sheet .actor-summary {
   display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  color: var(--wp-muted);
+  font-size: 0.78rem;
+}
+
+.wildpath.actor-sheet .actor-summary span,
+.wildpath.actor-sheet .section-heading > span {
+  display: inline-flex;
+  min-height: 1.35rem;
+  align-items: center;
+  border: 1px solid var(--wp-border);
+  border-radius: 999px;
+  padding: 0 0.5rem;
+  background: var(--wp-surface);
+  white-space: nowrap;
+}
+
+.wildpath.actor-sheet .actor-pill {
+  color: var(--wp-accent);
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.wildpath.actor-sheet button,
+.wildpath.actor-sheet .row-command {
+  min-height: 1.9rem;
+  border-radius: 6px;
+}
+
+.wildpath.actor-sheet .turn-button {
+  align-self: center;
+  min-width: 7rem;
+  border-color: var(--wp-accent);
+  background: var(--wp-accent);
+  color: var(--wp-accent-contrast);
+  font-weight: 700;
+}
+
+.wildpath.actor-sheet .sheet-nav {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.25rem;
+  border: 1px solid var(--wp-border);
+  border-radius: 8px;
+  padding: 0.25rem;
+  background: var(--wp-surface-strong);
+}
+
+.wildpath.actor-sheet .sheet-nav a {
+  display: flex;
+  min-height: 2rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  color: inherit;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+}
+
+.wildpath.actor-sheet .sheet-nav a:hover,
+.wildpath.actor-sheet .sheet-nav a:focus {
+  background: rgba(47, 111, 104, 0.14);
+  color: var(--wp-accent);
+}
+
+.wildpath.actor-sheet .sheet-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.wildpath.actor-sheet .sheet-section {
+  display: grid;
+  gap: 0.65rem;
+  scroll-margin-top: 3.25rem;
+  border: 1px solid var(--wp-border);
+  border-radius: 8px;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.38);
+}
+
+.wildpath.actor-sheet .section-heading {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-bottom: 1px solid var(--wp-border);
+  padding-bottom: 0.45rem;
+}
+
+.wildpath.actor-sheet h3,
+.wildpath.actor-sheet h4 {
+  margin: 0;
+  letter-spacing: 0;
+}
+
+.wildpath.actor-sheet h3 {
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.wildpath.actor-sheet h4 {
+  color: var(--wp-muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.wildpath.actor-sheet .overview-grid,
+.wildpath.actor-sheet .inventory-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(240px, 1fr));
+  gap: 0.75rem;
+}
+
+.wildpath.actor-sheet .field-block {
+  display: grid;
+  align-content: start;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.wildpath.actor-sheet .ability-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(94px, 1fr));
+  gap: 0.4rem;
+}
+
+.wildpath.actor-sheet .ability,
+.wildpath.actor-sheet .resource {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.15rem 0;
+  min-height: 2.25rem;
+  border: 1px solid var(--wp-border);
+  border-radius: 6px;
+  padding: 0.25rem 0.45rem;
+  background: var(--wp-surface);
+}
+
+.wildpath.actor-sheet .ability span,
+.wildpath.actor-sheet .resource .label {
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wildpath.actor-sheet .ability input,
+.wildpath.actor-sheet .resource input {
+  width: 3.5rem;
+  min-width: 3.5rem;
+  text-align: center;
+}
+
+.wildpath.actor-sheet .resource-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.4rem;
+}
+
+.wildpath.actor-sheet .resource-values {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.wildpath.actor-sheet .resource .max {
+  min-width: 2rem;
+  color: var(--wp-muted);
+  font-weight: 700;
+}
+
+.wildpath.actor-sheet .condition-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.wildpath.actor-sheet .condition {
+  display: inline-flex;
+  width: 2.25rem;
+  height: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  opacity: 0.42;
+}
+
+.wildpath.actor-sheet .condition img {
+  border: 0;
+  border-radius: 4px;
+}
+
+.wildpath.actor-sheet .condition.active {
+  border-color: var(--wp-warning);
+  background: rgba(138, 95, 35, 0.12);
+  opacity: 1;
+}
+
+.wildpath.actor-sheet .sheet-list,
+.wildpath .item-list,
+.wildpath .effect-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.wildpath.actor-sheet .sheet-list {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.wildpath.actor-sheet .sheet-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.6rem;
+  border: 1px solid var(--wp-border);
+  border-radius: 6px;
+  padding: 0.3rem 0.45rem;
+  background: var(--wp-surface);
+}
+
+.wildpath.actor-sheet .effect-row {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.wildpath.actor-sheet .row-image {
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--wp-border);
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.wildpath.actor-sheet .row-main {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.wildpath.actor-sheet .row-name,
+.wildpath.actor-sheet .row-detail {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wildpath.actor-sheet .row-name {
+  font-weight: 700;
+}
+
+.wildpath.actor-sheet .row-detail {
+  color: var(--wp-muted);
+  font-size: 0.75rem;
+  text-transform: capitalize;
+}
+
+.wildpath.actor-sheet .row-command {
+  min-width: 4.25rem;
+}
+
+.wildpath.actor-sheet .action-row.unavailable {
+  border-style: dashed;
+  opacity: 0.72;
+}
+
+.wildpath.actor-sheet .action-row.unavailable .row-name {
+  color: var(--wp-muted);
+}
+
+.wildpath.actor-sheet .row-command:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.wildpath.actor-sheet .empty-row {
+  min-height: 2.25rem;
+  border: 1px dashed var(--wp-border);
+  border-radius: 6px;
+  padding: 0.5rem;
+  color: var(--wp-muted);
+}
+
+.wildpath.actor-sheet .other-items {
+  margin-top: 0.4rem;
+}
+
+.wildpath.actor-sheet .sheet-editor {
+  min-height: 12rem;
+}
+
+.wildpath.actor-sheet .sheet-editor .editor {
+  min-height: 12rem;
+}
+
+@media (max-width: 680px) {
+  .wildpath.actor-sheet .sheet-header {
+    grid-template-columns: 56px minmax(0, 1fr);
+  }
+
+  .wildpath.actor-sheet .profile-img {
+    width: 56px;
+    height: 56px;
+  }
+
+  .wildpath.actor-sheet .turn-button {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .wildpath.actor-sheet .sheet-nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .wildpath.actor-sheet .overview-grid,
+  .wildpath.actor-sheet .inventory-columns {
+    grid-template-columns: 1fr;
+  }
 }

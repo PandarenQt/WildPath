@@ -147,6 +147,8 @@ document mutation. See `docs/architecture/targeting.md` and `docs/architecture/i
 See `docs/architecture/product-experience.md` for the product-facing direction, and
 `docs/architecture/action-economy.md` for the current economy/movement foundation. See
 `docs/architecture/homebrew-content-builder.md` for the finished-product builder standard.
+See `docs/design/character-sheet.md` for the finished character-sheet architecture and reference
+analysis.
 See `docs/architecture/combat-timeline.md` for the combat timeline, durations, and scheduler
 foundation. See `docs/architecture/events-and-reactions.md` for the automation event and reaction
 trigger foundation. See `docs/architecture/action-resolution.md` for the common action-context

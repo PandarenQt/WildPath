@@ -1,82 +1,199 @@
 <form class="wildpath actor-sheet" autocomplete="off">
 
-  <header class="sheet-header">
+  <header class="sheet-header actor-header">
     <img class="profile-img" src="{{actor.img}}" data-edit="img" alt="{{actor.name}}">
-    <input class="actor-name" type="text" name="name" value="{{actor.name}}">
-    <button type="button" class="start-turn" data-action="startTurn">Start Turn</button>
+
+    <div class="actor-title">
+      <input class="actor-name" type="text" name="name" value="{{header.name}}">
+      <div class="actor-summary">
+        <span class="actor-pill">{{header.type}}</span>
+        {{#if header.health}}
+          <span>HP {{header.health.value}} / {{header.health.max}}</span>
+        {{/if}}
+        {{#if header.movement}}
+          <span>Move {{header.movement.value}} ft</span>
+        {{/if}}
+        <span>{{summary.actionCount}} Actions</span>
+        <span>{{summary.activeConditionCount}} Conditions</span>
+      </div>
+    </div>
+
+    <button type="button" class="turn-button" data-action="startTurn">Start Turn</button>
   </header>
 
-  <section class="abilities">
-    <h3>Abilities</h3>
-    {{#each abilities as |ability|}}
-      <label class="ability">
-        <span>{{localize ability.label}}</span>
-        <input type="number" name="system.abilities.{{ability.key}}.value" value="{{ability.value}}">
-      </label>
+  <nav class="sheet-nav" aria-label="Character sheet sections">
+    {{#each sections as |section|}}
+      <a href="#{{section.anchor}}">{{section.label}}</a>
     {{/each}}
-  </section>
+  </nav>
 
-  <section class="resources">
-    <h3>Resources</h3>
-    {{#each resources as |resource|}}
-      <div class="resource">
-        <span class="label">{{localize resource.label}}</span>
-        <input type="number" name="system.resources.{{resource.key}}.value" value="{{resource.value}}">
-        <span class="sep">/</span>
-        <span class="max">{{resource.max}}</span>
+  <div class="sheet-body">
+    <section id="wildpath-{{actor.id}}-overview" class="sheet-section overview-section">
+      <div class="section-heading">
+        <h3>Overview</h3>
       </div>
-    {{/each}}
-    {{#each pools as |pool|}}
-      <div class="resource pool">
-        <span class="label">{{pool.label}}</span>
-        <input type="number" name="system.pools.{{pool.index}}.value" value="{{pool.value}}">
-        <span class="sep">/</span>
-        <span class="max">{{pool.max}}</span>
+
+      <div class="overview-grid">
+        <div class="field-block">
+          <h4>Abilities</h4>
+          <div class="ability-grid">
+            {{#each abilities as |ability|}}
+              <label class="ability">
+                <span>{{localize ability.label}}</span>
+                <input type="number" name="system.abilities.{{ability.key}}.value" value="{{ability.value}}">
+              </label>
+            {{/each}}
+          </div>
+        </div>
+
+        <div class="field-block">
+          <h4>Resources</h4>
+          <div class="resource-grid">
+            {{#each resources as |resource|}}
+              <label class="resource">
+                <span class="label">{{localize resource.label}}</span>
+                <span class="resource-values">
+                  <input type="number" name="system.resources.{{resource.key}}.value" value="{{resource.value}}">
+                  <span class="sep">/</span>
+                  <span class="max">{{resource.max}}</span>
+                </span>
+              </label>
+            {{/each}}
+            {{#each pools as |pool|}}
+              <label class="resource pool">
+                <span class="label">{{pool.label}}</span>
+                <span class="resource-values">
+                  <input type="number" name="system.pools.{{pool.index}}.value" value="{{pool.value}}">
+                  <span class="sep">/</span>
+                  <span class="max">{{pool.max}}</span>
+                </span>
+              </label>
+            {{/each}}
+          </div>
+        </div>
       </div>
-    {{/each}}
-  </section>
 
-  <section class="conditions">
-    <h3>Conditions</h3>
-    {{#each conditions as |condition|}}
-      <a class="condition {{#if condition.active}}active{{/if}}" data-action="toggleCondition"
-         data-condition-id="{{condition.id}}" title="{{localize condition.name}}">
-        <img src="{{condition.img}}" width="24" height="24" alt="{{localize condition.name}}">
-      </a>
-    {{/each}}
-  </section>
+      <div class="field-block conditions-block">
+        <h4>Conditions</h4>
+        <div class="condition-list">
+          {{#each conditions as |condition|}}
+            <a class="condition {{#if condition.active}}active{{/if}}" data-action="toggleCondition"
+               data-condition-id="{{condition.id}}" title="{{localize condition.name}}">
+              <img src="{{condition.img}}" width="28" height="28" alt="{{localize condition.name}}">
+            </a>
+          {{/each}}
+        </div>
+      </div>
+    </section>
 
-  <section class="items">
-    <h3>Items</h3>
-    <ol class="item-list">
-      {{#each items as |item|}}
-        <li class="item" data-item-id="{{item.id}}">
-          <img class="item-image" src="{{item.img}}" width="24" height="24" alt="{{item.name}}">
-          <span class="item-name">{{item.name}}</span>
-          <span class="item-type">{{item.type}}</span>
-          {{#if (eq item.type "action")}}
-            <button type="button" data-action="useItem">Use</button>
-          {{/if}}
-        </li>
-      {{/each}}
-    </ol>
-  </section>
+    <section id="wildpath-{{actor.id}}-actions" class="sheet-section">
+      <div class="section-heading">
+        <h3>Actions</h3>
+        <span>{{summary.actionCount}}</span>
+      </div>
 
-  <section class="effects">
-    <h3>Active Effects</h3>
-    <ol class="effect-list">
-      {{#each effects as |effect|}}
-        <li class="effect">
-          <img class="effect-image" src="{{effect.img}}" width="24" height="24" alt="{{effect.name}}">
-          <span class="effect-name">{{effect.name}}</span>
-        </li>
-      {{/each}}
-    </ol>
-  </section>
+      <ol class="sheet-list action-list">
+        {{#each actionItems as |item|}}
+          <li class="sheet-row action-row {{#unless item.availability.enabled}}unavailable{{/unless}}" data-item-id="{{item.id}}">
+            <img class="row-image" src="{{item.img}}" width="32" height="32" alt="{{item.name}}">
+            <div class="row-main">
+              <span class="row-name">{{item.name}}</span>
+              <span class="row-detail">{{item.availability.reason}}</span>
+            </div>
+            <button type="button" class="row-command" data-action="useItem" {{#unless item.availability.enabled}}disabled{{/unless}}>Use</button>
+          </li>
+        {{else}}
+          <li class="empty-row">No actions</li>
+        {{/each}}
+      </ol>
+    </section>
 
-  <section class="biography">
-    <h3>Biography</h3>
-    {{editor system.biography target="system.biography" button=true engine="prosemirror"}}
-  </section>
+    <section id="wildpath-{{actor.id}}-inventory" class="sheet-section">
+      <div class="section-heading">
+        <h3>Inventory</h3>
+        <span>{{summary.featureCount}} / {{summary.gearCount}}</span>
+      </div>
+
+      <div class="inventory-columns">
+        <div class="field-block">
+          <h4>Features</h4>
+          <ol class="sheet-list">
+            {{#each featureItems as |item|}}
+              <li class="sheet-row" data-item-id="{{item.id}}">
+                <img class="row-image" src="{{item.img}}" width="28" height="28" alt="{{item.name}}">
+                <div class="row-main">
+                  <span class="row-name">{{item.name}}</span>
+                  <span class="row-detail">{{item.type}}</span>
+                </div>
+              </li>
+            {{else}}
+              <li class="empty-row">No features</li>
+            {{/each}}
+          </ol>
+        </div>
+
+        <div class="field-block">
+          <h4>Gear</h4>
+          <ol class="sheet-list">
+            {{#each gearItems as |item|}}
+              <li class="sheet-row" data-item-id="{{item.id}}">
+                <img class="row-image" src="{{item.img}}" width="28" height="28" alt="{{item.name}}">
+                <div class="row-main">
+                  <span class="row-name">{{item.name}}</span>
+                  <span class="row-detail">{{item.type}}</span>
+                </div>
+              </li>
+            {{else}}
+              <li class="empty-row">No gear</li>
+            {{/each}}
+          </ol>
+        </div>
+      </div>
+
+      <div class="field-block other-items">
+        <h4>Other</h4>
+        <ol class="sheet-list">
+          {{#each otherItems as |item|}}
+            <li class="sheet-row" data-item-id="{{item.id}}">
+              <img class="row-image" src="{{item.img}}" width="28" height="28" alt="{{item.name}}">
+              <div class="row-main">
+                <span class="row-name">{{item.name}}</span>
+                <span class="row-detail">{{item.type}}</span>
+              </div>
+            </li>
+          {{else}}
+            <li class="empty-row">No other items</li>
+          {{/each}}
+        </ol>
+      </div>
+    </section>
+
+    <section id="wildpath-{{actor.id}}-effects" class="sheet-section">
+      <div class="section-heading">
+        <h3>Active Effects</h3>
+        <span>{{summary.effectCount}}</span>
+      </div>
+
+      <ol class="sheet-list effect-list">
+        {{#each effects as |effect|}}
+          <li class="sheet-row effect-row">
+            <img class="row-image" src="{{effect.img}}" width="28" height="28" alt="{{effect.name}}">
+            <span class="row-name">{{effect.name}}</span>
+          </li>
+        {{else}}
+          <li class="empty-row">No active effects</li>
+        {{/each}}
+      </ol>
+    </section>
+
+    <section id="wildpath-{{actor.id}}-biography" class="sheet-section biography">
+      <div class="section-heading">
+        <h3>Biography</h3>
+      </div>
+      <div class="sheet-editor">
+        {{editor system.biography target="system.biography" button=true engine="prosemirror"}}
+      </div>
+    </section>
+  </div>
 
 </form>

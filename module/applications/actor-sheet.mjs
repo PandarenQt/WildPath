@@ -1,17 +1,18 @@
+import {createActorSheetViewModel} from "../helpers/character-sheet-view-models.mjs";
+
 const {HandlebarsApplicationMixin} = foundry.applications.api;
 const {ActorSheetV2} = foundry.applications.sheets;
 
 /**
- * A minimal, functional ActorSheet for the WildPath system's groundwork phase.
- * Intentionally unstyled/basic - the point of this phase is the underlying data model and
- * document API, not sheet polish.
+ * ActorSheet for the WildPath system's groundwork phase.
+ * The sheet stays presentation-focused: action use still routes through the Actor/Item document API.
  */
 export default class WildPathActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
   /** @override */
   static DEFAULT_OPTIONS = {
     classes: ["wildpath", "sheet", "actor"],
-    position: {width: 560, height: 620},
+    position: {width: 720, height: 760},
     form: {submitOnChange: true},
     actions: {
       startTurn: WildPathActorSheet.#onStartTurn,
@@ -30,20 +31,14 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
   /** @override */
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
-    context.system = this.actor.system;
-    context.abilities = Object.entries(this.actor.system.abilities).map(([key, ability]) => ({
-      key, value: ability.value, label: CONFIG.WILDPATH.ABILITIES[key]?.label ?? key
-    }));
-    context.resources = Object.entries(this.actor.system.resources).map(([key, resource]) => ({
-      key, ...resource, label: CONFIG.WILDPATH.RESOURCES[key]?.label ?? key
-    }));
-    context.pools = this.actor.system.pools.map((pool, index) => ({...pool, index}));
-    context.items = this.actor.items.contents;
-    context.effects = this.actor.effects.contents;
-    context.conditions = Object.values(CONFIG.WILDPATH.CONDITIONS).map(c => ({
-      ...c,
-      active: this.actor.statuses.has(c.id)
-    }));
+    const sheet = createActorSheetViewModel({
+      actor: this.actor,
+      abilityLabels: CONFIG.WILDPATH.ABILITIES,
+      resourceLabels: CONFIG.WILDPATH.RESOURCES,
+      conditionDefinitions: Object.values(CONFIG.WILDPATH.CONDITIONS)
+    });
+    context.sheet = sheet;
+    Object.assign(context, sheet);
     return context;
   }
 
