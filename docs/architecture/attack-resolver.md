@@ -54,5 +54,5 @@ then pass plain values into this resolver.
 ## Next Integration
 
 Foundry adapters still need to use `WildPathActor#getStatistic(domain)` for attack bonuses and
-target defenses, then pass the derived numbers into this resolver. Later DamageResolver work should
-consume attack outcomes without moving hit/miss logic into damage code.
+target defenses, then pass the derived numbers into this resolver. DamageResolver should consume
+attack outcomes later without moving hit/miss logic into damage code.

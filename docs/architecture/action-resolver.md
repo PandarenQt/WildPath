@@ -74,6 +74,6 @@ current action use already enters the same pipeline shape that those slices will
 
 ## Next Resolver Slice
 
-The next resolver slice should add a basic SaveResolver or DamageResolver. Damage should wait for
-structured damage components so later weapon-size policy can scale only components explicitly marked
-as weapon-size-scalable.
+The next resolver slice should either add a basic SaveResolver or begin wiring DamageResolver into
+ActionResolver after attack outcomes. The full WeaponSizePolicy expansion can now build on damage
+components explicitly marked as weapon-size-scalable.
