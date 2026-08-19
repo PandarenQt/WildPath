@@ -3,7 +3,12 @@ import assert from "node:assert/strict";
 import {ACTION_RESOLUTION_STAGES, ACTION_RESULT_STATUS} from "../module/helpers/action-resolution.mjs";
 import {AUTOMATION_EVENT_TYPES} from "../module/helpers/automation-events.mjs";
 import {ECONOMY_CAPABILITIES} from "../module/helpers/action-economy.mjs";
+import {CREATURE_SIZES} from "../module/helpers/grid-footprints.mjs";
 import {TARGET_DEFAULT_SELECTION, TARGET_OPERATIONS} from "../module/helpers/targeting.mjs";
+import {WEAPON_SIZE_POLICY_IDS} from "../module/helpers/weapon-sizing.mjs";
+import {
+  DAMAGE_SCALING_CATEGORIES
+} from "../module/resolvers/damage-resolver.mjs";
 import {
   ACTION_RESOLVER_CODES,
   executeActionResolution,
@@ -204,6 +209,86 @@ test("ActionResolver can resolve damage for attack hits before payment", () => {
     "resourcePayment"
   ]);
   assert.deepEqual(result.mutationPlans[0].plan.updates, {"system.resources.action.value": 0});
+});
+
+test("ActionResolver applies WeaponSizePolicy to manufactured weapon damage before resolution", () => {
+  const result = planActionResolution({
+    actorSystem: actorSystem(1),
+    action: action(),
+    source: {actorId: "actor-a"},
+    targeting: {
+      required: true,
+      candidates: [attackCandidate("ogre", 12)]
+    },
+    attack: {
+      roll: {total: 18, die: 13}
+    },
+    damage: {
+      weaponSize: {
+        manufactured: true,
+        ruleset: WEAPON_SIZE_POLICY_IDS.RULES_2014,
+        effectiveWielderSize: CREATURE_SIZES.LARGE,
+        effectiveWeaponSize: CREATURE_SIZES.LARGE
+      },
+      components: [
+        {
+          id: "weapon-base",
+          amount: 7,
+          dice: {number: 1, faces: 8},
+          damageType: "slashing",
+          scalingCategory: DAMAGE_SCALING_CATEGORIES.WEAPON_SIZE
+        },
+        {
+          id: "flame",
+          amount: 4,
+          dice: {number: 1, faces: 6},
+          damageType: "fire"
+        }
+      ]
+    }
+  });
+
+  const damageResolution = result.steps.find(step => step.stage === ACTION_RESOLUTION_STAGES.CONSEQUENCE)
+    .data.damageResolution;
+  const [weaponBase, flame] = damageResolution.results[0].components;
+
+  assert.equal(result.ok, true);
+  assert.equal(damageResolution.weaponDamageScaling.multiplier, 2);
+  assert.equal(weaponBase.dice.number, 2);
+  assert.equal(weaponBase.metadata.weaponSizeScaling.multiplier, 2);
+  assert.equal(flame.dice.number, 1);
+  assert.deepEqual(damageResolution.totals, {ogre: 11});
+});
+
+test("ActionResolver does not apply WeaponSizePolicy without a manufactured weapon marker", () => {
+  const result = planActionResolution({
+    actorSystem: actorSystem(1),
+    action: action(),
+    source: {actorId: "actor-a"},
+    targets: [{id: "bear", actorId: "actor-bear"}],
+    damage: {
+      weaponSize: {
+        weapon: {kind: "natural"},
+        ruleset: WEAPON_SIZE_POLICY_IDS.RULES_2014,
+        effectiveWielderSize: CREATURE_SIZES.LARGE,
+        effectiveWeaponSize: CREATURE_SIZES.LARGE
+      },
+      components: [{
+        id: "claw",
+        amount: 8,
+        dice: {number: 1, faces: 8},
+        damageType: "slashing",
+        scalingCategory: DAMAGE_SCALING_CATEGORIES.WEAPON_SIZE
+      }]
+    }
+  });
+
+  const damageResolution = result.steps.find(step => step.stage === ACTION_RESOLUTION_STAGES.CONSEQUENCE)
+    .data.damageResolution;
+
+  assert.equal(result.ok, true);
+  assert.equal(damageResolution.weaponDamageScaling, undefined);
+  assert.equal(damageResolution.results[0].components[0].dice.number, 1);
 });
 
 test("ActionResolver skips damage when an attack misses but still plans payment", () => {

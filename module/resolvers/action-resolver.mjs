@@ -25,6 +25,7 @@ import {
   resolveDamageTargets
 } from "./damage-resolver.mjs";
 import {resolveActionTargets} from "./target-resolver.mjs";
+import {resolveWeaponDamageScaling} from "../helpers/weapon-sizing.mjs";
 
 export const ACTION_RESOLVER_CODES = Object.freeze({
   OK: "OK",
@@ -352,21 +353,70 @@ function resolveActionDamage({damage, targetResolution, attackResolution, action
     ?? damageTargetContextsFromAttack(attackResolution)
     ?? targetResolution?.targetContexts
     ?? [];
-  return resolveDamageTargets({
-    components: damage.components ?? [],
+  const preparedDamage = prepareActionDamageComponents({damage, actionContext});
+  const result = resolveDamageTargets({
+    components: preparedDamage.components,
     targetContexts,
     targets: damage.targets ?? (targetContexts.length ? [] : actionContext.targets),
     context: {
       action: actionContext.action,
       source: actionContext.source,
+      weaponDamageScaling: preparedDamage.weaponDamageScaling,
       ...(damage.context ?? {})
     }
   });
+  return preparedDamage.weaponDamageScaling ? {
+    ...result,
+    weaponDamageScaling: preparedDamage.weaponDamageScaling
+  } : result;
 }
 
 function damageTargetContextsFromAttack(attackResolution) {
   if ( !attackResolution ) return null;
   return attackResolution.hits.map(hit => hit.targetContext ?? {target: hit.target, selected: true});
+}
+
+function prepareActionDamageComponents({damage, actionContext}) {
+  if ( !shouldApplyWeaponSizeScaling(damage, actionContext) ) {
+    return {
+      components: damage.components ?? [],
+      weaponDamageScaling: null
+    };
+  }
+
+  const weaponSizeContext = damage.weaponSize ?? damage.weaponSizeContext ?? {};
+  const weaponDamageScaling = resolveWeaponDamageScaling({
+    ...weaponSizeContext,
+    weapon: {
+      ...(weaponSizeContext.weapon ?? {}),
+      ...(damage.weapon ?? {})
+    },
+    damageComponents: damage.components ?? [],
+    metadata: {
+      action: actionContext.action,
+      ...(weaponSizeContext.metadata ?? {})
+    }
+  }, weaponSizeContext.policyOptions ?? {});
+
+  return {
+    components: weaponDamageScaling.scaledComponents,
+    weaponDamageScaling
+  };
+}
+
+function shouldApplyWeaponSizeScaling(damage, actionContext) {
+  const weaponSizeContext = damage?.weaponSize ?? damage?.weaponSizeContext ?? null;
+  if ( !weaponSizeContext ) return false;
+  if ( weaponSizeContext.manufactured === true || weaponSizeContext.weapon?.manufactured === true ) return true;
+  if ( weaponSizeContext.manufactured === false || weaponSizeContext.weapon?.manufactured === false ) return false;
+
+  const weapon = {
+    ...(actionContext.action?.weapon ?? {}),
+    ...(damage.weapon ?? {}),
+    ...(weaponSizeContext.weapon ?? {})
+  };
+  const kind = String(weapon.kind ?? weapon.category ?? "").toLowerCase();
+  return kind === "manufactured" || kind === "manufactured-weapon";
 }
 
 function emptyDamageResolutionFromMisses(attackResolution, context) {

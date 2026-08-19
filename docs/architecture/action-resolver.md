@@ -3,7 +3,8 @@
 `module/resolvers/action-resolver.mjs` is now the current action entry point. It handles the
 existing cost behavior plus optional target validation and optional attack-outcome resolution when
 callers provide the required plain data. It can also resolve structured damage components as a
-non-mutating consequence.
+non-mutating consequence and can apply WeaponSizePolicy to explicitly manufactured weapon damage
+before that consequence resolves.
 
 ## Current Flow
 
@@ -13,6 +14,7 @@ Action item
 -> ActionResult
 -> optional TargetResolver target validation
 -> optional AttackResolver attack outcome
+-> optional WeaponSizePolicy damage dice scaling
 -> optional DamageResolver damage consequence
 -> ResourceResolver payment plan
 -> Actor resource mutation plan
@@ -40,6 +42,7 @@ returns successfully.
 - validates source/action basics
 - optionally resolves targets through `TargetResolver`
 - optionally resolves supplied attack roll data through `AttackResolver`
+- optionally applies WeaponSizePolicy to manufactured weapon damage components marked as scalable
 - optionally resolves supplied damage components through `DamageResolver`
 - resolves Action item activation cost through `ResourceResolver`
 - records a target-selection consequence when targets are resolved
@@ -74,11 +77,12 @@ The current resolver does not:
 
 Those are future ActionResolver slices. The optional attack and damage steps consume already-known
 numeric roll, defense, and damage-component data; they do not own roll UI, Foundry statistic
-gathering, or Actor durability mutation. This module exists so current action use already enters the
-same pipeline shape that those slices will extend.
+gathering, or Actor durability mutation. WeaponSizePolicy integration scales structural dice and
+records provenance for explicitly manufactured weapon damage, but it does not roll those dice or
+invent final damage amounts. This module exists so current action use already enters the same
+pipeline shape that those slices will extend.
 
 ## Next Resolver Slice
 
-The next resolver slice should either add a basic SaveResolver or wire WeaponSizePolicy into damage
-planning for manufactured weapon attacks only. Actor damage application should remain a later
-mutation-planning slice.
+The next resolver slice should add a basic SaveResolver for already-known save totals and DCs.
+Actor damage application should remain a later mutation-planning slice.

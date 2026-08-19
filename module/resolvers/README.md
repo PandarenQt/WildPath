@@ -23,7 +23,8 @@ automation foundation needs, per `AGENTS.md` sections 4 and 8 and the architectu
 - `module/resolvers/action-resolver.mjs` now wraps the current Action item flow in
   `ActionContext` / `ActionResult`, optionally delegates target validation to `TargetResolver`,
   optionally delegates supplied attack data to `AttackResolver`, optionally delegates supplied
-  damage components to `DamageResolver`, and delegates payment to `ResourceResolver`.
+  damage components to `DamageResolver`, applies WeaponSizePolicy to explicitly manufactured
+  weapon-size damage data, and delegates payment to `ResourceResolver`.
 - `module/resolvers/target-resolver.mjs` now wraps target-set eligibility, refinement decisions,
   required-target failures, self-targeting, and selection request state.
 - `module/resolvers/attack-resolver.mjs` now resolves already-known attack totals against target
@@ -47,7 +48,7 @@ resolvers should not call UI code.
 
 | Module | File | Responsibility |
 |---|---|---|
-| `ActionResolver` | `module/resolvers/action-resolver.mjs` | Current target-aware, attack-capable, and damage-component-capable entry point for supplied plain data; should grow into roll requests, Actor mutation planning, effects, and post-resolution hooks. |
+| `ActionResolver` | `module/resolvers/action-resolver.mjs` | Current target-aware, attack-capable, weapon-size-aware, and damage-component-capable entry point for supplied plain data; should grow into roll requests, Actor mutation planning, effects, and post-resolution hooks. |
 | `TargetResolver` | `module/resolvers/target-resolver.mjs` | Resolves and validates self, explicit, and precomputed target sets for ActionResolver and future UI adapters. |
 | `AttackResolver` | `module/resolvers/attack-resolver.mjs` | Current pure attack-vs-defense outcome resolver for known roll totals and target defenses. |
 | `SaveResolver` | `module/resolvers/save-resolver.mjs` | Resolve saving throws against DCs derived through the same statistic engine. |
@@ -63,5 +64,5 @@ resolvers should not call UI code.
 Land these in small vertical stages: data/interface, pure rules behavior, resolution integration,
 Foundry adapter, then UI. `ActionResolver`, `TargetResolver`, `AttackResolver`, and the structured
 DamageResolver integration are now in place for the first cost/target/attack/damage-component shape.
-The WeaponSizePolicy foundation builds on DamageResolver's provenance and weapon-size-scaling
-metadata; see `docs/architecture/weapon-size.md`.
+WeaponSizePolicy is wired into ActionResolver for explicitly manufactured weapon-size damage data;
+see `docs/architecture/weapon-size.md`.

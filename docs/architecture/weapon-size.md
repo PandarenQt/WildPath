@@ -38,6 +38,11 @@ properties, attack definitions, Actor features, RuleElements, or tactical range 
 The current policy layer is pure JavaScript and does not read Foundry settings, Actors, Items,
 canvas state, sheets, chat, or DOM.
 
+`ActionResolver` can now apply the policy when damage data includes an explicit manufactured
+weapon-size context, such as `damage.weaponSize.manufactured: true` or
+`damage.weaponSize.weapon.kind: "manufactured"`. Unmarked damage and natural weapon contexts do
+not receive automatic size scaling.
+
 ## Wieldability
 
 Wieldability answers whether a creature can physically use a weapon of the weapon's effective size.
@@ -134,6 +139,6 @@ Advanced content should also support explicit damage, no scaling, or custom mult
 
 ## Not Yet Implemented
 
-The policy foundation is not yet wired into ActionResolver or DamageResolver execution. It does not
-read system settings, perform migrations, implement transformations, implement Enlarge/Reduce, alter
-item weight, apply Heavy rules, alter reach, or provide homebrew UI.
+The policy foundation does not read system settings, perform migrations, implement transformations,
+implement Enlarge/Reduce, alter item weight, apply Heavy rules, alter reach, roll damage dice, or
+provide homebrew UI.

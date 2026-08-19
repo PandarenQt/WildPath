@@ -20,6 +20,9 @@ are finalized.
 `ActionResolver` can now call this resolver as an optional consequence step after attack outcomes
 and before resource payment planning. When an attack misses, supplied damage is skipped rather than
 turning the action into a failed resolution.
+If damage data includes a manufactured weapon-size context, `ActionResolver` applies
+WeaponSizePolicy before calling this resolver, so scaled structural dice and scaling provenance are
+present on the damage components that this resolver totals.
 
 ## What It Does Now
 
@@ -68,14 +71,13 @@ DamageResolver does not:
 - apply resistance, immunity, or vulnerability
 - apply target damage overrides
 - implement critical hits
-- implement weapon-size scaling
 - create chat output
 
 Those remain separate slices. Critical handling should operate on already-scaled dice, and
-WeaponSizePolicy should scale only components marked with `weapon-size` metadata.
+WeaponSizePolicy scales only components marked with `weapon-size` metadata.
 
 ## Next Integration
 
-The next damage slice can apply WeaponSizePolicy to manufactured weapon damage components before
-damage resolution. Foundry adapters still need to gather damage rolls and Actor durability fields
-before any document mutation is possible.
+Foundry adapters still need to gather damage rolls and Actor durability fields before any document
+mutation is possible. The next damage-facing slice should apply resolved damage or healing as
+explicit Actor mutation plans rather than mutating Actors inside DamageResolver.
