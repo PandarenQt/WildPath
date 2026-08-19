@@ -79,5 +79,6 @@ WeaponSizePolicy scales only components marked with `weapon-size` metadata.
 ## Next Integration
 
 Foundry adapters still need to gather damage rolls and Actor durability fields before any document
-mutation is possible. The next damage-facing slice should apply resolved damage or healing as
-explicit Actor mutation plans rather than mutating Actors inside DamageResolver.
+mutation is possible. `DurabilityResolver` can now turn already-resolved damage or healing amounts
+into explicit Actor resource mutation plans, but ActionResolver still needs a later adapter slice to
+map damage target refs to concrete Actor documents and coordinate multi-target commits.

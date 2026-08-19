@@ -36,6 +36,8 @@ automation foundation needs, per `AGENTS.md` sections 4 and 8 and the architectu
 - `module/resolvers/damage-resolver.mjs` now provides structured damage components, damage-type
   totals, target damage result shells, and weapon-size-scaling metadata/provenance. `ActionResolver`
   can call it when an action plan includes damage data.
+- `module/resolvers/durability-resolver.mjs` now plans Actor health/custom-pool damage and healing
+  update paths without mutating Actor data directly.
 - `WildPathActor#getStatistic(domain)` plus `WildPathStatistic`/`WildPathModifier` are the
   calculation engine resolvers should build on for attack bonuses, save DCs, damage bonuses,
   resistance, and similar derived values.
@@ -57,6 +59,7 @@ resolvers should not call UI code.
 | `SaveResolver` | `module/resolvers/save-resolver.mjs` | Current pure save-vs-DC outcome resolver for known save totals and DCs. |
 | `DamageResolver` | `module/resolvers/damage-resolver.mjs` | Current structured damage-component foundation, optionally called by ActionResolver; should grow into resistance, immunity, vulnerability, critical, and Actor mutation planning. |
 | `HealingResolver` | `module/resolvers/healing-resolver.mjs` | Resolve healing/resource restoration as structured results before mutation. |
+| `DurabilityResolver` | `module/resolvers/durability-resolver.mjs` | Current Actor durability mutation planner for already-resolved damage/healing amounts. |
 | `EffectResolver` | `module/resolvers/effect-resolver.mjs` | Apply/remove ActiveEffects and conditions as resolved consequences of actions. |
 | `ResourceResolver` | `module/resolvers/resource-resolver.mjs` | Generalizes action cost validation and payment mutation planning; refund-on-cancel waits for transaction support. |
 | `ReactionResolver` | `module/resolvers/reaction-resolver.mjs` | Offer eligible reactions at defined interrupt points, then resume the parent resolution. |
@@ -69,3 +72,5 @@ Foundry adapter, then UI. `ActionResolver`, `TargetResolver`, `AttackResolver`, 
 the structured DamageResolver integration are now in place for the first
 cost/target/attack/save/damage-component shape. WeaponSizePolicy is wired into ActionResolver for
 explicitly manufactured weapon-size damage data; see `docs/architecture/weapon-size.md`.
+DurabilityResolver can plan target Actor updates once a Foundry adapter supplies the concrete Actor
+for each resolved target.

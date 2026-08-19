@@ -58,6 +58,8 @@ The finished game system name is **Wild Path**.
 - `module/resolvers/damage-resolver.mjs` provides structured damage components, damage-type
   totals, target damage result shells, and weapon-size-scaling metadata/provenance. `ActionResolver`
   can call it when an action plan includes damage data.
+- `module/resolvers/durability-resolver.mjs` plans Actor health/custom-pool damage and healing
+  mutation updates without mutating Actor data directly.
 - `module/helpers/weapon-sizing.mjs` provides the WeaponSizePolicy foundation: size comparison,
   2014/2024/house policy providers, structured wieldability results, and structured
   weapon-size damage scaling for explicitly marked damage components.
@@ -148,13 +150,14 @@ target-aware, attack-capable, and save-capable ActionResolver entry point. See
 `docs/architecture/attack-resolver.md` for the current pure attack-outcome resolver. See
 `docs/architecture/save-resolver.md` for the current pure save-outcome resolver. See
 `docs/architecture/damage-resolver.md` for the current structured damage-component foundation. See
+`docs/architecture/durability-resolution.md` for the current Actor durability mutation planner. See
 `docs/architecture/weapon-size.md` for the WeaponSizePolicy foundation and its separation from
 Heavy, Reach, creature size, and damage execution.
 
 ## Near-Term Order
 
-1. Add Actor damage/healing mutation planning.
-2. Connect save outcomes to damage consequence policies such as half damage on success.
+1. Connect save outcomes to damage consequence policies such as half damage on success.
+2. Connect resolved target damage/healing to target Actor durability mutation plans.
 3. Add effect slices one at a time.
 
 Keep every slice small, testable, and compatible with synthetic Token Actors.
