@@ -1,7 +1,9 @@
 # DamageResolver
 
-`module/resolvers/damage-resolver.mjs` is the pure structured-damage foundation for future action
-damage, healing separation, resistance/immunity handling, and WeaponSizePolicy integration.
+`module/resolvers/damage-resolver.mjs` is the pure structured-damage foundation for action damage.
+`module/resolvers/damage-adjustment-resolver.mjs` applies per-target immunity, resistance,
+vulnerability, and damage reduction after damage is resolved and before durability mutation plans
+are created.
 
 ## Current Flow
 
@@ -11,6 +13,7 @@ damage components
 -> damage-type totals
 -> scalable/unscaled component partition
 -> optional per-target damage results
+-> optional per-target damage adjustment
 ```
 
 The resolver accepts already-known numeric component amounts. It does not roll dice. Dice are
@@ -43,6 +46,14 @@ present on the damage components that this resolver totals.
 - records excluded/unselected targets as skipped audit entries
 - does not mutate target contexts or damage components
 
+`adjustDamageResult()`:
+
+- applies immunity first
+- applies resistance and vulnerability as multipliers, with floor rounding by default
+- applies damage reduction after typed multipliers
+- supports flat, scaled, and already-rolled reduction amounts
+- keeps original and adjusted totals for audit
+
 ## Component Provenance
 
 Damage components should describe why they exist rather than relying on label parsing.
@@ -69,17 +80,17 @@ DamageResolver does not:
 
 - roll damage dice
 - apply Actor HP or resource mutations
-- apply resistance, immunity, or vulnerability
 - apply target damage overrides
 - implement critical hits
 - create chat output
 
-Those remain separate slices. Critical handling should operate on already-scaled dice, and
-WeaponSizePolicy scales only components marked with `weapon-size` metadata.
+Those remain separate slices. Damage adjustment is handled by `DamageAdjustmentResolver` rather
+than `DamageResolver` so the base damage total remains inspectable. Critical handling should
+operate on already-scaled dice, and WeaponSizePolicy scales only components marked with
+`weapon-size` metadata.
 
 ## Next Integration
 
-Foundry adapters still need to gather damage rolls and Actor durability fields before any document
-mutation is possible. `DurabilityResolver` can now turn already-resolved damage or healing amounts
-into explicit Actor resource mutation plans, but ActionResolver still needs a later adapter slice to
-map damage target refs to concrete Actor documents and coordinate multi-target commits.
+Foundry adapters still need to gather damage rolls and Actor durability fields before document
+mutation. `ActionResolver` can now attach durability plans for adjusted damage and can execute them
+when supplied target Actors plus explicit commit authority.

@@ -1,9 +1,13 @@
 import {
-  actorRef,
-  normalizeEntityRef,
-  tokenRef,
-  uuidRef
-} from "../helpers/entity-refs.mjs";
+  preferredTargetRef,
+  resolveTargetLookupValue,
+  targetLabel,
+  targetLookupRefs
+} from "../helpers/target-actor-refs.mjs";
+import {
+  adjustDamageResult,
+  mergeDamageAdjustmentProfiles
+} from "./damage-adjustment-resolver.mjs";
 import {DAMAGE_RESOLVER_CODES} from "./damage-resolver.mjs";
 import {createActorDamageMutationPlan} from "./durability-resolver.mjs";
 
@@ -11,6 +15,7 @@ export const DAMAGE_DURABILITY_RESOLUTION_CODES = Object.freeze({
   OK: "OK",
   NO_DAMAGE_RESOLUTION: "NO_DAMAGE_RESOLUTION",
   DAMAGE_RESOLUTION_FAILED: "DAMAGE_RESOLUTION_FAILED",
+  DAMAGE_ADJUSTMENT_FAILED: "DAMAGE_ADJUSTMENT_FAILED",
   TARGET_ACTOR_SYSTEM_NOT_FOUND: "TARGET_ACTOR_SYSTEM_NOT_FOUND",
   DURABILITY_PLANNING_FAILED: "DURABILITY_PLANNING_FAILED"
 });
@@ -24,6 +29,8 @@ export const DAMAGE_DURABILITY_MUTATION_TYPES = Object.freeze({
 export function planDamageDurabilityMutations({
   damageResolution=null,
   targetSystems={},
+  adjustments=null,
+  adjustmentProfiles={},
   resourceId="health",
   source=null,
   metadata={}
@@ -58,6 +65,23 @@ export function planDamageDurabilityMutations({
     }
 
     const target = damageResult.target ?? {};
+    const adjusted = adjustDamageForTarget({
+      damageResult,
+      target,
+      adjustments,
+      adjustmentProfiles
+    });
+    if ( !adjusted.ok ) {
+      failures.push({
+        code: DAMAGE_DURABILITY_RESOLUTION_CODES.DAMAGE_ADJUSTMENT_FAILED,
+        reason: adjusted.code,
+        target: clonePlain(target),
+        targetRefs: targetLookupRefs(target),
+        failures: adjusted.failures
+      });
+      continue;
+    }
+
     const actorSystem = resolveTargetActorSystem(targetSystems, target, damageResult);
     if ( !actorSystem ) {
       failures.push({
@@ -71,11 +95,15 @@ export function planDamageDurabilityMutations({
     }
 
     const mutationPlan = createActorDamageMutationPlan(actorSystem, {
-      damageResult,
+      damageResult: adjusted.damageResult,
       resourceId,
       source,
       target,
-      metadata
+      metadata: {
+        originalDamageResult: clonePlain(damageResult),
+        damageAdjustments: adjusted.applications,
+        ...metadata
+      }
     });
     if ( !mutationPlan.ok ) {
       failures.push({
@@ -111,54 +139,15 @@ export function planDamageDurabilityMutations({
 /* -------------------------------------------- */
 
 function resolveTargetActorSystem(targetSystems, target, damageResult) {
-  if ( typeof targetSystems === "function" ) {
-    return targetSystems({target: clonePlain(target), damageResult: clonePlain(damageResult)}) ?? null;
-  }
-
-  const refs = targetLookupRefs(target);
-  if ( targetSystems instanceof Map ) {
-    return refs.map(ref => targetSystems.get(ref)).find(Boolean) ?? null;
-  }
-
-  if ( Array.isArray(targetSystems) ) {
-    return resolveTargetActorSystemFromArray(targetSystems, refs);
-  }
-
-  if ( targetSystems && typeof targetSystems === "object" ) {
-    return refs.map(ref => targetSystems[ref]).find(Boolean) ?? null;
-  }
-
-  return null;
+  return resolveTargetLookupValue(targetSystems, target, damageResult, {
+    selectValue: entry => entry?.system ?? entry?.actorSystem ?? entry ?? null
+  });
 }
 
-function resolveTargetActorSystemFromArray(entries, refs) {
-  for ( const entry of entries ) {
-    const entryRefs = targetLookupRefs(entry);
-    if ( refs.some(ref => entryRefs.includes(ref)) ) return entry.system ?? entry.actorSystem ?? entry;
-  }
-  return null;
-}
-
-function targetLookupRefs(target={}) {
-  return uniqueStrings([
-    normalizeEntityRef(target),
-    target.ref,
-    target.uuid ? uuidRef(target.uuid) : null,
-    target.uuid,
-    target.actorId ? actorRef(target.actorId) : null,
-    target.actorId,
-    target.tokenId ? tokenRef(target.tokenId, {sceneId: target.sceneId}) : null,
-    target.tokenId,
-    target.id
-  ]);
-}
-
-function preferredTargetRef(target={}) {
-  return normalizeEntityRef(target) ?? target.ref ?? target.actorId ?? target.tokenId ?? target.uuid ?? target.id ?? null;
-}
-
-function targetLabel(target={}) {
-  return preferredTargetRef(target) ?? target.name ?? "target";
+function adjustDamageForTarget({damageResult, target, adjustments, adjustmentProfiles}) {
+  const targetProfile = resolveTargetLookupValue(adjustmentProfiles, target, damageResult) ?? null;
+  const profile = mergeDamageAdjustmentProfiles(adjustments, targetProfile);
+  return adjustDamageResult(damageResult, profile);
 }
 
 function damageDurabilityFailure(code, {reason, targetSystems, resourceId, source, metadata, damageResolution=null}) {
@@ -187,10 +176,6 @@ function targetSystemCount(targetSystems) {
   if ( targetSystems instanceof Map || Array.isArray(targetSystems) ) return targetSystems.size ?? targetSystems.length;
   if ( targetSystems && typeof targetSystems === "object" ) return Object.keys(targetSystems).length;
   return typeof targetSystems === "function" ? null : 0;
-}
-
-function uniqueStrings(values) {
-  return [...new Set(values.filter(value => value != null && value !== "").map(String))];
 }
 
 function clonePlain(value) {

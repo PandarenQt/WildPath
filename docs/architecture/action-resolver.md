@@ -3,8 +3,9 @@
 `module/resolvers/action-resolver.mjs` is now the current action entry point. It handles the
 existing cost behavior plus optional target validation and optional attack-outcome resolution when
 callers provide the required plain data. It can also resolve supplied saving throws, resolve
-structured damage components as a non-mutating consequence, and apply WeaponSizePolicy to explicitly
-manufactured weapon damage before that consequence resolves.
+structured damage and healing components as consequences, apply WeaponSizePolicy to explicitly
+manufactured weapon damage, and attach target durability mutation plans when supplied target Actor
+system snapshots.
 When damage supplies a `saveOutcomePolicy`, the resolver can adjust per-target damage amounts from
 the already-resolved save outcomes, such as half damage on a successful save.
 
@@ -20,9 +21,12 @@ Action item
 -> optional WeaponSizePolicy damage dice scaling
 -> optional save-outcome damage policy
 -> optional DamageResolver damage consequence
+-> optional DamageAdjustmentResolver per-target adjustment
+-> optional HealingResolver healing consequence
+-> optional target durability mutation plans
 -> ResourceResolver payment plan
 -> Actor resource mutation plan
--> optional Actor update commit
+-> optional explicit-authority Actor update commits
 ```
 
 The resolver emits semantic automation events for:
@@ -53,17 +57,23 @@ returns successfully.
 - optionally applies WeaponSizePolicy to manufactured weapon damage components marked as scalable
 - optionally applies save-outcome damage policies such as `success: "half"`
 - optionally resolves supplied damage components through `DamageResolver`
+- optionally applies target damage adjustments before durability planning
+- optionally resolves supplied healing components through `HealingResolver`
+- optionally records target durability mutation plans for damage and healing
 - resolves Action item activation cost through `ResourceResolver`
 - records a target-selection consequence when targets are resolved
 - records an attack-resolution consequence when attack data is supplied
 - records a damage-resolution consequence when damage data is supplied
+- records a healing-resolution consequence when healing data is supplied
 - records a resource-payment consequence
-- records a resource-payment mutation plan
+- records target durability and resource-payment mutation plans
 - returns an `ActionResult`
 
 `executeActionResolution()`:
 
 - runs the same planning flow
+- can derive target Actor system snapshots from supplied target Actors
+- commits target durability mutation plans only with explicit authority
 - commits resource mutation plans through `actor.update()`
 - returns the resulting `ActionResult`
 
@@ -79,20 +89,19 @@ The current resolver does not:
 - derive attack bonuses or target defenses from Actor documents
 - derive save bonuses or save DCs from Actor documents
 - roll dice
-- apply Actor HP/resource damage or healing
 - apply ActiveEffects
 - open reaction windows
 - create chat output
+- rollback partial multi-Actor commits
 
-Those are future ActionResolver slices. The optional attack, save, and damage steps consume
-already-known numeric roll, defense/DC, and damage-component data; they do not own roll UI, Foundry
-statistic gathering, or Actor durability mutation. WeaponSizePolicy integration scales structural
-dice and records provenance for explicitly manufactured weapon damage, but it does not roll those
-dice or invent final damage amounts. This module exists so current action use already enters the
-same pipeline shape that those slices will extend.
+Those are future ActionResolver slices. The optional attack, save, damage, and healing steps consume
+already-known numeric roll, defense/DC, damage, and healing data; they do not own roll UI or Foundry
+statistic gathering. WeaponSizePolicy integration scales structural dice and records provenance for
+explicitly manufactured weapon damage, but it does not roll those dice or invent final damage
+amounts. This module exists so current action use already enters the same pipeline shape that those
+slices will extend.
 
 ## Next Resolver Slice
 
-The next resolver slice should connect resolved target damage/healing to concrete target Actor
-durability mutation plans. Direct Actor durability mutation should remain outside DamageResolver
-itself.
+The next resolver slice should add absorption and then transaction/rollback behavior for
+multi-Actor commits. Direct Actor durability mutation remains outside DamageResolver itself.

@@ -172,12 +172,11 @@ current action-bar and combat-carousel view-model foundation. See
 
 ## Near-Term Order
 
-1. Connect resolved healing to target Actor durability mutation plans, matching the damage bridge
-   now in `module/resolvers/damage-durability-resolver.mjs`.
-2. Add resistance/immunity/vulnerability handling before durability mutation.
-3. Add the target Actor commit adapter with explicit GM/socket authority.
-4. Start writing new pure contract-heavy modules in TypeScript once a pinned `typescript`
+1. Add absorption as a first-class durability/damage-adjustment outcome where effects convert
+   incoming damage into healing, shields, or other resources.
+2. Add transaction/rollback behavior for multi-Actor action commits.
+3. Start writing new pure contract-heavy modules in TypeScript once a pinned `typescript`
    dev dependency and `typecheck` script are added.
-5. Add effect slices one at a time.
+4. Add effect slices one at a time.
 
 Keep every slice small, testable, and compatible with synthetic Token Actors.

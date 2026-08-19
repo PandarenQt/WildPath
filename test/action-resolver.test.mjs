@@ -329,6 +329,34 @@ test("ActionResolver stops before payment when requested durability target syste
   assert.equal(result.mutationPlans.length, 0);
 });
 
+test("ActionResolver can attach target durability plans to resolved healing", () => {
+  const allySystem = targetActorSystem(3, 12);
+  const result = planActionResolution({
+    actorSystem: actorSystem(1),
+    action: action(),
+    source: {actorId: "actor-a"},
+    targets: [{id: "ally", actorId: "actor-ally", tokenId: "token-ally"}],
+    healing: {
+      components: [{id: "cure", amount: 6, healingType: "vitality"}]
+    },
+    durability: {
+      targetSystems: {
+        "actor:actor-ally": allySystem
+      }
+    }
+  });
+
+  assert.equal(result.ok, true);
+  const healingStep = result.steps.find(step => step.data.healingResolution);
+  assert.deepEqual(healingStep.data.healingResolution.totals, {ally: 6});
+  assert.equal(healingStep.data.durabilityResolution.ok, true);
+  assert.deepEqual(healingStep.data.durabilityResolution.mutationPlans[0].plan.updates, {
+    "system.resources.health.value": 9
+  });
+  assert.deepEqual(result.mutationPlans.map(plan => plan.type), ["durabilityHealing", "resourcePayment"]);
+  assert.equal(allySystem.resources.health.value, 3);
+});
+
 test("ActionResolver can apply save outcome policies to per-target damage", () => {
   const result = planActionResolution({
     actorSystem: actorSystem(1),
@@ -626,7 +654,7 @@ test("ActionResolver execution commits payment after an attack miss", async () =
   assert.equal(result.events.at(-1).type, AUTOMATION_EVENT_TYPES.PAYMENT_COMMITTED);
 });
 
-test("ActionResolver execution refuses uncommitted target durability plans", async () => {
+test("ActionResolver execution requires explicit authority for target durability commits", async () => {
   const calls = [];
   const actor = {
     id: "actor-a",
@@ -644,16 +672,88 @@ test("ActionResolver execution refuses uncommitted target durability plans", asy
     damage: {
       components: [damageComponent("slash", 6, "slashing")]
     },
-    durability: {
-      targetSystems: {
-        "actor:actor-orc": targetActorSystem()
-      }
+    durability: true,
+    targetActors: {
+      "actor:actor-orc": {id: "actor-orc", system: targetActorSystem()}
     }
   });
 
   assert.equal(result.ok, false);
-  assert.equal(result.code, ACTION_RESOLVER_CODES.MUTATION_COMMIT_UNSUPPORTED);
+  assert.equal(result.code, ACTION_RESOLVER_CODES.MUTATION_COMMIT_FAILED);
   assert.deepEqual(calls, []);
+});
+
+test("ActionResolver execution commits target durability plans with active GM authority", async () => {
+  const sourceCalls = [];
+  const targetCalls = [];
+  const actor = {
+    id: "actor-a",
+    name: "Aria",
+    type: "character",
+    system: actorSystem(1),
+    async update(updates) {
+      sourceCalls.push(updates);
+    }
+  };
+  const targetActor = {
+    id: "actor-orc",
+    system: targetActorSystem(14, 20),
+    async update(updates) {
+      targetCalls.push(updates);
+    }
+  };
+  const result = await executeActionResolution({
+    actor,
+    action: action(),
+    targets: [{id: "orc", actorId: "actor-orc"}],
+    damage: {
+      components: [damageComponent("slash", 6, "slashing")]
+    },
+    durability: true,
+    targetActors: {"actor:actor-orc": targetActor},
+    authority: {isGM: true, userId: "gm-a", activeGMId: "gm-a"}
+  });
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(targetCalls, [{"system.resources.health.value": 8}]);
+  assert.deepEqual(sourceCalls, [{"system.resources.action.value": 0}]);
+  assert.equal(result.events.at(-1).type, AUTOMATION_EVENT_TYPES.PAYMENT_COMMITTED);
+});
+
+test("ActionResolver execution commits target healing durability plans with active GM authority", async () => {
+  const sourceCalls = [];
+  const targetCalls = [];
+  const actor = {
+    id: "actor-a",
+    name: "Aria",
+    type: "character",
+    system: actorSystem(1),
+    async update(updates) {
+      sourceCalls.push(updates);
+    }
+  };
+  const targetActor = {
+    id: "actor-ally",
+    system: targetActorSystem(3, 12),
+    async update(updates) {
+      targetCalls.push(updates);
+    }
+  };
+  const result = await executeActionResolution({
+    actor,
+    action: action(),
+    targets: [{id: "ally", actorId: "actor-ally"}],
+    healing: {
+      components: [{id: "cure", amount: 6}]
+    },
+    durability: true,
+    targetActors: {"actor:actor-ally": targetActor},
+    authority: {isGM: true, userId: "gm-a", activeGMId: "gm-a"}
+  });
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(targetCalls, [{"system.resources.health.value": 9}]);
+  assert.deepEqual(sourceCalls, [{"system.resources.action.value": 0}]);
 });
 
 test("ActionResolver execution supports zero-cost actions without Actor updates", async () => {

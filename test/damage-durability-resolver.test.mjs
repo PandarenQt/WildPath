@@ -38,6 +38,32 @@ test("damage durability bridge creates target Actor mutation plans from damage r
   assert.equal(targetSystem.resources.health.value, 12);
 });
 
+test("damage durability bridge applies target damage adjustments before HP planning", () => {
+  const damageResolution = resolveDamageTargets({
+    components: [
+      {id: "flame", amount: 10, damageType: "fire"},
+      {id: "slash", amount: 5, damageType: "slashing"}
+    ],
+    targets: [{id: "tiefling", actorId: "actor-tiefling"}]
+  });
+  const result = planDamageDurabilityMutations({
+    damageResolution,
+    targetSystems: {"actor:actor-tiefling": actorSystem(20, 20)},
+    adjustmentProfiles: {
+      "actor:actor-tiefling": {
+        resistances: ["fire"],
+        reductions: [{id: "shield", type: "flat", amount: 2, damageTypes: ["slashing"]}]
+      }
+    }
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.mutationPlans[0].plan.amount, 8);
+  assert.deepEqual(result.mutationPlans[0].plan.updates, {"system.resources.health.value": 12});
+  assert.equal(result.mutationPlans[0].plan.metadata.damageResult.total, 8);
+  assert.equal(result.mutationPlans[0].plan.metadata.originalDamageResult.total, 15);
+});
+
 test("damage durability bridge can look up target systems by raw ids or Map refs", () => {
   const damageResolution = resolveDamageTargets({
     components: [{id: "bolt", amount: 3, damageType: "force"}],

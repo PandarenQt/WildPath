@@ -19,12 +19,15 @@ import {
   commitActorResourceMutationPlan,
   resolveActorResourcePayment
 } from "./resource-resolver.mjs";
+import {commitTargetMutationPlans} from "./target-mutation-commit-resolver.mjs";
 import {resolveAttackTargets} from "./attack-resolver.mjs";
 import {
   DAMAGE_RESOLVER_CODES,
   resolveDamageTargets
 } from "./damage-resolver.mjs";
 import {planDamageDurabilityMutations} from "./damage-durability-resolver.mjs";
+import {planHealingDurabilityMutations} from "./healing-durability-resolver.mjs";
+import {resolveHealingTargets} from "./healing-resolver.mjs";
 import {resolveActionTargets} from "./target-resolver.mjs";
 import {resolveWeaponDamageScaling} from "../helpers/weapon-sizing.mjs";
 import {
@@ -38,8 +41,10 @@ export const ACTION_RESOLVER_CODES = Object.freeze({
   ATTACK_FAILED: "ATTACK_FAILED",
   SAVE_FAILED: "SAVE_FAILED",
   DAMAGE_FAILED: "DAMAGE_FAILED",
+  HEALING_FAILED: "HEALING_FAILED",
   PAYMENT_UNAVAILABLE: "PAYMENT_UNAVAILABLE",
   RESOURCE_COMMIT_FAILED: "RESOURCE_COMMIT_FAILED",
+  MUTATION_COMMIT_FAILED: "MUTATION_COMMIT_FAILED",
   MUTATION_COMMIT_UNSUPPORTED: "MUTATION_COMMIT_UNSUPPORTED"
 });
 
@@ -54,6 +59,7 @@ export function planActionResolution({
   attack=null,
   save=null,
   damage=null,
+  healing=null,
   durability=null,
   context={},
   policies={},
@@ -232,6 +238,51 @@ export function planActionResolution({
     });
   }
 
+  if ( shouldResolveHealing(healing) ) {
+    const healingResolution = resolveActionHealing({
+      healing,
+      targetResolution,
+      actionContext
+    });
+    if ( !healingResolution.ok ) {
+      return failActionResult(result, {
+        stage: ACTION_RESOLUTION_STAGES.CONSEQUENCE,
+        code: ACTION_RESOLVER_CODES.HEALING_FAILED,
+        reason: healingResolution.code,
+        data: {healingResolution}
+      });
+    }
+
+    const durabilityResolution = resolveHealingDurability({
+      healing,
+      durability,
+      healingResolution,
+      actionContext
+    });
+    if ( durabilityResolution && !durabilityResolution.ok ) {
+      return failActionResult(result, {
+        stage: ACTION_RESOLUTION_STAGES.CONSEQUENCE,
+        code: ACTION_RESOLVER_CODES.HEALING_FAILED,
+        reason: durabilityResolution.code,
+        data: {healingResolution, durabilityResolution}
+      });
+    }
+
+    result = addResolutionStep(result, {
+      stage: ACTION_RESOLUTION_STAGES.CONSEQUENCE,
+      consequences: [{
+        type: "healingResolved",
+        healingResolution,
+        ...(durabilityResolution ? {durabilityResolution} : {})
+      }],
+      mutationPlans: durabilityResolution?.mutationPlans ?? [],
+      data: {
+        healingResolution,
+        ...(durabilityResolution ? {durabilityResolution} : {})
+      }
+    });
+  }
+
   const payment = resolveActorResourcePayment({
     actorSystem,
     cost: actionActivationCost(action),
@@ -289,11 +340,15 @@ export async function executeActionResolution({
   attack=null,
   save=null,
   damage=null,
+  healing=null,
   durability=null,
+  targetActors=null,
+  authority=null,
   context={},
   policies={},
   selectedPaymentOptionId=null
 }={}) {
+  const executionDurability = prepareExecutionDurabilityOptions(durability, targetActors);
   const result = planActionResolution({
     actorSystem: actor?.system,
     action,
@@ -303,7 +358,8 @@ export async function executeActionResolution({
     attack,
     save,
     damage,
-    durability,
+    healing,
+    durability: executionDurability,
     context,
     policies,
     selectedPaymentOptionId,
@@ -313,14 +369,33 @@ export async function executeActionResolution({
     return result;
   }
 
-  const unsupportedMutationPlans = result.mutationPlans.filter(plan => plan.type !== "resourcePayment");
-  if ( unsupportedMutationPlans.length ) {
-    return failActionResult(result, {
-      stage: ACTION_RESOLUTION_STAGES.CONSEQUENCE,
-      code: ACTION_RESOLVER_CODES.MUTATION_COMMIT_UNSUPPORTED,
-      reason: "executeActionResolution does not yet have a commit adapter for target mutation plans",
-      data: {mutationPlans: unsupportedMutationPlans}
+  let targetCommit = null;
+  const targetMutationPlans = result.mutationPlans.filter(plan => plan.type !== "resourcePayment");
+  if ( targetMutationPlans.length ) {
+    const unsupportedMutationPlans = targetMutationPlans.filter(plan => !isSupportedTargetMutationPlan(plan));
+    if ( unsupportedMutationPlans.length ) {
+      return failActionResult(result, {
+        stage: ACTION_RESOLUTION_STAGES.CONSEQUENCE,
+        code: ACTION_RESOLVER_CODES.MUTATION_COMMIT_UNSUPPORTED,
+        reason: "executeActionResolution does not yet have a commit adapter for these target mutation plans",
+        data: {mutationPlans: unsupportedMutationPlans}
+      });
+    }
+
+    targetCommit = await commitTargetMutationPlans({
+      mutationPlans: targetMutationPlans,
+      targetActors,
+      authority,
+      metadata: {action: result.context?.action ?? null}
     });
+    if ( !targetCommit.ok ) {
+      return failActionResult(result, {
+        stage: ACTION_RESOLUTION_STAGES.CONSEQUENCE,
+        code: ACTION_RESOLVER_CODES.MUTATION_COMMIT_FAILED,
+        reason: targetCommit.code,
+        data: {targetCommit}
+      });
+    }
   }
 
   for ( const mutationPlan of result.mutationPlans.filter(plan => plan.type === "resourcePayment") ) {
@@ -346,7 +421,10 @@ export async function executeActionResolution({
         mutationPlans: result.mutationPlans.filter(plan => plan.type === "resourcePayment")
       }
     })],
-    data: {committed: true}
+    data: {
+      committed: true,
+      ...(targetCommit ? {targetCommit} : {})
+    }
   });
   return succeedActionResult(committed);
 }
@@ -381,6 +459,37 @@ function actorSource(actor) {
   };
 }
 
+function prepareExecutionDurabilityOptions(durability, targetActors) {
+  if ( !durability || !targetActors ) return durability;
+  const options = durability === true ? {} : {...durability};
+  if ( options.targetSystems ) return durability;
+  return {
+    ...options,
+    targetSystems: targetActorSystemsFromActors(targetActors)
+  };
+}
+
+function targetActorSystemsFromActors(targetActors) {
+  if ( typeof targetActors === "function" ) {
+    return lookupContext => {
+      const actor = targetActors(lookupContext);
+      return actor?.system ?? actor?.actorSystem ?? actor ?? null;
+    };
+  }
+  if ( targetActors instanceof Map ) {
+    return new Map([...targetActors.entries()].map(([ref, actor]) => [ref, actor?.system ?? actor?.actorSystem ?? actor]));
+  }
+  if ( Array.isArray(targetActors) ) return targetActors;
+  if ( targetActors && typeof targetActors === "object" ) {
+    return Object.fromEntries(Object.entries(targetActors).map(([ref, actor]) => [ref, actor?.system ?? actor?.actorSystem ?? actor]));
+  }
+  return targetActors;
+}
+
+function isSupportedTargetMutationPlan(plan) {
+  return ["durabilityDamage", "durabilityHealing"].includes(plan.type);
+}
+
 function shouldResolveTargets({targeting, actionContext}) {
   return !!targeting || !!actionContext.targetSet || !!actionContext.targets?.length;
 }
@@ -395,6 +504,10 @@ function shouldResolveSave(save) {
 
 function shouldResolveDamage(damage) {
   return !!damage;
+}
+
+function shouldResolveHealing(healing) {
+  return !!healing;
 }
 
 function finalTargetRefs(targetResolution) {
@@ -485,6 +598,39 @@ function resolveDamageDurability({damage, durability, damageResolution, actionCo
   if ( !options ) return null;
   return planDamageDurabilityMutations({
     damageResolution,
+    targetSystems: options.targetSystems ?? {},
+    adjustments: options.adjustments ?? options.damageAdjustments ?? null,
+    adjustmentProfiles: options.adjustmentProfiles ?? options.targetAdjustments ?? {},
+    resourceId: options.resourceId ?? "health",
+    source: actionContext.source,
+    metadata: {
+      action: actionContext.action,
+      ...(options.metadata ?? {})
+    }
+  });
+}
+
+function resolveActionHealing({healing, targetResolution, actionContext}) {
+  const targetContexts = healing.targetContexts
+    ?? targetResolution?.targetContexts
+    ?? [];
+  return resolveHealingTargets({
+    components: healing.components ?? [],
+    targetContexts,
+    targets: healing.targets ?? (targetContexts.length ? [] : actionContext.targets),
+    context: {
+      action: actionContext.action,
+      source: actionContext.source,
+      ...(healing.context ?? {})
+    }
+  });
+}
+
+function resolveHealingDurability({healing, durability, healingResolution, actionContext}) {
+  const options = normalizeDamageDurabilityOptions(durability?.healing ?? healing?.durability ?? durability);
+  if ( !options ) return null;
+  return planHealingDurabilityMutations({
+    healingResolution,
     targetSystems: options.targetSystems ?? {},
     resourceId: options.resourceId ?? "health",
     source: actionContext.source,
