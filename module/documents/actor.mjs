@@ -1,9 +1,7 @@
 import {WildPathModifier, WildPathStatistic} from "../helpers/modifiers.mjs";
 import WildPathConditionEffect from "../data/active-effect/condition.mjs";
-import {
-  commitActorResourceMutationPlan,
-  resolveActorResourcePayment
-} from "../resolvers/resource-resolver.mjs";
+import {executeActionResolution} from "../resolvers/action-resolver.mjs";
+import {resolveActorResourcePayment} from "../resolvers/resource-resolver.mjs";
 
 /**
  * The Actor document subclass for the WildPath system.
@@ -199,9 +197,8 @@ export default class WildPathActor extends Actor {
    * @returns {Promise<boolean>}   Whether the cost was successfully paid.
    */
   async useAction(action, options={}) {
-    const payment = this.resolveActionPayment(action, options);
-    if ( !payment.ok ) return false;
-    return commitActorResourceMutationPlan(this, payment.mutationPlan);
+    const result = await executeActionResolution({actor: this, action, ...options});
+    return result.ok;
   }
 
   /* -------------------------------------------- */

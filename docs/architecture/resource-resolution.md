@@ -39,8 +39,9 @@ trace data. `commitActorResourceMutationPlan()` is the thin adapter that calls `
 
 `WildPathActor#getActionPaymentOptions()` exposes discovery results for future UI.
 
-`WildPathActor#canUseAction()` and `WildPathActor#useAction()` now go through the resolver while
-preserving the current cost-only behavior.
+`WildPathActor#canUseAction()` goes through the resolver. `WildPathActor#useAction()` now goes
+through `ActionResolver`, which in turn delegates payment planning and Actor update paths to this
+resolver while preserving the current cost-only behavior.
 
 ## Deferred Work
 

@@ -18,8 +18,10 @@ foundation needs, per `AGENTS.md` sections 4 and 8 and the architecture notes in
   envelopes that resolver modules should share for steps, events, consequences, mutation plans,
   errors, and audit traces.
 - `module/resolvers/resource-resolver.mjs` now wraps action-economy payment discovery and maps
-  selected payment plans to Actor update paths. `WildPathActor#useAction` uses it for the current
-  cost-only behavior.
+  selected payment plans to Actor update paths. `ActionResolver` uses it for the current cost-only
+  behavior.
+- `module/resolvers/action-resolver.mjs` now wraps the current cost-only Action item flow in
+  `ActionContext` / `ActionResult` and delegates payment to `ResourceResolver`.
 - `WildPathActor#getStatistic(domain)` plus `WildPathStatistic`/`WildPathModifier` are the
   calculation engine resolvers should build on for attack bonuses, save DCs, damage bonuses,
   resistance, and similar derived values.
@@ -35,7 +37,7 @@ resolvers should not call UI code.
 
 | Module | File | Responsibility |
 |---|---|---|
-| `ActionResolver` | `module/resolvers/action-resolver.mjs` | Top-level entry point: validate, target, cost, roll, outcome, consequences, effects, post-resolution hooks. |
+| `ActionResolver` | `module/resolvers/action-resolver.mjs` | Current cost-only entry point; should grow into validate, target, cost, roll, outcome, consequences, effects, post-resolution hooks. |
 | `TargetResolver` | `module/resolvers/target-resolver.mjs` | Resolve and validate the target set for self, single-target, multi-target, and area actions. |
 | `AttackResolver` | `module/resolvers/attack-resolver.mjs` | Resolve attack rolls against target defenses using `getStatistic`-derived modifiers. |
 | `SaveResolver` | `module/resolvers/save-resolver.mjs` | Resolve saving throws against DCs derived through the same statistic engine. |

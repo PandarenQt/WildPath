@@ -65,6 +65,9 @@ This helper does not:
 Those responsibilities belong to future resolvers and Foundry adapters. The context/result helper
 only provides the common data shape they should compose.
 
+`module/resolvers/action-resolver.mjs` now uses this envelope for the current cost-only action flow.
+It is the first resolver consumer, not the final action pipeline.
+
 ## Future Consumers
 
 This foundation is intended for:

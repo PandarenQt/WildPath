@@ -102,8 +102,9 @@ resources, so future resolvers can use the new payment model before persisted Ac
 discovers payment options, selects a plan, maps economy resources back to Actor update paths, and
 commits through a small `actor.update()` adapter.
 
-Current `WildPathActor#useAction()` uses this resolver while still only spending costs. It does not
-perform targeting, rolls, damage, healing, effects, or reaction prompts yet.
+Current `WildPathActor#useAction()` uses `ActionResolver`, which delegates resource planning and
+Actor update paths to this resolver while still only spending costs. It does not perform targeting,
+rolls, damage, healing, effects, or reaction prompts yet.
 
 ## Deferred Work
 
