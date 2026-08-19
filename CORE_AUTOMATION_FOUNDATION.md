@@ -35,6 +35,8 @@ The finished game system name is **Wild Path**.
   transfer planning/commit, capacity checks, and containment-cycle prevention.
 - `module/helpers/combat-timeline.mjs` provides pure combat timeline events, duration ticking,
   rest expiry, and scheduled event matching.
+- `module/helpers/automation-events.mjs` provides pure semantic events, trigger matching, one-shot
+  dispatch planning, and reaction-window eligibility checks against action-economy resources.
 
 ## Resolution Pipeline
 
@@ -113,7 +115,8 @@ See `docs/architecture/product-experience.md` for the product-facing direction, 
 `docs/architecture/action-economy.md` for the current economy/movement foundation. See
 `docs/architecture/homebrew-content-builder.md` for the finished-product builder standard.
 See `docs/architecture/combat-timeline.md` for the combat timeline, durations, and scheduler
-foundation.
+foundation. See `docs/architecture/events-and-reactions.md` for the automation event and reaction
+trigger foundation.
 
 ## Near-Term Order
 

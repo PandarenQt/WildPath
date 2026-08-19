@@ -11,6 +11,9 @@ foundation needs, per `AGENTS.md` sections 4 and 8 and the architecture notes in
   effect application pipeline yet.
 - `module/helpers/action-economy.mjs` now provides generic payment discovery, payment commit, and
   refresh primitives that `ResourceResolver` should wrap at the Foundry boundary.
+- `module/helpers/automation-events.mjs` now provides semantic event normalization, trigger
+  matching, one-shot dispatch planning, and reaction-window eligibility checks. `ReactionResolver`
+  should wrap those plans with prompting, authority, and commit behavior.
 - `WildPathActor#getStatistic(domain)` plus `WildPathStatistic`/`WildPathModifier` are the
   calculation engine resolvers should build on for attack bonuses, save DCs, damage bonuses,
   resistance, and similar derived values.
