@@ -55,6 +55,22 @@ function attackCandidate(id, defense=null) {
   };
 }
 
+function saveCandidate(id, total=null) {
+  return {
+    id,
+    target: {
+      id,
+      actorId: `actor-${id}`,
+      tokenId: `token-${id}`,
+      disposition: "enemy",
+      saves: total == null ? {} : {dex: {total, die: Math.max(total - 5, 1)}}
+    },
+    actor: {id: `actor-${id}`, name: id},
+    disposition: "enemy",
+    kind: "creature"
+  };
+}
+
 function damageComponent(id="base", amount=6, damageType="slashing") {
   return {id, amount, damageType};
 }
@@ -167,6 +183,52 @@ test("ActionResolver can resolve an attack after targeting and before payment", 
   const attackStep = result.steps.find(step => step.stage === ACTION_RESOLUTION_STAGES.ROLL);
   assert.deepEqual(attackStep.data.attackResolution.hits.map(hit => hit.target.id), ["orc"]);
   assert.deepEqual(attackStep.data.attackResolution.misses.map(miss => miss.target.id), ["knight"]);
+  assert.deepEqual(result.mutationPlans[0].plan.updates, {"system.resources.action.value": 0});
+});
+
+test("ActionResolver can resolve saves after targeting and before payment", () => {
+  const result = planActionResolution({
+    actorSystem: actorSystem(1),
+    action: action(),
+    source: {actorId: "actor-a"},
+    targeting: {
+      required: true,
+      candidates: [
+        saveCandidate("rogue", 18),
+        saveCandidate("ogre", 9)
+      ]
+    },
+    save: {
+      saveKey: "dex",
+      dc: {value: 15, ability: "dex"}
+    }
+  });
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(result.steps.map(step => step.stage), [
+    ACTION_RESOLUTION_STAGES.VALIDATION,
+    ACTION_RESOLUTION_STAGES.TARGETING,
+    ACTION_RESOLUTION_STAGES.ROLL,
+    ACTION_RESOLUTION_STAGES.RESOURCE_PAYMENT,
+    ACTION_RESOLUTION_STAGES.COMPLETE
+  ]);
+  const saveStep = result.steps.find(step => step.stage === ACTION_RESOLUTION_STAGES.ROLL);
+  assert.deepEqual(saveStep.data.saveResolution.successes.map(save => save.target.id), ["rogue"]);
+  assert.deepEqual(saveStep.data.saveResolution.failures.map(save => save.target.id), ["ogre"]);
+  assert.deepEqual(result.events.map(event => event.type), [
+    AUTOMATION_EVENT_TYPES.ACTION_DECLARED,
+    AUTOMATION_EVENT_TYPES.TARGETS_SELECTED,
+    AUTOMATION_EVENT_TYPES.SAVE_ROLL,
+    AUTOMATION_EVENT_TYPES.SAVE_SUCCESS,
+    AUTOMATION_EVENT_TYPES.SAVE_ROLL,
+    AUTOMATION_EVENT_TYPES.SAVE_FAILURE,
+    AUTOMATION_EVENT_TYPES.PAYMENT_REQUIRED
+  ]);
+  assert.deepEqual(result.consequences.map(consequence => consequence.type), [
+    "targetsSelected",
+    "saveResolved",
+    "resourcePayment"
+  ]);
   assert.deepEqual(result.mutationPlans[0].plan.updates, {"system.resources.action.value": 0});
 });
 
@@ -354,6 +416,25 @@ test("ActionResolver stops before payment when attack data is invalid", () => {
   assert.equal(result.code, ACTION_RESOLVER_CODES.ATTACK_FAILED);
   assert.equal(result.steps.at(-1).stage, ACTION_RESOLUTION_STAGES.ROLL);
   assert.equal(result.errors[0].reason, "MISSING_DEFENSE");
+  assert.equal(result.events.some(event => event.type === AUTOMATION_EVENT_TYPES.PAYMENT_REQUIRED), false);
+  assert.equal(result.mutationPlans.length, 0);
+});
+
+test("ActionResolver stops before payment when save data is invalid", () => {
+  const result = planActionResolution({
+    actorSystem: actorSystem(1),
+    action: action(),
+    source: {actorId: "actor-a"},
+    targets: [{id: "target-a", actorId: "actor-b"}],
+    save: {
+      dc: {value: 15}
+    }
+  });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.code, ACTION_RESOLVER_CODES.SAVE_FAILED);
+  assert.equal(result.steps.at(-1).stage, ACTION_RESOLUTION_STAGES.ROLL);
+  assert.equal(result.errors[0].reason, "MISSING_SAVE_TOTAL");
   assert.equal(result.events.some(event => event.type === AUTOMATION_EVENT_TYPES.PAYMENT_REQUIRED), false);
   assert.equal(result.mutationPlans.length, 0);
 });

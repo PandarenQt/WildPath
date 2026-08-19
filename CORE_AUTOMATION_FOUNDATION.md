@@ -12,7 +12,7 @@ The finished game system name is **Wild Path**.
 - Actor and Item data models define abilities, resources, custom pools, actions, gear, features,
   modifiers, and conditions.
 - `WildPathActor#useAction` currently follows the sheet-driven cost-only path. The resolver layer
-  can already accept plain target, attack, and damage data from future Foundry adapters.
+  can already accept plain target, attack, save, and damage data from future Foundry adapters.
 - `WildPathActor#getStatistic(domain)` and `WildPathStatistic` are the current calculation engine.
   New mechanics should build on that domain/modifier model rather than creating one-off math.
 - Resource max calculation is idempotent: persisted `base`/`bonus` values combine with transient
@@ -44,15 +44,17 @@ The finished game system name is **Wild Path**.
   resource update paths and is now the payment boundary used by `WildPathActor#useAction`.
 - `module/resolvers/action-resolver.mjs` wraps the current Action flow in
   `ActionContext`/`ActionResult`, optional TargetResolver validation, semantic target/payment
-  events, optional attack resolution for supplied roll/defense data, optional damage resolution for
-  supplied structured components, manufactured weapon-size damage scaling, and ResourceResolver
-  mutation plans.
+  events, optional attack resolution for supplied roll/defense data, optional save resolution for
+  supplied save/DC data, optional damage resolution for supplied structured components,
+  manufactured weapon-size damage scaling, and ResourceResolver mutation plans.
 - `module/resolvers/target-resolver.mjs` wraps target-set eligibility, refinement decisions,
   required-target failures, self-targeting, and selection request state for future ActionResolver
   integration.
 - `module/resolvers/attack-resolver.mjs` resolves already-known attack totals against target
   defenses as pure structured outcomes. `ActionResolver` can call it when an action plan includes
   attack data.
+- `module/resolvers/save-resolver.mjs` resolves already-known save totals against DCs as pure
+  structured outcomes. `ActionResolver` can call it when an action plan includes save data.
 - `module/resolvers/damage-resolver.mjs` provides structured damage components, damage-type
   totals, target damage result shells, and weapon-size-scaling metadata/provenance. `ActionResolver`
   can call it when an action plan includes damage data.
@@ -141,17 +143,18 @@ foundation. See `docs/architecture/events-and-reactions.md` for the automation e
 trigger foundation. See `docs/architecture/action-resolution.md` for the common action-context
 and action-result envelope. See `docs/architecture/resource-resolution.md` for the current
 resource payment resolver boundary. See `docs/architecture/action-resolver.md` for the current
-target-aware and attack-capable ActionResolver entry point. See
+target-aware, attack-capable, and save-capable ActionResolver entry point. See
 `docs/architecture/target-resolver.md` for the current target validation bridge. See
 `docs/architecture/attack-resolver.md` for the current pure attack-outcome resolver. See
+`docs/architecture/save-resolver.md` for the current pure save-outcome resolver. See
 `docs/architecture/damage-resolver.md` for the current structured damage-component foundation. See
 `docs/architecture/weapon-size.md` for the WeaponSizePolicy foundation and its separation from
 Heavy, Reach, creature size, and damage execution.
 
 ## Near-Term Order
 
-1. Add a basic SaveResolver slice.
-2. Add Actor damage/healing mutation planning.
+1. Add Actor damage/healing mutation planning.
+2. Connect save outcomes to damage consequence policies such as half damage on success.
 3. Add effect slices one at a time.
 
 Keep every slice small, testable, and compatible with synthetic Token Actors.

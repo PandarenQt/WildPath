@@ -26,11 +26,16 @@ import {
 } from "./damage-resolver.mjs";
 import {resolveActionTargets} from "./target-resolver.mjs";
 import {resolveWeaponDamageScaling} from "../helpers/weapon-sizing.mjs";
+import {
+  SAVE_RESOLVER_CODES,
+  resolveSaveTargets
+} from "./save-resolver.mjs";
 
 export const ACTION_RESOLVER_CODES = Object.freeze({
   OK: "OK",
   TARGETING_FAILED: "TARGETING_FAILED",
   ATTACK_FAILED: "ATTACK_FAILED",
+  SAVE_FAILED: "SAVE_FAILED",
   DAMAGE_FAILED: "DAMAGE_FAILED",
   PAYMENT_UNAVAILABLE: "PAYMENT_UNAVAILABLE",
   RESOURCE_COMMIT_FAILED: "RESOURCE_COMMIT_FAILED"
@@ -45,6 +50,7 @@ export function planActionResolution({
   targets=[],
   targeting=null,
   attack=null,
+  save=null,
   damage=null,
   context={},
   policies={},
@@ -140,6 +146,41 @@ export function planActionResolution({
     });
   }
 
+  if ( shouldResolveSave(save) ) {
+    const saveResolution = resolveSaveTargets({
+      roll: save.roll,
+      targetContexts: save.targetContexts ?? targetResolution?.targetContexts ?? [],
+      targets: save.targets ?? (targetResolution ? [] : actionContext.targets),
+      dc: save.dc ?? null,
+      dcKey: save.dcKey ?? "save",
+      saveKey: save.saveKey ?? save.ability ?? null,
+      policy: {...(policies.save ?? {}), ...(save.policy ?? {})},
+      context: {
+        action: actionContext.action,
+        source: actionContext.source,
+        ...(save.context ?? {})
+      }
+    });
+    if ( !saveResolution.ok ) {
+      return failActionResult(result, {
+        stage: ACTION_RESOLUTION_STAGES.ROLL,
+        code: ACTION_RESOLVER_CODES.SAVE_FAILED,
+        reason: saveResolution.code,
+        data: {saveResolution}
+      });
+    }
+
+    result = addResolutionStep(result, {
+      stage: ACTION_RESOLUTION_STAGES.ROLL,
+      events: saveEvents(actionContext, saveResolution),
+      consequences: [{
+        type: "saveResolved",
+        saveResolution
+      }],
+      data: {saveResolution}
+    });
+  }
+
   if ( shouldResolveDamage(damage) ) {
     const damageResolution = resolveActionDamage({
       damage,
@@ -221,6 +262,7 @@ export async function executeActionResolution({
   targets=[],
   targeting=null,
   attack=null,
+  save=null,
   damage=null,
   context={},
   policies={},
@@ -233,6 +275,7 @@ export async function executeActionResolution({
     targets,
     targeting,
     attack,
+    save,
     damage,
     context,
     policies,
@@ -309,6 +352,10 @@ function shouldResolveAttack(attack) {
   return !!attack;
 }
 
+function shouldResolveSave(save) {
+  return !!save;
+}
+
 function shouldResolveDamage(damage) {
   return !!damage;
 }
@@ -335,6 +382,27 @@ function attackEvents(actionContext, attackResolution) {
       type: AUTOMATION_EVENT_TYPES.ATTACK_MISS,
       phase: AUTOMATION_EVENT_PHASES.AFTER,
       data: {attackResults: attackResolution.misses}
+    }));
+  }
+  return events;
+}
+
+function saveEvents(actionContext, saveResolution) {
+  const events = [];
+  for ( const result of saveResolution.results.filter(result => result.code !== SAVE_RESOLVER_CODES.TARGET_SKIPPED) ) {
+    events.push(createActionLifecycleEvent(actionContext, {
+      type: AUTOMATION_EVENT_TYPES.SAVE_ROLL,
+      phase: AUTOMATION_EVENT_PHASES.AFTER,
+      targets: [result.target],
+      data: {saveResult: result}
+    }));
+    if ( !result.ok ) continue;
+    events.push(createActionLifecycleEvent(actionContext, {
+      type: result.success ? AUTOMATION_EVENT_TYPES.SAVE_SUCCESS : AUTOMATION_EVENT_TYPES.SAVE_FAILURE,
+      phase: AUTOMATION_EVENT_PHASES.AFTER,
+      targets: [result.target],
+      tags: [result.outcome],
+      data: {saveResult: result}
     }));
   }
   return events;
