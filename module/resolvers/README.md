@@ -14,6 +14,9 @@ foundation needs, per `AGENTS.md` sections 4 and 8 and the architecture notes in
 - `module/helpers/automation-events.mjs` now provides semantic event normalization, trigger
   matching, one-shot dispatch planning, and reaction-window eligibility checks. `ReactionResolver`
   should wrap those plans with prompting, authority, and commit behavior.
+- `module/helpers/action-resolution.mjs` now provides the plain `ActionContext` and `ActionResult`
+  envelopes that resolver modules should share for steps, events, consequences, mutation plans,
+  errors, and audit traces.
 - `WildPathActor#getStatistic(domain)` plus `WildPathStatistic`/`WildPathModifier` are the
   calculation engine resolvers should build on for attack bonuses, save DCs, damage bonuses,
   resistance, and similar derived values.

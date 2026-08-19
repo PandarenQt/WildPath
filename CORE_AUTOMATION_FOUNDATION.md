@@ -37,6 +37,8 @@ The finished game system name is **Wild Path**.
   rest expiry, and scheduled event matching.
 - `module/helpers/automation-events.mjs` provides pure semantic events, trigger matching, one-shot
   dispatch planning, and reaction-window eligibility checks against action-economy resources.
+- `module/helpers/action-resolution.mjs` provides pure `ActionContext` and `ActionResult`
+  envelopes for validation steps, semantic events, consequences, mutation plans, and audit traces.
 
 ## Resolution Pipeline
 
@@ -116,14 +118,14 @@ See `docs/architecture/product-experience.md` for the product-facing direction, 
 `docs/architecture/homebrew-content-builder.md` for the finished-product builder standard.
 See `docs/architecture/combat-timeline.md` for the combat timeline, durations, and scheduler
 foundation. See `docs/architecture/events-and-reactions.md` for the automation event and reaction
-trigger foundation.
+trigger foundation. See `docs/architecture/action-resolution.md` for the common action-context
+and action-result envelope.
 
 ## Near-Term Order
 
-1. Define `ActionContext` and `ActionResult` as plain data structures.
-2. Extract existing action-cost spending into `ResourceResolver`.
-3. Add `ActionResolver` around the existing cost-only behavior without changing gameplay yet.
-4. Add `TargetResolver` and tests for target validation.
-5. Add attack/save/damage/healing/effect slices one at a time.
+1. Extract existing action-cost spending into `ResourceResolver`.
+2. Add `ActionResolver` around the existing cost-only behavior without changing gameplay yet.
+3. Add `TargetResolver` and tests for target validation.
+4. Add attack/save/damage/healing/effect slices one at a time.
 
 Keep every slice small, testable, and compatible with synthetic Token Actors.
