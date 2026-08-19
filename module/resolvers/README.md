@@ -25,6 +25,8 @@ foundation needs, per `AGENTS.md` sections 4 and 8 and the architecture notes in
   and delegates payment to `ResourceResolver`.
 - `module/resolvers/target-resolver.mjs` now wraps target-set eligibility, refinement decisions,
   required-target failures, self-targeting, and selection request state.
+- `module/resolvers/attack-resolver.mjs` now resolves already-known attack totals against target
+  defenses as pure per-target outcomes. It is not wired into ActionResolver execution yet.
 - `WildPathActor#getStatistic(domain)` plus `WildPathStatistic`/`WildPathModifier` are the
   calculation engine resolvers should build on for attack bonuses, save DCs, damage bonuses,
   resistance, and similar derived values.
@@ -42,7 +44,7 @@ resolvers should not call UI code.
 |---|---|---|
 | `ActionResolver` | `module/resolvers/action-resolver.mjs` | Current target-aware, cost-only entry point; should grow into roll, outcome, consequences, effects, post-resolution hooks. |
 | `TargetResolver` | `module/resolvers/target-resolver.mjs` | Resolves and validates self, explicit, and precomputed target sets for ActionResolver and future UI adapters. |
-| `AttackResolver` | `module/resolvers/attack-resolver.mjs` | Resolve attack rolls against target defenses using `getStatistic`-derived modifiers. |
+| `AttackResolver` | `module/resolvers/attack-resolver.mjs` | Current pure attack-vs-defense outcome resolver; should be wired after targeting once roll requests and statistic-derived defenses exist. |
 | `SaveResolver` | `module/resolvers/save-resolver.mjs` | Resolve saving throws against DCs derived through the same statistic engine. |
 | `DamageResolver` | `module/resolvers/damage-resolver.mjs` | Resolve damage components through resistance, immunity, and vulnerability into structured results. |
 | `HealingResolver` | `module/resolvers/healing-resolver.mjs` | Resolve healing/resource restoration as structured results before mutation. |
@@ -54,5 +56,5 @@ resolvers should not call UI code.
 ## Sequencing Note
 
 Land these in small vertical stages: data/interface, pure rules behavior, resolution integration,
-Foundry adapter, then UI. `ActionResolver` and `TargetResolver` are the natural first slice,
-because every later resolver needs a validated action and target set to operate on.
+Foundry adapter, then UI. `ActionResolver`, `TargetResolver`, and the pure `AttackResolver`
+foundation are now in place for the first cost/target/attack shape.

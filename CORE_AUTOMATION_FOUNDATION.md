@@ -47,6 +47,8 @@ The finished game system name is **Wild Path**.
 - `module/resolvers/target-resolver.mjs` wraps target-set eligibility, refinement decisions,
   required-target failures, self-targeting, and selection request state for future ActionResolver
   integration.
+- `module/resolvers/attack-resolver.mjs` resolves already-known attack totals against target
+  defenses as pure structured outcomes. It is not wired into ActionResolver execution yet.
 
 ## Resolution Pipeline
 
@@ -130,10 +132,12 @@ trigger foundation. See `docs/architecture/action-resolution.md` for the common 
 and action-result envelope. See `docs/architecture/resource-resolution.md` for the current
 resource payment resolver boundary. See `docs/architecture/action-resolver.md` for the current
 cost-only ActionResolver entry point. See `docs/architecture/target-resolver.md` for the current
-target validation bridge.
+target validation bridge. See `docs/architecture/attack-resolver.md` for the current pure
+attack-outcome resolver.
 
 ## Near-Term Order
 
-1. Add attack/save/damage/healing/effect slices one at a time.
+1. Wire the pure AttackResolver into ActionResolver behind an optional attack step.
+2. Add save/damage/healing/effect slices one at a time.
 
 Keep every slice small, testable, and compatible with synthetic Token Actors.

@@ -60,10 +60,12 @@ The current resolver does not:
 - open reaction windows
 - create chat output
 
-Those are future resolver slices. This module exists so current action use already enters the same
+Those are future ActionResolver slices. The pure `AttackResolver` foundation exists separately, but
+this module does not call it yet. This module exists so current action use already enters the same
 pipeline shape that those slices will extend.
 
 ## Next Resolver Slice
 
-The next resolver slices should add attack/save/damage/healing/effect resolution one at a time,
-using the target contexts already attached by the optional TargetResolver step.
+The next resolver slice should wire AttackResolver into an optional attack step, using the target
+contexts already attached by the optional TargetResolver step and statistic-derived attack/defense
+numbers gathered by a Foundry adapter.
