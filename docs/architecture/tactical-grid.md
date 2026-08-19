@@ -83,6 +83,69 @@ pixel bounding boxes, or a Euclidean collision circle.
 Boundary vertices are vertices incident to both occupied and unoccupied fields, or to the usable
 scene boundary. Internal vertices inside a multi-field creature are not valid line/cone origins.
 
+## Creature Size and TokenGridFootprint
+
+Creature size is mechanically meaningful. It is not merely Token image scale, Token width/height in
+pixels, or a larger sprite in one field.
+
+Creature size is represented as an explicit topology-aware set of occupied tactical fields. Spatial
+rules never collapse a multi-field creature to one representative field or Token center.
+
+The current pure foundation lives in `module/helpers/grid-footprints.mjs`. It establishes:
+
+- `CreatureFootprintProvider`
+- `TokenFootprintDefinition`
+- `TokenGridFootprint`
+- boundary fields, boundary edges, and boundary vertices
+- full-footprint range distance
+- reach expansion from the complete occupied footprint
+- debug output for occupied fields and boundaries
+
+The D&D-style default provider includes all standard size categories:
+
+| Size | Square Footprint | Hex Footprint |
+| --- | --- | --- |
+| Tiny | one shared field, 4 per field | one shared field, 4 per field |
+| Small | 1 field | 1 field |
+| Medium | 1 field | 1 field |
+| Large | 4 fields, 2 by 2 | 3 hex fields |
+| Huge | 9 fields, 3 by 3 | 7 hex fields |
+| Gargantuan | 16 fields, 4 by 4 or more | 12 hex fields or more |
+
+The "or more" cases must stay configurable. House rules, transformations, vehicles, custom
+monsters, or scene-specific rulings may provide alternate footprint definitions through a provider
+rather than by changing generic grid geometry.
+
+Square and hex footprints differ. Do not model footprint size as `width = size` and `height = size`
+for all topologies. Large hex creatures are not 2 by 2 hexes, and Huge hex creatures are not 3 by 3
+hexes.
+
+The runtime ownership should remain:
+
+```text
+Actor / Token
+-> effective size
+-> CreatureFootprintProvider
+-> topology-specific offsets
+-> Token anchor / placement
+-> TokenGridFootprint
+-> Set<GridField>
+```
+
+Effective size may later come from transformations, polymorph effects, growth/shrink effects,
+monster features, house rules, or temporary RuleElements. Do not bake permanent base-size
+assumptions into spatial rules.
+
+For every gridded spatial calculation involving a creature:
+
+```text
+Creature != one coordinate
+Creature = TokenGridFootprint = complete occupied-field set
+```
+
+Therefore range, reach, AoE intersection, source-border Line origins, source-border Cone origins,
+future aura expansion, future movement, and future opportunity reach must use the entire footprint.
+
 ## Eligible Action Origins
 
 The tactical grid system must not decide ownership, companion, summon, or control rules. It should
@@ -126,6 +189,12 @@ chooses direction. Configured range comes from the action, not from the second c
 This avoids large creatures losing effective breath/ray reach because the effect starts at token
 center. A 30 ft line from a huge creature begins at the selected boundary vertex and remains 30 ft
 long.
+
+For oversized or unusually sized weapons, do not infer creature footprint or reach from item art.
+`module/helpers/weapon-sizing.mjs` models weapon size separately from creature footprint. Oversized
+weapon rules can impose attack-roll consequences and damage-dice multipliers while reach remains
+explicit action or weapon data. A Large weapon does not automatically make a Medium creature occupy
+Large space, and it does not automatically extend reach unless the weapon/action definition says so.
 
 ## Lines
 

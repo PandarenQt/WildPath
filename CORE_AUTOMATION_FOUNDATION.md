@@ -23,6 +23,8 @@ The finished game system name is **Wild Path**.
   using distance or field measurement.
 - Tactical grid and area topology are documented as a future gated milestone: gridded AoE should
   resolve to authoritative `GridFootprint` field sets, not Euclidean templates snapped to a grid.
+- `module/helpers/grid-footprints.mjs` provides topology-aware creature size footprints, full
+  footprint distance/reach, boundary vertices, and debug data for TokenGridFootprints.
 - `module/helpers/targeting.mjs` provides pure target candidates, target sets, eligibility,
   refinement decisions, selection requests, and per-target override carriers.
 - `module/helpers/inventory.mjs` provides pure inventory spaces, access grants, weight policies,

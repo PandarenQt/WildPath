@@ -56,6 +56,10 @@ intersect TokenGridFootprint fields
 
 This preserves large-token behavior and avoids center-point targeting bugs.
 
+The current pure bridge in `module/helpers/area-targeting.mjs` already consumes full
+`TokenGridFootprint`-style occupied fields. Large, Huge, and Gargantuan targets must appear once in
+the TargetSet when any occupied field overlaps an Area under the default any-overlap policy.
+
 ## Persistent Areas
 
 Persistent areas should store or deterministically reconstruct the same `GridFootprint` produced
