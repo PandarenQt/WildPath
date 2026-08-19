@@ -101,8 +101,8 @@ The finished game system name is **Wild Path**.
   2014/2024/house policy providers, structured wieldability results, and structured
   weapon-size damage scaling for explicitly marked damage components.
 - `module/helpers/ui-view-models.mjs` provides the first pure UI/UX state layer for action-bar
-  availability and combat-carousel turn state, with command payloads and opaque refs instead of
-  DOM, canvas, or Foundry document coupling.
+  availability, combat-carousel turn state, and concentration check prompts, with command payloads
+  and opaque refs instead of DOM, canvas, or Foundry document coupling.
 - `tsconfig.json` and `module/types/contracts.d.ts` provide the first non-disruptive TypeScript
   migration scaffold for shared refs, resolver results, mutation plans, action context, and UI view
   models. JavaScript remains the runtime implementation until individual modules are converted.
@@ -212,8 +212,9 @@ current action-bar and combat-carousel view-model foundation. See
 
 ## Near-Term Order
 
-1. Add a Foundry/UI prompt adapter for concentration check result entry, feeding supplied roll
-   totals or explicit physical-dice outcomes into ConcentrationCheckCommitResolver.
+1. Add a Foundry ApplicationV2/dialog adapter that renders the concentration check prompt view
+   model, collects roll totals or explicit physical-dice outcomes, and submits them to
+   ConcentrationCheckCommitResolver.
 2. Add combat-end/rest lifecycle adapters for duration expiry.
 3. Add generic ActiveEffect create/update/delete planning on top of the condition-first
    EffectResolver boundary.

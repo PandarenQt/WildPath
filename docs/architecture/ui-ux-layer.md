@@ -38,6 +38,21 @@ The combat carousel view model turns combat timeline data into:
 The carousel must share the same timeline and resource services as automation. It should not keep a
 separate authoritative turn order or refresh model.
 
+## Concentration Check Prompts
+
+The concentration check prompt view model turns pending concentration check requests into:
+
+- actor/source/target refs
+- actor and origin labels for display
+- DC, ability, save key, and damage-taken summaries
+- pending/resolved row state
+- digital and physical-entry command payloads such as `concentrationCheck.submitResult`
+- a commit command once every required result has been supplied
+
+Prompt rendering should collect a roll total or explicit physical-dice outcome, then dispatch that
+data to `ConcentrationCheckCommitResolver`. It should not compare saves against DCs or remove
+effects directly.
+
 ## Boundary Rule
 
 - UI renders view models.

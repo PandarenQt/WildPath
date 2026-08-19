@@ -406,6 +406,15 @@ export interface UICommand {
   readonly actionId?: string | null;
   readonly combatRef?: EntityRef | null;
   readonly selectedPaymentOptionId?: string | null;
+  readonly requestId?: string | null;
+  readonly requestIds?: readonly string[];
+  readonly actorRefs?: readonly (EntityRef | string)[];
+  readonly sourceRef?: EntityRef | string | null;
+  readonly sourceRefs?: readonly (EntityRef | string)[];
+  readonly targetRef?: EntityRef | string | null;
+  readonly dc?: number | null;
+  readonly ability?: string | null;
+  readonly mode?: string | null;
 }
 
 export interface ActionBarViewModel {
@@ -453,6 +462,37 @@ export interface CombatCarouselViewModel {
   readonly next: CombatCarouselTurnViewModel | null;
   readonly commands: Readonly<Record<string, UICommand | null>>;
   readonly summary: Readonly<Record<string, number>>;
+}
+
+export interface ConcentrationCheckPromptEntryViewModel {
+  readonly id: string;
+  readonly type: string;
+  readonly actorId: string | null;
+  readonly actorRef: EntityRef | string | null;
+  readonly sourceRef: EntityRef | string | null;
+  readonly originRef: EntityRef | string | null;
+  readonly itemRef: EntityRef | string | null;
+  readonly targetRef: EntityRef | string | null;
+  readonly actorLabel: string;
+  readonly originLabel: string | null;
+  readonly dc: number | null;
+  readonly ability: string;
+  readonly saveKey: string;
+  readonly damageTaken: number | null;
+  readonly state: "pending" | "resolved";
+  readonly result: Readonly<Record<string, unknown>> | null;
+  readonly command: UICommand;
+  readonly physicalCommand: UICommand | null;
+  readonly metadata: Readonly<Record<string, unknown>>;
+}
+
+export interface ConcentrationCheckPromptViewModel {
+  readonly checks: readonly ConcentrationCheckPromptEntryViewModel[];
+  readonly pending: readonly ConcentrationCheckPromptEntryViewModel[];
+  readonly resolved: readonly ConcentrationCheckPromptEntryViewModel[];
+  readonly commitCommand: UICommand | null;
+  readonly summary: Readonly<Record<string, number>>;
+  readonly metadata: Readonly<Record<string, unknown>>;
 }
 
 export interface CharacterSheetViewModel {

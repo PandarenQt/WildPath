@@ -4,6 +4,8 @@ import {
   ACTION_BAR_ENTRY_STATES,
   createActionBarViewModel,
   createCombatCarouselViewModel,
+  createConcentrationCheckPromptViewModel,
+  CONCENTRATION_CHECK_PROMPT_STATES,
   UI_COMMAND_TYPES
 } from "../module/helpers/ui-view-models.mjs";
 
@@ -166,4 +168,86 @@ test("combat carousel accepts Foundry-shaped combat turns", () => {
   assert.equal(model.turns[0].label, "Rook");
   assert.equal(model.turns[0].actorRef, "actor:actor-a");
   assert.equal(model.turns[0].tokenRef, "token:scene-a.token-a");
+});
+
+test("concentration check prompt view model exposes pending check commands", () => {
+  const model = createConcentrationCheckPromptViewModel({
+    checkRequests: [{
+      id: "concentration-check:actor:caster:0",
+      type: "damage",
+      actorId: "caster",
+      actorRef: "actor:caster",
+      sourceRef: "actor:caster",
+      originRef: "item:haste",
+      targetRef: "actor:caster",
+      damageTaken: 28,
+      dc: 14,
+      ability: "con",
+      saveKey: "concentration"
+    }],
+    actorNames: {
+      "actor:caster": "Ilyra"
+    },
+    itemNames: {
+      "item:haste": "Haste"
+    }
+  });
+
+  assert.equal(model.checks.length, 1);
+  assert.equal(model.checks[0].state, CONCENTRATION_CHECK_PROMPT_STATES.PENDING);
+  assert.equal(model.checks[0].actorLabel, "Ilyra");
+  assert.equal(model.checks[0].originLabel, "Haste");
+  assert.equal(model.checks[0].dc, 14);
+  assert.equal(model.checks[0].damageTaken, 28);
+  assert.equal(model.checks[0].command.type, UI_COMMAND_TYPES.SUBMIT_CONCENTRATION_CHECK_RESULT);
+  assert.equal(model.checks[0].command.requestId, "concentration-check:actor:caster:0");
+  assert.equal(model.checks[0].physicalCommand.mode, "physical");
+  assert.equal(model.commitCommand, null);
+  assert.equal(model.summary.pendingCount, 1);
+});
+
+test("concentration check prompt view model marks supplied results resolved", () => {
+  const model = createConcentrationCheckPromptViewModel({
+    checkRequests: [{
+      id: "concentration-check:actor:caster:0",
+      actorId: "caster",
+      actorRef: "actor:caster",
+      sourceRef: "actor:caster",
+      targetRef: "actor:caster",
+      dc: 10,
+      ability: "con",
+      saveKey: "concentration"
+    }],
+    rolls: {
+      "actor:caster": {
+        total: 16,
+        mode: "digital"
+      }
+    }
+  });
+
+  assert.equal(model.checks[0].state, CONCENTRATION_CHECK_PROMPT_STATES.RESOLVED);
+  assert.equal(model.checks[0].result.total, 16);
+  assert.equal(model.checks[0].result.mode, "digital");
+  assert.equal(model.commitCommand.type, UI_COMMAND_TYPES.COMMIT_CONCENTRATION_CHECK_RESULTS);
+  assert.deepEqual(model.commitCommand.requestIds, ["concentration-check:actor:caster:0"]);
+  assert.deepEqual(model.commitCommand.actorRefs, ["actor:caster"]);
+  assert.equal(model.summary.resolvedCount, 1);
+});
+
+test("concentration check prompt view model can hide physical-entry commands", () => {
+  const model = createConcentrationCheckPromptViewModel({
+    checkRequests: [{
+      id: "concentration-check:actor:caster:0",
+      actorId: "caster",
+      actorRef: "actor:caster",
+      sourceRef: "actor:caster",
+      targetRef: "actor:caster",
+      dc: 10
+    }],
+    allowPhysical: false
+  });
+
+  assert.equal(model.checks[0].physicalCommand, null);
+  assert.equal(model.checks[0].command.mode, "digital");
 });
