@@ -146,6 +146,29 @@ Creature = TokenGridFootprint = complete occupied-field set
 Therefore range, reach, AoE intersection, source-border Line origins, source-border Cone origins,
 future aura expansion, future movement, and future opportunity reach must use the entire footprint.
 
+## Tactical Area Helpers
+
+`module/helpers/tactical-areas.mjs` provides the current pure grid-native area foundation. It does
+not read the Foundry canvas and it does not decide ownership or UI state. It consumes plain
+topology fields, vertices, token footprints, and source policies.
+
+It currently provides:
+
+- `GridFootprint` creation
+- radial expansion by tactical layers
+- fixed-length line footprints
+- widening cone footprints
+- simple wall field paths
+- origin source eligibility
+- source-boundary selection requests
+- first-click boundary validation
+- preview/commit/resolution footprint identity
+- structured gridless limitations
+
+Square and hex behavior share the public helper API, but topology-specific behavior stays inside
+the helper. Gridless scenes return `GRIDLESS_UNSUPPORTED` for source-border placement until a real
+continuous-boundary design exists.
+
 ## Eligible Action Origins
 
 The tactical grid system must not decide ownership, companion, summon, or control rules. It should
@@ -174,6 +197,15 @@ Possible origin policies include:
 
 These policies should be extensible rather than hardcoded around companions, summons, pets, or
 similar feature categories.
+
+The current pure source resolver supports:
+
+- `self`
+- `eligible-controlled`
+- `self-and-eligible-controlled`
+
+It separates permission failures such as `TOKEN_NOT_CONTROLLED` from rules failures such as
+`SOURCE_NOT_ELIGIBLE`.
 
 ## Source-Border Placement
 
@@ -208,6 +240,8 @@ eligible source boundary vertex
 ```
 
 For fixed-length lines, the second click determines direction only. It does not shorten the line.
+The pure helper preserves this invariant by deriving configured range into tactical steps and using
+the second vertex only as direction unless variable length is explicitly requested.
 
 ## Cones
 
@@ -216,6 +250,8 @@ footprint is a grid-native widening pattern whose exact profile should be isolat
 footprint policy.
 
 Square and hex cone shapes may differ. That is correct.
+The current pure cone policy widens by tactical layer and is deliberately isolated so later rules
+can replace the widening profile without changing targeting or rendering.
 
 ## Radial Areas
 
@@ -275,6 +311,8 @@ preview footprint = committed footprint = resolved footprint
 ```
 
 Rendering follows mechanics. Mechanics must not approximate a decorative visual template.
+`previewSourceBoundaryArea()` returns the same `GridFootprint` structure for preview, commit, and
+resolution so a future renderer cannot accidentally preview different fields from the resolver.
 
 ## Future Reuse
 

@@ -324,6 +324,30 @@ export function adjacentFields(field, topology) {
   return directions.map(direction => addOffset(field, direction, normalizedTopology));
 }
 
+export function distanceAdjacentFields(field, topology) {
+  const normalizedTopology = normalizeTopology(topology);
+  const directions = normalizedTopology === GRID_TOPOLOGIES.HEX ? HEX_DIRECTIONS : SQUARE_DISTANCE_DIRECTIONS;
+  return directions.map(direction => addOffset(field, direction, normalizedTopology));
+}
+
+export function getGridDirections(topology, {includeDiagonals=false}={}) {
+  const normalizedTopology = normalizeTopology(topology);
+  if ( normalizedTopology === GRID_TOPOLOGIES.HEX ) return HEX_DIRECTIONS.map(clonePlain);
+  return (includeDiagonals ? SQUARE_DISTANCE_DIRECTIONS : SQUARE_DIRECTIONS).map(clonePlain);
+}
+
+export function offsetGridField(field, offset, topology) {
+  return addOffset(field, offset, normalizeTopology(topology));
+}
+
+export function normalizeGridField(field, topology) {
+  return cloneField(field, normalizeTopology(topology));
+}
+
+export function sortGridFields(fields, topology) {
+  return sortFields(fields, normalizeTopology(topology));
+}
+
 export function fieldKey(field, topology=GRID_TOPOLOGIES.SQUARE) {
   const normalizedTopology = normalizeTopology(topology);
   if ( normalizedTopology === GRID_TOPOLOGIES.HEX ) return `hex:${Number(field.q)},${Number(field.r)}`;

@@ -31,6 +31,10 @@ The initial area foundation should support:
 Shapes should not own source eligibility or placement rules. A cone can originate from a creature
 boundary, from a free vertex, or from another future policy without duplicating cone geometry.
 
+The current pure helper is `module/helpers/tactical-areas.mjs`. It implements grid-native radial,
+line, cone, and simple wall footprints using tactical fields rather than Euclidean overlap tests.
+It is a domain helper; Foundry Scene/Grid adapters should feed it snapped fields and vertices later.
+
 ## Placement
 
 Creature-originated lines and cones normally use:
@@ -43,6 +47,10 @@ Radial areas may be self-centered, target-centered, token-centered, or placed at
 origin according to the action definition.
 
 Walls may use endpoint semantics rather than direction-only semantics.
+
+For source-boundary lines and cones, the first click selects an eligible source Token boundary
+vertex. The second click determines direction. Fixed-length effects use configured range for
+length; the second click does not shorten them.
 
 ## Static Targeting
 
@@ -59,6 +67,9 @@ This preserves large-token behavior and avoids center-point targeting bugs.
 The current pure bridge in `module/helpers/area-targeting.mjs` already consumes full
 `TokenGridFootprint`-style occupied fields. Large, Huge, and Gargantuan targets must appear once in
 the TargetSet when any occupied field overlaps an Area under the default any-overlap policy.
+
+The `GridFootprint` produced for preview must be the same field set committed and later consumed by
+targeting. Rendering should follow that field set rather than becoming a separate mechanical input.
 
 ## Persistent Areas
 
@@ -77,6 +88,9 @@ They should not use independent Euclidean circle targeting.
 
 Gridless scenes need a separate `GridlessGeometry` strategy. Until continuous geometry is designed,
 area code should return structured limitations rather than faking tactical fields.
+
+The pure helper currently returns `GRIDLESS_UNSUPPORTED` for gridded source-border operations on
+gridless scenes.
 
 ## Implementation Gate
 
