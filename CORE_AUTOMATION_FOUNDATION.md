@@ -33,6 +33,8 @@ The finished game system name is **Wild Path**.
   refinement decisions, selection requests, and per-target override carriers.
 - `module/helpers/inventory.mjs` provides pure inventory spaces, access grants, weight policies,
   transfer planning/commit, capacity checks, and containment-cycle prevention.
+- `module/helpers/combat-timeline.mjs` provides pure combat timeline events, duration ticking,
+  rest expiry, and scheduled event matching.
 
 ## Resolution Pipeline
 
@@ -110,6 +112,8 @@ document mutation. See `docs/architecture/targeting.md` and `docs/architecture/i
 See `docs/architecture/product-experience.md` for the product-facing direction, and
 `docs/architecture/action-economy.md` for the current economy/movement foundation. See
 `docs/architecture/homebrew-content-builder.md` for the finished-product builder standard.
+See `docs/architecture/combat-timeline.md` for the combat timeline, durations, and scheduler
+foundation.
 
 ## Near-Term Order
 
