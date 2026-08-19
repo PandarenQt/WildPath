@@ -18,13 +18,14 @@ import WildPathActorSheet from "./module/applications/actor-sheet.mjs";
 import WildPathItemSheet from "./module/applications/item-sheet.mjs";
 
 import {getIncomingCombatant} from "./module/helpers/combat.mjs";
+import {MOVEMENT_MEASUREMENT_MODES} from "./module/helpers/movement.mjs";
 
 /* -------------------------------------------- */
 /*  Init                                         */
 /* -------------------------------------------- */
 
 Hooks.once("init", () => {
-  console.log("WildPath | Initializing the WildPath game system");
+  console.log("Wild Path | Initializing the Wild Path game system");
 
   // Expose system config globally, mirroring dnd5e's CONFIG.DND5E / crucible's SYSTEM.
   CONFIG.WILDPATH = WILDPATH;
@@ -72,6 +73,19 @@ Hooks.once("init", () => {
     name: c.name,
     img: c.img
   }));
+
+  game.settings.register("wildpath", "movementMeasurementMode", {
+    name: "WILDPATH.SETTINGS.MovementMeasurementMode.Name",
+    hint: "WILDPATH.SETTINGS.MovementMeasurementMode.Hint",
+    scope: "world",
+    config: true,
+    type: String,
+    choices: {
+      [MOVEMENT_MEASUREMENT_MODES.DISTANCE]: "WILDPATH.SETTINGS.MovementMeasurementMode.Distance",
+      [MOVEMENT_MEASUREMENT_MODES.FIELDS]: "WILDPATH.SETTINGS.MovementMeasurementMode.Fields"
+    },
+    default: WILDPATH.DEFAULT_MOVEMENT_MEASUREMENT_MODE
+  });
 
   // Sheet registration
   Actors.registerSheet("wildpath", WildPathActorSheet, {

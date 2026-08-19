@@ -1,5 +1,5 @@
 /**
- * Core system configuration object for WildPath.
+ * Core system configuration object for Wild Path.
  * Everything here is intentionally data-driven so a world or module can extend/override
  * entries (add resources, conditions, modifier types, abilities) without touching code.
  * @type {object}
@@ -184,3 +184,82 @@ WILDPATH.CONDITIONS = {
  * @type {string[]}
  */
 WILDPATH.ACTION_COST_RESOURCES = ["action", "bonus", "reaction", "movement"];
+
+/* -------------------------------------------- */
+/*  Action Economy                               */
+/* -------------------------------------------- */
+
+/**
+ * Built-in economy capability identifiers. Custom resources may advertise these capabilities
+ * or provide their own new capability strings; this is deliberately not a closed enum.
+ * @type {Record<string, string>}
+ */
+WILDPATH.ECONOMY_CAPABILITIES = {
+  action: "action",
+  bonusAction: "bonus-action",
+  reaction: "reaction",
+  movement: "movement",
+  legendaryAction: "legendary-action",
+  lairAction: "lair-action"
+};
+
+/**
+ * Built-in spendable economy resource definitions. The pure economy service accepts these
+ * definitions plus arbitrary custom definitions with the same shape.
+ * @type {Record<string, object>}
+ */
+WILDPATH.ECONOMY_RESOURCES = {
+  "economy.action": {
+    label: "WILDPATH.RESOURCES.Action",
+    category: "action",
+    unit: "uses",
+    paymentCapabilities: ["action"],
+    refreshPolicies: ["turnStart"]
+  },
+  "economy.bonus-action": {
+    label: "WILDPATH.RESOURCES.BonusAction",
+    category: "bonus-action",
+    unit: "uses",
+    paymentCapabilities: ["bonus-action"],
+    refreshPolicies: ["turnStart"]
+  },
+  "economy.reaction": {
+    label: "WILDPATH.RESOURCES.Reaction",
+    category: "reaction",
+    unit: "uses",
+    paymentCapabilities: ["reaction"],
+    refreshPolicies: ["turnStart"]
+  },
+  "economy.movement": {
+    label: "WILDPATH.RESOURCES.Movement",
+    category: "movement",
+    unit: "movement",
+    paymentCapabilities: ["movement"],
+    refreshPolicies: ["turnStart"]
+  },
+  "economy.legendary-action": {
+    label: "WILDPATH.RESOURCES.LegendaryAction",
+    category: "legendary-action",
+    unit: "points",
+    paymentCapabilities: ["legendary-action"],
+    refreshPolicies: ["turnStart"]
+  },
+  "economy.lair-action": {
+    label: "WILDPATH.RESOURCES.LairAction",
+    category: "lair-action",
+    unit: "uses",
+    paymentCapabilities: ["lair-action"],
+    refreshPolicies: ["roundStart"]
+  }
+};
+
+/* -------------------------------------------- */
+/*  Movement Measurement                         */
+/* -------------------------------------------- */
+
+WILDPATH.MOVEMENT_MEASUREMENT_MODES = {
+  distance: "distance",
+  fields: "fields"
+};
+
+WILDPATH.DEFAULT_MOVEMENT_MEASUREMENT_MODE = "distance";

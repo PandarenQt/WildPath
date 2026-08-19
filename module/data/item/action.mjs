@@ -1,6 +1,6 @@
 import WildPathBaseItem from "./base.mjs";
 import {WILDPATH} from "../../config.mjs";
-import {computeActionCostMap} from "../../helpers/actions.mjs";
+import {computeActionCostMap, computeActivationCost} from "../../helpers/actions.mjs";
 
 const {SchemaField, NumberField, ArrayField, StringField} = foundry.data.fields;
 
@@ -40,5 +40,14 @@ export default class WildPathAction extends WildPathBaseItem {
    */
   getCostMap() {
     return computeActionCostMap(this.cost);
+  }
+
+  /**
+   * Convert this Action's current cost schema into generic activation requirements. Future
+   * resolvers should prefer this over directly spending fixed Actor resource ids.
+   * @returns {{allOf: object[]}}
+   */
+  getActivationCost() {
+    return computeActivationCost(this.cost);
   }
 }

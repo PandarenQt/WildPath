@@ -1,5 +1,12 @@
 import {WILDPATH} from "../config.mjs";
 
+export const ACTION_COST_CAPABILITIES = Object.freeze({
+  action: "action",
+  bonus: "bonus-action",
+  reaction: "reaction",
+  movement: "movement"
+});
+
 /**
  * Compute the full set of resource deltas an Action's `cost` schema would spend, expressed as a
  * plain `{resourceId: amount}` map. Pure function (no Foundry globals) so it is directly
@@ -28,4 +35,27 @@ export function computeActionCostMap(cost, builtinResources=WILDPATH.ACTION_COST
   }
 
   return deltas;
+}
+
+/* -------------------------------------------- */
+
+/**
+ * Convert the current Action cost schema into activation requirements for the generic payment
+ * resolver. This keeps existing Item data compatible while moving future resolution toward
+ * "what the action requires" instead of "which exact Actor field gets decremented".
+ * @param {object} cost
+ * @param {Record<string, string>} [capabilities]
+ * @returns {{allOf: object[]}}
+ */
+export function computeActivationCost(cost, capabilities=ACTION_COST_CAPABILITIES) {
+  const allOf = [];
+  for ( const [resource, capability] of Object.entries(capabilities) ) {
+    const amount = cost?.[resource];
+    if ( amount > 0 ) allOf.push({capability, amount});
+  }
+  for ( const custom of cost?.custom ?? [] ) {
+    if ( !custom.resource || !(custom.amount > 0) ) continue;
+    allOf.push({capability: custom.resource, amount: custom.amount});
+  }
+  return {allOf};
 }

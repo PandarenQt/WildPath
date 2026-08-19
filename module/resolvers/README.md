@@ -9,6 +9,8 @@ foundation needs, per `AGENTS.md` sections 4 and 8 and the architecture notes in
 - `WildPathActor#canUseAction` / `#useAction` currently validate and spend an Action item's
   resource cost through `computeActionCostMap`. There is no targeting, rolling, damage, or
   effect application pipeline yet.
+- `module/helpers/action-economy.mjs` now provides generic payment discovery, payment commit, and
+  refresh primitives that `ResourceResolver` should wrap at the Foundry boundary.
 - `WildPathActor#getStatistic(domain)` plus `WildPathStatistic`/`WildPathModifier` are the
   calculation engine resolvers should build on for attack bonuses, save DCs, damage bonuses,
   resistance, and similar derived values.

@@ -1,5 +1,6 @@
 import {WildPathModifier, WildPathStatistic} from "../helpers/modifiers.mjs";
 import WildPathConditionEffect from "../data/active-effect/condition.mjs";
+import {economyResourcesFromActorResources, resolvePaymentOptions} from "../helpers/action-economy.mjs";
 
 /**
  * The Actor document subclass for the WildPath system.
@@ -142,6 +143,32 @@ export default class WildPathActor extends Actor {
    */
   canUseAction(action) {
     return this.canAfford(action.system.getCostMap());
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Discover generic economy payment options for an Action item without mutating Actor state.
+   * Future resolvers should use this shape before selecting and committing a payment plan.
+   * @param {Item} action
+   * @param {object} [options]
+   * @param {object} [options.policies]
+   * @param {object} [options.actionContext]
+   * @returns {object}
+   */
+  getActionPaymentOptions(action, {policies={}, actionContext={}}={}) {
+    return resolvePaymentOptions({
+      cost: action.system.getActivationCost(),
+      resources: economyResourcesFromActorResources(this.system),
+      action: {
+        id: action.id,
+        type: action.type,
+        name: action.name,
+        tags: action.system.tags ?? [],
+        ...actionContext
+      },
+      policies
+    });
   }
 
   /* -------------------------------------------- */

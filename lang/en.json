@@ -1,7 +1,15 @@
 {
   "WILDPATH": {
-    "SheetActor": "WildPath Actor Sheet",
-    "SheetItem": "WildPath Item Sheet",
+    "SheetActor": "Wild Path Actor Sheet",
+    "SheetItem": "Wild Path Item Sheet",
+    "SETTINGS": {
+      "MovementMeasurementMode": {
+        "Name": "Movement Measurement",
+        "Hint": "Choose whether turn movement budgets are counted as scene distance or traversed grid fields.",
+        "Distance": "Distance",
+        "Fields": "Fields"
+      }
+    },
     "ABILITIES": {
       "Might": "Might",
       "Agility": "Agility",
@@ -15,7 +23,9 @@
       "Action": "Action",
       "BonusAction": "Bonus Action",
       "Reaction": "Reaction",
-      "Movement": "Movement"
+      "Movement": "Movement",
+      "LegendaryAction": "Legendary Action",
+      "LairAction": "Lair Action"
     },
     "MODIFIERS": {
       "Untyped": "Untyped",
