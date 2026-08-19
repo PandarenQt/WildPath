@@ -1,6 +1,7 @@
 import {WildPathModifier, WildPathStatistic} from "../helpers/modifiers.mjs";
 import WildPathConditionEffect from "../data/active-effect/condition.mjs";
 import {executeActionResolution} from "../resolvers/action-resolver.mjs";
+import {executeConditionEffect} from "../resolvers/effect-resolver.mjs";
 import {resolveActorResourcePayment} from "../resolvers/resource-resolver.mjs";
 
 /**
@@ -254,7 +255,13 @@ export default class WildPathActor extends Actor {
    * @returns {Promise<ActiveEffect|null>}
    */
   async toggleCondition(type, {levels=1}={}) {
-    return WildPathConditionEffect.applyDelta(type, this, levels);
+    const result = await executeConditionEffect({
+      actor: this,
+      conditionId: type,
+      levels,
+      commitConditionPlan: ({actor, plan}) => WildPathConditionEffect.applyDelta(plan.conditionId, actor, plan.levels)
+    });
+    return result.ok ? result.effect : null;
   }
 
   /* -------------------------------------------- */

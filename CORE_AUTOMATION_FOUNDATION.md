@@ -70,6 +70,9 @@ The finished game system name is **Wild Path**.
 - `module/resolvers/damage-adjustment-resolver.mjs` applies per-target immunity, resistance,
   vulnerability, damage reduction, and absorption that can convert incoming damage into healing,
   shields, or other resources before durability mutation planning.
+- `module/resolvers/effect-resolver.mjs` plans condition effect changes as explicit
+  create/update/delete/noop mutation plans and is now the resolver boundary used by
+  `WildPathActor#toggleCondition`.
 - `module/helpers/weapon-sizing.mjs` provides the WeaponSizePolicy foundation: size comparison,
   2014/2024/house policy providers, structured wieldability results, and structured
   weapon-size damage scaling for explicitly marked damage components.
@@ -117,7 +120,8 @@ The first resolver implementations should live under `module/resolvers/`:
 - `SaveResolver`: resolves saving throws against DCs.
 - `DamageResolver`: computes structured damage results before Actor mutation.
 - `HealingResolver`: computes structured healing/restoration results before Actor mutation.
-- `EffectResolver`: applies and removes ActiveEffects and conditions.
+- `EffectResolver`: currently plans condition changes; should grow into applying/removing
+  ActiveEffects as resolved consequences.
 - `ResourceResolver`: centralizes spending, refunds, and resource validation.
 - `ReactionResolver`: supports interrupt windows and reaction prompts.
 - `AreaResolver`: handles instantaneous and persistent areas plus movement/turn triggers.
@@ -170,6 +174,7 @@ the current target-aware, attack-capable, and save-capable ActionResolver entry 
 `docs/architecture/save-resolver.md` for the current pure save-outcome resolver. See
 `docs/architecture/damage-resolver.md` for the current structured damage-component foundation. See
 `docs/architecture/durability-resolution.md` for the current Actor durability mutation planner. See
+`docs/architecture/effect-resolver.md` for the current condition-first EffectResolver boundary. See
 `docs/architecture/weapon-size.md` for the WeaponSizePolicy foundation and its separation from
 Heavy, Reach, creature size, and damage execution. See
 `docs/architecture/abstraction-layers.md` for the string-reference boundary that keeps rules,
@@ -179,8 +184,10 @@ current action-bar and combat-carousel view-model foundation. See
 
 ## Near-Term Order
 
-1. Start writing new pure contract-heavy modules in TypeScript once a pinned `typescript`
+1. Add generic ActiveEffect create/update/delete planning on top of the condition-first
+   EffectResolver boundary.
+2. Wire planned condition/effect consequences into ActionResolver.
+3. Start writing new pure contract-heavy modules in TypeScript once a pinned `typescript`
    dev dependency and `typecheck` script are added.
-2. Add effect slices one at a time.
 
 Keep every slice small, testable, and compatible with synthetic Token Actors.

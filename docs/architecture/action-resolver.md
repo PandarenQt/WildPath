@@ -94,7 +94,7 @@ The current resolver does not:
 - derive attack bonuses or target defenses from Actor documents
 - derive save bonuses or save DCs from Actor documents
 - roll dice
-- apply ActiveEffects
+- apply condition/effect consequences
 - open reaction windows
 - create chat output
 
@@ -107,6 +107,6 @@ slices will extend.
 
 ## Next Resolver Slice
 
-The next resolver slice should start effect application in small pieces: conditions first, then
-general ActiveEffect creation/removal. Direct Actor durability mutation remains outside
-DamageResolver itself.
+The next resolver slice should wire condition/effect consequences into ActionResolver or extend
+EffectResolver from conditions to generic ActiveEffect creation/removal. Direct Actor durability
+mutation remains outside DamageResolver itself.

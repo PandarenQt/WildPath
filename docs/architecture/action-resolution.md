@@ -57,6 +57,9 @@ changing Actor, Item, ActiveEffect, Combat, or Scene state.
 boundary. It commits prepared operations in order, requires rollback updates before any non-noop
 write, and rolls already-committed operations back in reverse order if a later commit fails.
 
+`module/resolvers/effect-resolver.mjs` is the current condition-first effect planner. It can produce
+condition mutation plans without writing ActiveEffect documents.
+
 ## Current Boundary
 
 This helper does not:

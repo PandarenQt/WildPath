@@ -149,6 +149,38 @@ export interface ResolutionTransactionResult {
   readonly metadata: Readonly<Record<string, unknown>>;
 }
 
+export interface ConditionEffectMutationPlan {
+  readonly type: "conditionEffect";
+  readonly conditionId: string;
+  readonly levels: number;
+  readonly action: "create" | "update" | "delete" | "noop";
+  readonly stacking: boolean;
+  readonly maxLevel: number | null;
+  readonly fromLevel: number | null;
+  readonly toLevel: number | null;
+  readonly existingEffectId: string | null;
+  readonly existingEffectUuid: string | null;
+  readonly target: unknown;
+  readonly definition: Readonly<Record<string, unknown>>;
+  readonly metadata: Readonly<Record<string, unknown>>;
+}
+
+export interface ConditionEffectResult {
+  readonly ok: boolean;
+  readonly code: string;
+  readonly resolver: "EffectResolver";
+  readonly effectType: "condition";
+  readonly conditionId: string | null;
+  readonly action?: ConditionEffectMutationPlan["action"];
+  readonly levels?: number;
+  readonly stacking?: boolean;
+  readonly fromLevel?: number | null;
+  readonly toLevel?: number | null;
+  readonly mutationPlan: ConditionEffectMutationPlan | null;
+  readonly committed?: boolean;
+  readonly reason?: string | null;
+}
+
 export interface ResolverSuccess<TCode extends string = "OK", TData extends object = Record<string, never>> {
   readonly ok: true;
   readonly code: TCode;
