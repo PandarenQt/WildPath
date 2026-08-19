@@ -17,6 +17,9 @@ foundation needs, per `AGENTS.md` sections 4 and 8 and the architecture notes in
 - `module/helpers/action-resolution.mjs` now provides the plain `ActionContext` and `ActionResult`
   envelopes that resolver modules should share for steps, events, consequences, mutation plans,
   errors, and audit traces.
+- `module/resolvers/resource-resolver.mjs` now wraps action-economy payment discovery and maps
+  selected payment plans to Actor update paths. `WildPathActor#useAction` uses it for the current
+  cost-only behavior.
 - `WildPathActor#getStatistic(domain)` plus `WildPathStatistic`/`WildPathModifier` are the
   calculation engine resolvers should build on for attack bonuses, save DCs, damage bonuses,
   resistance, and similar derived values.
@@ -39,7 +42,7 @@ resolvers should not call UI code.
 | `DamageResolver` | `module/resolvers/damage-resolver.mjs` | Resolve damage components through resistance, immunity, and vulnerability into structured results. |
 | `HealingResolver` | `module/resolvers/healing-resolver.mjs` | Resolve healing/resource restoration as structured results before mutation. |
 | `EffectResolver` | `module/resolvers/effect-resolver.mjs` | Apply/remove ActiveEffects and conditions as resolved consequences of actions. |
-| `ResourceResolver` | `module/resolvers/resource-resolver.mjs` | Generalize action cost validation, spending, and refund-on-cancel behavior. |
+| `ResourceResolver` | `module/resolvers/resource-resolver.mjs` | Generalizes action cost validation and payment mutation planning; refund-on-cancel waits for transaction support. |
 | `ReactionResolver` | `module/resolvers/reaction-resolver.mjs` | Offer eligible reactions at defined interrupt points, then resume the parent resolution. |
 | `AreaResolver` | `module/resolvers/area-resolver.mjs` | Resolve instantaneous and persistent areas plus enter/leave/start-turn/end-turn triggers. |
 

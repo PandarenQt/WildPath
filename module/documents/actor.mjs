@@ -1,6 +1,9 @@
 import {WildPathModifier, WildPathStatistic} from "../helpers/modifiers.mjs";
 import WildPathConditionEffect from "../data/active-effect/condition.mjs";
-import {economyResourcesFromActorResources, resolvePaymentOptions} from "../helpers/action-economy.mjs";
+import {
+  commitActorResourceMutationPlan,
+  resolveActorResourcePayment
+} from "../resolvers/resource-resolver.mjs";
 
 /**
  * The Actor document subclass for the WildPath system.
@@ -141,8 +144,35 @@ export default class WildPathActor extends Actor {
    * @param {Item} action   An Item of type "action".
    * @returns {boolean}
    */
-  canUseAction(action) {
-    return this.canAfford(action.system.getCostMap());
+  canUseAction(action, options={}) {
+    return this.resolveActionPayment(action, options).ok;
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Plan this Actor's resource payment for an Action item without mutating Actor state.
+   * @param {Item} action
+   * @param {object} [options]
+   * @param {object} [options.policies]
+   * @param {object} [options.actionContext]
+   * @param {string|null} [options.selectedPaymentOptionId]
+   * @returns {object}
+   */
+  resolveActionPayment(action, {policies={}, actionContext={}, selectedPaymentOptionId=null}={}) {
+    return resolveActorResourcePayment({
+      actorSystem: this.system,
+      cost: action.system.getActivationCost(),
+      action: {
+        id: action.id,
+        type: action.type,
+        name: action.name,
+        tags: action.system.tags ?? [],
+        ...actionContext
+      },
+      policies,
+      selectedPaymentOptionId
+    });
   }
 
   /* -------------------------------------------- */
@@ -157,18 +187,7 @@ export default class WildPathActor extends Actor {
    * @returns {object}
    */
   getActionPaymentOptions(action, {policies={}, actionContext={}}={}) {
-    return resolvePaymentOptions({
-      cost: action.system.getActivationCost(),
-      resources: economyResourcesFromActorResources(this.system),
-      action: {
-        id: action.id,
-        type: action.type,
-        name: action.name,
-        tags: action.system.tags ?? [],
-        ...actionContext
-      },
-      policies
-    });
+    return this.resolveActionPayment(action, {policies, actionContext}).discovery;
   }
 
   /* -------------------------------------------- */
@@ -179,8 +198,10 @@ export default class WildPathActor extends Actor {
    * @param {Item} action   An Item of type "action".
    * @returns {Promise<boolean>}   Whether the cost was successfully paid.
    */
-  async useAction(action) {
-    return this.spendResources(action.system.getCostMap());
+  async useAction(action, options={}) {
+    const payment = this.resolveActionPayment(action, options);
+    if ( !payment.ok ) return false;
+    return commitActorResourceMutationPlan(this, payment.mutationPlan);
   }
 
   /* -------------------------------------------- */

@@ -96,9 +96,17 @@ No schema migration is introduced by this foundation. `economyResourcesFromActor
 adapts the current Actor `system.resources` and `system.pools` shape into generic economy
 resources, so future resolvers can use the new payment model before persisted Actor data changes.
 
+## Resource Resolver
+
+`module/resolvers/resource-resolver.mjs` now wraps these primitives for Actor action payments. It
+discovers payment options, selects a plan, maps economy resources back to Actor update paths, and
+commits through a small `actor.update()` adapter.
+
+Current `WildPathActor#useAction()` uses this resolver while still only spending costs. It does not
+perform targeting, rolls, damage, healing, effects, or reaction prompts yet.
+
 ## Deferred Work
 
-- `ResourceResolver` should become the Foundry-facing commit layer.
 - `ActionResolver` should select payment timing inside the full action pipeline.
 - `ResolutionTransaction` should own rollback/commit ordering.
 - `ReactionEngine` should decide when reaction windows exist.
