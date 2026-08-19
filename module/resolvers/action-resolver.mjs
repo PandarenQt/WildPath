@@ -20,12 +20,17 @@ import {
   resolveActorResourcePayment
 } from "./resource-resolver.mjs";
 import {resolveAttackTargets} from "./attack-resolver.mjs";
+import {
+  DAMAGE_RESOLVER_CODES,
+  resolveDamageTargets
+} from "./damage-resolver.mjs";
 import {resolveActionTargets} from "./target-resolver.mjs";
 
 export const ACTION_RESOLVER_CODES = Object.freeze({
   OK: "OK",
   TARGETING_FAILED: "TARGETING_FAILED",
   ATTACK_FAILED: "ATTACK_FAILED",
+  DAMAGE_FAILED: "DAMAGE_FAILED",
   PAYMENT_UNAVAILABLE: "PAYMENT_UNAVAILABLE",
   RESOURCE_COMMIT_FAILED: "RESOURCE_COMMIT_FAILED"
 });
@@ -39,6 +44,7 @@ export function planActionResolution({
   targets=[],
   targeting=null,
   attack=null,
+  damage=null,
   context={},
   policies={},
   selectedPaymentOptionId=null,
@@ -98,8 +104,9 @@ export function planActionResolution({
     });
   }
 
+  let attackResolution = null;
   if ( shouldResolveAttack(attack) ) {
-    const attackResolution = resolveAttackTargets({
+    attackResolution = resolveAttackTargets({
       roll: attack.roll,
       targetContexts: attack.targetContexts ?? targetResolution?.targetContexts ?? [],
       targets: attack.targets ?? (targetResolution ? [] : actionContext.targets),
@@ -129,6 +136,32 @@ export function planActionResolution({
         attackResolution
       }],
       data: {attackResolution}
+    });
+  }
+
+  if ( shouldResolveDamage(damage) ) {
+    const damageResolution = resolveActionDamage({
+      damage,
+      targetResolution,
+      attackResolution,
+      actionContext
+    });
+    if ( !damageResolution.ok ) {
+      return failActionResult(result, {
+        stage: ACTION_RESOLUTION_STAGES.CONSEQUENCE,
+        code: ACTION_RESOLVER_CODES.DAMAGE_FAILED,
+        reason: damageResolution.code,
+        data: {damageResolution}
+      });
+    }
+
+    result = addResolutionStep(result, {
+      stage: ACTION_RESOLUTION_STAGES.CONSEQUENCE,
+      consequences: [{
+        type: "damageResolved",
+        damageResolution
+      }],
+      data: {damageResolution}
     });
   }
 
@@ -187,6 +220,7 @@ export async function executeActionResolution({
   targets=[],
   targeting=null,
   attack=null,
+  damage=null,
   context={},
   policies={},
   selectedPaymentOptionId=null
@@ -198,6 +232,7 @@ export async function executeActionResolution({
     targets,
     targeting,
     attack,
+    damage,
     context,
     policies,
     selectedPaymentOptionId,
@@ -273,6 +308,10 @@ function shouldResolveAttack(attack) {
   return !!attack;
 }
 
+function shouldResolveDamage(damage) {
+  return !!damage;
+}
+
 function finalTargetRefs(targetResolution) {
   return (targetResolution.refinement?.finalTargets ?? []).map(candidate => candidate.target ?? candidate);
 }
@@ -298,4 +337,55 @@ function attackEvents(actionContext, attackResolution) {
     }));
   }
   return events;
+}
+
+function resolveActionDamage({damage, targetResolution, attackResolution, actionContext}) {
+  if ( attackResolution && !attackResolution.hits.length ) {
+    return emptyDamageResolutionFromMisses(attackResolution, {
+      action: actionContext.action,
+      source: actionContext.source,
+      ...(damage.context ?? {})
+    });
+  }
+
+  const targetContexts = damage.targetContexts
+    ?? damageTargetContextsFromAttack(attackResolution)
+    ?? targetResolution?.targetContexts
+    ?? [];
+  return resolveDamageTargets({
+    components: damage.components ?? [],
+    targetContexts,
+    targets: damage.targets ?? (targetContexts.length ? [] : actionContext.targets),
+    context: {
+      action: actionContext.action,
+      source: actionContext.source,
+      ...(damage.context ?? {})
+    }
+  });
+}
+
+function damageTargetContextsFromAttack(attackResolution) {
+  if ( !attackResolution ) return null;
+  return attackResolution.hits.map(hit => hit.targetContext ?? {target: hit.target, selected: true});
+}
+
+function emptyDamageResolutionFromMisses(attackResolution, context) {
+  return {
+    ok: true,
+    code: DAMAGE_RESOLVER_CODES.OK,
+    results: [],
+    totals: {},
+    failures: [],
+    skipped: attackResolution.misses.map(miss => ({
+      ok: true,
+      code: DAMAGE_RESOLVER_CODES.TARGET_SKIPPED,
+      target: miss.target,
+      targetContext: miss.targetContext ?? null,
+      components: [],
+      total: 0,
+      byDamageType: {},
+      reason: "attack did not hit"
+    })),
+    context
+  };
 }

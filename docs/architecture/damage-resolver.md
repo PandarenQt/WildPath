@@ -17,6 +17,10 @@ The resolver accepts already-known numeric component amounts. It does not roll d
 preserved as structural metadata so later systems can inspect, scale, or double dice before rolls
 are finalized.
 
+`ActionResolver` can now call this resolver as an optional consequence step after attack outcomes
+and before resource payment planning. When an attack misses, supplied damage is skipped rather than
+turning the action into a failed resolution.
+
 ## What It Does Now
 
 `resolveDamageComponents()`:
@@ -72,6 +76,6 @@ WeaponSizePolicy should scale only components marked with `weapon-size` metadata
 
 ## Next Integration
 
-The next damage slice can wire DamageResolver into ActionResolver after attack outcomes. Foundry
-adapters still need to gather damage rolls and Actor durability fields before any document mutation
-is possible.
+The next damage slice can apply WeaponSizePolicy to manufactured weapon damage components before
+damage resolution. Foundry adapters still need to gather damage rolls and Actor durability fields
+before any document mutation is possible.

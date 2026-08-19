@@ -50,6 +50,10 @@ function attackCandidate(id, defense=null) {
   };
 }
 
+function damageComponent(id="base", amount=6, damageType="slashing") {
+  return {id, amount, damageType};
+}
+
 test("ActionResolver plans current cost-only action resolution without mutating Actor system", () => {
   const system = actorSystem(1);
   const result = planActionResolution({
@@ -142,6 +146,92 @@ test("ActionResolver can resolve an attack after targeting and before payment", 
   assert.deepEqual(attackStep.data.attackResolution.hits.map(hit => hit.target.id), ["orc"]);
   assert.deepEqual(attackStep.data.attackResolution.misses.map(miss => miss.target.id), ["knight"]);
   assert.deepEqual(result.mutationPlans[0].plan.updates, {"system.resources.action.value": 0});
+});
+
+test("ActionResolver can resolve damage for attack hits before payment", () => {
+  const result = planActionResolution({
+    actorSystem: actorSystem(1),
+    action: action(),
+    source: {actorId: "actor-a"},
+    targeting: {
+      required: true,
+      candidates: [
+        attackCandidate("orc", 14),
+        attackCandidate("knight", 19)
+      ]
+    },
+    attack: {
+      roll: {total: 17, die: 12}
+    },
+    damage: {
+      components: [damageComponent("slash", 6, "slashing")]
+    }
+  });
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(result.steps.map(step => step.stage), [
+    ACTION_RESOLUTION_STAGES.VALIDATION,
+    ACTION_RESOLUTION_STAGES.TARGETING,
+    ACTION_RESOLUTION_STAGES.ROLL,
+    ACTION_RESOLUTION_STAGES.CONSEQUENCE,
+    ACTION_RESOLUTION_STAGES.RESOURCE_PAYMENT,
+    ACTION_RESOLUTION_STAGES.COMPLETE
+  ]);
+  const damageStep = result.steps.find(step => step.stage === ACTION_RESOLUTION_STAGES.CONSEQUENCE);
+  assert.deepEqual(damageStep.data.damageResolution.totals, {orc: 6});
+  assert.deepEqual(damageStep.data.damageResolution.results.map(target => target.target.id), ["orc"]);
+  assert.deepEqual(result.consequences.map(consequence => consequence.type), [
+    "targetsSelected",
+    "attackResolved",
+    "damageResolved",
+    "resourcePayment"
+  ]);
+  assert.deepEqual(result.mutationPlans[0].plan.updates, {"system.resources.action.value": 0});
+});
+
+test("ActionResolver skips damage when an attack misses but still plans payment", () => {
+  const result = planActionResolution({
+    actorSystem: actorSystem(1),
+    action: action(),
+    source: {actorId: "actor-a"},
+    targeting: {
+      required: true,
+      candidates: [attackCandidate("armored", 20)]
+    },
+    attack: {
+      roll: {total: 12, die: 7}
+    },
+    damage: {
+      components: [damageComponent("slash", 6, "slashing")]
+    }
+  });
+
+  assert.equal(result.ok, true);
+  const damageStep = result.steps.find(step => step.stage === ACTION_RESOLUTION_STAGES.CONSEQUENCE);
+  assert.deepEqual(damageStep.data.damageResolution.totals, {});
+  assert.deepEqual(damageStep.data.damageResolution.skipped.map(skip => skip.target.id), ["armored"]);
+  assert.equal(damageStep.data.damageResolution.skipped[0].reason, "attack did not hit");
+  assert.equal(result.events.some(event => event.type === AUTOMATION_EVENT_TYPES.PAYMENT_REQUIRED), true);
+  assert.deepEqual(result.mutationPlans[0].plan.updates, {"system.resources.action.value": 0});
+});
+
+test("ActionResolver stops before payment when damage data is invalid", () => {
+  const result = planActionResolution({
+    actorSystem: actorSystem(1),
+    action: action(),
+    source: {actorId: "actor-a"},
+    targets: [{id: "target-a", actorId: "actor-b", disposition: "enemy"}],
+    damage: {
+      components: [{id: "missing-amount", damageType: "fire"}]
+    }
+  });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.code, ACTION_RESOLVER_CODES.DAMAGE_FAILED);
+  assert.equal(result.steps.at(-1).stage, ACTION_RESOLUTION_STAGES.CONSEQUENCE);
+  assert.equal(result.errors[0].reason, "MISSING_AMOUNT");
+  assert.equal(result.events.some(event => event.type === AUTOMATION_EVENT_TYPES.PAYMENT_REQUIRED), false);
+  assert.equal(result.mutationPlans.length, 0);
 });
 
 test("ActionResolver stops before payment when attack data is invalid", () => {

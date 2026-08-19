@@ -11,8 +11,8 @@ The finished game system name is **Wild Path**.
 
 - Actor and Item data models define abilities, resources, custom pools, actions, gear, features,
   modifiers, and conditions.
-- `WildPathActor#useAction` spends an Action item's resources only. It does not resolve targets,
-  attacks, saves, damage, healing, effects, reactions, or areas.
+- `WildPathActor#useAction` currently follows the sheet-driven cost-only path. The resolver layer
+  can already accept plain target, attack, and damage data from future Foundry adapters.
 - `WildPathActor#getStatistic(domain)` and `WildPathStatistic` are the current calculation engine.
   New mechanics should build on that domain/modifier model rather than creating one-off math.
 - Resource max calculation is idempotent: persisted `base`/`bonus` values combine with transient
@@ -43,8 +43,8 @@ The finished game system name is **Wild Path**.
   resource update paths and is now the payment boundary used by `WildPathActor#useAction`.
 - `module/resolvers/action-resolver.mjs` wraps the current Action flow in
   `ActionContext`/`ActionResult`, optional TargetResolver validation, semantic target/payment
-  events, optional attack resolution for supplied roll/defense data, and ResourceResolver mutation
-  plans.
+  events, optional attack resolution for supplied roll/defense data, optional damage resolution for
+  supplied structured components, and ResourceResolver mutation plans.
 - `module/resolvers/target-resolver.mjs` wraps target-set eligibility, refinement decisions,
   required-target failures, self-targeting, and selection request state for future ActionResolver
   integration.
@@ -52,7 +52,8 @@ The finished game system name is **Wild Path**.
   defenses as pure structured outcomes. `ActionResolver` can call it when an action plan includes
   attack data.
 - `module/resolvers/damage-resolver.mjs` provides structured damage components, damage-type
-  totals, target damage result shells, and weapon-size-scaling metadata/provenance.
+  totals, target damage result shells, and weapon-size-scaling metadata/provenance. `ActionResolver`
+  can call it when an action plan includes damage data.
 - `module/helpers/weapon-sizing.mjs` provides the WeaponSizePolicy foundation: size comparison,
   2014/2024/house policy providers, structured wieldability results, and structured
   weapon-size damage scaling for explicitly marked damage components.
@@ -147,9 +148,9 @@ Heavy, Reach, creature size, and damage execution.
 
 ## Near-Term Order
 
-1. Wire DamageResolver into ActionResolver after attack outcomes.
-2. Wire WeaponSizePolicy into damage planning for manufactured weapon attacks only.
-3. Add a basic SaveResolver slice.
-4. Add healing/effect slices one at a time.
+1. Wire WeaponSizePolicy into damage planning for manufactured weapon attacks only.
+2. Add a basic SaveResolver slice.
+3. Add Actor damage/healing mutation planning.
+4. Add effect slices one at a time.
 
 Keep every slice small, testable, and compatible with synthetic Token Actors.

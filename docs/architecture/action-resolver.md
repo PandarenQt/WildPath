@@ -2,7 +2,8 @@
 
 `module/resolvers/action-resolver.mjs` is now the current action entry point. It handles the
 existing cost behavior plus optional target validation and optional attack-outcome resolution when
-callers provide the required plain data.
+callers provide the required plain data. It can also resolve structured damage components as a
+non-mutating consequence.
 
 ## Current Flow
 
@@ -12,6 +13,7 @@ Action item
 -> ActionResult
 -> optional TargetResolver target validation
 -> optional AttackResolver attack outcome
+-> optional DamageResolver damage consequence
 -> ResourceResolver payment plan
 -> Actor resource mutation plan
 -> optional Actor update commit
@@ -38,9 +40,11 @@ returns successfully.
 - validates source/action basics
 - optionally resolves targets through `TargetResolver`
 - optionally resolves supplied attack roll data through `AttackResolver`
+- optionally resolves supplied damage components through `DamageResolver`
 - resolves Action item activation cost through `ResourceResolver`
 - records a target-selection consequence when targets are resolved
 - records an attack-resolution consequence when attack data is supplied
+- records a damage-resolution consequence when damage data is supplied
 - records a resource-payment consequence
 - records a resource-payment mutation plan
 - returns an `ActionResult`
@@ -63,17 +67,18 @@ The current resolver does not:
 - derive attack bonuses or target defenses from Actor documents
 - resolve saves
 - roll dice
-- apply damage or healing
+- apply Actor HP/resource damage or healing
 - apply ActiveEffects
 - open reaction windows
 - create chat output
 
-Those are future ActionResolver slices. The optional attack step consumes already-known numeric roll
-and defense data; it does not own roll UI or Foundry statistic gathering. This module exists so
-current action use already enters the same pipeline shape that those slices will extend.
+Those are future ActionResolver slices. The optional attack and damage steps consume already-known
+numeric roll, defense, and damage-component data; they do not own roll UI, Foundry statistic
+gathering, or Actor durability mutation. This module exists so current action use already enters the
+same pipeline shape that those slices will extend.
 
 ## Next Resolver Slice
 
-The next resolver slice should either add a basic SaveResolver or begin wiring DamageResolver into
-ActionResolver after attack outcomes. The full WeaponSizePolicy expansion can now build on damage
-components explicitly marked as weapon-size-scalable.
+The next resolver slice should either add a basic SaveResolver or wire WeaponSizePolicy into damage
+planning for manufactured weapon attacks only. Actor damage application should remain a later
+mutation-planning slice.
