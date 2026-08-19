@@ -273,6 +273,43 @@ test("ActionResolver can resolve damage for attack hits before payment", () => {
   assert.deepEqual(result.mutationPlans[0].plan.updates, {"system.resources.action.value": 0});
 });
 
+test("ActionResolver can apply save outcome policies to per-target damage", () => {
+  const result = planActionResolution({
+    actorSystem: actorSystem(1),
+    action: action(),
+    source: {actorId: "actor-a"},
+    targeting: {
+      required: true,
+      candidates: [
+        saveCandidate("rogue", 18),
+        saveCandidate("ogre", 9)
+      ]
+    },
+    save: {
+      saveKey: "dex",
+      dc: {value: 15, ability: "dex"}
+    },
+    damage: {
+      saveOutcomePolicy: {
+        success: "half",
+        failure: "full"
+      },
+      components: [damageComponent("burst", 9, "fire")]
+    }
+  });
+
+  const damageResolution = result.steps.find(step => step.stage === ACTION_RESOLUTION_STAGES.CONSEQUENCE)
+    .data.damageResolution;
+  const rogueDamage = damageResolution.results.find(entry => entry.target.id === "rogue");
+  const ogreDamage = damageResolution.results.find(entry => entry.target.id === "ogre");
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(damageResolution.totals, {rogue: 4, ogre: 9});
+  assert.equal(rogueDamage.components[0].metadata.saveOutcomeDamagePolicy.multiplier, 0.5);
+  assert.equal(rogueDamage.components[0].metadata.saveOutcomeDamagePolicy.originalAmount, 9);
+  assert.equal(ogreDamage.components[0].metadata.saveOutcomeDamagePolicy, undefined);
+});
+
 test("ActionResolver applies WeaponSizePolicy to manufactured weapon damage before resolution", () => {
   const result = planActionResolution({
     actorSystem: actorSystem(1),

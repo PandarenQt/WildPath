@@ -5,6 +5,8 @@ existing cost behavior plus optional target validation and optional attack-outco
 callers provide the required plain data. It can also resolve supplied saving throws, resolve
 structured damage components as a non-mutating consequence, and apply WeaponSizePolicy to explicitly
 manufactured weapon damage before that consequence resolves.
+When damage supplies a `saveOutcomePolicy`, the resolver can adjust per-target damage amounts from
+the already-resolved save outcomes, such as half damage on a successful save.
 
 ## Current Flow
 
@@ -16,6 +18,7 @@ Action item
 -> optional AttackResolver attack outcome
 -> optional SaveResolver save outcome
 -> optional WeaponSizePolicy damage dice scaling
+-> optional save-outcome damage policy
 -> optional DamageResolver damage consequence
 -> ResourceResolver payment plan
 -> Actor resource mutation plan
@@ -48,6 +51,7 @@ returns successfully.
 - optionally resolves supplied attack roll data through `AttackResolver`
 - optionally resolves supplied save roll data through `SaveResolver`
 - optionally applies WeaponSizePolicy to manufactured weapon damage components marked as scalable
+- optionally applies save-outcome damage policies such as `success: "half"`
 - optionally resolves supplied damage components through `DamageResolver`
 - resolves Action item activation cost through `ResourceResolver`
 - records a target-selection consequence when targets are resolved
@@ -89,6 +93,6 @@ same pipeline shape that those slices will extend.
 
 ## Next Resolver Slice
 
-The next resolver slice should connect save outcomes to damage consequence policies or add Actor
-damage/healing mutation planning. Direct Actor durability mutation should remain outside
-DamageResolver itself.
+The next resolver slice should connect resolved target damage/healing to concrete target Actor
+durability mutation plans. Direct Actor durability mutation should remain outside DamageResolver
+itself.

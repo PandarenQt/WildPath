@@ -130,6 +130,33 @@ test("DamageResolver resolves selected targets and skips excluded targets", () =
   assert.deepEqual(result.skipped.map(skip => skip.target.id), ["bystander"]);
 });
 
+test("DamageResolver can resolve target-specific prepared components", () => {
+  const component = createDamageComponent({id: "base", amount: 8, damageType: "fire"});
+  const result = resolveDamageTargets({
+    components: [component],
+    targetContexts: [
+      {target: {id: "failed-save"}, selected: true},
+      {target: {id: "saved"}, selected: true}
+    ],
+    componentsForTarget(targetContext, components) {
+      if ( targetContext.target.id !== "saved" ) return components;
+      return components.map(entry => ({
+        ...entry,
+        amount: Math.floor(entry.amount / 2),
+        metadata: {
+          ...entry.metadata,
+          adjustedFor: "save-success"
+        }
+      }));
+    }
+  });
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(result.totals, {"failed-save": 8, saved: 4});
+  assert.equal(result.results.find(entry => entry.target.id === "saved").components[0].metadata.adjustedFor, "save-success");
+  assert.equal(component.amount, 8);
+});
+
 test("DamageResolver reports no damageable targets when all targets are skipped", () => {
   const result = resolveDamageTargets({
     components: [createDamageComponent({id: "base", amount: 6})],

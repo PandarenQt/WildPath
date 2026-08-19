@@ -46,7 +46,8 @@ The finished game system name is **Wild Path**.
   `ActionContext`/`ActionResult`, optional TargetResolver validation, semantic target/payment
   events, optional attack resolution for supplied roll/defense data, optional save resolution for
   supplied save/DC data, optional damage resolution for supplied structured components,
-  manufactured weapon-size damage scaling, and ResourceResolver mutation plans.
+  manufactured weapon-size damage scaling, save-outcome damage policies, and ResourceResolver
+  mutation plans.
 - `module/resolvers/target-resolver.mjs` wraps target-set eligibility, refinement decisions,
   required-target failures, self-targeting, and selection request state for future ActionResolver
   integration.
@@ -156,8 +157,8 @@ Heavy, Reach, creature size, and damage execution.
 
 ## Near-Term Order
 
-1. Connect save outcomes to damage consequence policies such as half damage on success.
-2. Connect resolved target damage/healing to target Actor durability mutation plans.
+1. Connect resolved target damage/healing to target Actor durability mutation plans.
+2. Add resistance/immunity/vulnerability handling before durability mutation.
 3. Add effect slices one at a time.
 
 Keep every slice small, testable, and compatible with synthetic Token Actors.

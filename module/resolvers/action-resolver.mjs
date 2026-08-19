@@ -146,8 +146,9 @@ export function planActionResolution({
     });
   }
 
+  let saveResolution = null;
   if ( shouldResolveSave(save) ) {
-    const saveResolution = resolveSaveTargets({
+    saveResolution = resolveSaveTargets({
       roll: save.roll,
       targetContexts: save.targetContexts ?? targetResolution?.targetContexts ?? [],
       targets: save.targets ?? (targetResolution ? [] : actionContext.targets),
@@ -186,6 +187,7 @@ export function planActionResolution({
       damage,
       targetResolution,
       attackResolution,
+      saveResolution,
       actionContext
     });
     if ( !damageResolution.ok ) {
@@ -408,7 +410,7 @@ function saveEvents(actionContext, saveResolution) {
   return events;
 }
 
-function resolveActionDamage({damage, targetResolution, attackResolution, actionContext}) {
+function resolveActionDamage({damage, targetResolution, attackResolution, saveResolution, actionContext}) {
   if ( attackResolution && !attackResolution.hits.length ) {
     return emptyDamageResolutionFromMisses(attackResolution, {
       action: actionContext.action,
@@ -431,12 +433,106 @@ function resolveActionDamage({damage, targetResolution, attackResolution, action
       source: actionContext.source,
       weaponDamageScaling: preparedDamage.weaponDamageScaling,
       ...(damage.context ?? {})
-    }
+    },
+    componentsForTarget: componentsForTargetFromSaveOutcomePolicy({
+      damage,
+      saveResolution
+    })
   });
   return preparedDamage.weaponDamageScaling ? {
     ...result,
     weaponDamageScaling: preparedDamage.weaponDamageScaling
   } : result;
+}
+
+function componentsForTargetFromSaveOutcomePolicy({damage, saveResolution}) {
+  const policy = damage.saveOutcomePolicy ?? damage.savePolicy ?? null;
+  if ( !policy || !saveResolution ) return null;
+  const saveResultsByTargetId = new Map(saveResolution.results
+    .filter(result => result.ok && result.target?.id)
+    .map(result => [result.target.id, result]));
+
+  return (targetContext, components) => {
+    const targetId = targetContext.target?.id ?? targetContext.id ?? null;
+    const saveResult = saveResultsByTargetId.get(targetId);
+    if ( !saveResult ) return components;
+    return applySaveOutcomeDamagePolicy(components, saveResult, policy);
+  };
+}
+
+function applySaveOutcomeDamagePolicy(components, saveResult, policy) {
+  const normalized = normalizeSaveOutcomeDamagePolicy(policy);
+  const outcomePolicy = normalized.outcomes[saveResult.outcome]
+    ?? normalized.outcomes[saveResult.success ? "success" : "failure"]
+    ?? {multiplier: 1};
+  if ( outcomePolicy.multiplier === 1 ) return components;
+
+  return components.map(component => {
+    const amount = component.amount == null
+      ? component.amount
+      : roundDamageAmount(component.amount * outcomePolicy.multiplier, normalized.rounding);
+    return {
+      ...component,
+      amount,
+      metadata: {
+        ...(component.metadata ?? {}),
+        saveOutcomeDamagePolicy: {
+          outcome: saveResult.outcome,
+          success: saveResult.success,
+          multiplier: outcomePolicy.multiplier,
+          originalAmount: component.amount,
+          adjustedAmount: amount,
+          rounding: normalized.rounding
+        }
+      }
+    };
+  });
+}
+
+function normalizeSaveOutcomeDamagePolicy(policy) {
+  if ( typeof policy === "string" || typeof policy === "number" ) {
+    return {
+      rounding: "floor",
+      outcomes: {
+        success: normalizeDamageOutcomePolicy(policy),
+        failure: normalizeDamageOutcomePolicy("full")
+      }
+    };
+  }
+
+  return {
+    rounding: policy.rounding ?? "floor",
+    outcomes: {
+      success: normalizeDamageOutcomePolicy(policy.success ?? policy.onSuccess ?? "full"),
+      failure: normalizeDamageOutcomePolicy(policy.failure ?? policy.onFailure ?? "full"),
+      criticalSuccess: normalizeDamageOutcomePolicy(policy.criticalSuccess ?? policy.onCriticalSuccess ?? policy.success ?? policy.onSuccess ?? "full"),
+      criticalFailure: normalizeDamageOutcomePolicy(policy.criticalFailure ?? policy.onCriticalFailure ?? policy.failure ?? policy.onFailure ?? "full")
+    }
+  };
+}
+
+function normalizeDamageOutcomePolicy(value) {
+  if ( typeof value === "number" ) return {multiplier: Math.max(value, 0)};
+  if ( typeof value === "object" && value ) return {
+    multiplier: Math.max(Number(value.multiplier ?? value.amountMultiplier ?? 1) || 0, 0)
+  };
+  switch ( value ) {
+    case "none": return {multiplier: 0};
+    case "half": return {multiplier: 0.5};
+    case "double": return {multiplier: 2};
+    case "full":
+    default: return {multiplier: 1};
+  }
+}
+
+function roundDamageAmount(value, rounding) {
+  switch ( rounding ) {
+    case "ceil": return Math.ceil(value);
+    case "round": return Math.round(value);
+    case "none": return value;
+    case "floor":
+    default: return Math.floor(value);
+  }
 }
 
 function damageTargetContextsFromAttack(attackResolution) {

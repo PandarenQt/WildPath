@@ -129,7 +129,8 @@ export function resolveDamageTargets({
   components=[],
   targetContexts=[],
   targets=[],
-  context={}
+  context={},
+  componentsForTarget=null
 }={}) {
   const contexts = normalizeTargetContexts({targetContexts, targets});
   if ( !contexts.length ) {
@@ -144,7 +145,9 @@ export function resolveDamageTargets({
   }
 
   const results = contexts.map(targetContext => resolveDamageTarget({
-    components,
+    components: typeof componentsForTarget === "function"
+      ? componentsForTarget(targetContext, components)
+      : components,
     targetContext,
     context
   }));

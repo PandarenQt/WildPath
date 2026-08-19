@@ -51,7 +51,7 @@ SaveResolver does not:
 Foundry adapters should gather the save total, natural die, ability, and DC from documents or UI,
 then pass plain values into this resolver.
 
-## Next Integration
+## Current Integration
 
-The next save-facing slice should connect save outcomes to damage consequence policies, such as
+`ActionResolver` can use resolved save outcomes to drive target-specific damage policies, such as
 half damage on success or no damage on success, without moving save roll logic into DamageResolver.

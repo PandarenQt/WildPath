@@ -39,6 +39,7 @@ present on the damage components that this resolver totals.
 
 - consumes selected target contexts or plain targets
 - resolves the same component set for each selected target
+- can accept target-specific prepared components for upstream policies such as save-for-half damage
 - records excluded/unselected targets as skipped audit entries
 - does not mutate target contexts or damage components
 
