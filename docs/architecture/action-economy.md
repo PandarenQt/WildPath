@@ -40,8 +40,11 @@ Normal payment is direct capability matching: a resource with `paymentCapabiliti
 can pay an Action requirement.
 
 Alternative payment is policy driven. The current foundation supports the Wild Path house rule
-where a spent Bonus Action can be paid by an Action if `allowActionForSpentBonusAction` is enabled.
-The Bonus Action resource remains preferred while it is available.
+where a Bonus Action activity can be paid by an Action after all eligible Bonus Action resources
+for that activity are depleted. This policy is enabled by default for Wild Path and can be disabled
+with `allowActionForSpentBonusAction: false` for rules variants. A Bonus Action resource remains
+preferred while any eligible one is available, and the fallback does not hide predicate failures or
+the complete absence of a usable Bonus Action resource.
 
 Restricted payment is predicate driven. A Haste-style extra Action can advertise `action` payment
 capability and also provide a predicate such as `tagsAny: ["weapon-attack"]`. The payment resolver

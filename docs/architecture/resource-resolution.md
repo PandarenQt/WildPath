@@ -19,6 +19,8 @@ actor resource snapshot
 
 Discovery uses `module/helpers/action-economy.mjs`, so Action, Bonus Action, Reaction, Movement,
 custom pools, alternative payments, and restricted resources share one payment model.
+The Wild Path default policy allows a Bonus Action activity to spend an Action only after every
+eligible Bonus Action resource for that activity has been depleted for the current turn.
 
 ## Mutation Plans
 

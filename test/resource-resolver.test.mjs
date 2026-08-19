@@ -54,6 +54,25 @@ test("selected alternative payment can spend Action for a Bonus Action requireme
   assert.deepEqual(result.mutationPlan.updates, {"system.resources.action.value": 0});
 });
 
+test("resource resolver uses Action for spent Bonus Action requirements by default", () => {
+  const system = actorSystem({
+    resources: {
+      action: {value: 1, max: 1},
+      bonus: {value: 0, max: 1}
+    }
+  });
+  const result = resolveActorResourcePayment({
+    actorSystem: system,
+    cost: {allOf: [{capability: ECONOMY_CAPABILITIES.BONUS_ACTION, amount: 1}]}
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.paymentPlan.mode, "alternative");
+  assert.equal(result.paymentPlan.resources[0].resourceId, "economy.action");
+  assert.equal(result.paymentPlan.resources[0].policy, "action-for-spent-bonus-action");
+  assert.deepEqual(result.mutationPlan.updates, {"system.resources.action.value": 0});
+});
+
 test("custom Actor pools map to indexed Actor update paths", () => {
   const system = actorSystem({
     pools: [

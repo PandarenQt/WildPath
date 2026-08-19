@@ -40,6 +40,10 @@ export const ECONOMY_AVAILABILITY = Object.freeze({
   RESOURCE_RESTRICTION_FAILED: "RESOURCE_RESTRICTION_FAILED"
 });
 
+export const DEFAULT_PAYMENT_POLICIES = Object.freeze({
+  allowActionForSpentBonusAction: true
+});
+
 /* -------------------------------------------- */
 
 export const BUILTIN_ECONOMY_RESOURCE_DEFINITIONS = Object.freeze({
@@ -215,7 +219,8 @@ export function normalizeActivationCost(cost) {
 export function resolvePaymentOptions({cost, resources, action={}, policies={}}) {
   const normalized = normalizeActivationCost(cost);
   const branches = normalized.anyOf ?? [normalized.allOf ?? []];
-  const branchResults = branches.map(requirements => resolveAllOf(requirements, resources, action, policies));
+  const effectivePolicies = normalizePaymentPolicies(policies);
+  const branchResults = branches.map(requirements => resolveAllOf(requirements, resources, action, effectivePolicies));
   const options = branchResults.flatMap(result => result.options);
   const failures = branchResults.flatMap(result => result.failures);
   options.sort(comparePaymentOptions);
@@ -338,6 +343,7 @@ function findCandidates(requirement, resources, action, mode) {
 function maybeFindAlternativeCandidates(requirement, resources, action, policies) {
   if ( requirement.capability !== ECONOMY_CAPABILITIES.BONUS_ACTION ) return {available: [], failures: []};
   if ( !policies.allowActionForSpentBonusAction ) return {available: [], failures: []};
+  if ( !areAllEligibleBonusActionResourcesDepleted(requirement, resources, action) ) return {available: [], failures: []};
 
   const alternativeRequirement = {
     ...requirement,
@@ -353,6 +359,21 @@ function maybeFindAlternativeCandidates(requirement, resources, action, policies
     })),
     failures: result.failures
   };
+}
+
+function areAllEligibleBonusActionResourcesDepleted(requirement, resources, action) {
+  const eligibleBonusResources = resources.filter(resource => isEligibleIgnoringCurrent(resource, requirement, action));
+  return eligibleBonusResources.length > 0
+    && eligibleBonusResources.every(resource => resource.current < requirement.amount);
+}
+
+function isEligibleIgnoringCurrent(resource, requirement, action) {
+  if ( !resource.paymentCapabilities.includes(requirement.capability) ) return false;
+  if ( requirement.unit && (resource.unit !== requirement.unit) ) return false;
+  if ( resource.maximum < requirement.amount ) return false;
+
+  const predicate = evaluatePredicate(resource.predicate, {resource, requirement, action});
+  return predicate.ok;
 }
 
 function evaluateResourceForRequirement(resource, requirement, action) {
@@ -452,6 +473,10 @@ function normalizeRequirements(requirements) {
 
 function normalizeRefreshPolicies(policies) {
   return policies.map(policy => typeof policy === "string" ? {event: policy} : {...policy});
+}
+
+function normalizePaymentPolicies(policies) {
+  return {...DEFAULT_PAYMENT_POLICIES, ...(policies ?? {})};
 }
 
 function hasRefreshPolicy(resource, event) {

@@ -18,7 +18,8 @@ The finished game system name is **Wild Path**.
 - Resource max calculation is idempotent: persisted `base`/`bonus` values combine with transient
   per-prepare `modifierBonus` values.
 - `module/helpers/action-economy.mjs` provides pure payment discovery/commit/refresh primitives
-  for extensible action-economy resources.
+  for extensible action-economy resources, including the default Wild Path rule that an Action can
+  pay for a Bonus Action activity after eligible Bonus Action resources are depleted.
 - `module/helpers/movement.mjs` derives spendable movement budgets from canonical movement speed
   using distance or field measurement.
 - Tactical grid and area topology are documented as a future gated milestone: gridded AoE should

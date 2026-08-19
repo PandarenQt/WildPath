@@ -72,6 +72,23 @@ test("ActionResolver plans current cost-only action resolution without mutating 
   assert.equal(system.resources.action.value, 1);
 });
 
+test("ActionResolver can spend an Action for a Bonus Action activity after Bonus Actions are depleted", () => {
+  const system = actorSystem(1);
+  system.resources.bonus.value = 0;
+  const result = planActionResolution({
+    actorSystem: system,
+    action: action({allOf: [{capability: ECONOMY_CAPABILITIES.BONUS_ACTION, amount: 1}]}),
+    source: {actorId: "actor-a", tokenId: "token-a"}
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.consequences.at(-1).paymentPlan.mode, "alternative");
+  assert.equal(result.consequences.at(-1).paymentPlan.resources[0].resourceId, "economy.action");
+  assert.equal(result.consequences.at(-1).paymentPlan.resources[0].policy, "action-for-spent-bonus-action");
+  assert.deepEqual(result.mutationPlans[0].plan.updates, {"system.resources.action.value": 0});
+  assert.equal(system.resources.action.value, 1);
+});
+
 test("ActionResolver reports payment failure as a failed action result", () => {
   const result = planActionResolution({
     actorSystem: actorSystem(0),

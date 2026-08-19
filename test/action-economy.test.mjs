@@ -53,6 +53,23 @@ test("Bonus Action fallback to Action is unavailable when disabled", () => {
   assert.equal(result.code, ECONOMY_AVAILABILITY.INSUFFICIENT_RESOURCE);
 });
 
+test("Bonus Action fallback to Action is enabled by default after Bonus Actions are depleted", () => {
+  const resources = [
+    createBuiltinEconomyResource("economy.action", {current: 1, maximum: 1}),
+    createBuiltinEconomyResource("economy.bonus-action", {current: 0, maximum: 1})
+  ];
+  const result = resolvePaymentOptions({
+    resources,
+    cost: actionCost(ECONOMY_CAPABILITIES.BONUS_ACTION)
+  });
+  const selected = selectDefaultPaymentOption(result.options);
+
+  assert.equal(result.status, "available");
+  assert.equal(selected.mode, "alternative");
+  assert.equal(selected.resources[0].resourceId, "economy.action");
+  assert.equal(selected.resources[0].policy, "action-for-spent-bonus-action");
+});
+
 test("Bonus Action fallback to Action is offered only after Bonus Action is unavailable", () => {
   const resources = [
     createBuiltinEconomyResource("economy.action", {current: 1, maximum: 1}),
@@ -67,6 +84,52 @@ test("Bonus Action fallback to Action is offered only after Bonus Action is unav
   assert.equal(selected.mode, "alternative");
   assert.equal(selected.resources[0].resourceId, "economy.action");
   assert.equal(selected.resources[0].policy, "action-for-spent-bonus-action");
+});
+
+test("Bonus Action fallback waits until every eligible Bonus Action resource is depleted", () => {
+  const resources = [
+    createBuiltinEconomyResource("economy.action", {current: 1, maximum: 1}),
+    createBuiltinEconomyResource("economy.bonus-action", {current: 0, maximum: 1}),
+    createEconomyResource({
+      id: "feature.quickened-bonus",
+      category: "bonus-action",
+      current: 1,
+      maximum: 1,
+      paymentCapabilities: [ECONOMY_CAPABILITIES.BONUS_ACTION],
+      source: {type: "feature", slug: "quickened-bonus"}
+    })
+  ];
+  const result = resolvePaymentOptions({
+    resources,
+    cost: actionCost(ECONOMY_CAPABILITIES.BONUS_ACTION)
+  });
+  const selected = selectDefaultPaymentOption(result.options);
+
+  assert.equal(result.status, "available");
+  assert.equal(selected.mode, "direct");
+  assert.equal(selected.resources[0].resourceId, "feature.quickened-bonus");
+});
+
+test("Bonus Action fallback is unavailable when no usable Bonus Action resource exists", () => {
+  const resources = [
+    createBuiltinEconomyResource("economy.action", {current: 1, maximum: 1}),
+    createEconomyResource({
+      id: "feature.weapon-bonus",
+      category: "bonus-action",
+      current: 1,
+      maximum: 1,
+      paymentCapabilities: [ECONOMY_CAPABILITIES.BONUS_ACTION],
+      predicate: {tagsAny: ["weapon-attack"]}
+    })
+  ];
+  const result = resolvePaymentOptions({
+    resources,
+    cost: actionCost(ECONOMY_CAPABILITIES.BONUS_ACTION),
+    action: {tags: ["spell"]}
+  });
+
+  assert.equal(result.status, "unavailable");
+  assert.equal(result.code, ECONOMY_AVAILABILITY.RESOURCE_RESTRICTION_FAILED);
 });
 
 test("additional unrestricted Action can pay when the base Action is spent", () => {
