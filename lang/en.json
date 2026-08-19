@@ -1,0 +1,54 @@
+{
+  "WILDPATH": {
+    "SheetActor": "WildPath Actor Sheet",
+    "SheetItem": "WildPath Item Sheet",
+    "ABILITIES": {
+      "Might": "Might",
+      "Agility": "Agility",
+      "Fortitude": "Fortitude",
+      "Intellect": "Intellect",
+      "Wits": "Wits",
+      "Presence": "Presence"
+    },
+    "RESOURCES": {
+      "Health": "Health",
+      "Action": "Action",
+      "BonusAction": "Bonus Action",
+      "Reaction": "Reaction",
+      "Movement": "Movement"
+    },
+    "MODIFIERS": {
+      "Untyped": "Untyped",
+      "Circumstance": "Circumstance",
+      "Ability": "Ability",
+      "Item": "Item",
+      "Status": "Status",
+      "Proficiency": "Proficiency"
+    },
+    "CONDITIONS": {
+      "Prone": "Prone",
+      "Blinded": "Blinded",
+      "Restrained": "Restrained",
+      "Stunned": "Stunned",
+      "Unconscious": "Unconscious",
+      "Exhaustion": "Exhaustion",
+      "Poisoned": "Poisoned",
+      "Bleeding": "Bleeding"
+    }
+  },
+  "TYPES": {
+    "Actor": {
+      "character": "Character",
+      "npc": "NPC"
+    },
+    "Item": {
+      "feature": "Feature",
+      "action": "Action",
+      "gear": "Gear"
+    },
+    "ActiveEffect": {
+      "base": "Effect",
+      "condition": "Condition"
+    }
+  }
+}

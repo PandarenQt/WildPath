@@ -1,0 +1,67 @@
+.wildpath.sheet {
+  font-family: var(--font-primary, sans-serif);
+}
+
+.wildpath .sheet-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.wildpath .sheet-header .profile-img {
+  width: 48px;
+  height: 48px;
+  border: none;
+}
+
+.wildpath section {
+  margin-block: 0.5rem;
+}
+
+.wildpath .abilities,
+.wildpath .resources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.wildpath .ability,
+.wildpath .resource {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.wildpath .ability input,
+.wildpath .resource input {
+  width: 3em;
+}
+
+.wildpath .conditions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.wildpath .condition {
+  opacity: 0.4;
+}
+
+.wildpath .condition.active {
+  opacity: 1;
+  outline: 2px solid var(--color-warm-2, orange);
+}
+
+.wildpath .item-list,
+.wildpath .effect-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.wildpath .item-list li,
+.wildpath .effect-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.15rem 0;
+}

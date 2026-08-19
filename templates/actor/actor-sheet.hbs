@@ -1,0 +1,82 @@
+<form class="wildpath actor-sheet" autocomplete="off">
+
+  <header class="sheet-header">
+    <img class="profile-img" src="{{actor.img}}" data-edit="img" alt="{{actor.name}}">
+    <input class="actor-name" type="text" name="name" value="{{actor.name}}">
+    <button type="button" class="start-turn" data-action="startTurn">Start Turn</button>
+  </header>
+
+  <section class="abilities">
+    <h3>Abilities</h3>
+    {{#each abilities as |ability|}}
+      <label class="ability">
+        <span>{{localize ability.label}}</span>
+        <input type="number" name="system.abilities.{{ability.key}}.value" value="{{ability.value}}">
+      </label>
+    {{/each}}
+  </section>
+
+  <section class="resources">
+    <h3>Resources</h3>
+    {{#each resources as |resource|}}
+      <div class="resource">
+        <span class="label">{{localize resource.label}}</span>
+        <input type="number" name="system.resources.{{resource.key}}.value" value="{{resource.value}}">
+        <span class="sep">/</span>
+        <span class="max">{{resource.max}}</span>
+      </div>
+    {{/each}}
+    {{#each pools as |pool|}}
+      <div class="resource pool">
+        <span class="label">{{pool.label}}</span>
+        <input type="number" name="system.pools.{{pool.index}}.value" value="{{pool.value}}">
+        <span class="sep">/</span>
+        <span class="max">{{pool.max}}</span>
+      </div>
+    {{/each}}
+  </section>
+
+  <section class="conditions">
+    <h3>Conditions</h3>
+    {{#each conditions as |condition|}}
+      <a class="condition {{#if condition.active}}active{{/if}}" data-action="toggleCondition"
+         data-condition-id="{{condition.id}}" title="{{localize condition.name}}">
+        <img src="{{condition.img}}" width="24" height="24" alt="{{localize condition.name}}">
+      </a>
+    {{/each}}
+  </section>
+
+  <section class="items">
+    <h3>Items</h3>
+    <ol class="item-list">
+      {{#each items as |item|}}
+        <li class="item" data-item-id="{{item.id}}">
+          <img class="item-image" src="{{item.img}}" width="24" height="24" alt="{{item.name}}">
+          <span class="item-name">{{item.name}}</span>
+          <span class="item-type">{{item.type}}</span>
+          {{#if (eq item.type "action")}}
+            <button type="button" data-action="useItem">Use</button>
+          {{/if}}
+        </li>
+      {{/each}}
+    </ol>
+  </section>
+
+  <section class="effects">
+    <h3>Active Effects</h3>
+    <ol class="effect-list">
+      {{#each effects as |effect|}}
+        <li class="effect">
+          <img class="effect-image" src="{{effect.img}}" width="24" height="24" alt="{{effect.name}}">
+          <span class="effect-name">{{effect.name}}</span>
+        </li>
+      {{/each}}
+    </ol>
+  </section>
+
+  <section class="biography">
+    <h3>Biography</h3>
+    {{editor system.biography target="system.biography" button=true engine="prosemirror"}}
+  </section>
+
+</form>

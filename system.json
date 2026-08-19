@@ -1,0 +1,64 @@
+{
+  "id": "wildpath",
+  "title": "WildPath",
+  "description": "A highly customizable FoundryVTT system providing the foundations for conditions, modifiers, resource pools, and BG3-style action economy.",
+  "version": "0.0.1",
+  "compatibility": {
+    "minimum": 14,
+    "verified": 14
+  },
+  "authors": [
+    {
+      "name": "WildPath"
+    }
+  ],
+  "esmodules": [
+    "wildpath.mjs"
+  ],
+  "styles": [
+    "styles/wildpath.css"
+  ],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    }
+  ],
+  "documentTypes": {
+    "Actor": {
+      "character": {
+        "htmlFields": ["biography"]
+      },
+      "npc": {
+        "htmlFields": ["biography"]
+      }
+    },
+    "Item": {
+      "feature": {
+        "htmlFields": ["description"]
+      },
+      "action": {
+        "htmlFields": ["description"]
+      },
+      "gear": {
+        "htmlFields": ["description"]
+      }
+    },
+    "ActiveEffect": {
+      "base": {},
+      "condition": {}
+    }
+  },
+  "socket": false,
+  "initiative": "1d20",
+  "grid": {
+    "distance": 5,
+    "units": "ft"
+  },
+  "primaryTokenAttribute": "resources.health",
+  "secondaryTokenAttribute": "resources.action",
+  "url": "",
+  "manifest": "",
+  "download": ""
+}

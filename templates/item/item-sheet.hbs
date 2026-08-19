@@ -1,0 +1,47 @@
+<form class="wildpath item-sheet" autocomplete="off">
+
+  <header class="sheet-header">
+    <img class="profile-img" src="{{item.img}}" data-edit="img" alt="{{item.name}}">
+    <input class="item-name" type="text" name="name" value="{{item.name}}">
+  </header>
+
+  <section class="active-toggle">
+    <label>
+      <input type="checkbox" name="system.active" {{#if system.active}}checked{{/if}}>
+      Active
+    </label>
+  </section>
+
+  {{#if isAction}}
+  <section class="action-cost">
+    <h3>Cost</h3>
+    {{#each actionCostResources as |resource|}}
+      <label class="cost">
+        <span>{{resource}}</span>
+        <input type="number" name="system.cost.{{resource}}" value="{{lookup system.cost resource}}">
+      </label>
+    {{/each}}
+  </section>
+  {{/if}}
+
+  <section class="modifiers">
+    <h3>Modifiers</h3>
+    <ol class="modifier-list">
+      {{#each modifiers as |modifier|}}
+        <li class="modifier">
+          <input type="text" name="system.modifiers.{{modifier.index}}.domains" value="{{modifier.domainsText}}"
+                 placeholder="domains (comma separated, e.g. resources.health.max)">
+          <input type="text" name="system.modifiers.{{modifier.index}}.label" value="{{modifier.label}}" placeholder="label">
+          <input type="text" name="system.modifiers.{{modifier.index}}.type" value="{{modifier.type}}" placeholder="type">
+          <input type="number" name="system.modifiers.{{modifier.index}}.value" value="{{modifier.value}}">
+        </li>
+      {{/each}}
+    </ol>
+  </section>
+
+  <section class="description">
+    <h3>Description</h3>
+    {{editor system.description target="system.description" button=true engine="prosemirror"}}
+  </section>
+
+</form>
