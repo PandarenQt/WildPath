@@ -4,6 +4,7 @@ import WildPathConditionEffect from "../data/active-effect/condition.mjs";
 import {executeActionResolution} from "../resolvers/action-resolver.mjs";
 import {executeConditionEffect} from "../resolvers/effect-resolver.mjs";
 import {executeEffectLifecycleCommit} from "../resolvers/effect-lifecycle-commit-resolver.mjs";
+import {planConditionTriggerConsequences} from "../resolvers/condition-trigger-resolver.mjs";
 import {resolveActorResourcePayment} from "../resolvers/resource-resolver.mjs";
 import {getRestLifecycleEvents} from "../helpers/combat.mjs";
 
@@ -232,7 +233,7 @@ export default class WildPathActor extends Actor {
    * Call this on combat turn start (see wildpath.mjs hooks) or manually outside of combat.
    * @returns {Promise<void>}
    */
-  async startTurn() {
+  async startTurn({events=[]}={}) {
     const updates = {};
     for ( const [id, resource] of Object.entries(this.system.resources) ) {
       if ( resource.recovery === "turn" ) updates[`system.resources.${id}.value`] = resource.max;
@@ -241,7 +242,7 @@ export default class WildPathActor extends Actor {
       if ( pool.recovery === "turn" ) updates[`system.pools.${index}.value`] = pool.max;
     });
     if ( !foundry.utils.isEmpty(updates) ) await this.update(updates);
-    await this.applyConditionTicks();
+    await this.applyConditionTriggers({events});
   }
 
   /* -------------------------------------------- */
@@ -300,19 +301,37 @@ export default class WildPathActor extends Actor {
   /* -------------------------------------------- */
 
   /**
-   * Apply every active condition's damage/healing-over-time ticks to this Actor's resources.
-   * @returns {Promise<void>}
+   * Apply active condition Trigger RuleElements for the supplied semantic turn events.
+   * The pure planner owns trigger matching and durability mutation planning; this Foundry-facing
+   * method only commits the planned Actor updates.
+   * @param {object} [options]
+   * @param {object[]} [options.events]
+   * @returns {Promise<object>}
    */
-  async applyConditionTicks() {
-    const deltas = {};
-    for ( const effect of this.effects ) {
-      if ( (effect.type !== "condition") || effect.disabled ) continue;
-      for ( const tick of effect.system.dot ?? [] ) {
-        const amount = tick.restoration ? -tick.amount : tick.amount;
-        deltas[tick.resource] = (deltas[tick.resource] ?? 0) + amount;
-      }
+  async applyConditionTriggers({events=[]}={}) {
+    const result = planConditionTriggerConsequences({
+      actor: this,
+      actorSystem: this.system,
+      effects: this.effects,
+      events
+    });
+    if ( !result.ok ) {
+      console.warn("Wild Path | Condition trigger planning failed", result);
     }
-    if ( !foundry.utils.isEmpty(deltas) ) await this.spendResources(deltas, {force: true});
+    const updates = Object.assign({}, ...result.mutationPlans.map(plan => plan.updates));
+    if ( !foundry.utils.isEmpty(updates) ) await this.update(updates);
+    return result;
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Compatibility alias for older callers. Legacy `system.dot` data is translated into synthetic
+   * Trigger RuleElements by ConditionTriggerResolver when no persisted RuleElements are present.
+   * @returns {Promise<object>}
+   */
+  async applyConditionTicks(options={}) {
+    return this.applyConditionTriggers(options);
   }
 }
 

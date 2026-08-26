@@ -127,9 +127,9 @@ async function onCombatTurnChange(combat, updateData, {hook="combatTurn"}={}) {
   if ( !authority.canCommit ) return;
 
   const combatant = getIncomingCombatant(combat, updateData);
-  if ( combatant?.actor ) await combatant.actor.startTurn();
-
   const events = getCombatLifecycleEvents(combat, updateData, {hook});
+  if ( combatant?.actor ) await combatant.actor.startTurn({events});
+
   if ( !events.length ) return;
 
   const lifecycle = await executeEffectLifecycleCommit({

@@ -112,9 +112,10 @@ WILDPATH.MODIFIER_TYPES_ALWAYS_STACK = new Set(["untyped", "circumstance"]);
  * @property {string} img                Icon path.
  * @property {boolean} [stacking=false]  Whether this condition tracks a numeric level (e.g. Exhaustion).
  * @property {number} [maxLevel]         Maximum level, when stacking.
- * @property {function} [generator]      Optional (actor, options) => partial ActiveEffect data,
- *                                       used to auto-attach mechanical payloads (e.g. damage-over-time)
- *                                       when the condition is applied.
+ * @property {object[]} [ruleElements]   Declarative mechanical contributions persisted onto the
+ *                                       condition ActiveEffect when the condition is applied.
+ * @property {function} [generator]      Legacy compatibility hook for old condition payloads.
+ *                                       Prefer serializable RuleElements for new mechanics.
  */
 
 /**
@@ -167,9 +168,23 @@ WILDPATH.CONDITIONS = {
     id: "bleeding",
     name: "WILDPATH.CONDITIONS.Bleeding",
     img: "icons/skills/wounds/blood-spurt-spray-red.webp",
-    generator: (actor, {amount=1}={}) => ({
-      dot: [{resource: "health", amount, restoration: false}]
-    })
+    ruleElements: [{
+      schemaVersion: 1,
+      id: "condition.bleeding.turn-start-damage",
+      type: "Trigger",
+      label: "Bleeding Turn Damage",
+      data: {
+        event: "turn.started",
+        payload: {
+          type: "durabilityChange",
+          changeType: "damage",
+          resourceId: "health",
+          amount: {type: "constant", value: 1},
+          damageType: "bleeding",
+          tags: ["condition", "bleeding", "periodic"]
+        }
+      }
+    }]
   }
 };
 

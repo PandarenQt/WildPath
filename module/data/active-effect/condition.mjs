@@ -9,8 +9,9 @@ const {StringField, NumberField, ArrayField} = foundry.data.fields;
  * Exhaustion, Poisoned...). Mirrors dnd5e's leveled-condition pattern: `type` identifies which
  * condition config entry (CONFIG.WILDPATH.CONDITIONS) this effect represents, and `level`
  * (nullable) tracks stacks for conditions flagged `stacking: true` (e.g. Exhaustion).
- * `dot` carries any damage/healing-over-time payload, normally populated from the condition's
- * `generator()` function when the effect is first applied.
+ * `ruleElements` carry new declarative mechanics. `dot` remains as a legacy compatibility
+ * payload and is translated into synthetic Trigger RuleElements by the condition trigger planner
+ * when no persisted RuleElements are present.
  */
 export default class WildPathConditionEffect extends WildPathBaseEffect {
 
