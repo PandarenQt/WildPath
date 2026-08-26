@@ -8,6 +8,8 @@
  * mutation timing.
  */
 
+import {evaluatePredicate} from "./predicates.mjs";
+
 export const ECONOMY_UNITS = Object.freeze({
   USES: "uses",
   POINTS: "points",
@@ -398,27 +400,6 @@ function evaluateResourceForRequirement(resource, requirement, action) {
     requirement,
     trace: `${resource.id} can pay ${requirement.amount} ${requirement.capability}`
   };
-}
-
-function evaluatePredicate(predicate, context) {
-  if ( !predicate ) return {ok: true};
-  if ( typeof predicate === "function" ) return predicate(context) ? {ok: true} : {
-    ok: false,
-    reason: "function predicate returned false"
-  };
-
-  const tags = new Set(context.action?.tags ?? []);
-  if ( predicate.tagsAny?.length && !predicate.tagsAny.some(tag => tags.has(tag)) ) {
-    return {ok: false, reason: `requires one of tags: ${predicate.tagsAny.join(", ")}`};
-  }
-  if ( predicate.tagsAll?.length && !predicate.tagsAll.every(tag => tags.has(tag)) ) {
-    return {ok: false, reason: `requires all tags: ${predicate.tagsAll.join(", ")}`};
-  }
-  if ( predicate.notTagsAny?.length && predicate.notTagsAny.some(tag => tags.has(tag)) ) {
-    return {ok: false, reason: `forbids one of tags: ${predicate.notTagsAny.join(", ")}`};
-  }
-
-  return {ok: true};
 }
 
 function buildPaymentCombinations(candidateGroups, resources) {

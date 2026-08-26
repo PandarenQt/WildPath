@@ -177,6 +177,55 @@ test("restricted extra Actions use predicates rather than feature-name branches"
   assert.equal(disallowed.code, ECONOMY_AVAILABILITY.RESOURCE_RESTRICTION_FAILED);
 });
 
+test("Action Economy uses the shared structured Predicate evaluator", () => {
+  const resources = [
+    createEconomyResource({
+      id: "effect.special-action",
+      category: "action",
+      current: 1,
+      maximum: 1,
+      paymentCapabilities: [ECONOMY_CAPABILITIES.ACTION],
+      predicate: {equals: {path: "action.metadata.delivery", value: "weapon"}}
+    })
+  ];
+  const allowed = resolvePaymentOptions({
+    resources,
+    cost: actionCost(ECONOMY_CAPABILITIES.ACTION),
+    action: {metadata: {delivery: "weapon"}}
+  });
+  const disallowed = resolvePaymentOptions({
+    resources,
+    cost: actionCost(ECONOMY_CAPABILITIES.ACTION),
+    action: {metadata: {delivery: "spell"}}
+  });
+
+  assert.equal(allowed.status, "available");
+  assert.equal(disallowed.status, "unavailable");
+  assert.equal(disallowed.failures[0].reason, "action.metadata.delivery did not equal weapon");
+});
+
+test("Action Economy rejects arbitrary function predicates as non-serializable rules", () => {
+  const resources = [
+    createEconomyResource({
+      id: "effect.scripted-action",
+      category: "action",
+      current: 1,
+      maximum: 1,
+      paymentCapabilities: [ECONOMY_CAPABILITIES.ACTION],
+      predicate: () => true
+    })
+  ];
+  const result = resolvePaymentOptions({
+    resources,
+    cost: actionCost(ECONOMY_CAPABILITIES.ACTION),
+    action: {tags: ["weapon-attack"]}
+  });
+
+  assert.equal(result.status, "unavailable");
+  assert.equal(result.code, ECONOMY_AVAILABILITY.RESOURCE_RESTRICTION_FAILED);
+  assert.match(result.failures[0].reason, /structured object/);
+});
+
 test("multiple eligible Action resources are returned as explicit options", () => {
   const resources = [
     createBuiltinEconomyResource("economy.action", {current: 1, maximum: 1}),
