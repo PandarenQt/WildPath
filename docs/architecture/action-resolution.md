@@ -8,6 +8,8 @@ The current pure foundation is `module/helpers/action-resolution.mjs`.
 Persisted Action Item mechanics now enter this envelope through
 `module/helpers/action-definitions.mjs`; see `docs/architecture/action-definitions.md` for the
 ActionDefinition ownership, schema, migration, and resolver-adapter contract.
+Per-use choices enter through `module/helpers/action-configuration.mjs`; see
+`docs/architecture/action-configuration.md` for Action Configuration and authoritative preview.
 
 ## ActionContext
 
@@ -81,7 +83,9 @@ only provides the common data shape they should compose.
 
 `module/resolvers/action-resolver.mjs` now uses this envelope for both legacy cost-only action flow
 and persisted ActionDefinition-derived targeting, attack, save, damage, healing, and condition
-effect requests. It is the first resolver consumer, not the final action pipeline.
+effect requests. It can also consume a `ResolvedActionConfiguration`, use its effective definition,
+and revalidate its selected payment plan before resolution planning. It is the first resolver
+consumer, not the final action pipeline.
 
 ## Future Consumers
 

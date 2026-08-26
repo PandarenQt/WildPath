@@ -47,6 +47,10 @@ The finished game system name is **Wild Path**.
 - `module/helpers/action-definitions.mjs` provides the pure, schema-versioned ActionDefinition
   contract for persisted Action Item mechanics, including serialization, validation, legacy
   cost-only migration, and translation into resolver input.
+- `module/helpers/action-configuration.mjs` provides the pure Action Configuration and
+  authoritative preview foundation: choice discovery, response validation, generic configured
+  damage scaling, damage-type substitution, added costs, exact payment revalidation, preview
+  deltas, and provenance without mutating resources or ActionDefinitions.
 - `module/helpers/entity-refs.mjs` provides the opaque string-reference contract (`actor:...`,
   `token:scene.token`, `uuid:...`) that future domain and resolver code should pass instead of
   live Foundry documents or cross-layer object handles.
@@ -129,6 +133,7 @@ Automated gameplay should flow through a common context:
 
 ```text
 ActionDefinition
++ ResolvedActionConfiguration
 + ActionContext
 + Source
 + Targets
@@ -206,9 +211,11 @@ See `docs/architecture/combat-timeline.md` for the combat timeline, durations, a
 foundation. See `docs/architecture/events-and-reactions.md` for the automation event and reaction
 trigger foundation. See `docs/architecture/action-resolution.md` for the common action-context
 and action-result envelope. See `docs/architecture/action-definitions.md` for the persisted
-ActionDefinition contract. See `docs/architecture/resource-resolution.md` for the current
-resource payment resolver boundary. See `docs/architecture/resolution-transaction.md` for the
-current ordered Actor update transaction boundary. See `docs/architecture/action-resolver.md` for
+ActionDefinition contract. See `docs/architecture/action-configuration.md` for the per-use
+configuration and authoritative preview foundation. See
+`docs/architecture/resource-resolution.md` for the current resource payment resolver boundary. See
+`docs/architecture/resolution-transaction.md` for the current ordered Actor update transaction
+boundary. See `docs/architecture/action-resolver.md` for
 the current target-aware, attack-capable, and save-capable ActionResolver entry point. See
 `docs/architecture/target-resolver.md` for the current target validation bridge. See
 `docs/architecture/attack-resolver.md` for the current pure attack-outcome resolver. See

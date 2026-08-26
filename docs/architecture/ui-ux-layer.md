@@ -24,6 +24,18 @@ visible as an alternative payment option, not as a UI-only exception.
 Future action bar rendering should consume this view model rather than reading Actor resources and
 Item costs ad hoc in DOM event handlers.
 
+## Action Configuration And Preview
+
+The future gameplay HUD should render `ActionChoiceRequest[]` from
+`module/helpers/action-configuration.mjs`, collect explicit choice responses, then render
+`ResolvedActionPreview`.
+
+The HUD may display choices such as casting resource, optional modifiers, selected damage type,
+resulting damage expression, costs, and structured deltas. It must not calculate upcast damage,
+damage-type substitution, or payment legality itself. Those come from Action Configuration and
+Action Economy so the previewed configuration is the same configuration later consumed by
+`ActionResolver`.
+
 ## Combat Carousel
 
 The combat carousel view model turns combat timeline data into:

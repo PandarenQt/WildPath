@@ -5,7 +5,8 @@
 ```text
 Item / Feature / Spell
 -> ActionDefinition
--> action configuration / per-use inputs
+-> ActionConfiguration / per-use inputs
+-> ResolvedActionPreview
 -> ActionResolver / ResolutionPipeline
 ```
 
@@ -178,9 +179,12 @@ owning domains interpret them. They are not embedded action scripts.
 
 Configuration:
 
-`configuration[]` is reserved for future action configuration declarations such as casting level,
-optional enhancements, action modes, or resource-dependent scaling. This milestone does not
-implement the full configuration system.
+`configuration[]` now feeds the Action Configuration foundation for per-use choices such as
+casting resource, optional enhancements, action modes, or resource-dependent scaling. The persisted
+definition still describes only what the action can do. The resolved configuration describes what
+was chosen this time and produces a cloned effective definition for preview and resolution.
+
+See `docs/architecture/action-configuration.md`.
 
 Resolution State:
 
@@ -226,7 +230,7 @@ The current integration still does not:
 - place or render areas
 - derive attack bonuses or save DCs from Actor statistics
 - commit generic non-condition ActiveEffects
-- implement action configuration choices
+- build the finished Action Configuration HUD
 - open reaction windows
 
 Those remain separate milestones. This foundation closes the persistence gap so future slices can

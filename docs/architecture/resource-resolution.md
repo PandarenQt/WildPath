@@ -22,6 +22,12 @@ custom pools, alternative payments, and restricted resources share one payment m
 The Wild Path default policy allows a Bonus Action activity to spend an Action only after every
 eligible Bonus Action resource for that activity has been depleted for the current turn.
 
+Action Configuration may pass a previously selected payment plan to `ResourceResolver`. The
+resolver re-runs payment discovery against current Actor resources and accepts the selected plan
+only when the current discovery still contains the same resource/capability/amount signature. This
+prevents a previewed slot, charge, or feature resource from silently becoming a different payment
+after game state changes.
+
 ## Mutation Plans
 
 The resolver maps selected economy resource ids back to the current Actor data shape:

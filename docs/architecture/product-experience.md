@@ -13,6 +13,11 @@ not UI-only checks.
 The first implementation slice is `module/helpers/ui-view-models.mjs`, which creates render-ready
 action-bar state from actor resources and action-economy payment discovery.
 
+The next HUD-facing action slice should consume `ActionChoiceRequest[]` and
+`ResolvedActionPreview` from `module/helpers/action-configuration.mjs` for casting level,
+alternate resource, optional enhancement, and damage-type-choice previews. The UI should render
+those contracts and dispatch choices, not implement the rules itself.
+
 ## Combat Carousel
 
 The combat carousel should show turn order, current/next actors, resource refresh context, reaction

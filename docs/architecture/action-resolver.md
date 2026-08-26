@@ -6,6 +6,9 @@ it, and adapt its targeting, attack, save, damage, healing, condition-effect, an
 declarations into the existing resolver flow. Runtime callers still provide current-use data such
 as selected targets, target candidates, roll totals, rolled component amounts, target Actor system
 snapshots, and authority.
+It can also consume raw Action Configuration responses or a `ResolvedActionConfiguration`, use the
+configuration helper's effective ActionDefinition, preserve a compact configuration summary in the
+action context metadata, and revalidate the selected payment plan before payment planning.
 
 It can resolve target validation and optional attack-outcome resolution when the required plain
 runtime data is present. It can also resolve supplied saving throws, resolve structured damage and
@@ -27,6 +30,7 @@ transaction path as durability.
 ```text
 Action item
 -> ActionDefinition validation / migration
+-> optional ActionConfiguration validation / effective definition
 -> ActionContext
 -> ActionResult
 -> optional TargetResolver target validation
@@ -40,6 +44,7 @@ Action item
 -> optional HealingResolver healing consequence
 -> optional target durability damage/absorption/healing mutation plans
 -> optional EffectResolver condition mutation plans
+-> configured payment-plan revalidation
 -> ResourceResolver payment plan
 -> Actor resource mutation plan
 -> optional explicit-authority ResolutionTransaction commit
@@ -67,6 +72,11 @@ successfully.
 
 - loads and validates an ActionDefinition from the Action Item when present
 - deterministically adapts legacy cost-only Actions into an in-memory ActionDefinition
+- resolves raw Action Configuration choices or revalidates an existing `ResolvedActionConfiguration`
+- replaces the base definition with the configured effective definition for downstream resolver
+  requests
+- fails during validation with `ACTION_CONFIGURATION_INVALID` when a selected option or payment is
+  no longer legal
 - derives default resolver requests from persisted targeting, attack, save, damage, healing, and
   condition effect definitions
 - builds an `ActionContext`
@@ -86,6 +96,7 @@ successfully.
 - filters save-gated condition effects from already-resolved save outcomes
 - carries duration, spell-origin, source, and concentration metadata on condition mutation plans
 - resolves Action item activation cost through `ResourceResolver`
+- passes the selected configuration payment plan to `ResourceResolver` for exact revalidation
 - records a target-selection consequence when targets are resolved
 - records an attack-resolution consequence when attack data is supplied
 - records a damage-resolution consequence when damage data is supplied
@@ -122,7 +133,7 @@ The current resolver does not:
 - derive attack bonuses or target defenses from Actor documents
 - derive save bonuses or save DCs from Actor documents
 - roll dice
-- implement the full Action Configuration system
+- render the Action Configuration HUD or collect choices from players
 - prompt for concentration checks or apply concentration save results
 - commit generic non-condition ActiveEffects
 - tick durations or break concentration

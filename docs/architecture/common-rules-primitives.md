@@ -9,6 +9,8 @@ Predicate
 + Modifier
 -> RuleElement
 -> ActionDefinition
+-> ActionConfiguration
+-> ResolvedActionPreview
 -> ResolutionPipeline
 ```
 
@@ -125,6 +127,20 @@ data keeps its current behavior while new content can persist structured mechani
 
 See `docs/architecture/action-definitions.md` for the ownership, persisted/runtime split,
 component model, migration behavior, and extension guidelines.
+
+## ActionConfiguration
+
+`module/helpers/action-configuration.mjs` defines the current configuration and authoritative
+preview foundation. It discovers view-model-friendly choice requests, validates per-use choice
+responses, applies generic configuration effects to a cloned effective ActionDefinition, and
+produces a non-mutating `ResolvedActionPreview`.
+
+Configuration uses the same Predicate, ValueExpression, and Action Economy contracts as the rest
+of the rules layer. It does not introduce a second formula language, arbitrary JavaScript choices,
+feature-name branches, or UI-owned legality checks.
+
+See `docs/architecture/action-configuration.md` for the choice lifecycle, payment integration,
+scaling, preview semantics, deltas, provenance, and target-refinement boundary.
 
 ## Boundaries
 

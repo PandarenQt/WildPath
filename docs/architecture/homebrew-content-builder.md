@@ -167,6 +167,12 @@ Supported formula pieces should include:
 Scaling should have dedicated UI for common cases such as spell-slot scaling, character-level
 scaling, and resource maximum scaling.
 
+Action configuration choices should compile to the same `ActionDefinition.configuration[]` and
+domain-contributed choice records consumed by `module/helpers/action-configuration.mjs`. Upcasting,
+alternate resource selection, optional enhancement costs, and legal damage-type substitutions must
+therefore preview and resolve through the shared Action Configuration foundation rather than a
+builder-only execution path.
+
 ## Validation and Rules Summary
 
 Every major builder should provide:
