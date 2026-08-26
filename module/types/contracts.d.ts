@@ -93,6 +93,118 @@ export interface ActionDefinition {
   readonly metadata: Readonly<Record<string, unknown>>;
 }
 
+export type ActionChoiceType =
+  | "select-one"
+  | "select-many"
+  | "boolean"
+  | "number"
+  | "resource"
+  | "damage-type"
+  | "option";
+
+export interface ActionChoiceOption {
+  readonly id: string;
+  readonly label: string;
+  readonly value?: unknown;
+  readonly paymentOptionId?: string | null;
+  readonly paymentPlan?: PaymentOption | null;
+  readonly resources?: readonly unknown[];
+  readonly source?: unknown;
+  readonly metadata: Readonly<Record<string, unknown>>;
+}
+
+export interface ActionChoiceDependency {
+  readonly choiceId: string;
+  readonly equals?: unknown;
+  readonly selected?: boolean | null;
+}
+
+export interface ActionChoiceRequest {
+  readonly id: string;
+  readonly type: ActionChoiceType;
+  readonly label: string;
+  readonly description: string | null;
+  readonly required: boolean;
+  readonly source: unknown;
+  readonly predicate: Predicate | null;
+  readonly dependsOn: readonly ActionChoiceDependency[];
+  readonly conflictsWith: readonly string[];
+  readonly min: ValueExpression | number | null;
+  readonly max: ValueExpression | number | null;
+  readonly options: readonly ActionChoiceOption[];
+  readonly defaultValue: unknown;
+  readonly payment?: {
+    readonly status: string;
+    readonly code: string;
+    readonly defaultOptionId: string | null;
+    readonly options: readonly unknown[];
+    readonly failures: readonly unknown[];
+  };
+  readonly stateFingerprint: string;
+  readonly metadata: Readonly<Record<string, unknown>>;
+  readonly choiceDefinition: Readonly<Record<string, unknown>>;
+}
+
+export interface ActionChoiceSelection {
+  readonly id: string;
+  readonly type: ActionChoiceType;
+  readonly value: unknown;
+  readonly values?: readonly unknown[] | null;
+  readonly optionId?: string | null;
+  readonly label: string | null;
+  readonly source: unknown;
+  readonly metadata: Readonly<Record<string, unknown>>;
+}
+
+export interface ResolvedActionConfiguration {
+  readonly id: string;
+  readonly actionDefinitionId: string | null;
+  readonly schemaVersion: number;
+  readonly baseDefinition: ActionDefinition;
+  readonly effectiveDefinition: ActionDefinition;
+  readonly choices: readonly ActionChoiceSelection[];
+  readonly selectedPayments: readonly PaymentOption[];
+  readonly selectedPaymentPlan: PaymentOption | null;
+  readonly selectedPaymentOptionId: string | null;
+  readonly castingLevel: number | null;
+  readonly optionSelections: readonly ActionChoiceSelection[];
+  readonly selectedDamageTypes: Readonly<Record<string, string>>;
+  readonly effectiveActionModes: readonly unknown[];
+  readonly appliedConfigurationSources: readonly unknown[];
+  readonly payment: {
+    readonly discovery: PaymentDiscovery;
+    readonly selectedPaymentOptionId: string | null;
+    readonly selectedPaymentPlan: PaymentOption | null;
+  };
+  readonly trace: readonly unknown[];
+  readonly metadata: Readonly<Record<string, unknown>>;
+}
+
+export interface ResolvedActionPreview {
+  readonly actionDefinitionId: string | null;
+  readonly configurationId: string;
+  readonly selectedOptions: readonly ActionChoiceSelection[];
+  readonly costs: Readonly<Record<string, unknown>>;
+  readonly actionEconomyPayments: readonly PaymentPlanResource[];
+  readonly damage: Readonly<Record<string, unknown>>;
+  readonly damageExpressions: readonly unknown[];
+  readonly damageTypes: readonly unknown[];
+  readonly healing: Readonly<Record<string, unknown>>;
+  readonly range: RangeDefinition | null;
+  readonly reach: unknown;
+  readonly area: AreaDefinition | null;
+  readonly targetCount: ValueExpression | number | null;
+  readonly save: SaveDefinition | null;
+  readonly check: CheckDefinition | null;
+  readonly duration: DurationDefinition | null;
+  readonly effects: readonly EffectApplicationDefinition[];
+  readonly conditions: readonly EffectApplicationDefinition[];
+  readonly resourceConsequences: readonly unknown[];
+  readonly deltas: readonly unknown[];
+  readonly trace: readonly unknown[];
+  readonly metadata: Readonly<Record<string, unknown>>;
+}
+
 export interface ActionOriginDefinition {
   readonly type: string;
   readonly ref?: EntityRef | string | null;
