@@ -26,7 +26,8 @@ export function resolveActorResourcePayment({
   cost,
   action={},
   policies={},
-  selectedPaymentOptionId=null
+  selectedPaymentOptionId=null,
+  selectedPaymentPlan=null
 }={}) {
   const resources = economyResourcesFromActorResources(actorSystem);
   const discovery = resolvePaymentOptions({cost, resources, action, policies});
@@ -42,7 +43,10 @@ export function resolveActorResourcePayment({
     };
   }
 
-  const paymentPlan = selectPaymentOption(discovery.options, selectedPaymentOptionId);
+  const paymentPlan = selectPaymentOption(discovery.options, {
+    selectedPaymentOptionId,
+    selectedPaymentPlan
+  });
   if ( !paymentPlan ) {
     return {
       ok: false,
@@ -166,9 +170,31 @@ export async function commitActorResourceMutationPlan(actor, mutationPlan) {
 
 /* -------------------------------------------- */
 
-function selectPaymentOption(options, selectedPaymentOptionId) {
+function selectPaymentOption(options, {selectedPaymentOptionId=null, selectedPaymentPlan=null}={}) {
+  if ( selectedPaymentPlan ) return findMatchingPaymentOption(options, selectedPaymentPlan);
   if ( selectedPaymentOptionId == null ) return selectDefaultPaymentOption(options);
   return options.find(option => option.id === selectedPaymentOptionId) ?? null;
+}
+
+function findMatchingPaymentOption(options, selectedPaymentPlan) {
+  return options.find(option => paymentPlansMatch(option, selectedPaymentPlan)) ?? null;
+}
+
+function paymentPlansMatch(left, right) {
+  return JSON.stringify(paymentResourcesSignature(left?.resources ?? []))
+    === JSON.stringify(paymentResourcesSignature(right?.resources ?? []));
+}
+
+function paymentResourcesSignature(resources) {
+  return resources.map(resource => ({
+    resourceId: resource.resourceId,
+    capability: resource.capability,
+    amount: resource.amount,
+    unit: resource.unit ?? null,
+    mode: resource.mode ?? null,
+    alternativeFor: resource.alternativeFor ?? null,
+    policy: resource.policy ?? null
+  })).sort((a, b) => `${a.resourceId}:${a.capability}`.localeCompare(`${b.resourceId}:${b.capability}`));
 }
 
 function resolveActorResourceRef(actorSystem, economyResourceId) {

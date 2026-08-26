@@ -43,6 +43,10 @@ import {
   actionDefinitionFromAction,
   actionDefinitionToResolverInput
 } from "../helpers/action-definitions.mjs";
+import {
+  resolveActionConfiguration,
+  validateResolvedActionConfiguration
+} from "../helpers/action-configuration.mjs";
 
 export const ACTION_RESOLVER_CODES = Object.freeze({
   OK: "OK",
@@ -53,6 +57,7 @@ export const ACTION_RESOLVER_CODES = Object.freeze({
   HEALING_FAILED: "HEALING_FAILED",
   EFFECTS_FAILED: "EFFECTS_FAILED",
   ACTION_DEFINITION_INVALID: "ACTION_DEFINITION_INVALID",
+  ACTION_CONFIGURATION_INVALID: "ACTION_CONFIGURATION_INVALID",
   PAYMENT_UNAVAILABLE: "PAYMENT_UNAVAILABLE",
   RESOURCE_COMMIT_FAILED: "RESOURCE_COMMIT_FAILED",
   MUTATION_COMMIT_FAILED: "MUTATION_COMMIT_FAILED",
@@ -73,13 +78,36 @@ export function planActionResolution({
   healing=null,
   effects=null,
   durability=null,
+  configuration=null,
+  configurationContributions=[],
   context={},
   policies={},
   selectedPaymentOptionId=null,
   complete=true
 }={}) {
   const definitionResult = action ? actionDefinitionFromAction(action, {actorSystem}) : null;
-  const actionDefinition = definitionResult?.definition ?? null;
+  let actionDefinition = definitionResult?.definition ?? null;
+  const configurationResult = definitionResult?.ok && actionDefinition
+    ? resolveConfigurationForAction({
+        actionDefinition,
+        actorSystem,
+        configuration,
+        configurationContributions,
+        context,
+        policies
+      })
+    : null;
+  if ( configurationResult?.ok ) {
+    actionDefinition = configurationResult.configuration.effectiveDefinition;
+    context = {
+      ...context,
+      metadata: {
+        ...(context.metadata ?? {}),
+        resolvedActionConfiguration: summarizeResolvedConfiguration(configurationResult.configuration)
+      }
+    };
+    if ( selectedPaymentOptionId == null ) selectedPaymentOptionId = configurationResult.configuration.selectedPaymentOptionId;
+  }
   const definitionInput = definitionResult?.ok && actionDefinition
     ? actionDefinitionToResolverInput(actionDefinition, {
         actorSystem,
@@ -123,6 +151,19 @@ export function planActionResolution({
       data: {
         actionDefinition: definitionResult.definition ?? null,
         validation: definitionResult
+      }
+    });
+  }
+  if ( configurationResult && !configurationResult.ok ) {
+    return failActionResult(result, {
+      stage: ACTION_RESOLUTION_STAGES.VALIDATION,
+      code: ACTION_RESOLVER_CODES.ACTION_CONFIGURATION_INVALID,
+      reason: configurationResult.code,
+      errors: configurationResult.errors,
+      data: {
+        actionDefinition,
+        configuration: configurationResult.configuration ?? null,
+        validation: configurationResult
       }
     });
   }
@@ -367,7 +408,8 @@ export function planActionResolution({
     cost: actionActivationCost(action, actionDefinition),
     action: actionContext.action,
     policies: actionContext.policies,
-    selectedPaymentOptionId
+    selectedPaymentOptionId,
+    selectedPaymentPlan: configurationResult?.configuration?.selectedPaymentPlan ?? null
   });
   if ( !payment.ok ) {
     return failActionResult(result, {
@@ -422,6 +464,8 @@ export async function executeActionResolution({
   healing=null,
   effects=null,
   durability=null,
+  configuration=null,
+  configurationContributions=[],
   targetActors=null,
   authority=null,
   context={},
@@ -441,6 +485,8 @@ export async function executeActionResolution({
     healing,
     effects,
     durability: executionDurability,
+    configuration,
+    configurationContributions,
     context,
     policies,
     selectedPaymentOptionId,
@@ -578,6 +624,95 @@ function actionRef(action, actionDefinition=null, definitionResult=null) {
 function actionActivationCost(action, actionDefinition=null) {
   if ( actionDefinition ) return actionDefinitionActivationCost(actionDefinition);
   return action?.system?.getActivationCost?.() ?? action?.activationCost ?? action?.cost ?? {allOf: []};
+}
+
+function resolveConfigurationForAction({
+  actionDefinition,
+  actorSystem,
+  configuration,
+  configurationContributions=[],
+  context={},
+  policies={}
+}) {
+  if ( !configuration && !configurationContributionCount(configurationContributions) ) return null;
+
+  if ( configuration?.effectiveDefinition ) {
+    const validation = validateResolvedActionConfiguration({
+      configuration,
+      actorSystem,
+      context,
+      policies
+    });
+    if ( !validation.ok ) return {
+      ok: false,
+      code: validation.code,
+      errors: validation.errors,
+      configuration,
+      validation
+    };
+    return {
+      ok: true,
+      code: ACTION_RESOLVER_CODES.OK,
+      configuration: {
+        ...configuration,
+        payment: {
+          ...(configuration.payment ?? {}),
+          discovery: validation.payment.discovery,
+          selectedPaymentOptionId: validation.payment.selectedPaymentOptionId,
+          selectedPaymentPlan: validation.payment.selectedPaymentPlan
+        },
+        selectedPaymentOptionId: validation.payment.selectedPaymentOptionId,
+        selectedPaymentPlan: validation.payment.selectedPaymentPlan
+      },
+      validation
+    };
+  }
+
+  const choices = configuration?.choices
+    ?? configuration?.responses
+    ?? configuration
+    ?? {};
+  const result = resolveActionConfiguration({
+    definition: actionDefinition,
+    actorSystem,
+    choices,
+    configurationContributions,
+    context,
+    policies
+  });
+  if ( !result.ok ) return {
+    ok: false,
+    code: result.code,
+    errors: result.errors,
+    configuration: result.configuration,
+    validation: result
+  };
+  return result;
+}
+
+function configurationContributionCount(contributions) {
+  if ( contributions == null ) return 0;
+  if ( Array.isArray(contributions) ) return contributions.length;
+  if ( contributions instanceof Set || contributions instanceof Map ) return contributions.size;
+  return 1;
+}
+
+function summarizeResolvedConfiguration(configuration) {
+  return {
+    id: configuration.id,
+    actionDefinitionId: configuration.actionDefinitionId,
+    castingLevel: configuration.castingLevel ?? null,
+    selectedPaymentOptionId: configuration.selectedPaymentOptionId ?? null,
+    choices: (configuration.choices ?? []).map(choice => ({
+      id: choice.id,
+      type: choice.type,
+      value: choice.value,
+      optionId: choice.optionId ?? null,
+      source: choice.source ?? null,
+      metadata: choice.metadata ?? {}
+    })),
+    selectedDamageTypes: configuration.selectedDamageTypes ?? {}
+  };
 }
 
 function uniqueStrings(values) {
