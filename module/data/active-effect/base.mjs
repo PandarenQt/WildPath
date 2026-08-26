@@ -1,4 +1,4 @@
-import {modifiersField} from "../fields.mjs";
+import {modifiersField, ruleElementsField} from "../fields.mjs";
 
 /**
  * Shared schema for every ActiveEffect sub-type in the WildPath system.
@@ -11,7 +11,8 @@ export default class WildPathBaseEffect extends foundry.data.ActiveEffectTypeDat
   /** @inheritDoc */
   static defineSchema() {
     return {
-      modifiers: modifiersField()
+      modifiers: modifiersField(),
+      ruleElements: ruleElementsField()
     };
   }
 }

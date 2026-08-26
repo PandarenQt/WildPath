@@ -1,4 +1,5 @@
 import {WildPathModifier, WildPathStatistic} from "../helpers/modifiers.mjs";
+import {modifiersFromRuleElements} from "../helpers/rule-elements.mjs";
 import WildPathConditionEffect from "../data/active-effect/condition.mjs";
 import {executeActionResolution} from "../resolvers/action-resolver.mjs";
 import {executeConditionEffect} from "../resolvers/effect-resolver.mjs";
@@ -33,17 +34,29 @@ export default class WildPathActor extends Actor {
     for ( const item of this.items ) {
       if ( item.system?.active === false ) continue;
       for ( const m of item.system?.modifiers ?? [] ) {
-        if ( !m.domains.has(domain) && !m.domains.has("all") ) continue;
+        if ( !modifierTargetsDomain(m, domain) ) continue;
         modifiers.push(new WildPathModifier({...m, source: item.uuid}));
       }
+      modifiers.push(...collectRuleElementModifiers(item.system?.ruleElements, {
+        actor: this,
+        domain,
+        source: documentRuleElementSource(item, "item"),
+        context: {item}
+      }));
     }
 
     for ( const effect of this.allApplicableEffects?.() ?? this.effects ) {
       if ( effect.disabled || effect.isSuppressed ) continue;
       for ( const m of effect.system?.modifiers ?? [] ) {
-        if ( !m.domains.has(domain) && !m.domains.has("all") ) continue;
+        if ( !modifierTargetsDomain(m, domain) ) continue;
         modifiers.push(new WildPathModifier({...m, source: effect.uuid}));
       }
+      modifiers.push(...collectRuleElementModifiers(effect.system?.ruleElements, {
+        actor: this,
+        domain,
+        source: documentRuleElementSource(effect, "effect"),
+        context: {effect}
+      }));
     }
 
     return new WildPathStatistic(domain, modifiers, {
@@ -313,5 +326,43 @@ function actorLifecycleCommitAuthority(actor) {
     canCommit,
     userId: user?.id ?? null,
     actorId: actor?.id ?? null
+  };
+}
+
+function collectRuleElementModifiers(ruleElements, {actor, domain, source, context={}}) {
+  if ( !ruleElements?.length ) return [];
+  const result = modifiersFromRuleElements({
+    ruleElements,
+    domain,
+    context: {
+      actor,
+      actorSystem: actor.system,
+      ...context
+    },
+    source
+  });
+  if ( !result.ok ) console.warn("Wild Path | RuleElement modifier collection failed", result);
+  return result.modifiers.map(modifier => new WildPathModifier(modifier));
+}
+
+function modifierTargetsDomain(modifier, domain) {
+  const domains = normalizeDomains(modifier.domains ?? modifier.domain ?? modifier.selector);
+  return domains.has(domain) || domains.has("all");
+}
+
+function normalizeDomains(value) {
+  if ( value == null ) return new Set();
+  if ( typeof value === "string" ) return new Set([value]);
+  if ( typeof value.has === "function" && typeof value !== "string" ) return value;
+  if ( Symbol.iterator in Object(value) ) return new Set([...value].map(String));
+  return new Set([String(value)]);
+}
+
+function documentRuleElementSource(document, type) {
+  return {
+    type,
+    uuid: document.uuid ?? null,
+    id: document.id ?? null,
+    name: document.name ?? null
   };
 }

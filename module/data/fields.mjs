@@ -91,6 +91,38 @@ export function modifiersField() {
 /* -------------------------------------------- */
 
 /**
+ * Schema for a single declarative RuleElement entry, as authored on an Item or ActiveEffect.
+ * Common fields are stored at the top level; type-specific configuration belongs in `data` so
+ * Foundry persistence remains stable while the pure RuleElement registry evolves.
+ * @returns {SchemaField}
+ */
+export function ruleElementField() {
+  return new SchemaField({
+    id: new StringField({required: true, blank: true, initial: ""}),
+    type: new StringField({required: true, blank: false, initial: "Modifier"}),
+    key: new StringField({required: true, blank: true, initial: ""}),
+    label: new StringField({required: true, blank: true, initial: ""}),
+    data: new ObjectField({required: true, initial: () => ({})}),
+    predicate: new ObjectField({nullable: true, initial: null}),
+    priority: new NumberField({required: true, integer: true, initial: 100}),
+    source: new ObjectField({nullable: true, initial: null}),
+    metadata: new ObjectField({required: true, initial: () => ({})}),
+    enabled: new BooleanField({required: true, initial: true}),
+    suppressed: new BooleanField({required: true, initial: false})
+  });
+}
+
+/**
+ * A repeatable field for declarative RuleElements carried by an Item or ActiveEffect.
+ * @returns {ArrayField}
+ */
+export function ruleElementsField() {
+  return new ArrayField(ruleElementField());
+}
+
+/* -------------------------------------------- */
+
+/**
  * Schema for a single damage/healing-over-time tick, used by condition ActiveEffects
  * (e.g. Poisoned, Bleeding) to describe periodic resource changes.
  * @returns {SchemaField}

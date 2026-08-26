@@ -1,4 +1,4 @@
-import {modifiersField} from "../fields.mjs";
+import {modifiersField, ruleElementsField} from "../fields.mjs";
 
 const {HTMLField, BooleanField} = foundry.data.fields;
 
@@ -19,8 +19,14 @@ export default class WildPathBaseItem extends foundry.abstract.TypeDataModel {
        */
       modifiers: modifiersField(),
       /**
-       * Whether this Item's modifiers currently apply (e.g. gear is equipped, a feature is
-       * active/toggled on). Inactive items are ignored by modifier collection entirely.
+       * Declarative, serializable rule contributions supplied by this Item while `active` is
+       * true. RuleElements describe contributions that owning domains interpret; they do not
+       * execute resolver-specific behavior directly.
+       */
+      ruleElements: ruleElementsField(),
+      /**
+       * Whether this Item's rule contributions currently apply (e.g. gear is equipped, a feature
+       * is active/toggled on). Inactive items are ignored by modifier collection entirely.
        */
       active: new BooleanField({required: true, initial: true})
     };
