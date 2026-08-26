@@ -247,6 +247,127 @@ export interface ModifierTrace {
   readonly applied: readonly ModifierTraceEntry[];
 }
 
+export type RuleElementType =
+  | "Modifier"
+  | "GrantResource"
+  | "GrantActionEconomyResource"
+  | "GrantResistance"
+  | "GrantImmunity"
+  | "GrantMovement"
+  | "Trigger"
+  | (string & {});
+
+export type RuleElementTraceStatus =
+  | "contributed"
+  | "disabled"
+  | "suppressed"
+  | "predicate-failed"
+  | "failed";
+
+export interface RuleElementDefinition {
+  readonly id?: string;
+  readonly slug?: string;
+  readonly type?: RuleElementType;
+  readonly key?: RuleElementType | string;
+  readonly rule?: RuleElementType | string;
+  readonly label?: string | null;
+  readonly name?: string | null;
+  readonly data?: Readonly<Record<string, unknown>>;
+  readonly predicate?: Predicate | null;
+  readonly priority?: number;
+  readonly order?: number;
+  readonly source?: unknown;
+  readonly metadata?: Readonly<Record<string, unknown>>;
+  readonly enabled?: boolean;
+  readonly suppressed?: boolean;
+}
+
+export interface RuleElementTrace {
+  readonly id: string;
+  readonly type: RuleElementType | null;
+  readonly label: string | null;
+  readonly priority: number;
+  readonly source: unknown;
+  readonly predicate: Predicate | null;
+  readonly predicateResult: PredicateResult | null;
+  readonly status: RuleElementTraceStatus;
+  readonly reason: string | null;
+  readonly contributionCounts: Readonly<Record<string, number>>;
+  readonly metadata: Readonly<Record<string, unknown>>;
+}
+
+export interface RuleElementResourceContribution {
+  readonly id: string;
+  readonly label: string;
+  readonly current: number;
+  readonly maximum: number;
+  readonly recovery: string;
+  readonly source: unknown;
+  readonly metadata: Readonly<Record<string, unknown>>;
+}
+
+export interface DamageAdjustmentContribution {
+  readonly id?: string;
+  readonly damageTypes?: readonly string[];
+  readonly tags?: readonly string[];
+  readonly multiplier?: number;
+  readonly type?: string;
+  readonly amount?: number | null;
+  readonly scale?: number | null;
+  readonly resourceId?: string;
+  readonly metadata?: Readonly<Record<string, unknown>>;
+}
+
+export interface MovementCapability {
+  readonly mode: string;
+  readonly distance: number;
+  readonly unit: string;
+}
+
+export interface RuleElementMovementContribution {
+  readonly id: string;
+  readonly capability: MovementCapability;
+  readonly source: unknown;
+  readonly metadata: Readonly<Record<string, unknown>>;
+}
+
+export interface TriggerDefinition {
+  readonly id: string;
+  readonly kind: string;
+  readonly event: Readonly<Record<string, unknown>>;
+  readonly predicate: Predicate | null;
+  readonly priority: number;
+  readonly once: boolean;
+  readonly enabled: boolean;
+  readonly payload: Readonly<Record<string, unknown>>;
+  readonly owner: EntityReference | null;
+  readonly reaction: Readonly<Record<string, unknown>> | null;
+  readonly metadata: Readonly<Record<string, unknown>>;
+}
+
+export interface RuleElementContributions {
+  readonly modifiers: readonly ModifierDefinition[];
+  readonly resources: readonly RuleElementResourceContribution[];
+  readonly economyResources: readonly EconomyResource[];
+  readonly damageAdjustments: {
+    readonly immunities: readonly DamageAdjustmentContribution[];
+    readonly resistances: readonly DamageAdjustmentContribution[];
+    readonly vulnerabilities: readonly DamageAdjustmentContribution[];
+    readonly reductions: readonly DamageAdjustmentContribution[];
+    readonly absorptions: readonly DamageAdjustmentContribution[];
+  };
+  readonly movement: readonly RuleElementMovementContribution[];
+  readonly triggers: readonly TriggerDefinition[];
+}
+
+export interface RuleElementCollectionResult {
+  readonly ok: boolean;
+  readonly code: string;
+  readonly contributions: RuleElementContributions;
+  readonly traces: readonly RuleElementTrace[];
+  readonly failures: readonly unknown[];
+}
+
 export interface ActivationRequirement {
   readonly capability: string;
   readonly amount: number;

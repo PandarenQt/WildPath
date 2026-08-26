@@ -68,6 +68,11 @@ condition id + signed level delta
 `WildPathActor#toggleCondition()` now enters this resolver and supplies the Foundry-specific commit
 adapter that delegates to `WildPathConditionEffect.applyDelta`.
 
+ActiveEffect system data can also persist `ruleElements`. The EffectResolver does not interpret
+those entries directly yet; owning domains collect and consume the relevant contribution bundles
+when they are ready. Today, `Modifier` RuleElements on applicable ActiveEffects feed Actor
+statistics through `WildPathActor#getStatistic(domain)`.
+
 ## What It Does Not Do Yet
 
 EffectResolver does not:

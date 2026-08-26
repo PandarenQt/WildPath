@@ -12,9 +12,9 @@ Predicate
 -> ResolutionPipeline
 ```
 
-This document covers the first three primitives. RuleElement, persisted ActionDefinition, and the
+This document covers the shared primitive vocabulary. Persisted ActionDefinition and the
 addressable ResolutionPipeline should build on these contracts rather than introducing separate
-predicate, formula, or modifier shapes.
+predicate, formula, modifier, or rule-contribution shapes.
 
 ## Predicate
 
@@ -82,13 +82,37 @@ The current Foundry data schema preserves the older numeric `value` field as a c
 shortcut and adds serializable `valueExpression`, `predicate`, `priority`, `metadata`, and
 suppression fields for new content.
 
+## RuleElement
+
+`module/helpers/rule-elements.mjs` defines the shared RuleElement registry and collector.
+
+RuleElements are declarative contribution records carried by Items, ActiveEffects, features,
+conditions, classes, species, feats, spells, transformations, temporary effects, and homebrew
+content. They are not mini-resolvers. A RuleElement should describe what it contributes, then let
+the owning domain interpret that contribution.
+
+The initial contribution types are:
+
+- `Modifier`
+- `GrantResource`
+- `GrantActionEconomyResource`
+- `GrantResistance`
+- `GrantImmunity`
+- `GrantMovement`
+- `Trigger`
+
+Items and ActiveEffects now persist `ruleElements` arrays next to legacy `modifiers`. New content
+should prefer RuleElements so later mechanics can compose through `Predicate`, `ValueExpression`,
+and `Modifier` instead of adding resolver-specific item or condition branches.
+
+See `docs/architecture/rule-elements.md` for the full RuleElement boundary, authoring shape, and
+current integration notes.
+
 ## Boundaries
 
 These helpers are pure domain utilities. Foundry documents may gather Items, ActiveEffects, Actors,
 or Tokens and adapt them into plain contexts, but the primitive evaluators themselves must not
 query canvas, sheets, chat, or global UI state.
 
-RuleElements should consume these primitives directly. For example, a future `Modifier`
-RuleElement should produce `ModifierDefinition` data whose `predicate` and `valueExpression` use
-these exact shapes.
-
+RuleElements consume these primitives directly. For example, a `Modifier` RuleElement produces
+`ModifierDefinition` data whose `predicate` and `valueExpression` use these exact shapes.

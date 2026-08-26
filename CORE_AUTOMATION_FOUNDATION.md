@@ -15,6 +15,9 @@ The finished game system name is **Wild Path**.
   can already accept plain target, attack, save, and damage data from future Foundry adapters.
 - `WildPathActor#getStatistic(domain)` and `WildPathStatistic` are the current calculation engine.
   New mechanics should build on that domain/modifier model rather than creating one-off math.
+- `module/helpers/rule-elements.mjs` provides the first pure RuleElement registry/collector for
+  serializable rule contributions. Items and ActiveEffects now persist `ruleElements`, and
+  `Modifier` RuleElements feed `WildPathActor#getStatistic(domain)` alongside legacy modifiers.
 - Resource max calculation is idempotent: persisted `base`/`bonus` values combine with transient
   per-prepare `modifierBonus` values.
 - `module/helpers/action-economy.mjs` provides pure payment discovery/commit/refresh primitives
@@ -210,6 +213,7 @@ and its separation from Heavy, Reach, creature size, and damage execution. See
 `docs/architecture/abstraction-layers.md` for the string-reference boundary that keeps rules,
 resolvers, Foundry adapters, and UI separated. See `docs/architecture/ui-ux-layer.md` for the
 current action-bar, combat-carousel, and concentration-prompt view-model foundation. See
+`docs/architecture/rule-elements.md` for the current declarative rule-contribution layer. See
 `docs/architecture/typescript-migration.md` for the staged TypeScript adoption plan.
 
 ## Near-Term Order
