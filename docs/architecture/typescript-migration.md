@@ -57,14 +57,16 @@ Use TypeScript first where contracts are most valuable and Foundry runtime coupl
 
 ## Initial Tooling
 
-The first scaffold is intentionally non-disruptive:
+The first scaffold is intentionally narrow:
 
 - `tsconfig.json` exists for editor/tooling configuration
 - `module/types/contracts.d.ts` defines shared contract types
-- no package dependency or required `npm run typecheck` is added yet
+- `typescript` is a dev dependency
+- `npm run typecheck` runs `tsc -p tsconfig.json --noEmit`
 
-The next tooling step should add a pinned `typescript` dev dependency and a `typecheck` script once
-the team is ready to run TypeScript in CI or local verification.
+The typecheck currently covers TypeScript declaration and `.ts` source files, not the existing
+`.mjs` runtime modules. Runtime JavaScript remains covered by focused unit tests until individual
+modules are intentionally migrated.
 
 ## Recommended First Type Targets
 

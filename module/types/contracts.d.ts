@@ -66,6 +66,187 @@ export interface ActionReference {
   readonly metadata: Readonly<Record<string, unknown>>;
 }
 
+export interface PredicateEquals {
+  readonly path: string;
+  readonly value: unknown;
+}
+
+export interface PredicateOneOf {
+  readonly path: string;
+  readonly values: readonly unknown[];
+}
+
+export interface PredicateClause {
+  readonly tagsAny?: readonly string[];
+  readonly tagsAll?: readonly string[];
+  readonly notTagsAny?: readonly string[];
+  readonly hasCondition?: string;
+  readonly missingCondition?: string;
+  readonly equals?: PredicateEquals;
+  readonly oneOf?: PredicateOneOf;
+}
+
+export interface PredicateAll {
+  readonly all: readonly Predicate[];
+}
+
+export interface PredicateAny {
+  readonly any: readonly Predicate[];
+}
+
+export interface PredicateNot {
+  readonly not: Predicate;
+}
+
+export type Predicate = PredicateClause | PredicateAll | PredicateAny | PredicateNot;
+
+export type ValueExpression =
+  | number
+  | ConstantValueExpression
+  | ContextValueExpression
+  | AbilityValueExpression
+  | ProficiencyBonusValueExpression
+  | CharacterLevelValueExpression
+  | ClassLevelValueExpression
+  | SpellcastingModifierValueExpression
+  | ResourceValueExpression
+  | ArithmeticValueExpression
+  | UnaryValueExpression
+  | DiceValueExpression;
+
+export interface ConstantValueExpression {
+  readonly type: "constant";
+  readonly value: number;
+}
+
+export interface ContextValueExpression {
+  readonly type: "context";
+  readonly path: string;
+}
+
+export interface AbilityValueExpression {
+  readonly type: "ability-score" | "abilityScore" | "ability-modifier" | "abilityModifier";
+  readonly ability: string;
+}
+
+export interface ProficiencyBonusValueExpression {
+  readonly type: "proficiency-bonus" | "proficiencyBonus";
+}
+
+export interface CharacterLevelValueExpression {
+  readonly type: "character-level" | "characterLevel";
+}
+
+export interface ClassLevelValueExpression {
+  readonly type: "class-level" | "classLevel";
+  readonly class?: string;
+  readonly classId?: string;
+  readonly key?: string;
+  readonly slug?: string;
+  readonly name?: string;
+}
+
+export interface SpellcastingModifierValueExpression {
+  readonly type: "spellcasting-modifier" | "spellcastingModifier";
+  readonly ability?: string;
+}
+
+export interface ResourceValueExpression {
+  readonly type: "resource-current" | "resourceCurrent" | "resource-max" | "resourceMax";
+  readonly resource?: string;
+  readonly resourceId?: string;
+  readonly id?: string;
+  readonly key?: string;
+}
+
+export interface ArithmeticValueExpression {
+  readonly type: "add" | "subtract" | "multiply" | "divide" | "min" | "max";
+  readonly terms?: readonly ValueExpression[];
+  readonly left?: ValueExpression;
+  readonly right?: ValueExpression;
+  readonly numerator?: ValueExpression;
+  readonly denominator?: ValueExpression;
+  readonly value?: ValueExpression;
+  readonly minus?: ValueExpression;
+  readonly round?: "floor" | "ceil" | "round";
+}
+
+export interface UnaryValueExpression {
+  readonly type: "floor" | "ceil";
+  readonly value: ValueExpression;
+}
+
+export interface DiceValueExpression {
+  readonly type: "dice";
+  readonly number?: number;
+  readonly count?: number;
+  readonly faces?: number;
+  readonly sides?: number;
+  readonly bonus?: ValueExpression;
+  readonly total?: number;
+  readonly rolled?: number;
+  readonly roll?: number;
+  readonly formula?: string;
+  readonly evaluation?: "average";
+  readonly mode?: "average";
+}
+
+export interface ValueExpressionResult {
+  readonly ok: boolean;
+  readonly code: string;
+  readonly value: number;
+  readonly reason?: string;
+}
+
+export interface PredicateResult {
+  readonly ok: boolean;
+  readonly code: string;
+  readonly reason?: string;
+}
+
+export interface ModifierDefinition {
+  readonly id?: string;
+  readonly slug?: string;
+  readonly label?: string;
+  readonly selector?: string | null;
+  readonly domains?: readonly string[];
+  readonly type?: string;
+  readonly value?: number;
+  readonly valueExpression?: ValueExpression | null;
+  readonly predicate?: Predicate | null;
+  readonly priority?: number;
+  readonly order?: number;
+  readonly source?: unknown;
+  readonly metadata?: Readonly<Record<string, unknown>>;
+  readonly enabled?: boolean;
+  readonly suppressed?: boolean;
+}
+
+export interface ModifierTraceEntry {
+  readonly id: string;
+  readonly slug: string;
+  readonly label: string;
+  readonly selector: string | null;
+  readonly domains: readonly string[];
+  readonly type: string;
+  readonly value: number;
+  readonly valueExpression: ValueExpression;
+  readonly valueResult: ValueExpressionResult;
+  readonly predicate: Predicate | null;
+  readonly predicateResult: PredicateResult;
+  readonly priority: number;
+  readonly source: unknown;
+  readonly metadata: Readonly<Record<string, unknown>>;
+  readonly status: string;
+}
+
+export interface ModifierTrace {
+  readonly domain: string;
+  readonly total: number;
+  readonly candidates: readonly ModifierTraceEntry[];
+  readonly applied: readonly ModifierTraceEntry[];
+}
+
 export interface ActivationRequirement {
   readonly capability: string;
   readonly amount: number;
@@ -85,7 +266,7 @@ export interface EconomyResource {
   readonly maximum: number;
   readonly unit: string;
   readonly paymentCapabilities: readonly string[];
-  readonly predicate?: unknown;
+  readonly predicate?: Predicate | null;
   readonly refreshPolicies: readonly RefreshPolicy[];
   readonly source: Readonly<Record<string, unknown>> | null;
   readonly priority: number;

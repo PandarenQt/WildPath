@@ -12,7 +12,7 @@ An economy resource has:
 - `current` and `maximum`
 - `unit` (`uses`, `points`, or `movement`)
 - `paymentCapabilities`
-- optional `predicate`
+- optional shared `Predicate`
 - `refreshPolicies`
 - optional `source`
 - optional `metadata`
@@ -46,9 +46,11 @@ with `allowActionForSpentBonusAction: false` for rules variants. A Bonus Action 
 preferred while any eligible one is available, and the fallback does not hide predicate failures or
 the complete absence of a usable Bonus Action resource.
 
-Restricted payment is predicate driven. A Haste-style extra Action can advertise `action` payment
-capability and also provide a predicate such as `tagsAny: ["weapon-attack"]`. The payment resolver
-does not check feature names.
+Restricted payment is predicate driven through the canonical evaluator described in
+`docs/architecture/common-rules-primitives.md`. A Haste-style extra Action can advertise `action`
+payment capability and also provide a predicate such as `tagsAny: ["weapon-attack"]`. The payment
+resolver does not check feature names and does not accept arbitrary JavaScript predicate functions
+as persisted rules data.
 
 ## Refresh
 
