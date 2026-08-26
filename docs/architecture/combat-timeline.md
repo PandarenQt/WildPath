@@ -74,13 +74,18 @@ client, and `WildPathActor#rest()` supplies rest completion events for the resti
 commit resulting condition-removal plans through `EffectLifecycleCommitResolver`,
 `TargetMutationCommitResolver`, and `ResolutionTransaction`.
 
+`ConditionTriggerResolver` also consumes turn-start events for condition Trigger RuleElements. The
+current representative implementation is Bleeding's turn-start durability damage. Legacy
+`system.dot` data is translated into synthetic Trigger RuleElements only as a temporary
+compatibility layer.
+
 ## Future Consumers
 
 This foundation is intended for:
 
 - combat carousel state
 - turn-start resource refresh
-- condition ticking
+- condition ticking through Trigger RuleElements
 - duration expiry through EffectLifecycleResolver
 - delayed effects
 - persistent area triggers

@@ -38,6 +38,11 @@ A trigger definition declares:
 Matching is deterministic. It checks event type, phase, source, target, and tags, then evaluates
 the shared structured predicate helper. It returns dispatch plans; it does not execute effects.
 
+RuleElements can contribute these trigger definitions. `ConditionTriggerResolver` currently consumes
+condition-provided Trigger RuleElements for a narrow durability-change payload on semantic
+turn-start events. That resolver plans mutations through the durability domain; trigger
+registration itself still does not execute actions or mutate documents.
+
 ## Reaction Windows
 
 Reaction triggers are normal triggers with a reaction payload and a payment requirement. The helper

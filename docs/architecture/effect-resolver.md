@@ -73,13 +73,20 @@ those entries directly yet; owning domains collect and consume the relevant cont
 when they are ready. Today, `Modifier` RuleElements on applicable ActiveEffects feed Actor
 statistics through `WildPathActor#getStatistic(domain)`.
 
+`module/resolvers/condition-trigger-resolver.mjs` is the first owning-domain consumer for condition
+RuleElements. It collects condition `Trigger` RuleElements, matches semantic events such as
+`turn.started`, and plans durability changes through `DurabilityResolver`. `Bleeding` now uses this
+path. Legacy `system.dot` ticks are translated into synthetic Trigger RuleElements only when a
+condition effect has no persisted `ruleElements`; the direct `Actor.applyConditionTicks()` loop is
+no longer the authoritative execution path.
+
 ## What It Does Not Do Yet
 
 EffectResolver does not:
 
 - apply generic ActiveEffects
 - decrement and persist remaining duration counters
-- create condition ticking schedules
+- create broad condition ticking schedules beyond the current Trigger RuleElement durability slice
 - roll concentration checks or decide when a check is required
 - compute concentration DCs
 - commit generic non-condition effects through `ResolutionTransaction`

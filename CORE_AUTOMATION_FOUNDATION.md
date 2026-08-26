@@ -16,8 +16,9 @@ The finished game system name is **Wild Path**.
 - `WildPathActor#getStatistic(domain)` and `WildPathStatistic` are the current calculation engine.
   New mechanics should build on that domain/modifier model rather than creating one-off math.
 - `module/helpers/rule-elements.mjs` provides the first pure RuleElement registry/collector for
-  serializable rule contributions. Items and ActiveEffects now persist `ruleElements`, and
-  `Modifier` RuleElements feed `WildPathActor#getStatistic(domain)` alongside legacy modifiers.
+  serializable rule contributions, with schema-versioned validation, source/provenance traces, and
+  JSON round-trip normalization. Items and ActiveEffects now persist `ruleElements`, and `Modifier`
+  RuleElements feed `WildPathActor#getStatistic(domain)` alongside legacy modifiers.
 - Resource max calculation is idempotent: persisted `base`/`bonus` values combine with transient
   per-prepare `modifierBonus` values.
 - `module/helpers/action-economy.mjs` provides pure payment discovery/commit/refresh primitives
@@ -89,6 +90,11 @@ The finished game system name is **Wild Path**.
 - `module/resolvers/effect-lifecycle-commit-resolver.mjs` runs lifecycle planning for supplied
   Actors and commits resulting condition removals through the explicit-authority target mutation
   transaction path.
+- `module/resolvers/condition-trigger-resolver.mjs` is the first condition RuleElement consumer:
+  it matches condition-provided Trigger RuleElements against semantic turn events and plans
+  durability changes through `DurabilityResolver`. Bleeding now uses this path. Legacy `system.dot`
+  condition ticks are translated into synthetic Trigger RuleElements only when no persisted
+  RuleElements exist.
 - `module/resolvers/concentration-resolver.mjs` plans concentration check requests from adjusted
   damage, resolves supplied digital/physical check results through `SaveResolver`, accepts
   already-resolved concentration save decisions or semantic decision events, classifies

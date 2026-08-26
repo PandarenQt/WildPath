@@ -105,6 +105,10 @@ Items and ActiveEffects now persist `ruleElements` arrays next to legacy `modifi
 should prefer RuleElements so later mechanics can compose through `Predicate`, `ValueExpression`,
 and `Modifier` instead of adding resolver-specific item or condition branches.
 
+RuleElements validate as plain JSON-serializable data before evaluation. Persisted definitions
+carry `schemaVersion: 1`, and invalid Predicate payloads are treated as invalid RuleElements
+rather than ordinary failed predicates.
+
 See `docs/architecture/rule-elements.md` for the full RuleElement boundary, authoring shape, and
 current integration notes.
 
