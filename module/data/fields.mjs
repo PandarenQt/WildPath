@@ -1,4 +1,4 @@
-const {SchemaField, NumberField, StringField, ArrayField, SetField, BooleanField} = foundry.data.fields;
+const {SchemaField, NumberField, StringField, ArrayField, SetField, BooleanField, ObjectField} = foundry.data.fields;
 
 /**
  * Build the schema for a single resource pool (health, action, bonus action, reaction, etc).
@@ -65,11 +65,18 @@ export function poolsField() {
  */
 export function modifierField() {
   return new SchemaField({
+    id: new StringField({required: true, blank: true, initial: ""}),
+    selector: new StringField({required: true, blank: true, initial: ""}),
     domains: new SetField(new StringField({required: true, blank: false})),
     label: new StringField({required: true, blank: true, initial: ""}),
     type: new StringField({required: true, blank: false, initial: "untyped"}),
     value: new NumberField({required: true, initial: 0}),
-    enabled: new BooleanField({required: true, initial: true})
+    valueExpression: new ObjectField({nullable: true, initial: null}),
+    predicate: new ObjectField({nullable: true, initial: null}),
+    priority: new NumberField({required: true, integer: true, initial: 100}),
+    metadata: new ObjectField({required: true, initial: () => ({})}),
+    enabled: new BooleanField({required: true, initial: true}),
+    suppressed: new BooleanField({required: true, initial: false})
   });
 }
 

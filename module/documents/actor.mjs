@@ -46,7 +46,12 @@ export default class WildPathActor extends Actor {
       }
     }
 
-    return new WildPathStatistic(domain, modifiers);
+    return new WildPathStatistic(domain, modifiers, {
+      context: {
+        actor: this,
+        actorSystem: this.system
+      }
+    });
   }
 
   /* -------------------------------------------- */
