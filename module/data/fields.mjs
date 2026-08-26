@@ -124,6 +124,43 @@ export function ruleElementsField() {
 /* -------------------------------------------- */
 
 /**
+ * Canonical persisted mechanical definition for an Action Item. Component payloads are validated
+ * by the pure ActionDefinition contract; the Foundry schema preserves the composed structure
+ * without turning every future action mechanic into a new nullable top-level field.
+ * @returns {SchemaField}
+ */
+export function actionDefinitionField() {
+  return new SchemaField({
+    schemaVersion: new NumberField({required: true, integer: true, initial: 1, min: 1}),
+    id: new StringField({required: true, blank: true, initial: ""}),
+    slug: new StringField({required: true, blank: true, initial: ""}),
+    label: new StringField({required: true, blank: true, initial: ""}),
+    category: new StringField({required: true, blank: false, initial: "action"}),
+    tags: new ArrayField(new StringField({required: true, blank: false})),
+    source: new ObjectField({nullable: true, initial: null}),
+    origin: new ObjectField({nullable: true, initial: null}),
+    activation: new ObjectField({nullable: true, initial: null}),
+    costs: new ObjectField({required: true, initial: () => ({})}),
+    range: new ObjectField({nullable: true, initial: null}),
+    targeting: new ObjectField({nullable: true, initial: null}),
+    area: new ObjectField({nullable: true, initial: null}),
+    attack: new ObjectField({nullable: true, initial: null}),
+    save: new ObjectField({nullable: true, initial: null}),
+    check: new ObjectField({nullable: true, initial: null}),
+    damage: objectArrayField(),
+    healing: objectArrayField(),
+    effects: objectArrayField(),
+    duration: new ObjectField({nullable: true, initial: null}),
+    configuration: objectArrayField(),
+    ruleElements: ruleElementsField(),
+    policies: new ObjectField({required: true, initial: () => ({})}),
+    metadata: new ObjectField({required: true, initial: () => ({})})
+  });
+}
+
+/* -------------------------------------------- */
+
+/**
  * Legacy schema for a single damage/healing-over-time tick. ConditionTriggerResolver translates
  * this into a synthetic Trigger RuleElement when an old condition effect has no `ruleElements`.
  * @returns {SchemaField}
@@ -134,4 +171,8 @@ export function dotField() {
     amount: new NumberField({required: true, integer: true, initial: 1}),
     restoration: new BooleanField({required: true, initial: false})
   });
+}
+
+function objectArrayField() {
+  return new ArrayField(new ObjectField({required: true, initial: () => ({})}));
 }

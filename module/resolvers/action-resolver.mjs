@@ -38,6 +38,11 @@ import {
   resolveSaveTargets
 } from "./save-resolver.mjs";
 import {planConditionEffect} from "./effect-resolver.mjs";
+import {
+  actionDefinitionActivationCost,
+  actionDefinitionFromAction,
+  actionDefinitionToResolverInput
+} from "../helpers/action-definitions.mjs";
 
 export const ACTION_RESOLVER_CODES = Object.freeze({
   OK: "OK",
@@ -47,6 +52,7 @@ export const ACTION_RESOLVER_CODES = Object.freeze({
   DAMAGE_FAILED: "DAMAGE_FAILED",
   HEALING_FAILED: "HEALING_FAILED",
   EFFECTS_FAILED: "EFFECTS_FAILED",
+  ACTION_DEFINITION_INVALID: "ACTION_DEFINITION_INVALID",
   PAYMENT_UNAVAILABLE: "PAYMENT_UNAVAILABLE",
   RESOURCE_COMMIT_FAILED: "RESOURCE_COMMIT_FAILED",
   MUTATION_COMMIT_FAILED: "MUTATION_COMMIT_FAILED",
@@ -72,15 +78,54 @@ export function planActionResolution({
   selectedPaymentOptionId=null,
   complete=true
 }={}) {
+  const definitionResult = action ? actionDefinitionFromAction(action, {actorSystem}) : null;
+  const actionDefinition = definitionResult?.definition ?? null;
+  const definitionInput = definitionResult?.ok && actionDefinition
+    ? actionDefinitionToResolverInput(actionDefinition, {
+        actorSystem,
+        source: source ?? context.source,
+        targets,
+        targeting,
+        attack,
+        save,
+        damage,
+        healing,
+        effects,
+        context,
+        policies
+      })
+    : {targets, targeting, attack, save, damage, healing, effects, context, policies};
+  targets = definitionInput.targets?.length ? definitionInput.targets : targets;
+  targeting = definitionInput.targeting;
+  attack = definitionInput.attack;
+  save = definitionInput.save;
+  damage = definitionInput.damage;
+  healing = definitionInput.healing;
+  effects = definitionInput.effects;
+  context = definitionInput.context ?? context;
+  policies = definitionInput.policies ?? policies;
+
   let actionContext = createActionContext({
     ...context,
-    action: actionRef(action),
+    action: actionRef(action, actionDefinition, definitionResult),
     source: source ?? context.source,
     targets: targets.length ? targets : context.targets ?? [],
     policies: {...(context.policies ?? {}), ...policies}
   });
   let result = beginActionResult(actionContext);
   if ( result.status === ACTION_RESULT_STATUS.FAILED ) return result;
+  if ( definitionResult && !definitionResult.ok ) {
+    return failActionResult(result, {
+      stage: ACTION_RESOLUTION_STAGES.VALIDATION,
+      code: ACTION_RESOLVER_CODES.ACTION_DEFINITION_INVALID,
+      reason: definitionResult.code,
+      errors: definitionResult.errors,
+      data: {
+        actionDefinition: definitionResult.definition ?? null,
+        validation: definitionResult
+      }
+    });
+  }
 
   let targetResolution = null;
   if ( shouldResolveTargets({targeting, actionContext}) ) {
@@ -319,7 +364,7 @@ export function planActionResolution({
 
   const payment = resolveActorResourcePayment({
     actorSystem,
-    cost: actionActivationCost(action),
+    cost: actionActivationCost(action, actionDefinition),
     action: actionContext.action,
     policies: actionContext.policies,
     selectedPaymentOptionId
@@ -507,21 +552,36 @@ async function executeActionMutationTransaction({result, actor, targetActors, au
 
 /* -------------------------------------------- */
 
-function actionRef(action) {
+function actionRef(action, actionDefinition=null, definitionResult=null) {
   return {
-    id: action?.id ?? action?.uuid ?? null,
+    id: actionDefinition?.id ?? action?.id ?? action?.uuid ?? null,
     uuid: action?.uuid ?? null,
     type: action?.type ?? "action",
-    name: action?.name ?? null,
-    tags: action?.system?.tags ?? action?.tags ?? [],
+    name: actionDefinition?.label ?? action?.name ?? null,
+    slug: actionDefinition?.slug ?? action?.slug ?? action?.system?.slug ?? null,
+    tags: uniqueStrings([...(actionDefinition?.tags ?? []), ...(action?.system?.tags ?? action?.tags ?? [])]),
     cost: action?.system?.cost ?? action?.cost ?? null,
-    activationCost: actionActivationCost(action),
-    metadata: action?.metadata ?? {}
+    activationCost: actionActivationCost(action, actionDefinition),
+    metadata: {
+      ...(action?.metadata ?? {}),
+      ...(actionDefinition ? {
+        actionDefinition: {
+          id: actionDefinition.id,
+          schemaVersion: actionDefinition.schemaVersion,
+          migrated: definitionResult?.migrated === true
+        }
+      } : {})
+    }
   };
 }
 
-function actionActivationCost(action) {
+function actionActivationCost(action, actionDefinition=null) {
+  if ( actionDefinition ) return actionDefinitionActivationCost(actionDefinition);
   return action?.system?.getActivationCost?.() ?? action?.activationCost ?? action?.cost ?? {allOf: []};
+}
+
+function uniqueStrings(values) {
+  return [...new Set(values.filter(value => value != null).map(String))];
 }
 
 function actorSource(actor) {

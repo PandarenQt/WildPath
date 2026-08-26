@@ -66,6 +66,172 @@ export interface ActionReference {
   readonly metadata: Readonly<Record<string, unknown>>;
 }
 
+export interface ActionDefinition {
+  readonly schemaVersion: number;
+  readonly id: string | null;
+  readonly slug: string | null;
+  readonly label: string | null;
+  readonly category: string;
+  readonly tags: readonly string[];
+  readonly source: Readonly<Record<string, unknown>> | null;
+  readonly origin: ActionOriginDefinition;
+  readonly activation: Readonly<Record<string, unknown>> | null;
+  readonly costs: ActionCostDefinition;
+  readonly range: RangeDefinition | null;
+  readonly targeting: TargetingDefinition | null;
+  readonly area: AreaDefinition | null;
+  readonly attack: AttackDefinition | null;
+  readonly save: SaveDefinition | null;
+  readonly check: CheckDefinition | null;
+  readonly damage: readonly DamageDefinition[];
+  readonly healing: readonly HealingDefinition[];
+  readonly effects: readonly EffectApplicationDefinition[];
+  readonly duration: DurationDefinition | null;
+  readonly configuration: readonly Readonly<Record<string, unknown>>[];
+  readonly ruleElements: readonly RuleElementDefinition[];
+  readonly policies: Readonly<Record<string, unknown>>;
+  readonly metadata: Readonly<Record<string, unknown>>;
+}
+
+export interface ActionOriginDefinition {
+  readonly type: string;
+  readonly ref?: EntityRef | string | null;
+  readonly predicate?: Predicate | null;
+  readonly metadata?: Readonly<Record<string, unknown>>;
+}
+
+export interface ActionCostDefinition {
+  readonly allOf?: readonly ActionCostRequirement[];
+  readonly anyOf?: readonly (readonly ActionCostRequirement[])[];
+}
+
+export interface ActionCostRequirement {
+  readonly type?: "actionEconomy" | "resource" | string;
+  readonly capability: string | null;
+  readonly amount: number;
+  readonly unit?: string | null;
+  readonly predicate?: Predicate | null;
+  readonly source?: unknown;
+  readonly metadata?: Readonly<Record<string, unknown>>;
+}
+
+export interface RangeDefinition {
+  readonly type: string;
+  readonly distance?: DistanceDefinition | null;
+  readonly normal?: DistanceDefinition | null;
+  readonly long?: DistanceDefinition | null;
+  readonly unit?: string | null;
+  readonly metadata?: Readonly<Record<string, unknown>>;
+}
+
+export interface DistanceDefinition {
+  readonly type?: string;
+  readonly value?: number;
+  readonly unit?: string;
+}
+
+export interface TargetingDefinition {
+  readonly type: string;
+  readonly required: boolean;
+  readonly count?: ValueExpression | null;
+  readonly targetPolicy?: string | null;
+  readonly predicate?: Predicate | null;
+  readonly eligibilityPolicy: Readonly<Record<string, unknown>>;
+  readonly refinementPolicy: Readonly<Record<string, unknown>>;
+  readonly metadata?: Readonly<Record<string, unknown>>;
+}
+
+export interface AreaDefinition {
+  readonly shape: string | null;
+  readonly size?: DistanceDefinition | null;
+  readonly width?: DistanceDefinition | null;
+  readonly placement?: Readonly<Record<string, unknown>> | null;
+  readonly persistence?: Readonly<Record<string, unknown>> | null;
+  readonly targetPolicy?: Readonly<Record<string, unknown>> | null;
+  readonly metadata?: Readonly<Record<string, unknown>>;
+}
+
+export interface AttackDefinition {
+  readonly type?: string;
+  readonly statistic?: string;
+  readonly statisticSource?: string;
+  readonly ability?: string;
+  readonly proficiency?: string;
+  readonly rangeMode?: string;
+  readonly defenseKey?: string;
+  readonly selectors?: readonly string[];
+  readonly policy?: Readonly<Record<string, unknown>>;
+  readonly metadata?: Readonly<Record<string, unknown>>;
+}
+
+export interface SaveDefinition {
+  readonly ability?: string;
+  readonly saveKey?: string;
+  readonly dc: SaveDCDefinition | number;
+  readonly dcKey?: string;
+  readonly policy?: Readonly<Record<string, unknown>>;
+  readonly metadata?: Readonly<Record<string, unknown>>;
+}
+
+export interface SaveDCDefinition {
+  readonly value?: number;
+  readonly dc?: number;
+  readonly valueExpression?: ValueExpression;
+  readonly expression?: ValueExpression;
+  readonly ability?: string;
+  readonly source?: unknown;
+  readonly metadata?: Readonly<Record<string, unknown>>;
+}
+
+export type CheckDefinition = Readonly<Record<string, unknown>>;
+
+export interface DamageDefinition {
+  readonly id: string;
+  readonly expression: ValueExpression | null;
+  readonly damageType: string;
+  readonly provenance: string;
+  readonly scalingCategory: string;
+  readonly weaponSizeScalable: boolean;
+  readonly outcomePolicy: Readonly<Record<string, unknown>>;
+  readonly saveOutcomePolicy?: Readonly<Record<string, unknown>> | string | null;
+  readonly predicate?: Predicate | null;
+  readonly targetPolicy: string;
+  readonly scaling?: Readonly<Record<string, unknown>>;
+  readonly source?: unknown;
+  readonly tags: readonly string[];
+  readonly metadata: Readonly<Record<string, unknown>>;
+}
+
+export interface HealingDefinition {
+  readonly id: string;
+  readonly expression: ValueExpression | null;
+  readonly healingType: string;
+  readonly targetPolicy: string;
+  readonly predicate?: Predicate | null;
+  readonly scaling?: Readonly<Record<string, unknown>>;
+  readonly source?: unknown;
+  readonly tags: readonly string[];
+  readonly metadata: Readonly<Record<string, unknown>>;
+}
+
+export interface EffectApplicationDefinition {
+  readonly id: string;
+  readonly type: string;
+  readonly ref?: EntityRef | string | null;
+  readonly conditionId?: string | null;
+  readonly levels?: number;
+  readonly application?: Readonly<Record<string, unknown>>;
+  readonly duration?: DurationDefinition | null;
+  readonly concentration?: unknown;
+  readonly saveOutcomePolicy?: Readonly<Record<string, unknown>> | string | null;
+  readonly predicate?: Predicate | null;
+  readonly source?: unknown;
+  readonly origin?: unknown;
+  readonly metadata: Readonly<Record<string, unknown>>;
+}
+
+export type DurationDefinition = Readonly<Record<string, unknown>>;
+
 export interface PredicateEquals {
   readonly path: string;
   readonly value: unknown;

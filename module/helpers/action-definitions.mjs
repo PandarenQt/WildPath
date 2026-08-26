@@ -80,7 +80,9 @@ export function normalizeActionDefinition(rawDefinition={}, {
   const raw = isPlainObject(rawDefinition) ? rawDefinition : {};
   const itemSystem = item?.system ?? {};
   const itemSourceData = source ?? sourceFromItem(item);
-  const legacyCostShape = legacyActivationCost ?? itemSystem.getActivationCost?.() ?? computeActivationCost(legacyCost ?? itemSystem.cost);
+  const legacyCostShape = legacyActivationCost
+    ?? safeLegacyActivationCost(itemSystem)
+    ?? computeActivationCost(legacyCost ?? itemSystem.cost);
   const definitionCost = raw.costs ?? raw.activationCost ?? raw.cost ?? legacyCostShape;
 
   return {
@@ -183,6 +185,12 @@ export function actionDefinitionFromItem(item, options={}) {
   const raw = system.definition ?? system.actionDefinition ?? item?.definition ?? item?.actionDefinition ?? null;
   const migrated = !hasAuthoredDefinition(raw);
   const source = sourceFromItem(item);
+  const legacyActivationCost = options.legacyActivationCost
+    ?? item?.activationCost
+    ?? (typeof system.getActivationCost === "function" && typeof system.getActionDefinition !== "function"
+      ? system.getActivationCost()
+      : null);
+  const legacyCost = system.cost ?? item?.cost;
   const baseDefinition = migrated ? {
     id: item?.id ?? item?.uuid ?? null,
     label: item?.name ?? null,
@@ -199,8 +207,8 @@ export function actionDefinitionFromItem(item, options={}) {
     ...options,
     item,
     source,
-    legacyCost: system.cost,
-    legacyActivationCost: system.getActivationCost?.()
+    legacyCost,
+    legacyActivationCost
   });
 
   return {
@@ -1025,6 +1033,12 @@ function sourceFromItem(item) {
     itemType: item.type ?? null,
     name: item.name ?? null
   };
+}
+
+function safeLegacyActivationCost(system) {
+  if ( typeof system?.getActivationCost !== "function" ) return null;
+  if ( typeof system?.getActionDefinition === "function" ) return null;
+  return system.getActivationCost();
 }
 
 function normalizeSchemaVersion(value) {

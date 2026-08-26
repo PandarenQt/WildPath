@@ -1,5 +1,10 @@
 import WildPathBaseItem from "./base.mjs";
 import {WILDPATH} from "../../config.mjs";
+import {actionDefinitionField} from "../fields.mjs";
+import {
+  actionDefinitionActivationCost,
+  actionDefinitionFromItem
+} from "../../helpers/action-definitions.mjs";
 import {computeActionCostMap, computeActivationCost} from "../../helpers/actions.mjs";
 
 const {SchemaField, NumberField, ArrayField, StringField} = foundry.data.fields;
@@ -19,6 +24,7 @@ export default class WildPathAction extends WildPathBaseItem {
     }
     return {
       ...super.defineSchema(),
+      definition: actionDefinitionField(),
       cost: new SchemaField({
         ...costs,
         /** Additional, freeform resource costs (e.g. a custom "ki" pool). */
@@ -48,6 +54,24 @@ export default class WildPathAction extends WildPathBaseItem {
    * @returns {{allOf: object[]}}
    */
   getActivationCost() {
+    const definition = this.getActionDefinition({validate: false});
+    if ( definition.ok && !definition.migrated ) return actionDefinitionActivationCost(definition.definition);
     return computeActivationCost(this.cost);
+  }
+
+  /**
+   * Translate this Foundry Action DataModel into WildPath's pure ActionDefinition contract.
+   * @param {object} [options]
+   * @returns {object}
+   */
+  getActionDefinition(options={}) {
+    const item = this.parent ?? {
+      id: this.id ?? null,
+      uuid: this.uuid ?? null,
+      type: "action",
+      name: this.name ?? null,
+      system: this
+    };
+    return actionDefinitionFromItem(item, options);
   }
 }
