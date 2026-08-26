@@ -98,6 +98,7 @@ export function modifiersField() {
  */
 export function ruleElementField() {
   return new SchemaField({
+    schemaVersion: new NumberField({required: true, integer: true, initial: 1, min: 1}),
     id: new StringField({required: true, blank: true, initial: ""}),
     type: new StringField({required: true, blank: false, initial: "Modifier"}),
     key: new StringField({required: true, blank: true, initial: ""}),
@@ -123,8 +124,8 @@ export function ruleElementsField() {
 /* -------------------------------------------- */
 
 /**
- * Schema for a single damage/healing-over-time tick, used by condition ActiveEffects
- * (e.g. Poisoned, Bleeding) to describe periodic resource changes.
+ * Legacy schema for a single damage/healing-over-time tick. ConditionTriggerResolver translates
+ * this into a synthetic Trigger RuleElement when an old condition effect has no `ruleElements`.
  * @returns {SchemaField}
  */
 export function dotField() {

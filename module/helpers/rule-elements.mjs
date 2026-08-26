@@ -1,7 +1,7 @@
 import {createEconomyResource} from "./action-economy.mjs";
 import {createTriggerDefinition} from "./automation-events.mjs";
 import {createMovementCapability} from "./movement.mjs";
-import {evaluatePredicate} from "./predicates.mjs";
+import {PREDICATE_CODES, evaluatePredicate} from "./predicates.mjs";
 import {evaluateValueExpression} from "./value-expressions.mjs";
 
 export const RULE_ELEMENT_TYPES = Object.freeze({
@@ -20,9 +20,12 @@ export const RULE_ELEMENT_CODES = Object.freeze({
   SUPPRESSED: "SUPPRESSED",
   PREDICATE_FAILED: "PREDICATE_FAILED",
   UNKNOWN_TYPE: "UNKNOWN_RULE_ELEMENT_TYPE",
+  DUPLICATE_TYPE: "DUPLICATE_RULE_ELEMENT_TYPE",
   INVALID: "INVALID_RULE_ELEMENT",
   INVALID_VALUE: "INVALID_RULE_ELEMENT_VALUE"
 });
+
+export const RULE_ELEMENT_SCHEMA_VERSION = 1;
 
 export const RULE_ELEMENT_TRACE_STATUS = Object.freeze({
   CONTRIBUTED: "contributed",
@@ -56,10 +59,13 @@ export class RuleElementRegistry {
     for ( const [type, handler] of entries ) this.register(type, handler);
   }
 
-  register(type, handler) {
+  register(type, handler, {replace=false}={}) {
     const normalized = normalizeRuleElementType(type);
     if ( !normalized ) throw new Error("RuleElementRegistry requires a rule element type.");
     if ( typeof handler !== "function" ) throw new Error(`RuleElement handler for ${normalized} must be a function.`);
+    if ( this.handlers.has(normalized) && !replace ) {
+      throw new Error(`RuleElement handler already registered for ${normalized}.`);
+    }
     this.handlers.set(normalized, handler);
     return this;
   }
@@ -100,18 +106,19 @@ export function normalizeRuleElementType(type) {
 
 export function normalizeRuleElementDefinition(data={}, {source=null, index=0}={}) {
   const raw = isPlainObject(data) ? data : {};
-  const payload = {
+  const payload = clonePlain({
     ...clonePlain(raw.data ?? {}),
     ...directPayload(raw)
-  };
+  });
   const type = normalizeRuleElementType(raw.type ?? raw.key ?? raw.rule ?? payload.type ?? payload.key);
   const id = raw.id ?? raw.slug ?? payload.id ?? (type ? `${type}:${index}` : `RuleElement:${index}`);
   return {
+    schemaVersion: normalizeSchemaVersion(raw.schemaVersion ?? payload.schemaVersion) ?? RULE_ELEMENT_SCHEMA_VERSION,
     id: String(id),
     type,
     key: raw.key ?? raw.type ?? null,
     label: raw.label ?? raw.name ?? payload.label ?? null,
-    predicate: raw.predicate ?? payload.predicate ?? null,
+    predicate: clonePlain(raw.predicate ?? payload.predicate ?? null),
     priority: finiteNumber(raw.priority ?? raw.order ?? payload.priority) ?? 100,
     enabled: raw.enabled !== false,
     suppressed: raw.suppressed === true,
@@ -123,17 +130,93 @@ export function normalizeRuleElementDefinition(data={}, {source=null, index=0}={
 
 /* -------------------------------------------- */
 
+export function validateRuleElementDefinition(definition={}, {source=null, index=0}={}) {
+  if ( !isPlainObject(definition) ) {
+    return validationFailure("RuleElement definition must be a plain object.", "ruleElement");
+  }
+
+  const definitionIssue = findNonSerializable(definition, "ruleElement");
+  if ( definitionIssue ) return validationFailure(definitionIssue.reason, definitionIssue.path);
+
+  const sourceIssue = findNonSerializable(source, "source");
+  if ( sourceIssue ) return validationFailure(sourceIssue.reason, sourceIssue.path);
+
+  const rawSchemaVersion = definition.schemaVersion ?? definition.data?.schemaVersion;
+  if ( rawSchemaVersion != null && normalizeSchemaVersion(rawSchemaVersion) == null ) {
+    return validationFailure("RuleElement schemaVersion must be a positive integer.", "schemaVersion");
+  }
+
+  const ruleElement = normalizeRuleElementDefinition(definition, {source, index});
+  if ( !ruleElement.type ) return validationFailure("RuleElement requires a type.", "type", ruleElement);
+  if ( normalizeSchemaVersion(ruleElement.schemaVersion) == null ) {
+    return validationFailure("RuleElement schemaVersion must be a positive integer.", "schemaVersion", ruleElement);
+  }
+
+  for ( const candidate of predicateCandidates(ruleElement) ) {
+    const result = evaluatePredicate(candidate.value, {});
+    if ( result.code === PREDICATE_CODES.INVALID ) {
+      return validationFailure(`Invalid Predicate at ${candidate.path}: ${result.reason}`, candidate.path, ruleElement);
+    }
+  }
+
+  return {
+    ok: true,
+    code: RULE_ELEMENT_CODES.OK,
+    ruleElement,
+    failures: []
+  };
+}
+
+/* -------------------------------------------- */
+
+export function serializeRuleElementDefinition(definition={}, options={}) {
+  const validation = validateRuleElementDefinition(definition, options);
+  if ( !validation.ok ) {
+    return {
+      ...validation,
+      definition: normalizeRuleElementDefinition(isPlainObject(definition) ? definition : {}, options)
+    };
+  }
+
+  const ruleElement = validation.ruleElement;
+  return {
+    ok: true,
+    code: RULE_ELEMENT_CODES.OK,
+    definition: clonePlain({
+      schemaVersion: ruleElement.schemaVersion,
+      id: ruleElement.id,
+      type: ruleElement.type,
+      key: ruleElement.key,
+      label: ruleElement.label,
+      predicate: ruleElement.predicate,
+      priority: ruleElement.priority,
+      enabled: ruleElement.enabled,
+      suppressed: ruleElement.suppressed,
+      source: ruleElement.source,
+      metadata: ruleElement.metadata,
+      data: ruleElement.data
+    })
+  };
+}
+
+/* -------------------------------------------- */
+
 export function evaluateRuleElement(definition, context={}, {
   registry=DEFAULT_RULE_ELEMENT_REGISTRY,
   source=null,
   index=0
 }={}) {
+  const validation = validateRuleElementDefinition(definition, {source, index});
   const ruleElement = normalizeRuleElementDefinition(definition, {source, index});
+  if ( !validation.ok ) return ruleElementFailure(ruleElement, validation.code, validation.reason, null, validation);
   if ( !ruleElement.type ) return ruleElementFailure(ruleElement, RULE_ELEMENT_CODES.INVALID, "RuleElement requires a type.");
   if ( !ruleElement.enabled ) return ruleElementSkipped(ruleElement, RULE_ELEMENT_CODES.DISABLED, RULE_ELEMENT_TRACE_STATUS.DISABLED);
   if ( ruleElement.suppressed ) return ruleElementSkipped(ruleElement, RULE_ELEMENT_CODES.SUPPRESSED, RULE_ELEMENT_TRACE_STATUS.SUPPRESSED);
 
   const predicate = evaluatePredicate(ruleElement.predicate, {ruleElement, source: ruleElement.source, ...context});
+  if ( predicate.code === PREDICATE_CODES.INVALID ) {
+    return ruleElementFailure(ruleElement, RULE_ELEMENT_CODES.INVALID, predicate.reason, predicate);
+  }
   if ( !predicate.ok ) {
     return ruleElementSkipped(
       ruleElement,
@@ -149,7 +232,12 @@ export function evaluateRuleElement(definition, context={}, {
     return ruleElementFailure(ruleElement, RULE_ELEMENT_CODES.UNKNOWN_TYPE, `Unknown RuleElement type: ${ruleElement.type}`, predicate);
   }
 
-  const result = handler(ruleElement, context);
+  let result;
+  try {
+    result = handler(ruleElement, context);
+  } catch (error) {
+    return ruleElementFailure(ruleElement, RULE_ELEMENT_CODES.INVALID, error?.message ?? String(error), predicate);
+  }
   if ( !result.ok ) {
     return ruleElementFailure(ruleElement, result.code ?? RULE_ELEMENT_CODES.INVALID, result.reason, predicate, result);
   }
@@ -220,6 +308,9 @@ export function modifiersFromRuleElements({ruleElements=[], domain=null, context
 function modifierRuleElement(ruleElement) {
   const data = ruleElement.data;
   const domains = normalizeStrings(data.domains ?? data.domain ?? data.selector);
+  if ( !domains.length ) {
+    return handlerFailure(RULE_ELEMENT_CODES.INVALID, "Modifier RuleElement requires a selector or domain.");
+  }
   const selector = data.selector ?? domains[0] ?? null;
   return success({
     modifiers: [{
@@ -338,12 +429,17 @@ function grantMovementRuleElement(ruleElement, context) {
 
 function triggerRuleElement(ruleElement) {
   const data = ruleElement.data;
+  const event = data.event ?? data.eventType ?? null;
+  const match = data.match ?? {};
+  if ( !event && !match.type ) {
+    return handlerFailure(RULE_ELEMENT_CODES.INVALID, "Trigger RuleElement requires an event type.");
+  }
   return success({
     triggers: [createTriggerDefinition({
       id: data.triggerId ?? data.id ?? ruleElement.id,
       kind: data.kind ?? data.triggerKind,
-      event: data.event ?? data.eventType ?? null,
-      match: data.match ?? {},
+      event,
+      match,
       predicate: data.triggerPredicate ?? data.eventPredicate ?? data.predicate ?? null,
       priority: finiteNumber(data.priority ?? ruleElement.priority) ?? 100,
       once: data.once === true,
@@ -368,6 +464,10 @@ function evaluateNumeric(expression, context) {
 
 function success(contributions) {
   return {ok: true, code: RULE_ELEMENT_CODES.OK, contributions};
+}
+
+function handlerFailure(code, reason) {
+  return {ok: false, code, reason, contributions: emptyContributions()};
 }
 
 function ruleElementSkipped(ruleElement, code, status, reason=null, predicateResult=null) {
@@ -444,6 +544,7 @@ function sortContributions(contributions) {
 
 function createTrace(ruleElement, status, predicateResult=null, reason=null, contributions=emptyContributions()) {
   return {
+    schemaVersion: ruleElement.schemaVersion,
     id: ruleElement.id,
     type: ruleElement.type,
     label: ruleElement.label,
@@ -533,7 +634,7 @@ function collectionContents(collection) {
 }
 
 function directPayload(raw) {
-  const ignored = new Set(["id", "slug", "type", "key", "rule", "label", "name", "predicate", "priority", "order", "enabled", "suppressed", "source", "metadata", "data"]);
+  const ignored = new Set(["schemaVersion", "id", "slug", "type", "key", "rule", "label", "name", "predicate", "priority", "order", "enabled", "suppressed", "source", "metadata", "data"]);
   return Object.fromEntries(Object.entries(raw).filter(([key]) => !ignored.has(key)));
 }
 
@@ -545,6 +646,72 @@ function finiteNumber(value) {
   if ( value == null || value === "" ) return null;
   const number = Number(value);
   return Number.isFinite(number) ? number : null;
+}
+
+function normalizeSchemaVersion(value) {
+  if ( value == null || value === "" ) return null;
+  const number = Number(value);
+  return Number.isInteger(number) && number > 0 ? number : null;
+}
+
+function validationFailure(reason, path, ruleElement=null) {
+  return {
+    ok: false,
+    code: RULE_ELEMENT_CODES.INVALID,
+    reason,
+    path,
+    ruleElement,
+    failures: [{code: RULE_ELEMENT_CODES.INVALID, reason, path}]
+  };
+}
+
+function predicateCandidates(ruleElement) {
+  const data = ruleElement.data ?? {};
+  return [
+    ["predicate", ruleElement.predicate],
+    ["data.predicate", data.predicate],
+    ["data.modifierPredicate", data.modifierPredicate],
+    ["data.appliesIf", data.appliesIf],
+    ["data.resourcePredicate", data.resourcePredicate],
+    ["data.paymentPredicate", data.paymentPredicate],
+    ["data.triggerPredicate", data.triggerPredicate],
+    ["data.eventPredicate", data.eventPredicate]
+  ]
+    .filter(([, value]) => value != null)
+    .map(([path, value]) => ({path, value}));
+}
+
+function findNonSerializable(value, path, seen=new Set()) {
+  const type = typeof value;
+  if ( value == null || type === "string" || type === "boolean" ) return null;
+  if ( type === "number" ) {
+    return Number.isFinite(value) ? null : {path, reason: `${path} must be a finite JSON number.`};
+  }
+  if ( type === "function" || type === "symbol" || type === "bigint" || type === "undefined" ) {
+    return {path, reason: `${path} must be JSON-serializable data, not ${type}.`};
+  }
+  if ( seen.has(value) ) return {path, reason: `${path} must not contain circular references.`};
+  seen.add(value);
+
+  if ( Array.isArray(value) ) {
+    for ( const [index, entry] of value.entries() ) {
+      const issue = findNonSerializable(entry, `${path}.${index}`, seen);
+      if ( issue ) return issue;
+    }
+    seen.delete(value);
+    return null;
+  }
+
+  if ( !isPlainObject(value) ) {
+    return {path, reason: `${path} must be plain JSON-serializable data.`};
+  }
+
+  for ( const [key, entry] of Object.entries(value) ) {
+    const issue = findNonSerializable(entry, `${path}.${key}`, seen);
+    if ( issue ) return issue;
+  }
+  seen.delete(value);
+  return null;
 }
 
 function clonePlain(value) {

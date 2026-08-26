@@ -265,6 +265,7 @@ export type RuleElementTraceStatus =
   | "failed";
 
 export interface RuleElementDefinition {
+  readonly schemaVersion?: number;
   readonly id?: string;
   readonly slug?: string;
   readonly type?: RuleElementType;
@@ -282,7 +283,33 @@ export interface RuleElementDefinition {
   readonly suppressed?: boolean;
 }
 
+export interface RuleElementSource {
+  readonly type: string;
+  readonly uuid?: string | null;
+  readonly id?: string | null;
+  readonly name?: string | null;
+  readonly conditionId?: string | null;
+  readonly ruleElementId?: string | null;
+  readonly ruleElementType?: RuleElementType | null;
+  readonly parent?: RuleElementSource | Readonly<Record<string, unknown>> | null;
+}
+
+export interface RuleElementContext {
+  readonly actor?: unknown;
+  readonly actorSystem?: unknown;
+  readonly item?: unknown;
+  readonly effect?: unknown;
+  readonly condition?: unknown;
+  readonly action?: unknown;
+  readonly target?: unknown;
+  readonly event?: unknown;
+  readonly domain?: string | null;
+  readonly ruleElements?: readonly RuleElementDefinition[];
+  readonly [key: string]: unknown;
+}
+
 export interface RuleElementTrace {
+  readonly schemaVersion: number;
   readonly id: string;
   readonly type: RuleElementType | null;
   readonly label: string | null;
@@ -364,6 +391,53 @@ export interface RuleElementCollectionResult {
   readonly ok: boolean;
   readonly code: string;
   readonly contributions: RuleElementContributions;
+  readonly traces: readonly RuleElementTrace[];
+  readonly failures: readonly unknown[];
+}
+
+export interface RuleElementEvaluationResult {
+  readonly ok: boolean;
+  readonly code: string;
+  readonly active: boolean;
+  readonly reason?: string | null;
+  readonly ruleElement: RuleElementDefinition;
+  readonly contributions: RuleElementContributions;
+  readonly trace: RuleElementTrace;
+}
+
+export interface RuleElementValidationResult {
+  readonly ok: boolean;
+  readonly code: string;
+  readonly reason?: string | null;
+  readonly path?: string | null;
+  readonly ruleElement?: RuleElementDefinition | null;
+  readonly failures: readonly unknown[];
+}
+
+export interface SerializedRuleElementResult {
+  readonly ok: boolean;
+  readonly code: string;
+  readonly reason?: string | null;
+  readonly definition: RuleElementDefinition;
+}
+
+export interface ConditionDurabilityTriggerPayload {
+  readonly type: "durabilityChange";
+  readonly changeType?: "damage" | "healing";
+  readonly resourceId?: string;
+  readonly resource?: string;
+  readonly amount: ValueExpression;
+  readonly damageType?: string | null;
+  readonly tags?: readonly string[];
+}
+
+export interface ConditionTriggerPlanningResult {
+  readonly ok: boolean;
+  readonly code: string;
+  readonly events: readonly AutomationEvent[];
+  readonly dispatches: readonly unknown[];
+  readonly mutationPlans: readonly MutationPlan[];
+  readonly skipped: readonly unknown[];
   readonly traces: readonly RuleElementTrace[];
   readonly failures: readonly unknown[];
 }
