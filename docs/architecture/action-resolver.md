@@ -1,12 +1,18 @@
 # ActionResolver
 
-`module/resolvers/action-resolver.mjs` is now the current action entry point. It handles the
-existing cost behavior plus optional target validation and optional attack-outcome resolution when
-callers provide the required plain data. It can also resolve supplied saving throws, resolve
-structured damage and healing components as consequences, apply WeaponSizePolicy to explicitly
-manufactured weapon damage, and attach target durability mutation plans when supplied target Actor
-system snapshots. Damage durability planning can include absorption plans that convert part of the
-incoming damage into health, shields, or another Actor resource.
+`module/resolvers/action-resolver.mjs` is now the current action entry point. It handles existing
+legacy cost behavior and can also load a persisted `ActionDefinition` from an Action Item, validate
+it, and adapt its targeting, attack, save, damage, healing, condition-effect, and payment
+declarations into the existing resolver flow. Runtime callers still provide current-use data such
+as selected targets, target candidates, roll totals, rolled component amounts, target Actor system
+snapshots, and authority.
+
+It can resolve target validation and optional attack-outcome resolution when the required plain
+runtime data is present. It can also resolve supplied saving throws, resolve structured damage and
+healing components as consequences, apply WeaponSizePolicy to explicitly manufactured weapon
+damage, and attach target durability mutation plans when supplied target Actor system snapshots.
+Damage durability planning can include absorption plans that convert part of the incoming damage
+into health, shields, or another Actor resource.
 When damage supplies concentration state snapshots, adjusted damage can also produce concentration
 check requests for a later prompt/result adapter.
 When damage supplies a `saveOutcomePolicy`, the resolver can adjust per-target damage amounts from
@@ -20,6 +26,7 @@ transaction path as durability.
 
 ```text
 Action item
+-> ActionDefinition validation / migration
 -> ActionContext
 -> ActionResult
 -> optional TargetResolver target validation
@@ -58,6 +65,10 @@ successfully.
 
 `planActionResolution()`:
 
+- loads and validates an ActionDefinition from the Action Item when present
+- deterministically adapts legacy cost-only Actions into an in-memory ActionDefinition
+- derives default resolver requests from persisted targeting, attack, save, damage, healing, and
+  condition effect definitions
 - builds an `ActionContext`
 - validates source/action basics
 - optionally resolves targets through `TargetResolver`
@@ -99,6 +110,9 @@ successfully.
 `WildPathActor#useAction()` now uses `executeActionResolution()` while preserving its current
 boolean return behavior.
 
+Invalid persisted definitions fail during validation with `ACTION_DEFINITION_INVALID`; payment is
+not planned.
+
 ## What It Does Not Do Yet
 
 The current resolver does not:
@@ -108,6 +122,7 @@ The current resolver does not:
 - derive attack bonuses or target defenses from Actor documents
 - derive save bonuses or save DCs from Actor documents
 - roll dice
+- implement the full Action Configuration system
 - prompt for concentration checks or apply concentration save results
 - commit generic non-condition ActiveEffects
 - tick durations or break concentration

@@ -112,6 +112,20 @@ rather than ordinary failed predicates.
 See `docs/architecture/rule-elements.md` for the full RuleElement boundary, authoring shape, and
 current integration notes.
 
+## ActionDefinition
+
+`module/helpers/action-definitions.mjs` defines the canonical persisted ActionDefinition contract.
+It composes the shared Predicate, ValueExpression, Modifier, and RuleElement vocabulary with
+Action-owned components such as activation, costs, range, targeting, area, attack, save, damage,
+healing, effects, duration, configuration placeholders, and resolution policies.
+
+Action Items persist `system.definition` and translate it into pure resolver input at the Foundry
+boundary. Existing cost-only Action Items are adapted into a version-1 definition in memory so old
+data keeps its current behavior while new content can persist structured mechanics.
+
+See `docs/architecture/action-definitions.md` for the ownership, persisted/runtime split,
+component model, migration behavior, and extension guidelines.
+
 ## Boundaries
 
 These helpers are pure domain utilities. Foundry documents may gather Items, ActiveEffects, Actors,

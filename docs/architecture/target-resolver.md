@@ -63,6 +63,6 @@ into this resolver.
 
 ## Next Integration
 
-ActionResolver can now call TargetResolver when target data or target requirements are supplied.
-Future Foundry adapters still need to gather user-selected Tokens, area target candidates, and
-range context before invoking that optional step.
+ActionResolver can now call TargetResolver when target data, target requirements, or persisted
+ActionDefinition targeting rules are supplied. Future Foundry adapters still need to gather
+user-selected Tokens, area target candidates, and range context before invoking that optional step.

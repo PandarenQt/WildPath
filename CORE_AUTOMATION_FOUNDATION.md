@@ -44,6 +44,9 @@ The finished game system name is **Wild Path**.
   dispatch planning, and reaction-window eligibility checks against action-economy resources.
 - `module/helpers/action-resolution.mjs` provides pure `ActionContext` and `ActionResult`
   envelopes for validation steps, semantic events, consequences, mutation plans, and audit traces.
+- `module/helpers/action-definitions.mjs` provides the pure, schema-versioned ActionDefinition
+  contract for persisted Action Item mechanics, including serialization, validation, legacy
+  cost-only migration, and translation into resolver input.
 - `module/helpers/entity-refs.mjs` provides the opaque string-reference contract (`actor:...`,
   `token:scene.token`, `uuid:...`) that future domain and resolver code should pass instead of
   live Foundry documents or cross-layer object handles.
@@ -53,13 +56,14 @@ The finished game system name is **Wild Path**.
   operations with preflight rollback requirements, custom rollback callbacks for document
   operations, and reverse-order rollback when a later commit fails.
 - `module/resolvers/action-resolver.mjs` wraps the current Action flow in
-  `ActionContext`/`ActionResult`, optional TargetResolver validation, semantic target/payment
-  events, optional attack resolution for supplied roll/defense data, optional save resolution for
-  supplied save/DC data, optional damage resolution for supplied structured components,
-  manufactured weapon-size damage scaling, save-outcome damage policies, and ResourceResolver
-  mutation plans. It can also plan condition effect consequences for selected, hit, or save-matching
-  targets while carrying duration, spell-origin, and concentration metadata, then commit those
-  plans through the explicit-authority target mutation transaction path.
+  `ActionContext`/`ActionResult`, loads and validates persisted ActionDefinitions, adapts legacy
+  cost-only Actions in memory, derives default TargetResolver/AttackResolver/SaveResolver/
+  DamageResolver/HealingResolver/EffectResolver requests from the definition, preserves runtime
+  overlays for current targets and rolls, emits semantic target/payment events, applies
+  manufactured weapon-size damage scaling and save-outcome damage policies, and delegates payment
+  to ResourceResolver. It can also plan condition effect consequences for selected, hit, or
+  save-matching targets while carrying duration, spell-origin, and concentration metadata, then
+  commit those plans through the explicit-authority target mutation transaction path.
 - `module/resolvers/target-resolver.mjs` wraps target-set eligibility, refinement decisions,
   required-target failures, self-targeting, and selection request state for future ActionResolver
   integration.
@@ -115,8 +119,9 @@ The finished game system name is **Wild Path**.
   availability, combat-carousel turn state, and concentration check prompts, with command payloads
   and opaque refs instead of DOM, canvas, or Foundry document coupling.
 - `tsconfig.json` and `module/types/contracts.d.ts` provide the first non-disruptive TypeScript
-  migration scaffold for shared refs, resolver results, mutation plans, action context, and UI view
-  models. JavaScript remains the runtime implementation until individual modules are converted.
+  migration scaffold for shared refs, ActionDefinition, resolver results, mutation plans, action
+  context, and UI view models. JavaScript remains the runtime implementation until individual
+  modules are converted.
 
 ## Resolution Pipeline
 
@@ -200,7 +205,8 @@ analysis.
 See `docs/architecture/combat-timeline.md` for the combat timeline, durations, and scheduler
 foundation. See `docs/architecture/events-and-reactions.md` for the automation event and reaction
 trigger foundation. See `docs/architecture/action-resolution.md` for the common action-context
-and action-result envelope. See `docs/architecture/resource-resolution.md` for the current
+and action-result envelope. See `docs/architecture/action-definitions.md` for the persisted
+ActionDefinition contract. See `docs/architecture/resource-resolution.md` for the current
 resource payment resolver boundary. See `docs/architecture/resolution-transaction.md` for the
 current ordered Actor update transaction boundary. See `docs/architecture/action-resolver.md` for
 the current target-aware, attack-capable, and save-capable ActionResolver entry point. See

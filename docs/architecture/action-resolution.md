@@ -5,6 +5,10 @@ targeting, resources, rolls, reactions, effects, and Foundry document mutation.
 
 The current pure foundation is `module/helpers/action-resolution.mjs`.
 
+Persisted Action Item mechanics now enter this envelope through
+`module/helpers/action-definitions.mjs`; see `docs/architecture/action-definitions.md` for the
+ActionDefinition ownership, schema, migration, and resolver-adapter contract.
+
 ## ActionContext
 
 `ActionContext` normalizes:
@@ -75,8 +79,9 @@ This helper does not:
 Those responsibilities belong to future resolvers and Foundry adapters. The context/result helper
 only provides the common data shape they should compose.
 
-`module/resolvers/action-resolver.mjs` now uses this envelope for the current cost-only action flow.
-It is the first resolver consumer, not the final action pipeline.
+`module/resolvers/action-resolver.mjs` now uses this envelope for both legacy cost-only action flow
+and persisted ActionDefinition-derived targeting, attack, save, damage, healing, and condition
+effect requests. It is the first resolver consumer, not the final action pipeline.
 
 ## Future Consumers
 

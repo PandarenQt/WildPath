@@ -74,7 +74,8 @@ restrictions through a shared structured predicate evaluator:
 - conditions
 - structured predicate equality/one-of logic
 
-Future `TargetResolver` should adapt ActionDefinition target rules into this policy shape.
+`ActionResolver` now adapts persisted ActionDefinition target rules into this policy shape before
+calling `TargetResolver`.
 
 ## Refinement
 
