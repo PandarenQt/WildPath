@@ -205,6 +205,164 @@ export interface ResolvedActionPreview {
   readonly metadata: Readonly<Record<string, unknown>>;
 }
 
+export type ResolutionStateStatus =
+  | "created"
+  | "running"
+  | "awaiting-configuration"
+  | "awaiting-targets"
+  | "awaiting-roll"
+  | "awaiting-choice"
+  | "paused"
+  | "ready-to-commit"
+  | "committing"
+  | "completed"
+  | "failed"
+  | "cancelled";
+
+export type ResolutionStageStatus =
+  | "pending"
+  | "running"
+  | "waiting"
+  | "completed"
+  | "skipped"
+  | "failed"
+  | "cancelled";
+
+export type ResolutionStageResultType =
+  | "continue"
+  | "wait"
+  | "fail"
+  | "complete";
+
+export type ResolutionRequestType =
+  | "action-configuration"
+  | "target-selection"
+  | "target-refinement"
+  | "roll"
+  | "reaction-choice"
+  | "choice"
+  | (string & {});
+
+export interface ResolutionRequest {
+  readonly id: string;
+  readonly resolutionId: string | null;
+  readonly stageId: string | null;
+  readonly type: ResolutionRequestType;
+  readonly expectedResponseType: string | null;
+  readonly validation: Readonly<Record<string, unknown>>;
+  readonly chooser: unknown;
+  readonly authority: unknown;
+  readonly payload: Readonly<Record<string, unknown>>;
+  readonly metadata: Readonly<Record<string, unknown>>;
+}
+
+export interface ResolutionResponse {
+  readonly requestId: string | null;
+  readonly resolutionId: string | null;
+  readonly type: ResolutionRequestType | null;
+  readonly value: unknown;
+  readonly metadata: Readonly<Record<string, unknown>>;
+}
+
+export interface ResolutionRequestResponse {
+  readonly request: ResolutionRequest;
+  readonly response: ResolutionResponse;
+}
+
+export interface ResolutionTraceEntry {
+  readonly id: string;
+  readonly stageId: string | null;
+  readonly status: ResolutionStageStatus;
+  readonly result: ResolutionStageResultType;
+  readonly code: string;
+  readonly reason: string | null;
+  readonly requestIds: readonly string[];
+  readonly data: Readonly<Record<string, unknown>>;
+}
+
+export interface ResolutionAncestryEntry {
+  readonly id: string;
+  readonly parentId: string | null;
+  readonly relationship: string | null;
+  readonly sourceEvent: unknown;
+  readonly depth: number;
+}
+
+export interface ResolutionState {
+  readonly schemaVersion: number;
+  readonly id: string;
+  readonly parentId: string | null;
+  readonly relationship: string | null;
+  readonly sourceEvent: unknown;
+  readonly depth: number;
+  readonly maxDepth: number;
+  readonly ancestry: readonly ResolutionAncestryEntry[];
+  readonly triggerIdentities: readonly string[];
+  readonly actionDefinition: ActionDefinition | Readonly<Record<string, unknown>> | null;
+  readonly source: unknown;
+  readonly origin: unknown;
+  readonly actionContext: ActionContext | Readonly<Record<string, unknown>> | null;
+  readonly configuration: ResolvedActionConfiguration | Readonly<Record<string, unknown>> | null;
+  readonly targets: readonly unknown[];
+  readonly targetSet: unknown;
+  readonly targetRefinement: unknown;
+  readonly rollRequests: readonly ResolutionRequest[];
+  readonly rollResults: readonly unknown[];
+  readonly outcomes: Readonly<Record<string, unknown>>;
+  readonly results: Readonly<Record<string, unknown>>;
+  readonly pendingRequests: readonly ResolutionRequest[];
+  readonly requestResponses: Readonly<Record<string, ResolutionRequestResponse>>;
+  readonly responses: readonly ResolutionResponse[];
+  readonly mutationPlans: readonly MutationPlan[];
+  readonly events: readonly AutomationEvent[];
+  readonly currentStageId: string | null;
+  readonly completedStageIds: readonly string[];
+  readonly stageStatuses: Readonly<Record<string, ResolutionStageStatus | string>>;
+  readonly status: ResolutionStateStatus;
+  readonly trace: readonly ResolutionTraceEntry[];
+  readonly validation: readonly unknown[];
+  readonly errors: readonly unknown[];
+  readonly warnings: readonly unknown[];
+  readonly input: Readonly<Record<string, unknown>>;
+  readonly metadata: Readonly<Record<string, unknown>>;
+}
+
+export interface ResolutionStageResult {
+  readonly type: ResolutionStageResultType;
+  readonly state?: ResolutionState | null;
+  readonly status?: ResolutionStateStatus | null;
+  readonly code?: string;
+  readonly reason?: string | null;
+  readonly requests?: readonly ResolutionRequest[];
+  readonly errors?: readonly unknown[];
+  readonly data?: Readonly<Record<string, unknown>>;
+  readonly trace?: readonly ResolutionTraceEntry[];
+  readonly nextStageId?: string | null;
+}
+
+export interface ResolutionPipelineStage {
+  readonly id: string;
+  readonly canRun?: ((state: ResolutionState, services?: unknown) => boolean | {readonly ok?: boolean; readonly value?: boolean; readonly run?: boolean; readonly reason?: string | null}) | null;
+  readonly run: (state: ResolutionState, services?: unknown) => ResolutionStageResult | ResolutionState | ResolverFailure;
+  readonly metadata: Readonly<Record<string, unknown>>;
+}
+
+export interface ResolutionPipelineResult {
+  readonly ok: boolean;
+  readonly code: string;
+  readonly status: ResolutionStateStatus;
+  readonly waiting: boolean;
+  readonly completed: boolean;
+  readonly state: ResolutionState;
+}
+
+export interface ResolutionSerializableValidationResult {
+  readonly ok: boolean;
+  readonly code: string;
+  readonly path: string | null;
+  readonly reason: string | null;
+}
+
 export interface ActionOriginDefinition {
   readonly type: string;
   readonly ref?: EntityRef | string | null;
