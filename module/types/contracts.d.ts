@@ -307,7 +307,7 @@ export interface ResolutionState {
   readonly targetSet: unknown;
   readonly targetRefinement: unknown;
   readonly rollRequests: readonly ResolutionRequest[];
-  readonly rollResults: readonly unknown[];
+  readonly rollResults: readonly (RollResult | Readonly<Record<string, unknown>>)[];
   readonly outcomes: Readonly<Record<string, unknown>>;
   readonly results: Readonly<Record<string, unknown>>;
   readonly pendingRequests: readonly ResolutionRequest[];
@@ -361,6 +361,254 @@ export interface ResolutionSerializableValidationResult {
   readonly code: string;
   readonly path: string | null;
   readonly reason: string | null;
+}
+
+export type RollRequestId = string;
+
+export type SemanticRollType =
+  | "attack"
+  | "saving-throw"
+  | "ability-check"
+  | "skill-check"
+  | "damage"
+  | "healing"
+  | "initiative"
+  | "concentration"
+  | "death-save"
+  | "custom"
+  | (string & {});
+
+export type RollMode = "normal" | "advantage" | "disadvantage";
+
+export type RollVisibilityPolicy =
+  | "system"
+  | "public"
+  | "private"
+  | "self"
+  | "gm-only"
+  | "blind"
+  | (string & {});
+
+export type RollAuthorityKind =
+  | "source-controller"
+  | "target-controller"
+  | "gm"
+  | "automatic"
+  | "specific"
+  | (string & {});
+
+export type RollInputMode = "natural" | "total" | "structured" | (string & {});
+
+export type RollProvenanceType =
+  | "foundry-digital"
+  | "manual"
+  | "physical"
+  | "fake"
+  | "imported"
+  | "unknown"
+  | (string & {});
+
+export type RollProviderOutcomeStatus = "result" | "pending" | "failure" | "cancelled";
+
+export interface RollDieTermDefinition {
+  readonly id: string;
+  readonly number: number;
+  readonly faces: number;
+  readonly modifiers: readonly string[];
+  readonly purpose: string | null;
+  readonly source: unknown;
+  readonly metadata: Readonly<Record<string, unknown>>;
+}
+
+export interface RollDefinition {
+  readonly formula: string | null;
+  readonly expression: ValueExpression | Readonly<Record<string, unknown>> | null;
+  readonly dice: readonly RollDieTermDefinition[];
+  readonly terms: readonly unknown[];
+  readonly modifierTotal: number | null;
+  readonly components: readonly unknown[];
+  readonly metadata: Readonly<Record<string, unknown>>;
+}
+
+export interface RollModifier {
+  readonly id: string;
+  readonly value: number;
+  readonly label: string | null;
+  readonly source: unknown;
+  readonly metadata: Readonly<Record<string, unknown>>;
+}
+
+export interface RollDC {
+  readonly value: number | null;
+  readonly slug: string;
+  readonly ability?: string | null;
+  readonly source: unknown;
+  readonly metadata: Readonly<Record<string, unknown>>;
+}
+
+export interface RollAuthority {
+  readonly kind?: RollAuthorityKind;
+  readonly providerId?: string | null;
+  readonly userRef?: EntityRef | string | null;
+  readonly actorRef?: EntityRef | string | null;
+  readonly metadata?: Readonly<Record<string, unknown>>;
+}
+
+export interface RollExpectedResult {
+  readonly primaryDieFaces: number | null;
+  readonly requireNatural: boolean;
+  readonly manualInputMode: RollInputMode;
+  readonly validateTotalFromNatural: boolean;
+  readonly modifierTotal: number | null;
+  readonly staleAfterStageId: string | null;
+  readonly metadata: Readonly<Record<string, unknown>>;
+}
+
+export interface RollProvenance {
+  readonly type: RollProvenanceType;
+  readonly providerId: string | null;
+  readonly method: string | null;
+  readonly userRef: EntityRef | string | null;
+  readonly authority: unknown;
+  readonly source: unknown;
+  readonly metadata: Readonly<Record<string, unknown>>;
+}
+
+export interface RollRequest {
+  readonly schemaVersion: number;
+  readonly id: RollRequestId;
+  readonly resolutionId: string | null;
+  readonly type: SemanticRollType;
+  readonly formula: string | null;
+  readonly data: Readonly<Record<string, unknown>>;
+  readonly definition: RollDefinition;
+  readonly modifiers: readonly RollModifier[];
+  readonly rollMode: RollMode;
+  readonly dc: RollDC | null;
+  readonly visibility: RollVisibilityPolicy;
+  readonly chooser: unknown;
+  readonly authority: RollAuthority | unknown;
+  readonly source: unknown;
+  readonly target: unknown;
+  readonly provenance: RollProvenance;
+  readonly expected: RollExpectedResult;
+  readonly metadata: Readonly<Record<string, unknown>>;
+}
+
+export interface RollDieResult {
+  readonly index: number;
+  readonly result: number | null;
+  readonly active: boolean;
+  readonly discarded: boolean;
+  readonly rerolled: boolean;
+  readonly exploded: boolean;
+  readonly critical: boolean;
+  readonly fumble: boolean;
+  readonly metadata: Readonly<Record<string, unknown>>;
+}
+
+export interface RollDieResultGroup {
+  readonly id: string;
+  readonly number: number;
+  readonly faces: number;
+  readonly modifiers: readonly string[];
+  readonly purpose: string | null;
+  readonly results: readonly RollDieResult[];
+  readonly source: unknown;
+  readonly metadata: Readonly<Record<string, unknown>>;
+}
+
+export interface RollProviderReference {
+  readonly id: string | null;
+  readonly type: RollProvenanceType;
+  readonly label: string | null;
+}
+
+export interface RollValidationResult {
+  readonly ok: boolean;
+  readonly code: string;
+  readonly reason: string | null;
+  readonly path: string | null;
+  readonly request?: RollRequest;
+  readonly result?: RollResult;
+}
+
+export interface RollResult {
+  readonly schemaVersion: number;
+  readonly requestId: RollRequestId;
+  readonly resolutionId: string | null;
+  readonly type: SemanticRollType;
+  readonly total: number;
+  readonly natural: number | null;
+  readonly dice: readonly RollDieResultGroup[];
+  readonly formula: string | null;
+  readonly terms: readonly unknown[];
+  readonly modifiers: readonly RollModifier[];
+  readonly rollMode: RollMode;
+  readonly provider: RollProviderReference;
+  readonly provenance: RollProvenance;
+  readonly validation: {
+    readonly ok: boolean;
+    readonly code: string;
+    readonly reason: string | null;
+  };
+  readonly raw: unknown;
+  readonly metadata: Readonly<Record<string, unknown>>;
+}
+
+export interface RollProviderContext {
+  readonly providerId?: string | null;
+  readonly preferredProviderId?: string | null;
+  readonly policy?: Readonly<Record<string, unknown>>;
+  readonly manualResults?: unknown;
+  readonly physicalRolls?: unknown;
+  readonly suppliedRolls?: unknown;
+  readonly completedRequestIds?: readonly RollRequestId[];
+  readonly authority?: unknown;
+  readonly metadata?: Readonly<Record<string, unknown>>;
+}
+
+export interface RollProviderPendingResult {
+  readonly ok: false;
+  readonly status: "pending";
+  readonly code: string;
+  readonly reason: string | null;
+  readonly request: RollRequest;
+  readonly provider: RollProviderReference;
+  readonly inputRequest: Readonly<Record<string, unknown>>;
+}
+
+export interface RollProviderFailureResult {
+  readonly ok: false;
+  readonly status: "failure" | "cancelled";
+  readonly code: string;
+  readonly reason: string | null;
+  readonly request?: RollRequest | null;
+  readonly provider?: RollProviderReference | null;
+  readonly validation?: RollValidationResult | null;
+}
+
+export interface RollProviderSuccessResult {
+  readonly ok: true;
+  readonly status: "result";
+  readonly code: "OK" | string;
+  readonly request: RollRequest;
+  readonly provider: RollProviderReference;
+  readonly result: RollResult;
+  readonly validation?: RollValidationResult;
+}
+
+export type RollProviderExecutionResult =
+  | RollProviderSuccessResult
+  | RollProviderPendingResult
+  | RollProviderFailureResult;
+
+export interface RollProvider {
+  readonly id: string;
+  readonly type: RollProvenanceType | string;
+  readonly label?: string | null;
+  canHandle(request: RollRequest, context?: RollProviderContext): boolean;
+  execute(request: RollRequest, context?: RollProviderContext): Promise<RollProviderExecutionResult>;
 }
 
 export interface ActionOriginDefinition {
