@@ -1029,10 +1029,12 @@ function firstNonSerializable(value, path, seen) {
       const failure = firstNonSerializable(entry, `${path}.${index}`, seen);
       if ( failure ) return failure;
     }
+    seen.delete(value);
     return null;
   }
 
   if ( !isPlainObject(value) ) {
+    seen.delete(value);
     return {path, reason: `${path} must be plain JSON-serializable data.`};
   }
 
@@ -1040,6 +1042,7 @@ function firstNonSerializable(value, path, seen) {
     const failure = firstNonSerializable(entry, `${path}.${key}`, seen);
     if ( failure ) return failure;
   }
+  seen.delete(value);
   return null;
 }
 
