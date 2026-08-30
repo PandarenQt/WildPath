@@ -260,6 +260,28 @@ test("ActionPipeline planning produces mutation plans without mutating the sourc
   });
 });
 
+test("ActionPipeline executes an already ready-to-commit state", async () => {
+  const calls = [];
+  const actor = actorWithCalls("actor-source", calls, {system: actorSystem(1)});
+  const action = legacyAction();
+  const planned = planStagedActionResolution({
+    id: "resolution:execute-ready",
+    actor,
+    action
+  });
+  const result = await executeStagedActionResolution({
+    state: planned.state,
+    actor,
+    action
+  });
+
+  assert.equal(planned.state.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT);
+  assert.equal(result.ok, true);
+  assert.equal(result.state.status, RESOLUTION_STATE_STATUS.COMPLETED);
+  assert.deepEqual(calls, [{actorId: "actor-source", updates: {"system.resources.action.value": 0}}]);
+  assert.equal(result.state.stageStatuses[ACTION_PIPELINE_STAGE_IDS.COMMIT], "completed");
+});
+
 test("ActionPipeline executes target save, damage, and transactional commit through existing resolvers", async () => {
   const sourceCalls = [];
   const targetCalls = [];

@@ -177,7 +177,9 @@ export function resumeStagedActionResolution({
 /* -------------------------------------------- */
 
 export async function executeStagedActionResolution(options={}) {
-  const planned = planStagedActionResolution(options);
+  const planned = options.state?.status === RESOLUTION_STATE_STATUS.READY_TO_COMMIT
+    ? actionPipelineResult(createResolutionState(options.state), ACTION_PIPELINE_CODES.OK)
+    : planStagedActionResolution(options);
   if ( planned.waiting || !planned.ok || planned.state.status !== RESOLUTION_STATE_STATUS.READY_TO_COMMIT ) {
     return planned;
   }

@@ -151,6 +151,34 @@ test("invalid RuleElement predicates and payloads fail with structured diagnosti
   assert.match(invalidSchemaVersion.reason, /schemaVersion/);
 });
 
+test("RuleElement validation rejects non-plain objects before lossy JSON cloning", () => {
+  const withMap = validateRuleElementDefinition({
+    id: "map-payload",
+    type: "Modifier",
+    data: {
+      domains: ["attack.melee"],
+      value: 1,
+      metadata: new Map([["lost", true]])
+    }
+  });
+  const withDate = validateRuleElementDefinition({
+    id: "date-source",
+    type: "Modifier",
+    source: {createdAt: new Date("2026-08-30T00:00:00Z")},
+    data: {
+      domains: ["attack.melee"],
+      value: 1
+    }
+  });
+
+  assert.equal(withMap.ok, false);
+  assert.equal(withMap.code, RULE_ELEMENT_CODES.INVALID);
+  assert.match(withMap.reason, /plain JSON-serializable data/);
+  assert.equal(withDate.ok, false);
+  assert.equal(withDate.code, RULE_ELEMENT_CODES.INVALID);
+  assert.match(withDate.reason, /plain JSON-serializable data/);
+});
+
 test("RuleElement definitions round-trip as persisted JSON without changing behavior", () => {
   const definition = {
     schemaVersion: 1,

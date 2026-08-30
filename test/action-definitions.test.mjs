@@ -351,3 +351,17 @@ test("ActionDefinition rejects non-serializable persisted data", () => {
   assert.equal(result.ok, false);
   assert.equal(result.code, ACTION_DEFINITION_CODES.NON_SERIALIZABLE);
 });
+
+test("ActionDefinition rejects non-plain persisted objects before lossy JSON cloning", () => {
+  const withMap = meleeFixture();
+  withMap.metadata = {bad: new Map([["lost", true]])};
+  const withDate = meleeFixture();
+  withDate.source = {createdAt: new Date("2026-08-30T00:00:00Z")};
+
+  for ( const definition of [withMap, withDate] ) {
+    const result = validateActionDefinition(definition);
+    assert.equal(result.ok, false);
+    assert.equal(result.code, ACTION_DEFINITION_CODES.NON_SERIALIZABLE);
+    assert.match(result.errors[0].reason, /plain JSON data/);
+  }
+});
