@@ -29,6 +29,14 @@ import {
   waitResolutionStage
 } from "../helpers/resolution-state.mjs";
 import {
+  ROLL_AUTHORITY,
+  ROLL_TYPES,
+  createD20RollRequest,
+  normalizeRollResponseValue,
+  rollFormulaForRequest,
+  rollResultToResolverRoll
+} from "../helpers/rolls.mjs";
+import {
   ACTION_RESOLVER_CODES,
   executeActionResolution,
   planActionResolution
@@ -467,28 +475,59 @@ function createAttackRollStage() {
     id: ACTION_PIPELINE_STAGE_IDS.ATTACK_ROLL,
     run(state) {
       const input = preparedResolverInput(state);
+      const requestId = requestIdFor(state, "attack-roll");
       const accepted = getResolutionResponse(state, {
-        requestId: requestIdFor(state, "attack-roll"),
+        requestId,
         type: RESOLUTION_REQUEST_TYPES.ROLL
       });
       if ( accepted ) {
+        const rollRequest = rollRequestFromAcceptedResponse(accepted, () => attackRollRequestForState(state, input));
+        const normalized = normalizeRollResponseValue(accepted.response.value, {
+          request: rollRequest,
+          completedRequestIds: completedRollRequestIds(state)
+        });
+        if ( !normalized.ok ) return failResolutionStage({
+          state,
+          code: normalized.code,
+          reason: normalized.reason,
+          errors: [{
+            code: normalized.code,
+            reason: normalized.reason,
+            requestId,
+            validation: normalized.validation
+          }],
+          data: {
+            requestId,
+            rollRequest,
+            validation: normalized.validation
+          }
+        });
+        const resolverRoll = rollResultToResolverRoll(normalized.result);
         const attack = {
           ...(input.attack ?? {}),
-          roll: rollValue(accepted.response.value)
+          roll: resolverRoll
         };
         return continueResolutionStage({
           state: updateResolutionState(state, {
             input: {...input, attack},
+            rollRequests: appendRollRequest(state.rollRequests, rollRequest),
             rollResults: [
               ...state.rollResults,
               {
                 requestId: accepted.request.id,
                 type: "attack-roll",
+                semanticType: normalized.result.type,
+                rollRequest,
+                rollResult: normalized.result,
                 roll: attack.roll
               }
             ]
           }),
-          data: {requestId: accepted.request.id}
+          data: {
+            requestId: accepted.request.id,
+            rollRequestId: rollRequest.id,
+            semanticType: normalized.result.type
+          }
         });
       }
 
@@ -498,17 +537,29 @@ function createAttackRollStage() {
         });
       }
 
+      const rollRequest = attackRollRequestForState(state, input);
       return waitResolutionStage({
-        state,
+        state: updateResolutionState(state, {
+          rollRequests: appendRollRequest(state.rollRequests, rollRequest)
+        }),
         request: createResolutionRequest({
-          id: requestIdFor(state, "attack-roll"),
+          id: rollRequest.id,
           resolutionId: state.id,
           stageId: ACTION_PIPELINE_STAGE_IDS.ATTACK_ROLL,
           type: RESOLUTION_REQUEST_TYPES.ROLL,
-          expectedResponseType: "attack-roll",
+          expectedResponseType: "roll-result",
+          chooser: rollRequest.chooser,
+          authority: rollRequest.authority,
+          validation: {
+            rollRequestId: rollRequest.id,
+            semanticType: rollRequest.type,
+            requireNatural: rollRequest.expected.requireNatural,
+            formula: rollFormulaForRequest(rollRequest).formula ?? null
+          },
           payload: {
             actionDefinitionId: state.actionDefinition?.id ?? null,
             rollKind: "attack",
+            rollRequest,
             attack: input.attack,
             targets: input.targets ?? [],
             targeting: input.targeting ?? null
@@ -525,28 +576,59 @@ function createSaveRollStage() {
     id: ACTION_PIPELINE_STAGE_IDS.SAVE_ROLL,
     run(state) {
       const input = preparedResolverInput(state);
+      const requestId = requestIdFor(state, "save-roll");
       const accepted = getResolutionResponse(state, {
-        requestId: requestIdFor(state, "save-roll"),
+        requestId,
         type: RESOLUTION_REQUEST_TYPES.ROLL
       });
       if ( accepted ) {
+        const rollRequest = rollRequestFromAcceptedResponse(accepted, () => saveRollRequestForState(state, input));
+        const normalized = normalizeRollResponseValue(accepted.response.value, {
+          request: rollRequest,
+          completedRequestIds: completedRollRequestIds(state)
+        });
+        if ( !normalized.ok ) return failResolutionStage({
+          state,
+          code: normalized.code,
+          reason: normalized.reason,
+          errors: [{
+            code: normalized.code,
+            reason: normalized.reason,
+            requestId,
+            validation: normalized.validation
+          }],
+          data: {
+            requestId,
+            rollRequest,
+            validation: normalized.validation
+          }
+        });
+        const resolverRoll = rollResultToResolverRoll(normalized.result);
         const save = {
           ...(input.save ?? {}),
-          roll: rollValue(accepted.response.value)
+          roll: resolverRoll
         };
         return continueResolutionStage({
           state: updateResolutionState(state, {
             input: {...input, save},
+            rollRequests: appendRollRequest(state.rollRequests, rollRequest),
             rollResults: [
               ...state.rollResults,
               {
                 requestId: accepted.request.id,
                 type: "save-roll",
+                semanticType: normalized.result.type,
+                rollRequest,
+                rollResult: normalized.result,
                 roll: save.roll
               }
             ]
           }),
-          data: {requestId: accepted.request.id}
+          data: {
+            requestId: accepted.request.id,
+            rollRequestId: rollRequest.id,
+            semanticType: normalized.result.type
+          }
         });
       }
 
@@ -556,17 +638,29 @@ function createSaveRollStage() {
         });
       }
 
+      const rollRequest = saveRollRequestForState(state, input);
       return waitResolutionStage({
-        state,
+        state: updateResolutionState(state, {
+          rollRequests: appendRollRequest(state.rollRequests, rollRequest)
+        }),
         request: createResolutionRequest({
-          id: requestIdFor(state, "save-roll"),
+          id: rollRequest.id,
           resolutionId: state.id,
           stageId: ACTION_PIPELINE_STAGE_IDS.SAVE_ROLL,
           type: RESOLUTION_REQUEST_TYPES.ROLL,
-          expectedResponseType: "save-roll",
+          expectedResponseType: "roll-result",
+          chooser: rollRequest.chooser,
+          authority: rollRequest.authority,
+          validation: {
+            rollRequestId: rollRequest.id,
+            semanticType: rollRequest.type,
+            requireNatural: rollRequest.expected.requireNatural,
+            formula: rollFormulaForRequest(rollRequest).formula ?? null
+          },
           payload: {
             actionDefinitionId: state.actionDefinition?.id ?? null,
             rollKind: "save",
+            rollRequest,
             save: input.save,
             targets: input.targets ?? [],
             targeting: input.targeting ?? null
@@ -812,8 +906,100 @@ function hasRollTotal(roll) {
   return Number.isFinite(Number(roll.total));
 }
 
-function rollValue(value) {
-  return value?.roll ?? value?.result ?? value;
+function rollRequestFromAcceptedResponse(accepted, fallbackFactory) {
+  return accepted?.request?.payload?.rollRequest ?? fallbackFactory();
+}
+
+function attackRollRequestForState(state, input) {
+  const attack = input.attack ?? {};
+  const modifier = rollModifierInfo(attack, ["attackBonus", "modifierTotal", "totalModifier", "modifier", "bonus"]);
+  return createD20RollRequest({
+    id: requestIdFor(state, "attack-roll"),
+    resolutionId: state.id,
+    type: ROLL_TYPES.ATTACK,
+    modifier: modifier.value,
+    formula: attack.formula ?? attack.rollFormula ?? null,
+    rollMode: attack.rollMode ?? attack.advantageState ?? attack.roll?.mode,
+    source: state.source ?? input.source ?? null,
+    target: firstRollTarget(input),
+    chooser: attack.chooser ?? ROLL_AUTHORITY.SOURCE_CONTROLLER,
+    authority: attack.authority ?? {kind: ROLL_AUTHORITY.SOURCE_CONTROLLER},
+    modifiers: attack.modifiers ?? (modifier.known ? [{id: "attack-modifier", value: modifier.value}] : []),
+    expected: {
+      validateTotalFromNatural: modifier.known,
+      modifierTotal: modifier.known ? modifier.value : null
+    },
+    metadata: {
+      actionDefinitionId: state.actionDefinition?.id ?? null,
+      rollKind: "attack",
+      defenseKey: attack.defenseKey ?? "ac",
+      statistic: attack.statistic ?? null,
+      attackType: attack.type ?? null
+    }
+  });
+}
+
+function saveRollRequestForState(state, input) {
+  const save = input.save ?? {};
+  const modifier = rollModifierInfo(save, ["saveBonus", "modifierTotal", "totalModifier", "modifier", "bonus"]);
+  return createD20RollRequest({
+    id: requestIdFor(state, "save-roll"),
+    resolutionId: state.id,
+    type: ROLL_TYPES.SAVING_THROW,
+    modifier: modifier.value,
+    formula: save.formula ?? save.rollFormula ?? null,
+    rollMode: save.rollMode ?? save.advantageState ?? save.roll?.mode,
+    dc: save.dc ?? null,
+    source: firstRollTarget(input) ?? state.source ?? input.source ?? null,
+    target: state.source ?? input.source ?? null,
+    chooser: save.chooser ?? ROLL_AUTHORITY.TARGET_CONTROLLER,
+    authority: save.authority ?? {kind: ROLL_AUTHORITY.TARGET_CONTROLLER},
+    modifiers: save.modifiers ?? (modifier.known ? [{id: "save-modifier", value: modifier.value}] : []),
+    expected: {
+      validateTotalFromNatural: modifier.known,
+      modifierTotal: modifier.known ? modifier.value : null
+    },
+    metadata: {
+      actionDefinitionId: state.actionDefinition?.id ?? null,
+      rollKind: "save",
+      saveKey: save.saveKey ?? save.ability ?? null,
+      ability: save.ability ?? null,
+      dcKey: save.dcKey ?? "save"
+    }
+  });
+}
+
+function rollModifierInfo(data, keys) {
+  for ( const key of keys ) {
+    const value = finiteNumber(data?.[key]);
+    if ( value != null ) return {known: true, value};
+  }
+  const statisticValue = finiteNumber(data?.statistic?.modifier ?? data?.statistic?.totalModifier ?? data?.statistic?.bonus);
+  if ( statisticValue != null ) return {known: true, value: statisticValue};
+  return {known: false, value: 0};
+}
+
+function firstRollTarget(input) {
+  return input.targets?.[0]
+    ?? input.targeting?.targets?.[0]
+    ?? input.targeting?.candidates?.[0]?.target
+    ?? input.targeting?.targetSet?.candidates?.[0]?.target
+    ?? null;
+}
+
+function appendRollRequest(requests, rollRequest) {
+  const normalized = normalizeArray(requests);
+  if ( normalized.some(request => request?.id === rollRequest.id) ) {
+    return normalized.map(request => request?.id === rollRequest.id ? rollRequest : request);
+  }
+  return [...normalized, rollRequest];
+}
+
+function completedRollRequestIds(state) {
+  return normalizeArray(state.rollResults)
+    .map(result => result?.rollResult?.requestId ?? result?.rollRequest?.id ?? result?.requestId)
+    .filter(value => value != null)
+    .map(String);
 }
 
 function hasSaveRollInput(save, input) {

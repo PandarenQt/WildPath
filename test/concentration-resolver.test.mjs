@@ -8,6 +8,11 @@ import {
   resolveConcentrationCheckResults,
   resolveConcentrationDecisions
 } from "../module/resolvers/concentration-resolver.mjs";
+import {createConcentrationRollRequest} from "../module/helpers/rolls.mjs";
+import {
+  createTestRollProvider,
+  executeRollRequest
+} from "../module/resolvers/roll-provider-resolver.mjs";
 
 test("ConcentrationResolver converts failed save decisions into break events", () => {
   const result = resolveConcentrationDecisions({
@@ -212,6 +217,48 @@ test("ConcentrationResolver resolves check rolls into maintained save events", (
   assert.equal(result.decisions[0].dc, 14);
   assert.equal(result.breakEvents.length, 0);
   assert.equal(result.maintained.length, 1);
+});
+
+test("ConcentrationResolver accepts normalized RollResults from the shared RollProvider path", async () => {
+  const planning = planConcentrationChecks({
+    damageResults: [{
+      ok: true,
+      code: "OK",
+      target: {id: "caster", actorId: "actor-caster"},
+      total: 28
+    }],
+    concentrationStates: {
+      "actor:actor-caster": {
+        active: true,
+        actorId: "actor-caster",
+        originRef: "item:haste"
+      }
+    }
+  });
+  const checkRequest = planning.checkRequests[0];
+  const rollRequest = createConcentrationRollRequest({
+    checkRequest,
+    resolutionId: "resolution:concentration-roll",
+    modifier: 5
+  });
+  const provided = await executeRollRequest({
+    request: rollRequest,
+    providers: [createTestRollProvider({natural: 9})]
+  });
+  const result = resolveConcentrationCheckResults({
+    checkPlanning: planning,
+    rolls: {
+      [checkRequest.id]: provided.result
+    }
+  });
+
+  assert.equal(provided.ok, true);
+  assert.equal(provided.result.requestId, checkRequest.id);
+  assert.equal(provided.result.total, 14);
+  assert.equal(result.ok, true);
+  assert.equal(result.decisions[0].success, true);
+  assert.equal(result.decisions[0].roll.metadata.rollResult.requestId, checkRequest.id);
+  assert.equal(result.breakEvents.length, 0);
 });
 
 test("ConcentrationResolver resolves failed check rolls into break events", () => {

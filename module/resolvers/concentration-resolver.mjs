@@ -7,6 +7,7 @@ import {
   resolveTargetLookupValue,
   targetLookupRefs
 } from "../helpers/target-actor-refs.mjs";
+import {rollResultToResolverRoll} from "../helpers/rolls.mjs";
 import {resolveSaveAgainstDC} from "./save-resolver.mjs";
 
 export const CONCENTRATION_EVENT_TYPES = Object.freeze({
@@ -451,10 +452,20 @@ function normalizeConcentrationCheckResultInput(value) {
   const source = finiteNumber(value) != null ? {total: finiteNumber(value)} : (value ?? {});
   const data = source.data && typeof source.data === "object" ? source.data : {};
   const result = source.result && typeof source.result === "object" ? source.result : {};
-  const rollSource = source.roll ?? source.save ?? data.roll ?? data.save ?? result.roll ?? result.save ?? source;
+  const rollResult = rollResultLike(source.rollResult)
+    ?? rollResultLike(source)
+    ?? rollResultLike(source.roll)
+    ?? rollResultLike(source.save)
+    ?? rollResultLike(data.rollResult)
+    ?? rollResultLike(result.rollResult)
+    ?? null;
+  const rollSource = rollResult
+    ? rollResultToResolverRoll(rollResult)
+    : source.roll ?? source.save ?? data.roll ?? data.save ?? result.roll ?? result.save ?? source;
   const metadata = {
     ...(clonePlain(source.metadata ?? {}) ?? {}),
-    ...(clonePlain(data.metadata ?? {}) ?? {})
+    ...(clonePlain(data.metadata ?? {}) ?? {}),
+    ...(rollResult ? {rollResult: clonePlain(rollResult)} : {})
   };
 
   return {
@@ -472,6 +483,13 @@ function normalizeConcentrationCheckResultInput(value) {
       metadata
     }
   };
+}
+
+function rollResultLike(value) {
+  if ( !value || typeof value !== "object" ) return null;
+  return value.requestId && value.total != null && value.provenance
+    ? value
+    : null;
 }
 
 function createResolvedConcentrationCheck({request, supplied, input, outcome, success, dc, saveResult, policy, metadata}) {

@@ -171,6 +171,34 @@ export function createDamageRollRequest({
 
 /* -------------------------------------------- */
 
+export function createConcentrationRollRequest({
+  checkRequest,
+  resolutionId=null,
+  modifier=0,
+  ...options
+}={}) {
+  return createD20RollRequest({
+    ...options,
+    id: options.id ?? checkRequest?.id,
+    resolutionId: resolutionId ?? options.resolutionId ?? null,
+    type: ROLL_TYPES.CONCENTRATION,
+    modifier,
+    dc: {value: checkRequest?.dc, slug: checkRequest?.saveKey ?? "concentration", ability: checkRequest?.ability ?? null},
+    source: checkRequest?.actorRef ?? checkRequest?.sourceRef ?? null,
+    target: checkRequest?.target ?? checkRequest?.targetRef ?? null,
+    authority: options.authority ?? {kind: ROLL_AUTHORITY.TARGET_CONTROLLER},
+    metadata: {
+      ...(clonePlainData(options.metadata ?? {}, "metadata") ?? {}),
+      checkRequest: clonePlainData(checkRequest ?? null, "checkRequest"),
+      checkRequestId: checkRequest?.id ?? null,
+      saveKey: checkRequest?.saveKey ?? "concentration",
+      ability: checkRequest?.ability ?? "con"
+    }
+  });
+}
+
+/* -------------------------------------------- */
+
 export function validateRollRequest(request) {
   const serializableIssue = findNonPlainData(request, "rollRequest");
   if ( serializableIssue ) {

@@ -7,7 +7,12 @@ import {
   RESOLUTION_REQUEST_TYPES,
   RESOLUTION_STATE_STATUS
 } from "../module/helpers/resolution-state.mjs";
+import {ROLL_TYPES} from "../module/helpers/rolls.mjs";
 import {AUTOMATION_EVENT_TYPES} from "../module/helpers/automation-events.mjs";
+import {
+  createPhysicalDiceProvider,
+  executeRollRequest
+} from "../module/resolvers/roll-provider-resolver.mjs";
 import {
   ACTION_PIPELINE_STAGE_IDS,
   createActionResolutionState,
@@ -235,12 +240,91 @@ test("ActionPipeline requests an attack RollResult and resumes without rerunning
   });
 
   assert.equal(waiting.state.status, RESOLUTION_STATE_STATUS.AWAITING_ROLL);
-  assert.equal(waiting.state.pendingRequests[0].expectedResponseType, "attack-roll");
+  assert.equal(waiting.state.pendingRequests[0].expectedResponseType, "roll-result");
+  assert.equal(waiting.state.pendingRequests[0].payload.rollRequest.type, ROLL_TYPES.ATTACK);
   assert.equal(resumed.ok, true);
   assert.equal(resumed.state.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT);
   assert.deepEqual(resumed.state.rollResults.map(result => result.roll.total), [17]);
+  assert.deepEqual(resumed.state.rollResults.map(result => result.rollResult.natural), [12]);
   assert.equal(resumed.state.trace.filter(entry => entry.stageId === ACTION_PIPELINE_STAGE_IDS.CONFIGURATION).length, 1);
   assert.equal(resumed.state.results.actionResult.consequences.some(entry => entry.type === "attackResolved"), true);
+});
+
+test("ActionPipeline resumes an attack from a physical RollResult and commits through ready-to-commit", async () => {
+  const sourceCalls = [];
+  const targetCalls = [];
+  const actor = actorWithCalls("actor-source", sourceCalls, {system: actorSystem(1)});
+  const action = definitionAction(attackDefinition());
+  const targetActor = actorWithCalls("actor-orc", targetCalls, {
+    system: targetActorSystem(14, 20)
+  });
+  const targetActors = {"actor:actor-orc": targetActor};
+  const waiting = planStagedActionResolution({
+    id: "resolution:physical-attack",
+    actor,
+    action,
+    source: {actorId: "actor-source"},
+    targeting: {
+      required: true,
+      candidates: [{
+        id: "orc",
+        target: target("orc", {actorId: "actor-orc", defenses: {ac: {value: 12}}}),
+        actor: {id: "actor-orc", name: "Orc"},
+        disposition: "enemy",
+        kind: "creature"
+      }]
+    },
+    damage: {
+      components: [{id: "slash", amount: 6, damageType: "slashing"}]
+    },
+    durability: true,
+    targetActors
+  });
+  const rollRequest = waiting.state.pendingRequests[0].payload.rollRequest;
+  const provided = await executeRollRequest({
+    request: rollRequest,
+    providers: [createPhysicalDiceProvider()],
+    context: {
+      physicalRolls: {
+        [rollRequest.id]: {
+          requestId: rollRequest.id,
+          resolutionId: rollRequest.resolutionId,
+          type: rollRequest.type,
+          natural: 12,
+          total: 17
+        }
+      }
+    }
+  });
+  const resumed = resumeStagedActionResolution({
+    state: waiting.state,
+    response: {
+      resolutionId: waiting.state.id,
+      requestId: rollRequest.id,
+      type: RESOLUTION_REQUEST_TYPES.ROLL,
+      value: provided.result
+    },
+    services: {targetActors}
+  });
+  const committed = await executeStagedActionResolution({
+    state: resumed.state,
+    actor,
+    action,
+    targetActors,
+    authority: {isGM: true, userId: "gm-a", activeGMId: "gm-a"}
+  });
+
+  assert.equal(waiting.state.status, RESOLUTION_STATE_STATUS.AWAITING_ROLL);
+  assert.equal(rollRequest.type, ROLL_TYPES.ATTACK);
+  assert.equal(provided.ok, true);
+  assert.equal(resumed.ok, true);
+  assert.equal(resumed.state.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT);
+  assert.equal(resumed.state.rollResults[0].rollResult.provenance.type, "physical");
+  assert.equal(committed.ok, true);
+  assert.equal(committed.state.status, RESOLUTION_STATE_STATUS.COMPLETED);
+  assert.deepEqual(targetCalls, [{actorId: "actor-orc", updates: {"system.resources.health.value": 8}}]);
+  assert.deepEqual(sourceCalls, []);
+  assert.equal(committed.state.stageStatuses[ACTION_PIPELINE_STAGE_IDS.COMMIT], "completed");
 });
 
 test("ActionPipeline planning produces mutation plans without mutating the source actor", () => {
