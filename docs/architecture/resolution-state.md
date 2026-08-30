@@ -1,0 +1,188 @@
+# ResolutionState And Staged Pipeline
+
+`module/helpers/resolution-state.mjs` is the pure, serializable state and stage-runner foundation
+for addressable action resolution.
+
+It is an application/orchestration contract. Domains still own their rules. A stage may call
+`TargetResolver`, `AttackResolver`, `SaveResolver`, `DamageResolver`, `HealingResolver`,
+`EffectResolver`, or `ResourceResolver`, but it should not reimplement those domain rules.
+
+## State Contract
+
+`ResolutionState` is plain JSON-serializable data with:
+
+- a stable execution id
+- lifecycle status
+- parent/child provenance
+- action definition and source/origin data
+- resolved configuration
+- targets, target sets, and target refinement
+- roll requests and roll results
+- domain outcomes/results
+- pending typed requests
+- mutation plans
+- semantic events
+- current stage id
+- completed stage ids
+- per-stage statuses
+- trace entries
+- validation, errors, warnings, input, and metadata
+
+Runtime-only values such as Foundry documents, DOM nodes, Applications, closures, and stage
+functions do not belong in `ResolutionState`. Stage descriptors are runtime objects; the state
+stores only their stable ids and trace/results.
+
+## Lifecycle
+
+The current lifecycle statuses are:
+
+- `created`
+- `running`
+- `awaiting-configuration`
+- `awaiting-targets`
+- `awaiting-roll`
+- `awaiting-choice`
+- `paused`
+- `ready-to-commit`
+- `committing`
+- `completed`
+- `failed`
+- `cancelled`
+
+Callers should inspect `status` and `pendingRequests`; they should not infer lifecycle from
+missing fields.
+
+## Stage Contract
+
+A runtime stage has:
+
+- `id`
+- optional `canRun(state, services)`
+- `run(state, services)`
+- serializable metadata
+
+`run` returns a `StageResult`:
+
+- `continue`
+- `wait`
+- `fail`
+- `complete`
+
+The stage runner records a structured trace entry for every stage result. Completed stage ids are
+preserved so a resumed resolution does not rerun earlier completed work.
+
+## Pause And Resume
+
+When a stage needs external input, it returns `wait` with one or more pending requests. Requests
+carry:
+
+- request id
+- resolution id
+- stage id
+- request type
+- expected response type
+- validation details
+- chooser/authority metadata
+- payload
+- metadata
+
+`resumeResolutionPipeline()` rejects stale or mismatched responses unless all of these match:
+
+- resolution id
+- request id
+- request type
+
+Accepted responses are stored in `requestResponses` and `responses`, then the runner resumes from
+the waiting stage.
+
+Current request types include:
+
+- `action-configuration`
+- `target-selection`
+- `target-refinement`
+- `roll`
+- `reaction-choice`
+- `choice`
+
+The pipeline exposes requests only. UI, sockets, and Foundry ApplicationV2 dialogs are future
+adapters.
+
+## Child Resolutions
+
+`createChildResolutionState()` creates a child state with:
+
+- parent execution id
+- relationship
+- source event
+- incremented depth
+- ancestry
+- trigger identity history
+
+It enforces a configurable depth limit and rejects repeated trigger identities already present in
+the ancestry. This is not a complete ReactionEngine; it is the guard rail needed before reactions,
+triggered actions, and interrupt windows can safely resume parent resolutions.
+
+## Mutation Boundary
+
+Stages before commit must not perform irreversible Foundry document mutation. They may produce
+mutation plans and semantic events.
+
+The commit boundary remains `module/resolvers/resolution-transaction-resolver.mjs`, which performs
+ordered commits and rollback. The staged action wrapper currently reaches that boundary by
+delegating commit to the existing `executeActionResolution()` implementation.
+
+## Current Action Wrapper
+
+`module/resolvers/action-pipeline-resolver.mjs` is the first strangler wrapper around the existing
+procedural `ActionResolver`.
+
+It currently provides:
+
+- `createActionResolutionState()`
+- `createActionResolutionPipeline()`
+- `planStagedActionResolution()`
+- `resumeStagedActionResolution()`
+- `executeStagedActionResolution()`
+
+The current stage sequence is:
+
+```text
+action.configuration
+-> action.targeting
+-> action.attack-roll
+-> action.save-roll
+-> action.legacy-resolution
+-> action.ready-to-commit
+```
+
+Planning stops at `ready-to-commit`. Execution then marks `action.commit`, delegates to
+`executeActionResolution()`, and records `action.finalization` on success.
+
+This wrapper can:
+
+- pause for required Action Configuration and resume with responses
+- revalidate supplied `ResolvedActionConfiguration`
+- pause for target selection or target refinement
+- pause for an attack or save roll result
+- preserve completed stage ids across resume
+- plan without mutating Actors
+- commit through the existing transaction path
+- preserve rollback behavior when a later commit operation fails
+
+## Current Limitations
+
+The wrapper intentionally does not yet extract the internal target, attack, save, damage, healing,
+effect, payment, or commit logic out of `ActionResolver`. `action.legacy-resolution` remains the
+parity stage.
+
+The commit phase still calls `executeActionResolution()`, which replans before committing so it can
+reuse existing validation and transaction behavior. That is acceptable for this strangler slice,
+but a later milestone should extract a dedicated async `CommitStage` over already-planned mutation
+plans once parity tests cover the full resolver surface.
+
+The roll request shape is present, but there is no `RollProvider` yet. Digital, manual, and
+physical dice adapters should all answer the same typed `roll` request with a plain roll result.
+
+Reaction windows are not executed here. Future reaction work should insert waitable stages around
+semantic events such as after declaration, before/after attack roll, after hit determination, and
+before damage commit.

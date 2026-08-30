@@ -72,6 +72,12 @@ ActionResolver
 UI may display prompts for eligible reaction windows, but the rules for eligibility and payment
 must remain in the resolver/domain layer.
 
+The staged `ResolutionState` pipeline is the intended resume point for future reaction windows.
+Reaction work should add waitable stages around meaningful semantic events, such as after action
+declaration, before/after attack roll, after hit determination, and before damage commit. This
+foundation only stores typed pending requests and parent/child provenance; it does not execute a
+complete ReactionEngine yet.
+
 ## Future Consumers
 
 This foundation is intended for:

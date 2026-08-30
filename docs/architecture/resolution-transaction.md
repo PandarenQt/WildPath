@@ -3,6 +3,10 @@
 `module/resolvers/resolution-transaction-resolver.mjs` is the current ordered Actor update
 transaction boundary for ActionResolver execution.
 
+The staged `ResolutionState` pipeline treats this as the commit boundary. Stages before commit
+produce plain mutation plans; they should not call `actor.update()` or ActiveEffect document
+operations directly.
+
 ## Current Flow
 
 ```text
@@ -40,6 +44,10 @@ mutation plans
 - target condition effects
 - source resource payment
 
+`ActionPipelineResolver` currently reaches the same boundary by delegating `action.commit` to
+`executeActionResolution()`. This keeps rollback parity while the larger ActionResolver is
+extracted into smaller stages over time.
+
 Target durability commits still require explicit authority before they become transaction
 operations. Target condition-effect commits use the same authority gate.
 
@@ -49,6 +57,7 @@ ResolutionTransaction does not:
 
 - discover Actors from canvas or world state
 - decide who has authority
+- own `ResolutionState` lifecycle or pause/resume requests
 - reserve resources before reaction windows
 - retry socket handoffs
 - mutate Items, Combat, Scenes, or Regions

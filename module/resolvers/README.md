@@ -17,6 +17,9 @@ automation foundation needs, per `AGENTS.md` sections 4 and 8 and the architectu
 - `module/helpers/action-resolution.mjs` now provides the plain `ActionContext` and `ActionResult`
   envelopes that resolver modules should share for steps, events, consequences, mutation plans,
   errors, and audit traces.
+- `module/helpers/resolution-state.mjs` now provides the serializable `ResolutionState`,
+  addressable stage contracts, typed pending requests, pause/resume response correlation,
+  child-resolution provenance, and structured stage trace foundation.
 - `module/helpers/entity-refs.mjs` now provides opaque string references for cross-layer identity.
   New resolver code should pass `ref` strings and treat `{actorId, tokenId}` fields as transitional
   compatibility data.
@@ -36,6 +39,11 @@ automation foundation needs, per `AGENTS.md` sections 4 and 8 and the architectu
   spell-origin, and concentration metadata, can commit target durability and condition-effect plans
   with explicit authority through `ResolutionTransaction`, and delegates payment planning to
   `ResourceResolver`.
+- `module/resolvers/action-pipeline-resolver.mjs` now wraps `ActionResolver` with the first staged
+  `ResolutionState` facade. It can pause for required Action Configuration, target
+  selection/refinement, or roll input, resume with correlated responses, plan to
+  `ready-to-commit` without mutation, and execute through the existing transaction-backed commit
+  path.
 - `module/resolvers/target-resolver.mjs` now wraps target-set eligibility, refinement decisions,
   required-target failures, self-targeting, and selection request state.
 - `module/resolvers/attack-resolver.mjs` now resolves already-known attack totals against target
@@ -94,6 +102,7 @@ call into `ActionResolver`; resolvers should not call UI code.
 
 | Module | File | Responsibility |
 |---|---|---|
+| `ActionPipelineResolver` | `module/resolvers/action-pipeline-resolver.mjs` | Current staged facade around ActionResolver: serializable ResolutionState creation, configuration/target/roll waits, resume correlation, ready-to-commit planning, and transaction-backed execution parity. |
 | `ActionResolver` | `module/resolvers/action-resolver.mjs` | Current target-aware, attack-capable, save-capable, weapon-size-aware, save-damage-policy-aware, damage/healing-capable, condition-effect-planning entry point for supplied plain data; should grow into roll requests, effect commits, and post-resolution hooks. |
 | `TargetResolver` | `module/resolvers/target-resolver.mjs` | Resolves and validates self, explicit, and precomputed target sets for ActionResolver and future UI adapters. |
 | `AttackResolver` | `module/resolvers/attack-resolver.mjs` | Current pure attack-vs-defense outcome resolver for known roll totals and target defenses. |
@@ -134,6 +143,8 @@ from Foundry combat start/turn/end hook events and Actor rest completion. Concen
 now feed failed concentration save decisions into that same lifecycle path, plan concentration check
 requests from adjusted damage, and resolve supplied check totals/outcomes into the same event shape.
 ConcentrationCheckCommitResolver now bridges those supplied check results into the lifecycle commit
-path with explicit authority. The next resolver slice should either add a Foundry/UI prompt adapter
-for concentration check result entry or extend EffectResolver from condition-only planning toward
-generic ActiveEffect planning.
+path with explicit authority. ActionPipelineResolver now adds the first addressable
+ResolutionState layer around ActionResolver and should be the integration point for future prompt,
+roll-provider, and reaction-window adapters. The next resolver slice should either connect a
+Foundry/UI adapter to staged pending requests or extract one legacy ActionResolver responsibility
+into a dedicated stage while preserving parity.

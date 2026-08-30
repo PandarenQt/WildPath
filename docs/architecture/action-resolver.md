@@ -1,6 +1,6 @@
 # ActionResolver
 
-`module/resolvers/action-resolver.mjs` is now the current action entry point. It handles existing
+`module/resolvers/action-resolver.mjs` is now the current parity resolver for action mechanics. It handles existing
 legacy cost behavior and can also load a persisted `ActionDefinition` from an Action Item, validate
 it, and adapt its targeting, attack, save, damage, healing, condition-effect, and payment
 declarations into the existing resolver flow. Runtime callers still provide current-use data such
@@ -9,6 +9,12 @@ snapshots, and authority.
 It can also consume raw Action Configuration responses or a `ResolvedActionConfiguration`, use the
 configuration helper's effective ActionDefinition, preserve a compact configuration summary in the
 action context metadata, and revalidate the selected payment plan before payment planning.
+
+`module/resolvers/action-pipeline-resolver.mjs` is the current staged orchestration facade. It
+creates a serializable `ResolutionState`, runs addressable stages for configuration, targeting,
+roll input, legacy planning, and ready-to-commit, and preserves pause/resume request correlation.
+The final mechanics still delegate to this resolver so existing behavior remains the baseline while
+responsibilities are extracted incrementally.
 
 It can resolve target validation and optional attack-outcome resolution when the required plain
 runtime data is present. It can also resolve supplied saving throws, resolve structured damage and
@@ -49,6 +55,24 @@ Action item
 -> Actor resource mutation plan
 -> optional explicit-authority ResolutionTransaction commit
 ```
+
+The staged wrapper currently surrounds this flow as:
+
+```text
+ResolutionState
+-> action.configuration
+-> action.targeting
+-> action.attack-roll
+-> action.save-roll
+-> action.legacy-resolution
+-> action.ready-to-commit
+-> action.commit
+-> action.finalization
+```
+
+Planning stops at `ready-to-commit` and does not mutate Foundry documents. Execution enters
+`action.commit`, delegates to `executeActionResolution()`, and records rollback/transaction data in
+the state trace/results.
 
 The resolver emits semantic automation events for:
 
@@ -118,6 +142,24 @@ successfully.
   fails
 - returns the resulting `ActionResult`
 
+`planStagedActionResolution()` / `resumeStagedActionResolution()`:
+
+- create or resume a serializable `ResolutionState`
+- pause for required Action Configuration choices
+- pause for target selection or target refinement
+- pause for attack/save roll input using typed roll requests
+- reject stale responses whose resolution id, request id, or request type does not match
+- preserve completed stage ids so resumed work does not rerun earlier stages
+- delegate domain planning to `planActionResolution()` in the `action.legacy-resolution` stage
+- stop at `ready-to-commit` with mutation plans and semantic events but no Actor updates
+
+`executeStagedActionResolution()`:
+
+- plans through the staged facade
+- commits through `executeActionResolution()` and the existing `ResolutionTransaction`
+- records `action.commit` and `action.finalization` trace entries
+- preserves rollback behavior when later transaction operations fail
+
 `WildPathActor#useAction()` now uses `executeActionResolution()` while preserving its current
 boolean return behavior.
 
@@ -128,11 +170,11 @@ not planned.
 
 The current resolver does not:
 
-- prompt for targets
+- render target/configuration/roll prompts
 - validate ranges
 - derive attack bonuses or target defenses from Actor documents
 - derive save bonuses or save DCs from Actor documents
-- roll dice
+- roll dice through a `RollProvider`
 - render the Action Configuration HUD or collect choices from players
 - prompt for concentration checks or apply concentration save results
 - commit generic non-condition ActiveEffects
@@ -149,6 +191,8 @@ updates, and deletes if a later transaction operation fails. WeaponSizePolicy in
 structural dice and records provenance for explicitly manufactured weapon damage, but it does not
 roll those dice or invent final damage amounts. This module exists so current action use already
 enters the same pipeline shape that those slices will extend.
+
+The staged facade can expose prompt requests, but UI and socket adapters are still future work.
 
 ## Next Resolver Slice
 

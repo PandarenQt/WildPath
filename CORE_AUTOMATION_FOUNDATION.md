@@ -44,6 +44,9 @@ The finished game system name is **Wild Path**.
   dispatch planning, and reaction-window eligibility checks against action-economy resources.
 - `module/helpers/action-resolution.mjs` provides pure `ActionContext` and `ActionResult`
   envelopes for validation steps, semantic events, consequences, mutation plans, and audit traces.
+- `module/helpers/resolution-state.mjs` provides the serializable `ResolutionState` and
+  addressable stage foundation for pause/resume, typed pending requests, response correlation,
+  parent/child provenance, lifecycle statuses, and structured stage trace data.
 - `module/helpers/action-definitions.mjs` provides the pure, schema-versioned ActionDefinition
   contract for persisted Action Item mechanics, including serialization, validation, legacy
   cost-only migration, and translation into resolver input.
@@ -68,6 +71,11 @@ The finished game system name is **Wild Path**.
   to ResourceResolver. It can also plan condition effect consequences for selected, hit, or
   save-matching targets while carrying duration, spell-origin, and concentration metadata, then
   commit those plans through the explicit-authority target mutation transaction path.
+- `module/resolvers/action-pipeline-resolver.mjs` wraps ActionResolver with the first staged
+  ResolutionState facade. It pauses for required Action Configuration, target selection/refinement,
+  and roll input; resumes only with matching resolution/request/type responses; plans to
+  ready-to-commit without mutation; and executes through the existing transaction-backed
+  ActionResolver commit path.
 - `module/resolvers/target-resolver.mjs` wraps target-set eligibility, refinement decisions,
   required-target failures, self-targeting, and selection request state for future ActionResolver
   integration.
@@ -210,7 +218,9 @@ analysis.
 See `docs/architecture/combat-timeline.md` for the combat timeline, durations, and scheduler
 foundation. See `docs/architecture/events-and-reactions.md` for the automation event and reaction
 trigger foundation. See `docs/architecture/action-resolution.md` for the common action-context
-and action-result envelope. See `docs/architecture/action-definitions.md` for the persisted
+and action-result envelope. See `docs/architecture/resolution-state.md` for the staged
+ResolutionState pipeline, lifecycle, pending requests, child resolutions, and commit boundary. See
+`docs/architecture/action-definitions.md` for the persisted
 ActionDefinition contract. See `docs/architecture/action-configuration.md` for the per-use
 configuration and authoritative preview foundation. See
 `docs/architecture/resource-resolution.md` for the current resource payment resolver boundary. See
@@ -237,12 +247,16 @@ current action-bar, combat-carousel, and concentration-prompt view-model foundat
 
 ## Near-Term Order
 
-1. Add a Foundry ApplicationV2/dialog adapter that renders the concentration check prompt view
+1. Connect a Foundry/UI adapter to staged pending requests for configuration, target, and
+   roll-entry prompts without putting prompt logic inside the pipeline.
+2. Extract one legacy ActionResolver responsibility, such as target orchestration or attack roll
+   orchestration, into a dedicated stage while preserving existing ActionResolver parity tests.
+3. Add a Foundry ApplicationV2/dialog adapter that renders the concentration check prompt view
    model, collects roll totals or explicit physical-dice outcomes, and submits them to
    ConcentrationCheckCommitResolver.
-2. Add generic ActiveEffect create/update/delete planning on top of the condition-first
+4. Add generic ActiveEffect create/update/delete planning on top of the condition-first
    EffectResolver boundary.
-3. Start writing new pure contract-heavy modules in TypeScript once a pinned `typescript`
-   dev dependency and `typecheck` script are added.
+5. Continue migrating new pure contract-heavy modules toward TypeScript-first implementations
+   while preserving the current `typecheck` contract file.
 
 Keep every slice small, testable, and compatible with synthetic Token Actors.

@@ -53,6 +53,9 @@ Resolution Domain
 - pause/resume
 - child resolutions
 
+See `docs/architecture/resolution-state.md` for the current serializable state and staged
+pipeline contract.
+
 Rules Domain
 - Predicate
 - ValueExpression

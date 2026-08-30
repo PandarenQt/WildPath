@@ -4,6 +4,8 @@ Wild Path's resolver pipeline needs a common plain-data envelope before it can s
 targeting, resources, rolls, reactions, effects, and Foundry document mutation.
 
 The current pure foundation is `module/helpers/action-resolution.mjs`.
+The staged pause/resume foundation is `module/helpers/resolution-state.mjs`; see
+`docs/architecture/resolution-state.md`.
 
 Persisted Action Item mechanics now enter this envelope through
 `module/helpers/action-definitions.mjs`; see `docs/architecture/action-definitions.md` for the
@@ -86,6 +88,11 @@ and persisted ActionDefinition-derived targeting, attack, save, damage, healing,
 effect requests. It can also consume a `ResolvedActionConfiguration`, use its effective definition,
 and revalidate its selected payment plan before resolution planning. It is the first resolver
 consumer, not the final action pipeline.
+
+`module/resolvers/action-pipeline-resolver.mjs` now wraps that resolver with the first addressable
+`ResolutionState` pipeline. It can pause for required configuration, target selection/refinement,
+or roll input, then resume with correlated responses before delegating parity planning to the
+existing resolver.
 
 ## Future Consumers
 
