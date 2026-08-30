@@ -65,6 +65,11 @@ For a changed symbol, determine:
 
 Do not assume a file is isolated from the rest of the system.
 
+Treat roadmap and implementation-status statements in documentation as provisional. Verify current
+implementation status against source code, tests, and typecheck before coding toward a documented
+future milestone. If implementation has overtaken a status/roadmap document, update that document
+rather than re-implementing an already completed foundation.
+
 ---
 
 ## Large Features
@@ -85,6 +90,9 @@ Avoid producing hundreds of lines across many subsystems in one unverified
 pass.
 
 Keep the repository runnable between stages where practical.
+
+If a change completes, replaces, or materially changes a documented architectural milestone, update
+the relevant current-state architecture/status documentation in the same change where practical.
 
 ---
 

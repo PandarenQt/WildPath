@@ -58,33 +58,78 @@ It is:
 
 How many D&D and homebrew features can be expressed without adding new engine code?
 
-2. Current Strategic Priority
+2. Current Development Phase — Foundry Integration Proof
 
-Until the core architecture is sufficiently consolidated, prioritize foundational/core functionality over content breadth and UI polish.
+The foundational automation kernel is now established and should be treated as stable unless a
+concrete defect or integration requirement proves otherwise. Established primitives include:
 
-Current high-priority areas are:
+Predicate
 
-unified Predicate infrastructure
+ValueExpression
 
-expanded safe/serializable ValueExpression
+Modifier
 
-generic Modifier definitions with selectors, predicates, provenance, and traces
+RuleElement
 
-real RuleElement registry and execution model
+persisted ActionDefinition
 
-migration of condition/effect mechanics away from feature-specific executable generators
+Action Configuration
 
-canonical persisted ActionDefinition
+authoritative ResolvedActionPreview
 
-addressable/staged Resolution Pipeline
+ResolutionState
 
-staged TypeScript migration of core contracts
+staged/pauseable Resolution Pipeline
 
-strong domain boundaries and ports/adapters
+RollRequest / RollProvider / RollResult
 
-Foundry V14 integration of already-tested pure-domain systems
+transaction-backed mutation planning
 
-Do not prioritize large spell, monster, class, or item catalogs until these foundations are strong enough to express them cleanly.
+tactical grid and TokenGridFootprint domain primitives
+
+targeting/refinement
+
+Action Economy
+
+InventorySpace foundations
+
+WeaponSizePolicy
+
+Do not redesign or replace these merely because another abstraction is possible. A foundational
+change now requires evidence of at least one of:
+
+1. a concrete representative gameplay mechanic that cannot be expressed through existing primitives,
+2. a Foundry V14 integration boundary the existing contract cannot support,
+3. a correctness defect,
+4. an unavoidable domain-boundary violation,
+5. a serialization, authority, or multiplayer-safety problem,
+6. substantial duplication that cannot be resolved through an existing public contract.
+
+Current development priorities are:
+
+1. generic Prompt / Choice Adapter over the existing ResolutionState pending-request envelope
+2. Foundry V14 TacticalGrid adapter for real Scenes and Tokens
+3. remaining Foundry mutation/persistence ports
+4. a real end-to-end Foundry Action vertical slice
+5. incremental removal of `action.legacy-resolution`
+6. multiplayer authority/socket routing
+7. ReactionEngine
+8. Movement
+9. persistent Areas, auras, and emanations
+10. representative content as architecture proof
+11. progression / character systems
+12. Homebrew Builder
+13. finished Character Sheet
+14. gameplay HUD
+
+Do not prioritize large spell, monster, class, or item catalogs before the existing foundations
+have been proven through real Foundry integration.
+
+Abstraction budget:
+
+The default response to a new requirement is composition through existing primitives, not creation
+of another foundational subsystem. Add a new abstraction only when integration or representative
+content demonstrates a missing reusable concept.
 
 3. Separation of Concerns Is a Hard Requirement
 
@@ -1132,97 +1177,76 @@ Prefer simple, explicit boundaries over ceremony.
 
 27. Development Strategy
 
-Use this general development sequence unless a task-specific instruction supersedes it.
+WildPath is now in an integration-proof phase. Use the following sequence unless a task-specific
+instruction supersedes it.
 
-Stage A — Core Consolidation
+Stage A — Generic Prompt / Choice Adapter
 
-unified Predicate
+Reuse the canonical pending-request envelope already owned by ResolutionState. Route existing
+ActionChoiceRequest, roll/manual-input, target selection/refinement, and generic choice requests
+through application-level presentation ports. Do not create parallel request hierarchies.
 
-ValueExpression
+Stage B — Foundry V14 Tactical Adapter
 
-Modifier
+Connect pure GridField, GridVertex, TokenGridFootprint, GridFootprint, range, reach, and tactical
+area contracts to real Foundry V14 Scenes/Tokens. Hex remains first-class. Foundry is infrastructure;
+WildPath grid topology remains the gridded mechanical authority.
 
-RuleElement
+Stage C — Mutation / Persistence Ports
 
-condition/effect migration
+Move remaining raw Foundry Actor/Item/ActiveEffect mutations behind explicit infrastructure ports
+while preserving transaction and rollback behavior.
 
-persisted ActionDefinition
+Stage D — Real End-to-End Foundry Vertical Slice
 
-staged Resolution Pipeline
+Prove persisted ActionDefinition -> configuration -> preview -> real target/area -> RollProvider ->
+staged resolution -> mutation plans -> transaction commit -> structured result/chat presentation.
+Use a small representative mechanic set rather than content volume.
 
-TypeScript core contracts
+Stage E — Extract Legacy Resolution Incrementally
 
-Stage B — Architecture Proof Through Representative Content
+Replace `action.legacy-resolution` one responsibility at a time with dedicated stages that call
+existing domain resolvers. Preserve parity tests. Do not rewrite the working resolver wholesale.
 
-Use a small difficult test set, not a giant catalog.
+Stage F — Multiplayer Authority / Sockets
 
-Representative mechanics may include:
+Define authoritative ResolutionState ownership, chooser/roller authority, request routing, stale/
+duplicate response rejection, and socket adapters.
 
-ordinary melee attack
+Stage G — Reactions / Interruptible Resolution
 
-ranged attack with normal/long range
+Build reaction discovery and child resolutions over semantic events, existing pending requests, and
+the established pause/resume pipeline.
 
-Reach weapon
+Stage H — Movement
 
-oversized monster weapon
+Implement paths, movement modes, complete-footprint movement, costs, voluntary/forced/teleport
+movement, and semantic movement events using the same tactical spatial authority.
 
-auto-hit multi-target effect
+Stage I — Opportunity Attacks / Persistent Areas / Auras / Emanations
 
-Area save/half-damage spell
+Compose Spatial + Movement + Event + Reaction systems. Avoid separate geometry or reaction engines.
 
-Sculpt-style per-target override
+Stage J — Representative Content and Character Systems
 
-reaction defense
+Exercise the kernel through difficult representative mechanics, then implement spellcasting
+progression, classes, multi-subclasses, transformations, companions, grants, and related systems
+primarily through existing primitives.
 
-persistent modifier buff
+Stage K — Homebrew Builder, Character Sheet, and Gameplay HUD
 
-persistent Area
+Build presentation over the same domain schemas and application contracts used by first-party
+content. The Character Sheet answers what is true about the character; the HUD answers what can be
+done now and how the current action is configured/resolved.
 
-teleport
+At every stage, apply the missing-primitive test:
 
-Action Surge-like extra capability
+Can this requirement be composed from existing ActionDefinition, RuleElements, Predicate,
+ValueExpression, Configuration, Targeting, RollProvider, Spatial, ResolutionState, and Transaction
+contracts?
 
-conditional extra damage
-
-If one requires engine code, first determine whether it exposes a missing reusable primitive.
-
-Stage C — Foundry Tactical Adapter
-
-Connect pure spatial models to real Foundry V14 Scenes/Tokens.
-
-Hex is first-class.
-
-Stage D — Roll Abstraction
-
-Implement digital/manual providers through one RollRequest → RollResult contract.
-
-Stage E — Reactions / Interruptible Resolution
-
-Implement reaction windows only after the pipeline can pause/resume cleanly.
-
-Stage F — Movement
-
-Implement paths, movement modes, full-footprint movement, costs, voluntary/forced/teleport movement, and semantic movement events.
-
-Stage G — Opportunity Attacks / Persistent Areas / Auras
-
-Compose existing Spatial + Movement + Event + Reaction systems.
-
-Stage H — Character Systems
-
-Implement spellcasting progression, classes, multi-subclasses, transformations, companions, grants, and related progression primarily through existing primitives.
-
-Stage I — Homebrew Builder
-
-Build UI over the same domain schemas used by first-party content.
-
-Stage J — Finished Character Sheet
-
-Build ergonomic, rules-transparent management UI.
-
-Stage K — BG3-Style Gameplay HUD
-
-Build the combat controller over the same Action availability/resolution APIs.
+If yes, use them. If no, identify the smallest reusable missing primitive. Never solve the gap by
+hardcoding the named feature.
 
 28. Representative Content Before Content Volume
 

@@ -222,11 +222,23 @@ The system must support:
 - starting a turn in an area
 - ending a turn in an area
 
-Prefer Foundry V14 Scene/Region/movement facilities where they provide the
-required behaviour.
+Use Foundry V14 Scene, Region, Token, and movement facilities where they provide
+useful infrastructure, rendering, persistence, or event integration.
 
-Do not implement a separate geometry engine until the capabilities of Foundry's
-native Region and Token movement APIs have been evaluated.
+On gridded WildPath combat, WildPath's tactical grid model remains the mechanical
+authority for rules that require topology-aware fields, creature footprints,
+range, reach, and area resolution. Foundry visual geometry must be adapted
+to/from WildPath spatial contracts rather than becoming a competing mechanical
+calculation path.
+
+Prefer this boundary:
+
+    Foundry Scene / Token / Region
+    -> FoundryV14GridAdapter
+    -> GridField / GridVertex / TokenGridFootprint / GridFootprint
+
+The rendered preview, committed area, and mechanically resolved footprint must
+represent the same WildPath spatial result.
 
 Spatial mechanics must remain separate from the visual representation of an
 area.
@@ -238,25 +250,27 @@ rules state.
 
 # 8. Action Resolution
 
-Actions should execute through a common context.
+Actions should execute through the common staged resolution architecture.
 
 Conceptually:
 
 ActionDefinition
-+ ActionContext
-+ Source
-+ Targets
-+ Area
-+ Resources
-+ RollMode
-+ RuleVersion
++ current rule state
 
-→ validation
-→ targeting
-→ roll requests
-→ resolution
-→ consequences
-→ hooks/events
+→ action availability
+→ Action Configuration
+→ ResolvedActionConfiguration
+→ ResolvedActionPreview
+→ ResolutionState
+→ staged Resolution Pipeline
+→ targeting / roll requests / outcomes
+→ mutation plans
+→ transactional commit
+→ ResolutionResult / semantic events
+
+The previewed configuration, committed configuration, and configuration consumed
+by resolution must describe the same selected action use. Preview and discovery
+must not spend resources or irreversibly mutate Foundry documents.
 
 An individual spell, weapon, feature, or condition should normally configure
 the pipeline rather than implement its own independent execution system.
@@ -282,6 +296,16 @@ A mechanic must not behave differently merely because the dice were physical.
 Dice policy must be configurable according to project settings and GM control.
 
 Do not place rules logic directly inside a dice UI.
+
+Use the established roll responsibility split:
+
+    Rules determine WHAT must be rolled.
+    RollProvider determines HOW the result is obtained.
+    Resolution determines WHAT the result means.
+    Transaction determines WHAT persistent state is mutated.
+
+RollRequest and RollResult are WildPath contracts. Foundry Roll objects and
+manual/physical-dice presentation remain adapter concerns.
 
 ---
 

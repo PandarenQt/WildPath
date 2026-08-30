@@ -1,11 +1,17 @@
 # Core Automation Foundation
 
-Wild Path is currently an early Foundry VTT V14 system scaffold. The codebase has data models,
-resource pools, action cost spending, declarative modifiers, conditions, and basic sheets. It
-does not yet have the full BG3-style action resolution pipeline.
+WildPath now has a substantial pure/domain automation kernel for Foundry VTT V14. The core
+architecture includes declarative rules, persisted ActionDefinitions, per-use Action Configuration,
+authoritative previews, serializable staged ResolutionState, pause/resume requests, transaction-
+backed commit planning, RollProvider abstraction, topology-aware tactical geometry, target
+refinement, Action Economy, Effects, InventorySpace foundations, and WeaponSizePolicy.
 
-This document records the intended architecture so future implementation work has a clear target.
-The finished game system name is **Wild Path**.
+The primary remaining risk is no longer whether these concepts can be modeled. It is proving that
+they integrate cleanly with real Foundry VTT V14 Scenes, Tokens, Documents, Applications,
+multiplayer authority, and player workflows without compromising the domain boundaries.
+
+This document records the current automation foundation and near-term integration direction. The
+finished game system name is **WildPath**.
 
 ## Current Baseline
 
@@ -26,8 +32,10 @@ The finished game system name is **Wild Path**.
   pay for a Bonus Action activity after eligible Bonus Action resources are depleted.
 - `module/helpers/movement.mjs` derives spendable movement budgets from canonical movement speed
   using distance or field measurement.
-- Tactical grid and area topology are documented as a future gated milestone: gridded AoE should
-  resolve to authoritative `GridFootprint` field sets, not Euclidean templates snapped to a grid.
+- Tactical grid and area topology are implemented as pure domain foundations: gridded AoE resolves
+  to authoritative `GridFootprint` field sets rather than Euclidean templates pretending to be
+  tactical geometry. The remaining milestone is adapting these contracts to real Foundry V14
+  Scenes/Tokens and verifying square/hex behavior in-engine.
 - `module/helpers/grid-footprints.mjs` provides topology-aware creature size footprints, full
   footprint distance/reach, boundary vertices, and debug data for TokenGridFootprints.
 - `module/helpers/tactical-areas.mjs` provides pure radial, line, cone, wall, and source-boundary
@@ -137,26 +145,26 @@ The finished game system name is **Wild Path**.
 
 ## Resolution Pipeline
 
-Automated gameplay should flow through a common context:
+Automated gameplay should flow through the established staged architecture:
 
 ```text
 ActionDefinition
-+ ResolvedActionConfiguration
-+ ActionContext
-+ Source
-+ Targets
-+ Area
-+ Resources
-+ RollMode
-+ RuleVersion
++ current rule state
 
--> validation
--> targeting
--> roll requests
--> resolution
--> consequences
--> hooks/events
+-> availability
+-> Action Configuration
+-> ResolvedActionConfiguration
+-> ResolvedActionPreview
+-> ResolutionState
+-> staged Resolution Pipeline
+-> targeting / RollRequest / outcomes
+-> mutation plans
+-> transaction commit
+-> ResolutionResult / semantic events
 ```
+
+Preview/discovery is non-mutating. The configuration shown in preview must be the configuration
+consumed by the later ResolutionState unless revalidation invalidates it.
 
 The UI should initiate that pipeline, not own the rules. Sheets, HUD controls, and chat buttons
 should call resolution APIs; the rules and resolver layers should not depend on DOM, canvas, or
@@ -243,20 +251,27 @@ and its separation from Heavy, Reach, creature size, and damage execution. See
 resolvers, Foundry adapters, and UI separated. See `docs/architecture/ui-ux-layer.md` for the
 current action-bar, combat-carousel, and concentration-prompt view-model foundation. See
 `docs/architecture/rule-elements.md` for the current declarative rule-contribution layer. See
-`docs/architecture/typescript-migration.md` for the staged TypeScript adoption plan.
+`docs/architecture/rolls.md` for RollRequest, RollProvider, RollResult, provider selection, manual/
+physical semantics, and ResolutionState integration. See `docs/architecture/typescript-migration.md`
+for the staged TypeScript adoption plan.
 
 ## Near-Term Order
 
-1. Connect a Foundry/UI adapter to staged pending requests for configuration, target, and
-   roll-entry prompts without putting prompt logic inside the pipeline.
-2. Extract one legacy ActionResolver responsibility, such as target orchestration or attack roll
-   orchestration, into a dedicated stage while preserving existing ActionResolver parity tests.
-3. Add a Foundry ApplicationV2/dialog adapter that renders the concentration check prompt view
-   model, collects roll totals or explicit physical-dice outcomes, and submits them to
-   ConcentrationCheckCommitResolver.
-4. Add generic ActiveEffect create/update/delete planning on top of the condition-first
-   EffectResolver boundary.
-5. Continue migrating new pure contract-heavy modules toward TypeScript-first implementations
-   while preserving the current `typecheck` contract file.
+1. Connect the existing ResolutionState pending-request envelope to a generic application-level
+   Prompt/Choice coordinator and Foundry V14 Prompt adapter. Reuse existing ActionChoiceRequest,
+   RollRequest/manual provider input, target-selection/refinement requests, and request correlation;
+   do not create a parallel PendingRequest hierarchy.
+2. Build the Foundry V14 TacticalGrid adapter that translates real Scenes/Tokens into GridField,
+   GridVertex, TokenGridFootprint, and authoritative GridFootprint mechanics. Verify square and hex
+   scenes, especially large-creature footprints, range/reach, and area placement.
+3. Extract remaining raw Foundry Actor/Item/ActiveEffect mutation calls behind infrastructure ports
+   while preserving the existing ordered transaction/rollback boundary.
+4. Complete the first genuine Foundry end-to-end Action vertical slice: persisted ActionDefinition
+   -> configuration/preview -> real target/area -> RollProvider -> staged resolution -> transaction
+   commit -> structured result/chat presentation.
+5. Incrementally replace `action.legacy-resolution` with dedicated stages that call existing domain
+   resolvers. Preserve parity tests and avoid a wholesale resolver rewrite.
+6. Add multiplayer authority/socket routing for pending requests before implementing the full
+   ReactionEngine. Then build reactions, Movement, and persistent spatial mechanics compositionally.
 
 Keep every slice small, testable, and compatible with synthetic Token Actors.

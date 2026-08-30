@@ -180,8 +180,16 @@ reuse existing validation and transaction behavior. That is acceptable for this 
 but a later milestone should extract a dedicated async `CommitStage` over already-planned mutation
 plans once parity tests cover the full resolver surface.
 
-The roll request shape is present, but there is no `RollProvider` yet. Digital, manual, and
-physical dice adapters should all answer the same typed `roll` request with a plain roll result.
+The Roll abstraction is now implemented. `module/helpers/rolls.mjs` defines the serializable
+RollRequest/RollResult contracts, `module/resolvers/roll-provider-resolver.mjs` provides provider
+selection plus manual/physical/test providers, and
+`module/adapters/foundry-digital-roll-provider.mjs` provides the Foundry digital adapter. Digital,
+manual, and physical sources feed the same typed `roll` request/result path.
+
+The remaining integration gap is routing manual/physical input through a generic Foundry-facing
+prompt/choice adapter and, later, multiplayer authority/socket routing. ResolutionState must continue
+to store plain request/result data rather than Foundry Roll objects, Applications, callbacks, or
+pending Promises.
 
 Reaction windows are not executed here. Future reaction work should insert waitable stages around
 semantic events such as after declaration, before/after attack roll, after hit determination, and

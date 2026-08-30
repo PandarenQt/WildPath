@@ -56,6 +56,16 @@ Resolution Domain
 See `docs/architecture/resolution-state.md` for the current serializable state and staged
 pipeline contract.
 
+Choice / Interaction Coordination (Application)
+- routing existing ResolutionState pending requests
+- request/response correlation
+- choosing the appropriate presentation/input port
+- local prompt queuing and coordination
+- returning structured responses to the waiting resolution
+
+It does NOT own option legality, roll rules, target eligibility, configuration effects, or
+resource-payment rules. Those remain with their owning domains.
+
 Rules Domain
 - Predicate
 - ValueExpression
@@ -167,7 +177,7 @@ It should NOT know:
 - where a shared InventorySpace is persisted
 - how weight propagation is calculated
 
-ActionResolver may ask:
+Resolution/Application orchestration may ask:
 
 PaymentResolver.discover(...)
 
@@ -188,6 +198,14 @@ InventoryRepository
 RollProvider
     ↳ FoundryDigitalRollProvider
     ↳ ManualRollProvider
+    ↳ PhysicalDiceProvider
+
+PromptPort
+    ↳ FoundryV14PromptAdapter
+    ↳ TestPromptAdapter
+
+TargetSelectionPort
+    ↳ FoundryV14BattlefieldTargetAdapter
 
 DocumentMutationPort
     ↳ FoundryDocumentMutationAdapter
