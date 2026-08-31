@@ -269,6 +269,93 @@ export interface ResolutionRequestResponse {
   readonly response: ResolutionResponse;
 }
 
+export type PromptPortOutcomeStatus =
+  | "response"
+  | "declined"
+  | "cancelled"
+  | "failure"
+  | "unhandled";
+
+export interface PromptControlViewModel {
+  readonly id: string;
+  readonly choiceId?: string;
+  readonly type: string;
+  readonly choiceType?: string;
+  readonly label: string;
+  readonly description?: string | null;
+  readonly required?: boolean;
+  readonly min?: unknown;
+  readonly max?: unknown;
+  readonly defaultValue?: unknown;
+  readonly options: readonly Readonly<Record<string, unknown>>[];
+  readonly source?: unknown;
+  readonly payment?: unknown;
+  readonly stateFingerprint?: string | null;
+  readonly metadata: Readonly<Record<string, unknown>>;
+}
+
+export interface PromptViewModel {
+  readonly schemaVersion: number;
+  readonly id: string;
+  readonly resolutionId: string | null;
+  readonly requestId: string | null;
+  readonly requestType: ResolutionRequestType;
+  readonly expectedResponseType: string | null;
+  readonly title: string;
+  readonly required: boolean;
+  readonly chooser: unknown;
+  readonly authority: unknown;
+  readonly controls: readonly PromptControlViewModel[];
+  readonly payload: Readonly<Record<string, unknown>>;
+  readonly metadata: Readonly<Record<string, unknown>>;
+}
+
+export interface PromptPortResult {
+  readonly ok: boolean;
+  readonly status: PromptPortOutcomeStatus;
+  readonly code: string;
+  readonly reason?: string | null;
+  readonly requestId?: string | null;
+  readonly resolutionId?: string | null;
+  readonly type?: ResolutionRequestType | null;
+  readonly responseType?: string | null;
+  readonly value?: unknown;
+  readonly metadata?: Readonly<Record<string, unknown>>;
+}
+
+export interface PromptPortContext {
+  readonly state?: ResolutionState;
+  readonly viewModel?: PromptViewModel;
+  readonly currentUserId?: string | null;
+  readonly currentUserRef?: string | null;
+  readonly currentUser?: Readonly<Record<string, unknown>>;
+  readonly isGM?: boolean;
+  readonly localAuthorityKinds?: readonly string[];
+  readonly authorityKinds?: readonly string[];
+  readonly remoteAuthorityKinds?: readonly string[];
+  readonly metadata?: Readonly<Record<string, unknown>>;
+}
+
+export interface PromptPort {
+  readonly id: string;
+  readonly type?: string | null;
+  readonly label?: string | null;
+  canHandle?: (request: ResolutionRequest, context?: PromptPortContext) => boolean | {readonly ok?: boolean; readonly value?: boolean};
+  request(request: ResolutionRequest, context?: PromptPortContext): Promise<PromptPortResult>;
+}
+
+export interface ChoiceCoordinatorResult {
+  readonly ok: boolean;
+  readonly status: PromptPortOutcomeStatus | string;
+  readonly code: string;
+  readonly reason?: string | null;
+  readonly state: ResolutionState | null;
+  readonly request?: ResolutionRequest | null;
+  readonly response?: ResolutionResponse;
+  readonly port?: Readonly<Record<string, unknown>> | null;
+  readonly data?: Readonly<Record<string, unknown>>;
+}
+
 export interface ResolutionTraceEntry {
   readonly id: string;
   readonly stageId: string | null;
