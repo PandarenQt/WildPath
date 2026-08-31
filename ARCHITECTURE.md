@@ -56,6 +56,9 @@ Resolution Domain
 See `docs/architecture/resolution-state.md` for the current serializable state and staged
 pipeline contract.
 
+See `docs/architecture/prompts.md` for the generic PromptPort and ChoiceCoordinator boundary that
+routes existing pending requests to Foundry or deterministic test input adapters.
+
 Choice / Interaction Coordination (Application)
 - routing existing ResolutionState pending requests
 - request/response correlation

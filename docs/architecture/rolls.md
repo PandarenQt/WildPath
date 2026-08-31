@@ -82,7 +82,7 @@ RollRequest
 → manual/physical provider
 → input required
 → ResolutionState pending `roll` request
-→ Prompt/Choice Adapter
+→ ChoiceCoordinator / PromptPort
 → correlated manual response
 → RollResult validation
 → Resolution resumes
@@ -124,6 +124,6 @@ Do not implement these in the provider unless the owning mechanic requires them.
 
 ## Near-Term Integration
 
-The next roll-related integration work is not another Roll abstraction. It is connecting manual/
-physical input requirements to the generic Prompt/Choice Adapter and later to multiplayer authority/
-socket routing.
+Manual/physical roll input now routes through the generic ChoiceCoordinator/PromptPort bridge. The
+next roll-related integration work is multiplayer authority/socket routing and richer Foundry/HUD
+rendering over the same `roll` pending request.

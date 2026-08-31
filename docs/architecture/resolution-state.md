@@ -104,8 +104,9 @@ Current request types include:
 - `reaction-choice`
 - `choice`
 
-The pipeline exposes requests only. UI, sockets, and Foundry ApplicationV2 dialogs are future
-adapters.
+The pipeline exposes requests only. `docs/architecture/prompts.md` describes the current
+ChoiceCoordinator/PromptPort bridge for local Foundry prompts and deterministic test prompts. Socket
+authority routing remains future work.
 
 ## Child Resolutions
 
@@ -186,10 +187,10 @@ selection plus manual/physical/test providers, and
 `module/adapters/foundry-digital-roll-provider.mjs` provides the Foundry digital adapter. Digital,
 manual, and physical sources feed the same typed `roll` request/result path.
 
-The remaining integration gap is routing manual/physical input through a generic Foundry-facing
-prompt/choice adapter and, later, multiplayer authority/socket routing. ResolutionState must continue
-to store plain request/result data rather than Foundry Roll objects, Applications, callbacks, or
-pending Promises.
+Manual/physical input can now route through the generic Foundry-facing prompt/choice adapter. The
+remaining integration gap is multiplayer authority/socket routing. ResolutionState must continue to
+store plain request/result data rather than Foundry Roll objects, Applications, callbacks, or pending
+Promises.
 
 Reaction windows are not executed here. Future reaction work should insert waitable stages around
 semantic events such as after declaration, before/after attack roll, after hit determination, and

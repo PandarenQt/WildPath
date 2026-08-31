@@ -235,7 +235,7 @@ function actionConfigurationChoicesFromForm(viewModel, response) {
         choices[control.choiceId] = Number(formValue(response, name));
         break;
       case ACTION_CHOICE_TYPES.SELECT_MANY:
-        choices[control.choiceId] = formValues(response, name);
+        choices[control.choiceId] = {values: formValues(response, name)};
         break;
       case ACTION_CHOICE_TYPES.RESOURCE:
         choices[control.choiceId] = {paymentOptionId: formValue(response, name)};
@@ -336,6 +336,7 @@ function canAnswerLocally(request, context) {
   const authority = request.authority ?? request.chooser ?? request.payload?.rollRequest?.authority ?? request.payload?.rollRequest?.chooser;
   const kind = typeof authority === "string" ? authority : authority?.kind ?? authority?.type ?? null;
   if ( !kind || kind === "automatic" || kind === "local" ) return true;
+  if ( uniqueStrings(context.remoteAuthorityKinds ?? []).includes(kind) ) return false;
   if ( kind === "gm" ) return isGM === true;
   if ( kind === "specific" ) {
     const currentRefs = uniqueStrings([context.currentUserId, context.currentUserRef, currentUser?.id, currentUser?.uuid]);
@@ -349,6 +350,7 @@ function canAnswerLocally(request, context) {
     return !expectedRefs.length || expectedRefs.some(ref => currentRefs.includes(ref));
   }
   const localKinds = uniqueStrings(context.localAuthorityKinds ?? context.authorityKinds ?? []);
+  if ( context.enforceLocalAuthority === true && !localKinds.length ) return false;
   return !localKinds.length || localKinds.includes(kind);
 }
 

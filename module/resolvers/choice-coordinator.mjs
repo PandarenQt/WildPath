@@ -642,7 +642,6 @@ function isPromptPortResultLike(value) {
       || value.status != null
       || value.requestId != null
       || value.resolutionId != null
-      || value.type != null
       || value.responseType != null
       || Object.hasOwn(value, "value")
       || Object.hasOwn(value, "result")

@@ -221,14 +221,15 @@ Target refinement answers:
 Which physical/eligible targets are selected, excluded, protected, or overridden?
 ```
 
-They may share a future HUD panel and a generic choice protocol, but they remain separate domains.
-Damage type substitution, casting level, and optional enhancement costs belong to configuration.
-Sculpt-style target exceptions, per-target save overrides, and exclusion/protection choices belong
-to targeting/refinement.
+They may share a future HUD panel and the current PromptPort bridge, but they remain separate
+domains. Damage type substitution, casting level, and optional enhancement costs belong to
+configuration. Sculpt-style target exceptions, per-target save overrides, and
+exclusion/protection choices belong to targeting/refinement.
 
 ## HUD And Builder Consumption
 
-The future HUD should render `ActionChoiceRequest[]` and `ResolvedActionPreview` directly:
+The current generic prompt adapter and the future HUD should render `ActionChoiceRequest[]` and
+`ResolvedActionPreview` directly:
 
 ```text
 CAST AT
