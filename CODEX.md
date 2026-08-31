@@ -58,7 +58,7 @@ It is:
 
 How many D&D and homebrew features can be expressed without adding new engine code?
 
-2. Current Development Phase — Foundry Integration Proof
+2. Current Development Phase - Gameplay Authority Proof
 
 The foundational automation kernel is now established and should be treated as stable unless a
 concrete defect or integration requirement proves otherwise. Established primitives include:
@@ -107,20 +107,15 @@ change now requires evidence of at least one of:
 
 Current development priorities are:
 
-1. generic Prompt / Choice Adapter over the existing ResolutionState pending-request envelope
-2. Foundry V14 TacticalGrid adapter for real Scenes and Tokens
-3. remaining Foundry mutation/persistence ports
-4. a real end-to-end Foundry Action vertical slice
-5. incremental removal of `action.legacy-resolution`
-6. multiplayer authority/socket routing
-7. ReactionEngine
-8. Movement
-9. persistent Areas, auras, and emanations
-10. representative content as architecture proof
-11. progression / character systems
-12. Homebrew Builder
-13. finished Character Sheet
-14. gameplay HUD
+1. live Foundry V14 runtime QA for staged action execution and multiplayer request routing
+2. ReactionEngine over semantic events, pending requests, child resolutions, and authority routing
+3. Movement
+4. persistent Areas, auras, and emanations
+5. representative content as architecture proof
+6. progression / character systems
+7. Homebrew Builder
+8. finished Character Sheet
+9. gameplay HUD
 
 Do not prioritize large spell, monster, class, or item catalogs before the existing foundations
 have been proven through real Foundry integration.
@@ -1210,8 +1205,11 @@ existing domain resolvers. Preserve parity tests. Do not rewrite the working res
 
 Stage F — Multiplayer Authority / Sockets
 
-Define authoritative ResolutionState ownership, chooser/roller authority, request routing, stale/
-duplicate response rejection, and socket adapters.
+Status: implemented as the first gameplay-focused authority proof. The active GM owns
+authoritative ResolutionState by default, player-owned requests route through PromptPort and
+RollProvider on the expected chooser client, stale/duplicate responses are rejected, and the
+Foundry socket adapter listens on `system.wildpath`. See
+`docs/architecture/multiplayer-authority.md`.
 
 Stage G — Reactions / Interruptible Resolution
 

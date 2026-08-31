@@ -102,9 +102,13 @@ accepts that semantics.
 
 ## Authority
 
-This milestone supports local authority checks only. Requests for another authority, such as a GM
-request on a non-GM client, return a structured unhandled/remote-authority result. Socket routing
-and multiplayer ownership are future work.
+`ChoiceCoordinator` still only collects local input. Remote ownership is handled one layer above it
+by `module/resolvers/multiplayer-action-coordinator.mjs`.
+
+The multiplayer coordinator routes the same pending request to the expected active chooser, then the
+receiving client uses its local PromptPort or RollProvider to answer. The authority validates
+resolution id, request id, request type, expected chooser user id, current pending status, and
+duplicate/stale state before resuming. See `docs/architecture/multiplayer-authority.md`.
 
 ## Sequential And Concurrent Prompts
 
@@ -126,8 +130,8 @@ Prompt interaction, preview refresh, and response collection must not perform pe
 Resource spending, damage application, condition/effect changes, and action economy changes remain
 behind the transaction/commit boundary.
 
-## Future Consumers
+## Current And Future Consumers
 
-The future HUD, socket authority router, and Foundry battlefield target adapter should consume the
-same request payloads. They may render them differently, but must not change their rule semantics or
-create parallel pending-request contracts.
+The socket authority router now consumes the same request payloads. The future HUD and Foundry
+battlefield target adapter should also consume them directly. They may render them differently, but
+must not change their rule semantics or create parallel pending-request contracts.

@@ -124,6 +124,7 @@ Do not implement these in the provider unless the owning mechanic requires them.
 
 ## Near-Term Integration
 
-Manual/physical roll input now routes through the generic ChoiceCoordinator/PromptPort bridge. The
-next roll-related integration work is multiplayer authority/socket routing and richer Foundry/HUD
-rendering over the same `roll` pending request.
+Manual/physical roll input now routes through the generic ChoiceCoordinator/PromptPort bridge and
+through the multiplayer authority coordinator when the expected roller is remote. The next
+roll-related integration work is richer Foundry/HUD rendering and live runtime QA over the same
+`roll` pending request.

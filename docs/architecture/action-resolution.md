@@ -82,8 +82,9 @@ This helper does not:
 - prompt users
 - send socket messages
 
-Those responsibilities belong to future resolvers and Foundry adapters. The context/result helper
-only provides the common data shape they should compose.
+Those responsibilities belong to resolvers, transaction/persistence ports, PromptPort/RollProvider,
+and the multiplayer socket adapter. The context/result helper only provides the common data shape
+they should compose.
 
 `module/resolvers/action-resolver.mjs` remains the compatibility facade for direct callers. It can
 still plan persisted ActionDefinition-derived targeting, attack, save, damage, healing, condition

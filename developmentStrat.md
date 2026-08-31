@@ -15,6 +15,10 @@ The current strategy is **integration proof**:
 > Prove the existing abstractions through real Foundry V14 gameplay before inventing additional
 > foundational systems.
 
+Current status: the staged action, persistence-port, vertical-slice, and multiplayer
+authority/socket proofs exist in Node integration tests. Live Foundry V14 runtime QA is still
+required before those paths are considered manually verified in-engine.
+
 ---
 
 # 1. Required Working Method
@@ -246,10 +250,18 @@ staged vertical-slice execution path.
 Define authoritative ResolutionState ownership, chooser/roller routing, request/response correlation,
 stale/duplicate rejection, and socket adapters.
 
+Status: implemented as the first gameplay-focused socket/authority proof. `ACTION_INTENT` routes to
+the active GM by default, pending requests are sent only to the expected active chooser or allowed GM
+fallback, remote PromptPort/RollProvider responses resume the authoritative state, stale/duplicate
+responses are rejected, no full ResolutionState is broadcast, and commits remain behind the
+transaction/persistence boundary. See `docs/architecture/multiplayer-authority.md`.
+
 ## Stage G — ReactionEngine
 
 Build reactions over semantic events, existing pending requests, child resolutions, and pause/resume.
 No named-feature reaction code.
+
+Recommended next milestone after live QA: begin this stage.
 
 ## Stage H — Movement
 

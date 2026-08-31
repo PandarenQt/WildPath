@@ -24,6 +24,7 @@ import {
 } from "./module/helpers/combat.mjs";
 import {MOVEMENT_MEASUREMENT_MODES} from "./module/helpers/movement.mjs";
 import {executeEffectLifecycleCommit} from "./module/resolvers/effect-lifecycle-commit-resolver.mjs";
+import {registerFoundryV14MultiplayerResolution} from "./module/resolvers/foundry-multiplayer-runtime.mjs";
 
 /* -------------------------------------------- */
 /*  Init                                         */
@@ -107,6 +108,17 @@ Hooks.once("init", () => {
 });
 
 /* -------------------------------------------- */
+/*  Multiplayer Resolution Socket                */
+/* -------------------------------------------- */
+
+Hooks.once("ready", () => {
+  const registration = registerFoundryV14MultiplayerResolution();
+  if ( !registration.ok ) {
+    console.warn("Wild Path | Multiplayer resolution socket registration failed", registration);
+  }
+});
+
+/* -------------------------------------------- */
 /*  Combat Turn Hooks                            */
 /* -------------------------------------------- */
 
@@ -176,7 +188,7 @@ function currentGMCommitAuthority() {
 }
 
 function activeGMUser() {
-  return collectionContents(game.users)
+  return game.users?.activeGM ?? collectionContents(game.users)
     .filter(user => user?.active && user.isGM)
     .sort((a, b) => String(a.id).localeCompare(String(b.id)))[0] ?? null;
 }

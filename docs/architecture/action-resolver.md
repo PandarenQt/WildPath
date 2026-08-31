@@ -208,12 +208,13 @@ structural dice and records provenance for explicitly manufactured weapon damage
 roll those dice or invent final damage amounts. This module exists so current action use already
 enters the same pipeline shape that those slices will extend.
 
-The staged facade can expose prompt requests and consume RollProvider results, but UI and socket
-adapters are still future work. Area save resolution can consume per-target save data today; a
-future multiplayer authority slice should route separate target-controller save requests.
+The staged facade exposes prompt requests and consumes RollProvider results. The multiplayer
+authority coordinator now routes those pending requests to the expected active chooser and resumes
+only on authoritative validation. Rich HUD presentation and separate per-target remote save request
+fan-out remain future work.
 
 ## Next Resolver Slice
 
-The next resolver slice should focus on multiplayer authority/socket routing for staged
-ResolutionState ownership, prompt routing, RollProvider execution, and authoritative commits.
-Direct Actor durability mutation remains outside DamageResolver itself.
+The next resolver slice should focus on the ReactionEngine over semantic events, child
+ResolutionState, the existing pending-request envelope, and the authority router. Direct Actor
+durability mutation remains outside DamageResolver itself.

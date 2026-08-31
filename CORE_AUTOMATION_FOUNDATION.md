@@ -7,8 +7,8 @@ backed commit planning, RollProvider abstraction, topology-aware tactical geomet
 refinement, Action Economy, Effects, InventorySpace foundations, and WeaponSizePolicy.
 
 The primary remaining risk is no longer whether these concepts can be modeled. It is proving that
-they integrate cleanly with real Foundry VTT V14 Scenes, Tokens, Documents, Applications,
-multiplayer authority, and player workflows without compromising the domain boundaries.
+they integrate cleanly with live Foundry VTT V14 Scenes, Tokens, Documents, Applications, and
+complex player workflows without compromising the domain boundaries.
 
 This document records the current automation foundation and near-term integration direction. The
 finished game system name is **WildPath**.
@@ -87,6 +87,15 @@ finished game system name is **WildPath**.
   outcomes, damage, healing, effects, and payment in explicit stages; plans to ready-to-commit
   without mutation; and commits the already-planned `ActionResult` through the transaction-backed
   persistence port boundary.
+- `module/helpers/multiplayer-authority.mjs`,
+  `module/resolvers/multiplayer-action-coordinator.mjs`,
+  `module/adapters/foundry-v14-resolution-socket-adapter.mjs`, and
+  `module/adapters/test-resolution-transport.mjs` provide the first multiplayer authority/socket
+  proof. The active GM owns authoritative ResolutionState by default; pending requests route to the
+  expected source/target controller, GM, or specific active user; remote prompts and rolls resume
+  through existing ChoiceCoordinator/PromptPort/RollProvider contracts; duplicate and stale
+  responses are rejected; and only the authority context reaches the transaction/persistence commit
+  path.
 - `module/resolvers/target-resolver.mjs` wraps target-set eligibility, refinement decisions,
   required-target failures, self-targeting, and selection request state for future ActionResolver
   integration.
@@ -268,26 +277,20 @@ resolvers, Foundry adapters, and UI separated. See `docs/architecture/ui-ux-laye
 current action-bar, combat-carousel, and concentration-prompt view-model foundation. See
 `docs/architecture/rule-elements.md` for the current declarative rule-contribution layer. See
 `docs/architecture/rolls.md` for RollRequest, RollProvider, RollResult, provider selection, manual/
-physical semantics, and ResolutionState integration. See `docs/architecture/typescript-migration.md`
-for the staged TypeScript adoption plan.
+physical semantics, and ResolutionState integration. See
+`docs/architecture/multiplayer-authority.md` for active-GM ownership, socket envelopes, request
+routing, duplicate/stale rejection, and the current Foundry socket adapter. See
+`docs/architecture/typescript-migration.md` for the staged TypeScript adoption plan.
 
 ## Near-Term Order
 
-1. Connect the existing ResolutionState pending-request envelope to a generic application-level
-   Prompt/Choice coordinator and Foundry V14 Prompt adapter. Reuse existing ActionChoiceRequest,
-   RollRequest/manual provider input, target-selection/refinement requests, and request correlation;
-   do not create a parallel PendingRequest hierarchy.
-2. Build the Foundry V14 TacticalGrid adapter that translates real Scenes/Tokens into GridField,
-   GridVertex, TokenGridFootprint, and authoritative GridFootprint mechanics. Verify square and hex
-   scenes, especially large-creature footprints, range/reach, and area placement.
-3. Extract remaining raw Foundry Actor/Item/ActiveEffect mutation calls behind infrastructure ports
-   while preserving the existing ordered transaction/rollback boundary.
-4. Complete the first genuine Foundry end-to-end Action vertical slice: persisted ActionDefinition
-   -> configuration/preview -> real target/area -> RollProvider -> staged resolution -> transaction
-   commit -> structured result/chat presentation.
-5. Incrementally replace `action.legacy-resolution` with dedicated stages that call existing domain
-   resolvers. Preserve parity tests and avoid a wholesale resolver rewrite.
-6. Add multiplayer authority/socket routing for pending requests before implementing the full
-   ReactionEngine. Then build reactions, Movement, and persistent spatial mechanics compositionally.
+1. Perform live Foundry V14 runtime QA for staged persisted actions, tactical-grid adaptation,
+   PromptPort/RollProvider choices, active-GM socket routing, and DocumentPersistencePort commits.
+2. Build the ReactionEngine over semantic events, child ResolutionState, existing pending requests,
+   and the multiplayer authority router. Avoid named-feature reaction code.
+3. Build topology-aware Movement using complete TokenGridFootprints and semantic movement events.
+4. Compose persistent Areas, auras, and emanations from Spatial + Movement + Events + Reactions.
+5. Add representative content and character-system slices only after those execution boundaries are
+   proven in live runtime.
 
 Keep every slice small, testable, and compatible with synthetic Token Actors.

@@ -43,7 +43,7 @@ String refs preserve separation of concern:
 - synthetic Token Actors can stay distinct from world Actors
 - previews and randomizer output can be tested without a Foundry client
 - action bar, combat carousel, sheets, and chat buttons can call the same resolver layer
-- future socket/GM authority handling can resolve and commit refs in one place
+- socket/GM authority handling can resolve and commit refs in one application/infrastructure place
 - tests can assert stable identities without mocking Foundry documents
 
 This is a guardrail, not a serialization format for user-facing content. If a feature needs more
