@@ -61,9 +61,11 @@ These are intentionally separate:
 A resolver can therefore do dry-run previews, reaction prompts, and rollback-safe validation before
 changing Actor, Item, ActiveEffect, Combat, or Scene state.
 
-`module/resolvers/resolution-transaction-resolver.mjs` is the current Actor update transaction
-boundary. It commits prepared operations in order, requires rollback updates before any non-noop
-write, and rolls already-committed operations back in reverse order if a later commit fails.
+`module/resolvers/resolution-transaction-resolver.mjs` is the current ordered transaction boundary.
+It commits prepared operations in order, requires rollback updates before any non-noop write, and
+rolls already-committed operations back in reverse order if a later commit fails. Foundry document
+writes occur through the `DocumentPersistencePort`; see
+`docs/architecture/foundry-persistence-ports.md`.
 
 `module/resolvers/effect-resolver.mjs` is the current condition-first effect planner. It can produce
 condition mutation plans without writing ActiveEffect documents.
@@ -83,16 +85,34 @@ This helper does not:
 Those responsibilities belong to future resolvers and Foundry adapters. The context/result helper
 only provides the common data shape they should compose.
 
-`module/resolvers/action-resolver.mjs` now uses this envelope for both legacy cost-only action flow
-and persisted ActionDefinition-derived targeting, attack, save, damage, healing, and condition
-effect requests. It can also consume a `ResolvedActionConfiguration`, use its effective definition,
-and revalidate its selected payment plan before resolution planning. It is the first resolver
-consumer, not the final action pipeline.
+`module/resolvers/action-resolver.mjs` remains the compatibility facade for direct callers. It can
+still plan persisted ActionDefinition-derived targeting, attack, save, damage, healing, condition
+effects, and resource payment, then commit via `commitPlannedActionResult()`.
 
-`module/resolvers/action-pipeline-resolver.mjs` now wraps that resolver with the first addressable
-`ResolutionState` pipeline. It can pause for required configuration, target selection/refinement,
-or roll input, then resume with correlated responses before delegating parity planning to the
-existing resolver.
+`module/resolvers/action-pipeline-resolver.mjs` is now the normal architecture-proof execution path.
+It can pause for required configuration, target selection/refinement, attack/save/damage roll input,
+then resume with correlated responses and continue through explicit stages:
+
+```text
+configuration
+-> targeting
+-> range
+-> attack roll
+-> attack outcome
+-> save roll
+-> save outcome
+-> damage roll
+-> damage
+-> healing
+-> effects
+-> payment
+-> ready-to-commit
+-> commit
+-> finalization
+```
+
+Representative vertical slices now commit their staged `ActionResult` directly rather than
+delegating planning to `action.legacy-resolution`.
 
 ## Future Consumers
 

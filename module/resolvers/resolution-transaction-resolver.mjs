@@ -1,3 +1,5 @@
+import {createFoundryV14ActorPersistenceAdapter} from "../adapters/foundry-v14-persistence-adapter.mjs";
+
 export const RESOLUTION_TRANSACTION_CODES = Object.freeze({
   OK: "OK",
   NO_OPERATIONS: "NO_OPERATIONS",
@@ -18,6 +20,7 @@ export function createActorUpdateTransactionOperation({
   updates=null,
   rollbackUpdates=null,
   metadata={},
+  persistencePort=null,
   commit=null,
   rollback=null
 }={}) {
@@ -35,6 +38,7 @@ export function createActorUpdateTransactionOperation({
     rollbackUpdates: plannedRollbackUpdates,
     rollbackAvailable: rollbackAvailableFor(plannedUpdates, plannedRollbackUpdates),
     metadata: clonePlain(metadata) ?? {},
+    persistencePort,
     commit,
     rollback
   };
@@ -45,10 +49,11 @@ export function createActorUpdateTransactionOperation({
 export async function executeResolutionTransaction({
   operations=[],
   metadata={},
+  persistencePort=null,
   commitOperation=commitActorUpdateOperation,
   rollbackOperation=rollbackActorUpdateOperation
 }={}) {
-  const prepared = prepareResolutionTransactionOperations(operations);
+  const prepared = prepareResolutionTransactionOperations(operations, {persistencePort});
   if ( !prepared.ok ) {
     return transactionFailure(prepared.code, {
       failures: prepared.failures,
@@ -105,11 +110,11 @@ export async function executeResolutionTransaction({
 
 /* -------------------------------------------- */
 
-export function prepareResolutionTransactionOperations(operations=[]) {
+export function prepareResolutionTransactionOperations(operations=[], {persistencePort=null}={}) {
   const failures = [];
   const prepared = [];
   for ( const operation of operations ) {
-    const normalized = normalizeOperation(operation);
+    const normalized = normalizeOperation(operation, {persistencePort});
     if ( !normalized ) {
       failures.push(operationFailure(RESOLUTION_TRANSACTION_CODES.INVALID_OPERATION, {
         reason: "Transaction operation must be an object.",
@@ -117,9 +122,9 @@ export function prepareResolutionTransactionOperations(operations=[]) {
       }));
       continue;
     }
-    if ( Object.keys(normalized.updates).length && !normalized.actor ) {
+    if ( Object.keys(normalized.updates).length && !normalized.actor && !normalized.actorRef ) {
       failures.push(operationFailure(RESOLUTION_TRANSACTION_CODES.INVALID_OPERATION, {
-        reason: "Transaction operation with updates requires an Actor.",
+        reason: "Transaction operation with updates requires an Actor or ActorRef.",
         operation: normalized
       }));
       continue;
@@ -146,14 +151,35 @@ export function prepareResolutionTransactionOperations(operations=[]) {
 
 export async function commitActorUpdateOperation(operation) {
   if ( !Object.keys(operation.updates ?? {}).length ) return true;
-  const result = await operation.actor.update(operation.updates);
-  return result !== false;
+  const persistencePort = operation.persistencePort ?? createFoundryV14ActorPersistenceAdapter();
+  const result = await persistencePort.updateActor({
+    actor: operation.actor ?? null,
+    actorRef: operation.actorRef ?? null,
+    updates: operation.updates,
+    metadata: operation.metadata ?? {}
+  });
+  if ( result === false || result?.ok === false ) {
+    throw new Error(result?.reason ?? result?.code ?? "Actor persistence update failed.");
+  }
+  return true;
 }
 
 export async function rollbackActorUpdateOperation(operation) {
   if ( !Object.keys(operation.rollbackUpdates ?? {}).length ) return true;
-  const result = await operation.actor.update(operation.rollbackUpdates);
-  return result !== false;
+  const persistencePort = operation.persistencePort ?? createFoundryV14ActorPersistenceAdapter();
+  const result = await persistencePort.updateActor({
+    actor: operation.actor ?? null,
+    actorRef: operation.actorRef ?? null,
+    updates: operation.rollbackUpdates,
+    metadata: {
+      ...(operation.metadata ?? {}),
+      rollback: true
+    }
+  });
+  if ( result === false || result?.ok === false ) {
+    throw new Error(result?.reason ?? result?.code ?? "Actor persistence rollback failed.");
+  }
+  return true;
 }
 
 /* -------------------------------------------- */
@@ -221,7 +247,7 @@ function transactionFailure(code, {
   };
 }
 
-function normalizeOperation(operation) {
+function normalizeOperation(operation, {persistencePort=null}={}) {
   if ( !operation || typeof operation !== "object" ) return null;
   const updates = clonePlain(operation.updates ?? operation.mutationPlan?.updates ?? {}) ?? {};
   const rollbackUpdates = clonePlain(
@@ -235,7 +261,8 @@ function normalizeOperation(operation) {
     updates,
     rollbackUpdates,
     rollbackAvailable: operation.rollbackAvailable ?? rollbackAvailableFor(updates, rollbackUpdates),
-    metadata: clonePlain(operation.metadata ?? {}) ?? {}
+    metadata: clonePlain(operation.metadata ?? {}) ?? {},
+    persistencePort: operation.persistencePort ?? persistencePort ?? null
   };
 }
 

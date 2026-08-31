@@ -11,7 +11,8 @@ Actor system resource snapshot
 -> optional post-damage absorption resource gain
 -> optional concentration check requests from adjusted damage
 -> clamped resource update plan
--> optional explicit-authority target Actor commit adapter
+-> optional explicit-authority transaction operation
+-> DocumentPersistencePort
 ```
 
 The base durability resolver does not read canvas state, inspect selected targets, apply
@@ -53,8 +54,8 @@ healing.
 
 `commitActorDurabilityMutationPlan()`:
 
-- is the thin Foundry adapter that calls `actor.update()`
-- treats no-op plans as successful without calling `update()`
+- is the thin commit helper that delegates Actor updates to `DocumentPersistencePort`
+- treats no-op plans as successful without calling the persistence port
 
 `planDamageDurabilityMutations()`:
 
@@ -80,7 +81,7 @@ healing.
 
 - resolves target mutation plans back to supplied target Actors by ref/id
 - requires explicit GM or caller-provided commit authority
-- calls the thin Actor update adapter for durability plans
+- calls the persistence-backed durability commit helper for durability plans
 - reports missing actors, authorization failures, and commit failures explicitly
 
 `prepareTargetMutationCommitOperations()`:
@@ -88,6 +89,7 @@ healing.
 - performs the same target Actor lookup and authority checks without mutating documents
 - returns `ResolutionTransaction` operations for ActionResolver execution
 - carries rollback updates from each durability mutation plan
+- carries an optional `DocumentPersistencePort` into each transaction operation
 
 ## What It Does Not Do Yet
 

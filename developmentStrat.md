@@ -193,10 +193,20 @@ Adapt real Scenes/Tokens to GridField, GridVertex, TokenGridFootprint, and GridF
 square and hex topology, large creatures, range/reach, radial areas, lines, cones, and source-border
 origins.
 
+Status: the first adapter proof exists in `module/adapters/foundry-v14-tactical-grid-adapter.mjs`
+with Node contract tests against Foundry-shaped Scene/Grid/Token fakes. Live Foundry runtime QA is
+still required before treating this as fully in-engine verified.
+
 ## Stage C — Foundry Mutation / Persistence Ports
 
 Move remaining raw Actor/Item/ActiveEffect mutation behind infrastructure ports while preserving
 transaction/rollback behavior and synthetic Token Actor correctness.
+
+Status: the staged action-resolution path now commits durability, resource payment, and condition
+effect mutation plans through `DocumentPersistencePort`. The Foundry V14 adapter owns document
+`update`, embedded ActiveEffect creation, document update/delete, and status toggles; the test
+adapter records operations and proves rollback. Actor document convenience methods and older
+condition data helpers still contain direct writes and remain a later legacy/lifecycle cleanup.
 
 ## Stage D — First Genuine Foundry Vertical Slice
 
@@ -216,10 +226,20 @@ persisted Action
 
 Use representative mechanics, not broad content.
 
+Status: representative persisted melee, ranged, save-based area, healing, condition-effect, and
+configured/scaling actions now execute through staged resolution, RollProvider results, TacticalGrid
+adapter footprints, mutation plans, transaction, and persistence ports in Node integration tests.
+Live Foundry V14 runtime QA is still required.
+
 ## Stage E — Legacy Resolution Extraction
 
 Replace `action.legacy-resolution` one responsibility at a time with dedicated stages calling the
 existing domain resolvers. Preserve behavior and parity tests.
+
+Status: `action.legacy-resolution` is no longer part of the default action pipeline. The legacy
+`ActionResolver` remains as a direct-call compatibility facade and shared planning helper source.
+Remaining extraction work is direct callers and older document/lifecycle paths, not the normal
+staged vertical-slice execution path.
 
 ## Stage F — Multiplayer Authority / Sockets
 

@@ -1,9 +1,9 @@
 # Tactical Grid Spatial Foundation
 
-This document records the planned tactical-grid milestone for Wild Path. It is a foundational
-rules-engine feature, but it should not be implemented until the lower-level action, resolution,
-token-reference, roll, attack/save, damage/healing, effect, predicate, modifier, and action-economy
-foundations exist.
+This document records the tactical-grid foundation for Wild Path. The pure spatial foundation lives
+in the domain helpers, and the first Foundry V14 Scene/Grid/Token adapter proof now lives in
+`module/adapters/foundry-v14-tactical-grid-adapter.mjs`. The Foundry adapter is documented in
+`docs/architecture/foundry-tactical-grid-adapter.md`.
 
 ## Governing Rule
 
@@ -67,6 +67,13 @@ logic belongs inside grid adapters, not scattered through resolvers.
 Foundry VTT V14 public grid APIs should be preferred for offsets, snapping, adjacency, vertices,
 token occupancy, scene distance, and token dimensions once implementation begins. Do not invent
 plausible Foundry APIs.
+
+The current Foundry V14 adapter verifies and uses public Scene/Grid/Token APIs for translation:
+`Scene#grid`, `Scene#dimensions`, `BaseGrid#getOffset`, `#getCenterPoint`, `#getVertices`,
+`#getAdjacentOffsets`, hex `offsetToCube`/`cubeToOffset`, and
+`TokenDocument#getOccupiedGridSpaceOffsets()`. These APIs provide translation and diagnostics only;
+the adapter still delegates range, reach, area footprints, and target intersection to the existing
+WildPath domain helpers.
 
 ## Token Footprints and Boundaries
 
@@ -296,9 +303,9 @@ Do not rely on token center points.
 
 ## Gridless Scenes
 
-Gridless scenes do not provide tactical fields or grid vertices. `GridlessGeometry` should return
-clear structured limitations for source-border placement until continuous-token-boundary geometry
-is explicitly implemented.
+Gridless scenes do not provide tactical fields or grid vertices. `GridlessGeometry` and the Foundry
+V14 adapter return clear structured limitations for source-border placement until continuous-token-
+boundary geometry is explicitly implemented.
 
 Do not fake grid vertices in gridless scenes.
 

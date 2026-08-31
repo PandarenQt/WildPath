@@ -34,8 +34,9 @@ finished game system name is **WildPath**.
   using distance or field measurement.
 - Tactical grid and area topology are implemented as pure domain foundations: gridded AoE resolves
   to authoritative `GridFootprint` field sets rather than Euclidean templates pretending to be
-  tactical geometry. The remaining milestone is adapting these contracts to real Foundry V14
-  Scenes/Tokens and verifying square/hex behavior in-engine.
+  tactical geometry. `module/adapters/foundry-v14-tactical-grid-adapter.mjs` now provides the first
+  Foundry V14 Scene/Grid/Token translation proof for square and hex scenes, with gridless and
+  elevation limitations reported structurally.
 - `module/helpers/grid-footprints.mjs` provides topology-aware creature size footprints, full
   footprint distance/reach, boundary vertices, and debug data for TokenGridFootprints.
 - `module/helpers/tactical-areas.mjs` provides pure radial, line, cone, wall, and source-boundary
@@ -67,9 +68,10 @@ finished game system name is **WildPath**.
   live Foundry documents or cross-layer object handles.
 - `module/resolvers/resource-resolver.mjs` maps generic action-economy payment plans to Actor
   resource update paths and is now the payment boundary used by `WildPathActor#useAction`.
-- `module/resolvers/resolution-transaction-resolver.mjs` provides ordered Actor update commit
+- `module/resolvers/resolution-transaction-resolver.mjs` provides ordered mutation commit
   operations with preflight rollback requirements, custom rollback callbacks for document
-  operations, and reverse-order rollback when a later commit fails.
+  operations, and reverse-order rollback when a later commit fails. Migrated action commits now
+  execute through `DocumentPersistencePort`.
 - `module/resolvers/action-resolver.mjs` wraps the current Action flow in
   `ActionContext`/`ActionResult`, loads and validates persisted ActionDefinitions, adapts legacy
   cost-only Actions in memory, derives default TargetResolver/AttackResolver/SaveResolver/
@@ -79,11 +81,12 @@ finished game system name is **WildPath**.
   to ResourceResolver. It can also plan condition effect consequences for selected, hit, or
   save-matching targets while carrying duration, spell-origin, and concentration metadata, then
   commit those plans through the explicit-authority target mutation transaction path.
-- `module/resolvers/action-pipeline-resolver.mjs` wraps ActionResolver with the first staged
-  ResolutionState facade. It pauses for required Action Configuration, target selection/refinement,
-  and roll input; resumes only with matching resolution/request/type responses; plans to
-  ready-to-commit without mutation; and executes through the existing transaction-backed
-  ActionResolver commit path.
+- `module/resolvers/action-pipeline-resolver.mjs` is the first staged ResolutionState action path.
+  It pauses for required Action Configuration, target selection/refinement, and roll input; resumes
+  only with matching resolution/request/type responses; resolves targeting, range, attack/save
+  outcomes, damage, healing, effects, and payment in explicit stages; plans to ready-to-commit
+  without mutation; and commits the already-planned `ActionResult` through the transaction-backed
+  persistence port boundary.
 - `module/resolvers/target-resolver.mjs` wraps target-set eligibility, refinement decisions,
   required-target failures, self-targeting, and selection request state for future ActionResolver
   integration.
@@ -160,6 +163,8 @@ ActionDefinition
 -> targeting / RollRequest / outcomes
 -> mutation plans
 -> transaction commit
+-> persistence port
+-> Foundry V14 adapter
 -> ResolutionResult / semantic events
 ```
 
@@ -172,10 +177,12 @@ chat state.
 
 ## Resolver Modules
 
-The first resolver implementations should live under `module/resolvers/`:
+The first resolver implementations live under `module/resolvers/`:
 
-- `ActionResolver`: top-level orchestrator for validate, target, cost, roll, consequence, effect,
-  and post-resolution hooks.
+- `ActionPipelineResolver`: staged architecture-proof action path for configuration, targeting,
+  range, roll requests, attack/save outcomes, damage, healing, effects, payment, ready-to-commit,
+  commit, and finalization.
+- `ActionResolver`: compatibility facade and shared planning helper source for direct callers.
 - `TargetResolver`: validates self, single-target, multi-target, and area target sets.
 - `AttackResolver`: resolves attack rolls against target defenses.
 - `SaveResolver`: resolves saving throws against DCs.
@@ -186,6 +193,13 @@ The first resolver implementations should live under `module/resolvers/`:
 - `ResourceResolver`: centralizes spending, refunds, and resource validation.
 - `ReactionResolver`: supports interrupt windows and reaction prompts.
 - `AreaResolver`: handles instantaneous and persistent areas plus movement/turn triggers.
+- `ResolutionTransaction`: orders mutation operations and delegates document writes to
+  `DocumentPersistencePort`.
+
+The first integration-proof suite now shows representative persisted melee, ranged, area-save,
+healing, condition-effect, and configured/scaling actions flowing through the staged pipeline,
+RollProvider results, TacticalGrid adapter output, mutation plans, transaction, and persistence
+ports. Live Foundry runtime QA remains outstanding.
 
 See `module/resolvers/README.md` for the concrete file-path map.
 
@@ -198,8 +212,9 @@ tactical boundary vertex rather than token center.
 
 This milestone is gated behind the core resolver/rules foundations and should land before
 movement-path automation, opportunity attacks, auras, emanations, persistent hazards, and large
-spell/content implementation. See `docs/architecture/tactical-grid.md` and
-`docs/architecture/areas.md`.
+spell/content implementation. The first Foundry adapter proof has landed; see
+`docs/architecture/tactical-grid.md`, `docs/architecture/areas.md`, and
+`docs/architecture/foundry-tactical-grid-adapter.md`.
 
 ## Targeting And Inventory
 
@@ -233,8 +248,9 @@ ActionDefinition contract. See `docs/architecture/action-configuration.md` for t
 configuration and authoritative preview foundation. See
 `docs/architecture/resource-resolution.md` for the current resource payment resolver boundary. See
 `docs/architecture/resolution-transaction.md` for the current ordered Actor update transaction
-boundary. See `docs/architecture/action-resolver.md` for
-the current target-aware, attack-capable, and save-capable ActionResolver entry point. See
+boundary. See `docs/architecture/foundry-persistence-ports.md` for the Foundry V14 document
+persistence adapter boundary. See `docs/architecture/action-resolver.md` for
+the current ActionResolver compatibility entry point. See
 `docs/architecture/target-resolver.md` for the current target validation bridge. See
 `docs/architecture/attack-resolver.md` for the current pure attack-outcome resolver. See
 `docs/architecture/save-resolver.md` for the current pure save-outcome resolver. See

@@ -1,3 +1,5 @@
+import {createFoundryV14ActorPersistenceAdapter} from "../adapters/foundry-v14-persistence-adapter.mjs";
+
 export const DURABILITY_RESOLUTION_CODES = Object.freeze({
   OK: "OK",
   RESOURCE_NOT_FOUND: "RESOURCE_NOT_FOUND",
@@ -134,11 +136,20 @@ export function createActorDurabilityMutationPlan(actorSystem, {
 
 /* -------------------------------------------- */
 
-export async function commitActorDurabilityMutationPlan(actor, mutationPlan) {
+export async function commitActorDurabilityMutationPlan(actor, mutationPlan, {persistencePort=null}={}) {
   if ( !mutationPlan?.ok ) return false;
   if ( !Object.keys(mutationPlan.updates ?? {}).length ) return true;
-  await actor.update(mutationPlan.updates);
-  return true;
+  const persistence = persistencePort ?? createFoundryV14ActorPersistenceAdapter();
+  const result = await persistence.updateActor({
+    actor,
+    actorRef: actor?.uuid ?? (actor?.id ? `actor:${actor.id}` : null),
+    updates: mutationPlan.updates,
+    metadata: {
+      resolver: "DurabilityResolver",
+      mutationPlan
+    }
+  });
+  return result !== false && result?.ok !== false;
 }
 
 /* -------------------------------------------- */

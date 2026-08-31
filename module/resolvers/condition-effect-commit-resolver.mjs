@@ -1,3 +1,7 @@
+import {
+  FOUNDRY_PERSISTENCE_CODES,
+  createFoundryV14EffectPersistenceAdapter
+} from "../adapters/foundry-v14-persistence-adapter.mjs";
 import {CONDITION_EFFECT_ACTIONS} from "./effect-resolver.mjs";
 
 export const CONDITION_EFFECT_COMMIT_CODES = Object.freeze({
@@ -11,15 +15,16 @@ export const CONDITION_EFFECT_COMMIT_CODES = Object.freeze({
 
 /* -------------------------------------------- */
 
-export async function commitConditionEffectMutationPlan(actor, plan) {
+export async function commitConditionEffectMutationPlan(actor, plan, {persistencePort=null}={}) {
   if ( !actor || plan?.type !== "conditionEffect" || !plan.conditionId ) {
     return commitFailure(CONDITION_EFFECT_COMMIT_CODES.INVALID_PLAN, "Condition effect commit requires an Actor and conditionEffect plan.", plan);
   }
 
+  const persistence = persistencePort ?? createFoundryV14EffectPersistenceAdapter();
   try {
     const beforeEffect = findConditionEffect(actor, plan);
     const before = snapshotConditionEffect(beforeEffect);
-    const afterEffect = await applyConditionDelta(actor, plan, beforeEffect);
+    const afterEffect = await applyConditionDelta(actor, plan, beforeEffect, persistence);
     return {
       ok: true,
       code: CONDITION_EFFECT_COMMIT_CODES.OK,
@@ -36,16 +41,17 @@ export async function commitConditionEffectMutationPlan(actor, plan) {
 
 /* -------------------------------------------- */
 
-export async function rollbackConditionEffectMutationPlan(actor, plan, _mutationPlan=null, commitResult=null) {
+export async function rollbackConditionEffectMutationPlan(actor, plan, _mutationPlan=null, commitResult=null, {persistencePort=null}={}) {
   if ( !commitResult || commitResult.ok === false ) return false;
 
+  const persistence = persistencePort ?? createFoundryV14EffectPersistenceAdapter();
   try {
     if ( commitResult.before ) {
-      return await restoreConditionEffectSnapshot(actor, commitResult.before);
+      return await restoreConditionEffectSnapshot(actor, commitResult.before, persistence);
     }
 
     const created = commitResult.after ? findConditionEffect(actor, commitResult.after) : null;
-    if ( created ) await created.delete();
+    if ( created ) await deleteConditionEffect(created, persistence);
     return true;
   } catch (_error) {
     return false;
@@ -54,83 +60,133 @@ export async function rollbackConditionEffectMutationPlan(actor, plan, _mutation
 
 /* -------------------------------------------- */
 
-async function applyConditionDelta(actor, plan, existingEffect) {
+async function applyConditionDelta(actor, plan, existingEffect, persistence) {
   const levels = Number(plan.levels ?? 0);
   if ( !Number.isFinite(levels) || !Number.isInteger(levels) ) {
     throw new Error("Condition effect level delta must be a finite integer.");
   }
 
-  if ( plan.stacking ) return applyStackingConditionDelta(actor, plan, existingEffect, levels);
-  return applyBinaryConditionDelta(actor, plan, existingEffect, levels);
+  if ( plan.stacking ) return applyStackingConditionDelta(actor, plan, existingEffect, levels, persistence);
+  return applyBinaryConditionDelta(actor, plan, existingEffect, levels, persistence);
 }
 
-async function applyBinaryConditionDelta(actor, plan, existingEffect, levels) {
+async function applyBinaryConditionDelta(actor, plan, existingEffect, levels, persistence) {
   if ( levels <= 0 ) {
-    if ( existingEffect ) await existingEffect.delete();
+    if ( existingEffect ) await deleteConditionEffect(existingEffect, persistence);
     return null;
   }
 
-  const effect = existingEffect ?? await createConditionEffect(actor, plan, null);
-  if ( effect && shouldPersistLifecycleMetadata(plan) ) {
-    await updateConditionEffect(effect, lifecycleUpdates(plan, null));
+  const effect = existingEffect ?? await createConditionEffect(actor, plan, null, persistence);
+  if ( existingEffect && effect && shouldPersistLifecycleMetadata(plan) ) {
+    await updateConditionEffect(effect, lifecycleUpdates(plan, null), persistence);
   }
   return effect;
 }
 
-async function applyStackingConditionDelta(actor, plan, existingEffect, levels) {
+async function applyStackingConditionDelta(actor, plan, existingEffect, levels, persistence) {
   if ( existingEffect ) {
     const current = normalizeExistingLevel(existingEffect.system?.level ?? existingEffect.level ?? 1);
     const rawLevel = current + levels;
     if ( rawLevel <= 0 ) {
-      await existingEffect.delete();
+      await deleteConditionEffect(existingEffect, persistence);
       return null;
     }
 
     const level = clampLevel(rawLevel, plan.maxLevel);
-    await updateConditionEffect(existingEffect, conditionEffectUpdates(plan, level));
+    await updateConditionEffect(existingEffect, conditionEffectUpdates(plan, level), persistence);
     return existingEffect;
   }
 
   if ( levels <= 0 ) return null;
   const level = clampLevel(levels, plan.maxLevel);
-  return createConditionEffect(actor, plan, level);
+  return createConditionEffect(actor, plan, level, persistence);
 }
 
-async function createConditionEffect(actor, plan, level) {
+async function createConditionEffect(actor, plan, level, persistence) {
   const data = conditionEffectDocumentData(plan, level);
   if ( typeof actor.toggleStatusEffect === "function" ) {
-    const effect = await actor.toggleStatusEffect(plan.conditionId, {active: true});
+    const toggle = await persistence.toggleStatusEffect({
+      actor,
+      actorRef: actor?.uuid ?? (actor?.id ? `actor:${actor.id}` : null),
+      statusId: plan.conditionId,
+      active: true,
+      metadata: {
+        resolver: "ConditionEffectCommitResolver",
+        mutationPlan: plan
+      }
+    });
+    if ( toggle?.ok === false && toggle.code !== FOUNDRY_PERSISTENCE_CODES.UNSUPPORTED_OPERATION ) {
+      throw new Error(toggle.reason ?? toggle.code ?? "Actor status toggle failed.");
+    }
+    const effect = toggle?.ok ? toggle.result : null;
     if ( effect ) {
-      await updateConditionEffect(effect, conditionEffectUpdates(plan, level));
+      await updateConditionEffect(effect, conditionEffectUpdates(plan, level), persistence);
       return effect;
     }
   }
 
-  if ( typeof actor.createEmbeddedDocuments === "function" ) {
-    const created = await actor.createEmbeddedDocuments("ActiveEffect", [data]);
-    return collectionContents(created)[0] ?? null;
+  const created = await persistence.createEmbeddedDocuments({
+    actor,
+    actorRef: actor?.uuid ?? (actor?.id ? `actor:${actor.id}` : null),
+    embeddedName: "ActiveEffect",
+    documents: [data],
+    metadata: {
+      resolver: "ConditionEffectCommitResolver",
+      mutationPlan: plan
+    }
+  });
+  if ( created?.ok === false ) {
+    throw new Error(created.reason ?? created.code ?? "Actor cannot create condition ActiveEffects.");
   }
-
-  throw new Error("Actor cannot create condition ActiveEffects.");
+  return collectionContents(created?.result ?? created)[0] ?? null;
 }
 
-async function updateConditionEffect(effect, updates) {
+async function updateConditionEffect(effect, updates, persistence) {
   if ( !effect || !Object.keys(updates ?? {}).length ) return effect;
-  if ( typeof effect.update !== "function" ) throw new Error("ActiveEffect cannot be updated.");
-  await effect.update(updates);
+  const updated = await persistence.updateDocument({
+    document: effect,
+    documentRef: effect.uuid ?? effect.id ?? null,
+    updates,
+    metadata: {
+      resolver: "ConditionEffectCommitResolver",
+      effectId: effect.id ?? null
+    }
+  });
+  if ( updated?.ok === false ) throw new Error(updated.reason ?? updated.code ?? "ActiveEffect cannot be updated.");
   return effect;
 }
 
-async function restoreConditionEffectSnapshot(actor, snapshot) {
+async function deleteConditionEffect(effect, persistence) {
+  const deleted = await persistence.deleteDocument({
+    document: effect,
+    documentRef: effect.uuid ?? effect.id ?? null,
+    metadata: {
+      resolver: "ConditionEffectCommitResolver",
+      effectId: effect.id ?? null
+    }
+  });
+  if ( deleted?.ok === false ) throw new Error(deleted.reason ?? deleted.code ?? "ActiveEffect cannot be deleted.");
+  return true;
+}
+
+async function restoreConditionEffectSnapshot(actor, snapshot, persistence) {
   const existing = findConditionEffect(actor, snapshot);
   if ( existing ) {
-    await updateConditionEffect(existing, restoreUpdatesFromSnapshot(snapshot));
+    await updateConditionEffect(existing, restoreUpdatesFromSnapshot(snapshot), persistence);
     return true;
   }
 
-  if ( typeof actor.createEmbeddedDocuments !== "function" ) return false;
-  await actor.createEmbeddedDocuments("ActiveEffect", [clonePlain(snapshot.data)]);
-  return true;
+  const created = await persistence.createEmbeddedDocuments({
+    actor,
+    actorRef: actor?.uuid ?? (actor?.id ? `actor:${actor.id}` : null),
+    embeddedName: "ActiveEffect",
+    documents: [clonePlain(snapshot.data)],
+    metadata: {
+      resolver: "ConditionEffectCommitResolver",
+      rollback: true
+    }
+  });
+  return created !== false && created?.ok !== false;
 }
 
 function conditionEffectDocumentData(plan, level) {

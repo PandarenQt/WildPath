@@ -105,15 +105,17 @@ resources, so future resolvers can use the new payment model before persisted Ac
 
 `module/resolvers/resource-resolver.mjs` now wraps these primitives for Actor action payments. It
 discovers payment options, selects a plan, maps economy resources back to Actor update paths, and
-commits through a small `actor.update()` adapter.
+commits through `DocumentPersistencePort` when the resolution transaction reaches the persistence
+boundary.
 
 Current `WildPathActor#useAction()` uses `ActionResolver`, which delegates resource planning and
-Actor update paths to this resolver while still only spending costs. It does not perform targeting,
-rolls, damage, healing, effects, or reaction prompts yet.
+Actor update paths to this resolver for direct compatibility calls. Representative staged actions
+now compose targeting, rolls, damage, healing, effects, payment, transaction, and persistence
+without embedding resource mutation in the UI.
 
 ## Deferred Work
 
-- `ActionResolver` should select payment timing inside the full action pipeline.
-- `ResolutionTransaction` should own rollback/commit ordering.
+- Multiplayer authority should decide which client may commit a selected payment plan.
+- Non-Actor resource stores should join the same transaction/persistence boundary when introduced.
 - `ReactionEngine` should decide when reaction windows exist.
 - `MovementEngine` should integrate Foundry V14 path, terrain, area, and token movement APIs.

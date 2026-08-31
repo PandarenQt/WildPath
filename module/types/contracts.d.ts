@@ -4,6 +4,7 @@ export type EntityRefKind =
   | "item"
   | "effect"
   | "scene"
+  | "scene-level"
   | "combat"
   | "combatant"
   | "user"
@@ -15,6 +16,7 @@ export type TokenRef = `token:${string}`;
 export type ItemRef = `item:${string}`;
 export type EffectRef = `effect:${string}`;
 export type SceneRef = `scene:${string}`;
+export type SceneLevelRef = `scene-level:${string}`;
 export type CombatRef = `combat:${string}`;
 export type CombatantRef = `combatant:${string}`;
 export type UserRef = `user:${string}`;
@@ -26,6 +28,7 @@ export type EntityRef =
   | ItemRef
   | EffectRef
   | SceneRef
+  | SceneLevelRef
   | CombatRef
   | CombatantRef
   | UserRef
@@ -51,6 +54,223 @@ export interface EntityReference {
   readonly type?: string | null;
   readonly disposition?: string | null;
   readonly tags: readonly string[];
+}
+
+export type GridTopology = "square" | "hex";
+export type TacticalGridKind = GridTopology | "gridless";
+export type FoundryGridType = 0 | 1 | 2 | 3 | 4 | 5;
+export type FoundryHexOffsetVariant = "odd-r" | "even-r" | "odd-q" | "even-q";
+
+export interface SquareGridField {
+  readonly x: number;
+  readonly y: number;
+}
+
+export interface HexGridField {
+  readonly q: number;
+  readonly r: number;
+}
+
+export type GridField = SquareGridField | HexGridField;
+
+export interface FoundryGridOffset {
+  readonly i: number;
+  readonly j: number;
+  readonly k?: number;
+}
+
+export interface GridVertex {
+  readonly id: string;
+  readonly topology: GridTopology;
+  readonly x?: number;
+  readonly y?: number;
+  readonly incidentFields: readonly GridField[];
+  readonly occupiedIncidentFields?: readonly GridField[];
+  readonly external?: boolean;
+  readonly metadata?: Readonly<Record<string, unknown>>;
+}
+
+export interface TokenFootprintDefinition {
+  readonly size: string;
+  readonly topology: GridTopology;
+  readonly offsets: readonly GridField[];
+  readonly fieldCount: number;
+  readonly creaturesPerField: number;
+  readonly minimumFields: number;
+  readonly metadata: Readonly<Record<string, unknown>>;
+}
+
+export interface TokenGridFootprint {
+  readonly type: "TokenGridFootprint";
+  readonly topology: GridTopology;
+  readonly size: string;
+  readonly effectiveSize: string;
+  readonly anchor: GridField;
+  readonly definition: TokenFootprintDefinition;
+  readonly fields: readonly GridField[];
+  readonly fieldKeys: readonly string[];
+  readonly boundaryFields: readonly GridField[];
+  readonly boundaryEdges: readonly Readonly<Record<string, unknown>>[];
+  readonly boundaryVertices: readonly GridVertex[];
+  readonly internalVertices: readonly GridVertex[];
+  readonly metadata: Readonly<Record<string, unknown>>;
+}
+
+export interface GridFootprint {
+  readonly type?: "GridFootprint";
+  readonly topology?: GridTopology;
+  readonly shape?: string | null;
+  readonly origin?: unknown;
+  readonly direction?: unknown;
+  readonly fields: readonly GridField[];
+  readonly fieldKeys?: readonly string[];
+  readonly metadata?: Readonly<Record<string, unknown>>;
+}
+
+export interface TacticalSceneContext {
+  readonly type: "TacticalSceneContext";
+  readonly scene: {
+    readonly id: string | null;
+    readonly ref: SceneRef | string | null;
+    readonly uuid: string | null;
+    readonly name: string | null;
+  };
+  readonly grid: {
+    readonly type: TacticalGridKind;
+    readonly topology: GridTopology | null;
+    readonly gridless: boolean;
+    readonly foundryType: FoundryGridType | number | null;
+    readonly distance: number;
+    readonly units: string;
+    readonly size: number;
+    readonly sizeX: number;
+    readonly sizeY: number;
+    readonly columns: boolean | null;
+    readonly even: boolean | null;
+    readonly orientation: string;
+    readonly offsetVariant: FoundryHexOffsetVariant | null;
+  };
+  readonly dimensions: Readonly<Record<string, unknown>>;
+  readonly levels: {
+    readonly initialLevelRef: SceneLevelRef | string | null;
+    readonly availableLevelRefs: readonly (SceneLevelRef | string)[];
+  };
+  readonly capabilities: Readonly<Record<string, boolean | string>>;
+  readonly foundryApisUsed: readonly string[];
+}
+
+export interface TacticalGridDiagnostic {
+  readonly ok: boolean;
+  readonly code: string;
+  readonly reason?: string | null;
+  readonly expectedFields?: readonly GridField[];
+  readonly representedFields?: readonly GridField[];
+  readonly missingFields?: readonly GridField[];
+  readonly extraFields?: readonly GridField[];
+}
+
+export interface FoundryTokenTargetFootprint {
+  readonly id: TokenRef | string | null;
+  readonly target: EntityReference | Readonly<Record<string, unknown>>;
+  readonly actor: EntityReference | Readonly<Record<string, unknown>> | null;
+  readonly occupiedFields: readonly GridField[];
+  readonly footprint: TokenGridFootprint;
+  readonly kind: string;
+  readonly disposition: unknown;
+  readonly willing: boolean;
+  readonly size: string | null;
+  readonly tags: readonly string[];
+  readonly conditions: readonly string[];
+  readonly metadata: Readonly<Record<string, unknown>>;
+}
+
+export interface TacticalGridPort {
+  readonly id: string;
+  readonly type: string;
+  readonly label: string;
+  getSceneContext(): ResolverResult<string, {readonly context: TacticalSceneContext}> | Readonly<Record<string, unknown>>;
+  getCapabilities(): Readonly<Record<string, unknown>>;
+  offsetToField(offset: FoundryGridOffset | Readonly<Record<string, unknown>>): Readonly<Record<string, unknown>>;
+  fieldToOffset(field: GridField): Readonly<Record<string, unknown>>;
+  pointToField(point: Readonly<Record<string, unknown>>): Readonly<Record<string, unknown>>;
+  fieldToCenterPoint(field: GridField): Readonly<Record<string, unknown>>;
+  fieldToVertices(field: GridField): Readonly<Record<string, unknown>>;
+  pointToVertex(point: Readonly<Record<string, unknown>>): Readonly<Record<string, unknown>>;
+  compareAdjacentOffsets(field: GridField): Readonly<Record<string, unknown>>;
+  distanceToGridFields(distance: number): Readonly<Record<string, unknown>>;
+  tokenToFootprint(token: unknown, options?: Readonly<Record<string, unknown>>): Readonly<Record<string, unknown>>;
+  tokenToTargetFootprint(token: unknown, options?: Readonly<Record<string, unknown>>): Readonly<Record<string, unknown>>;
+  collectTokenTargetFootprints(options?: Readonly<Record<string, unknown>>): Readonly<Record<string, unknown>>;
+  resolveAreaTargetCandidates(options?: Readonly<Record<string, unknown>>): Readonly<Record<string, unknown>>;
+  resolveAreaTargetSet(options?: Readonly<Record<string, unknown>>): Readonly<Record<string, unknown>>;
+  compareTokenOccupiedSpaces(token: unknown, options?: Readonly<Record<string, unknown>>): Readonly<Record<string, unknown>>;
+  validateTokenLevelRelation(sourceToken: unknown, targetToken: unknown, options?: Readonly<Record<string, unknown>>): Readonly<Record<string, unknown>>;
+}
+
+export interface PersistenceOperationResult {
+  readonly ok: boolean;
+  readonly code: string;
+  readonly reason?: string | null;
+  readonly actorRef?: ActorRef | string | null;
+  readonly documentRef?: EntityRef | string | null;
+  readonly embeddedName?: string | null;
+  readonly updates?: Readonly<Record<string, unknown>>;
+  readonly documents?: readonly Readonly<Record<string, unknown>>[];
+  readonly result?: unknown;
+  readonly metadata?: Readonly<Record<string, unknown>>;
+}
+
+export interface ActorUpdatePersistenceOperation {
+  readonly actor?: unknown;
+  readonly actorRef?: ActorRef | string | null;
+  readonly updates: Readonly<Record<string, unknown>>;
+  readonly operation?: Readonly<Record<string, unknown>>;
+  readonly metadata?: Readonly<Record<string, unknown>>;
+}
+
+export interface EmbeddedDocumentCreatePersistenceOperation {
+  readonly parent?: unknown;
+  readonly actor?: unknown;
+  readonly actorRef?: ActorRef | string | null;
+  readonly embeddedName: string;
+  readonly documents: readonly Readonly<Record<string, unknown>>[];
+  readonly operation?: Readonly<Record<string, unknown>>;
+  readonly metadata?: Readonly<Record<string, unknown>>;
+}
+
+export interface DocumentUpdatePersistenceOperation {
+  readonly document?: unknown;
+  readonly documentRef?: EntityRef | string | null;
+  readonly updates: Readonly<Record<string, unknown>>;
+  readonly operation?: Readonly<Record<string, unknown>>;
+  readonly metadata?: Readonly<Record<string, unknown>>;
+}
+
+export interface DocumentDeletePersistenceOperation {
+  readonly document?: unknown;
+  readonly documentRef?: EntityRef | string | null;
+  readonly operation?: Readonly<Record<string, unknown>>;
+  readonly metadata?: Readonly<Record<string, unknown>>;
+}
+
+export interface ToggleStatusEffectPersistenceOperation {
+  readonly actor?: unknown;
+  readonly actorRef?: ActorRef | string | null;
+  readonly statusId: string;
+  readonly active?: boolean;
+  readonly operation?: Readonly<Record<string, unknown>>;
+  readonly metadata?: Readonly<Record<string, unknown>>;
+}
+
+export interface DocumentPersistencePort {
+  readonly id: string;
+  readonly type: string;
+  readonly label: string;
+  updateActor(operation: ActorUpdatePersistenceOperation): Promise<PersistenceOperationResult> | PersistenceOperationResult;
+  createEmbeddedDocuments(operation: EmbeddedDocumentCreatePersistenceOperation): Promise<PersistenceOperationResult> | PersistenceOperationResult;
+  updateDocument(operation: DocumentUpdatePersistenceOperation): Promise<PersistenceOperationResult> | PersistenceOperationResult;
+  deleteDocument(operation: DocumentDeletePersistenceOperation): Promise<PersistenceOperationResult> | PersistenceOperationResult;
+  toggleStatusEffect?(operation: ToggleStatusEffectPersistenceOperation): Promise<PersistenceOperationResult> | PersistenceOperationResult;
 }
 
 export interface ActionReference {

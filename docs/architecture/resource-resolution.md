@@ -14,7 +14,8 @@ actor resource snapshot
 -> payment option discovery
 -> selected payment plan
 -> Actor update mutation plan
--> Foundry commit adapter
+-> ResolutionTransaction
+-> DocumentPersistencePort
 ```
 
 Discovery uses `module/helpers/action-economy.mjs`, so Action, Bonus Action, Reaction, Movement,
@@ -39,9 +40,9 @@ The resolver maps selected economy resource ids back to the current Actor data s
 - custom pool ids -> `system.pools.{index}.value`
 
 Planning does not mutate the Actor system object. It returns update paths plus before/after payment
-trace data. `commitActorResourceMutationPlan()` remains a thin adapter that calls
-`actor.update()`, while `ActionResolver` now commits action payment through
-`ResolutionTransaction` so target updates can roll back if payment fails.
+trace data. `commitActorResourceMutationPlan()` delegates the write to `DocumentPersistencePort`,
+while `ActionResolver` now commits action payment through `ResolutionTransaction` so target updates
+can roll back if payment fails.
 
 ## Current Integration
 
@@ -51,7 +52,7 @@ trace data. `commitActorResourceMutationPlan()` remains a thin adapter that call
 
 `WildPathActor#canUseAction()` goes through the resolver. `WildPathActor#useAction()` now goes
 through `ActionResolver`, which in turn delegates payment planning and Actor update paths to this
-resolver while preserving the current cost-only behavior.
+resolver while preserving the current compatibility behavior.
 
 ## Deferred Work
 

@@ -6,6 +6,8 @@ import {
   selectDefaultPaymentOption
 } from "../helpers/action-economy.mjs";
 
+import {createFoundryV14ActorPersistenceAdapter} from "../adapters/foundry-v14-persistence-adapter.mjs";
+
 export const RESOURCE_RESOLUTION_CODES = Object.freeze({
   OK: "OK",
   PAYMENT_UNAVAILABLE: "PAYMENT_UNAVAILABLE",
@@ -161,11 +163,20 @@ export function createActorResourceMutationPlan(actorSystem, paymentPlan) {
 
 /* -------------------------------------------- */
 
-export async function commitActorResourceMutationPlan(actor, mutationPlan) {
+export async function commitActorResourceMutationPlan(actor, mutationPlan, {persistencePort=null}={}) {
   if ( !mutationPlan?.ok ) return false;
   if ( !Object.keys(mutationPlan.updates ?? {}).length ) return true;
-  await actor.update(mutationPlan.updates);
-  return true;
+  const persistence = persistencePort ?? createFoundryV14ActorPersistenceAdapter();
+  const result = await persistence.updateActor({
+    actor,
+    actorRef: actor?.uuid ?? (actor?.id ? `actor:${actor.id}` : null),
+    updates: mutationPlan.updates,
+    metadata: {
+      resolver: "ResourceResolver",
+      mutationPlan
+    }
+  });
+  return result !== false && result?.ok !== false;
 }
 
 /* -------------------------------------------- */

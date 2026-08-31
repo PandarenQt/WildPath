@@ -22,6 +22,7 @@ export function prepareTargetMutationCommitOperations({
   authority=null,
   commitPlan=defaultCommitPlan,
   rollbackPlan=null,
+  persistencePort=null,
   metadata={}
 }={}) {
   if ( !mutationPlans.length ) {
@@ -62,7 +63,7 @@ export function prepareTargetMutationCommitOperations({
     }
 
     const innerPlan = mutationPlan.plan ?? mutationPlan;
-    const rollbackCommitPlan = rollbackPlan ?? defaultRollbackPlanFor(mutationPlan);
+    const rollbackCommitPlan = rollbackPlan ?? defaultRollbackPlanFor(mutationPlan, {persistencePort});
     let commitResult = null;
     operations.push(createActorUpdateTransactionOperation({
       id: `target:${index}:${mutationPlan.type}`,
@@ -77,8 +78,9 @@ export function prepareTargetMutationCommitOperations({
         targetRefs: targetLookupRefs(target),
         mutationPlan: clonePlain(mutationPlan)
       },
+      persistencePort,
       commit: async () => {
-        commitResult = await commitPlan(actor, innerPlan, mutationPlan);
+        commitResult = await commitPlan(actor, innerPlan, mutationPlan, {persistencePort});
         if ( commitResult?.ok === false ) throw new Error(commitResult.reason ?? commitResult.code ?? "Target mutation commit failed.");
         return commitResult !== false;
       },
@@ -104,6 +106,7 @@ export async function commitTargetMutationPlans({
   targetActors={},
   authority=null,
   commitPlan=defaultCommitPlan,
+  persistencePort=null,
   metadata={}
 }={}) {
   if ( !mutationPlans.length ) {
@@ -145,7 +148,7 @@ export async function commitTargetMutationPlans({
 
     try {
       const innerPlan = mutationPlan.plan ?? mutationPlan;
-      const commitResult = await commitPlan(actor, innerPlan, mutationPlan);
+      const commitResult = await commitPlan(actor, innerPlan, mutationPlan, {persistencePort});
       if ( commitResult === false || commitResult?.ok === false ) {
         failures.push({
           code: TARGET_MUTATION_COMMIT_CODES.COMMIT_FAILED,
@@ -251,14 +254,17 @@ function normalizeAuthorityResult(result) {
   };
 }
 
-async function defaultCommitPlan(actor, mutationPlan) {
-  if ( mutationPlan?.type === "conditionEffect" ) return commitConditionEffectMutationPlan(actor, mutationPlan);
-  return commitActorDurabilityMutationPlan(actor, mutationPlan);
+async function defaultCommitPlan(actor, mutationPlan, _outerMutationPlan=null, {persistencePort=null}={}) {
+  if ( mutationPlan?.type === "conditionEffect" ) return commitConditionEffectMutationPlan(actor, mutationPlan, {persistencePort});
+  return commitActorDurabilityMutationPlan(actor, mutationPlan, {persistencePort});
 }
 
-function defaultRollbackPlanFor(mutationPlan) {
+function defaultRollbackPlanFor(mutationPlan, {persistencePort=null}={}) {
   const type = mutationPlan.type ?? mutationPlan.plan?.type ?? null;
-  if ( type === "conditionEffect" ) return rollbackConditionEffectMutationPlan;
+  if ( type === "conditionEffect" ) {
+    return (actor, innerPlan, outerMutationPlan, commitResult) =>
+      rollbackConditionEffectMutationPlan(actor, innerPlan, outerMutationPlan, commitResult, {persistencePort});
+  }
   return null;
 }
 

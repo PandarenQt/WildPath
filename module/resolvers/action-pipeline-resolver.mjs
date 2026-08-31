@@ -1,12 +1,15 @@
 import {
   TARGET_DEFAULT_SELECTION
 } from "../helpers/targeting.mjs";
+import {targetLookupRefs} from "../helpers/target-actor-refs.mjs";
+import {footprintDistance} from "../helpers/grid-footprints.mjs";
 import {
   actionDefinitionFromAction,
   actionDefinitionToResolverInput
 } from "../helpers/action-definitions.mjs";
 import {
   ACTION_CONFIGURATION_CODES,
+  createResolvedActionPreview,
   discoverActionConfigurationChoices,
   resolveActionConfiguration,
   validateResolvedActionConfiguration
@@ -29,24 +32,68 @@ import {
   waitResolutionStage
 } from "../helpers/resolution-state.mjs";
 import {
+  ACTION_RESOLUTION_STAGES,
+  ACTION_RESULT_STATUS,
+  addResolutionStep,
+  beginActionResult,
+  createActionContext,
+  createActionLifecycleEvent,
+  createActionResult,
+  failActionResult,
+  withActionTargets
+} from "../helpers/action-resolution.mjs";
+import {
+  AUTOMATION_EVENT_PHASES,
+  AUTOMATION_EVENT_TYPES
+} from "../helpers/automation-events.mjs";
+import {
   ROLL_AUTHORITY,
   ROLL_TYPES,
   createD20RollRequest,
+  createDamageRollRequest,
   normalizeRollResponseValue,
   rollFormulaForRequest,
+  rollResultToDamageComponents,
   rollResultToResolverRoll
 } from "../helpers/rolls.mjs";
 import {
   ACTION_RESOLVER_CODES,
-  executeActionResolution,
-  planActionResolution
+  actionActivationCost,
+  actionRef,
+  attackEvents,
+  commitPlannedActionResult,
+  finalTargetRefs,
+  resolveActionDamage,
+  resolveActionEffects,
+  resolveActionHealing,
+  resolveDamageDurability,
+  resolveHealingDurability,
+  saveEvents,
+  shouldResolveAttack,
+  shouldResolveDamage,
+  shouldResolveEffects,
+  shouldResolveHealing,
+  shouldResolveSave,
+  shouldResolveTargets
 } from "./action-resolver.mjs";
+import {resolveActorResourcePayment} from "./resource-resolver.mjs";
+import {resolveActionTargets} from "./target-resolver.mjs";
+import {resolveAttackTargets} from "./attack-resolver.mjs";
+import {resolveSaveTargets} from "./save-resolver.mjs";
 
 export const ACTION_PIPELINE_STAGE_IDS = Object.freeze({
   CONFIGURATION: "action.configuration",
   TARGETING: "action.targeting",
+  RANGE: "action.range",
   ATTACK_ROLL: "action.attack-roll",
+  ATTACK_OUTCOME: "action.attack-outcome",
   SAVE_ROLL: "action.save-roll",
+  SAVE_OUTCOME: "action.save-outcome",
+  DAMAGE_ROLL: "action.damage-roll",
+  DAMAGE: "action.damage",
+  HEALING: "action.healing",
+  EFFECTS: "action.effects",
+  PAYMENT: "action.payment",
   LEGACY_RESOLUTION: "action.legacy-resolution",
   READY_TO_COMMIT: "action.ready-to-commit",
   COMMIT: "action.commit",
@@ -57,6 +104,8 @@ export const ACTION_PIPELINE_CODES = Object.freeze({
   OK: "OK",
   ACTION_DEFINITION_INVALID: "ACTION_DEFINITION_INVALID",
   ACTION_CONFIGURATION_INVALID: "ACTION_CONFIGURATION_INVALID",
+  RANGE_UNAVAILABLE: "RANGE_UNAVAILABLE",
+  TARGET_OUT_OF_RANGE: "TARGET_OUT_OF_RANGE",
   ACTION_PLANNING_FAILED: "ACTION_PLANNING_FAILED",
   ACTION_COMMIT_FAILED: "ACTION_COMMIT_FAILED"
 });
@@ -144,9 +193,16 @@ export function createActionResolutionPipeline() {
   return [
     createConfigurationStage(),
     createTargetingStage(),
+    createRangeStage(),
     createAttackRollStage(),
+    createAttackOutcomeStage(),
     createSaveRollStage(),
-    createLegacyResolutionStage(),
+    createSaveOutcomeStage(),
+    createDamageRollStage(),
+    createDamageStage(),
+    createHealingStage(),
+    createEffectStage(),
+    createPaymentStage(),
     createReadyToCommitStage()
   ];
 }
@@ -185,6 +241,9 @@ export function resumeStagedActionResolution({
 /* -------------------------------------------- */
 
 export async function executeStagedActionResolution(options={}) {
+  if ( options.state?.status === RESOLUTION_STATE_STATUS.COMPLETED ) {
+    return actionPipelineResult(createResolutionState(options.state), ACTION_PIPELINE_CODES.OK);
+  }
   const planned = options.state?.status === RESOLUTION_STATE_STATUS.READY_TO_COMMIT
     ? actionPipelineResult(createResolutionState(options.state), ACTION_PIPELINE_CODES.OK)
     : planStagedActionResolution(options);
@@ -200,25 +259,12 @@ export async function executeStagedActionResolution(options={}) {
     reason: "Committing planned action mutations through ActionResolver transaction boundary."
   });
   const input = committing.input ?? {};
-  const actionResult = await executeActionResolution({
+  const actionResult = await commitPlannedActionResult({
+    result: committing.results?.actionResult,
     actor: options.actor,
-    action: options.action ?? input.action,
-    source: input.source,
-    targets: input.targets ?? [],
-    targeting: input.targeting,
-    attack: input.attack,
-    save: input.save,
-    damage: input.damage,
-    healing: input.healing,
-    effects: input.effects,
-    durability: input.durability,
-    configuration: committing.configuration ?? input.configuration,
-    configurationContributions: input.configurationContributions ?? [],
     targetActors: options.targetActors,
     authority: options.authority,
-    context: input.context ?? {},
-    policies: input.policies ?? {},
-    selectedPaymentOptionId: input.selectedPaymentOptionId ?? null
+    persistencePort: options.persistencePort ?? input.persistencePort ?? null
   });
 
   const committed = markActionPipelineStage(updateResolutionState(committing, {
@@ -262,6 +308,19 @@ function createConfigurationStage() {
     id: ACTION_PIPELINE_STAGE_IDS.CONFIGURATION,
     run(state) {
       const input = state.input ?? {};
+      const invalidDefinition = invalidActionDefinitionValidation(state);
+      if ( invalidDefinition ) {
+        return failActionPlanningStage({
+          state,
+          input,
+          stage: ACTION_RESOLUTION_STAGES.VALIDATION,
+          code: ACTION_PIPELINE_CODES.ACTION_DEFINITION_INVALID,
+          reason: invalidDefinition.code,
+          errors: invalidDefinition.errors ?? [],
+          data: {validation: invalidDefinition}
+        });
+      }
+
       const definition = state.configuration?.effectiveDefinition ?? state.actionDefinition;
       if ( !definition ) return continueResolutionStage({state});
       if ( !hasConfigurationWork(definition, input.configurationContributions) ) {
@@ -368,6 +427,14 @@ function createConfigurationStage() {
         data: {resolved}
       });
 
+      const preview = createResolvedActionPreview({
+        definition,
+        actorSystem: input.actorSystem,
+        choices,
+        configurationContributions: input.configurationContributions ?? [],
+        context: input.context ?? {},
+        policies: input.policies ?? {}
+      });
       return continueResolutionStage({
         state: updateResolutionState(state, {
           actionDefinition: resolved.configuration.effectiveDefinition,
@@ -376,11 +443,16 @@ function createConfigurationStage() {
             ...input,
             configuration: resolved.configuration,
             selectedPaymentOptionId: input.selectedPaymentOptionId ?? resolved.configuration.selectedPaymentOptionId
+          },
+          results: {
+            ...state.results,
+            ...(preview.ok ? {preview: preview.preview, previewResult: preview} : {})
           }
         }),
         data: {
           configurationId: resolved.configuration.id,
-          requestCount: discovery.requests.length
+          requestCount: discovery.requests.length,
+          preview: preview.ok ? preview.preview : null
         },
         trace: resolved.traces.map(trace => ({
           id: `trace:${state.id}:configuration:${trace.choiceId ?? "choice"}`,
@@ -401,7 +473,7 @@ function createTargetingStage() {
   return createResolutionPipelineStage({
     id: ACTION_PIPELINE_STAGE_IDS.TARGETING,
     run(state) {
-      const input = state.input ?? {};
+      let input = preparedResolverInput(state);
       const accepted = getResolutionResponse(state, {
         requestId: requestIdFor(state, "targets"),
         type: RESOLUTION_REQUEST_TYPES.TARGET_SELECTION
@@ -412,59 +484,211 @@ function createTargetingStage() {
       if ( accepted ) {
         const value = targetResponseValue(accepted.response.value);
         const nextTargeting = mergeTargetingInput(input.targeting, value);
-        return continueResolutionStage({
-          state: updateResolutionState(state, {
-            targets: value.targets ?? input.targets ?? [],
-            targetSet: value.targetSet ?? state.targetSet,
-            targetRefinement: value.targetRefinement ?? state.targetRefinement,
-            input: {
-              ...input,
-              targets: value.targets ?? input.targets ?? [],
-              targeting: nextTargeting
-            }
-          }),
-          data: {
-            responseType: accepted.request.type,
-            targetCount: (value.targets ?? input.targets ?? []).length,
-            decisionCount: (nextTargeting?.decisions ?? []).length
-          }
+        input = {
+          ...input,
+          targets: value.targets ?? input.targets ?? [],
+          targeting: nextTargeting
+        };
+        state = updateResolutionState(state, {
+          targets: input.targets ?? [],
+          targetSet: value.targetSet ?? state.targetSet,
+          targetRefinement: value.targetRefinement ?? state.targetRefinement,
+          input
         });
       }
 
-      const prepared = preparedResolverInput(state);
-      const targeting = prepared.targeting;
-      if ( !needsTargetInput({targeting, targets: prepared.targets ?? []}) ) {
+      const targeting = input.targeting;
+      if ( !accepted && needsTargetInput({targeting, targets: input.targets ?? []}) ) {
+        const refinement = needsTargetRefinement(targeting);
+        return waitResolutionStage({
+          state,
+          request: createResolutionRequest({
+            id: requestIdFor(state, refinement ? "target-refinement" : "targets"),
+            resolutionId: state.id,
+            stageId: ACTION_PIPELINE_STAGE_IDS.TARGETING,
+            type: refinement ? RESOLUTION_REQUEST_TYPES.TARGET_REFINEMENT : RESOLUTION_REQUEST_TYPES.TARGET_SELECTION,
+            expectedResponseType: refinement ? "target-refinement" : "target-selection",
+            payload: {
+              actionDefinitionId: state.actionDefinition?.id ?? null,
+              targeting,
+              targets: input.targets ?? [],
+              candidates: targeting?.candidates ?? [],
+              targetSet: targeting?.targetSet ?? null
+            },
+            validation: {
+              required: targeting?.required === true,
+              refinement
+            }
+          }),
+          reason: refinement
+            ? "Target refinement is required before action resolution can continue."
+            : "Target selection is required before action resolution can continue."
+        });
+      }
+
+      const planning = ensureActionPlanningResult(state, input);
+      if ( planning.failed ) return planning.failed;
+      let {actionContext, actionResult} = planning;
+      if ( !shouldResolveTargets({targeting, actionContext}) ) {
         return continueResolutionStage({
-          state: updateResolutionState(state, {
-            input: prepared
+          state: stateWithActionResult(state, {
+            input,
+            actionResult
           })
         });
       }
 
-      const refinement = needsTargetRefinement(targeting);
-      return waitResolutionStage({
-        state,
-        request: createResolutionRequest({
-          id: requestIdFor(state, refinement ? "target-refinement" : "targets"),
-          resolutionId: state.id,
-          stageId: ACTION_PIPELINE_STAGE_IDS.TARGETING,
-          type: refinement ? RESOLUTION_REQUEST_TYPES.TARGET_REFINEMENT : RESOLUTION_REQUEST_TYPES.TARGET_SELECTION,
-          expectedResponseType: refinement ? "target-refinement" : "target-selection",
-          payload: {
-            actionDefinitionId: state.actionDefinition?.id ?? null,
-            targeting,
-            targets: prepared.targets ?? [],
-            candidates: targeting?.candidates ?? [],
-            targetSet: targeting?.targetSet ?? null
+      const targetResolution = resolveActionTargets({
+        source: actionContext.source,
+        targetSet: targeting?.targetSet ?? actionContext.targetSet,
+        candidates: targeting?.candidates ?? [],
+        targets: (targeting?.targets?.length ? targeting.targets : actionContext.targets) ?? [],
+        eligibilityPolicy: targeting?.eligibilityPolicy ?? {},
+        refinementPolicy: targeting?.refinementPolicy ?? {},
+        decisions: targeting?.decisions ?? [],
+        context: {action: actionContext.action, ...(targeting?.context ?? {})},
+        required: targeting?.required ?? false,
+        metadata: targeting?.metadata ?? {}
+      });
+      if ( !targetResolution.ok ) {
+        return failActionPlanningStage({
+          state,
+          input,
+          actionResult,
+          stage: ACTION_RESOLUTION_STAGES.TARGETING,
+          code: ACTION_RESOLVER_CODES.TARGETING_FAILED,
+          reason: targetResolution.code,
+          data: {targetResolution}
+        });
+      }
+
+      actionContext = withActionTargets(
+        actionContext,
+        finalTargetRefs(targetResolution),
+        targetResolution.refinement
+      );
+      actionResult = createActionResult({...actionResult, context: actionContext});
+      actionResult = addResolutionStep(actionResult, {
+        stage: ACTION_RESOLUTION_STAGES.TARGETING,
+        events: [createActionLifecycleEvent(actionContext, {
+          type: AUTOMATION_EVENT_TYPES.TARGETS_SELECTED,
+          phase: AUTOMATION_EVENT_PHASES.AFTER,
+          data: {targetResolution}
+        })],
+        consequences: [{
+          type: "targetsSelected",
+          targetContexts: targetResolution.targetContexts
+        }],
+        data: {targetResolution}
+      });
+
+      return continueResolutionStage({
+        state: stateWithActionResult(state, {
+          input: {
+            ...input,
+            targets: finalTargetRefs(targetResolution),
+            targeting
           },
-          validation: {
-            required: targeting?.required === true,
-            refinement
+          actionResult,
+          results: {targetResolution},
+          targets: finalTargetRefs(targetResolution),
+          targetSet: targetResolution.refinement,
+          targetRefinement: targetResolution.refinement
+        }),
+        data: {
+          targetCount: targetResolution.refinement?.finalTargets?.length ?? 0
+        }
+      });
+    }
+  });
+}
+
+function createRangeStage() {
+  return createResolutionPipelineStage({
+    id: ACTION_PIPELINE_STAGE_IDS.RANGE,
+    run(state) {
+      const input = preparedResolverInput(state);
+      const range = rangeDefinitionFromInput(input);
+      const targetContexts = state.results?.targetResolution?.targetContexts ?? [];
+      if ( !range || !targetContexts.length ) return continueResolutionStage({
+        state: updateResolutionState(state, {input})
+      });
+
+      const sourceFootprint = sourceFootprintFromInput(input);
+      const gridDistance = gridDistanceFromInput(input);
+      if ( !sourceFootprint || !gridDistance ) {
+        return failActionPlanningStage({
+          state,
+          input,
+          stage: ACTION_RESOLUTION_STAGES.TARGETING,
+          code: ACTION_PIPELINE_CODES.RANGE_UNAVAILABLE,
+          reason: "Range validation requires source footprint and grid distance.",
+          data: {range, spatial: spatialSummary(input)}
+        });
+      }
+
+      const checks = [];
+      const failures = [];
+      for ( const targetContext of targetContexts.filter(context => context.selected !== false && !context.excluded) ) {
+        const targetFootprint = targetFootprintForContext(input, targetContext);
+        if ( !targetFootprint ) {
+          failures.push({
+            code: ACTION_PIPELINE_CODES.RANGE_UNAVAILABLE,
+            reason: "Range validation requires target footprint.",
+            target: targetContext.target ?? targetContext
+          });
+          continue;
+        }
+        const fields = footprintDistance(sourceFootprint, targetFootprint);
+        const distance = fields * gridDistance;
+        const band = rangeBandForDistance(range, distance);
+        const check = {
+          ok: band.ok,
+          code: band.code,
+          target: clonePlain(targetContext.target ?? targetContext),
+          targetRefs: targetLookupRefs(targetContext.target ?? targetContext),
+          fields,
+          distance,
+          gridDistance,
+          band: band.band,
+          range
+        };
+        checks.push(check);
+        if ( !check.ok ) failures.push(check);
+      }
+
+      if ( failures.length ) {
+        return failActionPlanningStage({
+          state,
+          input,
+          stage: ACTION_RESOLUTION_STAGES.TARGETING,
+          code: ACTION_PIPELINE_CODES.TARGET_OUT_OF_RANGE,
+          reason: failures[0].code,
+          data: {
+            range,
+            checks,
+            failures
+          }
+        });
+      }
+
+      return continueResolutionStage({
+        state: updateResolutionState(state, {
+          input,
+          results: {
+            ...state.results,
+            rangeResolution: {
+              ok: true,
+              code: ACTION_PIPELINE_CODES.OK,
+              range,
+              checks
+            }
           }
         }),
-        reason: refinement
-          ? "Target refinement is required before action resolution can continue."
-          : "Target selection is required before action resolution can continue."
+        data: {
+          checkCount: checks.length,
+          range
+        }
       });
     }
   });
@@ -571,6 +795,69 @@ function createAttackRollStage() {
   });
 }
 
+function createAttackOutcomeStage() {
+  return createResolutionPipelineStage({
+    id: ACTION_PIPELINE_STAGE_IDS.ATTACK_OUTCOME,
+    run(state) {
+      const input = preparedResolverInput(state);
+      if ( !shouldResolveAttack(input.attack) ) return continueResolutionStage({
+        state: updateResolutionState(state, {input})
+      });
+      const planning = ensureActionPlanningResult(state, input);
+      if ( planning.failed ) return planning.failed;
+      const {actionContext} = planning;
+      let {actionResult} = planning;
+
+      const attackResolution = resolveAttackTargets({
+        roll: input.attack.roll,
+        targetContexts: input.attack.targetContexts ?? state.results?.targetResolution?.targetContexts ?? [],
+        targets: input.attack.targets ?? (state.results?.targetResolution ? [] : actionContext.targets),
+        defense: input.attack.defense ?? null,
+        defenseKey: input.attack.defenseKey ?? "ac",
+        policy: {...(input.policies?.attack ?? {}), ...(input.attack.policy ?? {})},
+        context: {
+          action: actionContext.action,
+          source: actionContext.source,
+          ...(input.attack.context ?? {})
+        }
+      });
+      if ( !attackResolution.ok ) {
+        return failActionPlanningStage({
+          state,
+          input,
+          actionResult,
+          stage: ACTION_RESOLUTION_STAGES.ROLL,
+          code: ACTION_RESOLVER_CODES.ATTACK_FAILED,
+          reason: attackResolution.code,
+          data: {attackResolution}
+        });
+      }
+
+      actionResult = addResolutionStep(actionResult, {
+        stage: ACTION_RESOLUTION_STAGES.ROLL,
+        events: attackEvents(actionContext, attackResolution),
+        consequences: [{
+          type: "attackResolved",
+          attackResolution
+        }],
+        data: {attackResolution}
+      });
+
+      return continueResolutionStage({
+        state: stateWithActionResult(state, {
+          input,
+          actionResult,
+          results: {attackResolution}
+        }),
+        data: {
+          hitCount: attackResolution.hits.length,
+          missCount: attackResolution.misses.length
+        }
+      });
+    }
+  });
+}
+
 function createSaveRollStage() {
   return createResolutionPipelineStage({
     id: ACTION_PIPELINE_STAGE_IDS.SAVE_ROLL,
@@ -672,57 +959,456 @@ function createSaveRollStage() {
   });
 }
 
-function createLegacyResolutionStage() {
+function createSaveOutcomeStage() {
   return createResolutionPipelineStage({
-    id: ACTION_PIPELINE_STAGE_IDS.LEGACY_RESOLUTION,
-    run(state, services={}) {
-      const input = state.input ?? {};
-      const durability = preparePlanningDurabilityOptions(input.durability, services.targetActors);
-      const actionResult = planActionResolution({
-        actorSystem: input.actorSystem,
-        action: input.action,
-        source: input.source,
-        targets: input.targets ?? [],
-        targeting: input.targeting,
-        attack: input.attack,
-        save: input.save,
-        damage: input.damage,
-        healing: input.healing,
-        effects: input.effects,
-        durability,
-        configuration: state.configuration ?? input.configuration,
-        configurationContributions: input.configurationContributions ?? [],
-        context: input.context ?? {},
-        policies: input.policies ?? {},
-        selectedPaymentOptionId: input.selectedPaymentOptionId ?? null,
-        complete: false
+    id: ACTION_PIPELINE_STAGE_IDS.SAVE_OUTCOME,
+    run(state) {
+      const input = preparedResolverInput(state);
+      if ( !shouldResolveSave(input.save) ) return continueResolutionStage({
+        state: updateResolutionState(state, {input})
       });
-      const nextState = updateResolutionState(state, {
-        actionContext: actionResult.context,
-        mutationPlans: actionResult.mutationPlans,
-        events: actionResult.events,
-        results: {
-          ...state.results,
-          actionResult
+      const planning = ensureActionPlanningResult(state, input);
+      if ( planning.failed ) return planning.failed;
+      const {actionContext} = planning;
+      let {actionResult} = planning;
+
+      const saveResolution = resolveSaveTargets({
+        roll: input.save.roll,
+        targetContexts: input.save.targetContexts ?? state.results?.targetResolution?.targetContexts ?? [],
+        targets: input.save.targets ?? (state.results?.targetResolution ? [] : actionContext.targets),
+        dc: input.save.dc ?? null,
+        dcKey: input.save.dcKey ?? "save",
+        saveKey: input.save.saveKey ?? input.save.ability ?? null,
+        policy: {...(input.policies?.save ?? {}), ...(input.save.policy ?? {})},
+        context: {
+          action: actionContext.action,
+          source: actionContext.source,
+          ...(input.save.context ?? {})
         }
       });
-
-      if ( !actionResult.ok && actionResult.status === "failed" ) {
-        return failResolutionStage({
-          state: nextState,
-          code: actionResult.code ?? ACTION_RESOLVER_CODES.OK,
-          reason: actionResult.errors[0]?.reason ?? actionResult.code,
-          errors: actionResult.errors,
-          data: {actionResult}
+      if ( !saveResolution.ok ) {
+        return failActionPlanningStage({
+          state,
+          input,
+          actionResult,
+          stage: ACTION_RESOLUTION_STAGES.ROLL,
+          code: ACTION_RESOLVER_CODES.SAVE_FAILED,
+          reason: saveResolution.code,
+          data: {saveResolution}
         });
       }
 
+      actionResult = addResolutionStep(actionResult, {
+        stage: ACTION_RESOLUTION_STAGES.ROLL,
+        events: saveEvents(actionContext, saveResolution),
+        consequences: [{
+          type: "saveResolved",
+          saveResolution
+        }],
+        data: {saveResolution}
+      });
+
       return continueResolutionStage({
-        state: nextState,
+        state: stateWithActionResult(state, {
+          input,
+          actionResult,
+          results: {saveResolution}
+        }),
         data: {
-          actionResultStatus: actionResult.status,
-          mutationPlanCount: actionResult.mutationPlans.length,
-          eventCount: actionResult.events.length
+          successCount: saveResolution.successes.length,
+          failureCount: saveResolution.failures.length
+        }
+      });
+    }
+  });
+}
+
+function createDamageRollStage() {
+  return createResolutionPipelineStage({
+    id: ACTION_PIPELINE_STAGE_IDS.DAMAGE_ROLL,
+    run(state) {
+      const input = preparedResolverInput(state);
+      if ( !shouldResolveDamage(input.damage) || damageComponentsHaveAmounts(input.damage?.components) || attackResolvedAsOnlyMisses(state) ) {
+        return continueResolutionStage({
+          state: updateResolutionState(state, {input})
+        });
+      }
+
+      const requestId = requestIdFor(state, "damage-roll");
+      const accepted = getResolutionResponse(state, {
+        requestId,
+        type: RESOLUTION_REQUEST_TYPES.ROLL
+      });
+      if ( accepted ) {
+        const rollRequest = rollRequestFromAcceptedResponse(accepted, () => damageRollRequestForState(state, input));
+        const normalized = normalizeRollResponseValue(accepted.response.value, {
+          request: rollRequest,
+          completedRequestIds: completedRollRequestIds(state)
+        });
+        if ( !normalized.ok ) return failResolutionStage({
+          state,
+          code: normalized.code,
+          reason: normalized.reason,
+          errors: [{
+            code: normalized.code,
+            reason: normalized.reason,
+            requestId,
+            validation: normalized.validation
+          }],
+          data: {
+            requestId,
+            rollRequest,
+            validation: normalized.validation
+          }
+        });
+
+        const damage = {
+          ...(input.damage ?? {}),
+          components: rollResultToDamageComponents({
+            result: normalized.result,
+            components: input.damage?.components ?? []
+          })
+        };
+        return continueResolutionStage({
+          state: updateResolutionState(state, {
+            input: {...input, damage},
+            rollRequests: appendRollRequest(state.rollRequests, rollRequest),
+            rollResults: [
+              ...state.rollResults,
+              {
+                requestId: accepted.request.id,
+                type: "damage-roll",
+                semanticType: normalized.result.type,
+                rollRequest,
+                rollResult: normalized.result,
+                roll: {total: normalized.result.total}
+              }
+            ]
+          }),
+          data: {
+            requestId: accepted.request.id,
+            rollRequestId: rollRequest.id,
+            semanticType: normalized.result.type
+          }
+        });
+      }
+
+      const rollRequest = damageRollRequestForState(state, input);
+      return waitResolutionStage({
+        state: updateResolutionState(state, {
+          rollRequests: appendRollRequest(state.rollRequests, rollRequest)
+        }),
+        request: createResolutionRequest({
+          id: rollRequest.id,
+          resolutionId: state.id,
+          stageId: ACTION_PIPELINE_STAGE_IDS.DAMAGE_ROLL,
+          type: RESOLUTION_REQUEST_TYPES.ROLL,
+          expectedResponseType: "roll-result",
+          chooser: rollRequest.chooser,
+          authority: rollRequest.authority,
+          validation: {
+            rollRequestId: rollRequest.id,
+            semanticType: rollRequest.type,
+            formula: rollFormulaForRequest(rollRequest).formula ?? null
+          },
+          payload: {
+            actionDefinitionId: state.actionDefinition?.id ?? null,
+            rollKind: "damage",
+            rollRequest,
+            damage: input.damage,
+            targets: input.targets ?? []
+          }
+        }),
+        reason: "Damage roll result is required before action resolution can continue."
+      });
+    }
+  });
+}
+
+function createDamageStage() {
+  return createResolutionPipelineStage({
+    id: ACTION_PIPELINE_STAGE_IDS.DAMAGE,
+    run(state, services={}) {
+      const input = {
+        ...preparedResolverInput(state),
+        durability: preparePlanningDurabilityOptions(state.input?.durability, services.targetActors)
+      };
+      if ( !shouldResolveDamage(input.damage) ) return continueResolutionStage({
+        state: updateResolutionState(state, {input})
+      });
+      const planning = ensureActionPlanningResult(state, input);
+      if ( planning.failed ) return planning.failed;
+      const {actionContext} = planning;
+      let {actionResult} = planning;
+
+      const damageResolution = resolveActionDamage({
+        damage: input.damage,
+        targetResolution: state.results?.targetResolution ?? null,
+        attackResolution: state.results?.attackResolution ?? null,
+        saveResolution: state.results?.saveResolution ?? null,
+        actionContext
+      });
+      if ( !damageResolution.ok ) {
+        return failActionPlanningStage({
+          state,
+          input,
+          actionResult,
+          stage: ACTION_RESOLUTION_STAGES.CONSEQUENCE,
+          code: ACTION_RESOLVER_CODES.DAMAGE_FAILED,
+          reason: damageResolution.code,
+          data: {damageResolution}
+        });
+      }
+
+      const durabilityResolution = resolveDamageDurability({
+        damage: input.damage,
+        durability: input.durability,
+        damageResolution,
+        actionContext
+      });
+      if ( durabilityResolution && !durabilityResolution.ok ) {
+        return failActionPlanningStage({
+          state,
+          input,
+          actionResult,
+          stage: ACTION_RESOLUTION_STAGES.CONSEQUENCE,
+          code: ACTION_RESOLVER_CODES.DAMAGE_FAILED,
+          reason: durabilityResolution.code,
+          data: {damageResolution, durabilityResolution}
+        });
+      }
+
+      actionResult = addResolutionStep(actionResult, {
+        stage: ACTION_RESOLUTION_STAGES.CONSEQUENCE,
+        consequences: [{
+          type: "damageResolved",
+          damageResolution,
+          ...(durabilityResolution ? {durabilityResolution} : {})
+        }],
+        mutationPlans: durabilityResolution?.mutationPlans ?? [],
+        data: {
+          damageResolution,
+          ...(durabilityResolution ? {durabilityResolution} : {})
+        }
+      });
+
+      return continueResolutionStage({
+        state: stateWithActionResult(state, {
+          input,
+          actionResult,
+          results: {damageResolution, ...(durabilityResolution ? {damageDurabilityResolution: durabilityResolution} : {})}
+        }),
+        data: {
+          resultCount: damageResolution.results.length,
+          mutationPlanCount: durabilityResolution?.mutationPlans?.length ?? 0
+        }
+      });
+    }
+  });
+}
+
+function createHealingStage() {
+  return createResolutionPipelineStage({
+    id: ACTION_PIPELINE_STAGE_IDS.HEALING,
+    run(state, services={}) {
+      const input = {
+        ...preparedResolverInput(state),
+        durability: preparePlanningDurabilityOptions(state.input?.durability, services.targetActors)
+      };
+      if ( !shouldResolveHealing(input.healing) ) return continueResolutionStage({
+        state: updateResolutionState(state, {input})
+      });
+      const planning = ensureActionPlanningResult(state, input);
+      if ( planning.failed ) return planning.failed;
+      const {actionContext} = planning;
+      let {actionResult} = planning;
+
+      const healingResolution = resolveActionHealing({
+        healing: input.healing,
+        targetResolution: state.results?.targetResolution ?? null,
+        actionContext
+      });
+      if ( !healingResolution.ok ) {
+        return failActionPlanningStage({
+          state,
+          input,
+          actionResult,
+          stage: ACTION_RESOLUTION_STAGES.CONSEQUENCE,
+          code: ACTION_RESOLVER_CODES.HEALING_FAILED,
+          reason: healingResolution.code,
+          data: {healingResolution}
+        });
+      }
+
+      const durabilityResolution = resolveHealingDurability({
+        healing: input.healing,
+        durability: input.durability,
+        healingResolution,
+        actionContext
+      });
+      if ( durabilityResolution && !durabilityResolution.ok ) {
+        return failActionPlanningStage({
+          state,
+          input,
+          actionResult,
+          stage: ACTION_RESOLUTION_STAGES.CONSEQUENCE,
+          code: ACTION_RESOLVER_CODES.HEALING_FAILED,
+          reason: durabilityResolution.code,
+          data: {healingResolution, durabilityResolution}
+        });
+      }
+
+      actionResult = addResolutionStep(actionResult, {
+        stage: ACTION_RESOLUTION_STAGES.CONSEQUENCE,
+        consequences: [{
+          type: "healingResolved",
+          healingResolution,
+          ...(durabilityResolution ? {durabilityResolution} : {})
+        }],
+        mutationPlans: durabilityResolution?.mutationPlans ?? [],
+        data: {
+          healingResolution,
+          ...(durabilityResolution ? {durabilityResolution} : {})
+        }
+      });
+
+      return continueResolutionStage({
+        state: stateWithActionResult(state, {
+          input,
+          actionResult,
+          results: {healingResolution, ...(durabilityResolution ? {healingDurabilityResolution: durabilityResolution} : {})}
+        }),
+        data: {
+          resultCount: healingResolution.results.length,
+          mutationPlanCount: durabilityResolution?.mutationPlans?.length ?? 0
+        }
+      });
+    }
+  });
+}
+
+function createEffectStage() {
+  return createResolutionPipelineStage({
+    id: ACTION_PIPELINE_STAGE_IDS.EFFECTS,
+    run(state) {
+      const input = preparedResolverInput(state);
+      if ( !shouldResolveEffects(input.effects) ) return continueResolutionStage({
+        state: updateResolutionState(state, {input})
+      });
+      const planning = ensureActionPlanningResult(state, input);
+      if ( planning.failed ) return planning.failed;
+      const {actionContext} = planning;
+      let {actionResult} = planning;
+
+      const effectResolution = resolveActionEffects({
+        effects: input.effects,
+        targetResolution: state.results?.targetResolution ?? null,
+        attackResolution: state.results?.attackResolution ?? null,
+        saveResolution: state.results?.saveResolution ?? null,
+        actionContext
+      });
+      if ( !effectResolution.ok ) {
+        return failActionPlanningStage({
+          state,
+          input,
+          actionResult,
+          stage: ACTION_RESOLUTION_STAGES.EFFECTS,
+          code: ACTION_RESOLVER_CODES.EFFECTS_FAILED,
+          reason: effectResolution.code,
+          data: {effectResolution}
+        });
+      }
+
+      actionResult = addResolutionStep(actionResult, {
+        stage: ACTION_RESOLUTION_STAGES.EFFECTS,
+        consequences: [{
+          type: "effectsResolved",
+          effectResolution
+        }],
+        mutationPlans: effectResolution.mutationPlans,
+        data: {effectResolution}
+      });
+
+      return continueResolutionStage({
+        state: stateWithActionResult(state, {
+          input,
+          actionResult,
+          results: {effectResolution}
+        }),
+        data: {
+          mutationPlanCount: effectResolution.mutationPlans.length
+        }
+      });
+    }
+  });
+}
+
+function createPaymentStage() {
+  return createResolutionPipelineStage({
+    id: ACTION_PIPELINE_STAGE_IDS.PAYMENT,
+    run(state) {
+      const input = preparedResolverInput(state);
+      const planning = ensureActionPlanningResult(state, input);
+      if ( planning.failed ) return planning.failed;
+      const {actionContext} = planning;
+      let {actionResult} = planning;
+
+      const payment = resolveActorResourcePayment({
+        actorSystem: input.actorSystem,
+        cost: actionActivationCost(input.action, state.actionDefinition),
+        action: actionContext.action,
+        policies: actionContext.policies,
+        selectedPaymentOptionId: input.selectedPaymentOptionId ?? null,
+        selectedPaymentPlan: state.configuration?.selectedPaymentPlan ?? input.configuration?.selectedPaymentPlan ?? null
+      });
+      if ( !payment.ok ) {
+        return failActionPlanningStage({
+          state,
+          input,
+          actionResult,
+          stage: ACTION_RESOLUTION_STAGES.RESOURCE_PAYMENT,
+          code: ACTION_RESOLVER_CODES.PAYMENT_UNAVAILABLE,
+          reason: payment.code,
+          data: {payment}
+        });
+      }
+
+      const paymentRequiredEvent = createActionLifecycleEvent(actionContext, {
+        type: AUTOMATION_EVENT_TYPES.PAYMENT_REQUIRED,
+        phase: AUTOMATION_EVENT_PHASES.BEFORE,
+        data: {
+          paymentPlan: payment.paymentPlan,
+          mutationPlan: payment.mutationPlan
+        }
+      });
+      actionResult = addResolutionStep(actionResult, {
+        stage: ACTION_RESOLUTION_STAGES.RESOURCE_PAYMENT,
+        events: [paymentRequiredEvent],
+        consequences: [{
+          type: "resourcePayment",
+          paymentPlan: payment.paymentPlan,
+          resourcesAfter: payment.resourcesAfter
+        }],
+        mutationPlans: [{
+          type: "resourcePayment",
+          resolver: "ResourceResolver",
+          plan: payment.mutationPlan
+        }],
+        data: {
+          paymentPlan: payment.paymentPlan,
+          discovery: payment.discovery
+        }
+      });
+
+      return continueResolutionStage({
+        state: stateWithActionResult(state, {
+          input,
+          actionResult,
+          results: {paymentResolution: payment}
+        }),
+        data: {
+          paymentPlan: payment.paymentPlan,
+          mutationPlanCount: actionResult.mutationPlans.length
         }
       });
     }
@@ -742,6 +1428,247 @@ function createReadyToCommitStage() {
           eventCount: state.events.length
         }
       });
+    }
+  });
+}
+
+/* -------------------------------------------- */
+
+function ensureActionPlanningResult(state, input=preparedResolverInput(state)) {
+  const existing = state.results?.actionResult;
+  if ( existing?.context ) return {
+    actionContext: existing.context,
+    actionResult: existing
+  };
+
+  const definitionValidation = state.validation?.find(entry => entry?.type === "action-definition") ?? null;
+  const actionContext = createActionContext({
+    ...(input.context ?? {}),
+    action: actionRef(input.action, state.actionDefinition, definitionValidation),
+    source: input.source ?? state.source,
+    targets: (input.targets?.length ? input.targets : input.context?.targets ?? []),
+    policies: {...(input.context?.policies ?? {}), ...(input.policies ?? {})}
+  });
+  const actionResult = beginActionResult(actionContext);
+  if ( actionResult.status === ACTION_RESULT_STATUS.FAILED ) {
+    return {
+      failed: failResolutionStage({
+        state: stateWithActionResult(state, {input, actionResult}),
+        code: actionResult.code,
+        reason: actionResult.errors[0]?.reason ?? actionResult.code,
+        errors: actionResult.errors,
+        data: {actionResult}
+      })
+    };
+  }
+  return {actionContext, actionResult};
+}
+
+function stateWithActionResult(state, {
+  input=state.input,
+  actionResult,
+  results={},
+  targets=null,
+  targetSet=null,
+  targetRefinement=null
+}={}) {
+  return updateResolutionState(state, {
+    input,
+    actionContext: actionResult.context,
+    targets: targets ?? state.targets,
+    targetSet: targetSet ?? state.targetSet,
+    targetRefinement: targetRefinement ?? state.targetRefinement,
+    mutationPlans: actionResult.mutationPlans,
+    events: actionResult.events,
+    results: {
+      ...state.results,
+      ...results,
+      actionResult
+    }
+  });
+}
+
+function failActionPlanningStage({
+  state,
+  input=state.input,
+  actionResult=null,
+  stage=null,
+  code=ACTION_PIPELINE_CODES.ACTION_PLANNING_FAILED,
+  reason=null,
+  errors=[],
+  data={}
+}={}) {
+  let result = actionResult;
+  if ( !result ) {
+    const planning = ensureActionPlanningResult(state, input);
+    if ( planning.failed ) return planning.failed;
+    result = planning.actionResult;
+  }
+
+  const failedResult = failActionResult(result, {
+    stage,
+    code,
+    reason,
+    errors,
+    data
+  });
+  return failResolutionStage({
+    state: stateWithActionResult(state, {input, actionResult: failedResult}),
+    code,
+    reason,
+    errors: failedResult.errors,
+    data: {
+      ...data,
+      actionResult: failedResult
+    }
+  });
+}
+
+function invalidActionDefinitionValidation(state) {
+  const validation = state.validation?.find(entry => entry?.type === "action-definition") ?? null;
+  return validation && validation.ok === false ? validation : null;
+}
+
+function rangeDefinitionFromInput(input) {
+  return input.context?.rangeDefinition
+    ?? input.range
+    ?? input.targeting?.range
+    ?? input.attack?.range
+    ?? input.action?.system?.definition?.range
+    ?? null;
+}
+
+function sourceFootprintFromInput(input) {
+  const spatial = spatialInput(input);
+  return spatial?.sourceFootprint
+    ?? spatial?.source?.footprint
+    ?? input.source?.footprint
+    ?? input.source?.tokenFootprint
+    ?? null;
+}
+
+function targetFootprintForContext(input, targetContext) {
+  const target = targetContext?.target ?? targetContext;
+  const refs = targetLookupRefs(target);
+  for ( const entry of targetFootprintEntries(input) ) {
+    const footprint = entry?.footprint ?? (entry?.type === "TokenGridFootprint" || entry?.fields ? entry : null);
+    if ( !footprint ) continue;
+    const entryRefs = targetLookupRefs(entry?.target ?? entry);
+    if ( refs.some(ref => entryRefs.includes(ref)) || entry?.id === targetContext?.id || entry?.id === target?.id ) {
+      return footprint;
+    }
+  }
+  const occupiedFields = targetContext?.occupiedFields ?? target?.occupiedFields ?? null;
+  const sourceFootprint = sourceFootprintFromInput(input);
+  if ( occupiedFields?.length && sourceFootprint?.topology ) {
+    return {
+      type: "GridFootprint",
+      topology: sourceFootprint.topology,
+      fields: occupiedFields
+    };
+  }
+  return null;
+}
+
+function targetFootprintEntries(input) {
+  const spatial = spatialInput(input);
+  return [
+    ...normalizeArray(spatial?.targetFootprints),
+    ...normalizeArray(spatial?.tokenFootprints),
+    ...normalizeArray(spatial?.targets),
+    ...normalizeArray(input.targeting?.candidates),
+    ...normalizeArray(input.targeting?.targetSet?.candidates),
+    ...normalizeArray(input.targets)
+  ];
+}
+
+function spatialInput(input) {
+  return input.spatial
+    ?? input.context?.spatial
+    ?? input.context?.tactical
+    ?? null;
+}
+
+function spatialSummary(input) {
+  const spatial = spatialInput(input);
+  return {
+    hasSourceFootprint: !!sourceFootprintFromInput(input),
+    targetFootprintCount: targetFootprintEntries(input).filter(entry => entry?.footprint || entry?.fields).length,
+    gridDistance: gridDistanceFromInput(input),
+    metadata: clonePlain(spatial?.metadata ?? {})
+  };
+}
+
+function gridDistanceFromInput(input) {
+  const spatial = spatialInput(input);
+  return finiteNumber(spatial?.gridDistance)
+    ?? finiteNumber(spatial?.sceneContext?.grid?.distance)
+    ?? finiteNumber(input.context?.sceneContext?.grid?.distance)
+    ?? finiteNumber(input.context?.rangeDefinition?.distance?.gridDistance)
+    ?? null;
+}
+
+function rangeBandForDistance(range, distance) {
+  const type = range?.type ?? "special";
+  if ( type === "self" ) {
+    return distance <= 0
+      ? {ok: true, code: ACTION_PIPELINE_CODES.OK, band: "self"}
+      : {ok: false, code: ACTION_PIPELINE_CODES.TARGET_OUT_OF_RANGE, band: null};
+  }
+
+  if ( type === "touch" || type === "reach" ) {
+    const maxDistance = distanceValue(range.distance ?? range.normal) ?? 5;
+    return distance <= maxDistance
+      ? {ok: true, code: ACTION_PIPELINE_CODES.OK, band: type}
+      : {ok: false, code: ACTION_PIPELINE_CODES.TARGET_OUT_OF_RANGE, band: null};
+  }
+
+  if ( type === "ranged" ) {
+    const normal = distanceValue(range.normal ?? range.distance);
+    const long = distanceValue(range.long) ?? normal;
+    if ( normal != null && distance <= normal ) return {ok: true, code: ACTION_PIPELINE_CODES.OK, band: "normal"};
+    if ( long != null && distance <= long ) return {ok: true, code: ACTION_PIPELINE_CODES.OK, band: "long"};
+    return {ok: false, code: ACTION_PIPELINE_CODES.TARGET_OUT_OF_RANGE, band: null};
+  }
+
+  const maxDistance = distanceValue(range.distance ?? range.normal ?? range.long);
+  if ( maxDistance == null ) return {ok: true, code: ACTION_PIPELINE_CODES.OK, band: type};
+  return distance <= maxDistance
+    ? {ok: true, code: ACTION_PIPELINE_CODES.OK, band: type}
+    : {ok: false, code: ACTION_PIPELINE_CODES.TARGET_OUT_OF_RANGE, band: null};
+}
+
+function distanceValue(distance) {
+  if ( distance == null ) return null;
+  if ( typeof distance === "number" ) return finiteNumber(distance);
+  return finiteNumber(distance.value ?? distance.amount ?? distance.distance);
+}
+
+function damageComponentsHaveAmounts(components=[]) {
+  const entries = normalizeArray(components);
+  return !entries.length || entries.every(component => component?.amount != null);
+}
+
+function attackResolvedAsOnlyMisses(state) {
+  const attackResolution = state.results?.attackResolution;
+  return !!attackResolution && !attackResolution.hits?.length && !!attackResolution.misses?.length;
+}
+
+function damageRollRequestForState(state, input) {
+  const damage = input.damage ?? {};
+  return createDamageRollRequest({
+    id: requestIdFor(state, "damage-roll"),
+    resolutionId: state.id,
+    type: ROLL_TYPES.DAMAGE,
+    components: damage.components ?? [],
+    formula: damage.formula ?? damage.rollFormula ?? null,
+    source: state.source ?? input.source ?? null,
+    target: firstRollTarget(input),
+    chooser: damage.chooser ?? ROLL_AUTHORITY.SOURCE_CONTROLLER,
+    authority: damage.authority ?? {kind: ROLL_AUTHORITY.SOURCE_CONTROLLER},
+    metadata: {
+      actionDefinitionId: state.actionDefinition?.id ?? null,
+      rollKind: "damage"
     }
   });
 }

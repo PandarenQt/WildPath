@@ -43,6 +43,7 @@ import {
   actionDefinitionFromAction,
   actionDefinitionToResolverInput
 } from "../helpers/action-definitions.mjs";
+import {targetLookupRefs} from "../helpers/target-actor-refs.mjs";
 import {
   resolveActionConfiguration,
   validateResolvedActionConfiguration
@@ -470,7 +471,8 @@ export async function executeActionResolution({
   authority=null,
   context={},
   policies={},
-  selectedPaymentOptionId=null
+  selectedPaymentOptionId=null,
+  persistencePort=null
 }={}) {
   const executionDurability = prepareExecutionDurabilityOptions(durability, targetActors);
   const result = planActionResolution({
@@ -496,11 +498,28 @@ export async function executeActionResolution({
     return result;
   }
 
+  return commitPlannedActionResult({
+    result,
+    actor,
+    targetActors,
+    authority,
+    persistencePort
+  });
+}
+
+/* -------------------------------------------- */
+
+export async function commitPlannedActionResult({result, actor, targetActors, authority, persistencePort=null}={}) {
+  if ( result?.status === ACTION_RESULT_STATUS.FAILED || result?.status === ACTION_RESULT_STATUS.CANCELLED ) {
+    return result;
+  }
+
   const transactionCommit = await executeActionMutationTransaction({
     result,
     actor,
     targetActors,
-    authority
+    authority,
+    persistencePort
   });
   if ( !transactionCommit.ok ) {
     return failActionResult(result, {
@@ -532,7 +551,7 @@ export async function executeActionResolution({
 
 /* -------------------------------------------- */
 
-async function executeActionMutationTransaction({result, actor, targetActors, authority}) {
+export async function executeActionMutationTransaction({result, actor, targetActors, authority, persistencePort=null}={}) {
   const targetMutationPlans = result.mutationPlans.filter(plan => plan.type !== "resourcePayment");
   const paymentMutationPlans = result.mutationPlans.filter(plan => plan.type === "resourcePayment");
   const unsupportedMutationPlans = targetMutationPlans.filter(plan => !isSupportedTargetMutationPlan(plan));
@@ -550,6 +569,7 @@ async function executeActionMutationTransaction({result, actor, targetActors, au
     mutationPlans: targetMutationPlans,
     targetActors,
     authority,
+    persistencePort,
     metadata: {action: result.context?.action ?? null}
   });
   if ( !targetOperations.ok ) {
@@ -568,6 +588,7 @@ async function executeActionMutationTransaction({result, actor, targetActors, au
     actorRef: actor?.uuid ?? (actor?.id ? `actor:${actor.id}` : null),
     actor,
     mutationPlan: mutationPlan.plan,
+    persistencePort,
     metadata: {
       role: "sourcePayment",
       action: result.context?.action ?? null,
@@ -576,6 +597,7 @@ async function executeActionMutationTransaction({result, actor, targetActors, au
   }));
   const transaction = await executeResolutionTransaction({
     operations: [...targetOperations.operations, ...sourceOperations],
+    persistencePort,
     metadata: {action: result.context?.action ?? null}
   });
   if ( transaction.ok ) {
@@ -598,7 +620,7 @@ async function executeActionMutationTransaction({result, actor, targetActors, au
 
 /* -------------------------------------------- */
 
-function actionRef(action, actionDefinition=null, definitionResult=null) {
+export function actionRef(action, actionDefinition=null, definitionResult=null) {
   return {
     id: actionDefinition?.id ?? action?.id ?? action?.uuid ?? null,
     uuid: action?.uuid ?? null,
@@ -621,7 +643,7 @@ function actionRef(action, actionDefinition=null, definitionResult=null) {
   };
 }
 
-function actionActivationCost(action, actionDefinition=null) {
+export function actionActivationCost(action, actionDefinition=null) {
   if ( actionDefinition ) return actionDefinitionActivationCost(actionDefinition);
   return action?.system?.getActivationCost?.() ?? action?.activationCost ?? action?.cost ?? {allOf: []};
 }
@@ -730,7 +752,7 @@ function actorSource(actor) {
   };
 }
 
-function prepareExecutionDurabilityOptions(durability, targetActors) {
+export function prepareExecutionDurabilityOptions(durability, targetActors) {
   if ( !durability || !targetActors ) return durability;
   const options = durability === true ? {} : {...durability};
   if ( options.targetSystems ) return durability;
@@ -761,37 +783,37 @@ function isSupportedTargetMutationPlan(plan) {
   return ["durabilityDamage", "durabilityHealing", "durabilityAbsorption", "conditionEffect"].includes(plan.type);
 }
 
-function shouldResolveTargets({targeting, actionContext}) {
+export function shouldResolveTargets({targeting, actionContext}) {
   return !!targeting || !!actionContext.targetSet || !!actionContext.targets?.length;
 }
 
-function shouldResolveAttack(attack) {
+export function shouldResolveAttack(attack) {
   return !!attack;
 }
 
-function shouldResolveSave(save) {
+export function shouldResolveSave(save) {
   return !!save;
 }
 
-function shouldResolveDamage(damage) {
+export function shouldResolveDamage(damage) {
   return !!damage;
 }
 
-function shouldResolveHealing(healing) {
+export function shouldResolveHealing(healing) {
   return !!healing;
 }
 
-function shouldResolveEffects(effects) {
+export function shouldResolveEffects(effects) {
   if ( Array.isArray(effects) ) return effects.length > 0;
   if ( !effects ) return false;
   return !!effects.condition || !!effects.conditions?.length;
 }
 
-function finalTargetRefs(targetResolution) {
+export function finalTargetRefs(targetResolution) {
   return (targetResolution.refinement?.finalTargets ?? []).map(candidate => candidate.target ?? candidate);
 }
 
-function attackEvents(actionContext, attackResolution) {
+export function attackEvents(actionContext, attackResolution) {
   const events = [createActionLifecycleEvent(actionContext, {
     type: AUTOMATION_EVENT_TYPES.ATTACK_ROLL,
     phase: AUTOMATION_EVENT_PHASES.AFTER,
@@ -814,7 +836,7 @@ function attackEvents(actionContext, attackResolution) {
   return events;
 }
 
-function saveEvents(actionContext, saveResolution) {
+export function saveEvents(actionContext, saveResolution) {
   const events = [];
   for ( const result of saveResolution.results.filter(result => result.code !== SAVE_RESOLVER_CODES.TARGET_SKIPPED) ) {
     events.push(createActionLifecycleEvent(actionContext, {
@@ -835,7 +857,7 @@ function saveEvents(actionContext, saveResolution) {
   return events;
 }
 
-function resolveActionDamage({damage, targetResolution, attackResolution, saveResolution, actionContext}) {
+export function resolveActionDamage({damage, targetResolution, attackResolution, saveResolution, actionContext}) {
   if ( attackResolution && !attackResolution.hits.length ) {
     return emptyDamageResolutionFromMisses(attackResolution, {
       action: actionContext.action,
@@ -870,7 +892,7 @@ function resolveActionDamage({damage, targetResolution, attackResolution, saveRe
   } : result;
 }
 
-function resolveDamageDurability({damage, durability, damageResolution, actionContext}) {
+export function resolveDamageDurability({damage, durability, damageResolution, actionContext}) {
   const options = normalizeDamageDurabilityOptions(durability ?? damage?.durability);
   if ( !options ) return null;
   return planDamageDurabilityMutations({
@@ -888,7 +910,7 @@ function resolveDamageDurability({damage, durability, damageResolution, actionCo
   });
 }
 
-function resolveActionHealing({healing, targetResolution, actionContext}) {
+export function resolveActionHealing({healing, targetResolution, actionContext}) {
   const targetContexts = healing.targetContexts
     ?? targetResolution?.targetContexts
     ?? [];
@@ -904,7 +926,7 @@ function resolveActionHealing({healing, targetResolution, actionContext}) {
   });
 }
 
-function resolveHealingDurability({healing, durability, healingResolution, actionContext}) {
+export function resolveHealingDurability({healing, durability, healingResolution, actionContext}) {
   const options = normalizeDamageDurabilityOptions(durability?.healing ?? healing?.durability ?? durability);
   if ( !options ) return null;
   return planHealingDurabilityMutations({
@@ -919,7 +941,7 @@ function resolveHealingDurability({healing, durability, healingResolution, actio
   });
 }
 
-function resolveActionEffects({effects, targetResolution, attackResolution, saveResolution, actionContext}) {
+export function resolveActionEffects({effects, targetResolution, attackResolution, saveResolution, actionContext}) {
   const requests = normalizeActionConditionEffectRequests({effects, actionContext});
   const conditionPlans = [];
   const mutationPlans = [];
@@ -1242,13 +1264,16 @@ function normalizeDamageDurabilityOptions(options) {
 function componentsForTargetFromSaveOutcomePolicy({damage, saveResolution}) {
   const policy = damage.saveOutcomePolicy ?? damage.savePolicy ?? null;
   if ( !policy || !saveResolution ) return null;
-  const saveResultsByTargetId = new Map(saveResolution.results
-    .filter(result => result.ok && result.target?.id)
-    .map(result => [result.target.id, result]));
+  const saveResults = saveResolution.results
+    .filter(result => result.ok)
+    .map(result => ({
+      result,
+      refs: targetLookupRefs(result.target)
+    }));
 
   return (targetContext, components) => {
-    const targetId = targetContext.target?.id ?? targetContext.id ?? null;
-    const saveResult = saveResultsByTargetId.get(targetId);
+    const refs = targetLookupRefs(targetContext.target ?? targetContext);
+    const saveResult = saveResults.find(entry => refs.some(ref => entry.refs.includes(ref)))?.result ?? null;
     if ( !saveResult ) return components;
     return applySaveOutcomeDamagePolicy(components, saveResult, policy);
   };

@@ -129,13 +129,15 @@ Stages before commit must not perform irreversible Foundry document mutation. Th
 mutation plans and semantic events.
 
 The commit boundary remains `module/resolvers/resolution-transaction-resolver.mjs`, which performs
-ordered commits and rollback. The staged action wrapper currently reaches that boundary by
-delegating commit to the existing `executeActionResolution()` implementation.
+ordered commits and rollback. Staged action execution now reaches that boundary with the
+already-planned `ActionResult`, then commits through `DocumentPersistencePort` instead of
+replanning through the compatibility resolver.
 
 ## Current Action Wrapper
 
-`module/resolvers/action-pipeline-resolver.mjs` is the first strangler wrapper around the existing
-procedural `ActionResolver`.
+`module/resolvers/action-pipeline-resolver.mjs` is now the staged action orchestration path for
+representative execution slices. `ActionResolver` remains the compatibility facade and shared
+planning/helper module for direct callers.
 
 It currently provides:
 
@@ -150,36 +152,46 @@ The current stage sequence is:
 ```text
 action.configuration
 -> action.targeting
+-> action.range
 -> action.attack-roll
+-> action.attack-outcome
 -> action.save-roll
--> action.legacy-resolution
+-> action.save-outcome
+-> action.damage-roll
+-> action.damage
+-> action.healing
+-> action.effects
+-> action.payment
 -> action.ready-to-commit
 ```
 
-Planning stops at `ready-to-commit`. Execution then marks `action.commit`, delegates to
-`executeActionResolution()`, and records `action.finalization` on success.
+Planning stops at `ready-to-commit`. Execution then marks `action.commit`, commits the staged
+result through `commitPlannedActionResult()` and the transaction/persistence boundary, and records
+`action.finalization` on success.
 
 This wrapper can:
 
 - pause for required Action Configuration and resume with responses
 - revalidate supplied `ResolvedActionConfiguration`
 - pause for target selection or target refinement
-- pause for an attack or save roll result
+- pause for attack, save, or damage roll results
 - preserve completed stage ids across resume
+- resolve target, range, attack, save, damage, healing, effect, and payment stages through existing
+  domain resolvers
 - plan without mutating Actors
-- commit through the existing transaction path
+- commit through the existing transaction path and `DocumentPersistencePort`
 - preserve rollback behavior when a later commit operation fails
 
 ## Current Limitations
 
-The wrapper intentionally does not yet extract the internal target, attack, save, damage, healing,
-effect, payment, or commit logic out of `ActionResolver`. `action.legacy-resolution` remains the
-parity stage.
+The staged path intentionally covers representative persisted action slices rather than every future
+mechanic. Direct `ActionResolver` callers can still use the compatibility planning/execution API,
+and some presentation, document-lifecycle, and generic ActiveEffect responsibilities remain outside
+the staged resolver.
 
-The commit phase still calls `executeActionResolution()`, which replans before committing so it can
-reuse existing validation and transaction behavior. That is acceptable for this strangler slice,
-but a later milestone should extract a dedicated async `CommitStage` over already-planned mutation
-plans once parity tests cover the full resolver surface.
+The `ACTION_PIPELINE_STAGE_IDS.LEGACY_RESOLUTION` constant remains only as audit vocabulary for
+older tests/docs. The default action pipeline no longer includes an `action.legacy-resolution`
+stage.
 
 The Roll abstraction is now implemented. `module/helpers/rolls.mjs` defines the serializable
 RollRequest/RollResult contracts, `module/resolvers/roll-provider-resolver.mjs` provides provider
@@ -188,9 +200,10 @@ selection plus manual/physical/test providers, and
 manual, and physical sources feed the same typed `roll` request/result path.
 
 Manual/physical input can now route through the generic Foundry-facing prompt/choice adapter. The
-remaining integration gap is multiplayer authority/socket routing. ResolutionState must continue to
-store plain request/result data rather than Foundry Roll objects, Applications, callbacks, or pending
-Promises.
+remaining integration gap is multiplayer authority/socket routing, especially for deciding which
+client owns each pending request and who performs the authoritative commit. ResolutionState must
+continue to store plain request/result data rather than Foundry Roll objects, Applications,
+callbacks, or pending Promises.
 
 Reaction windows are not executed here. Future reaction work should insert waitable stages around
 semantic events such as after declaration, before/after attack roll, after hit determination, and
