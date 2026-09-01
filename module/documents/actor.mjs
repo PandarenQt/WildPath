@@ -213,8 +213,11 @@ export default class WildPathActor extends Actor {
   /* -------------------------------------------- */
 
   /**
-   * Spend the resource cost of an Action item. Does not perform any other action resolution
-   * (attack rolls, effects, etc.) - this is purely the action-economy bookkeeping groundwork.
+   * Legacy/compatibility helper: resolves an Action through the older synchronous
+   * `executeActionResolution` resolver (no pause/resume, reactions, prompts, or TacticalGrid
+   * context). No longer the player-facing execution path - `WildPathItem#use()` now declares
+   * an Action intent through the authoritative multiplayer runtime instead. Kept for direct
+   * programmatic callers that need a synchronous resource-only resolution.
    * @param {Item} action   An Item of type "action".
    * @returns {Promise<boolean>}   Whether the cost was successfully paid.
    */

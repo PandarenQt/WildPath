@@ -235,15 +235,28 @@ configured/scaling actions now execute through staged resolution, RollProvider r
 adapter footprints, mutation plans, transaction, and persistence ports in Node integration tests.
 Live Foundry V14 runtime QA is still required.
 
+Production-wiring status (previously the largest open gap): `WildPathItem#use()` now declares an
+Action intent (`buildFoundryActionUseIntent()`) through `game.wildpath.executeActionIntent()` -
+the same multiplayer authority coordinator and staged pipeline proven above - instead of calling
+the legacy synchronous resolver. `foundryActionIntentToStagedOptions()` now builds real TacticalGrid
+spatial context (source/target footprints) via `createFoundryV14TacticalGridAdapter()` from the
+acting Actor's canvas Token(s) and the player's native `game.user.targets` selection. This closes
+the gap where the staged pipeline, reactions, and the TacticalGrid adapter existed and were tested
+but had no real Foundry runtime caller. Live Foundry V14 runtime QA is still required; see
+`test/foundry-action-runtime.test.mjs` for the Node-level production-entry proof.
+
 ## Stage E — Legacy Resolution Extraction
 
 Replace `action.legacy-resolution` one responsibility at a time with dedicated stages calling the
 existing domain resolvers. Preserve behavior and parity tests.
 
 Status: `action.legacy-resolution` is no longer part of the default action pipeline. The legacy
-`ActionResolver` remains as a direct-call compatibility facade and shared planning helper source.
-Remaining extraction work is direct callers and older document/lifecycle paths, not the normal
-staged vertical-slice execution path.
+`ActionResolver#executeActionResolution` is a compatibility helper with exactly one production
+caller (`WildPathActor#useAction`, itself no longer the player-facing execution path - see the
+production-wiring note under Stage D). It is not shared planning code for the staged pipeline;
+`action-pipeline-resolver.mjs` calls the same underlying target/attack/save/damage/effect resolvers
+directly. Remaining extraction work is limited to `useAction()` and older document/lifecycle paths,
+not the normal staged vertical-slice execution path.
 
 ## Stage F — Multiplayer Authority / Sockets
 

@@ -49,13 +49,15 @@ export function createMultiplayerActionCoordinator({
   canCommitLocally=false,
   activeGMUserId=null,
   duplicateCacheLimit=200,
-  logger=null
+  logger=null,
+  notify=null
 }={}) {
   const localUserId = stringOrNull(userId ?? transport?.userId);
   const records = new Map();
   const completedResults = new Map();
   const notifications = [];
   const errors = [];
+  const initiatedAuthorities = new Map();
   const seenMessages = createBoundedIdCache({limit: duplicateCacheLimit});
   const seenIntents = createBoundedIdCache({limit: duplicateCacheLimit});
 
@@ -111,6 +113,7 @@ export function createMultiplayerActionCoordinator({
       });
       const sent = await sendEnvelope(envelope);
       if ( !sent.ok ) return sent;
+      initiatedAuthorities.set(resolutionId, authority.userId);
       return {
         ok: true,
         code: MULTIPLAYER_AUTHORITY_CODES.OK,
@@ -610,13 +613,22 @@ export function createMultiplayerActionCoordinator({
   }
 
   function receiveResolutionResult(envelope) {
+    const expectedAuthorityUserId = expectedAuthorityForResolution(envelope.resolutionId);
+    if ( expectedAuthorityUserId && (envelope.senderUserId !== expectedAuthorityUserId) ) return {
+      ok: false,
+      code: MULTIPLAYER_AUTHORITY_CODES.WRONG_AUTHORITY,
+      reason: "Resolution result did not come from the authoritative client for this resolution.",
+      resolutionId: envelope.resolutionId
+    };
     const result = clonePlainData(envelope.payload?.result ?? envelope.payload, "resolutionResult");
     completedResults.set(envelope.resolutionId, result);
-    notifications.push({
+    const notification = {
       type: MULTIPLAYER_MESSAGE_TYPES.RESOLUTION_RESULT,
       envelope,
       result
-    });
+    };
+    notifications.push(notification);
+    notify?.(notification);
     return {
       ok: true,
       code: MULTIPLAYER_AUTHORITY_CODES.OK,
@@ -625,18 +637,34 @@ export function createMultiplayerActionCoordinator({
   }
 
   function receiveResolutionError(envelope) {
+    const expectedAuthorityUserId = expectedAuthorityForResolution(envelope.resolutionId);
+    if ( expectedAuthorityUserId && (envelope.senderUserId !== expectedAuthorityUserId) ) return {
+      ok: false,
+      code: MULTIPLAYER_AUTHORITY_CODES.WRONG_AUTHORITY,
+      reason: "Resolution error did not come from the authoritative client for this resolution."
+    };
     const error = clonePlainData(envelope.payload ?? {}, "resolutionError");
-    errors.push({
+    const notification = {
       type: MULTIPLAYER_MESSAGE_TYPES.RESOLUTION_ERROR,
       envelope,
       error
-    });
+    };
+    errors.push(notification);
+    notify?.(notification);
     return {
       ok: false,
       code: error.code ?? MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_RESOLUTION_FAILED,
       reason: error.reason ?? null,
       error
     };
+  }
+
+  function expectedAuthorityForResolution(resolutionId) {
+    const id = stringOrNull(resolutionId);
+    if ( !id ) return null;
+    const record = findRecordForResolutionId(id);
+    if ( record ) return record.authorityUserId;
+    return initiatedAuthorities.get(id) ?? null;
   }
 
   async function sendResolutionResult(record, result={}) {

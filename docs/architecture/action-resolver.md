@@ -177,8 +177,11 @@ successfully.
 - records `action.commit` and `action.finalization` trace entries
 - preserves rollback behavior when later transaction operations fail
 
-`WildPathActor#useAction()` now uses `executeActionResolution()` while preserving its current
-boolean return behavior.
+`WildPathActor#useAction()` still uses `executeActionResolution()` while preserving its current
+boolean return behavior, but it is a legacy/compatibility helper only. The player-facing execution
+path is `WildPathItem#use()`, which declares an Action intent through `game.wildpath.executeActionIntent`
+(the multiplayer authority coordinator and staged Action pipeline) instead of calling `useAction()`.
+See `docs/architecture/multiplayer-authority.md` and `foundry-multiplayer-runtime.mjs`.
 
 Invalid persisted definitions fail during validation with `ACTION_DEFINITION_INVALID`; payment is
 not planned.

@@ -2,6 +2,14 @@
 
 This document records the first Foundry V14 tactical-grid adapter proof for WildPath.
 
+Production wiring: `module/resolvers/foundry-multiplayer-runtime.mjs`'s
+`foundryActionIntentToStagedOptions()` now instantiates this adapter on the authoritative client to
+build source/target footprints from the real Actor's canvas Token(s) and the player's
+`game.user.targets` selection, feeding `context.spatial` into the staged Action pipeline. Previously
+this adapter had no production caller and was exercised only by Node tests against fake Scene/Grid
+data; see `test/foundry-action-runtime.test.mjs` for the production-entry regression proof. Live
+Foundry V14 runtime QA is still required.
+
 ## Ownership
 
 On gridded scenes, WildPath spatial mechanics remain authoritative:

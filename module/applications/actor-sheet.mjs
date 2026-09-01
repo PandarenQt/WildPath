@@ -63,8 +63,8 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
   static async #onUseItem(event, target) {
     const item = this.actor.items.get(target.closest("[data-item-id]")?.dataset.itemId);
     if ( !item ) return;
-    const used = await item.use();
-    if ( used === false ) ui.notifications.warn(`Not enough resources to use ${item.name}.`);
+    // Item#use() already surfaces a specific failure notification; nothing further to show here.
+    await item.use();
   }
 
   /* -------------------------------------------- */

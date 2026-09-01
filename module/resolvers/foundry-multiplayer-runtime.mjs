@@ -5,6 +5,7 @@ import {
   createFoundryV14ResolutionSocketAdapter,
   foundryUserDirectory
 } from "../adapters/foundry-v14-resolution-socket-adapter.mjs";
+import {createFoundryV14TacticalGridAdapter} from "../adapters/foundry-v14-tactical-grid-adapter.mjs";
 import {
   MULTIPLAYER_AUTHORITY_CODES,
   clonePlainData
@@ -47,7 +48,8 @@ export function registerFoundryV14MultiplayerResolution({
       intent,
       userId,
       game
-    })
+    }),
+    notify: event => notifyMultiplayerFailure(event, {logger})
   });
   const registration = coordinator.register();
   const runtime = {
@@ -74,6 +76,72 @@ export function registerFoundryV14MultiplayerResolution({
 
 /* -------------------------------------------- */
 
+/**
+ * Build the non-authoritative Action intent a Foundry client sends when a player uses an
+ * Action Item. Only stable references and the client's own Foundry-native target selection
+ * (`game.user.targets`) are included; the authoritative client reconstructs everything else.
+ * @param {object} options
+ * @param {Actor} options.actor
+ * @param {Item} options.action
+ * @param {Game} [options.game]
+ * @returns {{ok: boolean, code?: string, reason?: string, intent?: object}}
+ */
+export function buildFoundryActionUseIntent({actor=null, action=null, game=globalThis.game}={}) {
+  if ( !actor || !action ) return {
+    ok: false,
+    code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
+    reason: "An Actor and an Action Item are required to build an Action intent."
+  };
+  const sourceToken = actor.token ?? null;
+  return {
+    ok: true,
+    intent: {
+      actorRef: actor.uuid ?? (actor.id ? `Actor.${actor.id}` : null),
+      actionRef: action.uuid ?? (action.id ? `Item.${action.id}` : null),
+      source: {
+        tokenId: sourceToken?.id ?? null,
+        tokenRef: sourceToken?.uuid ?? null,
+        sceneId: sourceToken?.parent?.id ?? null
+      },
+      targetRefs: foundryUserTargetRefs(game)
+    }
+  };
+}
+
+function foundryUserTargetRefs(game=globalThis.game) {
+  const targets = game?.user?.targets;
+  if ( !targets || typeof targets.values !== "function" ) return [];
+  const refs = [];
+  for ( const placeable of targets.values() ) {
+    const tokenDocument = placeable?.document ?? placeable;
+    const targetActor = tokenDocument?.actor ?? null;
+    if ( !targetActor ) continue;
+    refs.push({
+      actorRef: targetActor.uuid ?? null,
+      actorId: targetActor.id ?? null,
+      tokenId: tokenDocument.id ?? null,
+      sceneId: tokenDocument.parent?.id ?? null
+    });
+  }
+  return refs;
+}
+
+/**
+ * Report a multiplayer resolution failure to the local user through Foundry's notification UI.
+ * This is intentionally minimal - a full chat-card/result surface is a later product milestone.
+ */
+function notifyMultiplayerFailure(event={}, {logger=globalThis.console}={}) {
+  if ( !event?.error ) return;
+  const reason = event.error.reason ?? event.error.code ?? "Action resolution failed.";
+  if ( typeof globalThis.ui?.notifications?.warn === "function" ) {
+    globalThis.ui.notifications.warn(`Wild Path | ${reason}`);
+  } else {
+    logger?.warn?.("Wild Path | Multiplayer action resolution failed", event.error);
+  }
+}
+
+/* -------------------------------------------- */
+
 export async function foundryActionIntentToStagedOptions({intent={}, game=globalThis.game, persistencePort=null}={}) {
   const actorRef = intent.actorRef ?? intent.actorUuid ?? intent.source?.actorRef ?? intent.source?.uuid ?? null;
   const actor = await resolveFoundryDocumentRef(actorRef, {game, kind: "actor"});
@@ -92,6 +160,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, game=global
 
   const targetActors = {};
   const targets = [];
+  const targetEntries = [];
   for ( const ref of normalizeArray(intent.targetRefs ?? intent.targets) ) {
     const targetRef = targetActorRefFromIntent(ref);
     const targetActor = await resolveFoundryDocumentRef(targetRef, {game, kind: "actor"});
@@ -106,15 +175,32 @@ export async function foundryActionIntentToStagedOptions({intent={}, game=global
     for ( const key of uniqueStrings([targetActor.uuid, targetActor.id, `actor:${targetActor.id}`, targetRef]) ) {
       targetActors[key] = targetActor;
     }
+    targetEntries.push({
+      actor: targetActor,
+      hint: {
+        tokenId: stringOrNull(typeof ref === "object" ? ref.tokenId : null),
+        sceneId: stringOrNull(typeof ref === "object" ? ref.sceneId : null)
+      }
+    });
   }
+
+  const sourceTokenResolution = resolveFoundrySourceToken({actor, source: intent.source ?? {}, game});
+  if ( !sourceTokenResolution.ok ) return {
+    ok: false,
+    code: sourceTokenResolution.code,
+    reason: sourceTokenResolution.reason
+  };
+  const sourceToken = sourceTokenResolution.token;
 
   const source = {
     actorId: actor.id ?? null,
     actorRef: actor.uuid ?? actorRef,
     uuid: actor.uuid ?? null,
-    tokenId: intent.source?.tokenId ?? intent.tokenId ?? null,
-    tokenRef: intent.source?.tokenRef ?? intent.tokenRef ?? null
+    tokenId: sourceToken?.id ?? intent.source?.tokenId ?? intent.tokenId ?? null,
+    tokenRef: sourceToken?.uuid ?? intent.source?.tokenRef ?? intent.tokenRef ?? null
   };
+
+  const spatial = buildFoundryActionSpatialContext({sourceToken, targetEntries, game});
 
   return {
     ok: true,
@@ -124,6 +210,8 @@ export async function foundryActionIntentToStagedOptions({intent={}, game=global
       source,
       targets,
       targetActors,
+      targeting: spatial?.targetFootprints.length ? {candidates: spatial.targetFootprints} : null,
+      context: spatial ? {spatial: spatial.context} : {},
       durability: true,
       configuration: clonePlainData(intent.configuration ?? null, "intent.configuration"),
       persistencePort
@@ -136,6 +224,109 @@ export async function foundryActionIntentToStagedOptions({intent={}, game=global
       ]))
     }
   };
+}
+
+/**
+ * Build WildPath TacticalGrid spatial context (source/target footprints) from real Foundry
+ * Scene/Token data via the canonical Foundry V14 TacticalGrid adapter. Returns `null` when no
+ * source Token/Scene can be resolved - non-spatial Actions must still be able to execute.
+ */
+function buildFoundryActionSpatialContext({sourceToken=null, targetEntries=[], game=globalThis.game}={}) {
+  if ( !sourceToken?.parent ) return null;
+  const adapter = createFoundryV14TacticalGridAdapter({scene: sourceToken.parent});
+  const sceneContext = adapter.getSceneContext();
+  if ( !sceneContext.ok ) return null;
+  const sourceFootprintResult = adapter.tokenToFootprint(sourceToken);
+  if ( !sourceFootprintResult.ok || !sourceFootprintResult.footprint ) return null;
+
+  const targetFootprints = [];
+  for ( const entry of targetEntries ) {
+    const targetToken = resolveFoundryTargetToken({
+      actor: entry.actor,
+      hint: entry.hint,
+      game,
+      preferredSceneId: sourceToken.parent.id
+    });
+    if ( !targetToken || (targetToken.parent?.id ?? null) !== sourceToken.parent.id ) continue;
+    const targetFootprintResult = adapter.tokenToTargetFootprint(targetToken, {
+      disposition: foundryDispositionLabel(targetToken.disposition)
+    });
+    if ( targetFootprintResult.tokenFootprint ) targetFootprints.push(targetFootprintResult.tokenFootprint);
+  }
+
+  return {
+    targetFootprints,
+    context: {
+      sceneContext: sceneContext.context,
+      gridDistance: sceneContext.context.grid.distance,
+      sourceFootprint: sourceFootprintResult.footprint,
+      targetFootprints
+    }
+  };
+}
+
+function resolveFoundrySourceToken({actor, source={}, game=globalThis.game}={}) {
+  if ( !actor ) return {ok: true, token: null};
+  const hinted = resolveHintedFoundryToken({actor, hint: source, game});
+  if ( hinted ) return {ok: true, token: hinted};
+  if ( actor.token ) return {ok: true, token: actor.token};
+  const active = activeFoundryTokensForActor(actor);
+  if ( !active.length ) return {ok: true, token: null};
+  if ( active.length === 1 ) return {ok: true, token: active[0]};
+  return {
+    ok: false,
+    code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
+    reason: "Actor has more than one canvas Token; a specific source Token reference is required."
+  };
+}
+
+function resolveFoundryTargetToken({actor, hint={}, game=globalThis.game, preferredSceneId=null}={}) {
+  if ( !actor ) return null;
+  const hinted = resolveHintedFoundryToken({actor, hint, game});
+  if ( hinted ) return hinted;
+  if ( actor.token ) return actor.token;
+  const active = activeFoundryTokensForActor(actor);
+  if ( !active.length ) return null;
+  if ( preferredSceneId ) {
+    const sameScene = active.find(token => (token.parent?.id ?? null) === preferredSceneId);
+    if ( sameScene ) return sameScene;
+  }
+  return active[0];
+}
+
+function resolveHintedFoundryToken({actor, hint={}, game=globalThis.game}={}) {
+  const tokenId = stringOrNull(hint.tokenId);
+  if ( !tokenId ) return null;
+  const sceneId = stringOrNull(hint.sceneId);
+  const scene = sceneId
+    ? (game?.scenes?.get?.(sceneId) ?? collectionContents(game?.scenes).find(candidate => candidate?.id === sceneId))
+    : (actor?.token?.parent ?? game?.scenes?.viewed ?? game?.canvas?.scene ?? null);
+  const token = scene?.tokens?.get?.(tokenId) ?? collectionContents(scene?.tokens).find(candidate => candidate?.id === tokenId);
+  return (token && tokenBelongsToActor(token, actor)) ? token : null;
+}
+
+function tokenBelongsToActor(token, actor) {
+  if ( !token || !actor ) return false;
+  const tokenActorId = token.actor?.id ?? token.actorId ?? null;
+  return (tokenActorId != null) && (tokenActorId === actor.id);
+}
+
+function activeFoundryTokensForActor(actor) {
+  if ( typeof actor.getActiveTokens !== "function" ) return [];
+  try {
+    const tokens = actor.getActiveTokens(false, true);
+    return Array.isArray(tokens) ? tokens.filter(Boolean) : collectionContents(tokens);
+  } catch {
+    return [];
+  }
+}
+
+function foundryDispositionLabel(disposition) {
+  const dispositions = globalThis.CONST?.TOKEN_DISPOSITIONS ?? {};
+  if ( disposition === dispositions.HOSTILE ) return "enemy";
+  if ( disposition === dispositions.FRIENDLY ) return "friendly";
+  if ( disposition === dispositions.NEUTRAL ) return "neutral";
+  return "unknown";
 }
 
 /* -------------------------------------------- */
