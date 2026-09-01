@@ -110,16 +110,26 @@ function fakeTokenDocument({id, actor, scene, offset, disposition=-1}) {
   };
 }
 
-function fakeActor(id, {system, size=CREATURE_SIZES.MEDIUM}={}) {
+function runtimeStatistic(domain, totalModifier) {
+  return {
+    totalModifier,
+    trace: {domain, total: totalModifier, applied: [{id: `${domain}:test`, value: totalModifier}]}
+  };
+}
+
+function fakeActor(id, {system, size=CREATURE_SIZES.MEDIUM, statistics={}}={}) {
   const actor = {
     id,
     uuid: `Actor.${id}`,
     name: id,
     type: "character",
-    system: {...system, traits: {...(system.traits ?? {}), size}},
+    system: {...(system ?? {}), traits: {...(system?.traits ?? {}), size}},
     effects: [],
     token: null,
     tokens: [],
+    getStatistic(domain) {
+      return typeof statistics === "function" ? statistics(domain) : statistics[domain] ?? null;
+    },
     getActiveTokens(linked, document) {
       return this.tokens;
     }
@@ -148,8 +158,12 @@ function actorSystem() {
   };
 }
 
-function targetActorSystem(value=20, max=20) {
-  return {resources: {health: {value, max}}, pools: []};
+function targetActorSystem(value=20, max=20, {ac=12}={}) {
+  return {
+    defenses: {ac: {value: ac}},
+    resources: {health: {value, max}},
+    pools: []
+  };
 }
 
 function actionItem(definition) {
@@ -257,6 +271,50 @@ test("production Action intent conversion builds TacticalGrid spatial context fr
   assert.deepEqual(targetFootprint.footprint.fields, expected.footprint.fields);
 });
 
+test("production Action intent conversion snapshots Actor combat statistics into plain staged inputs", async () => {
+  const grid = new FakeSquareGrid();
+  const scene = fakeScene(grid, {id: "scene-combat-stat"});
+  const sourceActor = fakeActor("actor-source", {
+    system: actorSystem(),
+    statistics: {"attack.weapon": runtimeStatistic("attack.weapon", 4)}
+  });
+  const targetActor = fakeActor("actor-enemy", {
+    system: targetActorSystem(20, 20, {ac: 14}),
+    statistics: {"defense.ac": runtimeStatistic("defense.ac", 2)}
+  });
+  const sourceToken = fakeTokenDocument({id: "source", actor: sourceActor, scene, offset: {i: 0, j: 0}});
+  const targetToken = fakeTokenDocument({id: "enemy", actor: targetActor, scene, offset: {i: 1, j: 0}});
+  sourceActor.tokens = [sourceToken];
+  targetActor.tokens = [targetToken];
+  scene.tokens = [sourceToken, targetToken];
+
+  const action = actionItem(meleeStrikeDefinition());
+  const game = fakeGame({actors: [sourceActor, targetActor], items: [action], scenes: [scene]});
+
+  const resolved = await foundryActionIntentToStagedOptions({
+    intent: {
+      actorRef: sourceActor.uuid,
+      actionRef: action.uuid,
+      targetRefs: [{actorRef: targetActor.uuid, tokenId: targetToken.id, sceneId: scene.id}]
+    },
+    game,
+    persistencePort: createTestDocumentPersistenceAdapter()
+  });
+
+  assert.equal(resolved.ok, true);
+  assert.equal(resolved.options.attack.modifierTotal, 4);
+  assert.equal(resolved.options.attack.statistic.domain, "attack.weapon");
+  assert.equal(resolved.options.targets[0].defenses.ac.value, 16);
+  assert.equal(resolved.options.targets[0].defenses.ac.source.base, 14);
+  assert.equal(resolved.options.targets[0].defenses.ac.source.modifier, 2);
+
+  const candidate = resolved.options.targeting.candidates[0];
+  assert.equal(candidate.defenses.ac.value, 16);
+  assert.equal(candidate.actor.defenses.ac.value, 16);
+  assert.equal(candidate.target.defenses.ac.value, 16);
+  assert.deepEqual(JSON.parse(JSON.stringify(candidate.defenses.ac)), candidate.defenses.ac);
+});
+
 test("production Action intent conversion executes without spatial context when the Actor has no canvas Token", async () => {
   const sourceActor = fakeActor("actor-no-token", {system: actorSystem()});
   const action = actionItem(meleeStrikeDefinition());
@@ -300,8 +358,11 @@ test("production Action intent conversion rejects ambiguous source Actors with m
 test("a player's Action use reaches the staged pipeline through the production multiplayer entry point with a real TacticalGrid footprint", async () => {
   const grid = new FakeSquareGrid();
   const scene = fakeScene(grid, {id: "scene-mp"});
-  const sourceActor = fakeActor("actor-source", {system: actorSystem()});
-  const targetActor = fakeActor("actor-enemy", {system: targetActorSystem(20, 20)});
+  const sourceActor = fakeActor("actor-source", {
+    system: actorSystem(),
+    statistics: {"attack.weapon": runtimeStatistic("attack.weapon", 4)}
+  });
+  const targetActor = fakeActor("actor-enemy", {system: targetActorSystem(20, 20, {ac: 14})});
   const sourceToken = fakeTokenDocument({id: "source", actor: sourceActor, scene, offset: {i: 0, j: 0}});
   const targetToken = fakeTokenDocument({id: "enemy", actor: targetActor, scene, offset: {i: 1, j: 0}});
   sourceActor.tokens = [sourceToken];
@@ -324,15 +385,8 @@ test("a player's Action use reaches the staged pipeline through the production m
     activeGMUserId: "gm-a",
     transport: gmTransport,
     // The GM's authoritative resolver is the REAL production intent translator - no hand-built
-    // spatial/targeting options. WildPath's Actor data model does not yet define an Armor Class /
-    // defense field (a separate, pre-existing content-system gap - see completion report), so a
-    // fixed defense is supplied here exactly as the existing multiplayer-authority.test.mjs fixture
-    // resolver already does; everything spatial/targeting still comes from production conversion.
-    actionIntentResolver: async ({intent}) => {
-      const resolved = await foundryActionIntentToStagedOptions({intent, game, persistencePort});
-      if ( resolved.ok ) resolved.options.attack = {defense: {value: 12}};
-      return resolved;
-    }
+    // spatial, targeting, attack, or defense options.
+    actionIntentResolver: ({intent}) => foundryActionIntentToStagedOptions({intent, game, persistencePort})
   });
   const player = createMultiplayerActionCoordinator({
     userId: "player-a",
@@ -341,7 +395,7 @@ test("a player's Action use reaches the staged pipeline through the production m
     transport: playerTransport,
     // Every real Foundry client (GM or player) registers the same digital roll provider; the
     // attacking player answers their own attack-roll pending request.
-    rollProviders: [createTestRollProvider({result: {natural: 18, total: 18}})]
+    rollProviders: [createTestRollProvider({result: {natural: 18, total: 22}})]
   });
   gm.register();
   player.register();
@@ -362,12 +416,69 @@ test("a player's Action use reaches the staged pipeline through the production m
   assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED);
   assert.ok(record.options.context.spatial, "The production multiplayer entry point must reach a real TacticalGrid spatial context.");
   assert.equal(record.options.context.spatial.sourceFootprint.fields.length >= 1, true);
+  assert.equal(record.options.attack.modifierTotal, 4);
+  assert.equal(record.state.results.attackResolution.results[0].defense.value, 14);
+  assert.equal(record.state.results.attackResolution.hits.length, 1);
 
-  assert.equal(targetActor.system.resources.health.value < 20, true);
+  assert.equal(targetActor.system.resources.health.value, 14);
   assert.equal(sourceActor.system.resources.action.value, 0);
 
   const result = player.getResult(declared.resolutionId);
   assert.equal(result.status, RESOLUTION_STATE_STATUS.COMPLETED);
+});
+
+test("production multiplayer entry point resolves Actor-derived defense misses without applying damage", async () => {
+  const grid = new FakeSquareGrid();
+  const scene = fakeScene(grid, {id: "scene-mp-miss"});
+  const sourceActor = fakeActor("actor-source-miss", {
+    system: actorSystem(),
+    statistics: {"attack.weapon": runtimeStatistic("attack.weapon", 4)}
+  });
+  const targetActor = fakeActor("actor-enemy-miss", {system: targetActorSystem(20, 20, {ac: 18})});
+  const sourceToken = fakeTokenDocument({id: "source-miss", actor: sourceActor, scene, offset: {i: 0, j: 0}});
+  const targetToken = fakeTokenDocument({id: "enemy-miss", actor: targetActor, scene, offset: {i: 1, j: 0}});
+  sourceActor.tokens = [sourceToken];
+  targetActor.tokens = [targetToken];
+  scene.tokens = [sourceToken, targetToken];
+  const action = actionItem(meleeStrikeDefinition());
+  const game = fakeGame({actors: [sourceActor, targetActor], items: [action], scenes: [scene]});
+  const persistencePort = createTestDocumentPersistenceAdapter();
+
+  const hub = createTestResolutionTransportHub({users: [
+    {id: "gm-a", active: true, isGM: true, isActiveGM: true},
+    {id: "player-a", active: true, isGM: false}
+  ]});
+  const gm = createMultiplayerActionCoordinator({
+    userId: "gm-a",
+    users: () => hub.userDirectory(),
+    activeGMUserId: "gm-a",
+    transport: hub.createEndpoint({userId: "gm-a"}),
+    actionIntentResolver: ({intent}) => foundryActionIntentToStagedOptions({intent, game, persistencePort})
+  });
+  const player = createMultiplayerActionCoordinator({
+    userId: "player-a",
+    users: () => hub.userDirectory(),
+    activeGMUserId: "gm-a",
+    transport: hub.createEndpoint({userId: "player-a"}),
+    rollProviders: [createTestRollProvider({result: {natural: 5, total: 9}})]
+  });
+  gm.register();
+  player.register();
+
+  const built = buildFoundryActionUseIntent({
+    actor: sourceActor,
+    action,
+    game: {user: {targets: new Set([{document: targetToken}])}}
+  });
+  const declared = await player.declareActionIntent(built.intent);
+
+  assert.equal(declared.ok, true);
+  const record = gm.getRecord(declared.resolutionId);
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED);
+  assert.equal(record.state.results.attackResolution.results[0].defense.value, 18);
+  assert.equal(record.state.results.attackResolution.misses.length, 1);
+  assert.equal(targetActor.system.resources.health.value, 20);
+  assert.equal(sourceActor.system.resources.action.value, 0);
 });
 
 /* -------------------------------------------- */

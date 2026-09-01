@@ -24,6 +24,21 @@ export function resourceField({initial=0, recovery="none"}={}) {
 /* -------------------------------------------- */
 
 /**
+ * Schema for a persisted defense baseline. Runtime combat statistics add any matching
+ * `WildPathActor#getStatistic("defense.<key>")` modifiers when an action is resolved.
+ * @param {object} [options]
+ * @param {number} [options.initial=10]
+ * @returns {SchemaField}
+ */
+export function defenseField({initial=10}={}) {
+  return new SchemaField({
+    value: new NumberField({required: true, integer: true, initial, min: 0})
+  });
+}
+
+/* -------------------------------------------- */
+
+/**
  * Schema for a single custom, world/homebrew-defined resource pool. Used inside the
  * `pools` ArrayField on the base actor model so new resources can be added without any
  * code or schema changes.

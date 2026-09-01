@@ -240,10 +240,12 @@ Action intent (`buildFoundryActionUseIntent()`) through `game.wildpath.executeAc
 the same multiplayer authority coordinator and staged pipeline proven above - instead of calling
 the legacy synchronous resolver. `foundryActionIntentToStagedOptions()` now builds real TacticalGrid
 spatial context (source/target footprints) via `createFoundryV14TacticalGridAdapter()` from the
-acting Actor's canvas Token(s) and the player's native `game.user.targets` selection. This closes
-the gap where the staged pipeline, reactions, and the TacticalGrid adapter existed and were tested
-but had no real Foundry runtime caller. Live Foundry V14 runtime QA is still required; see
-`test/foundry-action-runtime.test.mjs` for the Node-level production-entry proof.
+acting Actor's canvas Token(s) and the player's native `game.user.targets` selection, snapshots
+canonical Actor combat statistics (`system.defenses.ac.value`,
+`getStatistic("defense.ac")`, and `getStatistic("attack.<statistic>")`) into plain staged inputs,
+and proves production-entry melee hit/miss behavior with transactional damage/payment in Node.
+Live Foundry V14 runtime QA is still required; see `test/foundry-action-runtime.test.mjs` for the
+Node-level production-entry proof.
 
 ## Stage E — Legacy Resolution Extraction
 

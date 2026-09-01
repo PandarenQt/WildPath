@@ -1,5 +1,5 @@
 import {WILDPATH} from "../../config.mjs";
-import {resourceField, poolsField} from "../fields.mjs";
+import {defenseField, resourceField, poolsField} from "../fields.mjs";
 import {computeResourceMax, clampResourceValue} from "../../helpers/resources.mjs";
 
 const {SchemaField, NumberField, HTMLField} = foundry.data.fields;
@@ -26,6 +26,9 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
     return {
       biography: new HTMLField({required: true, blank: true}),
       abilities: new SchemaField(abilities),
+      defenses: new SchemaField({
+        ac: defenseField({initial: 10})
+      }),
       resources: new SchemaField({
         health: resourceField({initial: 10, recovery: "none"}),
         action: resourceField({initial: 1, recovery: "turn"}),

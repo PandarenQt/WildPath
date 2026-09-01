@@ -85,8 +85,13 @@ finished game system name is **WildPath**.
   It pauses for required Action Configuration, target selection/refinement, and roll input; resumes
   only with matching resolution/request/type responses; resolves targeting, range, attack/save
   outcomes, damage, healing, effects, and payment in explicit stages; plans to ready-to-commit
-  without mutation; and commits the already-planned `ActionResult` through the transaction-backed
+  without mutation; snapshots current target defenses from authoritative Actor refs before attack
+  outcome resolution; and commits the already-planned `ActionResult` through the transaction-backed
   persistence port boundary.
+- `module/helpers/combat-statistics.mjs` snapshots combat statistics into serializable staged
+  inputs. Canonical Actor defense baselines live under `system.defenses.ac.value`, and
+  `WildPathActor#getStatistic("defense.ac")` / `getStatistic("attack.<statistic>")` provide
+  modifier/provenance contributions without letting pure resolvers read Foundry documents.
 - `module/helpers/multiplayer-authority.mjs`,
   `module/resolvers/multiplayer-action-coordinator.mjs`,
   `module/adapters/foundry-v14-resolution-socket-adapter.mjs`, and
@@ -100,8 +105,8 @@ finished game system name is **WildPath**.
   required-target failures, self-targeting, and selection request state for future ActionResolver
   integration.
 - `module/resolvers/attack-resolver.mjs` resolves already-known attack totals against target
-  defenses as pure structured outcomes. `ActionResolver` can call it when an action plan includes
-  attack data.
+  defenses as pure structured outcomes. The Foundry Action-use runtime now supplies target defense
+  and source attack modifier snapshots from Actor data before calling the staged pipeline.
 - `module/resolvers/save-resolver.mjs` resolves already-known save totals against DCs as pure
   structured outcomes. `ActionResolver` can call it when an action plan includes save data.
 - `module/resolvers/damage-resolver.mjs` provides structured damage components, damage-type
@@ -214,7 +219,9 @@ The first resolver implementations live under `module/resolvers/`:
 The first integration-proof suite now shows representative persisted melee, ranged, area-save,
 healing, condition-effect, and configured/scaling actions flowing through the staged pipeline,
 RollProvider results, TacticalGrid adapter output, mutation plans, transaction, and persistence
-ports. Live Foundry runtime QA remains outstanding.
+ports. The production Foundry Action-use entry path is also covered in Node with Actor-derived
+attack/defense statistics, real TacticalGrid adapter footprints, hit/miss outcomes, transactional
+damage, and resource payment. Live Foundry runtime QA remains outstanding.
 
 See `module/resolvers/README.md` for the concrete file-path map.
 

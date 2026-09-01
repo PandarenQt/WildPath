@@ -54,6 +54,16 @@ test("WildPathAction DataModel persists a composed ActionDefinition field", asyn
   assert.equal(schema.definition.fields.attack instanceof Field, true);
 });
 
+test("WildPathBaseActor DataModel persists canonical defense baselines for runtime combat statistics", async () => {
+  const {default: WildPathBaseActor} = await import("../module/data/actor/base.mjs");
+  const schema = WildPathBaseActor.defineSchema();
+
+  assert.equal(schema.defenses instanceof SchemaField, true);
+  assert.equal(schema.defenses.fields.ac instanceof SchemaField, true);
+  assert.equal(schema.defenses.fields.ac.fields.value instanceof Field, true);
+  assert.equal(schema.defenses.fields.ac.fields.value.options.initial, 10);
+});
+
 test("WildPathAction translates persisted definition costs before legacy cost shortcuts", async () => {
   const {default: WildPathAction} = await import("../module/data/item/action.mjs");
   const system = Object.create(WildPathAction.prototype);

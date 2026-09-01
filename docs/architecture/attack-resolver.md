@@ -48,11 +48,16 @@ AttackResolver does not:
 - create chat messages
 - mutate Actor, Token, or ActiveEffect documents
 
-Foundry adapters should gather the roll total, natural die, and defense values from documents or UI,
-then pass plain values into this resolver.
+Foundry adapters gather the roll total, natural die, source attack modifier, and target defense
+values before this resolver runs, then pass plain values into it. The normal Foundry Action-use
+runtime snapshots target defenses from canonical Actor data as:
 
-## Next Integration
+```text
+actor.system.defenses.<key>.value
++ actor.getStatistic("defense.<key>").totalModifier
+```
 
-Foundry adapters still need to use `WildPathActor#getStatistic(domain)` for attack bonuses and
-target defenses, then pass the derived numbers into this resolver. DamageResolver should consume
-attack outcomes later without moving hit/miss logic into damage code.
+When an ActionDefinition declares an attack statistic, the runtime also snapshots the source roll
+modifier from `actor.getStatistic("attack.<statistic>").totalModifier`. These snapshots are
+serializable resolution inputs, so AttackResolver remains independent of Foundry documents while the
+runtime path no longer needs test-only defense injection.

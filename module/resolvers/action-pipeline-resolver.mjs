@@ -3,6 +3,7 @@ import {
 } from "../helpers/targeting.mjs";
 import {targetLookupRefs} from "../helpers/target-actor-refs.mjs";
 import {footprintDistance} from "../helpers/grid-footprints.mjs";
+import {resolveActorDefense} from "../helpers/combat-statistics.mjs";
 import {
   actionDefinitionFromAction,
   actionDefinitionToResolverInput
@@ -891,8 +892,8 @@ function createAttackRollStage() {
 function createAttackOutcomeStage() {
   return createResolutionPipelineStage({
     id: ACTION_PIPELINE_STAGE_IDS.ATTACK_OUTCOME,
-    run(state) {
-      const input = preparedResolverInput(state);
+    run(state, services={}) {
+      let input = preparedResolverInput(state);
       if ( !shouldResolveAttack(input.attack) ) return continueResolutionStage({
         state: updateResolutionState(state, {input})
       });
@@ -900,18 +901,24 @@ function createAttackOutcomeStage() {
       if ( planning.failed ) return planning.failed;
       const {actionContext} = planning;
       let {actionResult} = planning;
+      const attack = attackInputWithCurrentDefenses(input.attack, {
+        targetActors: services.targetActors ?? null,
+        targetContexts: state.results?.targetResolution?.targetContexts ?? [],
+        targets: state.results?.targetResolution ? [] : actionContext.targets
+      });
+      input = {...input, attack};
 
       const attackResolution = resolveAttackTargets({
-        roll: input.attack.roll,
-        targetContexts: input.attack.targetContexts ?? state.results?.targetResolution?.targetContexts ?? [],
-        targets: input.attack.targets ?? (state.results?.targetResolution ? [] : actionContext.targets),
-        defense: input.attack.defense ?? null,
-        defenseKey: input.attack.defenseKey ?? "ac",
-        policy: {...(input.policies?.attack ?? {}), ...(input.attack.policy ?? {})},
+        roll: attack.roll,
+        targetContexts: attack.targetContexts ?? state.results?.targetResolution?.targetContexts ?? [],
+        targets: attack.targets ?? (state.results?.targetResolution ? [] : actionContext.targets),
+        defense: attack.defense ?? null,
+        defenseKey: attack.defenseKey ?? "ac",
+        policy: {...(input.policies?.attack ?? {}), ...(attack.policy ?? {})},
         context: {
           action: actionContext.action,
           source: actionContext.source,
-          ...(input.attack.context ?? {})
+          ...(attack.context ?? {})
         }
       });
       if ( !attackResolution.ok ) {
@@ -2019,11 +2026,13 @@ function reevaluateParentAfterReaction({parentState, childState, window, service
   };
 }
 
-function attackInputWithCurrentDefenses(attack, {targetActors=null}={}) {
+function attackInputWithCurrentDefenses(attack, {targetActors=null, targetContexts: fallbackTargetContexts=[], targets: fallbackTargets=[]}={}) {
   const defenseKey = attack?.defenseKey ?? "ac";
-  const targetContexts = normalizeArray(attack?.targetContexts).map(context => {
+  const hasTargetContexts = attack?.targetContexts != null || normalizeArray(fallbackTargetContexts).length > 0;
+  const hasTargets = attack?.targets != null || normalizeArray(fallbackTargets).length > 0;
+  const targetContexts = normalizeArray(attack?.targetContexts ?? fallbackTargetContexts).map(context => {
     const actor = actorForTarget(targetActors, context?.target ?? context);
-    const defense = defenseFromActor(actor, defenseKey);
+    const defense = resolveActorDefense(actor, defenseKey);
     if ( !defense ) return context;
     return {
       ...clonePlain(context),
@@ -2033,9 +2042,9 @@ function attackInputWithCurrentDefenses(attack, {targetActors=null}={}) {
       }
     };
   });
-  const targets = normalizeArray(attack?.targets).map(target => {
+  const targets = normalizeArray(attack?.targets ?? fallbackTargets).map(target => {
     const actor = actorForTarget(targetActors, target);
-    const defense = defenseFromActor(actor, defenseKey);
+    const defense = resolveActorDefense(actor, defenseKey);
     if ( !defense ) return target;
     return {
       ...clonePlain(target),
@@ -2047,8 +2056,8 @@ function attackInputWithCurrentDefenses(attack, {targetActors=null}={}) {
   });
   return {
     ...(attack ?? {}),
-    ...(targetContexts.length ? {targetContexts} : {}),
-    ...(targets.length ? {targets} : {})
+    ...(hasTargetContexts ? {targetContexts} : {}),
+    ...(hasTargets ? {targets} : {})
   };
 }
 
@@ -2108,52 +2117,6 @@ function targetLookupRefObject(target) {
   };
 }
 
-function defenseFromActor(actor, defenseKey="ac") {
-  if ( !actor ) return null;
-  const key = defenseKey ?? "ac";
-  const base = firstFiniteNumber([
-    actor.defenses?.[key]?.value,
-    actor.defense?.value,
-    actor.system?.defenses?.[key]?.value,
-    actor.system?.defenses?.[key],
-    actor.system?.attributes?.[key]?.value,
-    actor.system?.attributes?.[key],
-    key === "ac" ? actor.system?.attributes?.ac?.value : null,
-    key === "ac" ? actor.system?.ac?.value : null,
-    key === "ac" ? actor.system?.ac : null
-  ]);
-  const statistic = resolveDefenseStatistic(actor, key);
-  const value = base == null && statistic.value == null
-    ? null
-    : (base ?? 0) + (statistic.value ?? 0);
-  if ( value == null ) return null;
-  return {
-    value,
-    slug: key,
-    source: {
-      type: "actor-snapshot",
-      actorId: actor.id ?? actor.actorId ?? null,
-      actorRef: actor.uuid ?? (actor.id ? `Actor.${actor.id}` : null),
-      base,
-      statistic: statistic.trace ?? null
-    }
-  };
-}
-
-function resolveDefenseStatistic(actor, defenseKey) {
-  if ( typeof actor.getStatistic !== "function" ) return {value: null, trace: null};
-  const domains = [`defense.${defenseKey}`, defenseKey];
-  for ( const domain of domains ) {
-    const statistic = actor.getStatistic(domain);
-    const value = finiteNumber(statistic?.totalModifier ?? statistic?.total ?? statistic?.value);
-    if ( value != null ) return {
-      value,
-      trace: statistic?.trace ?? {domain}
-    };
-  }
-  return {value: null, trace: null};
-}
-
 function summarizeAttackOutcome(resolution) {
   return {
     hitCount: resolution?.hits?.length ?? 0,
@@ -2170,14 +2133,6 @@ function summarizeAttackOutcome(resolution) {
 
 function resolveMaybeFunction(value, context) {
   return typeof value === "function" ? value(context) : value;
-}
-
-function firstFiniteNumber(values) {
-  for ( const value of values ) {
-    const number = finiteNumber(value);
-    if ( number != null ) return number;
-  }
-  return null;
 }
 
 function uniqueStrings(values) {

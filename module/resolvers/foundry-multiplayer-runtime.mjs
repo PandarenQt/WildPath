@@ -10,6 +10,11 @@ import {
   MULTIPLAYER_AUTHORITY_CODES,
   clonePlainData
 } from "../helpers/multiplayer-authority.mjs";
+import {actionDefinitionFromAction} from "../helpers/action-definitions.mjs";
+import {
+  resolveActorAttackStatistic,
+  resolveActorDefense
+} from "../helpers/combat-statistics.mjs";
 import {createMultiplayerActionCoordinator} from "./multiplayer-action-coordinator.mjs";
 
 export function registerFoundryV14MultiplayerResolution({
@@ -158,6 +163,8 @@ export async function foundryActionIntentToStagedOptions({intent={}, game=global
     reason: "Action intent actionRef could not be resolved."
   };
 
+  const combatStatistics = combatStatisticsForAction({actor, action});
+  const defenseKey = combatStatistics.defenseKey;
   const targetActors = {};
   const targets = [];
   const targetEntries = [];
@@ -165,12 +172,12 @@ export async function foundryActionIntentToStagedOptions({intent={}, game=global
     const targetRef = targetActorRefFromIntent(ref);
     const targetActor = await resolveFoundryDocumentRef(targetRef, {game, kind: "actor"});
     if ( !targetActor ) continue;
-    const target = {
+    const target = withActorDefense({
       id: targetActor.id ?? targetRef,
       actorId: targetActor.id ?? null,
       actorRef: targetActor.uuid ?? targetRef,
       uuid: targetActor.uuid ?? null
-    };
+    }, targetActor, defenseKey);
     targets.push(target);
     for ( const key of uniqueStrings([targetActor.uuid, targetActor.id, `actor:${targetActor.id}`, targetRef]) ) {
       targetActors[key] = targetActor;
@@ -200,7 +207,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, game=global
     tokenRef: sourceToken?.uuid ?? intent.source?.tokenRef ?? intent.tokenRef ?? null
   };
 
-  const spatial = buildFoundryActionSpatialContext({sourceToken, targetEntries, game});
+  const spatial = buildFoundryActionSpatialContext({sourceToken, targetEntries, game, defenseKey});
 
   return {
     ok: true,
@@ -212,6 +219,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, game=global
       targetActors,
       targeting: spatial?.targetFootprints.length ? {candidates: spatial.targetFootprints} : null,
       context: spatial ? {spatial: spatial.context} : {},
+      ...(combatStatistics.attack ? {attack: combatStatistics.attack} : {}),
       durability: true,
       configuration: clonePlainData(intent.configuration ?? null, "intent.configuration"),
       persistencePort
@@ -231,7 +239,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, game=global
  * Scene/Token data via the canonical Foundry V14 TacticalGrid adapter. Returns `null` when no
  * source Token/Scene can be resolved - non-spatial Actions must still be able to execute.
  */
-function buildFoundryActionSpatialContext({sourceToken=null, targetEntries=[], game=globalThis.game}={}) {
+function buildFoundryActionSpatialContext({sourceToken=null, targetEntries=[], game=globalThis.game, defenseKey=null}={}) {
   if ( !sourceToken?.parent ) return null;
   const adapter = createFoundryV14TacticalGridAdapter({scene: sourceToken.parent});
   const sceneContext = adapter.getSceneContext();
@@ -251,7 +259,9 @@ function buildFoundryActionSpatialContext({sourceToken=null, targetEntries=[], g
     const targetFootprintResult = adapter.tokenToTargetFootprint(targetToken, {
       disposition: foundryDispositionLabel(targetToken.disposition)
     });
-    if ( targetFootprintResult.tokenFootprint ) targetFootprints.push(targetFootprintResult.tokenFootprint);
+    if ( targetFootprintResult.tokenFootprint ) {
+      targetFootprints.push(withActorDefense(targetFootprintResult.tokenFootprint, entry.actor, defenseKey));
+    }
   }
 
   return {
@@ -262,6 +272,57 @@ function buildFoundryActionSpatialContext({sourceToken=null, targetEntries=[], g
       sourceFootprint: sourceFootprintResult.footprint,
       targetFootprints
     }
+  };
+}
+
+function combatStatisticsForAction({actor=null, action=null}={}) {
+  const result = actionDefinitionFromAction(action, {actorSystem: actor?.system ?? null});
+  const attackDefinition = result.ok ? result.definition?.attack ?? null : null;
+  if ( !attackDefinition ) return {defenseKey: null, attack: null};
+  const defenseKey = attackDefinition.defenseKey ?? "ac";
+  const statistic = resolveActorAttackStatistic(actor, attackDefinition);
+  return {
+    defenseKey,
+    attack: statistic ? {
+      statistic,
+      modifierTotal: statistic.totalModifier,
+      modifiers: [{
+        id: `statistic:${statistic.domain}`,
+        value: statistic.totalModifier,
+        source: statistic.source
+      }]
+    } : null
+  };
+}
+
+function withActorDefense(value, actor, defenseKey) {
+  if ( !value || !defenseKey ) return value;
+  const defense = resolveActorDefense(actor, defenseKey);
+  if ( !defense ) return value;
+  const defenses = {
+    ...(value.defenses ?? {}),
+    [defenseKey]: defense
+  };
+  return {
+    ...value,
+    defense,
+    defenses,
+    target: value.target ? {
+      ...value.target,
+      defense,
+      defenses: {
+        ...(value.target.defenses ?? {}),
+        [defenseKey]: defense
+      }
+    } : value.target,
+    actor: value.actor ? {
+      ...value.actor,
+      defense,
+      defenses: {
+        ...(value.actor.defenses ?? {}),
+        [defenseKey]: defense
+      }
+    } : value.actor
   };
 }
 

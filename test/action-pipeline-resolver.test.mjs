@@ -43,12 +43,22 @@ function targetActorSystem(value=14, max=20) {
   };
 }
 
-function actorWithCalls(id, calls, {system=actorSystem(1), fail=false}={}) {
+function statistic(domain, totalModifier) {
+  return {
+    totalModifier,
+    trace: {domain, total: totalModifier, applied: [{id: `${domain}:test`, value: totalModifier}]}
+  };
+}
+
+function actorWithCalls(id, calls, {system=actorSystem(1), fail=false, statistics={}}={}) {
   return {
     id,
     name: id,
     type: "character",
     system,
+    getStatistic(domain) {
+      return statistics[domain] ?? null;
+    },
     async update(updates) {
       calls.push({actorId: id, updates});
       if ( fail ) throw new Error(`update failed for ${id}`);
@@ -255,6 +265,55 @@ test("ActionPipeline requests an attack RollResult and resumes without rerunning
   assert.deepEqual(resumed.state.rollResults.map(result => result.rollResult.natural), [12]);
   assert.equal(resumed.state.trace.filter(entry => entry.stageId === ACTION_PIPELINE_STAGE_IDS.CONFIGURATION).length, 1);
   assert.equal(resumed.state.results.actionResult.consequences.some(entry => entry.type === "attackResolved"), true);
+});
+
+test("ActionPipeline attack outcome snapshots target defense from targetActors before initial resolution", () => {
+  const targetActor = actorWithCalls("actor-orc", [], {
+    system: {
+      ...targetActorSystem(14, 20),
+      defenses: {ac: {value: 13}}
+    },
+    statistics: {
+      "defense.ac": statistic("defense.ac", 2)
+    }
+  });
+  const targetActors = {"actor:actor-orc": targetActor};
+  const waiting = planStagedActionResolution({
+    id: "resolution:actor-defense",
+    actorSystem: actorSystem(1),
+    action: definitionAction(attackDefinition()),
+    source: {actorId: "actor-source"},
+    targeting: {
+      required: true,
+      candidates: [{
+        id: "orc",
+        target: target("orc", {actorId: "actor-orc"}),
+        actor: {id: "actor-orc", name: "Orc"},
+        disposition: "enemy",
+        kind: "creature"
+      }]
+    },
+    targetActors
+  });
+  const resumed = resumeStagedActionResolution({
+    state: waiting.state,
+    response: {
+      resolutionId: "resolution:actor-defense",
+      requestId: "request:resolution:actor-defense:attack-roll",
+      type: RESOLUTION_REQUEST_TYPES.ROLL,
+      value: {
+        total: 16,
+        die: 16
+      }
+    },
+    services: {targetActors}
+  });
+
+  assert.equal(resumed.ok, true);
+  assert.equal(resumed.state.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT);
+  assert.equal(resumed.state.input.attack.targetContexts[0].defenses.ac.value, 15);
+  assert.equal(resumed.state.results.attackResolution.results[0].defense.value, 15);
+  assert.equal(resumed.state.results.attackResolution.hits.length, 1);
 });
 
 test("ActionPipeline resumes an attack from a physical RollResult and commits through ready-to-commit", async () => {
