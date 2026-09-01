@@ -264,11 +264,13 @@ No named-feature reaction code.
 Status: generic foundation integrated. ReactionResolver now discovers eligible triggered Actions,
 opens `reaction-choice` pending requests, creates child ResolutionState provenance, pauses/resumes
 parents, supports generic reevaluation/cancel directives, and reuses the multiplayer request router.
-The staged action pipeline has opt-in windows for action-declared interrupts and after attack
-outcome/before damage.
+The default multiplayer coordinator now advances active child ResolutionStates under the same
+authority, routes child pending requests by child `resolutionId`, and handles replayed responses
+idempotently. The staged action pipeline has opt-in windows for action-declared interrupts and
+after attack outcome/before damage.
 
-Remaining Stage G work: add additional semantic timings only where needed, replace injectable test
-child orchestration with runtime authority orchestration, and perform live Foundry reaction QA.
+Remaining Stage G work: add additional semantic timings only where needed and perform live Foundry
+reaction QA.
 
 ## Stage H — Movement
 

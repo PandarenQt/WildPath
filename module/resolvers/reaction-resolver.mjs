@@ -55,6 +55,7 @@ export const REACTION_RESOLVER_CODES = Object.freeze({
   CANDIDATE_NOT_FOUND: "CANDIDATE_NOT_FOUND",
   CANDIDATE_HANDLED: "CANDIDATE_HANDLED",
   CHILD_RESOLUTION_CREATED: "CHILD_RESOLUTION_CREATED",
+  CHILD_RESOLUTION_ALREADY_COMPLETED: "CHILD_RESOLUTION_ALREADY_COMPLETED",
   CHILD_RESOLUTION_FAILED: "CHILD_RESOLUTION_FAILED",
   PARENT_CANCELLED: "PARENT_CANCELLED",
   NON_SERIALIZABLE_REACTION_STATE: "NON_SERIALIZABLE_REACTION_STATE"
@@ -617,24 +618,68 @@ export function completeReactionChildResolution({
     state: parent
   };
 
+  const childResolutionId = stringOrNull(child?.id ?? childResult?.resolutionId);
+  if (
+    childResolutionId
+    && window.childResolutionIds.length
+    && !window.childResolutionIds.includes(childResolutionId)
+  ) return {
+    ok: false,
+    code: REACTION_RESOLVER_CODES.REQUEST_MISMATCH,
+    reason: "Completed reaction child does not belong to the parent reaction window.",
+    state: parent,
+    window
+  };
+
+  const activeChildResolutionId = stringOrNull(parent.metadata?.activeChildResolution?.id);
+  if (
+    [REACTION_WINDOW_STATUS.CLOSED, REACTION_WINDOW_STATUS.CANCELLED].includes(window.status)
+    && (!activeChildResolutionId || activeChildResolutionId === childResolutionId)
+  ) return {
+    ok: ![RESOLUTION_STATE_STATUS.FAILED, RESOLUTION_STATE_STATUS.CANCELLED].includes(parent.status),
+    code: REACTION_RESOLVER_CODES.CHILD_RESOLUTION_ALREADY_COMPLETED,
+    reason: "Reaction child completion was already applied to the parent resolution.",
+    duplicate: true,
+    state: parent,
+    window
+  };
+
   const childStatus = child?.status ?? childResult?.status ?? null;
   const childFailed = [RESOLUTION_STATE_STATUS.FAILED, RESOLUTION_STATE_STATUS.CANCELLED].includes(childStatus)
     || childResult?.ok === false;
   if ( childFailed && failurePolicy === "cancel-parent" ) {
-    const cancelled = cancelResolutionState(parent, {
+    const failedWindow = createReactionWindowState({
+      ...window,
+      status: REACTION_WINDOW_STATUS.CANCELLED,
+      trace: [
+        ...window.trace,
+        {
+          code: REACTION_RESOLVER_CODES.CHILD_RESOLUTION_FAILED,
+          childResolutionId,
+          childStatus,
+          directive: {type: REACTION_PARENT_DIRECTIVES.CANCEL_PARENT},
+          failurePolicy
+        }
+      ],
+      metadata: {
+        ...window.metadata,
+        ...(clonePlain(metadata) ?? {})
+      }
+    });
+    const cancelled = cancelResolutionState(clearActiveReactionChild(putReactionWindow(parent, failedWindow)), {
       stageId: parent.currentStageId,
       code: REACTION_RESOLVER_CODES.CHILD_RESOLUTION_FAILED,
       reason: childResult?.reason ?? "Reaction child resolution failed.",
       data: {
         reactionWindowId: window.id,
-        childResolutionId: child?.id ?? childResult?.resolutionId ?? null
+        childResolutionId
       }
     });
     return {
       ok: false,
       code: REACTION_RESOLVER_CODES.CHILD_RESOLUTION_FAILED,
       state: cancelled,
-      window
+      window: failedWindow
     };
   }
 
@@ -648,7 +693,7 @@ export function completeReactionChildResolution({
       ...window.trace,
       {
         code: childFailed ? REACTION_RESOLVER_CODES.CHILD_RESOLUTION_FAILED : REACTION_RESOLVER_CODES.OK,
-        childResolutionId: child?.id ?? childResult?.resolutionId ?? null,
+        childResolutionId,
         childStatus,
         directive: normalizedDirective
       }
@@ -668,7 +713,7 @@ export function completeReactionChildResolution({
         windowId: closedWindow.id,
         status: closedWindow.status,
         chosenCandidateId: closedWindow.chosenCandidateId,
-        childResolutionId: child?.id ?? childResult?.resolutionId ?? null,
+        childResolutionId,
         childStatus,
         directive: normalizedDirective,
         childFailed
@@ -701,7 +746,7 @@ export function completeReactionChildResolution({
       reason: normalizedDirective.reason ?? "Parent resolution cancelled by reaction directive.",
       data: {
         reactionWindowId: closedWindow.id,
-        childResolutionId: child?.id ?? childResult?.resolutionId ?? null,
+        childResolutionId,
         directive: normalizedDirective
       }
     });
@@ -723,7 +768,7 @@ export function completeReactionChildResolution({
       : "Reaction child completed; parent may resume from the reaction window.",
     data: {
       reactionWindowId: closedWindow.id,
-      childResolutionId: child?.id ?? childResult?.resolutionId ?? null,
+      childResolutionId,
       childStatus,
       directive: normalizedDirective,
       reevaluation: reevaluation.evaluation ?? null

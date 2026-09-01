@@ -136,6 +136,16 @@ wrong-user rejection, duplicate/stale handling, and active-GM authority policy.
 The authoritative client owns the parent and child resolution state. Remote players only answer
 plain pending requests.
 
+When a parent `ResolutionState` is paused with `metadata.activeChildResolution`, the default
+multiplayer coordinator advances that nested child through the same staged action pipeline before
+resuming the parent. Child pending requests use the child `resolutionId` in the existing socket
+envelope and still route through ordinary chooser policies. The parent initiator is not inherited as
+the chooser for nested source-controller child requests; ownership is derived from the child state
+source/controller maps, with normal GM fallback policy if no controller is available.
+
+Terminal child completion is idempotent. Replayed completion or request-response messages do not
+re-run child commits, re-apply child effects, or resume the parent a second time.
+
 ## Loop Protection
 
 Reaction child creation uses `createChildResolutionState()`, so existing depth limits and repeated
@@ -165,7 +175,11 @@ candidate/event/action identities are rejected structurally instead of recursing
   attack re-evaluates from hit to miss
 - decline and still-hit paths that continue into parent damage/payment without duplicate mutation
 - a disruptive child Action that can cancel the parent through an explicit parent directive
-- existing multiplayer request routing with the defender as chooser and the active GM as authority
+- default multiplayer child orchestration with the defender as chooser and the active GM as
+  authority
+- a nested child attack roll routed by child `resolutionId` through the existing physical
+  RollProvider/request-response flow
+- duplicate response handling after parent/child completion without duplicate mutation
 
 ## Current Limits
 
@@ -176,9 +190,8 @@ Not yet implemented:
 - opportunity attacks
 - Movement-driven leave-reach events
 - full simultaneous reaction ordering
-- built-in multiplayer child-resolution orchestration beyond injectable authoritative runners
 - live Foundry V14 reaction QA
 - final HUD presentation
 
 The next practical step is live Foundry QA for these timings, then broader semantic timing coverage
-and authority-owned child-resolution orchestration.
+driven by actual gameplay events.

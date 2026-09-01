@@ -146,6 +146,28 @@ Once a chooser responds, the authority validates:
 
 Only then does the authority call `resumeStagedActionResolution()`.
 
+## Nested Resolution
+
+Nested reaction children are not separate socket records. The authoritative parent record stores the
+active child as plain data at `ResolutionState.metadata.activeChildResolution` and tracks known
+parent/child resolution ids for routing.
+
+The coordinator always advances the deepest active `ResolutionState`:
+
+```text
+parent paused
+-> active child created
+-> child pending requests routed by child resolutionId
+-> child ready-to-commit
+-> child transaction commits on the same authority
+-> completeStagedReactionChildResolution()
+-> parent resumes
+```
+
+Remote users still only answer `PENDING_REQUEST` envelopes. They never own or commit the child
+resolution. Replayed responses after a terminal parent/child flow are treated as idempotent
+duplicates and do not attempt another staged resume.
+
 ## Commit
 
 Persistent mutation still begins at the existing commit boundary:
@@ -178,6 +200,11 @@ duplicate action intents do not apply damage/resources twice.
 - multiple active GM candidates selecting exactly the designated active GM
 - non-plain socket payload rejection
 
+`test/reaction-pipeline-integration.test.mjs` also proves production nested reaction orchestration:
+the default coordinator handles a defender reaction choice, commits the child reaction Action on the
+GM authority, resumes the parent, routes a nested child attack roll by child `resolutionId`, and
+ignores replayed responses without duplicate effects, damage, or resource spending.
+
 ## Current Limits
 
 This is not yet a full authority server or failover system.
@@ -192,8 +219,8 @@ Not implemented here:
 - persistent area lifecycle networking
 - cross-client secret visibility policy beyond sanitized result/request payloads
 
-Generic reaction-choice routing is covered through the coordinator's injectable staged runners, but
-live Foundry multiplayer reaction QA remains outstanding.
+Generic reaction-choice routing and nested child advancement are covered by deterministic transport
+tests, but live Foundry multiplayer reaction QA remains outstanding.
 
 Live Foundry runtime QA remains required. The Node tests prove the coordinator, envelope,
 deterministic transport, request routing, RollProvider/PromptPort usage, and authority commit

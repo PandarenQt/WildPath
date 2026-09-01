@@ -531,6 +531,42 @@ test("ReactionResolver resumes parent and stores generic outcome re-evaluation a
   assert.equal(highHit.state.results.attackResolution.hits.length, 1);
 });
 
+test("ReactionResolver treats repeated child completion as an idempotent no-op", () => {
+  const action = reactionActionDefinition();
+  const waiting = planReactionWindow({
+    parentState: parentState(),
+    event: hitEvent(),
+    triggers: [reactionTrigger({action})],
+    resourcesByActor: {defender: reactionResources()}
+  });
+  const selected = resolveReactionChoiceResponse({
+    state: waiting.state,
+    response: responseFor(waiting.request, {
+      decision: REACTION_CHOICE_DECISIONS.USE,
+      candidateId: waiting.request.payload.candidates[0].id
+    })
+  });
+  const child = updateResolutionState(selected.childState, {
+    status: RESOLUTION_STATE_STATUS.COMPLETED
+  });
+
+  const completed = completeReactionChildResolution({
+    parentState: selected.state,
+    childState: child
+  });
+  const duplicate = completeReactionChildResolution({
+    parentState: completed.state,
+    childState: child
+  });
+
+  assert.equal(completed.ok, true);
+  assert.equal(duplicate.ok, true);
+  assert.equal(duplicate.code, REACTION_RESOLVER_CODES.CHILD_RESOLUTION_ALREADY_COMPLETED);
+  assert.equal(duplicate.duplicate, true);
+  assert.deepEqual(duplicate.state, completed.state);
+  assert.equal(duplicate.state.results.reactions.length, 1);
+});
+
 test("ReactionResolver supports explicit parent cancellation directives without throwing", () => {
   const action = reactionActionDefinition({id: "action:disrupt", label: "Disrupt"});
   const trigger = createReactionTrigger({
@@ -575,7 +611,52 @@ test("ReactionResolver supports explicit parent cancellation directives without 
   assert.equal(cancelled.ok, false);
   assert.equal(cancelled.code, "CANCELLED_BY_REACTION");
   assert.equal(cancelled.state.status, RESOLUTION_STATE_STATUS.CANCELLED);
+  assert.equal(cancelled.state.metadata.activeChildResolution, undefined);
   assert.equal(cancelled.state.warnings.at(-1).reason, "Synthetic interrupt succeeded.");
+});
+
+test("ReactionResolver clears active child state when failed child policy cancels the parent", () => {
+  const action = reactionActionDefinition({id: "action:failing-reaction", label: "Failing Reaction"});
+  const waiting = planReactionWindow({
+    parentState: parentState({id: "resolution:failed-child-parent"}),
+    event: hitEvent(),
+    triggers: [reactionTrigger({action})],
+    resourcesByActor: {defender: reactionResources()}
+  });
+  const selected = resolveReactionChoiceResponse({
+    state: waiting.state,
+    response: responseFor(waiting.request, {
+      decision: REACTION_CHOICE_DECISIONS.USE,
+      candidateId: waiting.request.payload.candidates[0].id
+    }),
+    childResolutionId: "resolution:failed-child"
+  });
+  const child = updateResolutionState(selected.childState, {
+    status: RESOLUTION_STATE_STATUS.FAILED,
+    errors: [{code: "TEST_CHILD_FAILED", reason: "Synthetic child failure."}]
+  });
+
+  const cancelled = completeReactionChildResolution({
+    parentState: selected.state,
+    childState: child,
+    childResult: {ok: false, resolutionId: child.id, status: child.status, reason: "Synthetic child failure."},
+    failurePolicy: "cancel-parent"
+  });
+  const duplicate = completeReactionChildResolution({
+    parentState: cancelled.state,
+    childState: child,
+    childResult: {ok: false, resolutionId: child.id, status: child.status},
+    failurePolicy: "cancel-parent"
+  });
+
+  assert.equal(cancelled.ok, false);
+  assert.equal(cancelled.code, REACTION_RESOLVER_CODES.CHILD_RESOLUTION_FAILED);
+  assert.equal(cancelled.state.status, RESOLUTION_STATE_STATUS.CANCELLED);
+  assert.equal(cancelled.state.metadata.activeChildResolution, undefined);
+  assert.equal(cancelled.window.status, REACTION_WINDOW_STATUS.CANCELLED);
+  assert.equal(duplicate.code, REACTION_RESOLVER_CODES.CHILD_RESOLUTION_ALREADY_COMPLETED);
+  assert.equal(duplicate.duplicate, true);
+  assert.deepEqual(duplicate.state, cancelled.state);
 });
 
 test("ReactionResolver uses ResolutionState ancestry for loop protection", () => {

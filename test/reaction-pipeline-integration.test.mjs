@@ -10,6 +10,7 @@ import {
   createReactionTrigger
 } from "../module/helpers/automation-events.mjs";
 import {
+  MULTIPLAYER_AUTHORITY_CODES,
   MULTIPLAYER_MESSAGE_TYPES
 } from "../module/helpers/multiplayer-authority.mjs";
 import {
@@ -20,6 +21,7 @@ import {
 } from "../module/helpers/resolution-state.mjs";
 import {ATTACK_OUTCOMES} from "../module/resolvers/attack-resolver.mjs";
 import {
+  createPhysicalDiceProvider,
   createTestRollProvider,
   executeRollRequest
 } from "../module/resolvers/roll-provider-resolver.mjs";
@@ -640,33 +642,7 @@ test("multiplayer authority routes reaction choice to defender controller and co
         sourceControllerUserIds: ["player-a"],
         targetControllerUserIds: ["player-b"]
       }
-    }),
-    resumeResolution: async ({state, response, services: recordServices}) => {
-      const resumed = resumeStagedActionResolution({
-        state,
-        response,
-        services: recordServices
-      });
-      if ( resumed.state?.status !== RESOLUTION_STATE_STATUS.PAUSED ) return resumed;
-
-      const child = await executeGuardChild({
-        parentState: resumed.state,
-        defender: fixture.defender,
-        targetActors: fixture.targetActors,
-        action: guardAction,
-        persistencePort: fixture.persistencePort
-      });
-      const parent = completeStagedReactionChildResolution({
-        parentState: resumed.state,
-        childState: child.state,
-        services: recordServices
-      });
-      return executeParentAfterReaction({
-        fixture,
-        state: parent.state,
-        services: recordServices
-      });
-    }
+    })
   });
   const playerA = createMultiplayerActionCoordinator({
     userId: "player-a",
@@ -699,7 +675,7 @@ test("multiplayer authority routes reaction choice to defender controller and co
   });
 
   const record = gm.getRecord("resolution:multiplayer-reaction-proof");
-  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED);
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, resultDiagnostic({state: record.state}));
   assert.equal(fixture.defender.system.resources.health.value, 20);
   assert.equal(fixture.defender.system.resources.reaction.value, 0);
   assert.equal(fixture.attacker.system.resources.action.value, 0);
@@ -713,11 +689,135 @@ test("multiplayer authority routes reaction choice to defender controller and co
     return message.messageType === MULTIPLAYER_MESSAGE_TYPES.RESOLUTION_RESULT
       && message.senderUserId === "gm-a";
   }), true);
+  const reactionChoiceResponse = hub.messages.find(message => {
+    return message.messageType === MULTIPLAYER_MESSAGE_TYPES.REQUEST_RESPONSE
+      && message.senderUserId === "player-b"
+      && message.payload?.response?.type === RESOLUTION_REQUEST_TYPES.REACTION_CHOICE;
+  });
+  const operationCountBeforeDuplicate = fixture.persistencePort.operations.length;
+  const duplicate = await gm.handleEnvelope({
+    ...reactionChoiceResponse,
+    messageId: "message:duplicate-reaction-choice-response"
+  });
+
+  assert.equal(duplicate.code, MULTIPLAYER_AUTHORITY_CODES.DUPLICATE_REQUEST_RESPONSE);
+  assert.equal(duplicate.duplicate, true);
+  assert.equal(fixture.persistencePort.operations.length, operationCountBeforeDuplicate);
+  assert.equal(fixture.defender.effects.length, 1);
+  assert.equal(fixture.defender.system.resources.health.value, 20);
+  assert.equal(fixture.defender.system.resources.reaction.value, 0);
+  assert.equal(fixture.attacker.system.resources.action.value, 0);
   assert.equal(fixture.persistencePort.operations.every(operation => {
     return operation.type === "createEmbeddedDocuments"
       || operation.type === "updateDocument"
       || operation.type === "updateActor";
   }), true);
+});
+
+test("multiplayer authority advances a reaction child roll through the existing request flow", async () => {
+  const attacker = actorDocument("attacker", {system: actorSystem({action: 1, reaction: 1, ac: 14})});
+  const defender = actorDocument("defender", {
+    system: actorSystem({action: 1, reaction: 1, hp: 20, maxHp: 20, ac: 16})
+  });
+  const targetActors = targetActorsFor(attacker, defender);
+  const parentAction = declaredDamageDefinition();
+  const parentActionDoc = actionItem(parentAction);
+  const disrupt = disruptActionDefinition();
+  const target = targetRef(defender.id);
+  const services = disruptServices({
+    defender,
+    attacker,
+    targetActors,
+    action: disrupt,
+    userId: "player-b"
+  });
+  const persistencePort = createTestDocumentPersistenceAdapter();
+  const hub = createTestResolutionTransportHub({
+    users: [
+      {id: "gm-a", active: true, isGM: true, isActiveGM: true},
+      {id: "player-a", active: true, isGM: false},
+      {id: "player-b", active: true, isGM: false}
+    ]
+  });
+  const gm = createMultiplayerActionCoordinator({
+    userId: "gm-a",
+    users: () => hub.userDirectory(),
+    activeGMUserId: "gm-a",
+    transport: hub.createEndpoint({userId: "gm-a"}),
+    actionIntentResolver: () => ({
+      ok: true,
+      options: {
+        actor: attacker,
+        action: parentActionDoc,
+        source: {actorId: attacker.id, actorRef: attacker.uuid},
+        targets: [target],
+        durability: true,
+        targetActors,
+        persistencePort
+      },
+      services,
+      requestContext: {
+        sourceControllerUserIds: ["player-a"],
+        targetControllerUserIds: ["player-b"]
+      }
+    })
+  });
+  const playerA = createMultiplayerActionCoordinator({
+    userId: "player-a",
+    users: () => hub.userDirectory(),
+    activeGMUserId: "gm-a",
+    transport: hub.createEndpoint({userId: "player-a"})
+  });
+  const playerB = createMultiplayerActionCoordinator({
+    userId: "player-b",
+    users: () => hub.userDirectory(),
+    activeGMUserId: "gm-a",
+    transport: hub.createEndpoint({userId: "player-b"}),
+    promptPorts: [createTestPromptAdapter({
+      queue: [(request) => ({
+        decision: REACTION_CHOICE_DECISIONS.USE,
+        candidateId: request.payload.candidates[0].id
+      })]
+    })],
+    rollProviders: [createPhysicalDiceProvider()],
+    rollContext: {
+      physicalRolls: [{natural: 16, total: 16}]
+    }
+  });
+  gm.register();
+  playerA.register();
+  playerB.register();
+
+  await playerA.declareActionIntent({
+    intentId: "intent:multiplayer-reaction-child-roll",
+    resolutionId: "resolution:multiplayer-reaction-child-roll",
+    actorRef: attacker.uuid,
+    actionRef: parentActionDoc.uuid,
+    targetRefs: [target.actorRef]
+  });
+
+  const record = gm.getRecord("resolution:multiplayer-reaction-child-roll");
+  const childRollMessage = hub.messages.find(message => {
+    return message.messageType === MULTIPLAYER_MESSAGE_TYPES.PENDING_REQUEST
+      && message.payload?.request?.type === RESOLUTION_REQUEST_TYPES.ROLL;
+  });
+  const childRollResponse = hub.messages.find(message => {
+    return message.messageType === MULTIPLAYER_MESSAGE_TYPES.REQUEST_RESPONSE
+      && message.resolutionId === childRollMessage?.resolutionId;
+  });
+
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, resultDiagnostic({state: record.state}));
+  assert.equal(childRollMessage.recipientUserId, "player-b");
+  assert.notEqual(childRollMessage.resolutionId, "resolution:multiplayer-reaction-child-roll");
+  assert.equal(childRollMessage.metadata.parentResolutionId, "resolution:multiplayer-reaction-child-roll");
+  assert.equal(childRollMessage.payload.request.payload.rollRequest.source.actorId, defender.id);
+  assert.equal(childRollResponse.senderUserId, "player-b");
+  assert.equal(childRollResponse.payload.response.metadata.rollProvider.type, "physical");
+  assert.equal(record.state.results.reactions[0].childResolutionId, childRollMessage.resolutionId);
+  assert.equal(record.state.results.reactions[0].childStatus, RESOLUTION_STATE_STATUS.COMPLETED);
+  assert.equal(defender.system.resources.reaction.value, 0);
+  assert.equal(attacker.system.resources.action.value, 0);
+  assert.equal(defender.system.resources.health.value, 15);
 });
 
 async function runDisruptScenario({id, roll}) {

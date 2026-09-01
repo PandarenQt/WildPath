@@ -2,7 +2,8 @@ import {
   RESOLUTION_REQUEST_TYPES,
   RESOLUTION_STATE_STATUS,
   cancelResolutionState,
-  createResolutionState
+  createResolutionState,
+  updateResolutionState
 } from "../helpers/resolution-state.mjs";
 import {
   MULTIPLAYER_AUTHORITY_CODES,
@@ -22,6 +23,7 @@ import {
 } from "../helpers/multiplayer-authority.mjs";
 import {ROLL_PROVIDER_OUTCOMES} from "../helpers/rolls.mjs";
 import {
+  completeStagedReactionChildResolution,
   executeStagedActionResolution,
   planStagedActionResolution,
   resumeStagedActionResolution
@@ -41,6 +43,7 @@ export function createMultiplayerActionCoordinator({
   planResolution=planStagedActionResolution,
   resumeResolution=resumeStagedActionResolution,
   executeResolution=executeStagedActionResolution,
+  completeChildResolution=completeStagedReactionChildResolution,
   allowLocalWithoutGM=false,
   allowGMRequestFallback=true,
   canCommitLocally=false,
@@ -249,6 +252,7 @@ export function createMultiplayerActionCoordinator({
       requestExpectations: new Map(),
       processedRequestIds: new Set(),
       routedRequestIds: new Set(),
+      knownResolutionIds: new Set([envelope.resolutionId]),
       resultSent: false
     };
     records.set(record.resolutionId, record);
@@ -257,11 +261,25 @@ export function createMultiplayerActionCoordinator({
 
   async function advanceRecord(record) {
     while ( true ) {
-      if ( record.state?.pendingRequests?.length ) return routePendingRequests(record);
-      if ( record.state?.status === RESOLUTION_STATE_STATUS.READY_TO_COMMIT ) {
-        const committed = await executeResolution({
+      if ( record.state == null ) {
+        const planned = await planResolution({
           ...record.options,
-          state: record.state,
+          services: record.services
+        });
+        record.state = planned.state;
+        rememberResolutionState(record, record.state);
+        if ( !planned.ok && !planned.waiting ) return sendAuthorityError(record, planned);
+        continue;
+      }
+
+      const execution = activeResolutionExecution(record.state);
+      rememberResolutionState(record, execution.state);
+
+      if ( execution.state?.pendingRequests?.length ) return routePendingRequests(record, execution);
+      if ( execution.state?.status === RESOLUTION_STATE_STATUS.READY_TO_COMMIT ) {
+        const committed = await executeResolution({
+          ...optionsForResolutionState(record, execution.state),
+          state: execution.state,
           services: record.services,
           authority: commitAuthorityForUser({
             userId: localUserId,
@@ -271,20 +289,43 @@ export function createMultiplayerActionCoordinator({
           }),
           persistencePort: record.options.persistencePort
         });
-        record.state = committed.state;
-        if ( !committed.ok ) return sendAuthorityError(record, committed);
+        record.state = replaceResolutionInTree(record.state, execution.path, committed.state);
+        rememberResolutionState(record, committed.state);
+        if ( !committed.ok && !execution.nested ) return sendAuthorityError(record, committed);
+        if ( !committed.ok && execution.nested && !isTerminalState(committed.state) ) {
+          return sendAuthorityError(record, committed);
+        }
         continue;
       }
-      if ( isTerminalState(record.state) ) return sendResolutionResult(record, {ok: record.state.status === RESOLUTION_STATE_STATUS.COMPLETED});
-      if ( record.state == null ) {
+
+      if ( isTerminalState(execution.state) ) {
+        if ( execution.nested ) {
+          const completed = completeActiveChildResolution(record, execution);
+          record.state = completed.state;
+          rememberResolutionState(record, record.state);
+          if ( !completed.ok && activeResolutionExecution(record.state, execution.state.id) ) {
+            return sendAuthorityError(record, completed);
+          }
+          continue;
+        }
+        return sendResolutionResult(record, {ok: record.state.status === RESOLUTION_STATE_STATUS.COMPLETED});
+      }
+
+      if ( execution.state?.status === RESOLUTION_STATE_STATUS.CREATED || execution.state?.status === RESOLUTION_STATE_STATUS.RUNNING ) {
         const planned = await planResolution({
-          ...record.options,
+          ...optionsForResolutionState(record, execution.state),
+          state: execution.state,
           services: record.services
         });
-        record.state = planned.state;
-        if ( !planned.ok && !planned.waiting ) return sendAuthorityError(record, planned);
+        record.state = replaceResolutionInTree(record.state, execution.path, planned.state);
+        rememberResolutionState(record, planned.state);
+        if ( !planned.ok && !planned.waiting && !execution.nested ) return sendAuthorityError(record, planned);
+        if ( !planned.ok && !planned.waiting && execution.nested && !isTerminalState(planned.state) ) {
+          return sendAuthorityError(record, planned);
+        }
         continue;
       }
+
       return {
         ok: true,
         code: MULTIPLAYER_AUTHORITY_CODES.WAITING,
@@ -293,49 +334,57 @@ export function createMultiplayerActionCoordinator({
     }
   }
 
-  async function routePendingRequests(record) {
-    const requests = record.state.pendingRequests ?? [];
+  async function routePendingRequests(record, execution=activeResolutionExecution(record.state)) {
+    const state = execution.state;
+    const requests = state.pendingRequests ?? [];
     for ( const request of requests ) {
-      if ( record.routedRequestIds.has(request.id) ) continue;
+      const key = requestKey(request, state);
+      if ( record.routedRequestIds.has(key) ) continue;
+      const sourceControllerUserIds = sourceControllerUserIdsForRequest(record, request, state);
       const chooser = resolveRequestChooser({
         request,
         users: userDirectory(),
-        initiatorUserId: record.initiatorUserId,
+        initiatorUserId: execution.nested ? null : record.initiatorUserId,
         authorityUserId: record.authorityUserId,
         activeGMUserId: activeGMId(),
-        sourceControllerUserIds: record.requestContext.sourceControllerUserIds ?? [],
-        targetControllerUserIds: targetControllerUserIdsForRequest(record, request),
+        sourceControllerUserIds,
+        targetControllerUserIds: targetControllerUserIdsForRequest(record, request, state),
         allowGMFallback: record.requestContext.allowGMRequestFallback ?? allowGMRequestFallback
       });
       if ( !chooser.ok ) {
-        record.state = cancelResolutionState(record.state, {
+        const cancelled = cancelResolutionState(state, {
           stageId: request.stageId,
           code: MULTIPLAYER_AUTHORITY_CODES.REQUEST_AUTHORITY_UNAVAILABLE,
           reason: chooser.reason,
           data: {requestId: request.id, requestType: request.type, chooser}
         });
-        return sendAuthorityError(record, chooser, {requestId: request.id});
+        record.state = replaceResolutionInTree(record.state, execution.path, cancelled);
+        rememberResolutionState(record, cancelled);
+        if ( execution.nested ) return advanceRecord(record);
+        return sendAuthorityError(record, chooser, {requestId: request.id, resolutionId: state.id});
       }
-      record.requestExpectations.set(request.id, {
+      record.requestExpectations.set(key, {
         request: clonePlainData(request, "pendingRequest"),
+        resolutionId: state.id,
         expectedUserId: chooser.userId,
         chooser
       });
-      record.routedRequestIds.add(request.id);
+      record.routedRequestIds.add(key);
+      record.knownResolutionIds.add(state.id);
 
       if ( chooser.userId === localUserId ) {
         const answered = await answerPendingRequestLocally({
           request,
           promptPorts,
           rollProviders,
-          context: localRequestContext(record, request)
+          context: localRequestContext(record, request, state)
         });
-        if ( !answered.ok ) return sendAuthorityError(record, answered, {requestId: request.id});
+        if ( !answered.ok ) return sendAuthorityError(record, answered, {requestId: request.id, resolutionId: state.id});
         const localEnvelope = createResolutionSocketEnvelope({
           messageType: MULTIPLAYER_MESSAGE_TYPES.REQUEST_RESPONSE,
           senderUserId: localUserId,
           recipientUserId: localUserId,
-          resolutionId: record.resolutionId,
+          resolutionId: state.id,
           requestId: request.id,
           payload: {response: answered.response}
         });
@@ -346,7 +395,7 @@ export function createMultiplayerActionCoordinator({
         messageType: MULTIPLAYER_MESSAGE_TYPES.PENDING_REQUEST,
         senderUserId: localUserId,
         recipientUserId: chooser.userId,
-        resolutionId: record.resolutionId,
+        resolutionId: state.id,
         requestId: request.id,
         payload: {
           request: sanitizePendingRequestForTransport(request, {
@@ -359,16 +408,17 @@ export function createMultiplayerActionCoordinator({
         },
         metadata: {
           chooser,
-          stateStatus: record.state.status
+          stateStatus: state.status,
+          parentResolutionId: execution.parent?.id ?? null
         }
       });
       const sent = await sendEnvelope(envelope);
-      if ( !sent.ok ) return sendAuthorityError(record, sent, {requestId: request.id});
+      if ( !sent.ok ) return sendAuthorityError(record, sent, {requestId: request.id, resolutionId: state.id});
     }
     return {
       ok: true,
       code: MULTIPLAYER_AUTHORITY_CODES.REQUEST_ROUTED,
-      state: record.state,
+      state,
       pendingRequests: requests.length
     };
   }
@@ -427,7 +477,7 @@ export function createMultiplayerActionCoordinator({
   }
 
   async function receiveRequestResponse(envelope) {
-    const record = records.get(envelope.resolutionId);
+    const record = findRecordForResolutionId(envelope.resolutionId);
     if ( !record ) return {
       ok: false,
       code: MULTIPLAYER_AUTHORITY_CODES.RESOLUTION_NOT_FOUND,
@@ -443,7 +493,17 @@ export function createMultiplayerActionCoordinator({
 
   async function applyRequestResponse(record, envelope) {
     const response = responseFromEnvelope(envelope);
-    const validation = validateRequestResponse(record, envelope, response);
+    if ( isTerminalState(record.state) ) return {
+      ok: true,
+      code: MULTIPLAYER_AUTHORITY_CODES.DUPLICATE_REQUEST_RESPONSE,
+      duplicate: true,
+      reason: "Request response arrived after the authoritative resolution had already completed.",
+      state: record.state,
+      resolutionId: response.resolutionId,
+      requestId: response.requestId
+    };
+    const execution = activeResolutionExecution(record.state, response.resolutionId ?? envelope.resolutionId);
+    const validation = validateRequestResponse(record, envelope, response, execution);
     if ( !validation.ok ) {
       if ( validation.code === MULTIPLAYER_AUTHORITY_CODES.DUPLICATE_REQUEST_RESPONSE ) return validation;
       await sendError({
@@ -458,28 +518,55 @@ export function createMultiplayerActionCoordinator({
     }
 
     const resumed = await resumeResolution({
-      state: record.state,
+      state: execution.state,
       response,
       services: record.services
     });
-    record.state = resumed.state;
-    if ( !resumed.ok && !resumed.waiting ) return sendAuthorityError(record, resumed, {requestId: response.requestId});
-    record.processedRequestIds.add(response.requestId);
+    record.state = replaceResolutionInTree(record.state, execution.path, resumed.state);
+    rememberResolutionState(record, resumed.state);
+    if ( !resumed.ok && !resumed.waiting && !execution.nested ) {
+      return sendAuthorityError(record, resumed, {requestId: response.requestId, resolutionId: execution.state.id});
+    }
+    if ( !resumed.ok && !resumed.waiting && execution.nested && !isTerminalState(resumed.state) ) {
+      return sendAuthorityError(record, resumed, {requestId: response.requestId, resolutionId: execution.state.id});
+    }
+    record.processedRequestIds.add(requestKey({id: response.requestId, resolutionId: execution.state.id}, execution.state));
     return advanceRecord(record);
   }
 
-  function validateRequestResponse(record, envelope, response) {
+  function validateRequestResponse(record, envelope, response, execution=null) {
     const requestId = stringOrNull(response.requestId ?? envelope.requestId);
     if ( !requestId ) return failure(MULTIPLAYER_AUTHORITY_CODES.REQUEST_MISMATCH, "REQUEST_RESPONSE is missing requestId.");
-    if ( record.processedRequestIds.has(requestId) ) return {
+    const state = execution?.state ?? activeResolutionExecution(record.state, response.resolutionId ?? envelope.resolutionId)?.state ?? null;
+    const resolutionId = stringOrNull(response.resolutionId ?? envelope.resolutionId ?? state?.id);
+    const key = requestKey({id: requestId, resolutionId}, state);
+    if ( record.processedRequestIds.has(key) ) return {
       ok: true,
       code: MULTIPLAYER_AUTHORITY_CODES.DUPLICATE_REQUEST_RESPONSE,
       duplicate: true,
       reason: "Request response was already processed."
     };
-    const pending = (record.state?.pendingRequests ?? []).find(request => request.id === requestId);
+    if ( !state ) return failure(MULTIPLAYER_AUTHORITY_CODES.REQUEST_NOT_PENDING, "Resolution request is not currently pending.");
+    const expectation = record.requestExpectations.get(key);
+    if ( !state.pendingRequests?.some(request => request.id === requestId) && isTerminalState(record.state) ) {
+      if ( expectation && expectation.expectedUserId !== envelope.senderUserId ) {
+        return failure(MULTIPLAYER_AUTHORITY_CODES.WRONG_USER, "Request response came from a user who was not the expected chooser.", {
+          expectedUserId: expectation.expectedUserId,
+          senderUserId: envelope.senderUserId
+        });
+      }
+      if ( !expectation && !record.knownResolutionIds?.has(resolutionId) ) {
+        return failure(MULTIPLAYER_AUTHORITY_CODES.REQUEST_NOT_PENDING, "Resolution request is not currently pending.");
+      }
+      return {
+        ok: true,
+        code: MULTIPLAYER_AUTHORITY_CODES.DUPLICATE_REQUEST_RESPONSE,
+        duplicate: true,
+        reason: "Request response was already processed."
+      };
+    }
+    const pending = (state.pendingRequests ?? []).find(request => request.id === requestId);
     if ( !pending ) return failure(MULTIPLAYER_AUTHORITY_CODES.REQUEST_NOT_PENDING, "Resolution request is not currently pending.");
-    const expectation = record.requestExpectations.get(requestId);
     if ( !expectation ) return failure(MULTIPLAYER_AUTHORITY_CODES.REQUEST_NOT_PENDING, "No routed request expectation exists.");
     if ( expectation.expectedUserId !== envelope.senderUserId ) {
       return failure(MULTIPLAYER_AUTHORITY_CODES.WRONG_USER, "Request response came from a user who was not the expected chooser.", {
@@ -487,7 +574,7 @@ export function createMultiplayerActionCoordinator({
         senderUserId: envelope.senderUserId
       });
     }
-    if ( response.resolutionId !== record.resolutionId ) return failure(MULTIPLAYER_AUTHORITY_CODES.REQUEST_MISMATCH, "Response resolutionId does not match the authoritative state.");
+    if ( response.resolutionId !== state.id ) return failure(MULTIPLAYER_AUTHORITY_CODES.REQUEST_MISMATCH, "Response resolutionId does not match the authoritative state.");
     if ( response.type !== pending.type ) return failure(MULTIPLAYER_AUTHORITY_CODES.REQUEST_MISMATCH, "Response request type does not match the pending request.");
     return {
       ok: true,
@@ -498,7 +585,7 @@ export function createMultiplayerActionCoordinator({
   }
 
   async function receiveResolutionCancel(envelope) {
-    const record = records.get(envelope.resolutionId);
+    const record = findRecordForResolutionId(envelope.resolutionId);
     if ( !record ) return {
       ok: false,
       code: MULTIPLAYER_AUTHORITY_CODES.RESOLUTION_NOT_FOUND,
@@ -509,11 +596,16 @@ export function createMultiplayerActionCoordinator({
       code: MULTIPLAYER_AUTHORITY_CODES.WRONG_AUTHORITY,
       reason: "Only the authoritative client may cancel this resolution."
     };
-    record.state = cancelResolutionState(record.state ?? createResolutionState({id: record.resolutionId}), {
+    const execution = activeResolutionExecution(record.state, envelope.resolutionId);
+    const state = execution?.state ?? record.state ?? createResolutionState({id: record.resolutionId});
+    const cancelled = cancelResolutionState(state, {
       code: MULTIPLAYER_AUTHORITY_CODES.CANCELLED,
       reason: envelope.payload?.reason ?? "Resolution cancelled by socket request.",
       data: {senderUserId: envelope.senderUserId}
     });
+    record.state = replaceResolutionInTree(record.state ?? cancelled, execution?.path ?? [state.id], cancelled);
+    rememberResolutionState(record, cancelled);
+    if ( execution?.nested ) return advanceRecord(record);
     return sendResolutionResult(record, {ok: false, code: MULTIPLAYER_AUTHORITY_CODES.CANCELLED});
   }
 
@@ -670,14 +762,60 @@ export function createMultiplayerActionCoordinator({
     return explicit ?? null;
   }
 
-  function localRequestContext(record, request) {
+  function localRequestContext(record, request, state=record.state) {
     return {
       ...promptContext,
       ...rollContext,
       currentUserId: localUserId,
       users: userDirectory(),
-      resolutionId: record.resolutionId,
+      resolutionId: state?.id ?? record.resolutionId,
+      parentResolutionId: state?.parentId ?? record.resolutionId,
       requestId: request.id
+    };
+  }
+
+  function findRecordForResolutionId(resolutionId) {
+    const id = stringOrNull(resolutionId);
+    if ( !id ) return null;
+    const direct = records.get(id);
+    if ( direct ) return direct;
+    for ( const record of records.values() ) {
+      if ( record.knownResolutionIds?.has(id) ) return record;
+      const execution = activeResolutionExecution(record.state, id);
+      if ( execution ) {
+        rememberResolutionState(record, record.state);
+        return record;
+      }
+    }
+    return null;
+  }
+
+  function completeActiveChildResolution(record, execution) {
+    const childState = execution.state;
+    const parentState = execution.parent;
+    const completed = completeChildResolution({
+      parentState,
+      childState,
+      services: record.services,
+      targetActors: record.options.targetActors ?? record.services?.targetActors ?? null,
+      failurePolicy: record.services?.reactions?.failurePolicy ?? record.options.reactionFailurePolicy ?? "continue"
+    });
+    return {
+      ...completed,
+      state: replaceResolutionInTree(record.state, execution.parentPath, completed.state)
+    };
+  }
+
+  function optionsForResolutionState(record, state) {
+    const actor = actorForResolutionState(record, state);
+    const action = actionForResolutionState(record, state);
+    return {
+      ...record.options,
+      actor,
+      action,
+      source: state?.source ?? record.options.source ?? null,
+      targets: state?.targets?.length ? state.targets : record.options.targets,
+      targetActors: record.options.targetActors ?? record.services?.targetActors ?? null
     };
   }
 }
@@ -765,21 +903,270 @@ function responseFromEnvelope(envelope) {
   };
 }
 
-function targetControllerUserIdsForRequest(record, request) {
-  const perRequest = record.requestContext.targetControllerUserIdsByRequestId?.[request.id];
-  if ( perRequest ) return perRequest;
-  const rollTargetRefs = [
-    request.payload?.rollRequest?.target?.actorId,
-    request.payload?.rollRequest?.target?.actorRef,
-    request.payload?.rollRequest?.target?.uuid,
-    request.payload?.rollRequest?.source?.actorId,
-    request.payload?.rollRequest?.source?.actorRef,
-    request.payload?.rollRequest?.source?.uuid
-  ].filter(Boolean).map(String);
-  for ( const [targetRef, userIds] of Object.entries(record.requestContext.targetControllerUserIdsByTargetRef ?? {}) ) {
-    if ( rollTargetRefs.includes(targetRef) || rollTargetRefs.includes(targetRef.replace(/^actor:/, "")) ) return userIds;
+function activeResolutionExecution(rootState, resolutionId=null) {
+  if ( !rootState ) return null;
+  const desiredId = stringOrNull(resolutionId);
+  const root = createResolutionState(rootState);
+  let state = root;
+  let parent = null;
+  let path = [root.id];
+  let parentPath = [];
+
+  while ( state ) {
+    if ( desiredId ? state.id === desiredId : !state.metadata?.activeChildResolution ) {
+      return {
+        state,
+        parent,
+        path,
+        parentPath,
+        nested: path.length > 1
+      };
+    }
+
+    const child = state.metadata?.activeChildResolution;
+    if ( !child ) break;
+    parent = state;
+    parentPath = path;
+    state = createResolutionState(child);
+    path = [...path, state.id];
   }
-  return record.requestContext.targetControllerUserIds ?? [];
+
+  if ( !desiredId ) return {
+    state,
+    parent,
+    path,
+    parentPath,
+    nested: path.length > 1
+  };
+  return null;
+}
+
+function replaceResolutionInTree(rootState, path=[], replacementState=null) {
+  const replacement = createResolutionState(replacementState);
+  if ( !rootState ) return replacement;
+  const ids = normalizeArray(path).map(stringOrNull).filter(Boolean);
+  if ( ids.length <= 1 ) return replacement;
+  const root = createResolutionState(rootState);
+
+  function replaceAt(state, index) {
+    if ( index >= ids.length - 1 ) return replacement;
+    const current = createResolutionState(state);
+    const child = current.metadata?.activeChildResolution;
+    if ( !child ) return current;
+    const nextChild = replaceAt(child, index + 1);
+    return updateResolutionState(current, {
+      metadata: {
+        ...current.metadata,
+        activeChildResolution: nextChild
+      }
+    });
+  }
+
+  return replaceAt(root, 0);
+}
+
+function rememberResolutionState(record, state) {
+  if ( !record || !state ) return;
+  if ( !record.knownResolutionIds ) record.knownResolutionIds = new Set();
+  let current = createResolutionState(state);
+  while ( current ) {
+    record.knownResolutionIds.add(current.id);
+    const child = current.metadata?.activeChildResolution;
+    if ( !child ) break;
+    current = createResolutionState(child);
+  }
+}
+
+function requestKey(request, state=null) {
+  const resolutionId = stringOrNull(request?.resolutionId ?? state?.id) ?? "resolution:unknown";
+  const requestId = stringOrNull(request?.id ?? request?.requestId) ?? "request:unknown";
+  return `${resolutionId}:${requestId}`;
+}
+
+function actorForResolutionState(record, state) {
+  if ( !state ) return null;
+  if ( state.id === record.resolutionId ) return record.options.actor ?? null;
+  return lookupActorForState(record, state);
+}
+
+function lookupActorForState(record, state) {
+  const refs = stateSourceRefs(state);
+  const sources = [
+    record.services?.actorsByActor,
+    record.options?.actorsByActor,
+    record.services?.targetActors,
+    record.options?.targetActors,
+    record.services?.reactions?.actorsByActor,
+    record.services?.reactions?.actorDocumentsByActor,
+    record.services?.reactions?.actorSystemsByActor
+  ];
+  for ( const source of sources ) {
+    const actor = lookupActorMap(source, refs);
+    if ( actor?.system ) return actor;
+  }
+  return null;
+}
+
+function actionForResolutionState(record, state) {
+  if ( !state ) return record.options.action ?? null;
+  if ( state.id === record.resolutionId ) return record.options.action ?? state.input?.action ?? actionFromStateDefinition(state);
+  return state.input?.action ?? actionFromStateDefinition(state) ?? null;
+}
+
+function actionFromStateDefinition(state) {
+  const definition = state?.actionDefinition ?? null;
+  if ( !definition ) return null;
+  return {
+    id: stringOrNull(state.input?.action?.id ?? definition.id),
+    uuid: stringOrNull(state.input?.action?.uuid ?? definition.uuid ?? definition.ref ?? definition.id),
+    type: stringOrNull(state.input?.action?.type) ?? "action",
+    name: stringOrNull(state.input?.action?.name ?? definition.label ?? definition.name ?? definition.id) ?? "Action",
+    system: {
+      ...(state.input?.action?.system ?? {}),
+      definition
+    }
+  };
+}
+
+function sourceControllerUserIdsForRequest(record, request, state=null) {
+  const perRequest = record.requestContext.sourceControllerUserIdsByRequestId?.[request.id];
+  if ( perRequest ) return uniqueStrings(perRequest);
+  const refs = uniqueStrings([
+    ...requestSourceRefs(request),
+    ...stateSourceRefs(state)
+  ]);
+  const perSource = lookupControllerUserIds(record.requestContext.sourceControllerUserIdsBySourceRef, refs);
+  if ( perSource.length ) return perSource;
+  const reactionSource = lookupControllerUserIds(record.services?.reactions?.controllerUserIdsByActor, refs);
+  if ( reactionSource.length ) return reactionSource;
+  const targetFallback = lookupControllerUserIds(record.requestContext.targetControllerUserIdsByTargetRef, refs);
+  if ( targetFallback.length ) return targetFallback;
+  return uniqueStrings(record.requestContext.sourceControllerUserIds ?? []);
+}
+
+function targetControllerUserIdsForRequest(record, request, state=null) {
+  const perRequest = record.requestContext.targetControllerUserIdsByRequestId?.[request.id];
+  if ( perRequest ) return uniqueStrings(perRequest);
+  const refs = uniqueStrings([
+    ...requestTargetRefs(request),
+    ...requestSourceRefs(request),
+    ...stateSourceRefs(state)
+  ]);
+  const perTarget = lookupControllerUserIds(record.requestContext.targetControllerUserIdsByTargetRef, refs);
+  if ( perTarget.length ) return perTarget;
+  return uniqueStrings(record.requestContext.targetControllerUserIds ?? []);
+}
+
+function requestSourceRefs(request) {
+  return uniqueStrings([
+    ...refsFromObject(request?.source),
+    ...refsFromObject(request?.payload?.source),
+    ...refsFromObject(request?.payload?.rollRequest?.source),
+    ...refsFromObject(request?.metadata?.source)
+  ]);
+}
+
+function requestTargetRefs(request) {
+  const targets = [
+    request?.target,
+    request?.payload?.target,
+    request?.payload?.rollRequest?.target,
+    ...(Array.isArray(request?.targets) ? request.targets : []),
+    ...(Array.isArray(request?.payload?.targets) ? request.payload.targets : [])
+  ];
+  return uniqueStrings(targets.flatMap(refsFromObject));
+}
+
+function stateSourceRefs(state) {
+  return uniqueStrings([
+    ...refsFromObject(state?.source),
+    ...refsFromObject(state?.input?.source),
+    ...refsFromObject(state?.actionContext?.source)
+  ]);
+}
+
+function refsFromObject(value) {
+  if ( !value || typeof value !== "object" ) return [];
+  const actorId = stringOrNull(value.actorId ?? value.id);
+  return uniqueStrings([
+    actorId,
+    actorId ? `actor:${actorId}` : null,
+    value.actorRef,
+    value.ref,
+    value.uuid
+  ]);
+}
+
+function lookupControllerUserIds(source, refs) {
+  const value = lookupByRefs(source, refs);
+  return uniqueStrings(value);
+}
+
+function lookupActorMap(source, refs) {
+  const value = lookupByRefs(source, refs);
+  if ( value ) return value;
+  if ( source?.system && actorMatchesRefs(source, refs) ) return source;
+  if ( Array.isArray(source) ) return source.find(entry => actorMatchesRefs(entry, refs)) ?? null;
+  return null;
+}
+
+function lookupByRefs(source, refs) {
+  if ( !source ) return null;
+  const keys = expandedRefKeys(refs);
+  if ( typeof source === "function" ) {
+    for ( const key of keys ) {
+      const value = source({actorId: key.replace(/^actor:/, ""), actorRef: key, ref: key, uuid: key});
+      if ( value ) return value;
+    }
+    return null;
+  }
+  if ( source instanceof Map ) {
+    for ( const key of keys ) {
+      const value = source.get(key);
+      if ( value ) return value;
+    }
+    return null;
+  }
+  if ( typeof source !== "object" || Array.isArray(source) ) return null;
+  for ( const key of keys ) {
+    const value = source[key];
+    if ( value ) return value;
+  }
+  return null;
+}
+
+function actorMatchesRefs(actor, refs) {
+  if ( !actor ) return false;
+  const actorRefs = expandedRefKeys([
+    actor.id,
+    actor.actorId,
+    actor.uuid,
+    actor.actorRef,
+    actor.ref
+  ]);
+  return expandedRefKeys(refs).some(ref => actorRefs.includes(ref));
+}
+
+function expandedRefKeys(refs) {
+  return uniqueStrings(normalizeArray(refs).flatMap(ref => {
+    const value = stringOrNull(ref);
+    if ( !value ) return [];
+    const withoutActorPrefix = value.replace(/^actor:/, "");
+    return [
+      value,
+      withoutActorPrefix,
+      `actor:${withoutActorPrefix}`
+    ];
+  }));
+}
+
+function uniqueStrings(values=[]) {
+  return [...new Set(normalizeArray(values).map(stringOrNull).filter(Boolean))];
+}
+
+function normalizeArray(value) {
+  if ( value == null ) return [];
+  return Array.isArray(value) ? value : [value];
 }
 
 function isTerminalState(state) {

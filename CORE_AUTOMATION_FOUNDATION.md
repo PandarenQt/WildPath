@@ -203,8 +203,10 @@ The first resolver implementations live under `module/resolvers/`:
 - `ReactionResolver`: implemented as a generic foundation for Trigger/Action Economy discovery,
   ordered `reaction-choice` requests, child ResolutionState provenance, parent pause/resume,
   reevaluation/cancel directives, and loop protection. The staged action pipeline now inserts
-  opt-in action-declared and after-attack-outcome windows; broader timing coverage and live Foundry
-  reaction QA remain outstanding.
+  opt-in action-declared and after-attack-outcome windows. The multiplayer coordinator now advances
+  active child ResolutionStates through the default staged runner, routes child pending requests by
+  child `resolutionId`, and treats replayed child completions/responses idempotently; broader timing
+  coverage and live Foundry reaction QA remain outstanding.
 - `AreaResolver`: handles instantaneous and persistent areas plus movement/turn triggers.
 - `ResolutionTransaction`: orders mutation operations and delegates document writes to
   `DocumentPersistencePort`.
@@ -290,7 +292,7 @@ routing, duplicate/stale rejection, and the current Foundry socket adapter. See
 ## Near-Term Order
 
 1. Perform live Foundry V14 runtime QA for staged persisted actions, tactical-grid adaptation,
-   PromptPort/RollProvider choices, active-GM socket routing, reaction windows, and
+   PromptPort/RollProvider choices, active-GM socket routing, nested reaction children, and
    DocumentPersistencePort commits.
 2. Expand ReactionResolver timing coverage beyond action-declared and after-attack-outcome only
    where semantic events require it, then perform live Foundry reaction QA. Avoid named-feature
