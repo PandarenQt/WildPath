@@ -13,7 +13,8 @@ automation foundation needs, per `AGENTS.md` sections 4 and 8 and the architectu
   refresh primitives that `ResourceResolver` should wrap at the Foundry boundary.
 - `module/helpers/automation-events.mjs` now provides semantic event normalization, trigger
   matching, one-shot dispatch planning, and reaction-window eligibility checks. `ReactionResolver`
-  should wrap those plans with prompting, authority, and commit behavior.
+  now wraps those windows with prompting, child-resolution provenance, and parent pause/resume
+  behavior.
 - `module/helpers/action-resolution.mjs` now provides the plain `ActionContext` and `ActionResult`
   envelopes that resolver modules should share for steps, events, consequences, mutation plans,
   errors, and audit traces.
@@ -44,6 +45,10 @@ automation foundation needs, per `AGENTS.md` sections 4 and 8 and the architectu
   selection/refinement, or roll input, resume with correlated responses, plan to
   `ready-to-commit` without mutation, and execute through the existing transaction-backed commit
   path.
+- `module/resolvers/reaction-resolver.mjs` now turns Trigger/Action Economy windows into ordered
+  reaction candidates, `reaction-choice` pending requests, child `ResolutionState` provenance,
+  parent pause/resume, generic reevaluation/cancel directives, and depth/repeated-trigger loop
+  protection. The default action pipeline still needs production timing insertion.
 - `module/resolvers/target-resolver.mjs` now wraps target-set eligibility, refinement decisions,
   required-target failures, self-targeting, and selection request state.
 - `module/resolvers/attack-resolver.mjs` now resolves already-known attack totals against target
@@ -120,7 +125,7 @@ call into `ActionResolver`; resolvers should not call UI code.
 | `ConcentrationResolver` | `module/resolvers/concentration-resolver.mjs` | Plans concentration check requests from adjusted damage, resolves supplied digital/physical check results through SaveResolver, normalizes known concentration save decisions, and emits lifecycle break events for failed decisions. |
 | `ConcentrationCheckCommitResolver` | `module/resolvers/concentration-check-commit-resolver.mjs` | Bridges supplied concentration check results into EffectLifecycleCommitResolver with explicit authority and no prompt/UI dependency. |
 | `ResourceResolver` | `module/resolvers/resource-resolver.mjs` | Generalizes action cost validation and payment mutation planning; refund-on-cancel waits for cancellation/reaction slices. |
-| `ReactionResolver` | `module/resolvers/reaction-resolver.mjs` | Offer eligible reactions at defined interrupt points, then resume the parent resolution. |
+| `ReactionResolver` | `module/resolvers/reaction-resolver.mjs` | Turns Trigger/Action Economy windows into ordered candidates, `reaction-choice` requests, child ResolutionState provenance, parent pause/resume, reevaluation/cancel directives, and loop protection. |
 | `AreaResolver` | `module/resolvers/area-resolver.mjs` | Resolve instantaneous and persistent areas plus enter/leave/start-turn/end-turn triggers. |
 
 ## Sequencing Note
@@ -144,7 +149,7 @@ now feed failed concentration save decisions into that same lifecycle path, plan
 requests from adjusted damage, and resolve supplied check totals/outcomes into the same event shape.
 ConcentrationCheckCommitResolver now bridges those supplied check results into the lifecycle commit
 path with explicit authority. ActionPipelineResolver now adds the first addressable
-ResolutionState layer around ActionResolver and should be the integration point for future prompt,
-roll-provider, and reaction-window adapters. The next resolver slice should either connect a
-Foundry/UI adapter to staged pending requests or extract one legacy ActionResolver responsibility
-into a dedicated stage while preserving parity.
+ResolutionState layer around ActionResolver and is the integration point for prompt, roll-provider,
+and reaction-window adapters. ReactionResolver now supplies the generic window/request/child
+resolution contract. The next resolver slice should insert reaction-window stages into the default
+action pipeline around the smallest useful timings, then perform live Foundry reaction QA.

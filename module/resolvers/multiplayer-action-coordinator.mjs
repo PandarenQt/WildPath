@@ -38,6 +38,9 @@ export function createMultiplayerActionCoordinator({
   promptContext={},
   rollContext={},
   actionIntentResolver=null,
+  planResolution=planStagedActionResolution,
+  resumeResolution=resumeStagedActionResolution,
+  executeResolution=executeStagedActionResolution,
   allowLocalWithoutGM=false,
   allowGMRequestFallback=true,
   canCommitLocally=false,
@@ -256,7 +259,7 @@ export function createMultiplayerActionCoordinator({
     while ( true ) {
       if ( record.state?.pendingRequests?.length ) return routePendingRequests(record);
       if ( record.state?.status === RESOLUTION_STATE_STATUS.READY_TO_COMMIT ) {
-        const committed = await executeStagedActionResolution({
+        const committed = await executeResolution({
           ...record.options,
           state: record.state,
           services: record.services,
@@ -274,7 +277,7 @@ export function createMultiplayerActionCoordinator({
       }
       if ( isTerminalState(record.state) ) return sendResolutionResult(record, {ok: record.state.status === RESOLUTION_STATE_STATUS.COMPLETED});
       if ( record.state == null ) {
-        const planned = planStagedActionResolution({
+        const planned = await planResolution({
           ...record.options,
           services: record.services
         });
@@ -454,7 +457,7 @@ export function createMultiplayerActionCoordinator({
       return validation;
     }
 
-    const resumed = resumeStagedActionResolution({
+    const resumed = await resumeResolution({
       state: record.state,
       response,
       services: record.services

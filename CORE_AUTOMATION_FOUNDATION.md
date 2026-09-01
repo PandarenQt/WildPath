@@ -200,7 +200,10 @@ The first resolver implementations live under `module/resolvers/`:
 - `EffectResolver`: currently plans condition changes; should grow into applying/removing
   ActiveEffects as resolved consequences.
 - `ResourceResolver`: centralizes spending, refunds, and resource validation.
-- `ReactionResolver`: supports interrupt windows and reaction prompts.
+- `ReactionResolver`: implemented as a generic foundation for Trigger/Action Economy discovery,
+  ordered `reaction-choice` requests, child ResolutionState provenance, parent pause/resume,
+  reevaluation/cancel directives, and loop protection. Production action-pipeline timing insertion
+  and live Foundry reaction QA remain outstanding.
 - `AreaResolver`: handles instantaneous and persistent areas plus movement/turn triggers.
 - `ResolutionTransaction`: orders mutation operations and delegates document writes to
   `DocumentPersistencePort`.
@@ -249,7 +252,8 @@ See `docs/design/character-sheet.md` for the finished character-sheet architectu
 analysis.
 See `docs/architecture/combat-timeline.md` for the combat timeline, durations, and scheduler
 foundation. See `docs/architecture/events-and-reactions.md` for the automation event and reaction
-trigger foundation. See `docs/architecture/action-resolution.md` for the common action-context
+trigger foundation. See `docs/architecture/reactions.md` for the generic reaction-window and child
+resolution foundation. See `docs/architecture/action-resolution.md` for the common action-context
 and action-result envelope. See `docs/architecture/resolution-state.md` for the staged
 ResolutionState pipeline, lifecycle, pending requests, child resolutions, and commit boundary. See
 `docs/architecture/action-definitions.md` for the persisted
@@ -286,8 +290,9 @@ routing, duplicate/stale rejection, and the current Foundry socket adapter. See
 
 1. Perform live Foundry V14 runtime QA for staged persisted actions, tactical-grid adaptation,
    PromptPort/RollProvider choices, active-GM socket routing, and DocumentPersistencePort commits.
-2. Build the ReactionEngine over semantic events, child ResolutionState, existing pending requests,
-   and the multiplayer authority router. Avoid named-feature reaction code.
+2. Insert ReactionResolver windows into the default staged action pipeline around the smallest
+   useful production timings, then perform live Foundry reaction QA. Avoid named-feature reaction
+   code.
 3. Build topology-aware Movement using complete TokenGridFootprints and semantic movement events.
 4. Compose persistent Areas, auras, and emanations from Spatial + Movement + Events + Reactions.
 5. Add representative content and character-system slices only after those execution boundaries are

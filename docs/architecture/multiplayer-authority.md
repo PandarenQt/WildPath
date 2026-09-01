@@ -131,6 +131,8 @@ Remote request handling uses existing ports:
 - attack, save, damage, manual, and physical rolls route through `RollProvider` when a provider is
   available
 - manual prompt fallback still uses the same `roll` pending-request shape
+- reaction windows route as `reaction-choice` pending requests through the same
+  `PENDING_REQUEST` / `REQUEST_RESPONSE` envelope; no reaction-specific socket protocol is used
 
 Once a chooser responds, the authority validates:
 
@@ -186,9 +188,12 @@ Not implemented here:
 - mid-resolution authority failover
 - full HUD request routing
 - chat rendering
-- movement/reaction networking
+- movement networking
 - persistent area lifecycle networking
 - cross-client secret visibility policy beyond sanitized result/request payloads
+
+Generic reaction-choice routing is covered through the coordinator's injectable staged runners, but
+live Foundry multiplayer reaction QA remains outstanding.
 
 Live Foundry runtime QA remains required. The Node tests prove the coordinator, envelope,
 deterministic transport, request routing, RollProvider/PromptPort usage, and authority commit

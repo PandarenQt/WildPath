@@ -108,7 +108,7 @@ change now requires evidence of at least one of:
 Current development priorities are:
 
 1. live Foundry V14 runtime QA for staged action execution and multiplayer request routing
-2. ReactionEngine over semantic events, pending requests, child resolutions, and authority routing
+2. production insertion and live QA for generic ReactionResolver windows
 3. Movement
 4. persistent Areas, auras, and emanations
 5. representative content as architecture proof
@@ -1213,8 +1213,11 @@ Foundry socket adapter listens on `system.wildpath`. See
 
 Stage G — Reactions / Interruptible Resolution
 
-Build reaction discovery and child resolutions over semantic events, existing pending requests, and
-the established pause/resume pipeline.
+Status: generic foundation implemented. ReactionResolver now discovers eligible triggered Actions,
+opens `reaction-choice` requests, creates child ResolutionState provenance, pauses/resumes the
+parent, supports generic reevaluation/cancel directives, and reuses multiplayer request routing.
+Remaining Stage G work is production insertion into the default action pipeline timings and live
+Foundry reaction QA.
 
 Stage H — Movement
 

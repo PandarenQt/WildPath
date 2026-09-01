@@ -130,7 +130,10 @@ export function createReactionTrigger({
   actorId=null,
   tokenId=null,
   actionId=null,
+  actionRef=null,
+  action=null,
   cost=null,
+  chooser=null,
   predicate=null,
   priority=100,
   once=false,
@@ -149,7 +152,7 @@ export function createReactionTrigger({
     enabled,
     payload,
     owner: {actorId, tokenId},
-    reaction: {actorId, tokenId, actionId, cost},
+    reaction: {actorId, tokenId, actionId, actionRef, action, cost, chooser},
     metadata
   });
 }
@@ -268,11 +271,16 @@ export function collectReactionWindows({
       actorId,
       tokenId: dispatch.reaction?.tokenId ?? dispatch.owner?.tokenId ?? null,
       actionId: dispatch.reaction?.actionId ?? null,
+      actionRef: dispatch.reaction?.actionRef ?? dispatch.reaction?.action?.id ?? dispatch.reaction?.actionId ?? null,
+      action: clonePlain(dispatch.reaction?.action ?? null),
+      owner: clonePlain(dispatch.owner ?? null),
+      reaction: clonePlain(dispatch.reaction ?? null),
       priority: dispatch.priority,
       payload: clonePlain(dispatch.payload) ?? {},
       paymentOptions: payment.options.map(option => clonePlain(option)),
       selectedPaymentOption: clonePlain(selectDefaultPaymentOption(payment.options)),
-      event: clonePlain(event)
+      event: clonePlain(event),
+      metadata: clonePlain(dispatch.metadata ?? {})
     });
   }
 
@@ -347,8 +355,11 @@ function normalizeReaction(reaction) {
     actorId: reaction.actorId ?? null,
     tokenId: reaction.tokenId ?? null,
     actionId: reaction.actionId ?? null,
+    actionRef: reaction.actionRef ?? reaction.ref ?? reaction.action?.id ?? reaction.actionId ?? null,
+    action: clonePlain(reaction.action ?? null),
     cost: reaction.cost ? clonePlain(reaction.cost) : defaultReactionCost(),
-    action: clonePlain(reaction.action ?? {}) ?? {}
+    chooser: clonePlain(reaction.chooser ?? reaction.authority ?? null) ?? null,
+    metadata: clonePlain(reaction.metadata ?? {}) ?? {}
   };
 }
 

@@ -206,6 +206,8 @@ multiplayer authority coordinator. The remaining integration gap is live Foundry
 richer UI presentation over the same request payloads. ResolutionState must continue to store plain
 request/result data rather than Foundry Roll objects, Applications, callbacks, or pending Promises.
 
-Reaction windows are not executed here. Future reaction work should insert waitable stages around
-semantic events such as after declaration, before/after attack roll, after hit determination, and
-before damage commit.
+Generic reaction-window execution is now provided by `module/resolvers/reaction-resolver.mjs`.
+Reaction state remains plain data under `metadata.reactionWindows`, and chosen reactions create
+child `ResolutionState` objects through the existing ancestry/depth guard. The default action
+pipeline still needs production window insertion around specific timings such as action-declared,
+after-outcome, and before-damage. See `docs/architecture/reactions.md`.

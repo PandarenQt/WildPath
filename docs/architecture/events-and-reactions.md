@@ -55,8 +55,10 @@ window cost.
 - default payment options
 - rejected windows with structured codes
 
-It does not spend resources, prompt users, create chat cards, or mutate Foundry documents. Future
-`ReactionResolver` and `ResolutionTransaction` code should own those steps.
+It does not spend resources, prompt users, create chat cards, or mutate Foundry documents.
+`module/resolvers/reaction-resolver.mjs` now wraps those windows into ordered candidates,
+`reaction-choice` requests, and child-resolution provenance. The child Action and the existing
+transaction boundary still own actual resource spending, effects, and document mutation.
 
 ## Resolver Boundary
 
@@ -72,11 +74,11 @@ ActionResolver
 UI may display prompts for eligible reaction windows, but the rules for eligibility and payment
 must remain in the resolver/domain layer.
 
-The staged `ResolutionState` pipeline is the intended resume point for future reaction windows.
-Reaction work should add waitable stages around meaningful semantic events, such as after action
-declaration, before/after attack roll, after hit determination, and before damage commit. This
-foundation only stores typed pending requests and parent/child provenance; it does not execute a
-complete ReactionEngine yet.
+The staged `ResolutionState` pipeline is the resume point for reaction windows.
+`createReactionWindowStage()` can be inserted around meaningful semantic events, such as after
+action declaration, after hit determination, and before damage commit. The default action pipeline
+still needs those production timing insertions; the generic wait/choice/child-resolution contract
+is now implemented and covered by Node tests.
 
 ## Future Consumers
 
@@ -91,5 +93,5 @@ This foundation is intended for:
 - homebrew trigger builder output
 
 The helper is not a socket protocol or multiplayer authority layer. It only plans what should be
-offered or dispatched; Foundry adapters still need GM/client authority guards before committing
-state.
+offered or dispatched. Multiplayer routing reuses `docs/architecture/multiplayer-authority.md`;
+Foundry adapters still need live runtime QA before reactions are considered manually verified.
