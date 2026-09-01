@@ -271,6 +271,6 @@ This feature depends on the mature versions of:
 - EventBus / trigger system
 - ReactionEngine
 - AreaResolver
-- MovementEngine
+- MovementPath and movement event/commit integration
 - formula/value-expression system
 - import/export and migration infrastructure

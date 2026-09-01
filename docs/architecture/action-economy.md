@@ -91,9 +91,26 @@ Speed modifiers and additional spendable movement therefore remain distinct conc
 
 ## Movement Cost
 
-Movement cost accepts a path-like object instead of only start/end coordinates. Foundry adapters can
-later populate this from V14 grid/path measurement. Forced movement and teleportation are explicit
-movement kinds that do not consume normal movement budget by default.
+Movement cost accepts path-like ordered route data instead of only start/end coordinates.
+`module/helpers/movement-paths.mjs` now provides the pure topology-aware route layer:
+
+```text
+MovementPath
+-> complete-footprint reconstruction
+-> occupancy / transition policy checks
+-> per-step route cost
+-> measureMovementPath()
+-> spendMovementBudget()
+```
+
+The anchor convention is `anchors-include-origin`; `[A, B, C]` means two transitions. Route cost is
+computed from the ordered transitions, not from `fieldDistance(A, C)` or footprint endpoint range.
+Large and hex creatures reconstruct complete `TokenGridFootprint` data at every anchor for legality,
+but cost is still per anchor transition rather than multiplied by occupied fields.
+
+Forced movement and teleportation are explicit movement kinds that do not consume normal movement
+budget by default. Teleport may use a non-adjacent destination anchor while still validating the
+destination footprint through the same policy seam. See `docs/architecture/movement-paths.md`.
 
 ## Existing Data Compatibility
 
@@ -118,4 +135,6 @@ without embedding resource mutation in the UI.
 - Multiplayer authority should decide which client may commit a selected payment plan.
 - Non-Actor resource stores should join the same transaction/persistence boundary when introduced.
 - `ReactionEngine` should decide when reaction windows exist.
-- `MovementEngine` should integrate Foundry V14 path, terrain, area, and token movement APIs.
+- A future Foundry movement adapter should translate V14 token movement proposals into
+  `MovementPath` data, then commit approved Token movement through the existing authority and
+  transaction boundaries.

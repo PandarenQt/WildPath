@@ -4,7 +4,8 @@ WildPath now has a substantial pure/domain automation kernel for Foundry VTT V14
 architecture includes declarative rules, persisted ActionDefinitions, per-use Action Configuration,
 authoritative previews, serializable staged ResolutionState, pause/resume requests, transaction-
 backed commit planning, RollProvider abstraction, topology-aware tactical geometry, target
-refinement, Action Economy, Effects, InventorySpace foundations, and WeaponSizePolicy.
+refinement, Action Economy, topology-aware MovementPath evaluation, Effects, InventorySpace
+foundations, and WeaponSizePolicy.
 
 The primary remaining risk is no longer whether these concepts can be modeled. It is proving that
 they integrate cleanly with live Foundry VTT V14 Scenes, Tokens, Documents, Applications, and
@@ -32,6 +33,10 @@ finished game system name is **WildPath**.
   pay for a Bonus Action activity after eligible Bonus Action resources are depleted.
 - `module/helpers/movement.mjs` derives spendable movement budgets from canonical movement speed
   using distance or field measurement.
+- `module/helpers/movement-paths.mjs` provides pure ordered MovementPath evaluation over
+  TacticalGrid topology: anchors include the origin, full TokenGridFootprints are reconstructed at
+  every anchor, per-step route cost is separated from occupancy/transition legality, and
+  affordability delegates to the existing movement budget helper.
 - Tactical grid and area topology are implemented as pure domain foundations: gridded AoE resolves
   to authoritative `GridFootprint` field sets rather than Euclidean templates pretending to be
   tactical geometry. `module/adapters/foundry-v14-tactical-grid-adapter.mjs` now provides the first
@@ -232,9 +237,9 @@ active tactical grid defines adjacency, direction, source-border placement, and 
 Ordinary creature-originated Lines and Cones should originate from an eligible source Token's
 tactical boundary vertex rather than token center.
 
-This milestone is gated behind the core resolver/rules foundations and should land before
-movement-path automation, opportunity attacks, auras, emanations, persistent hazards, and large
-spell/content implementation. The first Foundry adapter proof has landed; see
+The first Foundry adapter proof has landed, and pure topology-aware MovementPath evaluation now
+builds on the same footprint conventions. Opportunity attacks, auras, emanations, persistent
+hazards, and Token movement integration remain later slices. See
 `docs/architecture/tactical-grid.md`, `docs/architecture/areas.md`, and
 `docs/architecture/foundry-tactical-grid-adapter.md`.
 
@@ -257,6 +262,7 @@ document mutation. See `docs/architecture/targeting.md` and `docs/architecture/i
 
 See `docs/architecture/product-experience.md` for the product-facing direction, and
 `docs/architecture/action-economy.md` for the current economy/movement foundation. See
+`docs/architecture/movement-paths.md` for ordered topology-aware MovementPath evaluation. See
 `docs/architecture/homebrew-content-builder.md` for the finished-product builder standard.
 See `docs/design/character-sheet.md` for the finished character-sheet architecture and reference
 analysis.
@@ -304,7 +310,8 @@ routing, duplicate/stale rejection, and the current Foundry socket adapter. See
 2. Expand ReactionResolver timing coverage beyond action-declared and after-attack-outcome only
    where semantic events require it, then perform live Foundry reaction QA. Avoid named-feature
    reaction code.
-3. Build topology-aware Movement using complete TokenGridFootprints and semantic movement events.
+3. Integrate Foundry V14 Token movement proposals with plain MovementPath data, authority routing,
+   and transaction-safe Token movement commits.
 4. Compose persistent Areas, auras, and emanations from Spatial + Movement + Events + Reactions.
 5. Add representative content and character-system slices only after those execution boundaries are
    proven in live runtime.

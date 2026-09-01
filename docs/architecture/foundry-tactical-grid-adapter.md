@@ -223,6 +223,9 @@ Foundry V14 token movement APIs can provide interaction, path preview, movement 
 terrain/region infrastructure. WildPath movement mechanics should still consume topology-aware
 complete token footprints and emit semantic movement events. Planned movement should adapt into the
 same `GridField`/`TokenGridFootprint` model rather than introducing another spatial representation.
+The pure middle layer now exists as `MovementPath` in `module/helpers/movement-paths.mjs`; a future
+adapter should translate Foundry waypoints/proposals into ordered anchors, then let WildPath
+reconstruct footprints, validate route legality, and compute budget cost authoritatively.
 
 ## Future Battlefield UI
 

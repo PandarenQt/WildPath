@@ -292,6 +292,13 @@ reaction QA.
 Build topology-aware complete-footprint movement, movement modes/costs, forced/voluntary/teleport
 semantics, and movement events.
 
+Status: the pure topology-aware MovementPath foundation is implemented in
+`module/helpers/movement-paths.mjs`. Ordered anchors include the origin, complete
+TokenGridFootprints are reconstructed at every anchor, square and hex adjacency use TacticalGrid
+primitives, per-step cost/occupancy/transition policies are pure runtime seams, and affordability
+delegates to the existing movement budget helper. Movement events and Foundry Token movement
+integration remain future slices.
+
 ## Stage I — Persistent Spatial Mechanics
 
 Compose Movement + Spatial + Events + Reactions into opportunity attacks, persistent Areas, hazards,

@@ -27,6 +27,40 @@ Implemented boundary:
 
 This resolves the production-entry melee gap without starting the full Character System.
 
+## Movement Path Slice
+
+The topology-aware MovementPath slice stayed WildPath-native:
+
+```text
+ordered GridField anchors
++ TokenGridFootprint reconstruction
++ runtime cost/legality policies
+-> existing movement budget helpers
+```
+
+Targeted PF2e movement files inspected:
+
+- `src/module/canvas/token/ruler.ts`
+- `src/module/canvas/token/movement/terrain-data.ts`
+- movement speed references under `src/module/actor/creature/` and
+  `src/module/system/statistic/speed.ts`
+
+Lessons adopted:
+
+- Movement type/speed identity should remain separate from path measurement.
+- Movement cost can be adjusted per segment, with teleport able to contribute zero ordinary cost.
+- Canvas/ruler presentation can explain movement cost, but it should not become WildPath's pure
+  route authority.
+
+Lessons deliberately not adopted:
+
+- Pathfinder action-cost math, terrain rules, roll-option machinery, or movement-mode rules.
+- Foundry canvas globals or Token movement APIs inside the pure MovementPath contract.
+- Any copied implementation.
+
+No local Crucible checkout was present under `C:/Users/cheat/Documents/GitHub/WildPath-references`;
+Crucible remains a future Foundry-facing movement benchmark.
+
 ## PF2e Reference
 
 Local reference inspected:

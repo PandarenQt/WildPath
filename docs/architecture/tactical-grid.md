@@ -325,7 +325,7 @@ resolution so a future renderer cannot accidentally preview different fields fro
 
 This milestone should later be reused by:
 
-- movement paths
+- movement paths, now implemented as pure ordered `MovementPath` data
 - reach
 - opportunity attacks
 - reaction triggers such as "leaves reach"
@@ -340,7 +340,7 @@ Do not create a second grid representation for movement or reactions later.
 
 This milestone should not implement:
 
-- complete MovementEngine
+- Foundry Token movement integration
 - opportunity attacks
 - complete ReactionEngine
 - persistent area turn triggers
