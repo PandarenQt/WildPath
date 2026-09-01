@@ -44,7 +44,8 @@ import {
 } from "../helpers/action-resolution.mjs";
 import {
   AUTOMATION_EVENT_PHASES,
-  AUTOMATION_EVENT_TYPES
+  AUTOMATION_EVENT_TYPES,
+  createAutomationEvent
 } from "../helpers/automation-events.mjs";
 import {
   ROLL_AUTHORITY,
@@ -80,6 +81,11 @@ import {resolveActorResourcePayment} from "./resource-resolver.mjs";
 import {resolveActionTargets} from "./target-resolver.mjs";
 import {resolveAttackTargets} from "./attack-resolver.mjs";
 import {resolveSaveTargets} from "./save-resolver.mjs";
+import {
+  REACTION_WINDOW_TIMINGS,
+  completeReactionChildResolution,
+  createReactionWindowStage
+} from "./reaction-resolver.mjs";
 
 export const ACTION_PIPELINE_STAGE_IDS = Object.freeze({
   CONFIGURATION: "action.configuration",
@@ -87,6 +93,8 @@ export const ACTION_PIPELINE_STAGE_IDS = Object.freeze({
   RANGE: "action.range",
   ATTACK_ROLL: "action.attack-roll",
   ATTACK_OUTCOME: "action.attack-outcome",
+  REACTION_AFTER_ACTION_DECLARED: "action.reaction.after-action-declared",
+  REACTION_AFTER_ATTACK_OUTCOME: "action.reaction.after-attack-outcome",
   SAVE_ROLL: "action.save-roll",
   SAVE_OUTCOME: "action.save-outcome",
   DAMAGE_ROLL: "action.damage-roll",
@@ -126,6 +134,7 @@ export function createActionResolutionState({
   healing=null,
   effects=null,
   durability=null,
+  reactions=null,
   configuration=null,
   configurationContributions=[],
   context={},
@@ -171,6 +180,7 @@ export function createActionResolutionState({
       healing,
       effects,
       durability,
+      reactions,
       configuration,
       configurationContributions,
       context,
@@ -189,13 +199,17 @@ export function createActionResolutionState({
 
 /* -------------------------------------------- */
 
-export function createActionResolutionPipeline() {
-  return [
-    createConfigurationStage(),
+export function createActionResolutionPipeline({reactions=false}={}) {
+  const stages = [createConfigurationStage()];
+  if ( reactions ) stages.push(createActionDeclaredReactionStage());
+  stages.push(
     createTargetingStage(),
     createRangeStage(),
     createAttackRollStage(),
-    createAttackOutcomeStage(),
+    createAttackOutcomeStage()
+  );
+  if ( reactions ) stages.push(createAttackOutcomeReactionStage());
+  stages.push(
     createSaveRollStage(),
     createSaveOutcomeStage(),
     createDamageRollStage(),
@@ -204,7 +218,8 @@ export function createActionResolutionPipeline() {
     createEffectStage(),
     createPaymentStage(),
     createReadyToCommitStage()
-  ];
+  );
+  return stages;
 }
 
 /* -------------------------------------------- */
@@ -213,13 +228,14 @@ export function planStagedActionResolution(options={}) {
   const state = options.state
     ? createResolutionState(options.state)
     : createActionResolutionState(options);
+  const services = {
+    ...(options.services ?? {}),
+    targetActors: options.targetActors ?? options.services?.targetActors ?? null
+  };
   return runResolutionPipeline({
     state,
-    stages: createActionResolutionPipeline(),
-    services: {
-      ...(options.services ?? {}),
-      targetActors: options.targetActors ?? options.services?.targetActors ?? null
-    }
+    stages: createActionResolutionPipeline({reactions: hasReactionPipelineWork(state, services)}),
+    services
   });
 }
 
@@ -230,10 +246,11 @@ export function resumeStagedActionResolution({
   response,
   services={}
 }={}) {
+  const current = createResolutionState(state);
   return resumeResolutionPipeline({
-    state,
+    state: current,
     response,
-    stages: createActionResolutionPipeline(),
+    stages: createActionResolutionPipeline({reactions: hasReactionPipelineWork(current, services)}),
     services
   });
 }
@@ -242,6 +259,9 @@ export function resumeStagedActionResolution({
 
 export async function executeStagedActionResolution(options={}) {
   if ( options.state?.status === RESOLUTION_STATE_STATUS.COMPLETED ) {
+    return actionPipelineResult(createResolutionState(options.state), ACTION_PIPELINE_CODES.OK);
+  }
+  if ( options.state?.status === RESOLUTION_STATE_STATUS.PAUSED ) {
     return actionPipelineResult(createResolutionState(options.state), ACTION_PIPELINE_CODES.OK);
   }
   const planned = options.state?.status === RESOLUTION_STATE_STATUS.READY_TO_COMMIT
@@ -299,6 +319,79 @@ export async function executeStagedActionResolution(options={}) {
     reason: "Action resolution completed."
   });
   return actionPipelineResult(finalized, ACTION_PIPELINE_CODES.OK);
+}
+
+/* -------------------------------------------- */
+
+export function completeStagedReactionChildResolution({
+  parentState,
+  childState=null,
+  childResult=null,
+  services={},
+  targetActors=null,
+  directive=null,
+  failurePolicy="continue",
+  metadata={},
+  reevaluate=null
+}={}) {
+  const parent = createResolutionState(parentState);
+  const reactionServices = {
+    ...services,
+    targetActors: targetActors ?? services.targetActors ?? null
+  };
+  const reactionOptions = reactionOptionsForState(parent, reactionServices);
+  const result = completeReactionChildResolution({
+    parentState: parent,
+    childState,
+    childResult,
+    directive,
+    failurePolicy,
+    metadata,
+    reevaluate: reevaluate
+      ?? reactionOptions.reevaluate
+      ?? ((context) => reevaluateParentAfterReaction({...context, services: reactionServices}))
+  });
+  const state = result.state ? createResolutionState(result.state) : parent;
+  return {
+    ...result,
+    state,
+    status: state.status,
+    waiting: state.status === RESOLUTION_STATE_STATUS.PAUSED || state.pendingRequests.length > 0,
+    completed: state.status === RESOLUTION_STATE_STATUS.COMPLETED
+  };
+}
+
+/* -------------------------------------------- */
+
+function createActionDeclaredReactionStage() {
+  return createActionPipelineReactionStage({
+    id: ACTION_PIPELINE_STAGE_IDS.REACTION_AFTER_ACTION_DECLARED,
+    timing: REACTION_WINDOW_TIMINGS.AFTER_ACTION_DECLARED,
+    eventSelector: actionDeclaredReactionEvent
+  });
+}
+
+function createAttackOutcomeReactionStage() {
+  return createActionPipelineReactionStage({
+    id: ACTION_PIPELINE_STAGE_IDS.REACTION_AFTER_ATTACK_OUTCOME,
+    timing: REACTION_WINDOW_TIMINGS.AFTER_OUTCOME,
+    eventSelector: attackOutcomeReactionEvent
+  });
+}
+
+function createActionPipelineReactionStage({id, timing, eventSelector}) {
+  return createReactionWindowStage({
+    id,
+    timing,
+    eventSelector,
+    discovery: ({state, services, event}) => actionReactionDiscoveryOptions({state, services, event, timing}),
+    createChildState: ({parentState, candidate, baseChildState, services}) => createActionReactionChildState({
+      parentState,
+      candidate,
+      baseChildState,
+      services
+    })
+  });
 }
 
 /* -------------------------------------------- */
@@ -1700,6 +1793,395 @@ function targetActorSystemsFromActors(targetActors) {
     return Object.fromEntries(Object.entries(targetActors).map(([ref, actor]) => [ref, actor?.system ?? actor?.actorSystem ?? actor]));
   }
   return targetActors;
+}
+
+/* -------------------------------------------- */
+
+function hasReactionPipelineWork(state, services={}) {
+  const current = createResolutionState(state);
+  if ( current.metadata?.reactionWindows?.length ) return true;
+  if ( current.metadata?.activeChildResolution ) return true;
+  if ( current.pendingRequests?.some(request => request.type === RESOLUTION_REQUEST_TYPES.REACTION_CHOICE) ) return true;
+  if ( Object.values(current.requestResponses ?? {}).some(entry => entry?.request?.type === RESOLUTION_REQUEST_TYPES.REACTION_CHOICE) ) return true;
+  return hasReactionDiscoveryOptions(reactionOptionsForState(current, services));
+}
+
+function hasReactionDiscoveryOptions(options) {
+  return normalizeArray(options?.triggers).length > 0
+    || typeof options?.discover === "function"
+    || typeof options?.triggers === "function";
+}
+
+function reactionOptionsForState(state, services={}) {
+  const current = createResolutionState(state);
+  return {
+    ...(current.input?.reactions ?? {}),
+    ...(current.input?.context?.reactions ?? {}),
+    ...(services.reactions ?? {})
+  };
+}
+
+function actionReactionDiscoveryOptions({state, services, event, timing}) {
+  const options = reactionOptionsForState(state, services);
+  if ( typeof options.discover === "function" ) {
+    return options.discover({state: createResolutionState(state), services, event, timing}) ?? {};
+  }
+  if ( !hasReactionDiscoveryOptions(options) ) return null;
+  const input = preparedResolverInput(state);
+  const action = actionRef(input.action, state.actionDefinition, state.validation?.find(entry => entry?.type === "action-definition") ?? null);
+  return {
+    triggers: resolveMaybeFunction(options.triggers, {state, services, event, timing}) ?? [],
+    resourcesByActor: resolveMaybeFunction(options.resourcesByActor, {state, services, event, timing}) ?? {},
+    actionDefinitionsById: options.actionDefinitionsById ?? {},
+    controllerUserIdsByActor: resolveMaybeFunction(options.controllerUserIdsByActor, {state, services, event, timing}) ?? {},
+    context: {
+      ...(input.context ?? {}),
+      ...(options.context ?? {}),
+      event,
+      timing,
+      parentAction: action,
+      parentSource: input.source ?? state.source ?? null,
+      parentTargets: input.targets ?? state.targets ?? []
+    },
+    usedTriggerIds: uniqueStrings([...(options.usedTriggerIds ?? []), ...(state.triggerIdentities ?? [])]),
+    handledCandidateIds: options.handledCandidateIds ?? [],
+    policies: {
+      ...(input.policies?.reactions ?? {}),
+      ...(options.policies ?? {})
+    },
+    ordering: {
+      ...(options.ordering ?? {}),
+      initiativeActorIds: options.ordering?.initiativeActorIds
+        ?? input.context?.initiativeActorIds
+        ?? input.context?.combatActorOrder
+        ?? null
+    },
+    metadata: {
+      ...(options.metadata ?? {}),
+      timing
+    }
+  };
+}
+
+function actionDeclaredReactionEvent(state) {
+  const input = preparedResolverInput(state);
+  const definitionValidation = state.validation?.find(entry => entry?.type === "action-definition") ?? null;
+  const action = actionRef(input.action, state.actionDefinition, definitionValidation);
+  if ( !action.id && !state.actionDefinition?.id ) return null;
+  return createAutomationEvent({
+    id: `event:${state.id}:action-declared`,
+    type: AUTOMATION_EVENT_TYPES.ACTION_DECLARED,
+    phase: AUTOMATION_EVENT_PHASES.INTERRUPT,
+    source: input.source ?? state.source ?? null,
+    targets: input.targets ?? state.targets ?? [],
+    tags: action.tags ?? [],
+    data: {
+      action,
+      actionDefinitionId: state.actionDefinition?.id ?? null,
+      timing: REACTION_WINDOW_TIMINGS.AFTER_ACTION_DECLARED
+    }
+  });
+}
+
+function attackOutcomeReactionEvent(state) {
+  const input = preparedResolverInput(state);
+  if ( !shouldResolveAttack(input.attack) ) return null;
+  const attackResolution = state.results?.attackResolution ?? null;
+  if ( !attackResolution?.ok ) return null;
+  const hits = attackResolution.hits ?? [];
+  const misses = attackResolution.misses ?? [];
+  const attackResults = hits.length ? hits : misses;
+  if ( !attackResults.length ) return null;
+  const outcome = hits.length ? "hit" : "miss";
+  const first = attackResults[0];
+  return createAutomationEvent({
+    id: `event:${state.id}:attack-outcome:${outcome}`,
+    type: hits.length ? AUTOMATION_EVENT_TYPES.ATTACK_HIT : AUTOMATION_EVENT_TYPES.ATTACK_MISS,
+    phase: AUTOMATION_EVENT_PHASES.INTERRUPT,
+    source: state.actionContext?.source ?? input.source ?? state.source ?? null,
+    targets: attackResults.map(result => result.target).filter(Boolean),
+    tags: uniqueStrings([...(state.actionContext?.action?.tags ?? []), outcome]),
+    data: {
+      action: state.actionContext?.action ?? actionRef(input.action, state.actionDefinition),
+      attackResolution,
+      attackResults,
+      outcome,
+      attackTotal: first?.roll?.total ?? null,
+      defense: first?.defense ?? null,
+      defenseValue: first?.defense?.value ?? null,
+      timing: REACTION_WINDOW_TIMINGS.AFTER_OUTCOME
+    }
+  });
+}
+
+function createActionReactionChildState({parentState, candidate, baseChildState, services={}}) {
+  const reactionOptions = reactionOptionsForState(parentState, services);
+  const custom = reactionOptions.createChildState;
+  if ( typeof custom === "function" ) return custom({parentState, candidate, baseChildState});
+  const actionDefinition = candidate.actionDefinition ?? candidate.action ?? null;
+  if ( !actionDefinition ) return baseChildState;
+  const actorSystem = actorSystemForReactionCandidate(candidate, reactionOptions.actorSystemsByActor);
+  return createActionResolutionState({
+    id: baseChildState.id,
+    parentId: baseChildState.parentId,
+    relationship: baseChildState.relationship,
+    sourceEvent: baseChildState.sourceEvent,
+    depth: baseChildState.depth,
+    maxDepth: baseChildState.maxDepth,
+    ancestry: baseChildState.ancestry,
+    triggerIdentities: baseChildState.triggerIdentities,
+    actorSystem,
+    action: actionFromDefinition(actionDefinition, candidate.action),
+    source: candidate.reactor,
+    selectedPaymentOptionId: candidate.selectedPaymentOption?.id ?? null,
+    metadata: baseChildState.metadata
+  });
+}
+
+function actorSystemForReactionCandidate(candidate, actorSystemsByActor) {
+  const actorId = candidate?.reactor?.actorId ?? null;
+  const actorSystem = lookupActorMap(actorSystemsByActor, {actorId}) ?? null;
+  return actorSystem?.system ?? actorSystem?.actorSystem ?? actorSystem ?? null;
+}
+
+function reevaluateParentAfterReaction({parentState, childState, window, services={}}) {
+  const state = createResolutionState(parentState);
+  if ( window?.timing !== REACTION_WINDOW_TIMINGS.AFTER_OUTCOME && window?.timing !== REACTION_WINDOW_TIMINGS.BEFORE_DAMAGE ) {
+    return null;
+  }
+  if ( !state.results?.attackResolution ) return null;
+  const input = preparedResolverInput(state);
+  if ( !shouldResolveAttack(input.attack) ) return null;
+
+  const attack = attackInputWithCurrentDefenses(input.attack, {
+    targetActors: services.targetActors ?? reactionOptionsForState(state, services).targetActors ?? null
+  });
+  const actionContext = state.results?.actionResult?.context ?? state.actionContext ?? createActionContext({
+    ...(input.context ?? {}),
+    action: actionRef(input.action, state.actionDefinition),
+    source: input.source ?? state.source,
+    targets: input.targets ?? state.targets ?? [],
+    policies: {...(input.context?.policies ?? {}), ...(input.policies ?? {})}
+  });
+  const before = state.results.attackResolution;
+  const after = resolveAttackTargets({
+    roll: attack.roll,
+    targetContexts: attack.targetContexts ?? state.results?.targetResolution?.targetContexts ?? [],
+    targets: attack.targets ?? (state.results?.targetResolution ? [] : actionContext.targets),
+    defense: attack.defense ?? null,
+    defenseKey: attack.defenseKey ?? "ac",
+    policy: {...(input.policies?.attack ?? {}), ...(attack.policy ?? {})},
+    context: {
+      action: actionContext.action,
+      source: actionContext.source,
+      ...(attack.context ?? {})
+    }
+  });
+  if ( !after.ok ) return {
+    ok: false,
+    type: "attack-outcome",
+    code: after.code,
+    before,
+    after
+  };
+
+  const actionResult = state.results?.actionResult
+    ? addResolutionStep(state.results.actionResult, {
+        stage: ACTION_RESOLUTION_STAGES.ROLL,
+        events: attackEvents(actionContext, after),
+        consequences: [{
+          type: "attackReevaluated",
+          before,
+          after,
+          reactionWindowId: window.id,
+          childResolutionId: childState?.id ?? null
+        }],
+        data: {
+          reactionWindowId: window.id,
+          childResolutionId: childState?.id ?? null,
+          before,
+          after
+        }
+      })
+    : null;
+  return {
+    ok: true,
+    type: "attack-outcome",
+    reactionWindowId: window.id,
+    childResolutionId: childState?.id ?? null,
+    before: summarizeAttackOutcome(before),
+    after: summarizeAttackOutcome(after),
+    inputPatch: {attack},
+    results: {
+      attackResolution: after,
+      ...(actionResult ? {actionResult} : {})
+    }
+  };
+}
+
+function attackInputWithCurrentDefenses(attack, {targetActors=null}={}) {
+  const defenseKey = attack?.defenseKey ?? "ac";
+  const targetContexts = normalizeArray(attack?.targetContexts).map(context => {
+    const actor = actorForTarget(targetActors, context?.target ?? context);
+    const defense = defenseFromActor(actor, defenseKey);
+    if ( !defense ) return context;
+    return {
+      ...clonePlain(context),
+      defenses: {
+        ...(context?.defenses ?? {}),
+        [defenseKey]: defense
+      }
+    };
+  });
+  const targets = normalizeArray(attack?.targets).map(target => {
+    const actor = actorForTarget(targetActors, target);
+    const defense = defenseFromActor(actor, defenseKey);
+    if ( !defense ) return target;
+    return {
+      ...clonePlain(target),
+      defenses: {
+        ...(target?.defenses ?? {}),
+        [defenseKey]: defense
+      }
+    };
+  });
+  return {
+    ...(attack ?? {}),
+    ...(targetContexts.length ? {targetContexts} : {}),
+    ...(targets.length ? {targets} : {})
+  };
+}
+
+function actorForTarget(targetActors, target) {
+  return lookupActorMap(targetActors, targetLookupRefObject(target));
+}
+
+function lookupActorMap(mapLike, target) {
+  if ( !mapLike || !target ) return null;
+  const refs = targetLookupRefs(targetLookupRefObject(target));
+  const keys = uniqueStrings([
+    ...refs,
+    target.actorId,
+    target.id,
+    target.uuid,
+    target.actorId ? `actor:${target.actorId}` : null,
+    target.actorId ? `Actor.${target.actorId}` : null
+  ]);
+  if ( typeof mapLike === "function" ) {
+    for ( const key of keys ) {
+      const found = mapLike({actorId: target.actorId ?? null, ref: key, refs, target});
+      if ( found ) return found;
+    }
+    return null;
+  }
+  if ( mapLike instanceof Map ) {
+    for ( const key of keys ) {
+      if ( mapLike.has(key) ) return mapLike.get(key);
+    }
+    return null;
+  }
+  if ( Array.isArray(mapLike) ) {
+    return mapLike.find(actor => {
+      const actorKeys = uniqueStrings([
+        actor?.id,
+        actor?.uuid,
+        actor?.actorId,
+        actor?.id ? `actor:${actor.id}` : null,
+        actor?.id ? `Actor.${actor.id}` : null
+      ]);
+      return keys.some(key => actorKeys.includes(key));
+    }) ?? null;
+  }
+  for ( const key of keys ) {
+    if ( mapLike?.[key] ) return mapLike[key];
+  }
+  return null;
+}
+
+function targetLookupRefObject(target) {
+  const value = target?.target ?? target ?? {};
+  return {
+    ...value,
+    actorId: value.actorId ?? value.actor?.id ?? null,
+    uuid: value.uuid ?? value.actor?.uuid ?? null,
+    id: value.id ?? value.actor?.id ?? null
+  };
+}
+
+function defenseFromActor(actor, defenseKey="ac") {
+  if ( !actor ) return null;
+  const key = defenseKey ?? "ac";
+  const base = firstFiniteNumber([
+    actor.defenses?.[key]?.value,
+    actor.defense?.value,
+    actor.system?.defenses?.[key]?.value,
+    actor.system?.defenses?.[key],
+    actor.system?.attributes?.[key]?.value,
+    actor.system?.attributes?.[key],
+    key === "ac" ? actor.system?.attributes?.ac?.value : null,
+    key === "ac" ? actor.system?.ac?.value : null,
+    key === "ac" ? actor.system?.ac : null
+  ]);
+  const statistic = resolveDefenseStatistic(actor, key);
+  const value = base == null && statistic.value == null
+    ? null
+    : (base ?? 0) + (statistic.value ?? 0);
+  if ( value == null ) return null;
+  return {
+    value,
+    slug: key,
+    source: {
+      type: "actor-snapshot",
+      actorId: actor.id ?? actor.actorId ?? null,
+      actorRef: actor.uuid ?? (actor.id ? `Actor.${actor.id}` : null),
+      base,
+      statistic: statistic.trace ?? null
+    }
+  };
+}
+
+function resolveDefenseStatistic(actor, defenseKey) {
+  if ( typeof actor.getStatistic !== "function" ) return {value: null, trace: null};
+  const domains = [`defense.${defenseKey}`, defenseKey];
+  for ( const domain of domains ) {
+    const statistic = actor.getStatistic(domain);
+    const value = finiteNumber(statistic?.totalModifier ?? statistic?.total ?? statistic?.value);
+    if ( value != null ) return {
+      value,
+      trace: statistic?.trace ?? {domain}
+    };
+  }
+  return {value: null, trace: null};
+}
+
+function summarizeAttackOutcome(resolution) {
+  return {
+    hitCount: resolution?.hits?.length ?? 0,
+    missCount: resolution?.misses?.length ?? 0,
+    outcomes: normalizeArray(resolution?.results).map(result => ({
+      target: result?.target ?? null,
+      outcome: result?.outcome ?? null,
+      hit: result?.hit ?? false,
+      defense: result?.defense ?? null,
+      roll: result?.roll ?? null
+    }))
+  };
+}
+
+function resolveMaybeFunction(value, context) {
+  return typeof value === "function" ? value(context) : value;
+}
+
+function firstFiniteNumber(values) {
+  for ( const value of values ) {
+    const number = finiteNumber(value);
+    if ( number != null ) return number;
+  }
+  return null;
+}
+
+function uniqueStrings(values) {
+  return [...new Set(normalizeArray(values).filter(value => value != null && value !== "").map(String))];
 }
 
 /* -------------------------------------------- */

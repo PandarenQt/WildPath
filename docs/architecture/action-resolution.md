@@ -116,9 +116,9 @@ Representative vertical slices now commit their staged `ActionResult` directly r
 delegating planning to `action.legacy-resolution`.
 
 `module/resolvers/reaction-resolver.mjs` consumes semantic events from that staged flow and can open
-generic `reaction-choice` windows that create child `ResolutionState` objects. The default action
-pipeline still needs production timing insertion before reactions are live in ordinary action
-execution.
+generic `reaction-choice` windows that create child `ResolutionState` objects. The staged action
+pipeline now has opt-in action-declared and after-attack-outcome windows; broader timing coverage
+should be added only when concrete semantic events need it.
 
 ## Future Consumers
 

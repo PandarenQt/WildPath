@@ -15,9 +15,9 @@ The current strategy is **integration proof**:
 > Prove the existing abstractions through real Foundry V14 gameplay before inventing additional
 > foundational systems.
 
-Current status: the staged action, persistence-port, vertical-slice, and multiplayer
-authority/socket proofs exist in Node integration tests. Live Foundry V14 runtime QA is still
-required before those paths are considered manually verified in-engine.
+Current status: the staged action, persistence-port, vertical-slice, multiplayer authority/socket,
+and first reaction-window integration proofs exist in Node integration tests. Live Foundry V14
+runtime QA is still required before those paths are considered manually verified in-engine.
 
 ---
 
@@ -261,12 +261,14 @@ transaction/persistence boundary. See `docs/architecture/multiplayer-authority.m
 Build reactions over semantic events, existing pending requests, child resolutions, and pause/resume.
 No named-feature reaction code.
 
-Status: generic foundation implemented. ReactionResolver now discovers eligible triggered Actions,
+Status: generic foundation integrated. ReactionResolver now discovers eligible triggered Actions,
 opens `reaction-choice` pending requests, creates child ResolutionState provenance, pauses/resumes
 parents, supports generic reevaluation/cancel directives, and reuses the multiplayer request router.
+The staged action pipeline has opt-in windows for action-declared interrupts and after attack
+outcome/before damage.
 
-Remaining Stage G work: insert reaction-window stages into the default action pipeline around
-specific production timings and perform live Foundry reaction QA.
+Remaining Stage G work: add additional semantic timings only where needed, replace injectable test
+child orchestration with runtime authority orchestration, and perform live Foundry reaction QA.
 
 ## Stage H — Movement
 

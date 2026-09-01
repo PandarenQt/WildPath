@@ -79,9 +79,14 @@ semantic event
 -> use: create child state and pause parent
 ```
 
-The default staged action pipeline has not yet inserted production reaction windows at every action
-timing. The helper exists so the next extraction can add windows around specific stages, starting
-with after-outcome and action-declared interrupts, without reimplementing the request logic.
+The staged action pipeline now opts into two addressable reaction stages when the parent state or
+runtime services expose reaction discovery options:
+
+- `action.reaction.after-action-declared`, after configuration and before target/roll resolution
+- `action.reaction.after-attack-outcome`, after attack outcome and before damage planning
+
+These stages use the same generic window/request helper. Additional timings should be added as
+semantic events prove they are needed, not as named-feature branches.
 
 ## Parent And Child
 
@@ -98,6 +103,11 @@ The parent moves to `paused` with no pending prompt while the child is active. T
 through the normal staged action pipeline, which means reaction costs, rolls, effects, and commits
 use the same ActionDefinition, RollProvider, transaction, and persistence boundaries as any other
 Action.
+
+The selected child state is also copied as plain data into
+`metadata.activeChildResolution` on the parent so the authority/runtime layer has a serializable
+handle while the parent is paused. `completeReactionChildResolution()` clears that handle when the
+window completes.
 
 Parent and child transactions remain separate. This lets a reaction commit before the parent
 re-evaluates downstream consequences that the reaction may have changed.
@@ -148,17 +158,27 @@ candidate/event/action identities are rejected structurally instead of recursing
 - repeated-trigger loop protection
 - multiplayer chooser routing and wrong-user rejection through the existing coordinator
 
+`test/reaction-pipeline-integration.test.mjs` covers the first staged integration proof:
+
+- action-declared and after-attack-outcome reaction windows inside the normal action pipeline
+- a defensive child Action that commits a condition effect and Reaction payment before the parent
+  attack re-evaluates from hit to miss
+- decline and still-hit paths that continue into parent damage/payment without duplicate mutation
+- a disruptive child Action that can cancel the parent through an explicit parent directive
+- existing multiplayer request routing with the defender as chooser and the active GM as authority
+
 ## Current Limits
 
 Not yet implemented:
 
-- automatic insertion into every production action-pipeline timing
-- production defensive/counterspell-style content
+- reaction windows beyond action-declared and after-attack-outcome timings
+- production defensive/disruptive reaction content
 - opportunity attacks
 - Movement-driven leave-reach events
 - full simultaneous reaction ordering
-- live Foundry multiplayer reaction QA
+- built-in multiplayer child-resolution orchestration beyond injectable authoritative runners
+- live Foundry V14 reaction QA
 - final HUD presentation
 
-The next practical step is to insert reaction-window stages into the default staged action pipeline
-at the smallest useful timings: action-declared interrupts and after attack outcome/before damage.
+The next practical step is live Foundry QA for these timings, then broader semantic timing coverage
+and authority-owned child-resolution orchestration.

@@ -208,6 +208,7 @@ request/result data rather than Foundry Roll objects, Applications, callbacks, o
 
 Generic reaction-window execution is now provided by `module/resolvers/reaction-resolver.mjs`.
 Reaction state remains plain data under `metadata.reactionWindows`, and chosen reactions create
-child `ResolutionState` objects through the existing ancestry/depth guard. The default action
-pipeline still needs production window insertion around specific timings such as action-declared,
-after-outcome, and before-damage. See `docs/architecture/reactions.md`.
+child `ResolutionState` objects through the existing ancestry/depth guard. The staged action
+pipeline now inserts opt-in windows at action declaration and after attack outcome/before damage.
+Additional timings should be added as semantic events require them. See
+`docs/architecture/reactions.md`.

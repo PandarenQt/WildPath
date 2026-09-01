@@ -48,7 +48,8 @@ automation foundation needs, per `AGENTS.md` sections 4 and 8 and the architectu
 - `module/resolvers/reaction-resolver.mjs` now turns Trigger/Action Economy windows into ordered
   reaction candidates, `reaction-choice` pending requests, child `ResolutionState` provenance,
   parent pause/resume, generic reevaluation/cancel directives, and depth/repeated-trigger loop
-  protection. The default action pipeline still needs production timing insertion.
+  protection. The staged action pipeline now inserts opt-in action-declared and after-attack-outcome
+  reaction windows.
 - `module/resolvers/target-resolver.mjs` now wraps target-set eligibility, refinement decisions,
   required-target failures, self-targeting, and selection request state.
 - `module/resolvers/attack-resolver.mjs` now resolves already-known attack totals against target
@@ -150,6 +151,7 @@ requests from adjusted damage, and resolve supplied check totals/outcomes into t
 ConcentrationCheckCommitResolver now bridges those supplied check results into the lifecycle commit
 path with explicit authority. ActionPipelineResolver now adds the first addressable
 ResolutionState layer around ActionResolver and is the integration point for prompt, roll-provider,
-and reaction-window adapters. ReactionResolver now supplies the generic window/request/child
-resolution contract. The next resolver slice should insert reaction-window stages into the default
-action pipeline around the smallest useful timings, then perform live Foundry reaction QA.
+persistence, and opt-in reaction-window adapters. ReactionResolver now supplies the generic
+window/request/child resolution contract, with action-declared and after-attack-outcome windows
+exercised by integration tests. The next resolver slice should broaden timing coverage where real
+semantic events require it, then perform live Foundry reaction QA.

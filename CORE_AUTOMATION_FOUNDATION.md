@@ -202,8 +202,9 @@ The first resolver implementations live under `module/resolvers/`:
 - `ResourceResolver`: centralizes spending, refunds, and resource validation.
 - `ReactionResolver`: implemented as a generic foundation for Trigger/Action Economy discovery,
   ordered `reaction-choice` requests, child ResolutionState provenance, parent pause/resume,
-  reevaluation/cancel directives, and loop protection. Production action-pipeline timing insertion
-  and live Foundry reaction QA remain outstanding.
+  reevaluation/cancel directives, and loop protection. The staged action pipeline now inserts
+  opt-in action-declared and after-attack-outcome windows; broader timing coverage and live Foundry
+  reaction QA remain outstanding.
 - `AreaResolver`: handles instantaneous and persistent areas plus movement/turn triggers.
 - `ResolutionTransaction`: orders mutation operations and delegates document writes to
   `DocumentPersistencePort`.
@@ -289,10 +290,11 @@ routing, duplicate/stale rejection, and the current Foundry socket adapter. See
 ## Near-Term Order
 
 1. Perform live Foundry V14 runtime QA for staged persisted actions, tactical-grid adaptation,
-   PromptPort/RollProvider choices, active-GM socket routing, and DocumentPersistencePort commits.
-2. Insert ReactionResolver windows into the default staged action pipeline around the smallest
-   useful production timings, then perform live Foundry reaction QA. Avoid named-feature reaction
-   code.
+   PromptPort/RollProvider choices, active-GM socket routing, reaction windows, and
+   DocumentPersistencePort commits.
+2. Expand ReactionResolver timing coverage beyond action-declared and after-attack-outcome only
+   where semantic events require it, then perform live Foundry reaction QA. Avoid named-feature
+   reaction code.
 3. Build topology-aware Movement using complete TokenGridFootprints and semantic movement events.
 4. Compose persistent Areas, auras, and emanations from Spatial + Movement + Events + Reactions.
 5. Add representative content and character-system slices only after those execution boundaries are

@@ -88,13 +88,16 @@ export function createReactionWindowStage({
       });
 
       if ( accepted ) {
+        const stageChildStateFactory = typeof createChildState === "function"
+          ? (context) => createChildState({...context, services, event: selectedEvent, timing})
+          : null;
         const resolved = resolveReactionChoiceResponse({
           state: updateResolutionState(state, {pendingRequests: [accepted.request]}),
           response: accepted.response,
           event: selectedEvent,
           timing,
           stageId: id,
-          createChildState,
+          createChildState: stageChildStateFactory,
           ...options
         });
         if ( !resolved.ok && !resolved.childState && !resolved.waiting ) {
@@ -234,7 +237,8 @@ export function planReactionWindow({
   metadata={}
 }={}) {
   const parent = createResolutionState(parentState ?? state);
-  const existingWindow = findReactionWindow(parent, windowId);
+  const explicitWindowId = stringOrNull(windowId);
+  const existingWindow = explicitWindowId ? findReactionWindow(parent, explicitWindowId) : null;
   const handled = uniqueStrings([
     ...handledCandidateIds,
     ...(existingWindow?.handledCandidateIds ?? [])
@@ -252,7 +256,7 @@ export function planReactionWindow({
     policies,
     ordering
   });
-  const id = windowId ?? existingWindow?.id ?? reactionWindowId({parent, timing, event});
+  const id = explicitWindowId ?? existingWindow?.id ?? reactionWindowId({parent, timing, event});
   const candidates = discovery.candidates.map(candidate => ({
     ...candidate,
     reactionWindowId: id
@@ -483,9 +487,14 @@ export function resolveReactionChoiceResponse({
       }
     ]
   });
-  const nextState = appendReactionTrace(updateResolutionState(putReactionWindow(parent, resolvingWindow), {
+  const parentWithWindow = putReactionWindow(parent, resolvingWindow);
+  const nextState = appendReactionTrace(updateResolutionState(parentWithWindow, {
     status: RESOLUTION_STATE_STATUS.PAUSED,
     pendingRequests: [],
+    metadata: {
+      ...parentWithWindow.metadata,
+      activeChildResolution: child.state
+    },
     results: {
       ...parent.results,
       reactions: upsertReactionResult(parent.results?.reactions, {
@@ -650,7 +659,7 @@ export function completeReactionChildResolution({
     }
   });
 
-  let nextState = updateResolutionState(putReactionWindow(parent, closedWindow), {
+  let nextState = updateResolutionState(clearActiveReactionChild(putReactionWindow(parent, closedWindow)), {
     status: RESOLUTION_STATE_STATUS.RUNNING,
     pendingRequests: [],
     results: {
@@ -941,6 +950,12 @@ function reactionWindows(state) {
   return (state.metadata?.reactionWindows ?? []).map(window => createReactionWindowState(window));
 }
 
+function clearActiveReactionChild(state) {
+  const current = createResolutionState(state);
+  const {activeChildResolution: _activeChildResolution, ...metadata} = current.metadata ?? {};
+  return updateResolutionState(current, {metadata});
+}
+
 function upsertReactionResult(current, entry) {
   const entries = Array.isArray(current) ? current : [];
   return [
@@ -1092,7 +1107,7 @@ function reactionDiscoveryOptions({discovery, state, services, event}) {
   const source = typeof discovery === "function"
     ? discovery({state: createResolutionState(state), services, event})
     : discovery ?? services.reactions ?? {};
-  return clonePlain(source ?? {}) ?? {};
+  return {...(source ?? {})};
 }
 
 function reactionWindowId({parent, timing, event}) {

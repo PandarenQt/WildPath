@@ -195,7 +195,8 @@ The current resolver does not:
 - prompt for concentration checks or apply concentration save results
 - commit generic non-condition ActiveEffects
 - tick durations or break concentration
-- open reaction windows
+- open reaction windows when callers bypass the staged action pipeline, or cover reaction timings
+  beyond the current action-declared and after-attack-outcome stages
 - create chat output
 
 Those are future ActionResolver slices. The optional attack, save, damage, healing, and condition
