@@ -1,78 +1,87 @@
-# WildPath — Combat Statistics Runtime Slice
+# WildPath — Foundry V14 Authoritative Token Movement Vertical Slice
+
+## Real Token Movement → MovementPath → Active-GM Authority → Budget Commit
 
 Assume you have **no prior conversational context**.
 
 The repository is authoritative.
 
-This milestone exists because WildPath has now reached an important vertical boundary:
+WildPath now has a pure topology-aware MovementPath foundation, but it does not yet govern actual Foundry Token movement.
 
-> The actual Foundry Item/Actor Sheet Action-use path is wired into the modern staged multiplayer runtime, but a genuine melee attack cannot yet complete because the real Actor model does not appear to provide the combat statistics expected by the Action pipeline — most visibly target defense / Armor Class.
+This milestone must connect **normal real Foundry Token movement** to the existing WildPath movement mechanics without creating a second movement engine, a second multiplayer architecture, or a parallel spatial model.
 
-Your task is to:
+The target vertical flow is:
 
-1. audit the actual combat-stat requirements of the current runtime;
-2. determine whether this is:
+```text
+Player moves Token in Foundry
+↓
+Foundry finalizes the proposed movement path
+↓
+WildPath Foundry adapter
+↓
+plain Movement intent
+↓
+active-GM authority
+↓
+authoritative Scene / Token reconstruction
+↓
+Foundry TacticalGrid adapter
+↓
+MovementPath
+↓
+route legality + route cost + affordability
+↓
+approve / reject
+↓
+Foundry performs approved Token movement
+↓
+authority records actual completed movement
+↓
+ordinary Movement budget committed exactly once
+```
 
-   * one missing scalar,
-   * a small shared derived-statistic problem,
-   * or a larger Character System dependency;
-3. implement the **smallest correct solution** if it is reasonably bounded;
-4. prove at least one real production-entry melee Action can reach attack outcome and persistent damage using actual Actor data.
+This is a **runtime integration milestone**.
 
-Do NOT begin Movement.
-
-Do NOT build the full Character System.
-
-Do NOT copy PF2e's Statistic architecture wholesale.
-
-Do NOT introduce architecture without concrete current consumers.
+Do not turn it into persistent Areas, opportunity attacks, terrain rules, auras, hazards, or a Movement Engine rewrite.
 
 ---
 
-# 1. Expected Current Repository State
+# 1. Expected Baseline
 
 Expected HEAD:
 
 ```text
-e9996eb Wire Foundry actions into staged runtime
+1ab0a41 Add topology-aware movement paths
 ```
 
-Reported verification after that milestone:
+Reported baseline after that milestone:
 
 ```text
-485 / 485 tests passing
+509 / 509 tests passing
 npm run typecheck passing
 git diff --check passing
+main aligned with origin/main
 ```
 
-Reported worktree:
-
-```text
-clean except an unrelated untracked nextPromptForCodex.md
-```
-
-Do not trust this blindly.
-
-First run:
+Verify everything yourself:
 
 ```bash
 git status
 git branch --show-current
 git rev-parse HEAD
 git log --oneline --decorate -15
+git fetch
 
 npm test
 npm run typecheck
 git diff --check
 ```
 
-Record the real baseline.
-
-Do not touch unrelated prompt files.
+Do not modify unrelated local files.
 
 ---
 
-# 2. Read Before Editing
+# 2. Read Governance First
 
 Read and obey:
 
@@ -82,1068 +91,1416 @@ Read and obey:
 * `ARCHITECTURE.md`
 * `CORE_AUTOMATION_FOUNDATION.md`
 * `developmentStrat.md`
+* `docs/development/reference-systems.md`
 
-Read relevant architecture docs for:
+Then inspect the current source for:
 
-* rules / RuleElements / Modifiers
-* ActionDefinition
-* staged Action resolution
-* RollProvider
-* targeting
+* `movement.mjs`
+* `movement-paths.mjs`
 * TacticalGrid
-* persistence
+* Foundry TacticalGrid adapter
+* Actor/Token Document classes
+* Action Economy
 * multiplayer authority
-* Actor/data models
+* system socket transport
+* persistence/transactions
+* existing Foundry runtime setup
+* tests exercising production Action entry
 
-Inspect relevant source before proposing new contracts.
-
----
-
-# 3. Current Production Path to Preserve
-
-The previous milestone reportedly established the real runtime path:
-
-```text
-Actor Sheet
-↓
-Item.use()
-↓
-buildFoundryActionUseIntent()
-↓
-game.wildpath.executeActionIntent()
-↓
-MultiplayerActionCoordinator
-↓
-foundryActionIntentToStagedOptions()
-↓
-FoundryV14TacticalGridAdapter
-↓
-staged Action pipeline
-↓
-Roll / Targeting / Reaction / Payment
-↓
-Transaction
-↓
-DocumentPersistencePort
-```
-
-Verify this remains true.
-
-Do not revert normal Action use to:
-
-```text
-executeActionResolution()
-```
-
-That resolver should remain compatibility/legacy unless current code proves otherwise.
+Do not rely on this prompt for contracts already defined in source.
 
 ---
 
-# 4. Known New Boundary
+# 3. Current Movement Authorities
 
-The previous implementation reported:
+Preserve these ownership boundaries.
 
-> WildPath's Actor data model has no canonical Armor Class / defense field. `AttackResolver` expects defense information on the target candidate, so a real melee attack would fail `MISSING_DEFENSE`.
+## `movement.mjs`
 
-Do not assume this report is complete.
+Owns:
 
-Reproduce and trace the problem from source.
+```text
+movement capability
+movement budget
+measurement mode
+movement affordability/spending
+voluntary / forced / teleport budget semantics
+```
 
-Determine exactly:
+## `movement-paths.mjs`
 
-* where target defense is required;
-* what key/value shape `AttackResolver` expects;
-* where test fixtures currently obtain it;
-* where production candidate construction should obtain it;
-* whether an equivalent Actor-derived statistic already exists under another name.
+Owns:
+
+```text
+ordered MovementPath
+anchors include origin
+complete-footprint reconstruction
+square/hex topology
+route validity
+per-step route cost
+occupancy/transition policy seams
+valid vs affordable distinction
+```
+
+## TacticalGrid
+
+Owns:
+
+```text
+mechanical grid geometry
+GridField
+TokenGridFootprint
+square/hex topology
+```
+
+## Foundry
+
+Owns:
+
+```text
+Token interaction
+waypoint UI
+path planning
+animation
+Document movement workflow
+Scene/Token persistence
+core movement lifecycle
+```
+
+Do not duplicate any of these responsibilities.
 
 ---
 
-# 5. Audit the Combat Statistics Actually Required Today
+# 4. Reference Roles
 
-Before editing, inventory the current implementation state for:
-
-```text
-target defense / AC
-attack modifier
-saving throw modifier
-save / action DC
-HP / health
-initiative
-ability scores
-ability modifiers
-proficiency
-skills / checks
-spell attack
-spell save DC
-```
-
-For each classify it as:
+For this milestone:
 
 ```text
-persisted Actor data
-derived Actor data
-ActionDefinition data
-RuleElement / Modifier contribution
-resolver-calculated
-test-fixture only
-missing
+Crucible
+→ PRIMARY practical Foundry-native implementation benchmark
+
+Official Foundry V14 docs
+→ AUTHORITATIVE API/lifecycle contract
+
+local PF2e checkout
+→ secondary rules/movement prior art only
+
+WildPath
+→ mechanical and architectural authority
 ```
 
-Use source evidence.
-
-Do not infer implementation from roadmap aspirations.
+This is specifically a milestone where Crucible should be studied deliberately.
 
 ---
 
-# 6. The Central Architecture Question
+# 5. Crucible Research Policy
 
-Determine:
+Inspect current public Crucible source to answer concrete questions about:
 
-> Is AC/defense genuinely an isolated missing field, or is it merely the first visible example of a repeated "derived statistic" requirement?
+* TokenDocument movement lifecycle;
+* movement proposal/planning;
+* drag movement;
+* movement affordability checks;
+* planned movement;
+* post-movement accounting;
+* use of `Token#planMovement`;
+* use of `TokenDocument#startMovement`;
+* movement IDs;
+* Foundry movement operation data;
+* how movement actions remain distinguishable from actual movement.
 
-Use actual current consumers.
+Do NOT copy Crucible code.
 
-Do not answer based on preference.
+Do NOT rename/adapt Crucible functions.
+
+Record conceptual findings only.
+
+Relevant Crucible areas currently include concepts such as:
+
+```text
+module/documents/token.mjs
+module/canvas/movement.mjs
+module/canvas/token-ruler.mjs
+movement-related action usage
+```
+
+Use targeted searches.
 
 ---
 
-# 7. Three Allowed Architecture Outcomes
+# 6. Mandatory Foundry V14 Verification
 
-After the audit, choose one.
+Verify every Foundry API/lifecycle point used by the implementation against **current official V14 documentation**.
 
-## Outcome A — Simple Missing Combat Fields
+The current official V14 documentation should be treated as authoritative.
 
-Use this if current gameplay only requires a small number of canonical scalar Actor values and existing rules infrastructure can already modify/derive them adequately.
-
-Possible conceptual form:
+Important APIs/concepts to investigate include:
 
 ```text
-system.defenses.ac
+TokenDocument#move
+TokenDocument#movement
+TokenDocument#getCompleteMovementPath
+TokenDocument#measureMovementPath
+TokenDocument#startMovement
+TokenDocument#pauseMovement
+TokenDocument#resumeMovement
+TokenDocument#stopMovement
+
+Token#planMovement
+
+TokenDocument#_preUpdateMovement
+TokenDocument#_onUpdateMovement
+
+preMoveToken
+moveToken
+planToken
+pauseToken
+stopToken
+
+TokenPreMovementOperation
+TokenMovementOperation
+TokenMovementWaypoint
+TokenMeasuredMovementWaypoint
+TokenMovementSectionData
 ```
 
-or whatever fits current Actor schema conventions.
+Do not assume method signatures from this prompt.
 
-Do not force this exact path.
-
-If this is enough:
-
-implement the smallest fields + adapter/resolver bridge needed.
+Verify current V14 signatures.
 
 ---
 
-## Outcome B — Small Shared Derived-Statistic Primitive
+# 7. Important Confirmed Foundry Lifecycle Constraint
 
-Use this only if multiple **current** mechanics require the same invariant.
+Reconfirm this before designing the integration:
 
-For example, evidence may show that:
+`preMoveToken` is a cancellable hook, but Foundry hooks are not awaited.
+
+Therefore:
 
 ```text
-AC
-attack modifier
-saving throw
-DC
-initiative
+preMoveToken
 ```
 
-all require:
+must NOT become an asynchronous:
 
 ```text
-base/current value
+player
+→ socket
+→ GM
+→ await approval
+```
+
+authority boundary.
+
+Current V14 instead exposes:
+
+```text
+TokenDocument#_preUpdateMovement(...)
+```
+
+as an asynchronous Document lifecycle method.
+
+Official docs describe it as running after the movement has been determined, with final waypoints, and allowing the movement to be rejected entirely.
+
+If current docs still confirm this:
+
+**prefer the TokenDocument lifecycle seam over trying to await inside `preMoveToken`.**
+
+This is exactly the kind of Foundry implementation lesson Crucible is useful for benchmarking.
+
+---
+
+# 8. Do Not Blindly Copy Crucible's Rules
+
+Crucible currently uses Foundry movement costs as part of its own movement/action logic.
+
+WildPath must not therefore conclude:
+
+```text
+movement.passed.cost + movement.pending.cost
+= WildPath mechanical cost
+```
+
+without analysis.
+
+WildPath's mechanical cost authority is:
+
+```text
+Foundry path
+↓
+MovementPath
+↓
+evaluateMovementPath()
+```
+
+Foundry's measured:
+
+```text
+cost
+distance
+spaces
+```
+
+may be useful:
+
+* for diagnostics;
+* path interpretation;
+* terrain integration;
+* future UX comparison;
+
+but must not silently replace WildPath route evaluation.
+
+---
+
+# 9. Core Foundry → WildPath Adapter
+
+Implement the smallest Foundry-facing adapter that converts a finalized Foundry movement operation into a plain WildPath movement proposal.
+
+Conceptually:
+
+```text
+TokenDocument
 +
-Predicate-gated Modifier contributions
+TokenPreMovementOperation
 +
-deterministic evaluation
-+
-provenance
-=
-effective value
+Scene
+↓
+Foundry movement adapter
+↓
+plain MovementIntent
 ```
 
-If so, introduce the **smallest shared primitive** needed by actual current consumers.
+No Foundry objects may cross the multiplayer boundary.
 
-Possible conceptual shape:
+---
+
+# 10. Movement Intent
+
+Create the smallest plain serializable contract required for authority routing.
+
+It will likely need some subset of:
 
 ```text
-{
-  key,
-  base,
-  total,
-  contributions,
-  provenance
-}
+movementId
+sceneRef
+tokenRef
+actorRef
+sourceUserId
+movementKind
+movementMode
+waypoint/path data
+metadata
 ```
 
-but do not blindly use this shape.
+Do not force this exact structure.
+
+It should contain stable references and plain movement proposal data.
+
+It must NOT contain:
+
+* TokenDocument;
+* ActorDocument;
+* Scene;
+* Grid;
+* functions;
+* Promises;
+* Foundry movement objects;
+* Sets/Maps.
+
+---
+
+# 11. Authoritative Origin
+
+Never trust a client-supplied origin as mechanical authority.
+
+The active GM must reconstruct the current:
+
+```text
+Scene
+Token
+Actor
+Token position
+Token size
+Movement capability
+```
+
+from authoritative Foundry state.
+
+Client path data is a request.
+
+---
+
+# 12. Foundry Waypoints → Complete Ordered Route
+
+A major concern is that user-provided waypoints may represent segment endpoints rather than every traversed grid field.
+
+WildPath MovementPath requires ordered mechanical transitions.
+
+Investigate and use the appropriate current Foundry V14 facility.
+
+Current V14 exposes a concept equivalent to:
+
+```text
+TokenDocument#getCompleteMovementPath(waypoints)
+```
+
+which expands direct segments with intermediate movement steps.
+
+Verify its current behavior.
+
+Use it if it is the correct public API.
+
+Do NOT independently rasterize pixel line segments if Foundry already supplies the complete movement path.
+
+---
+
+# 13. Pixel Coordinates Must Stop at the Adapter
+
+Foundry waypoints use canvas/token positions.
+
+WildPath MovementPath uses mechanical grid anchors.
+
+Required conceptual translation:
+
+```text
+Foundry waypoint
+x/y/elevation/etc.
+↓
+Foundry TacticalGrid adapter
+↓
+GridField anchor
+```
+
+No pixel coordinates belong in MovementPath.
+
+---
+
+# 14. Origin Convention
+
+WildPath's canonical convention is:
+
+```text
+anchors includes origin
+```
+
+Therefore if Foundry supplies:
+
+```text
+origin
+waypoints = [B, C, D]
+```
+
+the adapter should produce:
+
+```text
+[A, B, C, D]
+```
+
+after proper mechanical conversion.
+
+Do not duplicate the origin if Foundry's expanded path already contains it.
+
+Test this explicitly.
+
+---
+
+# 15. Full Footprint Remains WildPath Authority
+
+The adapter should resolve the moving Token through the existing TacticalGrid adapter.
+
+MovementPath must reconstruct:
+
+```text
+Medium square
+Large square
+Large hex
+etc.
+```
+
+using existing footprint definitions.
+
+Do not use Token center-to-center movement legality.
+
+Do not make Foundry's rectangular pixel bounds the mechanical footprint authority.
+
+---
+
+# 16. Source Token Ambiguity Is Not Relevant Here
+
+Unlike Actor Action use, movement already originates from a specific TokenDocument.
+
+Use that Token as the explicit source.
+
+Do not search Actor active tokens and guess which Token moved.
+
+---
+
+# 17. Movement Kind
+
+Support at minimum:
+
+```text
+voluntary
+```
+
+for normal Token movement.
+
+Preserve existing:
+
+```text
+forced
+teleport
+```
+
+semantics where there is already a clean way for WildPath-initiated movement to identify them.
+
+Do NOT identify forced movement by copying Crucible-specific names such as:
+
+```text
+"push"
+```
+
+unless WildPath itself deliberately defines that mapping.
+
+Prefer explicit WildPath movement metadata/policy.
+
+---
+
+# 18. Movement Mode
+
+Movement kind and mode remain separate.
+
+Examples:
+
+```text
+kind: voluntary
+mode: walk
+```
+
+Potential later:
+
+```text
+kind: voluntary
+mode: fly
+
+kind: forced
+mode: walk
+
+kind: teleport
+mode: teleport
+```
+
+Use existing Actor movement capability/mode data.
+
+Do not implement complete flying/swimming/climbing rules here.
+
+---
+
+# 19. Production Entry Must Be Real Token Movement
+
+This milestone must not create only:
+
+```text
+game.wildpath.testMovement(...)
+```
+
+and call that integration.
+
+The normal Foundry Token movement lifecycle must actually reach WildPath.
+
+Preferred shape, if confirmed appropriate:
+
+```text
+WildPathTokenDocument#_preUpdateMovement()
+↓
+MovementIntent
+↓
+authority
+↓
+approve/reject
+```
+
+Do not depend solely on a test-only manual adapter call.
+
+---
+
+# 20. Active-GM Authority
+
+Reuse the **existing multiplayer authority infrastructure**.
 
 Do NOT create:
 
 ```text
-StatisticManager
-StatisticService
-StatisticRegistry
-CharacterDerivationEngine
-StatisticFactory hierarchy
+system.wildpathMovement
 ```
 
-unless a concrete current requirement makes one unavoidable.
+as a second socket namespace.
+
+Do NOT duplicate:
+
+* user directory logic;
+* active GM selection;
+* stale-response protection;
+* wrong-user rejection;
+* transport abstraction;
+* request identity;
+* result/error routing.
+
+Extend/reuse the existing system transport.
 
 ---
 
-## Outcome C — Larger Character System Required
+# 21. Do Not Force Movement Into ActionResolution
 
-Choose this only if solving the runtime attack correctly would require substantial work involving:
+Movement is not necessarily an ActionDefinition.
 
-* equipment calculation,
-* class progression,
-* proficiency progression,
-* spellcasting progression,
-* level architecture,
-* broad character derivation.
+Do not fake movement as an Action merely to reuse `MultiplayerActionCoordinator`.
 
-If C is genuinely required:
+Reuse common authority/transport primitives, but preserve domain semantics.
 
-**STOP BEFORE IMPLEMENTATION.**
+If a tiny Movement-specific orchestration helper is needed, that is acceptable.
 
-Return the evidence and propose the smallest future milestone.
-
-Do not accidentally build the full Character System inside this task.
-
----
-
-# 8. Evidence Requirement for a New Abstraction
-
-For every new public combat-stat abstraction you consider adding, answer:
-
-1. Which current production mechanics require it?
-2. Why can't existing `Modifier`, `Predicate`, `ValueExpression`, RuleElement, Actor data, and ActionDefinition contracts represent this correctly?
-3. Which invariant does the new abstraction own?
-4. Why is it not merely useful "for later"?
-
-If you cannot answer these concretely:
-
-do not add it.
-
----
-
-# 9. Target Defense Ownership
-
-`AttackResolver` must remain Foundry-independent.
-
-It should not read:
+A giant:
 
 ```text
-ActorDocument
-TokenDocument
-game
-canvas
+MovementCoordinator
+MovementManager
+MovementEngine
 ```
 
-Determine the correct boundary for target defense.
+is not.
 
-Expected general shape:
+---
+
+# 22. Authority Approval Flow
+
+For a player-owned voluntary movement, target behavior:
 
 ```text
-Actor-derived combat data
+player Token reaches _preUpdateMovement
 ↓
-application/runtime conversion
+final Foundry waypoints are available
 ↓
-plain target candidate
+build plain MovementIntent
 ↓
-AttackResolver
-```
-
-or another existing plain-data boundary already present.
-
-Reuse current architecture.
-
----
-
-# 10. Do Not Duplicate Authority
-
-There must not be:
-
-```text
-Actor AC
-```
-
-and separately:
-
-```text
-Target candidate defense calculated independently
-```
-
-with both claiming authority.
-
-The candidate may contain a resolved snapshot for deterministic ResolutionState execution, but its source must be canonical and explainable.
-
-Document this ownership.
-
----
-
-# 11. Attack Modifier Audit
-
-A successful runtime attack needs more than target AC if source Actor statistics determine the attack roll.
-
-Trace the full attack RollRequest.
-
-Determine:
-
-* what formula/request is produced;
-* whether the attack modifier is embedded in ActionDefinition;
-* whether it is derived from Actor;
-* whether RollProvider currently receives a final modifier;
-* whether tests use precomputed roll totals and accidentally bypass source-stat derivation.
-
-Do not declare melee runtime-ready if a real Actor can only attack correctly because tests inject a finished roll total.
-
----
-
-# 12. Natural vs Total
-
-Preserve the RollProvider architecture.
-
-If Actor attack modifier is introduced:
-
-```text
-natural d20
-+
-resolved modifier
-=
-total
-```
-
-must still preserve:
-
-* natural result
-* final total
-* provenance/context where supported.
-
-Crit/fumble semantics must continue to use the natural die where appropriate.
-
-Do not move combat-stat logic into RollProvider.
-
----
-
-# 13. Saving Throw Audit
-
-Trace one existing save-based Action.
-
-Determine separately:
-
-### Offensive side
-
-Where does save DC come from?
-
-### Defensive side
-
-Where does target save modifier come from?
-
-Classify each:
-
-```text
-implemented
-fixture-only
-missing
-```
-
-This audit matters because we do not want to patch AC now and discover the exact same missing primitive one milestone later.
-
----
-
-# 14. Do Not Necessarily Implement Saves
-
-The primary gameplay acceptance target for this milestone is **one real melee attack**.
-
-If save statistics require only trivial reuse of the exact same new primitive, including them may be appropriate.
-
-If they require additional unrelated rules work:
-
-document them and defer.
-
-Do not inflate this task just to make the inventory table green.
-
----
-
-# 15. HP / Damage Persistence Audit
-
-Verify that actual production Actor health can already support:
-
-```text
-attack hit
+send to active GM
 ↓
-damage
+GM reconstructs Scene/Token/Actor
 ↓
-MutationPlan
+convert to MovementPath
 ↓
-Transaction
+evaluateMovementPath
 ↓
-DocumentPersistencePort
+derive current movement budget
 ↓
-target HP changes
-```
-
-without synthetic test-only target data.
-
-If HP mapping is missing or mismatched:
-
-fix it only if it is a small direct part of completing the required real melee vertical slice.
-
-Report it explicitly.
-
----
-
-# 16. Action Resource Payment
-
-Likewise verify a real Action resource can:
-
-```text
-available
+approve / deny
 ↓
-planned
-↓
-committed exactly once
+player lifecycle continues or returns false
 ```
 
-through actual Actor data.
+The active GM decides legality and affordability.
 
-Do not duplicate resource state in the new combat-stat system.
+The player does not send:
+
+```text
+valid=true
+cost=20
+affordable=true
+```
+
+as trusted authority.
 
 ---
 
-# 17. Existing Rule Engine Must Be Reused
+# 23. No Active GM
 
-Inspect current:
+Preserve the project's established no-active-GM behavior.
 
-```text
-Predicate
-ValueExpression
-Modifier
-RuleElement
-provenance / trace
-```
+Inspect the current multiplayer policy.
 
-Before creating combat-stat-specific modifier logic.
+Do not invent a new fallback specific to Movement.
 
-A feature such as:
-
-```text
-+2 defense
-```
-
-should ideally use the normal rules engine.
-
-Do not create:
-
-```text
-ACModifier
-AttackBonusModifier
-SaveModifier
-```
-
-classes unless the existing generic Modifier model genuinely cannot express them.
+If actions currently fall back to local authority under defined circumstances, Movement should follow the same policy unless there is a concrete reason not to.
 
 ---
 
-# 18. Modifier Selectors / Domains
+# 24. Player Ownership / Permissions
 
-Inspect how modifiers currently identify what they affect.
+Respect Foundry's own Token ownership checks.
 
-Determine whether there is already selector vocabulary capable of describing concepts such as:
+WildPath authority should decide **rules legality**, not replace Foundry permission enforcement.
+
+Do not allow movement of a Token Foundry itself says the user cannot move.
+
+---
+
+# 25. Reject Invalid Movement Before Commit
+
+If authoritative evaluation returns:
 
 ```text
-defense.ac
-attack.melee
-save.dexterity
-dc.spell
-initiative
-```
-
-or equivalent.
-
-If not, adding a **small selector vocabulary** may be enough.
-
-Do not create a second Modifier system.
-
----
-
-# 19. Conditional Defense
-
-Use this as an architecture test:
-
-> A feature grants +2 defense only against melee attacks.
-
-Can the proposed minimum model express this through:
-
-```text
-Modifier
-+
-Predicate
-+
-attack context
-```
-
-without adding feature-name code?
-
-If no:
-
-identify the smallest missing contextual input.
-
-Do not implement production Shield or any named feature.
-
----
-
-# 20. Attack Bonus Homebrew Test
-
-Use:
-
-> A weapon or feature grants +1 to this attack.
-
-Can existing contribution/provenance machinery represent it?
-
-If not, explain whether that gap must be addressed now for real attacks or can remain a later content concern.
-
----
-
-# 21. Saving Throw Homebrew Test
-
-Use:
-
-> Gain +2 to Dexterity saving throws while condition X is true.
-
-Determine whether the proposed statistic model can eventually express this generically.
-
-Do not implement the actual condition/content.
-
----
-
-# 22. DC Homebrew Test
-
-Use:
-
-> Increase spell save DC by 1.
-
-Same requirement:
-
-no named-feature branch.
-
----
-
-# 23. Explainability Requirement
-
-WildPath's long-term quality target includes being able to explain something like:
-
-```text
-Defense: 18
-Base: 10
-Armor: +5
-Dexterity: +2
-Shield: +1
-Condition: ...
-```
-
-or whatever the actual active ruleset produces.
-
-This milestone does NOT build the Rules Inspector.
-
-But avoid a design where all provenance disappears into:
-
-```text
-system.ac = 18
-```
-
-if the current architecture already has easy access to contribution data.
-
-Balance this against over-engineering.
-
----
-
-# 24. Persisted vs Derived Values
-
-Deliberately decide whether a statistic is:
-
-```text
-persisted canonical input
+valid = false
 ```
 
 or:
 
 ```text
-derived effective output
+affordable = false
 ```
 
-Avoid persisting a derived total if that creates stale duplicated authority.
+the originating Foundry movement must not occur.
 
-But do not force every simple value to be dynamically recomputed if the project has no need for it.
+Return/prevent the movement through the correct Document lifecycle.
 
-Explain the decision.
+Provide a useful notification/error surface.
+
+Do not silently snap to some cheaper path in this milestone.
 
 ---
 
-# 25. Ruleset Formulas Are NOT Statistic Responsibilities
+# 26. Do Not Mutate Final Foundry Waypoints in Pre-Movement
 
-If AC/defense eventually differs by ruleset:
+Current V14 documentation indicates that by `_preUpdateMovement`, the waypoints are final and movement can only be accepted or rejected.
+
+Respect that contract.
+
+Do not mutate them through unsupported internals.
+
+---
+
+# 27. Movement Budget Must Not Be Spent Merely for Proposal
+
+This invariant is mandatory:
 
 ```text
-D&D 2014
-D&D 2024
-WildPath house rules
+movement proposed
+≠
+movement completed
 ```
 
-do not hardcode armor formulas into a generic statistic primitive.
+Do not spend ordinary Movement budget just because authority approved a proposal if the subsequent Foundry movement can still be prevented or fail.
 
-Separate:
+---
+
+# 28. Post-Movement Commit
+
+After actual successful Foundry movement, commit the appropriate ordinary Movement spend **exactly once** through the active authority.
+
+Use Foundry post-movement data and movement ID to correlate:
 
 ```text
-what inputs/contributions exist
+approved movement
+↔ actual movement
 ```
 
-from:
+Investigate current:
 
 ```text
-how a given ruleset generates those inputs
+TokenDocument#_onUpdateMovement
+moveToken
+TokenMovementOperation
+movement.id
+passed
+pending
+finished
 ```
 
-only to the extent currently necessary.
-
-Do not implement a ruleset selection system here.
+and choose the smallest correct lifecycle seam.
 
 ---
 
-# 26. Ability Score Scope
+# 29. Commit Timing Must Be Explicit
 
-If ability modifiers are required to compute the real attack:
-
-inspect whether they already exist.
-
-If missing, add only the smallest support required by evidence.
-
-Do not redesign the entire ability/skills framework in this milestone.
-
-That broader skill rework remains a later WildPath feature.
-
----
-
-# 27. Proficiency Scope
-
-Same rule.
-
-If current ActionDefinitions already contain their complete attack modifier:
-
-do not build proficiency derivation.
-
-If real Actor attacks concretely require proficiency information:
-
-determine the smallest appropriate representation.
-
-Do not implement level progression.
-
----
-
-# 28. Equipment Scope
-
-Do not implement:
-
-* armor equipping
-* shields
-* weapon proficiency
-* equipment loadouts
-* inventory-to-stat derivation
-
-unless the current repository already contains a simple implemented mechanic that only needs connecting.
-
-For this milestone, test fixtures may use canonical persisted/base combat values representing what future equipment systems will eventually derive.
-
-That is acceptable if ownership is explicit.
-
----
-
-# 29. Candidate Construction
-
-Update the real runtime candidate-building path as needed.
-
-A real target candidate should receive canonical plain-data defense information.
-
-The candidate must remain serializable.
-
-No Foundry Document enters ResolutionState.
-
----
-
-# 30. Source Combat Context
-
-Likewise, any source Actor statistics required by attack/save RollRequests should be resolved before entering the pure pipeline or through an existing plain application context.
-
-No domain resolver reads the Actor Document directly.
-
----
-
-# 31. Serialization
-
-New combat-stat data inside:
+Determine from current Foundry V14 behavior whether:
 
 ```text
-ActionIntent-derived options
-ResolutionState
-target candidates
-RollRequest
-results
+_onUpdateMovement
+moveToken
+movement.finished
 ```
 
-must be plain serializable data.
+represents the right point to commit actual Movement spending.
+
+Do not guess.
+
+Document the decision.
+
+The critical invariants are:
+
+```text
+rejected move
+→ no spend
+
+successful move
+→ spend exactly once
+```
+
+---
+
+# 30. Do Not Trust Client Cost at Commit
+
+When committing movement budget, the active GM should correlate the actual movement with the authority-approved movement and/or reconstruct the actual route.
+
+Do not accept:
+
+```text
+client says cost = 20
+```
+
+as authoritative.
+
+---
+
+# 31. Movement ID / Idempotency
+
+Use Foundry movement identity where appropriate.
+
+The same movement completion observed more than once must not spend twice.
+
+Mandatory regression:
+
+```text
+same movementId completion delivered twice
+→ one budget spend
+```
+
+---
+
+# 32. Wrong Movement / Stale Approval
+
+An approval for:
+
+```text
+movementId X
+Token A
+Scene S
+```
+
+must not authorize:
+
+```text
+movementId Y
+Token B
+different path
+different Scene
+```
+
+Bind approvals to appropriate stable identity.
+
+Reject stale or mismatched data.
+
+---
+
+# 33. Changed Authoritative State
+
+Between client planning and GM evaluation:
+
+* Token may have moved;
+* Movement budget may have changed;
+* Scene may have changed;
+* Token size may have changed.
+
+The GM reconstruction is authoritative.
+
+If the proposal no longer starts at the Token's actual origin:
+
+reject it.
+
+Do not silently reinterpret it.
+
+---
+
+# 34. MovementPath Evaluation
+
+The authoritative side must call the real existing:
+
+```text
+createMovementPath()
+evaluateMovementPath()
+```
+
+or the canonical equivalent from `movement-paths.mjs`.
+
+Do not reconstruct Movement legality in the Foundry adapter.
+
+---
+
+# 35. Budget Integration
+
+Use the current movement capability/budget system.
+
+Do not create:
+
+```text
+token.flags.wildpath.movementUsed
+actor.system.movementUsed
+remainingMovement
+```
+
+as new duplicate authority.
+
+MovementPath evaluates cost.
+
+`movement.mjs` owns budget/spend semantics.
+
+---
+
+# 36. Forced Movement
+
+If cleanly supportable in this slice:
+
+```text
+forced movement
+→ validate topology
+→ no ordinary Movement spend
+```
+
+Do not require active Movement budget.
+
+If production forced movement currently has no real entry path, preserve the contract and defer the Foundry-producing feature.
+
+Do not invent a named push feature.
+
+---
+
+# 37. Teleport
+
+Likewise:
+
+```text
+teleport
+→ non-adjacent route semantics allowed
+→ destination footprint validation
+→ no ordinary Movement spend
+```
+
+Do not make ordinary drag become teleport merely because Foundry gave a non-adjacent segment.
+
+---
+
+# 38. Foundry Terrain / Cost
+
+Do NOT implement terrain rules yet.
+
+Foundry exposes terrain and movement-cost machinery.
+
+WildPath also has a `stepCostPolicy`.
+
+For this milestone:
+
+* understand the available V14 terrain/cost data;
+* preserve a clear future seam;
+* do not blindly make Foundry cost authoritative;
+* do not duplicate Foundry terrain pathfinding.
+
+If existing Foundry data can cleanly feed the existing WildPath `stepCostPolicy`, document the future mapping.
+
+Implementation may defer it.
+
+---
+
+# 39. Walls / Core Path Constraints
+
+Foundry should continue to own its normal canvas/path constraints.
+
+Do not rebuild wall collision in WildPath.
+
+Conceptually:
+
+```text
+Foundry
+→ determines actual proposed/complete path through canvas constraints
+
+WildPath
+→ determines whether that mechanical route is legal/affordable under WildPath rules
+```
+
+If Foundry already constrained a path, WildPath validates the resulting path.
+
+---
+
+# 40. Ordinary Drag Is the Required First Slice
+
+Prioritize:
+
+```text
+normal voluntary Token drag
+```
+
+over building a custom movement UI.
+
+The user should not need a special developer command to exercise the integration.
+
+---
+
+# 41. Planned Movement
+
+Also investigate Foundry's current:
+
+```text
+Token#planMovement()
+TokenDocument#startMovement()
+planToken
+```
+
+Crucible uses planned movement for Actions involving movement.
+
+Do not necessarily implement full WildPath planned-action movement now.
+
+But design the adapter so the same path translator can later consume planned movement without a parallel representation.
+
+Document the seam.
+
+---
+
+# 42. Do Not Build HUD Yet
+
+No BG3-style Movement HUD in this milestone.
+
+A warning/notification for:
+
+```text
+movement invalid
+movement unaffordable
+```
+
+is enough.
+
+---
+
+# 43. No Movement Reactions Yet
+
+Do NOT implement:
+
+* opportunity attacks;
+* Sentinel;
+* movement-triggered reactions;
+* leave-reach events.
+
+Those require ordered execution/interruption and are a later slice.
+
+---
+
+# 44. No Persistent Areas Yet
+
+Do NOT implement:
+
+* auras;
+* emanations;
+* persistent hazards;
+* Region-triggered damage.
+
+However, do not interfere with Foundry's normal Region movement lifecycle.
+
+Foundry V14 already exposes movement-related Region events.
+
+Preserve compatibility.
+
+---
+
+# 45. No Pause/Resume Rules Yet
+
+Foundry V14 supports paused movement.
+
+Do not build WildPath reaction interruption yet.
+
+But do not design movement bookkeeping such that paused/partial movement is impossible to support later.
+
+Keep movement identity and actual path information.
+
+---
+
+# 46. Undo / Movement History
+
+Investigate Foundry's movement history/revert APIs enough to understand the consequence for WildPath budget accounting.
+
+Do NOT implement full undo/refund unless it is trivial and necessary for correctness of this slice.
+
+If undo currently causes budget drift, explicitly document it as the next required follow-up before production use.
+
+Do not hide the limitation.
+
+---
+
+# 47. Synthetic Token Actors
+
+TokenDocument may expose a synthetic Actor.
+
+Use the actual moving Token's:
+
+```text
+token.actor
+```
+
+where appropriate.
+
+Do not assume every Token maps to a linked world Actor.
+
+Movement budget/accounting must work for:
+
+```text
+linked Token Actor
+synthetic Token Actor
+```
+
+to the extent current persistence infrastructure supports them.
+
+If persistence lacks synthetic-Actor support, report it rather than silently updating the wrong Actor.
+
+---
+
+# 48. Production-Entry Test Requirement
+
+Mandatory.
+
+At least one test must begin at the actual production movement lifecycle boundary.
+
+Not merely:
+
+```text
+evaluateMovementPath(...)
+```
+
+and not merely:
+
+```text
+foundryMovementToMovementPath(...)
+```
+
+The regression should fail if real Token movement stops reaching the WildPath authority path.
+
+---
+
+# 49. Required Test — Medium Square Voluntary Move
+
+Simulate realistic Foundry movement:
+
+```text
+Token at A
+waypoints to B → C
+```
+
+Expected:
+
+```text
+_preUpdateMovement
+→ MovementIntent
+→ GM authority
+→ MovementPath [A,B,C]
+→ valid
+→ affordable
+→ movement allowed
+→ completion
+→ budget spent once
+```
+
+---
+
+# 50. Required Test — Unaffordable Move
+
+Example:
+
+```text
+budget = 30 ft
+proposed route = 35 ft
+```
+
+Expected:
+
+```text
+movement prevented
+Token destination unchanged
+budget unchanged
+```
+
+---
+
+# 51. Required Test — Invalid Topology
+
+A finalized proposal producing an invalid WildPath route:
+
+```text
+ordinary A → C non-adjacent transition
+```
+
+must be rejected unless Foundry's complete-path expansion correctly supplies the intermediate field.
+
+This test should also verify that the adapter is using the complete route rather than endpoint distance.
+
+---
+
+# 52. Required Test — Foundry Intermediate Path Expansion
+
+Give Foundry-style segment waypoints that do not enumerate every mechanical step.
+
+Verify production conversion uses the appropriate Foundry complete-path facility and produces:
+
+```text
+[A,B,C,D,...]
+```
+
+rather than:
+
+```text
+[A,D]
+```
+
+when intermediate grid transitions exist.
+
+---
+
+# 53. Required Test — Large Square
+
+A Large Token movement must reconstruct and validate its complete 2×2 footprint.
+
+Do not regress to anchor-only legality.
+
+---
+
+# 54. Required Test — Hex
+
+At least one real Foundry-adapter hex route.
+
+No square-only translation assumptions.
+
+---
+
+# 55. Required Test — Duplicate Completion
+
+Deliver the same successful movement completion twice.
+
+Expected:
+
+```text
+Movement budget spent once
+```
+
+---
+
+# 56. Required Test — Rejected Move No Spend
+
+Authority rejects the proposal.
+
+Then even if some completion callback/hook fixture is incorrectly emitted:
+
+do not spend without a valid approval record.
+
+---
+
+# 57. Required Test — Wrong User / Wrong Token / Stale ID
+
+Exercise existing security conventions.
+
+A different user must not be able to reuse another movement's approval/result.
+
+---
+
+# 58. Required Multiplayer Production Test
+
+At minimum:
+
+```text
+player
+→ real production movement boundary
+→ active GM
+→ authoritative Token/Scene reconstruction
+→ MovementPath evaluation
+→ approval
+→ successful movement accounting
+```
+
+Do not manually bypass the socket/transport seam inside this regression.
+
+---
+
+# 59. No New Socket Namespace
+
+Audit after implementation:
+
+```text
+system.wildpath
+```
+
+should remain the canonical system socket.
+
+Do not add a movement-specific socket channel.
+
+---
+
+# 60. Foundry Objects Must Not Cross Socket
+
+Mandatory serialization assertion.
+
+Movement intent/result envelopes must survive JSON round-trip.
 
 No:
 
-* Map
-* Set
-* Date
-* classes
-* Foundry Documents
-* functions
-* promises
-
-Policy/evaluator functions remain runtime dependencies, not stored state.
+* TokenDocument;
+* Scene;
+* Actor;
+* Grid;
+* TokenMovementOperation object;
+* Promise;
+* function.
 
 ---
 
-# 32. Production Entry Test Must Start at the Real Boundary
+# 61. Architecture Reuse Audit
 
-This is mandatory.
-
-Do not only add another:
+Before committing, verify that you have NOT created:
 
 ```text
-planStagedActionResolution(options)
+MovementEngine
+MovementManager
+MovementService
+MovementRegistry
+second TacticalGrid
+second Action Economy
+second socket transport
+second authority system
 ```
 
-test with synthetic options.
+A thin Foundry adapter/runtime helper is fine.
 
-At least one acceptance test must start from the newly wired production Action use / intent-building layer.
+---
 
-It should exercise as much of this flow as practical:
+# 62. Crucible Comparison Report
+
+In the completion report include only conceptual comparison:
 
 ```text
-realistic Actor data
-↓
-realistic Item ActionDefinition
-↓
-buildFoundryActionUseIntent
-↓
-production Foundry intent conversion
-↓
-TacticalGrid context
-↓
-staged pipeline
-↓
-attack roll
-↓
-canonical target defense
-↓
-hit
-↓
-damage
-↓
-persistence
-↓
-Action payment
-↓
-COMPLETED
+CRUCIBLE OBSERVATION
+...
+
+FOUNDRY V14 VERIFICATION
+...
+
+WILDPATH DECISION
+...
 ```
 
-The test may use deterministic adapters/providers.
+Examples worth investigating:
 
-It must NOT manually inject target defense into the already-built staged options.
+* async TokenDocument movement pre-processing;
+* post-move accounting;
+* planned movement;
+* Foundry movement IDs;
+* Foundry's own path/cost data.
 
-That would defeat the purpose.
-
----
-
-# 33. Canonical Defense Test
-
-Mandatory if Outcome A or B is implemented.
-
-Use a target Actor with canonical combat-stat data.
-
-Assert the production runtime conversion produces the expected plain candidate defense.
-
-No test-only candidate override.
+Do not paste Crucible code.
 
 ---
 
-# 34. Defense Modifier Test
+# 63. Foundry API Report
 
-If the implementation supports Modifier-derived defense in this milestone:
+List every Foundry V14 API/lifecycle point the implementation actually relies on.
 
-add a representative generic test.
-
-For example:
+For each classify:
 
 ```text
-base defense X
-+
-generic Modifier +2
-=
-effective defense X+2
+public
+protected/subclass lifecycle
+hook
+data interface
 ```
 
-Provenance should be preserved where the existing rules framework supports it.
-
-Do not create named content.
+If a protected override is used, explain why that is the appropriate system integration point and why a public hook is insufficient.
 
 ---
 
-# 35. Hit / Miss Proof
+# 64. Manual Live QA
 
-Production-path test should prove at least:
+If a live Foundry V14 environment is available, perform:
+
+## GM-only
+
+1. Create Actor with movement budget.
+2. Place Token.
+3. Drag Token within budget.
+4. Confirm Token moves.
+5. Confirm budget changes once.
+6. Try route beyond budget.
+7. Confirm movement is rejected.
+
+## Player + GM
+
+1. Player owns Token.
+2. Player drags Token.
+3. Active GM authoritatively validates.
+4. Movement succeeds.
+5. Both clients agree.
+6. Budget changes once.
+
+## Large Token
+
+Move a Large Token and verify topology behavior.
+
+## Hex
+
+Perform one hex movement.
+
+Record exact Foundry V14 build.
+
+If unavailable:
 
 ```text
-attack total > defense
-→ hit
-```
-
-and preferably one:
-
-```text
-attack total < defense
-→ miss
-```
-
-using Actor-derived defense.
-
-Do not directly set final outcome.
-
----
-
-# 36. Damage Persistence Proof
-
-For a hit:
-
-assert the target's persisted health changes through the normal PersistencePort.
-
-No direct Actor mutation in the new combat-stat layer.
-
----
-
-# 37. Action Payment Proof
-
-Assert the source Actor's Action resource is spent exactly once on successful commit.
-
-If attack misses but the Action was validly executed:
-
-use existing payment semantics.
-
-Do not invent a refund policy.
-
----
-
-# 38. Multiplayer Production Proof
-
-Prefer using the existing production coordinator test fixture.
-
-Representative:
-
-```text
-Player A uses Action
-↓
-GM authority
-↓
-Player A supplies RollResult if chooser policy says so
-↓
-GM evaluates target defense
-↓
-GM commits damage/payment
-```
-
-Do not create another networking path.
-
----
-
-# 39. No-GM / Permission Fallback
-
-Do not modify it unless this combat-stat integration exposes a real issue.
-
-Existing multiplayer policy remains authoritative.
-
----
-
-# 40. Live Foundry QA Gate
-
-After this milestone, WildPath should ideally be capable of its first genuine live combat smoke test.
-
-If a Foundry V14 runtime is available:
-
-perform:
-
-1. Create source Actor.
-2. Give source a simple melee Action.
-3. Create target Actor with canonical defense/HP.
-4. Place both Tokens adjacent.
-5. Target target Token.
-6. Use Action from real Actor sheet.
-7. Complete roll.
-8. Verify:
-
-   * attack outcome;
-   * HP;
-   * Action resource;
-   * multiplayer authority if two clients available.
-
-Record exact Foundry build.
-
-If runtime is unavailable:
-
-state clearly:
-
-```text
-Live Foundry QA not performed.
+Live Foundry Movement QA not performed.
 ```
 
 Do not fabricate it.
 
 ---
 
-# 41. Do NOT Fix Condition Direct-Mutation Debt
+# 65. Existing Melee Live-QA Debt
 
-Previous audit found a separate P1 issue:
+The combat production path still lacks reported manual live Foundry QA.
 
-```text
-WildPathConditionEffect.applyDelta()
-```
+Do not fix combat code here.
 
-still uses direct Foundry mutation on the production condition-toggle path.
-
-Do not fix that here unless directly required for this melee acceptance slice.
-
-Keep it in known debt.
-
----
-
-# 42. Do NOT Add ResolutionState Combination Validators
-
-Previous audit identified missing defense-in-depth validation for impossible ResolutionState combinations.
-
-Do not include that unrelated hardening in this task.
-
-Keep scope focused.
-
----
-
-# 43. Do NOT Refactor Multiplayer Coordinator
-
-Its size has been flagged as a smell.
-
-No speculative split during this milestone.
-
----
-
-# 44. Do NOT Implement Movement
-
-Movement remains the next major domain milestone after real combat-stat readiness.
-
-Do not touch the queued Movement prompt.
-
----
-
-# 45. Do NOT Implement Full Character Progression
-
-Explicitly excluded:
-
-* levels
-* classes
-* subclasses
-* multiclassing
-* XP
-* proficiency progression tables
-* spell preparation
-* full equipment derivation
-* skills redesign
-* rest system
-
----
-
-# 46. Test the Actual Repeated Need Before Generalizing
-
-A generic Statistic primitive is justified only if you can point at at least **two current production consumers** requiring the same evaluation invariant.
-
-Examples:
+In the completion report preserve this known gate:
 
 ```text
-defense + saving throw
+Melee runtime:
+automated production-entry proof exists
+manual Foundry QA still required unless performed separately
 ```
 
-or:
+---
+
+# 66. Documentation
+
+Update relevant architecture docs with:
+
+* Foundry movement lifecycle entry;
+* Foundry waypoint → MovementPath conversion;
+* authority boundary;
+* movement approval identity;
+* post-movement accounting;
+* Foundry vs WildPath cost authority;
+* current forced/teleport support;
+* known interruption/undo limitations;
+* planned movement future seam.
+
+Do not mark:
 
 ```text
-defense + attack modifier
+Movement complete
 ```
 
-If only defense requires it today:
+if reactions/interruption/terrain/Areas are still absent.
 
-prefer the smaller solution unless there is a concrete architectural contradiction.
-
----
-
-# 47. Avoid One-Field Patchwork Too
-
-Conversely, do not create:
+Preferred status:
 
 ```text
-system.ac
-system.attackBonus
-system.dexSave
-system.spellDc
+Foundry Token movement vertical slice implemented
 ```
 
-as unrelated ad hoc fields if the audit demonstrates they all immediately require identical Modifier/Predicate/provenance behavior.
-
-Use evidence to choose the middle ground.
+if genuinely proven.
 
 ---
 
-# 48. Expected Implementation Size
-
-This should remain a focused milestone.
-
-If your proposed change begins requiring many unrelated systems or hundreds of lines of architecture before tests:
-
-stop and reassess Outcome C.
-
-Do not smuggle Character System development into a combat unblocker.
-
----
-
-# 49. Documentation
-
-Update only the relevant docs.
-
-Record:
-
-* canonical combat-stat ownership;
-* what is persisted vs derived;
-* how target defense reaches AttackResolver;
-* how source attack modifiers reach RollRequest, if applicable;
-* how Modifier/Predicate contributions interact;
-* which statistics remain deferred.
-
-Do not mark full Character Statistics complete if only a narrow runtime slice exists.
-
----
-
-# 50. Roadmap Status
-
-If this succeeds, roadmap language should say something equivalent to:
-
-> Real production-entry melee Action is now supported using canonical Actor combat statistics.
-
-It should NOT claim:
-
-> Character system complete.
-
-Then Movement may resume.
-
----
-
-# 51. Verification
+# 67. Verification
 
 Run:
 
@@ -1153,222 +1510,254 @@ npm run typecheck
 git diff --check
 ```
 
-Starting suite is expected around:
+Expected starting suite:
 
 ```text
-485 tests
+509 tests
 ```
 
 Final suite should increase.
 
-Do not weaken existing tests.
+Also search for:
+
+* direct Token `update({x,y})` introduced by this milestone;
+* new socket namespaces;
+* client-trusted movement cost;
+* Foundry objects in envelopes;
+* duplicate movement budget state.
 
 ---
 
-# 52. Commit
+# 68. Commit and Push
 
-If Outcome A or B is implemented successfully and all verification passes:
+If successful:
 
-create a coherent commit.
+commit coherently.
 
-Suggested conceptual commit messages:
-
-```text
-Add runtime combat statistics
-```
-
-or:
+Suggested message:
 
 ```text
-Resolve actor combat statistics
+Integrate Foundry token movement
 ```
 
-Choose according to actual implementation.
+or another precise equivalent.
 
-If Outcome C is chosen:
+Then:
 
-do NOT create an implementation commit merely to have activity.
+```bash
+git push origin main
+```
 
-Return the audit result.
+Do not leave the milestone only locally.
 
 ---
 
-# 53. Required Completion Report
+# 69. Required Completion Report
 
-Return the following.
+Return:
 
 ## Repository Baseline
 
-* initial HEAD
-* branch
-* worktree
-* starting tests
-* typecheck
+* starting SHA;
+* branch;
+* origin status;
+* starting tests/typecheck/diff-check.
 
-## Audit Result
+## Foundry V14 Research
 
-Choose:
+Report relevant current API findings.
+
+## Crucible Review
+
+Use:
 
 ```text
-A — isolated/simple combat fields
-B — small shared derived-statistic primitive
-C — larger Character System dependency
+CRUCIBLE OBSERVATION
+FOUNDRY V14 VERIFICATION
+WILDPATH DECISION
 ```
-
-Explain with exact source evidence.
-
-## Combat Statistic Inventory
-
-Table covering:
-
-* defense/AC
-* attack modifier
-* saves
-* DC
-* HP
-* initiative
-* abilities
-* proficiency
-
-## Root Cause
-
-Explain why a real attack previously produced or would produce `MISSING_DEFENSE`.
 
 ## Architecture Decision
 
-Explain:
+Explain the smallest runtime seam chosen.
 
-* canonical persisted inputs
-* derived outputs
-* Modifier/Predicate reuse
-* provenance
-* ruleset responsibility
+## Production Entry
 
-## Implementation
+Show the real player-facing flow.
 
-List files/contracts changed.
+## Movement Intent
 
-For every new exported concept:
+Show its plain-data shape.
 
-> Which concrete current mechanic required it?
-
-## Target Defense Flow
+## Waypoint Conversion
 
 Show:
 
 ```text
-Actor data
-→ resolved/plain combat statistic
-→ target candidate
-→ AttackResolver
+Foundry path
+→ complete Foundry route
+→ TacticalGrid anchors
+→ MovementPath
 ```
 
-## Attack Modifier Flow
+## Authority
 
-Show the real current source.
-
-If no new work was required, explain why.
-
-## Save/DC Readiness
-
-State what is genuinely supported versus deferred.
-
-## Production Melee Vertical Slice
-
-Report whether this full flow now succeeds:
+Show:
 
 ```text
-sheet/item use
-→ ActionIntent
-→ GM authority
-→ TacticalGrid
-→ RollRequest
-→ canonical defense
-→ hit/miss
-→ damage
-→ HP persistence
-→ Action payment
-→ completion
+player request
+→ active GM reconstruction
+→ evaluation
+→ approve/reject
 ```
+
+## Budget Commit
+
+Explain precisely:
+
+```text
+when
+who
+how
+idempotency
+failure behavior
+```
+
+## Foundry Lifecycle
+
+List actual methods/hooks used and why.
+
+## Square / Hex / Large Footprint
+
+Report regression coverage.
+
+## Forced / Teleport
+
+State genuinely implemented behavior versus deferred production entry.
+
+## Planned Movement
+
+State how future `planMovement` integration can reuse this seam.
 
 ## Tests
 
-Report new tests for:
-
-* production defense mapping;
-* hit/miss;
-* damage persistence;
-* Action payment;
-* multiplayer if applicable;
-* Modifier-derived stat if applicable.
-
-Then report:
-
-* final test total;
+* starting count;
+* new tests;
+* final count;
 * typecheck;
-* diff check.
+* diff-check.
 
 ## Architecture Audit
 
 Confirm:
 
-* no Foundry leakage into domain;
-* no duplicate stat authority;
-* no named-feature branches;
-* no new unnecessary managers/registries;
-* serializable state.
+* no parallel Movement engine;
+* no duplicate budget;
+* no second socket;
+* no client-trusted cost;
+* no Foundry leakage into pure domain;
+* no copied Crucible implementation;
+* no direct coordinate update bypass.
 
 ## Live QA
 
-* performed/not performed;
-* exact Foundry build if performed.
+State performed/not performed and Foundry build.
 
 ## Known Limits
 
-Be precise.
+Especially:
 
-Include remaining P1 items such as condition persistence only if still relevant.
+* pause/interruption;
+* Regions;
+* opportunity reactions;
+* terrain;
+* undo/refund;
+* synthetic Actor persistence if incomplete.
 
 ## Git
 
 * commit SHA/message;
-* branch;
-* worktree.
+* pushed status;
+* final worktree.
 
 ## Next Recommendation
 
 Answer:
 
-> Is WildPath now ready to return to the topology-aware Movement milestone?
+> Is Movement now ready for the first movement-event / interruption / reaction composition slice, or is there still a Foundry runtime seam that must be closed first?
 
-Do not start Movement automatically.
+Do not start the next milestone automatically.
 
 ---
 
-# 54. Definition of Success
+# Definition of Success
 
-The milestone succeeds if:
+This milestone succeeds if:
 
-> A normal melee Action initiated through the real Foundry Action-use runtime can derive all combat statistics it actually needs from canonical Actor/system data, evaluate attack against target defense through the existing pure resolvers, persist resulting damage and resource payment through existing transaction/persistence boundaries, and complete without test-only combat-stat injection.
+> A real Foundry V14 Token movement initiated through the normal production lifecycle is translated into a plain WildPath MovementPath, validated authoritatively by the active GM against authoritative Scene/Token/Actor state and existing Movement budget, rejected before movement when illegal or unaffordable, and accounted for exactly once after successful movement.
 
-And this must be achieved without prematurely building the full Character System.
+And it must accomplish that while preserving:
+
+```text
+Foundry
+→ interaction / movement lifecycle / animation
+
+TacticalGrid
+→ mechanical geometry
+
+MovementPath
+→ route legality and cost
+
+movement.mjs
+→ budget authority
+
+multiplayer authority
+→ rules authority
+
+WildPath persistence
+→ resource commit
+```
+
+No duplicate engine.
+
+No second socket.
+
+No endpoint-distance shortcuts.
+
+No copied Crucible code.
 
 ---
 
 # Final Governing Principle
 
-This milestone is where WildPath starts transitioning from:
+Do not merely make WildPath aware that a Token moved.
+
+Make the real Foundry movement workflow pass through WildPath's existing mechanical authority:
 
 ```text
-excellent combat engine tested with synthetic character data
+FOUNDY PROPOSAL
+↓
+PLAIN INTENT
+↓
+ACTIVE GM
+↓
+TACTICAL TOPOLOGY
+↓
+MOVEMENTPATH
+↓
+BUDGET
+↓
+APPROVE
+↓
+FOUNDY MOVEMENT
+↓
+ACCOUNT EXACTLY ONCE
 ```
 
-to:
+Use Crucible to understand how mature Foundry-native software talks to Foundry.
 
-```text
-combat engine that actually understands a real WildPath character
-```
+Use official V14 documentation to verify the contract.
 
-Build the smallest bridge required by current gameplay.
+Use WildPath to decide the rules.
 
-No more.
+Build the smallest vertical slice that makes real movement playable.
