@@ -56,11 +56,12 @@ Hooks.once("init", () => {
     gear: WildPathGear
   };
 
-  // ActiveEffect data models
+  // ActiveEffect "base" is Foundry's reserved fallback type; WildPath's generic subtype is "effect".
   CONFIG.ActiveEffect.dataModels = {
-    base: WildPathBaseEffect,
+    effect: WildPathBaseEffect,
     condition: WildPathConditionEffect
   };
+  CONFIG.ActiveEffect.defaultType = "effect";
 
   // Trackable Token attributes
   CONFIG.Actor.trackableAttributes = {
@@ -79,7 +80,12 @@ Hooks.once("init", () => {
   CONFIG.statusEffects = Object.values(WILDPATH.CONDITIONS).map(c => ({
     id: c.id,
     name: c.name,
-    img: c.img
+    img: c.img,
+    type: "condition",
+    system: {
+      type: c.id,
+      level: null
+    }
   }));
 
   game.settings.register("wildpath", "movementMeasurementMode", {

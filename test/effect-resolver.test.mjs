@@ -81,7 +81,7 @@ test("EffectResolver ignores non-condition ActiveEffects when finding existing c
     levels: 1,
     existingConditions: [{
       id: "effect-buff",
-      type: "base",
+      type: "effect",
       slug: "prone"
     }],
     conditionDefinitions: CONDITION_DEFINITIONS

@@ -137,6 +137,11 @@ The base Item and ActiveEffect data models now persist:
 Legacy `modifiers` remain supported so existing data keeps working. New content should prefer
 RuleElements unless it is intentionally writing the low-level modifier primitive directly.
 
+Generic WildPath ActiveEffects use the `effect` subtype; `base` is Foundry V14's reserved fallback
+ActiveEffect type and must not be declared by the system manifest. Development worlds which already
+stored explicit ActiveEffects as `type: "base"` need those records migrated to `effect` or
+`condition` before startup validation.
+
 ## Current Integration
 
 `WildPathActor#getStatistic(domain)` consumes `Modifier` RuleElements from active embedded Items
