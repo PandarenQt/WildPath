@@ -7,8 +7,11 @@ Production wiring: `module/resolvers/foundry-multiplayer-runtime.mjs`'s
 build source/target footprints from the real Actor's canvas Token(s) and the player's
 `game.user.targets` selection, feeding `context.spatial` into the staged Action pipeline. Previously
 this adapter had no production caller and was exercised only by Node tests against fake Scene/Grid
-data; see `test/foundry-action-runtime.test.mjs` for the production-entry regression proof. Live
-Foundry V14 runtime QA is still required.
+data; see `test/foundry-action-runtime.test.mjs` for the production-entry action regression proof.
+Foundry Token movement also now uses this adapter from
+`module/adapters/foundry-v14-movement-adapter.mjs` to convert finalized Foundry movement waypoints
+into WildPath `GridField` anchors before MovementPath evaluation. Live Foundry V14 runtime QA is
+still required.
 
 ## Ownership
 
@@ -217,15 +220,29 @@ WildPath persistent GridFootprint / Area state
 
 Region polygons must not become the mechanical authority for gridded WildPath areas.
 
-## Future Movement
+## Foundry Movement
 
-Foundry V14 token movement APIs can provide interaction, path preview, movement execution, and
-terrain/region infrastructure. WildPath movement mechanics should still consume topology-aware
-complete token footprints and emit semantic movement events. Planned movement should adapt into the
-same `GridField`/`TokenGridFootprint` model rather than introducing another spatial representation.
-The pure middle layer now exists as `MovementPath` in `module/helpers/movement-paths.mjs`; a future
-adapter should translate Foundry waypoints/proposals into ordered anchors, then let WildPath
-reconstruct footprints, validate route legality, and compute budget cost authoritatively.
+The Foundry movement adapter uses this TacticalGrid adapter as the only pixel-to-mechanical bridge:
+
+```text
+TokenPreMovementOperation waypoints
+-> TokenDocument#getCompleteMovementPath()
+-> FoundryV14TacticalGridAdapter#pointToField()
+-> MovementPath anchors
+```
+
+Foundry remains responsible for token interaction, ruler/waypoint UI, canvas constraints, animation,
+Scene/Token persistence, Regions, and movement history. WildPath validates the resulting mechanical
+route with `MovementPath` and commits ordinary movement budget only after Foundry reports the
+movement finished.
+
+Foundry's own movement cost, distance, spaces, terrain, and pathfinding data are not mechanical
+authority for WildPath cost in this slice. A future terrain integration can feed Foundry terrain
+data into `evaluateMovementPath()` through `stepCostPolicy`, but the adapter must keep that mapping
+explicit.
+
+Planned movement from `Token#planMovement()` / `TokenDocument#startMovement()` can reuse the same
+waypoint-to-anchor translator. No separate planned-movement spatial representation is needed.
 
 ## Future Battlefield UI
 

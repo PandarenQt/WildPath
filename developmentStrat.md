@@ -293,11 +293,18 @@ Build topology-aware complete-footprint movement, movement modes/costs, forced/v
 semantics, and movement events.
 
 Status: the pure topology-aware MovementPath foundation is implemented in
-`module/helpers/movement-paths.mjs`. Ordered anchors include the origin, complete
-TokenGridFootprints are reconstructed at every anchor, square and hex adjacency use TacticalGrid
-primitives, per-step cost/occupancy/transition policies are pure runtime seams, and affordability
-delegates to the existing movement budget helper. Movement events and Foundry Token movement
-integration remain future slices.
+`module/helpers/movement-paths.mjs`, and the Foundry Token movement vertical slice is implemented
+through `WildPathTokenDocument#_preUpdateMovement()`,
+`module/adapters/foundry-v14-movement-adapter.mjs`, and
+`module/resolvers/multiplayer-movement-authority.mjs`. Normal Token movement now becomes a plain
+MovementIntent, routes to active-GM authority over the existing `system.wildpath` transport,
+reconstructs authoritative Scene/Token/Actor state, evaluates a MovementPath with anchors including
+origin, rejects invalid or unaffordable movement before commit, and spends ordinary movement budget
+once after Foundry reports successful movement completion.
+
+Remaining Stage H work: live Foundry movement QA, semantic movement events, pause/interruption,
+opportunity-reaction composition, terrain/cost policies, Region/Area movement hooks, and
+undo/refund accounting.
 
 ## Stage I — Persistent Spatial Mechanics
 

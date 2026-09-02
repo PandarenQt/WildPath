@@ -58,8 +58,9 @@ Lessons deliberately not adopted:
 - Foundry canvas globals or Token movement APIs inside the pure MovementPath contract.
 - Any copied implementation.
 
-No local Crucible checkout was present under `C:/Users/cheat/Documents/GitHub/WildPath-references`;
-Crucible remains a future Foundry-facing movement benchmark.
+Crucible was later consulted online as the primary Foundry-facing movement benchmark for the
+runtime Token movement slice. Its movement code was used only to identify Foundry lifecycle seams
+and movement-operation invariants, not as source code to copy.
 
 ## PF2e Reference
 
@@ -110,12 +111,20 @@ Lessons adopted:
 
 - Keep Foundry registration and document access at infrastructure/runtime boundaries.
 - Let Actor system data expose persisted inputs; do rule interpretation in WildPath services.
+- For Token movement, prefer the async TokenDocument lifecycle seam over non-awaited hooks when
+  movement must wait on authority.
+- Distinguish actual movement from action/planned movement with movement identity and explicit
+  metadata rather than guessing from route shape.
+- Commit post-movement accounting only after Foundry reports the movement completed, and make
+  duplicate completion handling idempotent.
 
 Lessons deliberately not adopted:
 
 - No Crucible source was copied, vendored, or structurally adapted.
 - Crucible-specific rules, UI layout, sheet state, and document model organization are not
   WildPath requirements.
+- Crucible's action-point movement math, forced-movement labels, and Foundry measured movement cost
+  are not WildPath mechanical authority.
 
 ## Foundry V14 Verification
 
@@ -127,13 +136,26 @@ Official Foundry V14 documentation confirms the platform assumptions used here:
 - Data preparation should assign in memory and should not call document mutation APIs such as
   `update()` or `setFlag()`.
 - V14 data fields are persisted by default unless explicitly marked otherwise.
+- `TokenDocument#_preUpdateMovement()` is an awaited protected lifecycle seam after movement has
+  been determined; final waypoints can be rejected but not rewritten there.
+- `preMoveToken` is cancellable but is a hook, not an async authority boundary.
+- `TokenDocument#getCompleteMovementPath()` expands movement waypoints with intermediate steps.
+- `TokenDocument#_onUpdateMovement()` / `moveToken` report post-update movement, and
+  `TokenMovementOperation.finished` resolves when the movement completes.
+- `Token#planMovement()` and `TokenDocument#startMovement()` are the future planned-movement seam.
 
 Primary sources:
 
 - https://foundryvtt.com/api/v14/modules/foundry.data.html
 - https://foundryvtt.com/api/v14/classes/foundry.abstract.DataModel.html
 - https://foundryvtt.com/article/system-data-models/
+- https://foundryvtt.com/api/classes/foundry.documents.TokenDocument.html
+- https://foundryvtt.com/api/v14/functions/hookEvents.preMoveToken.html
+- https://foundryvtt.com/api/v14/interfaces/foundry.documents.types.TokenPreMovementOperation.html
+- https://foundryvtt.com/api/v14/interfaces/foundry.documents.types.TokenMovementOperation.html
+- https://foundryvtt.com/api/v14/classes/foundry.canvas.placeables.Token.html
 - https://github.com/foundryvtt/crucible/blob/master/crucible.mjs
+- https://github.com/foundryvtt/crucible/blob/master/module/documents/token.mjs
 
 ## Ongoing Rule
 

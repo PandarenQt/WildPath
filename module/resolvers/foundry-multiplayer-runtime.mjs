@@ -6,6 +6,7 @@ import {
   foundryUserDirectory
 } from "../adapters/foundry-v14-resolution-socket-adapter.mjs";
 import {createFoundryV14TacticalGridAdapter} from "../adapters/foundry-v14-tactical-grid-adapter.mjs";
+import {resolveFoundryMovementDocuments} from "../adapters/foundry-v14-movement-adapter.mjs";
 import {
   MULTIPLAYER_AUTHORITY_CODES,
   clonePlainData
@@ -16,6 +17,7 @@ import {
   resolveActorDefense
 } from "../helpers/combat-statistics.mjs";
 import {createMultiplayerActionCoordinator} from "./multiplayer-action-coordinator.mjs";
+import {createMultiplayerMovementAuthority} from "./multiplayer-movement-authority.mjs";
 
 export function registerFoundryV14MultiplayerResolution({
   game=globalThis.game,
@@ -27,7 +29,7 @@ export function registerFoundryV14MultiplayerResolution({
     code: MULTIPLAYER_AUTHORITY_CODES.TRANSPORT_UNAVAILABLE,
     reason: "Foundry game is not available."
   };
-  if ( game.wildpath?.multiplayer?.coordinator ) return {
+  if ( game.wildpath?.multiplayer?.coordinator && game.wildpath?.movement ) return {
     ok: true,
     code: MULTIPLAYER_AUTHORITY_CODES.OK,
     runtime: game.wildpath.multiplayer,
@@ -57,25 +59,50 @@ export function registerFoundryV14MultiplayerResolution({
     notify: event => notifyMultiplayerFailure(event, {logger})
   });
   const registration = coordinator.register();
+  const movement = createMultiplayerMovementAuthority({
+    userId: game.user?.id ?? game.userId ?? null,
+    users: () => foundryUserDirectory(game),
+    activeGMUserId: () => game.users?.activeGM?.id ?? null,
+    transport,
+    game,
+    persistencePort,
+    allowLocalWithoutGM: true,
+    canCommitLocally: ({intent, completion, userId}) => foundryCanCommitLocallyForMovement({
+      intent,
+      completion,
+      userId,
+      game
+    }),
+    notify: event => notifyMultiplayerMovementFailure(event, {logger})
+  });
+  const movementRegistration = movement.register();
   const runtime = {
     transport,
     coordinator,
+    movement,
     registration,
+    movementRegistration,
     declareActionIntent: intent => coordinator.declareActionIntent(intent),
-    executeActionIntent: intent => coordinator.declareActionIntent(intent)
+    executeActionIntent: intent => coordinator.declareActionIntent(intent),
+    requestMovementApproval: intent => movement.requestMovementApproval(intent),
+    commitMovementCompletion: completion => movement.commitMovementCompletion(completion)
   };
   game.wildpath = {
     ...(game.wildpath ?? {}),
     multiplayer: runtime,
+    movement,
     resolutionTransport: transport,
     executeActionIntent: runtime.executeActionIntent
   };
   return {
-    ok: registration.ok !== false,
-    code: registration.code ?? MULTIPLAYER_AUTHORITY_CODES.OK,
-    reason: registration.reason ?? null,
+    ok: registration.ok !== false && movementRegistration.ok !== false,
+    code: registration.ok === false
+      ? registration.code
+      : (movementRegistration.code ?? registration.code ?? MULTIPLAYER_AUTHORITY_CODES.OK),
+    reason: registration.reason ?? movementRegistration.reason ?? null,
     runtime,
-    registration
+    registration,
+    movementRegistration
   };
 }
 
@@ -142,6 +169,17 @@ function notifyMultiplayerFailure(event={}, {logger=globalThis.console}={}) {
     globalThis.ui.notifications.warn(`Wild Path | ${reason}`);
   } else {
     logger?.warn?.("Wild Path | Multiplayer action resolution failed", event.error);
+  }
+}
+
+function notifyMultiplayerMovementFailure(event={}, {logger=globalThis.console}={}) {
+  const error = event.error ?? event.result ?? null;
+  if ( !error ) return;
+  const reason = error.reason ?? error.code ?? "Movement validation failed.";
+  if ( typeof globalThis.ui?.notifications?.warn === "function" ) {
+    globalThis.ui.notifications.warn(`Wild Path | ${reason}`);
+  } else {
+    logger?.warn?.("Wild Path | Multiplayer movement failed", error);
   }
 }
 
@@ -403,6 +441,15 @@ export async function foundryCanCommitLocallyForIntent({intent={}, userId=null, 
     if ( targetActor && !documentOwnedByUser(targetActor, user) ) return false;
   }
   return true;
+}
+
+export async function foundryCanCommitLocallyForMovement({intent=null, completion=null, userId=null, game=globalThis.game}={}) {
+  if ( game?.user?.isGM === true ) return true;
+  const movement = intent ?? completion ?? {};
+  const resolved = await resolveFoundryMovementDocuments({intent: movement, game});
+  if ( !resolved.ok ) return false;
+  const user = userById(game?.users, userId);
+  return documentOwnedByUser(resolved.token, user) || documentOwnedByUser(resolved.actor, user);
 }
 
 async function resolveFoundryAction(ref, actor, {game=globalThis.game}={}) {

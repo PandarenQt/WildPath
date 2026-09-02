@@ -112,6 +112,12 @@ Forced movement and teleportation are explicit movement kinds that do not consum
 budget by default. Teleport may use a non-adjacent destination anchor while still validating the
 destination footprint through the same policy seam. See `docs/architecture/movement-paths.md`.
 
+Normal Foundry Token drag movement now reaches this budget model through the V14 TokenDocument
+movement lifecycle. The active GM approves a `MovementPath` proposal against the current
+`system.resources.movement.value`, but approval does not spend. After Foundry reports the movement
+finished, the active GM commits the approved ordinary movement cost through `ResourceResolver` as an
+`economy.movement` payment. Duplicate completion delivery is idempotent.
+
 ## Existing Data Compatibility
 
 No schema migration is introduced by this foundation. `economyResourcesFromActorResources()`
@@ -132,9 +138,7 @@ without embedding resource mutation in the UI.
 
 ## Deferred Work
 
-- Multiplayer authority should decide which client may commit a selected payment plan.
 - Non-Actor resource stores should join the same transaction/persistence boundary when introduced.
 - `ReactionEngine` should decide when reaction windows exist.
-- A future Foundry movement adapter should translate V14 token movement proposals into
-  `MovementPath` data, then commit approved Token movement through the existing authority and
-  transaction boundaries.
+- Movement undo/refund and paused/interrupted movement accounting need explicit follow-up before
+  production use of movement history/revert workflows.

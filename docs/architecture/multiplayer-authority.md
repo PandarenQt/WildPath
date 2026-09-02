@@ -4,6 +4,11 @@ WildPath multiplayer action execution is an application/infrastructure layer aro
 staged action pipeline. It does not add socket-owned rules, socket-owned mutation plans, or a
 second request hierarchy.
 
+The same authority and transport primitives also carry Foundry Token movement approval and
+post-movement accounting. Movement is not forced through `ActionResolution`; it uses a small
+movement authority helper that shares the active-GM selection, envelope validation, plain-data
+transport, duplicate caches, and the `system.wildpath` socket namespace.
+
 ## Runtime Flow
 
 ```text
@@ -95,6 +100,10 @@ metadata
 The current message set is intentionally small:
 
 - `ACTION_INTENT`
+- `MOVEMENT_INTENT`
+- `MOVEMENT_APPROVAL`
+- `MOVEMENT_COMMIT`
+- `MOVEMENT_RESULT`
 - `PENDING_REQUEST`
 - `REQUEST_RESPONSE`
 - `RESOLUTION_CANCEL`
@@ -103,6 +112,12 @@ The current message set is intentionally small:
 
 The envelope validator rejects non-plain values such as `Map`, `Set`, `Date`, functions, class
 instances, Foundry Documents, Roll instances, Applications, PIXI objects, and Promises.
+
+Movement messages use the same envelope and therefore the same serialization rule. A
+`MOVEMENT_INTENT` contains stable Scene/Token/Actor refs, source user id, Foundry movement id,
+movement kind/mode, and plain waypoint coordinates only. It does not carry a `Scene`,
+`TokenDocument`, `Actor`, `Grid`, Foundry movement operation object, function, Promise, or client
+assertion of legality/cost/affordability.
 
 ## Action Intent
 
@@ -184,6 +199,48 @@ The multiplayer coordinator supplies explicit commit authority for the selected 
 coverage verifies persistence calls happen only in the authority context and duplicate responses or
 duplicate action intents do not apply damage/resources twice.
 
+## Movement Authority
+
+Foundry Token movement follows the same authority policy:
+
+```text
+player TokenDocument#_preUpdateMovement
+-> MOVEMENT_INTENT
+-> active GM
+-> authoritative Scene/Token/Actor reconstruction
+-> MovementPath evaluation
+-> MOVEMENT_APPROVAL
+-> Foundry continues or rejects movement
+-> movement.finished true
+-> MOVEMENT_COMMIT
+-> active GM commits approved economy.movement spend once
+-> MOVEMENT_RESULT
+```
+
+No active GM follows the existing local-authority policy: local authority is only allowed when the
+initiating client can prove local commit permission. Otherwise movement approval fails with the same
+authority-unavailable behavior used by Actions.
+
+The active GM stores approval records keyed by Foundry movement id plus Scene/Token identity. A
+completion must come from the user who received the approval and must match the approved Token and
+movement id. At commit time the GM re-resolves the current Token and confirms its actual anchor is
+the approved route destination. The committed movement cache makes duplicate completion delivery
+idempotent.
+
+The authority commits movement spend through the existing `ResourceResolver` mapping:
+
+```text
+approved MovementPath cost
+-> movement payment plan for economy.movement
+-> createActorResourceMutationPlan()
+-> commitActorResourceMutationPlan()
+-> DocumentPersistencePort
+```
+
+Forced movement and teleport approvals can validate route topology/destination footprint without
+ordinary movement spend when they are explicitly identified by WildPath movement metadata. Ordinary
+drag movement remains voluntary walk movement by default.
+
 ## Tests
 
 `test/multiplayer-authority.test.mjs` provides deterministic multi-client coverage with
@@ -215,7 +272,8 @@ Not implemented here:
 - mid-resolution authority failover
 - full HUD request routing
 - chat rendering
-- movement networking
+- movement interruption/pause accounting
+- movement undo/refund accounting
 - persistent area lifecycle networking
 - cross-client secret visibility policy beyond sanitized result/request payloads
 

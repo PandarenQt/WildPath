@@ -37,6 +37,12 @@ finished game system name is **WildPath**.
   TacticalGrid topology: anchors include the origin, full TokenGridFootprints are reconstructed at
   every anchor, per-step route cost is separated from occupancy/transition legality, and
   affordability delegates to the existing movement budget helper.
+- `module/documents/token.mjs`, `module/adapters/foundry-v14-movement-adapter.mjs`, and
+  `module/resolvers/multiplayer-movement-authority.mjs` implement the Foundry Token movement
+  vertical slice: normal TokenDocument movement proposals become plain MovementIntents, the active
+  GM reconstructs Scene/Token/Actor state and evaluates a MovementPath, rejected routes stop before
+  movement, and successful completions commit ordinary movement budget exactly once through
+  ResourceResolver.
 - Tactical grid and area topology are implemented as pure domain foundations: gridded AoE resolves
   to authoritative `GridFootprint` field sets rather than Euclidean templates pretending to be
   tactical geometry. `module/adapters/foundry-v14-tactical-grid-adapter.mjs` now provides the first
@@ -237,9 +243,11 @@ active tactical grid defines adjacency, direction, source-border placement, and 
 Ordinary creature-originated Lines and Cones should originate from an eligible source Token's
 tactical boundary vertex rather than token center.
 
-The first Foundry adapter proof has landed, and pure topology-aware MovementPath evaluation now
-builds on the same footprint conventions. Opportunity attacks, auras, emanations, persistent
-hazards, and Token movement integration remain later slices. See
+The first Foundry adapter proof has landed, pure topology-aware MovementPath evaluation now builds
+on the same footprint conventions, and normal Foundry Token movement now passes through active-GM
+MovementPath approval and post-movement budget accounting. Opportunity attacks, movement
+interruption, semantic movement events, auras, emanations, persistent hazards, terrain cost, and
+movement undo/refund remain later slices. See
 `docs/architecture/tactical-grid.md`, `docs/architecture/areas.md`, and
 `docs/architecture/foundry-tactical-grid-adapter.md`.
 
@@ -310,10 +318,12 @@ routing, duplicate/stale rejection, and the current Foundry socket adapter. See
 2. Expand ReactionResolver timing coverage beyond action-declared and after-attack-outcome only
    where semantic events require it, then perform live Foundry reaction QA. Avoid named-feature
    reaction code.
-3. Integrate Foundry V14 Token movement proposals with plain MovementPath data, authority routing,
-   and transaction-safe Token movement commits.
-4. Compose persistent Areas, auras, and emanations from Spatial + Movement + Events + Reactions.
-5. Add representative content and character-system slices only after those execution boundaries are
+3. Perform live Foundry V14 runtime QA for normal Token movement approval/accounting, including
+   player+GM, Large Token, and hex movement.
+4. Compose the first movement-event/interruption/reaction slice once the movement runtime seam is
+   live-QA-proven.
+5. Compose persistent Areas, auras, and emanations from Spatial + Movement + Events + Reactions.
+6. Add representative content and character-system slices only after those execution boundaries are
    proven in live runtime.
 
 Keep every slice small, testable, and compatible with synthetic Token Actors.

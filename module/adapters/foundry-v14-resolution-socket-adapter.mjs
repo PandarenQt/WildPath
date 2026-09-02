@@ -15,7 +15,7 @@ export function createFoundryV14ResolutionSocketAdapter({
 }={}) {
   const socketNamespace = namespace ?? `system.${systemId}`;
   let registered = false;
-  let handler = null;
+  const handlers = new Set();
 
   const adapter = {
     id,
@@ -24,20 +24,7 @@ export function createFoundryV14ResolutionSocketAdapter({
     register(nextHandler) {
       const foundryGame = resolveGame(game);
       const socket = foundryGame?.socket ?? null;
-      if ( registered ) return {
-        ok: true,
-        code: MULTIPLAYER_AUTHORITY_CODES.OK,
-        registered: false,
-        namespace: socketNamespace
-      };
-      if ( !socket || typeof socket.on !== "function" ) return {
-        ok: false,
-        code: MULTIPLAYER_AUTHORITY_CODES.TRANSPORT_UNAVAILABLE,
-        reason: "Foundry game.socket is not available.",
-        namespace: socketNamespace
-      };
-
-      handler = typeof nextHandler === "function" ? nextHandler : null;
+      const handler = typeof nextHandler === "function" ? nextHandler : null;
       if ( !handler ) return {
         ok: false,
         code: MULTIPLAYER_AUTHORITY_CODES.INVALID_PAYLOAD,
@@ -45,6 +32,24 @@ export function createFoundryV14ResolutionSocketAdapter({
         namespace: socketNamespace
       };
 
+      if ( registered ) {
+        handlers.add(handler);
+        return {
+          ok: true,
+          code: MULTIPLAYER_AUTHORITY_CODES.OK,
+          registered: false,
+          handlerCount: handlers.size,
+          namespace: socketNamespace
+        };
+      }
+      if ( !socket || typeof socket.on !== "function" ) return {
+        ok: false,
+        code: MULTIPLAYER_AUTHORITY_CODES.TRANSPORT_UNAVAILABLE,
+        reason: "Foundry game.socket is not available.",
+        namespace: socketNamespace
+      };
+
+      handlers.add(handler);
       socket.on(socketNamespace, async envelope => {
         const validation = validateResolutionSocketEnvelope(envelope);
         if ( !validation.ok ) {
@@ -53,10 +58,12 @@ export function createFoundryV14ResolutionSocketAdapter({
         }
         const currentUserId = foundryGame?.user?.id ?? foundryGame?.userId ?? null;
         if ( !recipientMatchesEnvelope(validation.envelope, currentUserId) ) return;
-        try {
-          await handler(validation.envelope, {transport: adapter});
-        } catch (error) {
-          logWarning(logger, "Wild Path | Resolution socket handler failed", error);
+        for ( const handler of handlers ) {
+          try {
+            await handler(validation.envelope, {transport: adapter});
+          } catch (error) {
+            logWarning(logger, "Wild Path | Resolution socket handler failed", error);
+          }
         }
       });
       registered = true;
@@ -64,6 +71,7 @@ export function createFoundryV14ResolutionSocketAdapter({
         ok: true,
         code: MULTIPLAYER_AUTHORITY_CODES.OK,
         registered: true,
+        handlerCount: handlers.size,
         namespace: socketNamespace
       };
     },
@@ -95,6 +103,9 @@ export function createFoundryV14ResolutionSocketAdapter({
     },
     get registered() {
       return registered;
+    },
+    get handlerCount() {
+      return handlers.size;
     }
   };
   return adapter;

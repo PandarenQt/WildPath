@@ -14,14 +14,16 @@ Implemented:
 - occupancy and transition legality policy seams.
 - integration with the existing movement budget helpers.
 - distinct route validity, route cost, and affordability results.
+- Foundry Token movement vertical slice implemented through the V14 TokenDocument movement
+  lifecycle, active-GM authority, and post-movement budget commit.
 
 Deferred:
 
-- Foundry Token movement proposals and commits.
-- sockets/authority routing for movement proposals.
+- movement-event/interruption composition.
 - movement interruption, events, opportunity reactions, auras, hazards, and Regions.
 - terrain, squeezing, ally/enemy occupancy, and mode-specific collision rules beyond supplied
   policy functions.
+- movement undo/refund and pause/resume accounting.
 
 ## Canonical Path
 
@@ -159,20 +161,62 @@ The path layer produces ordered route cost and delegates budget semantics to `mo
 not introduce `movementUsed`, `remainingMovement`, `movementPoints`, or any duplicate mutable
 movement state.
 
+## Foundry Token Movement Vertical Slice
+
+Normal Foundry Token movement now enters WildPath at
+`WildPathTokenDocument#_preUpdateMovement()`. Foundry has already determined the final movement
+waypoints at that lifecycle point, so WildPath treats the operation as approve/reject only.
+
+The runtime flow is:
+
+```text
+TokenDocument#_preUpdateMovement
+-> build plain MovementIntent
+-> active-GM authority over the existing system.wildpath transport
+-> authoritative Scene/Token/Actor reconstruction
+-> TokenDocument#getCompleteMovementPath()
+-> FoundryV14TacticalGridAdapter point-to-field conversion
+-> MovementPath anchors including origin
+-> evaluateMovementPath()
+-> approve or reject
+```
+
+The MovementIntent may carry Foundry x/y waypoint data because that is the client proposal. That
+data stops at `module/adapters/foundry-v14-movement-adapter.mjs`. The resulting `MovementPath`
+contains only topology anchors, footprint definition, movement kind/mode, and plain metadata.
+
+Authority never trusts the client origin, route legality, affordability, or cost. The active GM
+re-resolves the current Scene, Token, Token Actor, Token anchor/footprint, movement resource, and
+grid scale before evaluating. If the client-observed origin no longer matches the authoritative
+Token anchor, the proposal is rejected.
+
+Budget is not spent during approval. `WildPathTokenDocument#_onUpdateMovement()` waits for Foundry's
+post-update `movement.finished` promise to resolve true, then reports a plain MovementCompletion.
+The active-GM authority correlates completion to the approval record by movement id plus Scene/Token
+identity, confirms the Token's actual final anchor matches the approved route destination, and only
+then commits the approved `economy.movement` spend through `ResourceResolver` and
+`DocumentPersistencePort`. Duplicate completions for the same movement id are idempotent and do not
+spend twice.
+
+Foundry's measured movement cost/distance/spaces are not used as WildPath mechanical cost in this
+slice. They remain useful future diagnostics or terrain/cost inputs, but WildPath cost currently
+comes from `evaluateMovementPath()` over the complete ordered anchors.
+
 ## Serialization And Boundaries
 
 `MovementPath` and its evaluation result are JSON-round-trippable. They contain no Foundry
 Documents, Tokens, Scenes, canvas coordinates, UI handles, sockets, or policy functions.
 
-Future Foundry integration should translate:
+The Foundry movement adapter translates:
 
 ```text
 Foundry Token movement proposal
 -> GridField anchors
 -> MovementPath
 -> authoritative WildPath validation/cost
--> transaction/authority/event orchestration
--> Foundry Token movement commit
+-> active-GM approval
+-> Foundry Token movement
+-> active-GM movement-budget commit
 ```
 
 The pure domain remains the mechanical authority for ordered path semantics.

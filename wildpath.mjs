@@ -13,6 +13,7 @@ import WildPathConditionEffect from "./module/data/active-effect/condition.mjs";
 import WildPathActor from "./module/documents/actor.mjs";
 import WildPathItem from "./module/documents/item.mjs";
 import WildPathActiveEffect from "./module/documents/active-effect.mjs";
+import WildPathTokenDocument from "./module/documents/token.mjs";
 
 import WildPathActorSheet from "./module/applications/actor-sheet.mjs";
 import WildPathItemSheet from "./module/applications/item-sheet.mjs";
@@ -40,6 +41,7 @@ Hooks.once("init", () => {
   CONFIG.Actor.documentClass = WildPathActor;
   CONFIG.Item.documentClass = WildPathItem;
   CONFIG.ActiveEffect.documentClass = WildPathActiveEffect;
+  CONFIG.Token.documentClass = WildPathTokenDocument;
 
   // Actor data models
   CONFIG.Actor.dataModels = {

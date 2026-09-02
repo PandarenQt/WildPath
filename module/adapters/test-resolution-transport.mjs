@@ -22,7 +22,7 @@ export function createTestResolutionTransportHub({users=[]}={}) {
       if ( directory.has(id) ) directory.set(id, {...directory.get(id), active: nextActive});
       else directory.set(id, {id, active: nextActive});
 
-      let handler = null;
+      const handlers = new Set();
       const endpoint = {
         id: `test-resolution-transport:${id}`,
         type: "test-resolution-transport",
@@ -36,8 +36,15 @@ export function createTestResolutionTransportHub({users=[]}={}) {
           directory.set(id, {...(directory.get(id) ?? {id}), active: nextActive === true});
         },
         register(nextHandler) {
-          handler = typeof nextHandler === "function" ? nextHandler : null;
-          return {ok: !!handler, code: handler ? MULTIPLAYER_AUTHORITY_CODES.OK : MULTIPLAYER_AUTHORITY_CODES.INVALID_PAYLOAD};
+          const handler = typeof nextHandler === "function" ? nextHandler : null;
+          if ( !handler ) return {ok: false, code: MULTIPLAYER_AUTHORITY_CODES.INVALID_PAYLOAD};
+          handlers.add(handler);
+          return {
+            ok: true,
+            code: MULTIPLAYER_AUTHORITY_CODES.OK,
+            registered: handlers.size === 1,
+            handlerCount: handlers.size
+          };
         },
         async send(envelope) {
           const validation = validateResolutionSocketEnvelope(envelope);
@@ -63,12 +70,20 @@ export function createTestResolutionTransportHub({users=[]}={}) {
           };
         },
         async handle(envelope) {
-          if ( !handler ) return {
+          if ( !handlers.size ) return {
             ok: false,
             code: MULTIPLAYER_AUTHORITY_CODES.TRANSPORT_UNAVAILABLE,
             reason: "No test transport handler is registered."
           };
-          return await handler(envelope, {transport: endpoint});
+          const results = [];
+          for ( const handler of handlers ) {
+            results.push(await handler(envelope, {transport: endpoint}));
+          }
+          return results.length === 1 ? results[0] : {
+            ok: true,
+            code: MULTIPLAYER_AUTHORITY_CODES.OK,
+            results
+          };
         }
       };
 
