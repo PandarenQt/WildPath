@@ -51,6 +51,7 @@ export function createMultiplayerMovementAuthority({
   const localUserId = stringOrNull(userId ?? transport?.userId ?? game?.user?.id ?? game?.userId);
   const approvedMovements = new Map();
   const committedMovements = createBoundedIdCache({limit: duplicateCacheLimit});
+  const inFlightMovementCommits = new Map();
   const pendingApprovals = new Map();
   const initiatedAuthorities = new Map();
   const seenMessages = createBoundedIdCache({limit: duplicateCacheLimit});
@@ -274,7 +275,7 @@ export function createMultiplayerMovementAuthority({
 
     const expectedAuthorityUserId = initiatedAuthorities.get(sanitized.resolutionId);
     if ( expectedAuthorityUserId && expectedAuthorityUserId === localUserId ) {
-      return applyMovementCompletion(sanitized, {senderUserId: sanitized.sourceUserId ?? localUserId});
+      return applyMovementCompletion(sanitized, {senderUserId: localUserId});
     }
     if ( expectedAuthorityUserId ) {
       const envelope = createResolutionSocketEnvelope({
@@ -313,7 +314,7 @@ export function createMultiplayerMovementAuthority({
     });
     if ( !authority.ok ) return failAndNotify(authority);
     if ( authority.userId === localUserId ) {
-      return applyMovementCompletion(sanitized, {senderUserId: sanitized.sourceUserId ?? localUserId});
+      return applyMovementCompletion(sanitized, {senderUserId: localUserId});
     }
     const envelope = createResolutionSocketEnvelope({
       messageType: MULTIPLAYER_MESSAGE_TYPES.MOVEMENT_COMMIT,
@@ -338,6 +339,12 @@ export function createMultiplayerMovementAuthority({
 
   async function receiveMovementCommit(envelope) {
     const completion = withEnvelopeSourceUser(sanitizeMovementCompletion(envelope.payload?.completion ?? envelope.payload), envelope);
+    const senderCheck = validateEnvelopeSourceUser(completion, envelope);
+    if ( !senderCheck.ok ) return sendMovementResult({
+      recipientUserId: envelope.senderUserId,
+      result: senderCheck
+    });
+
     const authority = selectResolutionAuthority({
       initiatorUserId: envelope.senderUserId,
       localUserId,
@@ -436,7 +443,20 @@ export function createMultiplayerMovementAuthority({
       "No active-GM approval record exists for this completed movement.",
       {movementId: completion.movementId}
     );
-    const sourceUserId = stringOrNull(completion.sourceUserId ?? senderUserId);
+    const sourceUserId = stringOrNull(senderUserId ?? completion.sourceUserId);
+    const claimedSourceUserId = stringOrNull(completion.sourceUserId);
+    if ( sourceUserId && claimedSourceUserId && sourceUserId !== claimedSourceUserId ) {
+      return failure(
+        MULTIPLAYER_AUTHORITY_CODES.WRONG_USER,
+        "Movement completion sourceUserId does not match the socket sender.",
+        {
+          expectedUserId: sourceUserId,
+          senderUserId: sourceUserId,
+          claimedSourceUserId,
+          movementId: completion.movementId
+        }
+      );
+    }
     if ( record.initiatorUserId && sourceUserId && record.initiatorUserId !== sourceUserId ) {
       return failure(
         MULTIPLAYER_AUTHORITY_CODES.WRONG_USER,
@@ -458,6 +478,31 @@ export function createMultiplayerMovementAuthority({
       previous: committedMovements.get(key)
     };
 
+    const inFlight = inFlightMovementCommits.get(key);
+    if ( inFlight ) {
+      const result = await inFlight;
+      if ( committedMovements.has(key) ) return {
+        ok: true,
+        code: FOUNDRY_MOVEMENT_CODES.MOVEMENT_ALREADY_COMMITTED,
+        movementId: completion.movementId,
+        duplicate: true,
+        committed: false,
+        previous: committedMovements.get(key)
+      };
+      return result;
+    }
+
+    const commitPromise = Promise.resolve()
+      .then(() => executeMovementCompletionCommit({key, record, completion}));
+    inFlightMovementCommits.set(key, commitPromise);
+    try {
+      return await commitPromise;
+    } finally {
+      inFlightMovementCommits.delete(key);
+    }
+  }
+
+  async function executeMovementCompletionCommit({key, record, completion}) {
     const documents = await resolveMovementCompletionDocuments({completion, game});
     if ( !documents.ok ) return documents;
 
@@ -505,7 +550,16 @@ export function createMultiplayerMovementAuthority({
       {movementId: completion.movementId, paymentPlan, mutationPlan}
     );
 
-    const committed = await commitActorResourceMutationPlan(documents.actor, mutationPlan, {persistencePort});
+    let committed;
+    try {
+      committed = await commitActorResourceMutationPlan(documents.actor, mutationPlan, {persistencePort});
+    } catch (error) {
+      return failure(
+        FOUNDRY_MOVEMENT_CODES.MOVEMENT_COMMIT_FAILED,
+        error?.message ?? "Movement resource mutation could not be committed.",
+        {movementId: completion.movementId, paymentPlan, mutationPlan}
+      );
+    }
     if ( committed !== true ) return failure(
       FOUNDRY_MOVEMENT_CODES.MOVEMENT_COMMIT_FAILED,
       "Movement resource mutation could not be committed.",
@@ -651,6 +705,24 @@ export function createMultiplayerMovementAuthority({
       sourceUserId: intent.sourceUserId ?? envelope.senderUserId,
       resolutionId: intent.resolutionId ?? envelope.resolutionId
     };
+  }
+
+  function validateEnvelopeSourceUser(value, envelope) {
+    const payloadSourceUserId = stringOrNull(envelope.payload?.completion?.sourceUserId ?? envelope.payload?.sourceUserId);
+    const senderUserId = stringOrNull(envelope.senderUserId);
+    if ( payloadSourceUserId && senderUserId && payloadSourceUserId !== senderUserId ) {
+      return failure(
+        MULTIPLAYER_AUTHORITY_CODES.WRONG_USER,
+        "Movement completion sourceUserId does not match the socket sender.",
+        {
+          expectedUserId: senderUserId,
+          senderUserId,
+          claimedSourceUserId: payloadSourceUserId,
+          movementId: value.movementId
+        }
+      );
+    }
+    return {ok: true, code: MULTIPLAYER_AUTHORITY_CODES.OK};
   }
 
   function failAndNotify(result) {

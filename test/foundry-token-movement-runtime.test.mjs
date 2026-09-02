@@ -272,7 +272,8 @@ function createMovementRuntimeFixture({
   grid=new FakeSquareGrid(),
   actor=fakeActor("actor-a"),
   tokenOptions={},
-  measurementMode=MOVEMENT_MEASUREMENT_MODES.DISTANCE
+  measurementMode=MOVEMENT_MEASUREMENT_MODES.DISTANCE,
+  persistenceOptions={}
 }={}) {
   const scene = fakeScene(grid);
   const token = fakeTokenDocument({actor, scene, ...tokenOptions});
@@ -284,7 +285,8 @@ function createMovementRuntimeFixture({
     actors: {
       [actor.id]: actor,
       [actor.uuid]: actor
-    }
+    },
+    ...persistenceOptions
   });
   const playerGame = fakeGame({user: PLAYER, users, scenes: [scene], actors: [actor], movementMode: measurementMode});
   const gmGame = fakeGame({user: GM, users, scenes: [scene], actors: [actor], movementMode: measurementMode});
@@ -589,6 +591,125 @@ test("duplicate completed movement spends ordinary movement budget only once", a
   assert.equal(persistence.operations.filter(operation => operation.type === "updateActor").length, 1);
 });
 
+test("concurrent duplicate movement completions share one budget commit", async () => {
+  const fixture = createMovementRuntimeFixture();
+  const {actor, token, persistence} = fixture;
+  const movement = movementOperation(token, {
+    id: "move-concurrent-direct-completion",
+    offsets: [{i: 2, j: 0}]
+  });
+
+  await withFoundryGlobals(fixture, async () => {
+    assert.notEqual(await token._preUpdateMovement(movement, {}), false);
+  });
+  moveTokenToOffset(token, {i: 2, j: 0});
+
+  const completion = buildFoundryMovementCompletion({
+    tokenDocument: token,
+    movement,
+    user: PLAYER,
+    game: fixture.playerGame
+  }).completion;
+  const [first, second] = await Promise.all([
+    fixture.playerAuthority.commitMovementCompletion(completion),
+    fixture.playerAuthority.commitMovementCompletion(completion)
+  ]);
+
+  assert.equal(first.ok, true);
+  assert.equal(second.ok, true);
+  assert.equal(actor.system.resources.movement.value, 20);
+  assert.equal(persistence.operations.filter(operation => operation.type === "updateActor").length, 1);
+});
+
+test("concurrent movement commit socket envelopes spend movement once", async () => {
+  const fixture = createMovementRuntimeFixture();
+  const {actor, token, gmAuthority, persistence} = fixture;
+  const movement = movementOperation(token, {
+    id: "move-concurrent-socket-completion",
+    offsets: [{i: 2, j: 0}]
+  });
+
+  await withFoundryGlobals(fixture, async () => {
+    assert.notEqual(await token._preUpdateMovement(movement, {}), false);
+  });
+  moveTokenToOffset(token, {i: 2, j: 0});
+
+  const completion = buildFoundryMovementCompletion({
+    tokenDocument: token,
+    movement,
+    user: PLAYER,
+    game: fixture.playerGame
+  }).completion;
+  const envelopeA = createResolutionSocketEnvelope({
+    messageId: "movement-commit-concurrent-a",
+    messageType: MULTIPLAYER_MESSAGE_TYPES.MOVEMENT_COMMIT,
+    senderUserId: PLAYER.id,
+    recipientUserId: GM.id,
+    resolutionId: completion.resolutionId,
+    payload: {completion}
+  });
+  const envelopeB = createResolutionSocketEnvelope({
+    messageId: "movement-commit-concurrent-b",
+    messageType: MULTIPLAYER_MESSAGE_TYPES.MOVEMENT_COMMIT,
+    senderUserId: PLAYER.id,
+    recipientUserId: GM.id,
+    resolutionId: completion.resolutionId,
+    payload: {completion}
+  });
+
+  const results = await Promise.all([
+    gmAuthority.handleEnvelope(envelopeA),
+    gmAuthority.handleEnvelope(envelopeB)
+  ]);
+
+  assert.equal(results.every(result => result.ok === true), true);
+  assert.equal(results.some(result => result.result.code === FOUNDRY_MOVEMENT_CODES.OK), true);
+  assert.equal(results.some(result => result.result.code === FOUNDRY_MOVEMENT_CODES.MOVEMENT_ALREADY_COMMITTED), true);
+  assert.equal(actor.system.resources.movement.value, 20);
+  assert.equal(persistence.operations.filter(operation => operation.type === "updateActor").length, 1);
+});
+
+test("failed movement commit clears the in-flight idempotency guard for retry", async () => {
+  let failNextMovementSpend = true;
+  const fixture = createMovementRuntimeFixture({
+    persistenceOptions: {
+      failOn(operation) {
+        if ( operation.type !== "updateActor" || failNextMovementSpend !== true ) return false;
+        failNextMovementSpend = false;
+        return true;
+      }
+    }
+  });
+  const {actor, token, gmAuthority, persistence} = fixture;
+  const movement = movementOperation(token, {
+    id: "move-commit-retry-after-failure",
+    offsets: [{i: 2, j: 0}]
+  });
+
+  await withFoundryGlobals(fixture, async () => {
+    assert.notEqual(await token._preUpdateMovement(movement, {}), false);
+  });
+  moveTokenToOffset(token, {i: 2, j: 0});
+
+  const completion = buildFoundryMovementCompletion({
+    tokenDocument: token,
+    movement,
+    user: PLAYER,
+    game: fixture.playerGame
+  }).completion;
+
+  const failed = await fixture.playerAuthority.commitMovementCompletion(completion);
+  assert.equal(failed.ok, true);
+  assert.equal(actor.system.resources.movement.value, 30);
+  assert.equal(gmAuthority.getCommitted(completion), null);
+  assert.equal(fixture.playerAuthority.errors.at(-1).result.code, FOUNDRY_MOVEMENT_CODES.MOVEMENT_COMMIT_FAILED);
+
+  const retry = await fixture.playerAuthority.commitMovementCompletion(completion);
+  assert.equal(retry.ok, true);
+  assert.equal(actor.system.resources.movement.value, 20);
+  assert.equal(persistence.operations.filter(operation => operation.type === "updateActor").length, 2);
+});
+
 test("rejected movement completion does not spend without a valid approval record", async () => {
   const fixture = createMovementRuntimeFixture();
   const {actor, token, persistence} = fixture;
@@ -651,6 +772,20 @@ test("wrong user, wrong token, and stale movement id cannot reuse an approval", 
   });
   const wrongUser = await gmAuthority.handleEnvelope(wrongUserEnvelope);
   assert.equal(wrongUser.result.code, MULTIPLAYER_AUTHORITY_CODES.WRONG_USER);
+  assert.equal(actor.system.resources.movement.value, 30);
+
+  const spoofedSourceUserEnvelope = createResolutionSocketEnvelope({
+    messageId: "movement-commit-spoofed-source-user",
+    messageType: MULTIPLAYER_MESSAGE_TYPES.MOVEMENT_COMMIT,
+    senderUserId: OTHER_PLAYER.id,
+    recipientUserId: GM.id,
+    resolutionId: completion.resolutionId,
+    payload: {
+      completion: {...completion, sourceUserId: PLAYER.id}
+    }
+  });
+  const spoofedSourceUser = await gmAuthority.handleEnvelope(spoofedSourceUserEnvelope);
+  assert.equal(spoofedSourceUser.result.code, MULTIPLAYER_AUTHORITY_CODES.WRONG_USER);
   assert.equal(actor.system.resources.movement.value, 30);
 
   const wrongToken = await fixture.playerAuthority.commitMovementCompletion({

@@ -227,6 +227,14 @@ movement id. At commit time the GM re-resolves the current Token and confirms it
 the approved route destination. The committed movement cache makes duplicate completion delivery
 idempotent.
 
+For remote completion envelopes, the socket envelope sender is the authority fact. If a
+`MovementCompletion.sourceUserId` claim is present and differs from `senderUserId`, the active GM
+rejects the commit as `WRONG_USER` before resolving documents or persistence. The approved movement's
+initiator is also checked independently against the sender. Concurrent completions for the same
+movement key share an in-flight commit promise, so only the first successful persistence transaction
+can spend movement. Failed persistence clears the in-flight guard without marking the movement
+committed, allowing a later retry.
+
 The authority commits movement spend through the existing `ResourceResolver` mapping:
 
 ```text

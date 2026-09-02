@@ -196,7 +196,10 @@ The active-GM authority correlates completion to the approval record by movement
 identity, confirms the Token's actual final anchor matches the approved route destination, and only
 then commits the approved `economy.movement` spend through `ResourceResolver` and
 `DocumentPersistencePort`. Duplicate completions for the same movement id are idempotent and do not
-spend twice.
+spend twice, including concurrent completion delivery. Remote commit sender binding is based on the
+socket envelope `senderUserId`; client payload `sourceUserId` is treated as a claim and must match
+the envelope sender and the approved movement initiator before any document resolution or persistence
+work occurs.
 
 Foundry's measured movement cost/distance/spaces are not used as WildPath mechanical cost in this
 slice. They remain useful future diagnostics or terrain/cost inputs, but WildPath cost currently
