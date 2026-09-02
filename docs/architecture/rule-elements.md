@@ -142,6 +142,10 @@ ActiveEffect type and must not be declared by the system manifest. Development w
 stored explicit ActiveEffects as `type: "base"` need those records migrated to `effect` or
 `condition` before startup validation.
 
+WildPath ActiveEffect data models extend `foundry.data.ActiveEffectTypeDataModel` by preserving the
+inherited schema first, including Foundry's native `system.changes`, then adding WildPath
+`modifiers` and `ruleElements`.
+
 ## Current Integration
 
 `WildPathActor#getStatistic(domain)` consumes `Modifier` RuleElements from active embedded Items

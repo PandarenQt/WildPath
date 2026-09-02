@@ -10,9 +10,9 @@ export default class WildPathBaseEffect extends foundry.data.ActiveEffectTypeDat
 
   /** @inheritDoc */
   static defineSchema() {
-    return {
-      modifiers: modifiersField(),
-      ruleElements: ruleElementsField()
-    };
+    const schema = super.defineSchema();
+    schema.modifiers = modifiersField();
+    schema.ruleElements = ruleElementsField();
+    return schema;
   }
 }

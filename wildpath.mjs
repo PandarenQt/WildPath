@@ -102,13 +102,14 @@ Hooks.once("init", () => {
   });
 
   // Sheet registration
-  Actors.registerSheet("wildpath", WildPathActorSheet, {
+  const {DocumentSheetConfig} = foundry.applications.apps;
+  DocumentSheetConfig.registerSheet(WildPathActor, "wildpath", WildPathActorSheet, {
     types: ["character", "npc"],
     makeDefault: true,
     label: "WILDPATH.SheetActor"
   });
 
-  Items.registerSheet("wildpath", WildPathItemSheet, {
+  DocumentSheetConfig.registerSheet(WildPathItem, "wildpath", WildPathItemSheet, {
     types: ["feature", "action", "gear"],
     makeDefault: true,
     label: "WILDPATH.SheetItem"
