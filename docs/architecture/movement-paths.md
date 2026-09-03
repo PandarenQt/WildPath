@@ -14,8 +14,8 @@ Implemented:
 - occupancy and transition legality policy seams.
 - integration with the existing movement budget helpers.
 - distinct route validity, route cost, and affordability results.
-- Foundry Token movement vertical slice implemented through the V14 TokenDocument movement
-  lifecycle, active-GM authority, and post-movement budget commit.
+- Foundry Token movement vertical slice implemented through the V14 TokenDocument pre-movement
+  lifecycle, `moveToken` observation, active-GM authority, and post-movement budget commit.
 
 Deferred:
 
@@ -180,6 +180,10 @@ TokenDocument#_preUpdateMovement
 -> MovementPath anchors including origin
 -> evaluateMovementPath()
 -> approve or reject
+-> Foundry applies the Token update
+-> moveToken hook after the update workflow concludes
+-> await TokenMovementOperation.finished === true
+-> active-GM completion observation and budget commit
 ```
 
 `TokenDocument#getCompleteMovementPath()` expands the direct path between supplied waypoints; it
@@ -201,18 +205,25 @@ connectivity and boundaries continue to use edge-adjacent fields, while square m
 the existing distance-adjacent field set so a one-square diagonal is a valid 5 ft step under the
 default distance model. Hex movement still uses the six neighboring hexes.
 
-Budget is not spent during approval. `WildPathTokenDocument#_onUpdateMovement()` runs on connected
-clients after the Foundry Token update lifecycle, and the active GM commits normal movement from its
-own post-update observation after Foundry's `movement.finished` promise resolves true. That avoids
-racing a player-sent completion message against the GM client's local Scene/Token update. The active
-GM correlates the observed completion to the approval record by movement id plus Scene/Token
-identity, confirms the authoritative Token's actual final anchor matches the approved route
-destination, and only then commits the approved `economy.movement` spend through `ResourceResolver`
-and `DocumentPersistencePort`. Duplicate completions for the same movement id are idempotent and do
-not spend twice, including concurrent completion delivery. The existing `MOVEMENT_COMMIT` socket
-path remains for explicit fallback/manual delivery and retains sender binding: client payload
-`sourceUserId` is treated as a claim and must match the envelope sender and the approved movement
-initiator before any document resolution or persistence work occurs.
+Budget is not spent during approval. `TokenDocument#_onUpdateMovement()` is Foundry's protected
+movement update post-processing method and is too early for WildPath's authoritative final-position
+budget check. Normal movement accounting therefore starts from Foundry's `moveToken` hook, which V14
+documents as firing after conclusion of the update workflow on all connected clients. The hook
+adapter waits for `TokenMovementOperation.finished` to resolve true before building the plain
+`MovementCompletion`.
+
+Because `moveToken` fires on all clients, only the client that owns the approval record as the
+selected authority commits. In normal active-GM play this is the active GM. The player observes the
+same hook but ignores completion because the selected authority is remote. The active GM correlates
+the observed completion to the approval record by movement id plus Scene/Token identity, uses the
+hook's updated Token document as the local authoritative observation for the current anchor, confirms
+that anchor matches the approved route destination, and only then commits the approved
+`economy.movement` spend through `ResourceResolver` and `DocumentPersistencePort`. Duplicate
+observations for the same movement id are idempotent and do not spend twice, including concurrent
+completion delivery. The existing `MOVEMENT_COMMIT` socket path remains for explicit fallback/manual
+delivery and retains sender binding: client payload `sourceUserId` is treated as a claim and must
+match the envelope sender and the approved movement initiator before any document resolution or
+persistence work occurs.
 
 Foundry's measured movement cost/distance/spaces are not used as WildPath mechanical cost in this
 slice. They remain useful future diagnostics or terrain/cost inputs, but WildPath cost currently

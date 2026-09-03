@@ -237,8 +237,8 @@ it does not call Foundry with only a destination and prepend the origin afterwar
 
 Foundry remains responsible for token interaction, ruler/waypoint UI, canvas constraints, animation,
 Scene/Token persistence, Regions, and movement history. WildPath validates the resulting mechanical
-route with `MovementPath` and commits ordinary movement budget only after Foundry reports the
-movement finished.
+route with `MovementPath` and commits ordinary movement budget from the `moveToken` hook after the
+Token update workflow has concluded and `TokenMovementOperation.finished` resolves true.
 
 Foundry's own movement cost, distance, spaces, terrain, and pathfinding data are not mechanical
 authority for WildPath cost in this slice. A future terrain integration can feed Foundry terrain

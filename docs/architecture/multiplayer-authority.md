@@ -211,9 +211,9 @@ player TokenDocument#_preUpdateMovement
 -> MovementPath evaluation
 -> MOVEMENT_APPROVAL
 -> Foundry continues or rejects movement
--> active GM observes its post-update TokenDocument movement
+-> moveToken hook fires after the Token update workflow concludes
 -> movement.finished true
--> active GM commits approved economy.movement spend once
+-> active GM observes its updated Token document and commits approved economy.movement spend once
 -> MOVEMENT_RESULT
 ```
 
@@ -222,9 +222,10 @@ initiating client can prove local commit permission. Otherwise movement approval
 authority-unavailable behavior used by Actions.
 
 The active GM stores approval records keyed by Foundry movement id plus Scene/Token identity. In
-normal active-GM play, completion is observed by the active GM's own TokenDocument post-update
-lifecycle instead of relying on the initiating player to report completion before the GM's local
-Scene collection has settled. At commit time the GM re-resolves the current Token and confirms its
+normal active-GM play, completion is observed from Foundry's `moveToken` hook, not
+`TokenDocument#_onUpdateMovement`. V14 documents `moveToken` as firing after conclusion of the Token
+update workflow and on all connected clients after the update has been processed. At commit time the
+GM uses the hook's updated Token document as the local authoritative observation and confirms its
 actual anchor is the approved route destination. The committed movement cache makes duplicate
 completion delivery idempotent.
 

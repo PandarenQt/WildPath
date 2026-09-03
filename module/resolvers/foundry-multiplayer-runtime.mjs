@@ -6,7 +6,11 @@ import {
   foundryUserDirectory
 } from "../adapters/foundry-v14-resolution-socket-adapter.mjs";
 import {createFoundryV14TacticalGridAdapter} from "../adapters/foundry-v14-tactical-grid-adapter.mjs";
-import {resolveFoundryMovementDocuments} from "../adapters/foundry-v14-movement-adapter.mjs";
+import {
+  buildFoundryMovementCompletion,
+  FOUNDRY_MOVEMENT_CODES,
+  resolveFoundryMovementDocuments
+} from "../adapters/foundry-v14-movement-adapter.mjs";
 import {
   MULTIPLAYER_AUTHORITY_CODES,
   clonePlainData
@@ -85,7 +89,7 @@ export function registerFoundryV14MultiplayerResolution({
     declareActionIntent: intent => coordinator.declareActionIntent(intent),
     executeActionIntent: intent => coordinator.declareActionIntent(intent),
     requestMovementApproval: intent => movement.requestMovementApproval(intent),
-    observeMovementCompletion: completion => movement.observeMovementCompletion(completion),
+    observeMovementCompletion: (completion, options={}) => movement.observeMovementCompletion(completion, options),
     commitMovementCompletion: completion => movement.commitMovementCompletion(completion)
   };
   game.wildpath = {
@@ -105,6 +109,102 @@ export function registerFoundryV14MultiplayerResolution({
     registration,
     movementRegistration
   };
+}
+
+/* -------------------------------------------- */
+
+/**
+ * Observe Foundry's post-update Token movement hook and route completed movement to the existing
+ * WildPath movement authority. The hook's updated Token document is local infrastructure input for
+ * final anchor verification; it is not stored in authority records or socket payloads.
+ * @param {object} document
+ * @param {object} movement
+ * @param {object} operation
+ * @param {object} user
+ * @param {object} options
+ * @returns {Promise<object>}
+ */
+export function onFoundryV14MoveToken(document, movement, operation={}, user=null, {
+  game=globalThis.game,
+  logger=globalThis.console
+}={}) {
+  return observeFoundryV14MoveToken(document, movement, operation, user, {game, logger})
+    .catch(error => {
+      const result = {
+        ok: false,
+        code: FOUNDRY_MOVEMENT_CODES.MOVEMENT_COMMIT_FAILED,
+        reason: error?.message ?? String(error)
+      };
+      notifyMovementHookFailure(result, {logger});
+      return result;
+    });
+}
+
+async function observeFoundryV14MoveToken(document, movement, operation={}, user=null, {
+  game=globalThis.game,
+  logger=globalThis.console
+}={}) {
+  const finished = await movementFinished(movement);
+  if ( finished !== true ) return {
+    ok: true,
+    code: MULTIPLAYER_AUTHORITY_CODES.OK,
+    ignored: true,
+    reason: "Foundry movement did not complete."
+  };
+
+  const runtime = movementRuntime(game);
+  if ( !runtime || typeof runtime.observeMovementCompletion !== "function" ) {
+    const result = {
+      ok: false,
+      code: MULTIPLAYER_AUTHORITY_CODES.AUTHORITY_UNAVAILABLE,
+      reason: "WildPath movement authority is not available for completion observation."
+    };
+    notifyMovementHookFailure(result, {logger});
+    return result;
+  }
+
+  const completion = buildFoundryMovementCompletion({
+    tokenDocument: document,
+    movement,
+    operation,
+    user,
+    game,
+    foundryLifecycle: "moveToken"
+  });
+  if ( !completion.ok ) {
+    notifyMovementHookFailure(completion, {logger});
+    return completion;
+  }
+
+  const observed = await runtime.observeMovementCompletion(completion.completion, {
+    tokenDocument: document
+  });
+  if ( observed?.ok === false ) notifyMovementHookFailure(observed, {logger});
+  return observed;
+}
+
+function movementRuntime(game=globalThis.game) {
+  return game?.wildpath?.movement
+    ?? game?.wildpath?.multiplayer?.movement
+    ?? null;
+}
+
+async function movementFinished(movement) {
+  if ( movement?.finished == null ) return true;
+  try {
+    return await Promise.resolve(movement.finished);
+  } catch {
+    return false;
+  }
+}
+
+function notifyMovementHookFailure(result={}, {logger=globalThis.console}={}) {
+  const reason = result.reason ?? result.code ?? "Movement budget commit failed.";
+  if ( typeof globalThis.ui?.notifications?.warn === "function" ) {
+    globalThis.ui.notifications.warn(`Wild Path | ${reason}`);
+  } else {
+    logger?.warn?.("Wild Path | Movement completion observation failed", result);
+  }
 }
 
 /* -------------------------------------------- */

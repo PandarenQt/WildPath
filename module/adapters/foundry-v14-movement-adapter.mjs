@@ -128,7 +128,8 @@ export function buildFoundryMovementCompletion({
   movement=null,
   operation={},
   user=null,
-  game=globalThis.game
+  game=globalThis.game,
+  foundryLifecycle="moveToken"
 }={}) {
   const token = resolveTokenDocument(tokenDocument);
   if ( !token ) return failure(FOUNDRY_MOVEMENT_CODES.TOKEN_NOT_FOUND, "A TokenDocument is required to build a movement completion.");
@@ -162,7 +163,7 @@ export function buildFoundryMovementCompletion({
     },
     metadata: {
       source: "foundry-v14-token-movement",
-      foundryLifecycle: "_onUpdateMovement",
+      foundryLifecycle,
       wildpathAuthority: "active-gm"
     }
   };
@@ -484,8 +485,15 @@ export function movementPaymentFromEvaluation(evaluation={}) {
 
 /* -------------------------------------------- */
 
-export async function resolveMovementCompletionDocuments({completion={}, game=globalThis.game}={}) {
+export async function resolveMovementCompletionDocuments({completion={}, game=globalThis.game, tokenDocument=null}={}) {
   const sanitized = sanitizeMovementCompletion(completion);
+  const observedToken = resolveTokenDocument(tokenDocument);
+  if ( observedToken ) return resolveObservedMovementCompletionDocuments({
+    completion: sanitized,
+    tokenDocument: observedToken,
+    game
+  });
+
   const scene = await resolveSceneRef(sanitized.sceneRef, {game});
   if ( !scene ) return failure(FOUNDRY_MOVEMENT_CODES.SCENE_NOT_FOUND, "MovementCompletion sceneRef could not be resolved.");
   const token = resolveTokenRef(sanitized.tokenRef, {scene});
@@ -496,6 +504,31 @@ export async function resolveMovementCompletionDocuments({completion={}, game=gl
     ok: true,
     code: FOUNDRY_MOVEMENT_CODES.OK,
     completion: sanitized,
+    scene,
+    token,
+    actor
+  };
+}
+
+async function resolveObservedMovementCompletionDocuments({completion={}, tokenDocument=null, game=globalThis.game}={}) {
+  const token = resolveTokenDocument(tokenDocument);
+  if ( !token ) return failure(FOUNDRY_MOVEMENT_CODES.TOKEN_NOT_FOUND, "Observed moveToken document could not be resolved.");
+
+  const scene = token.parent ?? await resolveSceneRef(completion.sceneRef, {game});
+  if ( !scene ) return failure(FOUNDRY_MOVEMENT_CODES.SCENE_NOT_FOUND, "Observed moveToken Scene could not be resolved.");
+  if ( !entityRefMatchesDocument(completion.sceneRef, scene, expandSceneRef) ) {
+    return failure(FOUNDRY_MOVEMENT_CODES.SCENE_NOT_FOUND, "Observed moveToken Scene does not match the approved movement Scene.");
+  }
+  if ( !entityRefMatchesDocument(completion.tokenRef, token, expandTokenRef) ) {
+    return failure(FOUNDRY_MOVEMENT_CODES.TOKEN_NOT_FOUND, "Observed moveToken document does not match the approved movement Token.");
+  }
+
+  const actor = token.actor ?? null;
+  if ( !actor ) return failure(FOUNDRY_MOVEMENT_CODES.ACTOR_NOT_FOUND, "Observed moveToken Actor could not be resolved.");
+  return {
+    ok: true,
+    code: FOUNDRY_MOVEMENT_CODES.OK,
+    completion,
     scene,
     token,
     actor
@@ -805,6 +838,14 @@ function resolveTokenRef(ref, {scene=null}={}) {
     if ( token ) return resolveTokenDocument(token);
   }
   return null;
+}
+
+function entityRefMatchesDocument(ref, document, expandRef) {
+  const data = normalizeEntityRef(ref);
+  if ( !data || !document ) return false;
+  const expected = uniqueStrings([data.id, data.ref, data.uuid].flatMap(expandRef));
+  const actual = uniqueStrings([document.id, document._id, document.uuid].flatMap(expandRef));
+  return expected.some(value => actual.includes(value));
 }
 
 function expandSceneRef(value) {

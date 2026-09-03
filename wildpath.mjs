@@ -25,7 +25,10 @@ import {
 } from "./module/helpers/combat.mjs";
 import {MOVEMENT_MEASUREMENT_MODES} from "./module/helpers/movement.mjs";
 import {executeEffectLifecycleCommit} from "./module/resolvers/effect-lifecycle-commit-resolver.mjs";
-import {registerFoundryV14MultiplayerResolution} from "./module/resolvers/foundry-multiplayer-runtime.mjs";
+import {
+  onFoundryV14MoveToken,
+  registerFoundryV14MultiplayerResolution
+} from "./module/resolvers/foundry-multiplayer-runtime.mjs";
 
 /* -------------------------------------------- */
 /*  Init                                         */
@@ -220,3 +223,4 @@ function collectionContents(collection) {
 Hooks.on("combatTurn", (combat, updateData) => onCombatTurnChange(combat, updateData, {hook: "combatTurn"}));
 Hooks.on("combatStart", (combat, updateData) => onCombatTurnChange(combat, updateData, {hook: "combatStart"}));
 Hooks.on("deleteCombat", combat => onCombatEnd(combat));
+Hooks.on("moveToken", (document, movement, operation, user) => onFoundryV14MoveToken(document, movement, operation, user));

@@ -111,8 +111,9 @@ Lessons adopted:
 
 - Keep Foundry registration and document access at infrastructure/runtime boundaries.
 - Let Actor system data expose persisted inputs; do rule interpretation in WildPath services.
-- For Token movement, prefer the async TokenDocument lifecycle seam over non-awaited hooks when
-  movement must wait on authority.
+- For Token movement approval, prefer the async TokenDocument lifecycle seam over non-awaited hooks
+  when movement must wait on authority. For post-movement accounting, use Foundry's post-update
+  `moveToken` hook rather than `TokenDocument#_onUpdateMovement`.
 - Distinguish actual movement from action/planned movement with movement identity and explicit
   metadata rather than guessing from route shape.
 - Commit post-movement accounting only after Foundry reports the movement completed, and make
@@ -141,11 +142,13 @@ Official Foundry V14 documentation confirms the platform assumptions used here:
 - `preMoveToken` is cancellable but is a hook, not an async authority boundary.
 - `TokenDocument#getCompleteMovementPath()` expands intermediate steps between supplied waypoints;
   the Token's current origin must be supplied explicitly when it should participate in expansion.
-- `TokenDocument#_onUpdateMovement()` / `moveToken` report post-update movement, and
-  `TokenMovementOperation.finished` resolves when the movement completes. Normal movement budget
-  accounting is safest from the active GM's own post-update observation, correlated to the prior
-  approval record, rather than from a player completion message that can arrive before the GM's
-  Scene collection has observed the same update.
+- `TokenDocument#_onUpdateMovement()` is protected movement update post-processing and is not the
+  authoritative settled completion seam for WildPath budget accounting.
+- `moveToken` fires after conclusion of the Token update workflow and on all connected clients after
+  the update has been processed. Normal movement budget accounting starts there.
+- `TokenMovementOperation.finished` resolves true when the entire movement completed and false when
+  it did not. WildPath requires both `moveToken` observation and `finished === true` before spending
+  ordinary movement budget.
 - `Token#planMovement()` and `TokenDocument#startMovement()` are the future planned-movement seam.
 
 Primary sources:

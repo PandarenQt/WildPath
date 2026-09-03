@@ -1,5 +1,6 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
 import {
   MOVEMENT_KINDS,
   MOVEMENT_MEASUREMENT_MODES
@@ -28,6 +29,7 @@ import {
   foundryMovementIntentToMovementPath
 } from "../module/adapters/foundry-v14-movement-adapter.mjs";
 import {createMultiplayerMovementAuthority} from "../module/resolvers/multiplayer-movement-authority.mjs";
+import {onFoundryV14MoveToken} from "../module/resolvers/foundry-multiplayer-runtime.mjs";
 import WildPathTokenDocument from "../module/documents/token.mjs";
 
 /* -------------------------------------------- */
@@ -347,7 +349,7 @@ async function withFoundryGlobals(fixture, fn, {game=fixture.playerGame}={}) {
   }
 }
 
-function movementOperation(token, {id="movement-a", offsets=[{i: 1, j: 0}], kind=null, mode=null}={}) {
+function movementOperation(token, {id="movement-a", offsets=[{i: 1, j: 0}], kind=null, mode=null, finished=true}={}) {
   const waypoints = offsets.map((offset, index) => ({
     ...pointForOffset(token.parent, offset),
     index
@@ -359,7 +361,7 @@ function movementOperation(token, {id="movement-a", offsets=[{i: 1, j: 0}], kind
     method: "drag",
     pending: {waypoints},
     passed: {waypoints: []},
-    finished: Promise.resolve(true),
+    finished: Promise.resolve(finished),
     ...(kind || mode ? {wildpath: {movementKind: kind, movementMode: mode}} : {})
   };
 }
@@ -404,11 +406,56 @@ function moveTokenToOffset(token, offset) {
   token.setOffset(offset);
 }
 
+function observedTokenAtOffset(token, offset) {
+  const observed = Object.assign(Object.create(Object.getPrototypeOf(token)), token);
+  observed.setOffset(offset);
+  return observed;
+}
+
+async function runTokenDocumentOnUpdateMovement(fixture, {
+  token=fixture.token,
+  movement,
+  operation={},
+  user=PLAYER,
+  game=fixture.gmGame
+}={}) {
+  return withFoundryGlobals(fixture, async () => {
+    if ( typeof token._onUpdateMovement !== "function" ) return {
+      ok: true,
+      ignored: true,
+      reason: "WildPath does not account movement in TokenDocument#_onUpdateMovement."
+    };
+    const returned = token._onUpdateMovement(movement, operation, user);
+    if ( token._wildpathLastMovementCommit ) return token._wildpathLastMovementCommit;
+    return returned ?? {
+      ok: true,
+      ignored: true
+    };
+  }, {game});
+}
+
+async function fireMoveTokenHook(fixture, {
+  token=fixture.token,
+  movement,
+  operation={},
+  user=PLAYER,
+  game=fixture.gmGame
+}={}) {
+  return withFoundryGlobals(fixture, () => onFoundryV14MoveToken(token, movement, operation, user, {game}), {game});
+}
+
 /* -------------------------------------------- */
 /*  Tests                                       */
 /* -------------------------------------------- */
 
-test("production TokenDocument movement routes through active-GM authority and commits movement once", async () => {
+test("WildPath registers the moveToken hook as the normal movement completion seam", () => {
+  const source = readFileSync(new URL("../wildpath.mjs", import.meta.url), "utf8");
+  const registrations = source.match(/Hooks\.on\("moveToken"/g) ?? [];
+  assert.equal(registrations.length, 1);
+  assert.match(source, /onFoundryV14MoveToken/);
+});
+
+test("production TokenDocument movement routes through active-GM authority and commits from moveToken once", async () => {
   const fixture = createMovementRuntimeFixture();
   const {actor, token, hub, gmAuthority, persistence} = fixture;
   const movement = movementOperation(token, {
@@ -429,19 +476,32 @@ test("production TokenDocument movement routes through active-GM authority and c
   assert.equal(hub.messages.some(message => message.messageType === MULTIPLAYER_MESSAGE_TYPES.MOVEMENT_INTENT), true);
   assert.equal(hub.messages.every(message => isPlainSerializableData(message)), true);
 
-  moveTokenToOffset(token, {i: 2, j: 0});
-  await withFoundryGlobals(fixture, async () => {
-    token._onUpdateMovement(movement, {}, {...PLAYER, isSelf: true});
-    const observed = await token._wildpathLastMovementCommit;
-    assert.equal(observed.ok, true);
-    assert.equal(observed.ignored, true);
+  const early = await runTokenDocumentOnUpdateMovement(fixture, {
+    movement,
+    user: {...PLAYER, isSelf: false},
+    game: fixture.gmGame
   });
-  await withFoundryGlobals(fixture, async () => {
-    token._onUpdateMovement(movement, {}, {...PLAYER, isSelf: false});
-    const committed = await token._wildpathLastMovementCommit;
-    assert.equal(committed.ok, true);
-    assert.equal(committed.committed, true);
-  }, {game: fixture.gmGame});
+  assert.equal(early.ok, true);
+  assert.equal(early.ignored, true);
+  assert.equal(actor.system.resources.movement.value, 30);
+  assert.equal(persistence.operations.length, 0);
+
+  moveTokenToOffset(token, {i: 2, j: 0});
+  const playerObserved = await fireMoveTokenHook(fixture, {
+    movement,
+    user: {...PLAYER, isSelf: true},
+    game: fixture.playerGame
+  });
+  assert.equal(playerObserved.ok, true);
+  assert.equal(playerObserved.ignored, true);
+
+  const committed = await fireMoveTokenHook(fixture, {
+    movement,
+    user: {...PLAYER, isSelf: false},
+    game: fixture.gmGame
+  });
+  assert.equal(committed.ok, true);
+  assert.equal(committed.committed, true);
 
   assert.equal(actor.system.resources.movement.value, 20);
   assert.equal(persistence.operations.filter(operation => operation.type === "updateActor").length, 1);
@@ -449,42 +509,48 @@ test("production TokenDocument movement routes through active-GM authority and c
   assert.equal(hub.messages.some(message => message.messageType === MULTIPLAYER_MESSAGE_TYPES.MOVEMENT_RESULT), true);
 });
 
-test("active GM completion observation avoids stale initiator-side destination mismatch", async () => {
+test("stale TokenDocument _onUpdateMovement ordering waits for moveToken before spending", async () => {
   const fixture = createMovementRuntimeFixture();
-  const {actor, token, persistence} = fixture;
+  const {actor, token, gmAuthority, persistence} = fixture;
   const movement = movementOperation(token, {
-    id: "move-active-gm-observation",
+    id: "move-stale-on-update-waits-for-hook",
     offsets: [{i: 1, j: 0}]
   });
 
   await withFoundryGlobals(fixture, async () => {
     assert.notEqual(await token._preUpdateMovement(movement, {}), false);
-  });
+  }, {game: fixture.gmGame});
+  assert.equal(gmAuthority.approvedMovements.size, 1);
 
-  await withFoundryGlobals(fixture, async () => {
-    token._onUpdateMovement(movement, {}, {...PLAYER, isSelf: true});
-    const observed = await token._wildpathLastMovementCommit;
-    assert.equal(observed.ok, true);
-    assert.equal(observed.ignored, true);
+  const early = await runTokenDocumentOnUpdateMovement(fixture, {
+    movement,
+    user: {...GM, isSelf: true},
+    game: fixture.gmGame
   });
-
+  assert.equal(early.ok, true);
+  assert.equal(early.ignored, true);
   assert.equal(actor.system.resources.movement.value, 30);
   assert.equal(persistence.operations.length, 0);
+  assert.equal(fixture.gmAuthority.errors.some(event => event.result?.code === FOUNDRY_MOVEMENT_CODES.DESTINATION_MISMATCH), false);
+  assert.equal(fixture.warnings.some(message => message.includes(FOUNDRY_MOVEMENT_CODES.DESTINATION_MISMATCH)), false);
 
-  moveTokenToOffset(token, {i: 1, j: 0});
-  await withFoundryGlobals(fixture, async () => {
-    token._onUpdateMovement(movement, {}, {...PLAYER, isSelf: false});
-    const committed = await token._wildpathLastMovementCommit;
-    assert.equal(committed.ok, true);
-    assert.equal(committed.committed, true);
-  }, {game: fixture.gmGame});
+  const observedToken = observedTokenAtOffset(token, {i: 1, j: 0});
+  assert.deepEqual(pointForToken(token), pointForOffset(token.parent, {i: 0, j: 0}));
+  const committed = await fireMoveTokenHook(fixture, {
+    token: observedToken,
+    movement,
+    user: {...GM, isSelf: true},
+    game: fixture.gmGame
+  });
 
+  assert.equal(committed.ok, true);
+  assert.equal(committed.committed, true);
   assert.equal(actor.system.resources.movement.value, 25);
   assert.equal(persistence.operations.filter(operation => operation.type === "updateActor").length, 1);
   assert.equal(fixture.gmAuthority.errors.length, 0);
 });
 
-test("actual settled destination mismatch remains rejected by active GM observation", async () => {
+test("actual settled destination mismatch remains rejected from moveToken observation", async () => {
   const fixture = createMovementRuntimeFixture();
   const {actor, token, persistence} = fixture;
   const movement = movementOperation(token, {
@@ -497,12 +563,13 @@ test("actual settled destination mismatch remains rejected by active GM observat
   });
   moveTokenToOffset(token, {i: 2, j: 0});
 
-  await withFoundryGlobals(fixture, async () => {
-    token._onUpdateMovement(movement, {}, {...PLAYER, isSelf: false});
-    const committed = await token._wildpathLastMovementCommit;
-    assert.equal(committed.ok, false);
-    assert.equal(committed.code, FOUNDRY_MOVEMENT_CODES.DESTINATION_MISMATCH);
-  }, {game: fixture.gmGame});
+  const committed = await fireMoveTokenHook(fixture, {
+    movement,
+    user: {...PLAYER, isSelf: false},
+    game: fixture.gmGame
+  });
+  assert.equal(committed.ok, false);
+  assert.equal(committed.code, FOUNDRY_MOVEMENT_CODES.DESTINATION_MISMATCH);
 
   assert.equal(actor.system.resources.movement.value, 30);
   assert.equal(persistence.operations.length, 0);
@@ -633,7 +700,7 @@ test("unaffordable one-endpoint drag rejects before Foundry moves the Token", as
   assert.equal(fixture.playerAuthority.errors.at(-1).approval.code, FOUNDRY_MOVEMENT_CODES.MOVEMENT_UNAFFORDABLE);
 });
 
-test("active GM observed duplicate completions remain idempotent", async () => {
+test("active GM duplicate moveToken observations remain idempotent", async () => {
   const fixture = createMovementRuntimeFixture();
   const {actor, token, persistence} = fixture;
   const movement = movementOperation(token, {
@@ -646,17 +713,49 @@ test("active GM observed duplicate completions remain idempotent", async () => {
   });
   moveTokenToOffset(token, {i: 1, j: 0});
 
-  await withFoundryGlobals(fixture, async () => {
-    token._onUpdateMovement(movement, {}, {...PLAYER, isSelf: false});
-    assert.equal((await token._wildpathLastMovementCommit).ok, true);
-    token._onUpdateMovement(movement, {}, {...PLAYER, isSelf: false});
-    const duplicate = await token._wildpathLastMovementCommit;
-    assert.equal(duplicate.ok, true);
-    assert.equal(duplicate.code, FOUNDRY_MOVEMENT_CODES.MOVEMENT_ALREADY_COMMITTED);
-  }, {game: fixture.gmGame});
+  const first = await fireMoveTokenHook(fixture, {
+    movement,
+    user: {...PLAYER, isSelf: false},
+    game: fixture.gmGame
+  });
+  assert.equal(first.ok, true);
+  assert.equal(first.committed, true);
+
+  const duplicate = await fireMoveTokenHook(fixture, {
+    movement,
+    user: {...PLAYER, isSelf: false},
+    game: fixture.gmGame
+  });
+  assert.equal(duplicate.ok, true);
+  assert.equal(duplicate.code, FOUNDRY_MOVEMENT_CODES.MOVEMENT_ALREADY_COMMITTED);
 
   assert.equal(actor.system.resources.movement.value, 25);
   assert.equal(persistence.operations.filter(operation => operation.type === "updateActor").length, 1);
+});
+
+test("moveToken observation does not spend when Foundry movement finished false", async () => {
+  const fixture = createMovementRuntimeFixture();
+  const {actor, token, persistence} = fixture;
+  const movement = movementOperation(token, {
+    id: "move-finished-false",
+    offsets: [{i: 1, j: 0}],
+    finished: false
+  });
+
+  await withFoundryGlobals(fixture, async () => {
+    assert.notEqual(await token._preUpdateMovement(movement, {}), false);
+  });
+  moveTokenToOffset(token, {i: 1, j: 0});
+
+  const observed = await fireMoveTokenHook(fixture, {
+    movement,
+    user: {...PLAYER, isSelf: false},
+    game: fixture.gmGame
+  });
+  assert.equal(observed.ok, true);
+  assert.equal(observed.ignored, true);
+  assert.equal(actor.system.resources.movement.value, 30);
+  assert.equal(persistence.operations.length, 0);
 });
 
 test("unaffordable TokenDocument movement is rejected before commit and leaves budget unchanged", async () => {

@@ -1,5 +1,4 @@
 import {
-  buildFoundryMovementCompletion,
   buildFoundryMovementIntent
 } from "../adapters/foundry-v14-movement-adapter.mjs";
 
@@ -43,75 +42,6 @@ export default class WildPathTokenDocument extends BaseTokenDocument {
     }
     return parentResult;
   }
-
-  /**
-   * Foundry fires post-movement processing on connected clients. The active authority observes
-   * its own post-update Token state before committing movement budget; the initiating-client
-   * completion message remains a fallback for runtimes that do not expose observation.
-   * @param {object} movement
-   * @param {object} operation
-   * @param {object} user
-   * @returns {void}
-   */
-  _onUpdateMovement(movement, operation={}, user=null) {
-    if ( typeof super._onUpdateMovement === "function" ) {
-      super._onUpdateMovement(movement, operation, user);
-    }
-    this._wildpathLastMovementCommit = this._wildpathObserveMovementAfterFinish(movement, operation, user)
-      .catch(error => {
-        notifyMovementFailure(error?.message ?? String(error));
-        return {
-          ok: false,
-          reason: error?.message ?? String(error)
-        };
-      });
-  }
-
-  async _wildpathObserveMovementAfterFinish(movement, operation={}, user=null) {
-    const finished = await movementFinished(movement);
-    if ( finished !== true ) return {
-      ok: true,
-      ignored: true,
-      reason: "Foundry movement did not complete."
-    };
-
-    const runtime = movementRuntime();
-    if ( !runtime ) return {
-      ok: false,
-      reason: "WildPath movement authority is not available for completion commit."
-    };
-
-    const completion = buildFoundryMovementCompletion({
-      tokenDocument: this,
-      movement,
-      operation,
-      user: user ?? currentUser()
-    });
-    if ( !completion.ok ) {
-      notifyMovementFailure(completion.reason ?? completion.code ?? "Completed movement could not be prepared for WildPath accounting.");
-      return completion;
-    }
-
-    if ( typeof runtime.observeMovementCompletion === "function" ) {
-      const observed = await runtime.observeMovementCompletion(completion.completion);
-      if ( observed?.ok === false ) notifyMovementFailure(observed.reason ?? observed.code ?? "Movement budget commit failed.");
-      return observed;
-    }
-
-    if ( !movementInitiatedByThisClient(user, operation) ) return {
-      ok: true,
-      ignored: true,
-      reason: "Movement was initiated by another client."
-    };
-    if ( typeof runtime.commitMovementCompletion !== "function" ) return {
-      ok: false,
-      reason: "WildPath movement authority is not available for completion commit."
-    };
-
-    const committed = await runtime.commitMovementCompletion(completion.completion);
-    if ( committed?.ok === false ) notifyMovementFailure(committed.reason ?? committed.code ?? "Movement budget commit failed.");
-    return committed;
-  }
 }
 
 function movementRuntime() {
@@ -122,24 +52,6 @@ function movementRuntime() {
 
 function currentUser() {
   return globalThis.game?.user ?? null;
-}
-
-function movementInitiatedByThisClient(user=null, operation={}) {
-  const currentUserId = globalThis.game?.user?.id ?? globalThis.game?.userId ?? null;
-  const initiatingUserId = user?.id ?? operation?.userId ?? operation?.user?.id ?? null;
-  if ( user?.isSelf === true ) return true;
-  if ( user?.isSelf === false ) return false;
-  if ( currentUserId && initiatingUserId ) return currentUserId === initiatingUserId;
-  return true;
-}
-
-async function movementFinished(movement) {
-  if ( movement?.finished == null ) return true;
-  try {
-    return await Promise.resolve(movement.finished);
-  } catch {
-    return false;
-  }
 }
 
 function notifyMovementFailure(reason) {

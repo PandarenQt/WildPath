@@ -75,8 +75,8 @@ export function createMultiplayerMovementAuthority({
     async requestMovementApproval(intent={}) {
       return requestMovementApproval(intent);
     },
-    async observeMovementCompletion(completion={}) {
-      return observeMovementCompletion(completion);
+    async observeMovementCompletion(completion={}, options={}) {
+      return observeMovementCompletion(completion, options);
     },
     async commitMovementCompletion(completion={}) {
       return commitMovementCompletion(completion);
@@ -272,7 +272,7 @@ export function createMultiplayerMovementAuthority({
     };
   }
 
-  async function observeMovementCompletion(completion={}) {
+  async function observeMovementCompletion(completion={}, {tokenDocument=null}={}) {
     const sanitized = sanitizeMovementCompletion(completion);
     if ( !sanitized.movementId ) return failure(FOUNDRY_MOVEMENT_CODES.MISSING_MOVEMENT_ID, "MovementCompletion requires movementId.");
 
@@ -280,7 +280,8 @@ export function createMultiplayerMovementAuthority({
     const record = approvedMovements.get(key);
     if ( record?.authorityUserId === localUserId ) {
       const result = await applyMovementCompletion(sanitized, {
-        senderUserId: sanitized.sourceUserId ?? record.initiatorUserId ?? null
+        senderUserId: sanitized.sourceUserId ?? record.initiatorUserId ?? null,
+        tokenDocument
       });
       if ( record.initiatorUserId && record.initiatorUserId !== localUserId ) {
         const sent = await sendMovementResult({
@@ -480,7 +481,7 @@ export function createMultiplayerMovementAuthority({
     return clonePlainData(approval, "movementApproval");
   }
 
-  async function applyMovementCompletion(completion, {senderUserId=null}={}) {
+  async function applyMovementCompletion(completion, {senderUserId=null, tokenDocument=null}={}) {
     const key = movementKey(completion);
     const record = approvedMovements.get(key);
     if ( !record ) return failure(
@@ -538,7 +539,7 @@ export function createMultiplayerMovementAuthority({
     }
 
     const commitPromise = Promise.resolve()
-      .then(() => executeMovementCompletionCommit({key, record, completion}));
+      .then(() => executeMovementCompletionCommit({key, record, completion, tokenDocument}));
     inFlightMovementCommits.set(key, commitPromise);
     try {
       return await commitPromise;
@@ -547,8 +548,8 @@ export function createMultiplayerMovementAuthority({
     }
   }
 
-  async function executeMovementCompletionCommit({key, record, completion}) {
-    const documents = await resolveMovementCompletionDocuments({completion, game});
+  async function executeMovementCompletionCommit({key, record, completion, tokenDocument=null}) {
+    const documents = await resolveMovementCompletionDocuments({completion, game, tokenDocument});
     if ( !documents.ok ) return documents;
 
     const destination = currentTokenAnchor({tokenDocument: documents.token, scene: documents.scene});
