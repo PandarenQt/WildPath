@@ -15,7 +15,6 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
     position: {width: 720, height: 760},
     form: {submitOnChange: true},
     actions: {
-      startTurn: WildPathActorSheet.#onStartTurn,
       useItem: WildPathActorSheet.#onUseItem,
       toggleCondition: WildPathActorSheet.#onToggleCondition
     }
@@ -44,15 +43,6 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
 
   /* -------------------------------------------- */
   /*  Action Handlers                              */
-  /* -------------------------------------------- */
-
-  /**
-   * @this {WildPathActorSheet}
-   */
-  static async #onStartTurn() {
-    await this.actor.startTurn();
-  }
-
   /* -------------------------------------------- */
 
   /**

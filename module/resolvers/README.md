@@ -89,8 +89,8 @@ automation foundation needs, per `AGENTS.md` sections 4 and 8 and the architectu
   into lifecycle break events for `EffectLifecycleCommitResolver`, and plans concentration check
   requests from adjusted damage plus supplied concentration state snapshots.
 - `wildpath.mjs` now adapts `combatStart` and `combatTurn` into semantic timeline events on the
-  active GM client, resets the incoming combatant's turn resources, and runs effect lifecycle
-  commits for combatant Actors.
+  active GM client, validates the incoming Combatant before recovering its Actor's turn resources,
+  and runs effect lifecycle commits for combatant Actors.
 - `WildPathActor#toggleCondition` now enters `EffectResolver` before delegating Foundry document
   mutation to `WildPathConditionEffect.applyDelta`.
 - `WildPathActor#getStatistic(domain)` plus `WildPathStatistic`/`WildPathModifier` are the

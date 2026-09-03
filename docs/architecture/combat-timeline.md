@@ -29,6 +29,13 @@ and Actor rest completion; movement-region hooks remain a future slice.
 The combat carousel should read the same timeline state rather than maintaining independent turn
 state.
 
+Turn-resource recovery belongs to these Combat lifecycle transitions. `combatStart` and
+`combatTurn` provide the Combat, incoming Combatant, semantic `turnStart` event, and active-GM
+commit authority required by `WildPathActor#startTurn()`. A bare Actor method call, Actor sheet
+button, macro-style manual reset, or non-GM client observation is not a valid turn recovery source.
+The recovery applies to `combatant.actor`, preserving synthetic/unlinked Token Actors instead of
+resolving through `game.actors`.
+
 ## Durations
 
 Durations are plain data with:
@@ -78,6 +85,10 @@ commit resulting condition-removal plans through `EffectLifecycleCommitResolver`
 current representative implementation is Bleeding's turn-start durability damage. Legacy
 `system.dot` data is translated into synthetic Trigger RuleElements only as a temporary
 compatibility layer.
+
+Repeated observations of the same logical Combat turn recovery are suppressed by a transient
+per-Actor transition key so duplicate hooks or harness calls do not produce a second resource
+refresh or fake turn-start condition trigger.
 
 ## Future Consumers
 

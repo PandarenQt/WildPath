@@ -127,7 +127,8 @@ test("combat carousel view model exposes turn order through opaque refs", () => 
   assert.equal(model.turns[2].distanceFromActive, 1);
   assert.equal(model.turns[1].resources[0].depleted, true);
   assert.deepEqual(model.turns[1].statuses, ["poisoned"]);
-  assert.equal(model.commands.startActiveTurn.type, UI_COMMAND_TYPES.START_ACTOR_TURN);
+  assert.equal(model.commands.startActiveTurn, undefined);
+  assert.equal(model.turns.every(turn => turn.command === null), true);
 });
 
 test("combat carousel can hide hidden combatants for player-facing views", () => {

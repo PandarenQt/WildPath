@@ -49,8 +49,9 @@ Actors and explicit authority.
 - batches committed condition removals through the existing transaction path
 
 `wildpath.mjs` currently adapts `combatStart` and `combatTurn` into semantic lifecycle events,
-guards execution to the active GM, resets the incoming combatant's turn resources, and asks
-`EffectLifecycleCommitResolver` to remove expired condition effects.
+guards execution to the active GM, validates the incoming Combatant before recovering turn
+resources on `combatant.actor`, and asks `EffectLifecycleCommitResolver` to remove expired
+condition effects.
 
 ## What It Does Not Do Yet
 

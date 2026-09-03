@@ -22,7 +22,7 @@
 
 .wildpath.actor-sheet .sheet-header {
   display: grid;
-  grid-template-columns: 72px minmax(0, 1fr) auto;
+  grid-template-columns: 72px minmax(0, 1fr);
   align-items: center;
   gap: 0.75rem;
   margin: 0;
@@ -88,15 +88,6 @@
 .wildpath.actor-sheet .row-command {
   min-height: 1.9rem;
   border-radius: 6px;
-}
-
-.wildpath.actor-sheet .turn-button {
-  align-self: center;
-  min-width: 7rem;
-  border-color: var(--wp-accent);
-  background: var(--wp-accent);
-  color: var(--wp-accent-contrast);
-  font-weight: 700;
 }
 
 .wildpath.actor-sheet .sheet-nav {
@@ -376,11 +367,6 @@
   .wildpath.actor-sheet .profile-img {
     width: 56px;
     height: 56px;
-  }
-
-  .wildpath.actor-sheet .turn-button {
-    grid-column: 1 / -1;
-    width: 100%;
   }
 
   .wildpath.actor-sheet .sheet-nav {

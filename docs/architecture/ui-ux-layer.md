@@ -45,10 +45,11 @@ The combat carousel view model turns combat timeline data into:
 - actor/token refs
 - initiative, defeated, and hidden state
 - per-combatant resource/status summaries
-- command payloads such as `combat.advanceTurn` and `actor.startTurn`
+- command payloads such as `combat.advanceTurn`
 
 The carousel must share the same timeline and resource services as automation. It should not keep a
-separate authoritative turn order or refresh model.
+separate authoritative turn order or refresh model, and it should not expose a manual Actor start
+turn command. Advancing real Combat is the player-facing way to reach turn recovery.
 
 ## Concentration Check Prompts
 

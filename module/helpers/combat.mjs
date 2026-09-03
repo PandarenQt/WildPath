@@ -3,6 +3,19 @@ import {
   TIMELINE_EVENT_TYPES
 } from "./combat-timeline.mjs";
 
+export const TURN_RECOVERY_CODES = Object.freeze({
+  OK: "OK",
+  ALREADY_PROCESSED: "TURN_RECOVERY_ALREADY_PROCESSED",
+  MISSING_COMBAT: "TURN_RECOVERY_MISSING_COMBAT",
+  MISSING_COMBATANT: "TURN_RECOVERY_MISSING_COMBATANT",
+  COMBATANT_NOT_IN_COMBAT: "TURN_RECOVERY_COMBATANT_NOT_IN_COMBAT",
+  ACTOR_NOT_INCOMING_COMBATANT: "TURN_RECOVERY_ACTOR_NOT_INCOMING_COMBATANT",
+  INVALID_LIFECYCLE: "TURN_RECOVERY_INVALID_LIFECYCLE",
+  COMMIT_NOT_AUTHORIZED: "TURN_RECOVERY_COMMIT_NOT_AUTHORIZED"
+});
+
+const TURN_RECOVERY_HOOKS = new Set(["combatStart", "combatTurn"]);
+
 /**
  * Resolve the Combatant whose turn is beginning from a combat turn-change update.
  *
@@ -136,6 +149,53 @@ export function getRestLifecycleEvents({
 
 /* -------------------------------------------- */
 
+/**
+ * Validate that turn-resource recovery is being requested by a real combat lifecycle transition.
+ * This deliberately requires Combat, incoming Combatant, turn-start event, and active-GM commit
+ * authority rather than accepting an arbitrary caller's "fromCombat" claim.
+ * @param {object} options
+ * @returns {object}
+ */
+export function validateTurnRecoveryContext({
+  actor=null,
+  combat=null,
+  combatant=null,
+  events=[],
+  authority=null,
+  hook=null
+}={}) {
+  if ( !combat ) return turnRecoveryFailure(TURN_RECOVERY_CODES.MISSING_COMBAT, "Turn recovery requires a Combat document context.");
+  if ( !combatant ) return turnRecoveryFailure(TURN_RECOVERY_CODES.MISSING_COMBATANT, "Turn recovery requires the incoming Combatant.");
+  if ( !combatContainsCombatant(combat, combatant) ) {
+    return turnRecoveryFailure(TURN_RECOVERY_CODES.COMBATANT_NOT_IN_COMBAT, "Incoming Combatant is not represented in the Combat context.");
+  }
+  if ( !actorMatchesCombatant(actor, combatant) ) {
+    return turnRecoveryFailure(TURN_RECOVERY_CODES.ACTOR_NOT_INCOMING_COMBATANT, "Actor does not match the incoming Combatant.");
+  }
+  if ( !TURN_RECOVERY_HOOKS.has(hook) ) {
+    return turnRecoveryFailure(TURN_RECOVERY_CODES.INVALID_LIFECYCLE, "Turn recovery must originate from combatStart or combatTurn.");
+  }
+  const turnStart = findTurnStartEventForActor({actor, combat, combatant, events});
+  if ( !turnStart ) {
+    return turnRecoveryFailure(TURN_RECOVERY_CODES.INVALID_LIFECYCLE, "Turn recovery requires a matching turnStart lifecycle event.");
+  }
+  if ( !authority?.isGM || !authority.canCommit ) {
+    return turnRecoveryFailure(TURN_RECOVERY_CODES.COMMIT_NOT_AUTHORIZED, "Turn recovery requires active-GM commit authority.");
+  }
+  if ( authority.activeGMId && authority.userId && authority.activeGMId !== authority.userId ) {
+    return turnRecoveryFailure(TURN_RECOVERY_CODES.COMMIT_NOT_AUTHORIZED, "Only the active GM may commit turn recovery.");
+  }
+
+  return {
+    ok: true,
+    code: TURN_RECOVERY_CODES.OK,
+    transitionKey: turnRecoveryTransitionKey({actor, combat, combatant, event: turnStart}),
+    event: turnStart
+  };
+}
+
+/* -------------------------------------------- */
+
 function createCombatLifecycleEvent(type, combat, combatant, {round, turn}) {
   return {
     type,
@@ -146,6 +206,84 @@ function createCombatLifecycleEvent(type, combat, combatant, {round, turn}) {
     actorId: combatant?.actorId ?? combatant?.actor?.id ?? null,
     tokenId: combatant?.tokenId ?? combatant?.token?.id ?? null
   };
+}
+
+function combatContainsCombatant(combat, combatant) {
+  return combatantCandidates(combat).some(candidate => combatantsMatch(candidate, combatant));
+}
+
+function combatantCandidates(combat) {
+  return [
+    ...collectionContents(combat?.turns),
+    ...collectionContents(combat?.combatants),
+    combat?.combatant
+  ].filter(Boolean);
+}
+
+function combatantsMatch(left, right) {
+  if ( left === right ) return true;
+  const leftRefs = combatantRefs(left);
+  const rightRefs = combatantRefs(right);
+  return leftRefs.some(ref => rightRefs.includes(ref));
+}
+
+function combatantRefs(combatant) {
+  return uniqueStrings([
+    combatant?.id,
+    combatant?._id,
+    combatant?.uuid,
+    combatant?.tokenId ? `token:${combatant.tokenId}` : null,
+    combatant?.token?.id ? `token:${combatant.token.id}` : null
+  ]);
+}
+
+function actorMatchesCombatant(actor, combatant) {
+  if ( !actor || !combatant ) return false;
+  if ( combatant.actor ) {
+    if ( combatant.actor === actor ) return true;
+    const combatantActorUuid = combatant.actor.uuid ?? null;
+    return Boolean(combatantActorUuid && actor.uuid && combatantActorUuid === actor.uuid);
+  }
+  const actorId = actor.id ?? actor._id ?? null;
+  return Boolean(actorId && combatant.actorId && actorId === combatant.actorId);
+}
+
+function findTurnStartEventForActor({actor, combat, combatant, events=[]}) {
+  return collectionContents(events).find(event => {
+    if ( event?.type !== TIMELINE_EVENT_TYPES.TURN_START ) return false;
+    if ( event.combatId && combat?.id && event.combatId !== combat.id ) return false;
+    if ( event.combatantId && combatant?.id && event.combatantId !== combatant.id ) return false;
+    if ( event.tokenId && combatant?.tokenId && event.tokenId !== combatant.tokenId ) return false;
+    const actorId = actor?.id ?? actor?._id ?? null;
+    if ( event.actorId && actorId && event.actorId !== actorId ) return false;
+    return true;
+  }) ?? null;
+}
+
+function turnRecoveryTransitionKey({actor, combat, combatant, event}) {
+  return [
+    "turn-recovery",
+    combat?.id ?? combat?._id ?? "combat:unknown",
+    event?.round ?? "round:unknown",
+    event?.turn ?? "turn:unknown",
+    event?.combatantId ?? combatant?.id ?? combatant?._id ?? "combatant:unknown",
+    event?.actorId ?? actor?.id ?? actor?._id ?? "actor:unknown",
+    event?.tokenId ?? combatant?.tokenId ?? combatant?.token?.id ?? "token:unknown"
+  ].map(String).join("|");
+}
+
+function turnRecoveryFailure(code, reason) {
+  return {ok: false, code, reason};
+}
+
+function collectionContents(collection) {
+  if ( collection == null ) return [];
+  if ( Array.isArray(collection) ) return collection;
+  if ( Array.isArray(collection.contents) ) return collection.contents;
+  if ( collection instanceof Map ) return [...collection.values()];
+  if ( typeof collection.values === "function" ) return [...collection.values()];
+  if ( typeof collection === "object" ) return Object.values(collection);
+  return [];
 }
 
 function normalizePositiveInteger(value, fallback) {

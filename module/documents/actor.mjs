@@ -6,7 +6,11 @@ import {executeConditionEffect} from "../resolvers/effect-resolver.mjs";
 import {executeEffectLifecycleCommit} from "../resolvers/effect-lifecycle-commit-resolver.mjs";
 import {planConditionTriggerConsequences} from "../resolvers/condition-trigger-resolver.mjs";
 import {resolveActorResourcePayment} from "../resolvers/resource-resolver.mjs";
-import {getRestLifecycleEvents} from "../helpers/combat.mjs";
+import {
+  TURN_RECOVERY_CODES,
+  getRestLifecycleEvents,
+  validateTurnRecoveryContext
+} from "../helpers/combat.mjs";
 
 /**
  * The Actor document subclass for the WildPath system.
@@ -233,10 +237,29 @@ export default class WildPathActor extends Actor {
   /**
    * Reset every resource pool flagged `recovery: "turn"` back to its maximum (Action, Bonus
    * Action, Reaction, Movement by default, plus any custom pool sharing that recovery cadence).
-   * Call this on combat turn start (see wildpath.mjs hooks) or manually outside of combat.
-   * @returns {Promise<void>}
+   * This is only a Combat lifecycle operation; callers must provide the incoming Combatant,
+   * semantic combat events, and active-GM commit authority.
+   * @returns {Promise<object>}
    */
-  async startTurn({events=[]}={}) {
+  async startTurn({combat=null, combatant=null, events=[], authority=null, hook=null}={}) {
+    const validation = validateTurnRecoveryContext({
+      actor: this,
+      combat,
+      combatant,
+      events,
+      authority,
+      hook
+    });
+    if ( !validation.ok ) return validation;
+    if ( hasProcessedTurnRecovery(this, validation.transitionKey) ) {
+      return {
+        ok: true,
+        code: TURN_RECOVERY_CODES.ALREADY_PROCESSED,
+        duplicate: true,
+        transitionKey: validation.transitionKey
+      };
+    }
+
     const updates = {};
     for ( const [id, resource] of Object.entries(this.system.resources) ) {
       if ( resource.recovery === "turn" ) updates[`system.resources.${id}.value`] = resource.max;
@@ -245,7 +268,15 @@ export default class WildPathActor extends Actor {
       if ( pool.recovery === "turn" ) updates[`system.pools.${index}.value`] = pool.max;
     });
     if ( !foundry.utils.isEmpty(updates) ) await this.update(updates);
-    await this.applyConditionTriggers({events});
+    const triggers = await this.applyConditionTriggers({events});
+    markProcessedTurnRecovery(this, validation.transitionKey);
+    return {
+      ok: true,
+      code: TURN_RECOVERY_CODES.OK,
+      transitionKey: validation.transitionKey,
+      updates,
+      triggers
+    };
   }
 
   /* -------------------------------------------- */
@@ -349,6 +380,28 @@ function actorLifecycleCommitAuthority(actor) {
     userId: user?.id ?? null,
     actorId: actor?.id ?? null
   };
+}
+
+function hasProcessedTurnRecovery(actor, key) {
+  return turnRecoveryKeys(actor).has(key);
+}
+
+function markProcessedTurnRecovery(actor, key) {
+  const keys = turnRecoveryKeys(actor);
+  keys.add(key);
+  if ( keys.size <= 100 ) return;
+  const [oldest] = keys;
+  keys.delete(oldest);
+}
+
+function turnRecoveryKeys(actor) {
+  if ( !actor._wildpathTurnRecoveryKeys ) {
+    Object.defineProperty(actor, "_wildpathTurnRecoveryKeys", {
+      value: new Set(),
+      configurable: true
+    });
+  }
+  return actor._wildpathTurnRecoveryKeys;
 }
 
 function collectRuleElementModifiers(ruleElements, {actor, domain, source, context={}}) {

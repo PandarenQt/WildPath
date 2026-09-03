@@ -18,7 +18,6 @@ import {createCombatTimeline} from "./combat-timeline.mjs";
 export const UI_COMMAND_TYPES = Object.freeze({
   USE_ACTION: "action.use",
   SELECT_ACTION: "action.select",
-  START_ACTOR_TURN: "actor.startTurn",
   ADVANCE_COMBAT_TURN: "combat.advanceTurn",
   SUBMIT_CONCENTRATION_CHECK_RESULT: "concentrationCheck.submitResult",
   COMMIT_CONCENTRATION_CHECK_RESULTS: "concentrationCheck.commitResults"
@@ -121,11 +120,6 @@ export function createCombatCarouselViewModel({
       advanceTurn: normalized.combatants.length ? {
         type: UI_COMMAND_TYPES.ADVANCE_COMBAT_TURN,
         combatRef: createEntityRef(ENTITY_REF_KINDS.COMBAT, normalized.id)
-      } : null,
-      startActiveTurn: active?.actorRef ? {
-        type: UI_COMMAND_TYPES.START_ACTOR_TURN,
-        actorRef: active.actorRef,
-        tokenRef: active.tokenRef
       } : null
     },
     summary: {
@@ -648,11 +642,7 @@ function createCarouselTurn({
     hidden: combatant.hidden,
     resources,
     statuses,
-    command: actorRef ? {
-      type: UI_COMMAND_TYPES.START_ACTOR_TURN,
-      actorRef,
-      tokenRef: tokenReference
-    } : null,
+    command: null,
     metadata: clonePlain(combatant.metadata ?? {})
   };
 }

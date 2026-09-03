@@ -135,10 +135,10 @@ Hooks.once("ready", () => {
 /* -------------------------------------------- */
 
 /**
- * Reset the incoming combatant's "turn" recovery resources (Action, Bonus Action, Reaction,
- * Movement, plus any custom pool sharing that cadence) - the core of the BG3-style action
- * economy groundwork. Shared by `combatTurn` and `combatStart` so the resolution logic (and the
- * V14 quirk it works around, see `getIncomingCombatant`) lives in exactly one place.
+ * Recover the incoming combatant's "turn" resources (Action, Bonus Action, Reaction, Movement,
+ * plus any custom pool sharing that cadence) from real Combat lifecycle events. Shared by
+ * `combatTurn` and `combatStart` so the resolution logic (and the V14 quirk it works around, see
+ * `getIncomingCombatant`) lives in exactly one place.
  *
  * V14 fires these hooks on the initiating client before the Combat update is committed. The
  * initiating user must be a GM for persistent resource recovery to run.
@@ -152,9 +152,20 @@ async function onCombatTurnChange(combat, updateData, {hook="combatTurn"}={}) {
 
   const combatant = getIncomingCombatant(combat, updateData);
   const events = getCombatLifecycleEvents(combat, updateData, {hook});
-  if ( combatant?.actor ) await combatant.actor.startTurn({events});
-
   if ( !events.length ) return;
+
+  if ( combatant?.actor ) {
+    const turnRecovery = await combatant.actor.startTurn({
+      combat,
+      combatant,
+      events,
+      authority,
+      hook
+    });
+    if ( turnRecovery?.ok === false ) {
+      console.warn("Wild Path | Combat turn recovery rejected", turnRecovery);
+    }
+  }
 
   const lifecycle = await executeEffectLifecycleCommit({
     actors: combatActors(combat),

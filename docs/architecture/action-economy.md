@@ -64,8 +64,12 @@ Refresh policies are semantic identifiers, not Foundry hook names:
 - `manual`
 - `none`
 
-The current Foundry turn hook can call these policies through a later `ResourceResolver`; the pure
-helper already supports refresh by semantic event.
+Turn recovery is a structured Combat lifecycle concept. In production, `combatStart` and
+`combatTurn` are adapted into semantic `turnStart` events on the active GM client, and only the
+incoming Combatant's actual Actor may recover resources with `recovery: "turn"`. The Actor sheet
+and UI view models do not expose a manual Start Turn command, and Wild Path does not model
+exploration as a player-controlled turn loop. If turn-by-turn restrictions matter, play should be in
+Combat.
 
 ## Movement Capability vs Movement Budget
 
