@@ -64,6 +64,13 @@ test("Large square footprint is 2 by 2 with exterior boundary only", () => {
   assertBoundaryEdgesAreExternal(footprint);
 });
 
+test("square footprint connectivity remains edge-adjacent, not diagonal", () => {
+  assert.equal(isConnectedFootprint([
+    {x: 0, y: 0},
+    {x: 1, y: 1}
+  ], GRID_TOPOLOGIES.SQUARE), false);
+});
+
 test("Huge square footprint is 3 by 3 with internal vertices excluded", () => {
   const footprint = tokenFootprint(CREATURE_SIZES.HUGE, GRID_TOPOLOGIES.SQUARE, {x: 0, y: 0});
   assert.equal(footprint.fields.length, 9);

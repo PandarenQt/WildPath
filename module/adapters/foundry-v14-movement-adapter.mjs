@@ -568,10 +568,11 @@ function getCompleteFoundryMovementWaypoints({intent={}, tokenDocument=null}={})
     code: FOUNDRY_MOVEMENT_CODES.OK,
     waypoints: origin ? [origin] : []
   };
+  const completeInput = origin ? prependPointIfDifferent(origin, requested) : requested;
 
   let complete;
   try {
-    complete = token.getCompleteMovementPath(requested.map(waypoint => clonePlain(waypoint)));
+    complete = token.getCompleteMovementPath(completeInput.map(waypoint => clonePlain(waypoint)));
   } catch (error) {
     return failure(
       FOUNDRY_MOVEMENT_CODES.COMPLETE_PATH_FAILED,

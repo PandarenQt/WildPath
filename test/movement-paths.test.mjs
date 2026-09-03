@@ -43,6 +43,37 @@ test("medium square movement path anchors include origin and measure ordered tra
   assert.deepEqual(result.path.origin, {x: 0, y: 0});
 });
 
+test("one-square diagonal movement is a valid square-grid step with default distance cost", () => {
+  const result = evaluateMovementPath(createMovementPath({
+    anchors: [{x: 0, y: 0}, {x: 1, y: 1}]
+  }), {
+    measurementMode: MOVEMENT_MEASUREMENT_MODES.DISTANCE,
+    grid: SQUARE_GRID
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.valid, true);
+  assert.equal(result.transitions[0].adjacent, true);
+  assert.equal(result.routeCost.amount, 5);
+  assert.equal(result.cost.amount, 5);
+});
+
+test("two-square diagonal movement remains two ordered square-grid steps", () => {
+  const result = evaluateMovementPath(createMovementPath({
+    anchors: [{x: 0, y: 0}, {x: 1, y: 1}, {x: 2, y: 2}]
+  }), {
+    measurementMode: MOVEMENT_MEASUREMENT_MODES.DISTANCE,
+    grid: SQUARE_GRID
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.valid, true);
+  assert.equal(result.transitions.length, 2);
+  assert.equal(result.transitions.every(transition => transition.adjacent), true);
+  assert.equal(result.routeCost.amount, 10);
+  assert.equal(result.cost.amount, 10);
+});
+
 test("large square movement reconstructs complete footprints and charges one transition per anchor step", () => {
   const result = evaluateMovementPath(createMovementPath({
     size: CREATURE_SIZES.LARGE,

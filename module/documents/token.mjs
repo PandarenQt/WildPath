@@ -45,8 +45,9 @@ export default class WildPathTokenDocument extends BaseTokenDocument {
   }
 
   /**
-   * Foundry fires post-movement processing on connected clients. Only the initiating client
-   * reports completion, and budget commit waits for Foundry's finished movement promise.
+   * Foundry fires post-movement processing on connected clients. The active authority observes
+   * its own post-update Token state before committing movement budget; the initiating-client
+   * completion message remains a fallback for runtimes that do not expose observation.
    * @param {object} movement
    * @param {object} operation
    * @param {object} user
@@ -56,7 +57,7 @@ export default class WildPathTokenDocument extends BaseTokenDocument {
     if ( typeof super._onUpdateMovement === "function" ) {
       super._onUpdateMovement(movement, operation, user);
     }
-    this._wildpathLastMovementCommit = this._wildpathCommitMovementAfterFinish(movement, operation, user)
+    this._wildpathLastMovementCommit = this._wildpathObserveMovementAfterFinish(movement, operation, user)
       .catch(error => {
         notifyMovementFailure(error?.message ?? String(error));
         return {
@@ -66,13 +67,7 @@ export default class WildPathTokenDocument extends BaseTokenDocument {
       });
   }
 
-  async _wildpathCommitMovementAfterFinish(movement, operation={}, user=null) {
-    if ( !movementInitiatedByThisClient(user, operation) ) return {
-      ok: true,
-      ignored: true,
-      reason: "Movement was initiated by another client."
-    };
-
+  async _wildpathObserveMovementAfterFinish(movement, operation={}, user=null) {
     const finished = await movementFinished(movement);
     if ( finished !== true ) return {
       ok: true,
@@ -81,7 +76,7 @@ export default class WildPathTokenDocument extends BaseTokenDocument {
     };
 
     const runtime = movementRuntime();
-    if ( !runtime || typeof runtime.commitMovementCompletion !== "function" ) return {
+    if ( !runtime ) return {
       ok: false,
       reason: "WildPath movement authority is not available for completion commit."
     };
@@ -96,6 +91,22 @@ export default class WildPathTokenDocument extends BaseTokenDocument {
       notifyMovementFailure(completion.reason ?? completion.code ?? "Completed movement could not be prepared for WildPath accounting.");
       return completion;
     }
+
+    if ( typeof runtime.observeMovementCompletion === "function" ) {
+      const observed = await runtime.observeMovementCompletion(completion.completion);
+      if ( observed?.ok === false ) notifyMovementFailure(observed.reason ?? observed.code ?? "Movement budget commit failed.");
+      return observed;
+    }
+
+    if ( !movementInitiatedByThisClient(user, operation) ) return {
+      ok: true,
+      ignored: true,
+      reason: "Movement was initiated by another client."
+    };
+    if ( typeof runtime.commitMovementCompletion !== "function" ) return {
+      ok: false,
+      reason: "WildPath movement authority is not available for completion commit."
+    };
 
     const committed = await runtime.commitMovementCompletion(completion.completion);
     if ( committed?.ok === false ) notifyMovementFailure(committed.reason ?? committed.code ?? "Movement budget commit failed.");

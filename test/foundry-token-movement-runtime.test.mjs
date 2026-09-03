@@ -196,7 +196,6 @@ function fakeTokenDocument({
   offset={i: 0, j: 0},
   size=actor?.system?.traits?.size ?? CREATURE_SIZES.MEDIUM,
   expandCompletePath=true,
-  includeOriginInCompletePath=true,
   owners=["player-a"]
 }={}) {
   const token = Object.assign(new WildPathTokenDocument(), {
@@ -209,7 +208,6 @@ function fakeTokenDocument({
     completePathCalls: 0,
     lastCompletePathWaypoints: null,
     expandCompletePath,
-    includeOriginInCompletePath,
     disposition: 1,
     setOffset(nextOffset) {
       this.x = Number(nextOffset.i) * scene.grid.sizeX;
@@ -232,8 +230,7 @@ function fakeTokenDocument({
       this.completePathCalls += 1;
       this.lastCompletePathWaypoints = JSON.parse(JSON.stringify(waypoints));
       return completeMovementPathForToken(this, waypoints, {
-        expand: this.expandCompletePath,
-        includeOrigin: this.includeOriginInCompletePath
+        expand: this.expandCompletePath
       });
     },
     testUserPermission(user) {
@@ -312,6 +309,7 @@ function createMovementRuntimeFixture({
   playerAuthority.register();
   gmAuthority.register();
   playerGame.wildpath.movement = playerAuthority;
+  gmGame.wildpath.movement = gmAuthority;
   return {
     actor,
     scene,
@@ -327,11 +325,11 @@ function createMovementRuntimeFixture({
   };
 }
 
-async function withFoundryGlobals(fixture, fn) {
+async function withFoundryGlobals(fixture, fn, {game=fixture.playerGame}={}) {
   const previousGame = globalThis.game;
   const previousUi = globalThis.ui;
   const warnings = fixture.warnings ?? [];
-  globalThis.game = fixture.playerGame;
+  globalThis.game = game;
   globalThis.ui = {
     notifications: {
       warn(message) {
@@ -366,11 +364,12 @@ function movementOperation(token, {id="movement-a", offsets=[{i: 1, j: 0}], kind
   };
 }
 
-function completeMovementPathForToken(token, waypoints, {expand=true, includeOrigin=true}={}) {
+function completeMovementPathForToken(token, waypoints, {expand=true}={}) {
   const grid = token.parent.grid;
-  let cursor = grid.getOffset(pointForToken(token));
-  const route = includeOrigin ? [pointForOffset(token.parent, cursor)] : [];
-  for ( const waypoint of waypoints ) {
+  if ( !waypoints.length ) return [];
+  let cursor = grid.getOffset(waypoints[0]);
+  const route = [pointForOffset(token.parent, cursor)];
+  for ( const waypoint of waypoints.slice(1) ) {
     const target = grid.getOffset(waypoint);
     if ( !expand ) {
       cursor = target;
@@ -379,7 +378,7 @@ function completeMovementPathForToken(token, waypoints, {expand=true, includeOri
     }
     while ( cursor.i !== target.i || cursor.j !== target.j ) {
       if ( cursor.i !== target.i ) cursor = {...cursor, i: cursor.i + Math.sign(target.i - cursor.i)};
-      else cursor = {...cursor, j: cursor.j + Math.sign(target.j - cursor.j)};
+      if ( cursor.j !== target.j ) cursor = {...cursor, j: cursor.j + Math.sign(target.j - cursor.j)};
       route.push(pointForOffset(token.parent, cursor));
     }
   }
@@ -433,14 +432,231 @@ test("production TokenDocument movement routes through active-GM authority and c
   moveTokenToOffset(token, {i: 2, j: 0});
   await withFoundryGlobals(fixture, async () => {
     token._onUpdateMovement(movement, {}, {...PLAYER, isSelf: true});
+    const observed = await token._wildpathLastMovementCommit;
+    assert.equal(observed.ok, true);
+    assert.equal(observed.ignored, true);
+  });
+  await withFoundryGlobals(fixture, async () => {
+    token._onUpdateMovement(movement, {}, {...PLAYER, isSelf: false});
     const committed = await token._wildpathLastMovementCommit;
     assert.equal(committed.ok, true);
-  });
+    assert.equal(committed.committed, true);
+  }, {game: fixture.gmGame});
 
   assert.equal(actor.system.resources.movement.value, 20);
   assert.equal(persistence.operations.filter(operation => operation.type === "updateActor").length, 1);
-  assert.equal(hub.messages.some(message => message.messageType === MULTIPLAYER_MESSAGE_TYPES.MOVEMENT_COMMIT), true);
+  assert.equal(hub.messages.some(message => message.messageType === MULTIPLAYER_MESSAGE_TYPES.MOVEMENT_COMMIT), false);
   assert.equal(hub.messages.some(message => message.messageType === MULTIPLAYER_MESSAGE_TYPES.MOVEMENT_RESULT), true);
+});
+
+test("active GM completion observation avoids stale initiator-side destination mismatch", async () => {
+  const fixture = createMovementRuntimeFixture();
+  const {actor, token, persistence} = fixture;
+  const movement = movementOperation(token, {
+    id: "move-active-gm-observation",
+    offsets: [{i: 1, j: 0}]
+  });
+
+  await withFoundryGlobals(fixture, async () => {
+    assert.notEqual(await token._preUpdateMovement(movement, {}), false);
+  });
+
+  await withFoundryGlobals(fixture, async () => {
+    token._onUpdateMovement(movement, {}, {...PLAYER, isSelf: true});
+    const observed = await token._wildpathLastMovementCommit;
+    assert.equal(observed.ok, true);
+    assert.equal(observed.ignored, true);
+  });
+
+  assert.equal(actor.system.resources.movement.value, 30);
+  assert.equal(persistence.operations.length, 0);
+
+  moveTokenToOffset(token, {i: 1, j: 0});
+  await withFoundryGlobals(fixture, async () => {
+    token._onUpdateMovement(movement, {}, {...PLAYER, isSelf: false});
+    const committed = await token._wildpathLastMovementCommit;
+    assert.equal(committed.ok, true);
+    assert.equal(committed.committed, true);
+  }, {game: fixture.gmGame});
+
+  assert.equal(actor.system.resources.movement.value, 25);
+  assert.equal(persistence.operations.filter(operation => operation.type === "updateActor").length, 1);
+  assert.equal(fixture.gmAuthority.errors.length, 0);
+});
+
+test("actual settled destination mismatch remains rejected by active GM observation", async () => {
+  const fixture = createMovementRuntimeFixture();
+  const {actor, token, persistence} = fixture;
+  const movement = movementOperation(token, {
+    id: "move-actual-mismatch",
+    offsets: [{i: 1, j: 0}]
+  });
+
+  await withFoundryGlobals(fixture, async () => {
+    assert.notEqual(await token._preUpdateMovement(movement, {}), false);
+  });
+  moveTokenToOffset(token, {i: 2, j: 0});
+
+  await withFoundryGlobals(fixture, async () => {
+    token._onUpdateMovement(movement, {}, {...PLAYER, isSelf: false});
+    const committed = await token._wildpathLastMovementCommit;
+    assert.equal(committed.ok, false);
+    assert.equal(committed.code, FOUNDRY_MOVEMENT_CODES.DESTINATION_MISMATCH);
+  }, {game: fixture.gmGame});
+
+  assert.equal(actor.system.resources.movement.value, 30);
+  assert.equal(persistence.operations.length, 0);
+});
+
+test("fake Foundry complete path expands only between supplied waypoints", () => {
+  const fixture = createMovementRuntimeFixture();
+  const {token} = fixture;
+  const destination = pointForOffset(token.parent, {i: 2, j: 0});
+  const origin = pointForOffset(token.parent, {i: 0, j: 0});
+
+  const destinationOnly = token.getCompleteMovementPath([destination]);
+  const withOrigin = token.getCompleteMovementPath([origin, destination]);
+
+  assert.deepEqual(destinationOnly, [destination]);
+  assert.deepEqual(withOrigin, [
+    origin,
+    pointForOffset(token.parent, {i: 1, j: 0}),
+    destination
+  ]);
+});
+
+test("10-ft orthogonal drag with one raw endpoint expands through the authoritative origin", async () => {
+  const fixture = createMovementRuntimeFixture();
+  const {token, gmAuthority} = fixture;
+  const movement = movementOperation(token, {
+    id: "move-raw-orthogonal-10",
+    offsets: [{i: 2, j: 0}]
+  });
+
+  await withFoundryGlobals(fixture, async () => {
+    const allowed = await token._preUpdateMovement(movement, {});
+    assert.notEqual(allowed, false);
+  });
+
+  const approval = [...gmAuthority.approvedMovements.values()][0].approval;
+  assert.deepEqual(anchorKeys(approval.path), ["square:0,0", "square:1,0", "square:2,0"]);
+  assert.equal(approval.evaluation.valid, true);
+  assert.equal(approval.evaluation.cost.amount, 10);
+  assert.equal(approval.evaluation.failures.some(failure => failure.code === "NON_ADJACENT_STEP"), false);
+});
+
+test("adapter does not duplicate origin when Foundry waypoints already include it", () => {
+  const fixture = createMovementRuntimeFixture();
+  const {token, scene, gmGame} = fixture;
+  const movement = movementOperation(token, {
+    id: "move-origin-already-present",
+    offsets: [{i: 0, j: 0}, {i: 2, j: 0}]
+  });
+  const built = buildFoundryMovementIntent({
+    tokenDocument: token,
+    movement,
+    user: PLAYER,
+    game: gmGame
+  });
+  const translated = foundryMovementIntentToMovementPath({
+    intent: built.intent,
+    tokenDocument: token,
+    scene
+  });
+
+  assert.equal(translated.ok, true);
+  assert.deepEqual(token.lastCompletePathWaypoints.map(({x, y}) => ({x, y})), [
+    pointForOffset(token.parent, {i: 0, j: 0}),
+    pointForOffset(token.parent, {i: 2, j: 0})
+  ]);
+  assert.deepEqual(anchorKeys(translated.path), ["square:0,0", "square:1,0", "square:2,0"]);
+});
+
+test("square diagonal TokenDocument movement is valid and costs one grid distance per step", async () => {
+  const fixture = createMovementRuntimeFixture();
+  const {token, gmAuthority} = fixture;
+  const movement = movementOperation(token, {
+    id: "move-square-diagonal",
+    offsets: [{i: 1, j: 1}]
+  });
+
+  await withFoundryGlobals(fixture, async () => {
+    const allowed = await token._preUpdateMovement(movement, {});
+    assert.notEqual(allowed, false);
+  });
+
+  const approval = [...gmAuthority.approvedMovements.values()][0].approval;
+  assert.deepEqual(anchorKeys(approval.path), ["square:0,0", "square:1,1"]);
+  assert.equal(approval.evaluation.valid, true);
+  assert.equal(approval.evaluation.transitions[0].adjacent, true);
+  assert.equal(approval.evaluation.cost.amount, 5);
+});
+
+test("two-step square diagonal route remains ordered route costing", async () => {
+  const fixture = createMovementRuntimeFixture();
+  const {token, gmAuthority} = fixture;
+  const movement = movementOperation(token, {
+    id: "move-square-diagonal-two-step",
+    offsets: [{i: 2, j: 2}]
+  });
+
+  await withFoundryGlobals(fixture, async () => {
+    const allowed = await token._preUpdateMovement(movement, {});
+    assert.notEqual(allowed, false);
+  });
+
+  const approval = [...gmAuthority.approvedMovements.values()][0].approval;
+  assert.deepEqual(anchorKeys(approval.path), ["square:0,0", "square:1,1", "square:2,2"]);
+  assert.equal(approval.evaluation.valid, true);
+  assert.equal(approval.evaluation.transitions.length, 2);
+  assert.equal(approval.evaluation.transitions.every(transition => transition.adjacent), true);
+  assert.equal(approval.evaluation.cost.amount, 10);
+});
+
+test("unaffordable one-endpoint drag rejects before Foundry moves the Token", async () => {
+  const actor = fakeActor("slow-actor", {movement: 5, maxMovement: 5});
+  const fixture = createMovementRuntimeFixture({actor});
+  const {token, persistence} = fixture;
+  const movement = movementOperation(token, {
+    id: "move-unaffordable-expanded",
+    offsets: [{i: 2, j: 0}]
+  });
+
+  await withFoundryGlobals(fixture, async () => {
+    const allowed = await token._preUpdateMovement(movement, {});
+    assert.equal(allowed, false);
+  });
+
+  assert.equal(actor.system.resources.movement.value, 5);
+  assert.equal(token.x, 0);
+  assert.equal(persistence.operations.length, 0);
+  assert.equal(fixture.playerAuthority.errors.at(-1).approval.code, FOUNDRY_MOVEMENT_CODES.MOVEMENT_UNAFFORDABLE);
+});
+
+test("active GM observed duplicate completions remain idempotent", async () => {
+  const fixture = createMovementRuntimeFixture();
+  const {actor, token, persistence} = fixture;
+  const movement = movementOperation(token, {
+    id: "move-observed-duplicate",
+    offsets: [{i: 1, j: 0}]
+  });
+
+  await withFoundryGlobals(fixture, async () => {
+    assert.notEqual(await token._preUpdateMovement(movement, {}), false);
+  });
+  moveTokenToOffset(token, {i: 1, j: 0});
+
+  await withFoundryGlobals(fixture, async () => {
+    token._onUpdateMovement(movement, {}, {...PLAYER, isSelf: false});
+    assert.equal((await token._wildpathLastMovementCommit).ok, true);
+    token._onUpdateMovement(movement, {}, {...PLAYER, isSelf: false});
+    const duplicate = await token._wildpathLastMovementCommit;
+    assert.equal(duplicate.ok, true);
+    assert.equal(duplicate.code, FOUNDRY_MOVEMENT_CODES.MOVEMENT_ALREADY_COMMITTED);
+  }, {game: fixture.gmGame});
+
+  assert.equal(actor.system.resources.movement.value, 25);
+  assert.equal(persistence.operations.filter(operation => operation.type === "updateActor").length, 1);
 });
 
 test("unaffordable TokenDocument movement is rejected before commit and leaves budget unchanged", async () => {
@@ -508,7 +724,10 @@ test("Foundry segment endpoint waypoints are expanded before MovementPath evalua
 
   assert.equal(translated.ok, true);
   assert.equal(token.completePathCalls, 1);
-  assert.equal(token.lastCompletePathWaypoints.length, 1);
+  assert.deepEqual(token.lastCompletePathWaypoints.map(({x, y}) => ({x, y})), [
+    pointForOffset(token.parent, {i: 0, j: 0}),
+    pointForOffset(token.parent, {i: 3, j: 0})
+  ]);
   assert.deepEqual(anchorKeys(translated.path), ["square:0,0", "square:1,0", "square:2,0", "square:3,0"]);
 });
 

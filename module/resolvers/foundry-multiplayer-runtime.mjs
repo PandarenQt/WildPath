@@ -85,6 +85,7 @@ export function registerFoundryV14MultiplayerResolution({
     declareActionIntent: intent => coordinator.declareActionIntent(intent),
     executeActionIntent: intent => coordinator.declareActionIntent(intent),
     requestMovementApproval: intent => movement.requestMovementApproval(intent),
+    observeMovementCompletion: completion => movement.observeMovementCompletion(completion),
     commitMovementCompletion: completion => movement.commitMovementCompletion(completion)
   };
   game.wildpath = {

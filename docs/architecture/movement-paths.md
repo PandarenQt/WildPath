@@ -174,12 +174,18 @@ TokenDocument#_preUpdateMovement
 -> build plain MovementIntent
 -> active-GM authority over the existing system.wildpath transport
 -> authoritative Scene/Token/Actor reconstruction
+-> prepend the authoritative Token origin to the requested Foundry waypoints
 -> TokenDocument#getCompleteMovementPath()
 -> FoundryV14TacticalGridAdapter point-to-field conversion
 -> MovementPath anchors including origin
 -> evaluateMovementPath()
 -> approve or reject
 ```
+
+`TokenDocument#getCompleteMovementPath()` expands the direct path between supplied waypoints; it
+does not infer the Token's current position as an implicit first waypoint. The adapter therefore
+supplies `[authoritative origin, ...requested waypoints]` to Foundry before conversion. Supplying only
+`[destination]` would leave a multi-square segment unexpanded and correctly fail WildPath adjacency.
 
 The MovementIntent may carry Foundry x/y waypoint data because that is the client proposal. That
 data stops at `module/adapters/foundry-v14-movement-adapter.mjs`. The resulting `MovementPath`
@@ -190,16 +196,23 @@ re-resolves the current Scene, Token, Token Actor, Token anchor/footprint, movem
 grid scale before evaluating. If the client-observed origin no longer matches the authoritative
 Token anchor, the proposal is rejected.
 
-Budget is not spent during approval. `WildPathTokenDocument#_onUpdateMovement()` waits for Foundry's
-post-update `movement.finished` promise to resolve true, then reports a plain MovementCompletion.
-The active-GM authority correlates completion to the approval record by movement id plus Scene/Token
-identity, confirms the Token's actual final anchor matches the approved route destination, and only
-then commits the approved `economy.movement` spend through `ResourceResolver` and
-`DocumentPersistencePort`. Duplicate completions for the same movement id are idempotent and do not
-spend twice, including concurrent completion delivery. Remote commit sender binding is based on the
-socket envelope `senderUserId`; client payload `sourceUserId` is treated as a claim and must match
-the envelope sender and the approved movement initiator before any document resolution or persistence
-work occurs.
+Movement route adjacency is not the same primitive as footprint connectivity. Square footprint
+connectivity and boundaries continue to use edge-adjacent fields, while square movement steps use
+the existing distance-adjacent field set so a one-square diagonal is a valid 5 ft step under the
+default distance model. Hex movement still uses the six neighboring hexes.
+
+Budget is not spent during approval. `WildPathTokenDocument#_onUpdateMovement()` runs on connected
+clients after the Foundry Token update lifecycle, and the active GM commits normal movement from its
+own post-update observation after Foundry's `movement.finished` promise resolves true. That avoids
+racing a player-sent completion message against the GM client's local Scene/Token update. The active
+GM correlates the observed completion to the approval record by movement id plus Scene/Token
+identity, confirms the authoritative Token's actual final anchor matches the approved route
+destination, and only then commits the approved `economy.movement` spend through `ResourceResolver`
+and `DocumentPersistencePort`. Duplicate completions for the same movement id are idempotent and do
+not spend twice, including concurrent completion delivery. The existing `MOVEMENT_COMMIT` socket
+path remains for explicit fallback/manual delivery and retains sender binding: client payload
+`sourceUserId` is treated as a claim and must match the envelope sender and the approved movement
+initiator before any document resolution or persistence work occurs.
 
 Foundry's measured movement cost/distance/spaces are not used as WildPath mechanical cost in this
 slice. They remain useful future diagnostics or terrain/cost inputs, but WildPath cost currently

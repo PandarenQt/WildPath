@@ -211,8 +211,8 @@ player TokenDocument#_preUpdateMovement
 -> MovementPath evaluation
 -> MOVEMENT_APPROVAL
 -> Foundry continues or rejects movement
+-> active GM observes its post-update TokenDocument movement
 -> movement.finished true
--> MOVEMENT_COMMIT
 -> active GM commits approved economy.movement spend once
 -> MOVEMENT_RESULT
 ```
@@ -221,19 +221,21 @@ No active GM follows the existing local-authority policy: local authority is onl
 initiating client can prove local commit permission. Otherwise movement approval fails with the same
 authority-unavailable behavior used by Actions.
 
-The active GM stores approval records keyed by Foundry movement id plus Scene/Token identity. A
-completion must come from the user who received the approval and must match the approved Token and
-movement id. At commit time the GM re-resolves the current Token and confirms its actual anchor is
-the approved route destination. The committed movement cache makes duplicate completion delivery
-idempotent.
+The active GM stores approval records keyed by Foundry movement id plus Scene/Token identity. In
+normal active-GM play, completion is observed by the active GM's own TokenDocument post-update
+lifecycle instead of relying on the initiating player to report completion before the GM's local
+Scene collection has settled. At commit time the GM re-resolves the current Token and confirms its
+actual anchor is the approved route destination. The committed movement cache makes duplicate
+completion delivery idempotent.
 
-For remote completion envelopes, the socket envelope sender is the authority fact. If a
+The `MOVEMENT_COMMIT` socket path remains available for explicit fallback/manual delivery. For
+remote completion envelopes, the socket envelope sender is the authority fact. If a
 `MovementCompletion.sourceUserId` claim is present and differs from `senderUserId`, the active GM
 rejects the commit as `WRONG_USER` before resolving documents or persistence. The approved movement's
-initiator is also checked independently against the sender. Concurrent completions for the same
-movement key share an in-flight commit promise, so only the first successful persistence transaction
-can spend movement. Failed persistence clears the in-flight guard without marking the movement
-committed, allowing a later retry.
+initiator is also checked independently against the sender. Concurrent observed or delivered
+completions for the same movement key share an in-flight commit promise, so only the first successful
+persistence transaction can spend movement. Failed persistence clears the in-flight guard without
+marking the movement committed, allowing a later retry.
 
 The authority commits movement spend through the existing `ResourceResolver` mapping:
 

@@ -20,9 +20,9 @@ import {
   CREATURE_SIZES,
   DND5E_CREATURE_FOOTPRINT_PROVIDER,
   GRID_TOPOLOGIES,
-  adjacentFields,
   createTokenFootprintDefinition,
   createTokenGridFootprint,
+  distanceAdjacentFields,
   fieldKey,
   normalizeGridField
 } from "./grid-footprints.mjs";
@@ -649,7 +649,7 @@ function resolveFootprintDefinition({definition, provider, size, topology}) {
 
 function areAdjacent(from, to, topology) {
   const destination = fieldKey(to, topology);
-  return adjacentFields(from, topology).some(field => fieldKey(field, topology) === destination);
+  return distanceAdjacentFields(from, topology).some(field => fieldKey(field, topology) === destination);
 }
 
 function defaultStepCost({movementKind, measurementMode, grid}) {

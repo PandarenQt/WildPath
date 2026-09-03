@@ -75,6 +75,9 @@ export function createMultiplayerMovementAuthority({
     async requestMovementApproval(intent={}) {
       return requestMovementApproval(intent);
     },
+    async observeMovementCompletion(completion={}) {
+      return observeMovementCompletion(completion);
+    },
     async commitMovementCompletion(completion={}) {
       return commitMovementCompletion(completion);
     },
@@ -266,6 +269,48 @@ export function createMultiplayerMovementAuthority({
       ok: true,
       code: MULTIPLAYER_AUTHORITY_CODES.OK,
       approval
+    };
+  }
+
+  async function observeMovementCompletion(completion={}) {
+    const sanitized = sanitizeMovementCompletion(completion);
+    if ( !sanitized.movementId ) return failure(FOUNDRY_MOVEMENT_CODES.MISSING_MOVEMENT_ID, "MovementCompletion requires movementId.");
+
+    const key = movementKey(sanitized);
+    const record = approvedMovements.get(key);
+    if ( record?.authorityUserId === localUserId ) {
+      const result = await applyMovementCompletion(sanitized, {
+        senderUserId: sanitized.sourceUserId ?? record.initiatorUserId ?? null
+      });
+      if ( record.initiatorUserId && record.initiatorUserId !== localUserId ) {
+        const sent = await sendMovementResult({
+          recipientUserId: record.initiatorUserId,
+          result
+        });
+        return {
+          ...result,
+          movementResultSent: sent.ok !== false
+        };
+      }
+      return result;
+    }
+
+    const expectedAuthorityUserId = initiatedAuthorities.get(sanitized.resolutionId);
+    if ( expectedAuthorityUserId && expectedAuthorityUserId !== localUserId ) return {
+      ok: true,
+      code: MULTIPLAYER_AUTHORITY_CODES.OK,
+      ignored: true,
+      reason: "Movement completion will be observed by the selected movement authority.",
+      authorityUserId: expectedAuthorityUserId,
+      movementId: sanitized.movementId
+    };
+
+    return {
+      ok: true,
+      code: MULTIPLAYER_AUTHORITY_CODES.OK,
+      ignored: true,
+      reason: "No local movement approval record exists for observed completion.",
+      movementId: sanitized.movementId
     };
   }
 

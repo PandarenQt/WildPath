@@ -139,9 +139,13 @@ Official Foundry V14 documentation confirms the platform assumptions used here:
 - `TokenDocument#_preUpdateMovement()` is an awaited protected lifecycle seam after movement has
   been determined; final waypoints can be rejected but not rewritten there.
 - `preMoveToken` is cancellable but is a hook, not an async authority boundary.
-- `TokenDocument#getCompleteMovementPath()` expands movement waypoints with intermediate steps.
+- `TokenDocument#getCompleteMovementPath()` expands intermediate steps between supplied waypoints;
+  the Token's current origin must be supplied explicitly when it should participate in expansion.
 - `TokenDocument#_onUpdateMovement()` / `moveToken` report post-update movement, and
-  `TokenMovementOperation.finished` resolves when the movement completes.
+  `TokenMovementOperation.finished` resolves when the movement completes. Normal movement budget
+  accounting is safest from the active GM's own post-update observation, correlated to the prior
+  approval record, rather than from a player completion message that can arrive before the GM's
+  Scene collection has observed the same update.
 - `Token#planMovement()` and `TokenDocument#startMovement()` are the future planned-movement seam.
 
 Primary sources:

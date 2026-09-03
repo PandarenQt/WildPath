@@ -225,11 +225,15 @@ Region polygons must not become the mechanical authority for gridded WildPath ar
 The Foundry movement adapter uses this TacticalGrid adapter as the only pixel-to-mechanical bridge:
 
 ```text
-TokenPreMovementOperation waypoints
+authoritative Token origin + TokenPreMovementOperation waypoints
 -> TokenDocument#getCompleteMovementPath()
 -> FoundryV14TacticalGridAdapter#pointToField()
 -> MovementPath anchors
 ```
+
+Foundry expands complete movement between waypoints supplied to `getCompleteMovementPath()`. The
+movement adapter therefore includes the authoritative Token origin in that input before conversion;
+it does not call Foundry with only a destination and prepend the origin afterward.
 
 Foundry remains responsible for token interaction, ruler/waypoint UI, canvas constraints, animation,
 Scene/Token persistence, Regions, and movement history. WildPath validates the resulting mechanical
