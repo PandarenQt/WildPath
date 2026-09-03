@@ -200,6 +200,7 @@ function fakeTokenDocument({
   expandCompletePath=true,
   owners=["player-a"]
 }={}) {
+  const gridUnits = tokenGridUnitsForSize(size);
   const token = Object.assign(new WildPathTokenDocument(), {
     documentName: "Token",
     id,
@@ -207,17 +208,57 @@ function fakeTokenDocument({
     parent: scene,
     actor,
     wildpathSize: size,
+    width: gridUnits,
+    height: gridUnits,
+    depth: gridUnits,
+    elevation: 0,
+    _source: {},
+    _sourcePosition: null,
     completePathCalls: 0,
     lastCompletePathWaypoints: null,
     expandCompletePath,
     disposition: 1,
     setOffset(nextOffset) {
+      this.setPreparedOffset(nextOffset);
+      this.setSourceOffset(nextOffset);
+    },
+    setPreparedOffset(nextOffset) {
       this.x = Number(nextOffset.i) * scene.grid.sizeX;
       this.y = Number(nextOffset.j) * scene.grid.sizeY;
       this.offset = {i: Number(nextOffset.i), j: Number(nextOffset.j)};
     },
-    getOccupiedGridSpaceOffsets() {
-      const base = scene.grid.getOffset({x: this.x, y: this.y});
+    setSourceOffset(nextOffset) {
+      const point = pointForOffset(scene, nextOffset);
+      this._sourcePosition = {
+        x: point.x,
+        y: point.y,
+        elevation: this.elevation,
+        width: this.width,
+        height: this.height,
+        depth: this.depth
+      };
+      this._source = JSON.parse(JSON.stringify(this._sourcePosition));
+    },
+    toObject(source=true) {
+      const position = source === true
+        ? this._sourcePosition
+        : {
+            x: this.x,
+            y: this.y,
+            elevation: this.elevation,
+            width: this.width,
+            height: this.height,
+            depth: this.depth
+          };
+      return JSON.parse(JSON.stringify({
+        id: this.id,
+        name: this.name ?? this.id,
+        ...position
+      }));
+    },
+    getOccupiedGridSpaceOffsets(data=null) {
+      const position = explicitFoundryPosition(data) ? data : {x: this.x, y: this.y};
+      const base = scene.grid.getOffset(position);
       if ( scene.grid.isSquare && size === CREATURE_SIZES.LARGE ) {
         return [
           base,
@@ -407,9 +448,41 @@ function moveTokenToOffset(token, offset) {
 }
 
 function observedTokenAtOffset(token, offset) {
+  return observedTokenWithOffsets(token, {
+    preparedOffset: offset,
+    sourceOffset: offset
+  });
+}
+
+function observedTokenWithOffsets(token, {preparedOffset, sourceOffset}) {
   const observed = Object.assign(Object.create(Object.getPrototypeOf(token)), token);
-  observed.setOffset(offset);
+  observed.setPreparedOffset(preparedOffset);
+  observed.setSourceOffset(sourceOffset);
   return observed;
+}
+
+function sourcePointForToken(token) {
+  const source = token.toObject(true);
+  return {x: source.x, y: source.y};
+}
+
+function explicitFoundryPosition(data) {
+  return data && typeof data === "object"
+    && Number.isFinite(Number(data.x))
+    && Number.isFinite(Number(data.y));
+}
+
+function tokenGridUnitsForSize(size) {
+  switch ( size ) {
+    case CREATURE_SIZES.LARGE:
+      return 2;
+    case CREATURE_SIZES.HUGE:
+      return 3;
+    case CREATURE_SIZES.GARGANTUAN:
+      return 4;
+    default:
+      return 1;
+  }
 }
 
 async function runTokenDocumentOnUpdateMovement(fixture, {
@@ -509,11 +582,11 @@ test("production TokenDocument movement routes through active-GM authority and c
   assert.equal(hub.messages.some(message => message.messageType === MULTIPLAYER_MESSAGE_TYPES.MOVEMENT_RESULT), true);
 });
 
-test("stale TokenDocument _onUpdateMovement ordering waits for moveToken before spending", async () => {
+test("moveToken completion verifies source Token state while prepared state remains old", async () => {
   const fixture = createMovementRuntimeFixture();
   const {actor, token, gmAuthority, persistence} = fixture;
   const movement = movementOperation(token, {
-    id: "move-stale-on-update-waits-for-hook",
+    id: "move-source-state-prepared-old",
     offsets: [{i: 1, j: 0}]
   });
 
@@ -534,8 +607,14 @@ test("stale TokenDocument _onUpdateMovement ordering waits for moveToken before 
   assert.equal(fixture.gmAuthority.errors.some(event => event.result?.code === FOUNDRY_MOVEMENT_CODES.DESTINATION_MISMATCH), false);
   assert.equal(fixture.warnings.some(message => message.includes(FOUNDRY_MOVEMENT_CODES.DESTINATION_MISMATCH)), false);
 
-  const observedToken = observedTokenAtOffset(token, {i: 1, j: 0});
-  assert.deepEqual(pointForToken(token), pointForOffset(token.parent, {i: 0, j: 0}));
+  const observedToken = observedTokenWithOffsets(token, {
+    preparedOffset: {i: 0, j: 0},
+    sourceOffset: {i: 1, j: 0}
+  });
+  assert.deepEqual(pointForToken(observedToken), pointForOffset(token.parent, {i: 0, j: 0}));
+  assert.deepEqual(sourcePointForToken(observedToken), pointForOffset(token.parent, {i: 1, j: 0}));
+  assert.deepEqual(observedToken.getOccupiedGridSpaceOffsets(), [{i: 0, j: 0}]);
+  assert.deepEqual(observedToken.getOccupiedGridSpaceOffsets(observedToken.toObject(true)), [{i: 1, j: 0}]);
   const committed = await fireMoveTokenHook(fixture, {
     token: observedToken,
     movement,
@@ -550,20 +629,24 @@ test("stale TokenDocument _onUpdateMovement ordering waits for moveToken before 
   assert.equal(fixture.gmAuthority.errors.length, 0);
 });
 
-test("actual settled destination mismatch remains rejected from moveToken observation", async () => {
+test("moveToken completion rejects source state that differs from the approved destination", async () => {
   const fixture = createMovementRuntimeFixture();
   const {actor, token, persistence} = fixture;
   const movement = movementOperation(token, {
-    id: "move-actual-mismatch",
+    id: "move-source-mismatch",
     offsets: [{i: 1, j: 0}]
   });
 
   await withFoundryGlobals(fixture, async () => {
     assert.notEqual(await token._preUpdateMovement(movement, {}), false);
   });
-  moveTokenToOffset(token, {i: 2, j: 0});
+  const observedToken = observedTokenWithOffsets(token, {
+    preparedOffset: {i: 1, j: 0},
+    sourceOffset: {i: 2, j: 0}
+  });
 
   const committed = await fireMoveTokenHook(fixture, {
+    token: observedToken,
     movement,
     user: {...PLAYER, isSelf: false},
     game: fixture.gmGame
@@ -571,6 +654,35 @@ test("actual settled destination mismatch remains rejected from moveToken observ
   assert.equal(committed.ok, false);
   assert.equal(committed.code, FOUNDRY_MOVEMENT_CODES.DESTINATION_MISMATCH);
 
+  assert.equal(actor.system.resources.movement.value, 30);
+  assert.equal(persistence.operations.length, 0);
+});
+
+test("moveToken completion does not trust movement.destination over Token source state", async () => {
+  const fixture = createMovementRuntimeFixture();
+  const {actor, token, persistence} = fixture;
+  const movement = movementOperation(token, {
+    id: "move-destination-disagrees-with-source",
+    offsets: [{i: 1, j: 0}]
+  });
+
+  await withFoundryGlobals(fixture, async () => {
+    assert.notEqual(await token._preUpdateMovement(movement, {}), false);
+  });
+  assert.deepEqual({x: movement.destination.x, y: movement.destination.y}, pointForOffset(token.parent, {i: 1, j: 0}));
+  const observedToken = observedTokenWithOffsets(token, {
+    preparedOffset: {i: 0, j: 0},
+    sourceOffset: {i: 2, j: 0}
+  });
+
+  const committed = await fireMoveTokenHook(fixture, {
+    token: observedToken,
+    movement,
+    user: {...PLAYER, isSelf: false},
+    game: fixture.gmGame
+  });
+  assert.equal(committed.ok, false);
+  assert.equal(committed.code, FOUNDRY_MOVEMENT_CODES.DESTINATION_MISMATCH);
   assert.equal(actor.system.resources.movement.value, 30);
   assert.equal(persistence.operations.length, 0);
 });

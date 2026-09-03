@@ -137,11 +137,16 @@ Official Foundry V14 documentation confirms the platform assumptions used here:
 - Data preparation should assign in memory and should not call document mutation APIs such as
   `update()` or `setFlag()`.
 - V14 data fields are persisted by default unless explicitly marked otherwise.
+- `DataModel#toObject(source=true)` returns a plain object drawn from the underlying source values
+  when `source` is true, rather than transformed/prepared values.
 - `TokenDocument#_preUpdateMovement()` is an awaited protected lifecycle seam after movement has
   been determined; final waypoints can be rejected but not rewritten there.
 - `preMoveToken` is cancellable but is a hook, not an async authority boundary.
 - `TokenDocument#getCompleteMovementPath()` expands intermediate steps between supplied waypoints;
   the Token's current origin must be supplied explicitly when it should participate in expansion.
+- `TokenDocument#getOccupiedGridSpaceOffsets(data?)` accepts an optional position plus Token
+  dimensions. Zero-argument calls use the prepared/current Token state; explicit data evaluates the
+  requested position.
 - `TokenDocument#_onUpdateMovement()` is protected movement update post-processing and is not the
   authoritative settled completion seam for WildPath budget accounting.
 - `moveToken` fires after conclusion of the Token update workflow and on all connected clients after

@@ -500,13 +500,16 @@ export async function resolveMovementCompletionDocuments({completion={}, game=gl
   if ( !token ) return failure(FOUNDRY_MOVEMENT_CODES.TOKEN_NOT_FOUND, "MovementCompletion tokenRef could not be resolved on the authoritative Scene.");
   const actor = token.actor ?? null;
   if ( !actor ) return failure(FOUNDRY_MOVEMENT_CODES.ACTOR_NOT_FOUND, "MovementCompletion Token Actor could not be resolved.");
+  const sourcePosition = tokenSourceFootprintPosition(token);
+  if ( !sourcePosition.ok ) return sourcePosition;
   return {
     ok: true,
     code: FOUNDRY_MOVEMENT_CODES.OK,
     completion: sanitized,
     scene,
     token,
-    actor
+    actor,
+    sourcePosition: sourcePosition.position
   };
 }
 
@@ -525,21 +528,24 @@ async function resolveObservedMovementCompletionDocuments({completion={}, tokenD
 
   const actor = token.actor ?? null;
   if ( !actor ) return failure(FOUNDRY_MOVEMENT_CODES.ACTOR_NOT_FOUND, "Observed moveToken Actor could not be resolved.");
+  const sourcePosition = tokenSourceFootprintPosition(token);
+  if ( !sourcePosition.ok ) return sourcePosition;
   return {
     ok: true,
     code: FOUNDRY_MOVEMENT_CODES.OK,
     completion,
     scene,
     token,
-    actor
+    actor,
+    sourcePosition: sourcePosition.position
   };
 }
 
-export function currentTokenAnchor({tokenDocument=null, scene=null}={}) {
+export function currentTokenAnchor({tokenDocument=null, scene=null, position=null}={}) {
   const token = resolveTokenDocument(tokenDocument);
   if ( !token ) return failure(FOUNDRY_MOVEMENT_CODES.TOKEN_NOT_FOUND, "A TokenDocument is required to resolve its current anchor.");
   const adapter = createFoundryV14TacticalGridAdapter({scene: scene ?? token.parent});
-  const footprint = adapter.tokenToFootprint(token);
+  const footprint = adapter.tokenToFootprint(token, {position});
   if ( !footprint.ok || !footprint.footprint ) return gridFailure(footprint);
   return {
     ok: true,
@@ -547,6 +553,38 @@ export function currentTokenAnchor({tokenDocument=null, scene=null}={}) {
     anchor: footprint.anchor,
     topology: footprint.topology,
     footprint: footprint.footprint
+  };
+}
+
+export function tokenSourceFootprintPosition(tokenDocument=null) {
+  const token = resolveTokenDocument(tokenDocument);
+  if ( !token ) return failure(FOUNDRY_MOVEMENT_CODES.TOKEN_NOT_FOUND, "A TokenDocument is required to read completed movement source position.");
+  if ( typeof token.toObject !== "function" ) {
+    return failure(
+      FOUNDRY_MOVEMENT_CODES.INVALID_COMPLETION,
+      "Completed movement verification requires TokenDocument#toObject(true) source data."
+    );
+  }
+
+  let source;
+  try {
+    source = token.toObject(true);
+  } catch (error) {
+    return failure(
+      FOUNDRY_MOVEMENT_CODES.INVALID_COMPLETION,
+      error?.message ?? "TokenDocument#toObject(true) failed while reading completed movement source position."
+    );
+  }
+
+  const position = plainTokenFootprintPosition(source);
+  if ( !position ) return failure(
+    FOUNDRY_MOVEMENT_CODES.INVALID_COMPLETION,
+    "TokenDocument#toObject(true) did not provide finite source x and y values for completed movement verification."
+  );
+  return {
+    ok: true,
+    code: FOUNDRY_MOVEMENT_CODES.OK,
+    position
   };
 }
 
@@ -743,6 +781,25 @@ function plainMovementPoint(value) {
     x,
     y,
     ...(elevation != null ? {elevation} : {})
+  };
+}
+
+function plainTokenFootprintPosition(value) {
+  if ( !value || typeof value !== "object" ) return null;
+  const x = finiteNumber(value.x);
+  const y = finiteNumber(value.y);
+  if ( x == null || y == null ) return null;
+  const elevation = finiteNumber(value.elevation ?? value.z);
+  const width = finiteNumber(value.width);
+  const height = finiteNumber(value.height);
+  const depth = finiteNumber(value.depth);
+  return {
+    x,
+    y,
+    ...(elevation != null ? {elevation} : {}),
+    ...(width != null ? {width} : {}),
+    ...(height != null ? {height} : {}),
+    ...(depth != null ? {depth} : {})
   };
 }
 

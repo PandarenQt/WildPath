@@ -193,7 +193,8 @@ function fakeScene(grid, data={}) {
 function fakeToken({id, scene, grid, offset={i: 0, j: 0}, size=CREATURE_SIZES.MEDIUM, representedFields=null, elevation=0, levelId=null, disposition=-1}) {
   const representedOffsets = representedFields
     ? representedFields.map(field => fieldToOffset(field, grid))
-    : [offset];
+    : null;
+  const gridUnits = tokenGridUnitsForSize(size);
   return {
     documentName: "Token",
     id,
@@ -211,11 +212,16 @@ function fakeToken({id, scene, grid, offset={i: 0, j: 0}, size=CREATURE_SIZES.ME
     x: Number(offset.i) * grid.sizeX,
     y: Number(offset.j) * grid.sizeY,
     elevation,
+    width: gridUnits,
+    height: gridUnits,
+    depth: gridUnits,
     levelId,
     disposition,
     wildpathSize: size,
-    getOccupiedGridSpaceOffsets() {
-      return representedOffsets;
+    getOccupiedGridSpaceOffsets(data=null) {
+      if ( !explicitFoundryPosition(data) && representedOffsets ) return representedOffsets;
+      const base = grid.getOffset(explicitFoundryPosition(data) ? data : {x: this.x, y: this.y});
+      return occupiedOffsetsForSize({grid, offset: base, size});
     }
   };
 }
@@ -410,6 +416,67 @@ test("Foundry occupied-space mismatches are diagnostics and do not rewrite WildP
   assert.equal(permissive.diagnostics[0].code, FOUNDRY_TACTICAL_GRID_CODES.FOOTPRINT_MISMATCH);
   assert.equal(strict.ok, false);
   assert.equal(strict.footprint.fields.length, 9);
+});
+
+test("explicit Token footprint position overrides stale prepared square position", () => {
+  const grid = new FakeSquareGrid();
+  const scene = fakeScene(grid);
+  const adapter = createFoundryV14TacticalGridAdapter({scene});
+  const token = fakeToken({
+    id: "explicit-position",
+    scene,
+    grid,
+    offset: {i: 0, j: 0}
+  });
+  const explicitPosition = {
+    x: grid.sizeX,
+    y: 0,
+    width: token.width,
+    height: token.height,
+    depth: token.depth
+  };
+
+  const prepared = adapter.tokenToFootprint(token);
+  const explicit = adapter.tokenToFootprint(token, {position: explicitPosition});
+
+  assert.equal(prepared.ok, true);
+  assert.equal(explicit.ok, true);
+  assert.deepEqual(prepared.anchor, {x: 0, y: 0});
+  assert.deepEqual(explicit.anchor, {x: 1, y: 0});
+  assert.equal(explicit.metadata.anchorSource, "explicit-position");
+});
+
+test("explicit Large square footprint uses B-based occupied spaces without a footprint mismatch", () => {
+  const grid = new FakeSquareGrid();
+  const scene = fakeScene(grid);
+  const adapter = createFoundryV14TacticalGridAdapter({scene});
+  const token = fakeToken({
+    id: "explicit-large",
+    scene,
+    grid,
+    offset: {i: 0, j: 0},
+    size: CREATURE_SIZES.LARGE
+  });
+  const explicitPosition = {
+    x: grid.sizeX,
+    y: 0,
+    width: token.width,
+    height: token.height,
+    depth: token.depth
+  };
+
+  const explicit = adapter.tokenToFootprint(token, {position: explicitPosition, strictOccupancy: true});
+
+  assert.equal(explicit.ok, true);
+  assert.equal(explicit.code, FOUNDRY_TACTICAL_GRID_CODES.OK);
+  assert.deepEqual(explicit.anchor, {x: 1, y: 0});
+  assert.equal(explicit.footprint.fields.length, 4);
+  assert.deepEqual(new Set(explicit.representedFields.map(field => fieldKey(field, GRID_TOPOLOGIES.SQUARE))), new Set([
+    "square:1,0",
+    "square:2,0",
+    "square:1,1",
+    "square:2,1"
+  ]));
 });
 
 test("scene scale conversion centralizes physical distance to tactical fields", () => {
@@ -636,6 +703,34 @@ function boundaryVertexWithOutsideField(footprint, outsideField) {
 function fieldToOffset(field, grid) {
   if ( grid.type === FOUNDRY_GRID_TYPES.SQUARE ) return {i: field.x, j: field.y};
   return axialToOffset(field, grid.variant);
+}
+
+function occupiedOffsetsForSize({grid, offset, size}) {
+  const topology = grid.isHexagonal ? GRID_TOPOLOGIES.HEX : GRID_TOPOLOGIES.SQUARE;
+  const anchor = grid.isHexagonal
+    ? offsetToAxial(offset, grid.variant)
+    : {x: offset.i, y: offset.j};
+  const footprint = createTokenGridFootprint({size, topology, anchor});
+  return footprint.fields.map(field => fieldToOffset(field, grid));
+}
+
+function explicitFoundryPosition(data) {
+  return data && typeof data === "object"
+    && Number.isFinite(Number(data.x))
+    && Number.isFinite(Number(data.y));
+}
+
+function tokenGridUnitsForSize(size) {
+  switch ( size ) {
+    case CREATURE_SIZES.LARGE:
+      return 2;
+    case CREATURE_SIZES.HUGE:
+      return 3;
+    case CREATURE_SIZES.GARGANTUAN:
+      return 4;
+    default:
+      return 1;
+  }
 }
 
 function offsetToAxial(offset, variant) {

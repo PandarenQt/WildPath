@@ -209,7 +209,7 @@ export function createFoundryV14TacticalGridAdapter({
     compareTokenOccupiedSpaces(token, options={}) {
       const footprint = options.footprint
         ?? this.tokenToFootprint(token, {...options, strictOccupancy: false}).footprint;
-      return compareFoundryTokenOccupiedSpaces(token, footprint, {grid: resolvedGrid, scene});
+      return compareFoundryTokenOccupiedSpaces(token, footprint, {grid: resolvedGrid, scene, position: options.position});
     },
 
     validateTokenLevelRelation(sourceToken, targetToken, options={}) {
@@ -674,6 +674,7 @@ export function foundryTokenToTokenGridFootprint(token, {
   footprintProvider=DND5E_CREATURE_FOOTPRINT_PROVIDER,
   sizeResolver=defaultTokenSizeResolver,
   anchor=null,
+  position=null,
   strictOccupancy=false,
   metadata={}
 }={}) {
@@ -693,7 +694,12 @@ export function foundryTokenToTokenGridFootprint(token, {
     return failure(FOUNDRY_TACTICAL_GRID_CODES.UNSUPPORTED_FOOTPRINT, "Token creature size is not supported by the configured footprint provider.");
   }
 
-  const represented = getFoundryTokenOccupiedGridSpaceFields(tokenDocument, {scene, grid});
+  const explicitPosition = position == null ? null : normalizeTokenFootprintPosition(position);
+  if ( position != null && !explicitPosition ) {
+    return failure(FOUNDRY_TACTICAL_GRID_CODES.UNRESOLVABLE_TOKEN, "Explicit Token footprint position requires finite x and y coordinates.");
+  }
+
+  const represented = getFoundryTokenOccupiedGridSpaceFields(tokenDocument, {scene, grid, position: explicitPosition});
   const anchorResult = resolveTokenAnchor({
     tokenDocument,
     scene,
@@ -704,7 +710,8 @@ export function foundryTokenToTokenGridFootprint(token, {
     effectiveSize: resolvedEffectiveSize,
     definition,
     footprintProvider,
-    explicitAnchor: anchor
+    explicitAnchor: anchor,
+    explicitPosition
   });
   if ( !anchorResult.ok ) return anchorResult;
 
@@ -766,14 +773,19 @@ export function foundryTokenToTokenGridFootprint(token, {
 
 /* -------------------------------------------- */
 
-export function compareFoundryTokenOccupiedSpaces(token, footprint, {scene=null, grid=null}={}) {
+export function compareFoundryTokenOccupiedSpaces(token, footprint, {scene=null, grid=null, position=null}={}) {
   const tokenDocument = resolveTokenDocument(token);
   if ( !tokenDocument ) return failure(FOUNDRY_TACTICAL_GRID_CODES.UNRESOLVABLE_TOKEN, "A TokenDocument or Token placeable is required.");
   const gridInfo = identifyFoundryGrid({scene, grid});
   if ( !gridInfo.ok ) return gridInfo;
   if ( gridInfo.gridless ) return failure(FOUNDRY_TACTICAL_GRID_CODES.GRIDLESS_UNSUPPORTED, "Gridless scenes do not expose tactical TokenGridFootprints.");
 
-  const represented = getFoundryTokenOccupiedGridSpaceFields(tokenDocument, {scene, grid});
+  const explicitPosition = position == null ? null : normalizeTokenFootprintPosition(position);
+  if ( position != null && !explicitPosition ) {
+    return failure(FOUNDRY_TACTICAL_GRID_CODES.UNRESOLVABLE_TOKEN, "Explicit Token occupancy position requires finite x and y coordinates.");
+  }
+
+  const represented = getFoundryTokenOccupiedGridSpaceFields(tokenDocument, {scene, grid, position: explicitPosition});
   if ( !represented.available ) {
     return {
       ok: false,
@@ -1029,10 +1041,15 @@ function resolveTokenAnchor({
   effectiveSize,
   definition,
   footprintProvider,
-  explicitAnchor
+  explicitAnchor,
+  explicitPosition
 }) {
   const candidates = [];
   if ( explicitAnchor ) candidates.push({source: "explicit", field: normalizeGridField(explicitAnchor, gridInfo.topology)});
+  if ( explicitPosition ) {
+    const positionField = foundryPointToGridField(explicitPosition, {scene, grid});
+    if ( positionField.ok ) candidates.push({source: "explicit-position", field: positionField.field});
+  }
 
   const explicitOffset = tokenDocument.gridOffset ?? tokenDocument.offset ?? tokenDocument.flags?.wildpath?.gridOffset;
   if ( explicitOffset ) {
@@ -1079,7 +1096,7 @@ function resolveTokenAnchor({
   };
 }
 
-function getFoundryTokenOccupiedGridSpaceFields(tokenDocument, {scene=null, grid=null}={}) {
+function getFoundryTokenOccupiedGridSpaceFields(tokenDocument, {scene=null, grid=null, position=null}={}) {
   if ( typeof tokenDocument?.getOccupiedGridSpaceOffsets !== "function" ) {
     return {
       available: false,
@@ -1088,7 +1105,9 @@ function getFoundryTokenOccupiedGridSpaceFields(tokenDocument, {scene=null, grid
     };
   }
   try {
-    const offsets = tokenDocument.getOccupiedGridSpaceOffsets() ?? [];
+    const offsets = position
+      ? tokenDocument.getOccupiedGridSpaceOffsets(clonePlain(position)) ?? []
+      : tokenDocument.getOccupiedGridSpaceOffsets() ?? [];
     const fields = [];
     for ( const offset of offsets ) {
       const converted = foundryOffsetToGridField(offset, {scene, grid});
@@ -1151,6 +1170,25 @@ function tokenPositionPoint(tokenDocument) {
   if ( x == null || y == null ) return null;
   const elevation = finiteNumber(tokenDocument.elevation);
   return elevation == null ? {x, y} : {x, y, elevation};
+}
+
+function normalizeTokenFootprintPosition(position) {
+  if ( !position || typeof position !== "object" ) return null;
+  const x = finiteNumber(position.x);
+  const y = finiteNumber(position.y);
+  if ( x == null || y == null ) return null;
+  const elevation = finiteNumber(position.elevation ?? position.z);
+  const width = finiteNumber(position.width);
+  const height = finiteNumber(position.height);
+  const depth = finiteNumber(position.depth);
+  return {
+    x,
+    y,
+    ...(elevation != null ? {elevation} : {}),
+    ...(width != null ? {width} : {}),
+    ...(height != null ? {height} : {}),
+    ...(depth != null ? {depth} : {})
+  };
 }
 
 function foundryVerticesForOffset(offset, grid) {

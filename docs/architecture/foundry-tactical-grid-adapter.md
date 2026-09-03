@@ -145,6 +145,13 @@ The adapter positions the supplied topology-aware offsets rather than assuming r
 `TokenDocument#getOccupiedGridSpaceOffsets()` is used only to compare Foundry's represented occupied
 spaces against WildPath's expected tactical footprint.
 
+By default, `tokenToFootprint(token)` queries the prepared/current Token state. Callers that are
+inside a Foundry lifecycle seam where prepared position can lag source data may pass
+`tokenToFootprint(token, {position})`. In that explicit-position mode the adapter uses the supplied
+Foundry position as the primary anchor candidate and calls
+`TokenDocument#getOccupiedGridSpaceOffsets(position)` so Foundry evaluates occupancy at that
+position and dimensions. The adapter does not mutate the Token or update its source.
+
 If the represented spaces match, the adapter can use them to choose the best anchor for the token's
 actual scene placement. If they differ, the adapter returns a structured `FOOTPRINT_MISMATCH`
 diagnostic and keeps the WildPath footprint definition intact. With `strictOccupancy: true`, the
@@ -239,6 +246,14 @@ Foundry remains responsible for token interaction, ruler/waypoint UI, canvas con
 Scene/Token persistence, Regions, and movement history. WildPath validates the resulting mechanical
 route with `MovementPath` and commits ordinary movement budget from the `moveToken` hook after the
 Token update workflow has concluded and `TokenMovementOperation.finished` resolves true.
+
+Live V14 QA showed that during `moveToken`, `document.x/y` and zero-argument
+`document.getOccupiedGridSpaceOffsets()` may still reflect the prepared pre-move position even after
+`movement.finished` resolves true, while `document.toObject(true)` exposes the updated underlying
+source position. Completion verification therefore reads `TokenDocument#toObject(true)`, extracts
+source `x`, `y`, `elevation`, `width`, `height`, and `depth` when present, and asks the TacticalGrid
+adapter to evaluate the full footprint at that explicit source position. `movement.destination`
+remains correlation/diagnostic data, not the authority for actual completed Token geometry.
 
 Foundry's own movement cost, distance, spaces, terrain, and pathfinding data are not mechanical
 authority for WildPath cost in this slice. A future terrain integration can feed Foundry terrain

@@ -552,7 +552,11 @@ export function createMultiplayerMovementAuthority({
     const documents = await resolveMovementCompletionDocuments({completion, game, tokenDocument});
     if ( !documents.ok ) return documents;
 
-    const destination = currentTokenAnchor({tokenDocument: documents.token, scene: documents.scene});
+    const destination = currentTokenAnchor({
+      tokenDocument: documents.token,
+      scene: documents.scene,
+      position: documents.sourcePosition ?? null
+    });
     if ( !destination.ok ) return destination;
     const expectedDestination = expectedMovementDestinationAnchor(record.approval);
     if ( !expectedDestination || !anchorsMatch(destination.anchor, expectedDestination, destination.topology) ) {

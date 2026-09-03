@@ -225,8 +225,11 @@ The active GM stores approval records keyed by Foundry movement id plus Scene/To
 normal active-GM play, completion is observed from Foundry's `moveToken` hook, not
 `TokenDocument#_onUpdateMovement`. V14 documents `moveToken` as firing after conclusion of the Token
 update workflow and on all connected clients after the update has been processed. At commit time the
-GM uses the hook's updated Token document as the local authoritative observation and confirms its
-actual anchor is the approved route destination. The committed movement cache makes duplicate
+GM uses the hook's updated Token document as the local authoritative observation, reads its
+underlying source values with `TokenDocument#toObject(true)`, evaluates the full Token footprint at
+that explicit source position through the TacticalGrid adapter, and confirms the resulting anchor is
+the approved route destination. This is intentionally stronger than comparing
+`TokenMovementOperation.destination` to the approval. The committed movement cache makes duplicate
 completion delivery idempotent.
 
 The `MOVEMENT_COMMIT` socket path remains available for explicit fallback/manual delivery. For

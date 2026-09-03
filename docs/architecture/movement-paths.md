@@ -216,14 +216,22 @@ Because `moveToken` fires on all clients, only the client that owns the approval
 selected authority commits. In normal active-GM play this is the active GM. The player observes the
 same hook but ignores completion because the selected authority is remote. The active GM correlates
 the observed completion to the approval record by movement id plus Scene/Token identity, uses the
-hook's updated Token document as the local authoritative observation for the current anchor, confirms
-that anchor matches the approved route destination, and only then commits the approved
+hook's updated Token document as the local authoritative observation, reads the underlying source
+state with `TokenDocument#toObject(true)`, evaluates the full Token footprint at that explicit source
+position through `TokenDocument#getOccupiedGridSpaceOffsets(position)`, confirms that anchor matches
+the approved route destination, and only then commits the approved
 `economy.movement` spend through `ResourceResolver` and `DocumentPersistencePort`. Duplicate
 observations for the same movement id are idempotent and do not spend twice, including concurrent
 completion delivery. The existing `MOVEMENT_COMMIT` socket path remains for explicit fallback/manual
 delivery and retains sender binding: client payload `sourceUserId` is treated as a claim and must
 match the envelope sender and the approved movement initiator before any document resolution or
 persistence work occurs.
+
+This source-position read is deliberately limited to completion verification. Live V14 QA showed
+that during `moveToken`, prepared `document.x/y` and zero-argument occupied-space queries may still
+describe the pre-move position, while `document.toObject(true)` contains the persisted destination.
+Ordinary TacticalGrid calls continue to use prepared Token state unless a caller provides an
+explicit position.
 
 Foundry's measured movement cost/distance/spaces are not used as WildPath mechanical cost in this
 slice. They remain useful future diagnostics or terrain/cost inputs, but WildPath cost currently
