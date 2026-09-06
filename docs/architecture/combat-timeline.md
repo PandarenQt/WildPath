@@ -23,18 +23,21 @@ Supported lifecycle events include:
 - turn start/end
 - rest start/complete
 
-Foundry combat hooks now begin adapting into this event shape through
-`module/helpers/combat.mjs`. The current adapters cover `combatStart`, `combatTurn`, combat end,
-and Actor rest completion; movement-region hooks remain a future slice.
+Foundry Combat integration adapts into this event shape through `module/helpers/combat.mjs` and
+`module/documents/combat.mjs`. Turn-start recovery and condition triggers use Foundry V14's managed
+post-update `Combat#_onStartTurn` workflow. The current adapters also cover combat end and Actor
+rest completion; movement-region hooks remain a future slice.
 The combat carousel should read the same timeline state rather than maintaining independent turn
 state.
 
-Turn-resource recovery belongs to these Combat lifecycle transitions. `combatStart` and
-`combatTurn` provide the Combat, incoming Combatant, semantic `turnStart` event, and active-GM
-commit authority required by `WildPathActor#startTurn()`. A bare Actor method call, Actor sheet
-button, macro-style manual reset, or non-GM client observation is not a valid turn recovery source.
-The recovery applies to `combatant.actor`, preserving synthetic/unlinked Token Actors instead of
-resolving through `game.actors`.
+Turn-resource recovery belongs to Foundry's managed Combat turn lifecycle. `WildPathCombat` is
+registered as `CONFIG.Combat.documentClass`; its `_onStartTurn(combatant, context)` override runs
+after the Combat document update on one designated GM user, receives the actual incoming Combatant,
+builds a semantic `turnStart` event from `context.round` and `context.turn`, and invokes
+`combatant.actor.startTurn(...)`. A bare Actor method call, Actor sheet button, macro-style manual
+reset, or non-GM client observation is not a valid turn recovery source. The recovery applies to
+`combatant.actor`, preserving synthetic/unlinked Token Actors instead of resolving through
+`game.actors`.
 
 ## Durations
 
@@ -76,19 +79,21 @@ resolvers should use the emitted events to plan and commit mutations through the
 and transaction layers.
 
 `EffectLifecycleResolver` now consumes this event shape to plan condition removals when committed
-duration metadata expires. `wildpath.mjs` supplies combat start/turn/end events on the active GM
-client, and `WildPathActor#rest()` supplies rest completion events for the resting Actor. Both paths
-commit resulting condition-removal plans through `EffectLifecycleCommitResolver`,
-`TargetMutationCommitResolver`, and `ResolutionTransaction`.
+duration metadata expires. `WildPathCombat#_onStartTurn()` supplies managed turn-start events for
+the incoming Combatant, `wildpath.mjs` supplies combat-end events, and `WildPathActor#rest()`
+supplies rest completion events for the resting Actor. These paths commit resulting
+condition-removal plans through `EffectLifecycleCommitResolver`, `TargetMutationCommitResolver`,
+and `ResolutionTransaction`.
 
 `ConditionTriggerResolver` also consumes turn-start events for condition Trigger RuleElements. The
 current representative implementation is Bleeding's turn-start durability damage. Legacy
 `system.dot` data is translated into synthetic Trigger RuleElements only as a temporary
 compatibility layer.
 
-Repeated observations of the same logical Combat turn recovery are suppressed by a transient
-per-Actor transition key so duplicate hooks or harness calls do not produce a second resource
-refresh or fake turn-start condition trigger.
+`combatStart` and `combatTurn` are Foundry initiating-client, pre-update hooks. They are not used
+for authoritative turn-resource recovery. Any remaining authoritative turn-end, round-start, or
+round-end mutation that needs those events should move to the corresponding managed Combat
+lifecycle method before production reliance.
 
 ## Future Consumers
 

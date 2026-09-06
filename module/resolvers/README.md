@@ -88,9 +88,9 @@ automation foundation needs, per `AGENTS.md` sections 4 and 8 and the architectu
   decisions or semantic decision events into maintained/broken/ignored results, turns failures
   into lifecycle break events for `EffectLifecycleCommitResolver`, and plans concentration check
   requests from adjusted damage plus supplied concentration state snapshots.
-- `wildpath.mjs` now adapts `combatStart` and `combatTurn` into semantic timeline events on the
-  active GM client, validates the incoming Combatant before recovering its Actor's turn resources,
-  and runs effect lifecycle commits for combatant Actors.
+- `WildPathCombat#_onStartTurn()` now adapts Foundry's managed post-update turn-start lifecycle
+  into semantic timeline events, recovers the incoming Combatant Actor's turn resources, and runs
+  effect lifecycle commits for that Actor.
 - `WildPathActor#toggleCondition` now enters `EffectResolver` before delegating Foundry document
   mutation to `WildPathConditionEffect.applyDelta`.
 - `WildPathActor#getStatistic(domain)` plus `WildPathStatistic`/`WildPathModifier` are the
@@ -145,7 +145,7 @@ execute those plans through the same target mutation authority and transaction p
 durability, target condition effects, and source payment commits now run through
 ResolutionTransaction. EffectLifecycleResolver can now turn committed duration/concentration
 metadata into condition removal plans, and EffectLifecycleCommitResolver can commit those plans
-from Foundry combat start/turn/end hook events and Actor rest completion. ConcentrationResolver can
+from Foundry managed turn-start, combat-end, and Actor rest-completion events. ConcentrationResolver can
 now feed failed concentration save decisions into that same lifecycle path, plan concentration check
 requests from adjusted damage, and resolve supplied check totals/outcomes into the same event shape.
 ConcentrationCheckCommitResolver now bridges those supplied check results into the lifecycle commit

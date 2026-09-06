@@ -48,10 +48,10 @@ Actors and explicit authority.
 - refuses mutation commits without explicit GM/authority data
 - batches committed condition removals through the existing transaction path
 
-`wildpath.mjs` currently adapts `combatStart` and `combatTurn` into semantic lifecycle events,
-guards execution to the active GM, validates the incoming Combatant before recovering turn
-resources on `combatant.actor`, and asks `EffectLifecycleCommitResolver` to remove expired
-condition effects.
+`WildPathCombat#_onStartTurn()` currently adapts Foundry's managed post-update turn-start
+lifecycle into a semantic `turnStart` event, recovers turn resources on `combatant.actor`, and asks
+`EffectLifecycleCommitResolver` to remove expired condition effects for that Actor. `wildpath.mjs`
+continues to adapt combat-end events.
 
 ## What It Does Not Do Yet
 
@@ -65,6 +65,6 @@ EffectLifecycleResolver does not:
 - apply generic non-condition ActiveEffects
 
 Those remain future resolver slices. The pure planner only converts already-known
-timeline/concentration events into explicit condition removal plans; the current Foundry hook
-adapter supplies combat start/turn events, and ConcentrationResolver supplies break events after a
+timeline/concentration events into explicit condition removal plans; the current Foundry Combat
+adapter supplies managed turn-start events, and ConcentrationResolver supplies break events after a
 concentration decision is already known.

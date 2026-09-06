@@ -97,6 +97,7 @@ Those should land as small effect slices. Conditions are first because they alre
 document implementation and give the rest of the system a concrete effect contract to build on.
 Save-based applicability belongs in `ActionResolver` after `SaveResolver` outcomes exist. Duration
 and concentration lifecycle enforcement belongs in effect lifecycle adapters rather than in
-condition data preparation or sheet rendering; the current Foundry adapter covers combat start/turn
-duration events, and the current ConcentrationResolver can feed failed already-known decisions into
-that lifecycle path.
+condition data preparation or sheet rendering; the current Foundry adapter covers managed
+turn-start duration events, and the current ConcentrationResolver can feed failed already-known
+decisions into that lifecycle path. Managed turn-end and round duration events remain follow-up
+Combat lifecycle work.

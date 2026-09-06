@@ -13,16 +13,13 @@ import WildPathConditionEffect from "./module/data/active-effect/condition.mjs";
 import WildPathActor from "./module/documents/actor.mjs";
 import WildPathItem from "./module/documents/item.mjs";
 import WildPathActiveEffect from "./module/documents/active-effect.mjs";
+import WildPathCombat from "./module/documents/combat.mjs";
 import WildPathTokenDocument from "./module/documents/token.mjs";
 
 import WildPathActorSheet from "./module/applications/actor-sheet.mjs";
 import WildPathItemSheet from "./module/applications/item-sheet.mjs";
 
-import {
-  getCombatEndLifecycleEvents,
-  getCombatLifecycleEvents,
-  getIncomingCombatant
-} from "./module/helpers/combat.mjs";
+import {getCombatEndLifecycleEvents} from "./module/helpers/combat.mjs";
 import {MOVEMENT_MEASUREMENT_MODES} from "./module/helpers/movement.mjs";
 import {executeEffectLifecycleCommit} from "./module/resolvers/effect-lifecycle-commit-resolver.mjs";
 import {
@@ -44,6 +41,7 @@ Hooks.once("init", () => {
   CONFIG.Actor.documentClass = WildPathActor;
   CONFIG.Item.documentClass = WildPathItem;
   CONFIG.ActiveEffect.documentClass = WildPathActiveEffect;
+  CONFIG.Combat.documentClass = WildPathCombat;
   CONFIG.Token.documentClass = WildPathTokenDocument;
 
   // Actor data models
@@ -131,52 +129,8 @@ Hooks.once("ready", () => {
 });
 
 /* -------------------------------------------- */
-/*  Combat Turn Hooks                            */
+/*  Combat Hooks                                 */
 /* -------------------------------------------- */
-
-/**
- * Recover the incoming combatant's "turn" resources (Action, Bonus Action, Reaction, Movement,
- * plus any custom pool sharing that cadence) from real Combat lifecycle events. Shared by
- * `combatTurn` and `combatStart` so the resolution logic (and the V14 quirk it works around, see
- * `getIncomingCombatant`) lives in exactly one place.
- *
- * V14 fires these hooks on the initiating client before the Combat update is committed. The
- * initiating user must be a GM for persistent resource recovery to run.
- * @param {Combat} combat
- * @param {object} updateData
- * @returns {Promise<void>}
- */
-async function onCombatTurnChange(combat, updateData, {hook="combatTurn"}={}) {
-  const authority = currentGMCommitAuthority();
-  if ( !authority.canCommit ) return;
-
-  const combatant = getIncomingCombatant(combat, updateData);
-  const events = getCombatLifecycleEvents(combat, updateData, {hook});
-  if ( !events.length ) return;
-
-  if ( combatant?.actor ) {
-    const turnRecovery = await combatant.actor.startTurn({
-      combat,
-      combatant,
-      events,
-      authority,
-      hook
-    });
-    if ( turnRecovery?.ok === false ) {
-      console.warn("Wild Path | Combat turn recovery rejected", turnRecovery);
-    }
-  }
-
-  const lifecycle = await executeEffectLifecycleCommit({
-    actors: combatActors(combat),
-    events,
-    authority,
-    metadata: {hook}
-  });
-  if ( !lifecycle.ok ) {
-    console.warn("Wild Path | Effect lifecycle commit failed", lifecycle);
-  }
-}
 
 async function onCombatEnd(combat) {
   const authority = currentGMCommitAuthority();
@@ -231,7 +185,5 @@ function collectionContents(collection) {
   return [];
 }
 
-Hooks.on("combatTurn", (combat, updateData) => onCombatTurnChange(combat, updateData, {hook: "combatTurn"}));
-Hooks.on("combatStart", (combat, updateData) => onCombatTurnChange(combat, updateData, {hook: "combatStart"}));
 Hooks.on("deleteCombat", combat => onCombatEnd(combat));
 Hooks.on("moveToken", (document, movement, operation, user) => onFoundryV14MoveToken(document, movement, operation, user));

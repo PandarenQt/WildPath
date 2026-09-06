@@ -5,16 +5,12 @@ import {
 
 export const TURN_RECOVERY_CODES = Object.freeze({
   OK: "OK",
-  ALREADY_PROCESSED: "TURN_RECOVERY_ALREADY_PROCESSED",
   MISSING_COMBAT: "TURN_RECOVERY_MISSING_COMBAT",
   MISSING_COMBATANT: "TURN_RECOVERY_MISSING_COMBATANT",
   COMBATANT_NOT_IN_COMBAT: "TURN_RECOVERY_COMBATANT_NOT_IN_COMBAT",
   ACTOR_NOT_INCOMING_COMBATANT: "TURN_RECOVERY_ACTOR_NOT_INCOMING_COMBATANT",
-  INVALID_LIFECYCLE: "TURN_RECOVERY_INVALID_LIFECYCLE",
-  COMMIT_NOT_AUTHORIZED: "TURN_RECOVERY_COMMIT_NOT_AUTHORIZED"
+  INVALID_LIFECYCLE: "TURN_RECOVERY_INVALID_LIFECYCLE"
 });
-
-const TURN_RECOVERY_HOOKS = new Set(["combatStart", "combatTurn"]);
 
 /**
  * Resolve the Combatant whose turn is beginning from a combat turn-change update.
@@ -101,6 +97,25 @@ export function getCombatLifecycleEvents(combat, updateData={}, {hook="combatTur
 /* -------------------------------------------- */
 
 /**
+ * Convert Foundry's managed Combat#_onStartTurn workflow into WildPath's semantic turn event.
+ *
+ * Unlike `getCombatLifecycleEvents`, this consumes post-update Combat state and the actual
+ * incoming Combatant supplied by Foundry's designated-GM lifecycle.
+ * @param {object} combat
+ * @param {object} combatant
+ * @param {object} context
+ * @returns {object[]}
+ */
+export function getCombatTurnStartLifecycleEvents(combat, combatant, context={}) {
+  if ( !combat || !combatant ) return [];
+  const round = normalizePositiveInteger(context?.round ?? combat.round, 1);
+  const turn = normalizeNonNegativeInteger(context?.turn ?? combat.turn, 0);
+  return [createCombatLifecycleEvent(TIMELINE_EVENT_TYPES.TURN_START, combat, combatant, {round, turn})];
+}
+
+/* -------------------------------------------- */
+
+/**
  * Convert a Combat deletion/end hook into a semantic combat-end lifecycle event.
  * @param {object} combat
  * @returns {object[]}
@@ -150,9 +165,9 @@ export function getRestLifecycleEvents({
 /* -------------------------------------------- */
 
 /**
- * Validate that turn-resource recovery is being requested by a real combat lifecycle transition.
- * This deliberately requires Combat, incoming Combatant, turn-start event, and active-GM commit
- * authority rather than accepting an arbitrary caller's "fromCombat" claim.
+ * Validate that turn-resource recovery is being requested from Foundry's managed Combat turn
+ * workflow. The production caller is WildPathCombat#_onStartTurn, which Foundry invokes after the
+ * Combat document update for the actual incoming Combatant on one designated GM client.
  * @param {object} options
  * @returns {object}
  */
@@ -161,35 +176,33 @@ export function validateTurnRecoveryContext({
   combat=null,
   combatant=null,
   events=[],
-  authority=null,
-  hook=null
+  context=null
 }={}) {
   if ( !combat ) return turnRecoveryFailure(TURN_RECOVERY_CODES.MISSING_COMBAT, "Turn recovery requires a Combat document context.");
   if ( !combatant ) return turnRecoveryFailure(TURN_RECOVERY_CODES.MISSING_COMBATANT, "Turn recovery requires the incoming Combatant.");
+  if ( !combatantBelongsToCombat(combat, combatant) ) {
+    return turnRecoveryFailure(TURN_RECOVERY_CODES.COMBATANT_NOT_IN_COMBAT, "Incoming Combatant is not embedded in the Combat document.");
+  }
   if ( !combatContainsCombatant(combat, combatant) ) {
     return turnRecoveryFailure(TURN_RECOVERY_CODES.COMBATANT_NOT_IN_COMBAT, "Incoming Combatant is not represented in the Combat context.");
   }
   if ( !actorMatchesCombatant(actor, combatant) ) {
     return turnRecoveryFailure(TURN_RECOVERY_CODES.ACTOR_NOT_INCOMING_COMBATANT, "Actor does not match the incoming Combatant.");
   }
-  if ( !TURN_RECOVERY_HOOKS.has(hook) ) {
-    return turnRecoveryFailure(TURN_RECOVERY_CODES.INVALID_LIFECYCLE, "Turn recovery must originate from combatStart or combatTurn.");
+  if ( !combatantIsCurrentTurn(combat, combatant) ) {
+    return turnRecoveryFailure(TURN_RECOVERY_CODES.INVALID_LIFECYCLE, "Incoming Combatant is not the Combat document's current turn.");
+  }
+  if ( !combatContextMatchesCombat(combat, context) ) {
+    return turnRecoveryFailure(TURN_RECOVERY_CODES.INVALID_LIFECYCLE, "Turn recovery context does not match the committed Combat round and turn.");
   }
   const turnStart = findTurnStartEventForActor({actor, combat, combatant, events});
   if ( !turnStart ) {
     return turnRecoveryFailure(TURN_RECOVERY_CODES.INVALID_LIFECYCLE, "Turn recovery requires a matching turnStart lifecycle event.");
   }
-  if ( !authority?.isGM || !authority.canCommit ) {
-    return turnRecoveryFailure(TURN_RECOVERY_CODES.COMMIT_NOT_AUTHORIZED, "Turn recovery requires active-GM commit authority.");
-  }
-  if ( authority.activeGMId && authority.userId && authority.activeGMId !== authority.userId ) {
-    return turnRecoveryFailure(TURN_RECOVERY_CODES.COMMIT_NOT_AUTHORIZED, "Only the active GM may commit turn recovery.");
-  }
 
   return {
     ok: true,
     code: TURN_RECOVERY_CODES.OK,
-    transitionKey: turnRecoveryTransitionKey({actor, combat, combatant, event: turnStart}),
     event: turnStart
   };
 }
@@ -203,9 +216,14 @@ function createCombatLifecycleEvent(type, combat, combatant, {round, turn}) {
     round,
     turn,
     combatantId: combatant?.id ?? combatant?._id ?? null,
-    actorId: combatant?.actorId ?? combatant?.actor?.id ?? null,
+    actorId: combatant?.actor?.id ?? combatant?.actorId ?? null,
     tokenId: combatant?.tokenId ?? combatant?.token?.id ?? null
   };
+}
+
+function combatantBelongsToCombat(combat, combatant) {
+  const parent = combatant?.parent ?? combatant?.combat ?? null;
+  return parent === combat;
 }
 
 function combatContainsCombatant(combat, combatant) {
@@ -248,6 +266,22 @@ function actorMatchesCombatant(actor, combatant) {
   return Boolean(actorId && combatant.actorId && actorId === combatant.actorId);
 }
 
+function combatantIsCurrentTurn(combat, combatant) {
+  const current = combat?.combatant ?? combat?.turns?.[combat?.turn] ?? null;
+  return combatantsMatch(current, combatant);
+}
+
+function combatContextMatchesCombat(combat, context) {
+  if ( !context || typeof context !== "object" ) return false;
+  const round = Number(context.round);
+  const turn = Number(context.turn);
+  if ( !Number.isInteger(round) || round < 1 ) return false;
+  if ( !Number.isInteger(turn) || turn < 0 ) return false;
+  if ( combat?.round != null && Number(combat.round) !== round ) return false;
+  if ( combat?.turn != null && Number(combat.turn) !== turn ) return false;
+  return true;
+}
+
 function findTurnStartEventForActor({actor, combat, combatant, events=[]}) {
   return collectionContents(events).find(event => {
     if ( event?.type !== TIMELINE_EVENT_TYPES.TURN_START ) return false;
@@ -258,18 +292,6 @@ function findTurnStartEventForActor({actor, combat, combatant, events=[]}) {
     if ( event.actorId && actorId && event.actorId !== actorId ) return false;
     return true;
   }) ?? null;
-}
-
-function turnRecoveryTransitionKey({actor, combat, combatant, event}) {
-  return [
-    "turn-recovery",
-    combat?.id ?? combat?._id ?? "combat:unknown",
-    event?.round ?? "round:unknown",
-    event?.turn ?? "turn:unknown",
-    event?.combatantId ?? combatant?.id ?? combatant?._id ?? "combatant:unknown",
-    event?.actorId ?? actor?.id ?? actor?._id ?? "actor:unknown",
-    event?.tokenId ?? combatant?.tokenId ?? combatant?.token?.id ?? "token:unknown"
-  ].map(String).join("|");
 }
 
 function turnRecoveryFailure(code, reason) {

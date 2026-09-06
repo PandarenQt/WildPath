@@ -237,28 +237,19 @@ export default class WildPathActor extends Actor {
   /**
    * Reset every resource pool flagged `recovery: "turn"` back to its maximum (Action, Bonus
    * Action, Reaction, Movement by default, plus any custom pool sharing that recovery cadence).
-   * This is only a Combat lifecycle operation; callers must provide the incoming Combatant,
-   * semantic combat events, and active-GM commit authority.
+   * This is only a managed Combat turn-start operation; callers must provide the committed
+   * Combat, incoming Combatant, Foundry turn context, and semantic turn-start events.
    * @returns {Promise<object>}
    */
-  async startTurn({combat=null, combatant=null, events=[], authority=null, hook=null}={}) {
+  async startTurn({combat=null, combatant=null, context=null, events=[]}={}) {
     const validation = validateTurnRecoveryContext({
       actor: this,
       combat,
       combatant,
-      events,
-      authority,
-      hook
+      context,
+      events
     });
     if ( !validation.ok ) return validation;
-    if ( hasProcessedTurnRecovery(this, validation.transitionKey) ) {
-      return {
-        ok: true,
-        code: TURN_RECOVERY_CODES.ALREADY_PROCESSED,
-        duplicate: true,
-        transitionKey: validation.transitionKey
-      };
-    }
 
     const updates = {};
     for ( const [id, resource] of Object.entries(this.system.resources) ) {
@@ -269,11 +260,9 @@ export default class WildPathActor extends Actor {
     });
     if ( !foundry.utils.isEmpty(updates) ) await this.update(updates);
     const triggers = await this.applyConditionTriggers({events});
-    markProcessedTurnRecovery(this, validation.transitionKey);
     return {
       ok: true,
       code: TURN_RECOVERY_CODES.OK,
-      transitionKey: validation.transitionKey,
       updates,
       triggers
     };
@@ -380,28 +369,6 @@ function actorLifecycleCommitAuthority(actor) {
     userId: user?.id ?? null,
     actorId: actor?.id ?? null
   };
-}
-
-function hasProcessedTurnRecovery(actor, key) {
-  return turnRecoveryKeys(actor).has(key);
-}
-
-function markProcessedTurnRecovery(actor, key) {
-  const keys = turnRecoveryKeys(actor);
-  keys.add(key);
-  if ( keys.size <= 100 ) return;
-  const [oldest] = keys;
-  keys.delete(oldest);
-}
-
-function turnRecoveryKeys(actor) {
-  if ( !actor._wildpathTurnRecoveryKeys ) {
-    Object.defineProperty(actor, "_wildpathTurnRecoveryKeys", {
-      value: new Set(),
-      configurable: true
-    });
-  }
-  return actor._wildpathTurnRecoveryKeys;
 }
 
 function collectRuleElementModifiers(ruleElements, {actor, domain, source, context={}}) {
