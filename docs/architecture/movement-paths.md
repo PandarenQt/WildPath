@@ -181,9 +181,12 @@ TokenDocument#_preUpdateMovement
 -> build plain MovementIntent
 -> active-GM authority over the existing system.wildpath transport
 -> authoritative Scene/Token/Actor reconstruction
+-> TokenDocument#toObject(true) source state and full origin footprint validation
 -> prepend the authoritative Token origin to the requested Foundry waypoints
 -> TokenDocument#getCompleteMovementPath()
--> FoundryV14TacticalGridAdapter point-to-field conversion
+-> merge each Foundry waypoint with the translation origin dimensions
+-> FoundryV14TacticalGridAdapter#tokenToFootprint(token, {position, size})
+-> canonical TokenGridFootprint anchor
 -> MovementPath anchors including origin
 -> evaluateMovementPath()
 -> approve or reject
@@ -205,10 +208,49 @@ MovementIntent also preserves Token footprint state supplied by Foundry (`width`
 `depth`, and `shape`) on origins, destinations, and relevant waypoints. That state is used for
 stale-state and completion verification; pixel coordinates still do not enter `MovementPath`.
 
+These representations have distinct responsibilities:
+
+| Representation | Responsibility |
+| --- | --- |
+| Foundry Token `x/y` | Infrastructure placement state |
+| `TokenGridFootprint` | Tactical occupied-space state |
+| `MovementPath` anchor | Canonical tactical route state |
+
+Locomotion must never assume a multi-field Token is a point. Neither `pointToField(intent.origin)`
+nor `pointToField(waypoint)` necessarily identifies its full-footprint anchor. One-field Tokens
+previously hid this mismatch because the two fields coincided. Every Token now uses the same path:
+
+```text
+Foundry waypoint
+-> complete Token spatial state
+-> TokenGridFootprint
+-> canonical anchor
+-> MovementPath
+```
+
+`tokenFootprintAtMovementState()` is the shared adapter helper for translation origins, waypoints,
+resize endpoints, and completion verification. Pure translation merges each waypoint with
+the authoritative origin state, preserving `elevation`, `width`, `height`, `depth`, and `shape` when
+omitted. An intermediate `{x, y}` waypoint cannot fall back to a Medium footprint. Explicit
+dimension changes in completed translation waypoints are rejected as `UNSUPPORTED_TOKEN_OPERATION`;
+mid-route resizing remains outside this contract. Size selection and occupied-space adaptation
+reuse the existing provider and TacticalGrid adapter without orientation or size-specific movement
+geometry.
+
+Large square footprints remain four fields, Large hex footprints three, and Huge hex footprints
+seven. Occupied field count affects spatial legality, never the locomotion cost multiplier. On a
+5-ft grid, one adjacent anchor transition costs 5 ft (`30 -> 25`) and two cost 10 ft (`30 -> 20`).
+
 Authority never trusts the client origin, route legality, affordability, or cost. The active GM
 re-resolves the current Scene, Token, Token Actor, Token anchor/footprint, movement resource, and
-grid scale before evaluating. If the client-observed origin no longer matches the authoritative
-Token anchor, the proposal is rejected.
+grid scale before evaluating. It reconstructs the client origin and authoritative source origin as
+full footprints, comparing topology, canonical anchor, canonical occupied-field sets, elevation,
+width, height, depth, and shape. Missing client dimensions that are present in the source also fail
+validation. Different pixel coordinates representing identical tactical state remain valid; stale
+position or dimensions return `ORIGIN_MISMATCH` before route evaluation or spending. Rejections
+carry plain client/authority states, anchors, field keys, and dimension mismatches through the
+approval response for diagnostics. An unavailable source read fails explicitly instead of falling
+back to prepared Token state.
 
 Movement route adjacency is not the same primitive as footprint connectivity. Square footprint
 connectivity and boundaries continue to use edge-adjacent fields, while square movement steps use
@@ -237,8 +279,8 @@ delivery and retains sender binding: client payload `sourceUserId` is treated as
 match the envelope sender and the approved movement initiator before any document resolution or
 persistence work occurs.
 
-This source-position read is deliberately limited to completion verification. Live V14 QA showed
-that during `moveToken`, prepared `document.x/y` and zero-argument occupied-space queries may still
+Source-position reads are used for origin authority as well as completion verification. Live V14 QA
+showed that during `moveToken`, prepared `document.x/y` and zero-argument occupied-space queries may still
 describe the pre-move position, while `document.toObject(true)` contains the persisted destination.
 Ordinary TacticalGrid calls continue to use prepared Token state unless a caller provides an
 explicit position.
@@ -270,7 +312,9 @@ The Foundry movement adapter translates:
 
 ```text
 Foundry Token movement proposal
--> GridField anchors
+-> complete Token spatial states
+-> TacticalGrid TokenGridFootprints
+-> canonical GridField anchors
 -> MovementPath
 -> authoritative WildPath validation/cost
 -> active-GM approval
@@ -279,3 +323,20 @@ Foundry Token movement proposal
 ```
 
 The pure domain remains the mechanical authority for ordered path semantics.
+
+## Regression Coverage And Live QA
+
+`test/foundry-token-movement-runtime.test.mjs` exercises the production Token lifecycle, serialized
+player-to-active-GM intent, real movement/TacticalGrid adapters, source completion, and payment. The
+hex contract fixture deliberately separates placement fields from occupied-space anchors and uses
+odd-row offset/cube conversion. All six directions are covered from both row parities. It models
+the documented occupied-space API contract, not Foundry's renderer or drag implementation.
+
+Coverage includes Medium square/hex, Large square/hex, Huge hex, dimensionless intermediate
+waypoints, stale origins/dimensions, source/prepared disagreement, duplicate completion, and
+resize followed by movement on a synthetic Token Actor. Pure resize remains zero-cost and mixed
+translation/resize remains unsupported.
+
+These Node regressions do not establish live production closure. Manual Foundry V14 QA must still
+verify Large hex one-step movement (`30 -> 25`), Large hex two-step movement (`30 -> 20`), and Large
+square one-step movement (`30 -> 25`).

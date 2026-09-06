@@ -291,29 +291,42 @@ export function foundryMovementIntentToMovementPath({
   const sceneContext = adapter.getSceneContext();
   if ( !sceneContext.ok ) return gridFailure(sceneContext);
 
-  const footprintResult = adapter.tokenToFootprint(token);
-  if ( !footprintResult.ok || !footprintResult.footprint ) return gridFailure(footprintResult);
-
   const sourceState = authoritativeTokenSourceState(token);
   if ( !sourceState.ok ) return sourceState;
+
+  const footprintResult = tokenFootprintAtMovementState({
+    adapter,
+    tokenDocument: token,
+    state: sourceState.state
+  });
+  if ( !footprintResult.ok ) return footprintResult;
 
   const originCheck = validateIntentOrigin({
     intent: sanitized,
     adapter,
-    tokenAnchor: footprintResult.anchor,
-    topology: footprintResult.topology,
-    authoritativeState: sourceState.state
+    tokenDocument: token,
+    origin: footprintResult,
+    sourceState: sourceState.state
   });
   if ( !originCheck.ok ) return originCheck;
 
   const complete = getCompleteFoundryMovementWaypoints({
     intent: sanitized,
-    tokenDocument: token
+    tokenDocument: token,
+    origin: sourceState.state
   });
   if ( !complete.ok ) return complete;
 
   const converted = complete.waypoints.map((waypoint, index) => {
-    const result = adapter.pointToField(waypoint);
+    // Foundry waypoints are Token placements, not tactical anchors. Pure translation
+    // retains the source dimensions even when intermediate waypoints contain only x/y.
+    const state = mergeTokenMovementState(sourceState.state, waypoint);
+    if ( !sameFootprintDimensions(state, sourceState.state) ) return {
+      ...failure(FOUNDRY_MOVEMENT_CODES.UNSUPPORTED_TOKEN_OPERATION,
+        "Combined Token translation and footprint resize is not yet supported by WildPath movement authority."),
+      index
+    };
+    const result = tokenFootprintAtMovementState({adapter, tokenDocument: token, state});
     if ( !result.ok ) return {
       ok: false,
       index,
@@ -321,17 +334,17 @@ export function foundryMovementIntentToMovementPath({
       reason: result.reason,
       waypoint
     };
-    return {ok: true, index, field: result.field};
+    return {ok: true, index, anchor: result.anchor};
   });
   const failed = converted.find(entry => !entry.ok);
   if ( failed ) return failure(
-    FOUNDRY_MOVEMENT_CODES.GRID_ADAPTER_FAILED,
-    failed.reason ?? "A Foundry movement waypoint could not be converted to a WildPath GridField.",
-    {code: failed.code, waypointIndex: failed.index}
+    failed.code ?? FOUNDRY_MOVEMENT_CODES.GRID_ADAPTER_FAILED,
+    failed.reason ?? "A Foundry movement waypoint could not be converted to a WildPath TokenGridFootprint.",
+    {waypointIndex: failed.index}
   );
 
   const anchors = dedupeAnchors(
-    [footprintResult.anchor, ...converted.map(entry => entry.field)],
+    [footprintResult.anchor, ...converted.map(entry => entry.anchor)],
     footprintResult.topology
   );
   const movementPath = createMovementPath({
@@ -404,6 +417,7 @@ export async function authorizeFoundryMovementIntent({
   if ( !translated.ok ) return movementApproval(false, {
     code: translated.code,
     reason: translated.reason,
+    diagnostics: translated.diagnostics,
     intent: documents.intent
   });
 
@@ -494,7 +508,7 @@ function authorizeFoundryTokenResizeIntent({documents={}}={}) {
     intent
   });
 
-  const originCheck = validateFootprintResizeOrigin({
+  const originCheck = validateIntentOrigin({
     intent,
     sourceState: sourceState.state,
     origin,
@@ -504,6 +518,7 @@ function authorizeFoundryTokenResizeIntent({documents={}}={}) {
   if ( !originCheck.ok ) return movementApproval(false, {
     code: originCheck.code,
     reason: originCheck.reason,
+    diagnostics: originCheck.diagnostics,
     intent,
     foundryOperation: intent.foundry?.tokenOperation ?? {type: FOUNDRY_TOKEN_OPERATION_TYPES.RESIZE}
   });
@@ -712,11 +727,12 @@ export function currentTokenAnchor({tokenDocument=null, scene=null, position=nul
   const token = resolveTokenDocument(tokenDocument);
   if ( !token ) return failure(FOUNDRY_MOVEMENT_CODES.TOKEN_NOT_FOUND, "A TokenDocument is required to resolve its current anchor.");
   const adapter = createFoundryV14TacticalGridAdapter({scene: scene ?? token.parent});
-  const footprint = adapter.tokenToFootprint(token, {
-    position,
-    size: creatureSizeForMovementState(position, token)
+  const footprint = tokenFootprintAtMovementState({
+    adapter,
+    tokenDocument: token,
+    state: position ?? tokenPositionState(token)
   });
-  if ( !footprint.ok || !footprint.footprint ) return gridFailure(footprint);
+  if ( !footprint.ok ) return footprint;
   return {
     ok: true,
     code: FOUNDRY_MOVEMENT_CODES.OK,
@@ -798,24 +814,13 @@ export function createMovementPaymentPlan({movementId=null, payment=null}={}) {
 /* -------------------------------------------- */
 
 function authoritativeTokenSourceState(tokenDocument=null) {
+  // Approval and completion must agree on persisted state even while prepared values lag.
   const source = tokenSourceFootprintPosition(tokenDocument);
-  if ( source.ok ) return {
+  if ( !source.ok ) return source;
+  return {
     ok: true,
     code: FOUNDRY_MOVEMENT_CODES.OK,
     state: source.position
-  };
-
-  const prepared = tokenPositionState(tokenDocument);
-  if ( prepared ) return {
-    ok: true,
-    code: FOUNDRY_MOVEMENT_CODES.OK,
-    state: prepared
-  };
-
-  return {
-    ok: false,
-    code: source.code ?? FOUNDRY_MOVEMENT_CODES.TOKEN_NOT_FOUND,
-    reason: source.reason ?? "Token source state could not be resolved."
   };
 }
 
@@ -842,10 +847,10 @@ function tokenFootprintAtMovementState({adapter=null, tokenDocument=null, state=
   };
 }
 
-function validateFootprintResizeOrigin({intent={}, sourceState=null, origin=null, adapter=null, tokenDocument=null}={}) {
+function validateIntentOrigin({intent={}, sourceState=null, origin=null, adapter=null, tokenDocument=null}={}) {
   if ( !intent.origin ) return failure(
     FOUNDRY_MOVEMENT_CODES.ORIGIN_MISMATCH,
-    "MovementIntent must include the client-observed origin so authority can detect stale resize proposals."
+    "MovementIntent must include the client-observed origin so authority can detect stale proposals."
   );
 
   const proposed = tokenFootprintAtMovementState({
@@ -856,29 +861,31 @@ function validateFootprintResizeOrigin({intent={}, sourceState=null, origin=null
   });
   if ( !proposed.ok ) return failure(
     FOUNDRY_MOVEMENT_CODES.ORIGIN_MISMATCH,
-    proposed.reason ?? "MovementIntent resize origin could not be converted to a TokenGridFootprint.",
-    {code: proposed.code}
+    proposed.reason ?? "MovementIntent origin could not be converted to a TokenGridFootprint.",
+    {adapterCode: proposed.code}
   );
 
-  if ( fieldKey(proposed.anchor, proposed.topology) !== fieldKey(origin.anchor, origin.topology) ) {
-    return failure(
-      FOUNDRY_MOVEMENT_CODES.ORIGIN_MISMATCH,
-      "MovementIntent origin does not match the authoritative Token origin.",
-      {
-        intentOrigin: proposed.anchor,
-        authoritativeOrigin: origin.anchor
-      }
-    );
-  }
-
+  const clientOriginFields = [...new Set(proposed.footprint.fieldKeys)].sort();
+  const authoritativeOriginFields = [...new Set(origin.footprint.fieldKeys)].sort();
   const dimensionCheck = compareMovementStateDimensions(intent.origin, sourceState);
-  if ( !dimensionCheck.matches ) return failure(
+  const sameFootprint = proposed.topology === origin.topology
+    && fieldKey(proposed.anchor, proposed.topology) === fieldKey(origin.anchor, origin.topology)
+    && JSON.stringify(clientOriginFields) === JSON.stringify(authoritativeOriginFields);
+  if ( !sameFootprint || !dimensionCheck.matches ) return failure(
     FOUNDRY_MOVEMENT_CODES.ORIGIN_MISMATCH,
     "MovementIntent origin footprint state does not match the authoritative Token source state.",
     {
-      mismatches: dimensionCheck.mismatches,
-      intentOrigin: plainTokenMovementState(intent.origin),
-      authoritativeOrigin: plainTokenMovementState(sourceState)
+      diagnostics: {
+        mismatches: dimensionCheck.mismatches,
+        clientOriginState: proposed.state,
+        clientOriginTopology: proposed.topology,
+        clientOriginAnchor: proposed.anchor,
+        clientOriginFields,
+        authoritativeOriginState: origin.state,
+        authoritativeOriginTopology: origin.topology,
+        authoritativeOriginAnchor: origin.anchor,
+        authoritativeOriginFields
+      }
     }
   );
 
@@ -955,12 +962,11 @@ function compareMovementStateDimensions(left, right) {
   const rightState = plainTokenMovementState(right);
   const mismatches = [];
   for ( const key of ["elevation", "width", "height", "depth", "shape"] ) {
-    if ( leftState?.[key] == null || rightState?.[key] == null ) continue;
-    if ( Number(leftState[key]) !== Number(rightState[key]) ) {
+    if ( (leftState?.[key] ?? null) !== (rightState?.[key] ?? null) ) {
       mismatches.push({
         field: key,
-        expected: leftState[key],
-        actual: rightState[key]
+        expected: leftState?.[key] ?? null,
+        actual: rightState?.[key] ?? null
       });
     }
   }
@@ -1017,7 +1023,7 @@ function normalizeCreatureSize(size) {
 
 /* -------------------------------------------- */
 
-function getCompleteFoundryMovementWaypoints({intent={}, tokenDocument=null}={}) {
+function getCompleteFoundryMovementWaypoints({intent={}, tokenDocument=null, origin=null}={}) {
   const token = resolveTokenDocument(tokenDocument);
   if ( typeof token?.getCompleteMovementPath !== "function" ) {
     return failure(
@@ -1029,7 +1035,6 @@ function getCompleteFoundryMovementWaypoints({intent={}, tokenDocument=null}={})
   const requested = normalizeMovementWaypoints(
     intent.waypoints?.length ? intent.waypoints : (intent.destination ? [intent.destination] : [])
   );
-  const origin = tokenPositionState(token) ?? intent.origin;
   if ( !requested.length ) return {
     ok: true,
     code: FOUNDRY_MOVEMENT_CODES.OK,
@@ -1057,38 +1062,6 @@ function getCompleteFoundryMovementWaypoints({intent={}, tokenDocument=null}={})
     code: FOUNDRY_MOVEMENT_CODES.OK,
     waypoints: origin ? prependPointIfDifferent(origin, completedWaypoints) : completedWaypoints
   };
-}
-
-function validateIntentOrigin({intent={}, adapter=null, tokenAnchor=null, topology=null, authoritativeState=null}={}) {
-  if ( !intent.origin ) return failure(
-    FOUNDRY_MOVEMENT_CODES.ORIGIN_MISMATCH,
-    "MovementIntent must include the client-observed origin so authority can detect stale proposals."
-  );
-  const originField = adapter.pointToField(intent.origin);
-  if ( !originField.ok ) return failure(
-    FOUNDRY_MOVEMENT_CODES.ORIGIN_MISMATCH,
-    originField.reason ?? "MovementIntent origin could not be converted to a GridField.",
-    {code: originField.code}
-  );
-  if ( fieldKey(originField.field, topology) !== fieldKey(tokenAnchor, topology) ) return failure(
-    FOUNDRY_MOVEMENT_CODES.ORIGIN_MISMATCH,
-    "MovementIntent origin does not match the authoritative Token origin.",
-    {
-      intentOrigin: originField.field,
-      authoritativeOrigin: tokenAnchor
-    }
-  );
-  const dimensionCheck = compareMovementStateDimensions(intent.origin, authoritativeState);
-  if ( !dimensionCheck.matches ) return failure(
-    FOUNDRY_MOVEMENT_CODES.ORIGIN_MISMATCH,
-    "MovementIntent origin footprint state does not match the authoritative Token source state.",
-    {
-      mismatches: dimensionCheck.mismatches,
-      intentOrigin: plainTokenMovementState(intent.origin),
-      authoritativeOrigin: plainTokenMovementState(authoritativeState)
-    }
-  );
-  return {ok: true, code: FOUNDRY_MOVEMENT_CODES.OK};
 }
 
 function movementBudgetForActor({actor=null, movementMode="walk", movementKind=MOVEMENT_KINDS.VOLUNTARY, measurementMode, grid=null}={}) {
@@ -1510,7 +1483,8 @@ function movementApproval(approved, {
   signature=null,
   payment=null,
   footprintTransition=null,
-  foundryOperation=null
+  foundryOperation=null,
+  diagnostics=null
 }={}) {
   const sanitizedIntent = intent ? sanitizeMovementIntent(intent) : null;
   const payload = {
@@ -1518,6 +1492,7 @@ function movementApproval(approved, {
     approved: approved === true,
     code,
     reason,
+    ...(diagnostics ? {diagnostics: clonePlain(diagnostics)} : {}),
     movementId: sanitizedIntent?.movementId ?? null,
     resolutionId: sanitizedIntent?.resolutionId ?? null,
     sceneRef: sanitizedIntent?.sceneRef ?? null,

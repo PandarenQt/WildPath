@@ -237,13 +237,22 @@ The Foundry movement adapter uses this TacticalGrid adapter as the only pixel-to
 ```text
 authoritative Token origin + TokenPreMovementOperation waypoints
 -> TokenDocument#getCompleteMovementPath()
--> FoundryV14TacticalGridAdapter#pointToField()
+-> each waypoint merged with the invariant translation-origin dimensions
+-> FoundryV14TacticalGridAdapter#tokenToFootprint(token, {position, size})
+-> canonical full-footprint anchor
 -> MovementPath anchors
 ```
 
 Foundry expands complete movement between waypoints supplied to `getCompleteMovementPath()`. The
 movement adapter therefore includes the authoritative Token origin in that input before conversion;
 it does not call Foundry with only a destination and prepend the origin afterward.
+
+The origin is read through `TokenDocument#toObject(true)`. Both client and authoritative origins
+are reconstructed as complete footprints and compared before route expansion. Token placement
+`x/y` is infrastructure state, not a tactical anchor: direct point conversion can disagree with
+the anchor selected from a multi-field Token's occupied spaces. Translation, resize, and completion
+share the movement adapter's `tokenFootprintAtMovementState()` helper. See
+[`movement-paths.md`](movement-paths.md) for the state/footprint/anchor invariant and regression scope.
 
 Foundry remains responsible for token interaction, ruler/waypoint UI, canvas constraints, animation,
 Scene/Token persistence, Regions, and movement history. WildPath validates the resulting mechanical
