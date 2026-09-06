@@ -8,6 +8,7 @@ import {
 import {
   CREATURE_SIZES,
   GRID_TOPOLOGIES,
+  createTokenGridFootprint,
   fieldKey
 } from "../module/helpers/grid-footprints.mjs";
 import {
@@ -20,12 +21,15 @@ import {createTestResolutionTransportHub} from "../module/adapters/test-resoluti
 import {createTestDocumentPersistenceAdapter} from "../module/adapters/test-persistence-adapter.mjs";
 import {
   FOUNDRY_GRID_TYPES,
-  FOUNDRY_HEX_OFFSET_VARIANTS
+  FOUNDRY_HEX_OFFSET_VARIANTS,
+  createFoundryV14TacticalGridAdapter
 } from "../module/adapters/foundry-v14-tactical-grid-adapter.mjs";
 import {
   FOUNDRY_MOVEMENT_CODES,
+  FOUNDRY_TOKEN_OPERATION_TYPES,
   buildFoundryMovementCompletion,
   buildFoundryMovementIntent,
+  classifyFoundryTokenOperation,
   foundryMovementIntentToMovementPath
 } from "../module/adapters/foundry-v14-movement-adapter.mjs";
 import {createMultiplayerMovementAuthority} from "../module/resolvers/multiplayer-movement-authority.mjs";
@@ -197,10 +201,16 @@ function fakeTokenDocument({
   scene,
   offset={i: 0, j: 0},
   size=actor?.system?.traits?.size ?? CREATURE_SIZES.MEDIUM,
+  width=null,
+  height=null,
+  depth=1,
+  shape=0,
   expandCompletePath=true,
   owners=["player-a"]
 }={}) {
   const gridUnits = tokenGridUnitsForSize(size);
+  const tokenWidth = width ?? gridUnits;
+  const tokenHeight = height ?? gridUnits;
   const token = Object.assign(new WildPathTokenDocument(), {
     documentName: "Token",
     id,
@@ -208,9 +218,10 @@ function fakeTokenDocument({
     parent: scene,
     actor,
     wildpathSize: size,
-    width: gridUnits,
-    height: gridUnits,
-    depth: gridUnits,
+    width: tokenWidth,
+    height: tokenHeight,
+    depth,
+    shape,
     elevation: 0,
     _source: {},
     _sourcePosition: null,
@@ -235,7 +246,8 @@ function fakeTokenDocument({
         elevation: this.elevation,
         width: this.width,
         height: this.height,
-        depth: this.depth
+        depth: this.depth,
+        shape: this.shape
       };
       this._source = JSON.parse(JSON.stringify(this._sourcePosition));
     },
@@ -248,7 +260,8 @@ function fakeTokenDocument({
             elevation: this.elevation,
             width: this.width,
             height: this.height,
-            depth: this.depth
+            depth: this.depth,
+            shape: this.shape
           };
       return JSON.parse(JSON.stringify({
         id: this.id,
@@ -257,17 +270,14 @@ function fakeTokenDocument({
       }));
     },
     getOccupiedGridSpaceOffsets(data=null) {
-      const position = explicitFoundryPosition(data) ? data : {x: this.x, y: this.y};
+      const position = explicitFoundryPosition(data) ? data : this;
       const base = scene.grid.getOffset(position);
-      if ( scene.grid.isSquare && size === CREATURE_SIZES.LARGE ) {
-        return [
-          base,
-          {i: base.i + 1, j: base.j},
-          {i: base.i, j: base.j + 1},
-          {i: base.i + 1, j: base.j + 1}
-        ];
-      }
-      return [base];
+      return occupiedOffsetsForTokenState({
+        grid: scene.grid,
+        offset: base,
+        state: position,
+        fallbackSize: size
+      });
     },
     getCompleteMovementPath(waypoints) {
       this.completePathCalls += 1;
@@ -407,6 +417,55 @@ function movementOperation(token, {id="movement-a", offsets=[{i: 1, j: 0}], kind
   };
 }
 
+function resizeOperation(token, {
+  id="resize-token",
+  origin=null,
+  destination=null,
+  finished=true
+}={}) {
+  const originState = origin ?? tokenStateForOffset(token, token.offset ?? token.parent.grid.getOffset(token));
+  const destinationState = destination ?? {
+    ...originState,
+    width: 2,
+    height: 2,
+    depth: 1,
+    shape: 0
+  };
+  return {
+    id,
+    method: "config",
+    origin: originState,
+    destination: destinationState,
+    constrained: false,
+    constrainOptions: {
+      ignoreWalls: true,
+      ignoreCost: true
+    },
+    passed: {
+      cost: 0,
+      distance: 0,
+      spaces: 0,
+      diagonals: 0,
+      waypoints: [{
+        ...destinationState,
+        cost: 0,
+        action: "displace",
+        explicit: true,
+        intermediate: false,
+        snapped: false
+      }]
+    },
+    pending: {
+      cost: 0,
+      distance: 0,
+      spaces: 0,
+      diagonals: 0,
+      waypoints: []
+    },
+    finished: Promise.resolve(finished)
+  };
+}
+
 function completeMovementPathForToken(token, waypoints, {expand=true}={}) {
   const grid = token.parent.grid;
   if ( !waypoints.length ) return [];
@@ -439,12 +498,31 @@ function pointForOffset(scene, offset) {
   };
 }
 
+function tokenStateForOffset(token, offset, dimensions={}) {
+  return {
+    ...pointForOffset(token.parent, offset),
+    elevation: dimensions.elevation ?? token.elevation ?? 0,
+    width: dimensions.width ?? token.width,
+    height: dimensions.height ?? token.height,
+    depth: dimensions.depth ?? token.depth,
+    shape: dimensions.shape ?? token.shape ?? 0
+  };
+}
+
 function anchorKeys(path) {
   return path.anchors.map(anchor => fieldKey(anchor, path.topology));
 }
 
 function moveTokenToOffset(token, offset) {
   token.setOffset(offset);
+}
+
+function resizeTokenSource(token, dimensions) {
+  token.width = dimensions.width ?? token.width;
+  token.height = dimensions.height ?? token.height;
+  token.depth = dimensions.depth ?? token.depth;
+  token.shape = dimensions.shape ?? token.shape;
+  token.setSourceOffset(token.offset ?? token.parent.grid.getOffset(token));
 }
 
 function observedTokenAtOffset(token, offset) {
@@ -483,6 +561,26 @@ function tokenGridUnitsForSize(size) {
     default:
       return 1;
   }
+}
+
+function occupiedOffsetsForTokenState({grid, offset, state, fallbackSize=CREATURE_SIZES.MEDIUM}) {
+  const topology = grid.isHexagonal ? GRID_TOPOLOGIES.HEX : GRID_TOPOLOGIES.SQUARE;
+  const size = creatureSizeForTokenState(state, fallbackSize);
+  const anchor = grid.isHexagonal
+    ? {q: offset.i, r: offset.j}
+    : {x: offset.i, y: offset.j};
+  const footprint = createTokenGridFootprint({size, topology, anchor});
+  return footprint.fields.map(field => grid.isHexagonal ? {i: field.q, j: field.r} : {i: field.x, j: field.y});
+}
+
+function creatureSizeForTokenState(state, fallbackSize=CREATURE_SIZES.MEDIUM) {
+  const width = Number(state?.width);
+  const height = Number(state?.height);
+  const maximum = Math.max(Number.isFinite(width) ? width : 0, Number.isFinite(height) ? height : 0);
+  if ( maximum >= 4 ) return CREATURE_SIZES.GARGANTUAN;
+  if ( maximum >= 3 ) return CREATURE_SIZES.HUGE;
+  if ( maximum >= 2 ) return CREATURE_SIZES.LARGE;
+  return fallbackSize;
 }
 
 async function runTokenDocumentOnUpdateMovement(fixture, {
@@ -702,6 +800,247 @@ test("fake Foundry complete path expands only between supplied waypoints", () =>
     pointForOffset(token.parent, {i: 1, j: 0}),
     destination
   ]);
+});
+
+test("raw Foundry movement serialization preserves Token footprint dimensions", () => {
+  const fixture = createMovementRuntimeFixture();
+  const {token} = fixture;
+  const movement = resizeOperation(token, {id: "resize-serialize"});
+  const built = buildFoundryMovementIntent({
+    tokenDocument: token,
+    movement,
+    user: PLAYER,
+    game: fixture.playerGame
+  });
+
+  assert.equal(built.ok, true);
+  assert.equal(built.intent.origin.width, 1);
+  assert.equal(built.intent.origin.height, 1);
+  assert.equal(built.intent.origin.depth, 1);
+  assert.equal(built.intent.origin.shape, 0);
+  assert.equal(built.intent.destination.width, 2);
+  assert.equal(built.intent.destination.height, 2);
+  assert.equal(built.intent.destination.depth, 1);
+  assert.equal(built.intent.destination.shape, 0);
+  assert.equal(built.intent.waypoints[0].action, "displace");
+  assert.equal(built.intent.waypoints[0].explicit, true);
+  assert.equal(built.intent.waypoints[0].intermediate, false);
+  assert.equal(built.intent.waypoints[0].snapped, false);
+  assert.equal(built.intent.waypoints[0].cost, 0);
+  assert.equal(isPlainSerializableData(built.intent), true);
+  assert.deepEqual(JSON.parse(JSON.stringify(built.intent)), built.intent);
+});
+
+test("live-shaped zero-cost config displace payload is classified as footprint resize", () => {
+  const fixture = createMovementRuntimeFixture();
+  const {token} = fixture;
+  const movement = resizeOperation(token, {id: "resize-classifier"});
+  const built = buildFoundryMovementIntent({
+    tokenDocument: token,
+    movement,
+    user: PLAYER,
+    game: fixture.playerGame
+  });
+  const classified = classifyFoundryTokenOperation({
+    movement,
+    origin: built.intent.origin,
+    destination: built.intent.destination,
+    waypoints: built.intent.waypoints
+  });
+
+  assert.equal(classified.type, FOUNDRY_TOKEN_OPERATION_TYPES.RESIZE);
+  assert.equal(classified.hasFootprintChange, true);
+  assert.equal(classified.hasTranslation, false);
+  assert.equal(built.intent.movementKind, MOVEMENT_KINDS.VOLUNTARY);
+  assert.equal(built.intent.foundry.tokenOperationType, FOUNDRY_TOKEN_OPERATION_TYPES.RESIZE);
+});
+
+test("square Token resize is approved through production movement and consumes no movement", async () => {
+  const fixture = createMovementRuntimeFixture();
+  const {actor, token, gmAuthority, persistence} = fixture;
+  const movement = resizeOperation(token, {id: "resize-square"});
+
+  await withFoundryGlobals(fixture, async () => {
+    const allowed = await token._preUpdateMovement(movement, {});
+    assert.notEqual(allowed, false);
+  });
+
+  const approval = [...gmAuthority.approvedMovements.values()][0].approval;
+  assert.equal(approval.footprintTransition.operationType, FOUNDRY_TOKEN_OPERATION_TYPES.RESIZE);
+  assert.equal(approval.payment.consumesBudget, false);
+  assert.equal(approval.payment.amount, 0);
+  assert.equal(approval.path, null);
+  assert.equal(approval.footprintTransition.destination.footprint.size, CREATURE_SIZES.LARGE);
+  assert.deepEqual(new Set(approval.footprintTransition.destination.footprint.fieldKeys), new Set([
+    "square:0,0",
+    "square:1,0",
+    "square:0,1",
+    "square:1,1"
+  ]));
+
+  resizeTokenSource(token, {width: 2, height: 2, depth: 1, shape: 0});
+  const committed = await fireMoveTokenHook(fixture, {
+    movement,
+    user: {...PLAYER, isSelf: false},
+    game: fixture.gmGame
+  });
+
+  assert.equal(committed.ok, true);
+  assert.equal(committed.committed, true);
+  assert.equal(committed.spent, false);
+  assert.equal(actor.system.resources.movement.value, 30);
+  assert.equal(persistence.operations.length, 0);
+});
+
+test("Token resize succeeds with nearly exhausted movement and does not refresh it", async () => {
+  const actor = fakeActor("nearly-exhausted", {movement: 5, maxMovement: 30});
+  const fixture = createMovementRuntimeFixture({actor});
+  const {token, persistence} = fixture;
+  const movement = resizeOperation(token, {id: "resize-nearly-exhausted"});
+
+  await withFoundryGlobals(fixture, async () => {
+    const allowed = await token._preUpdateMovement(movement, {});
+    assert.notEqual(allowed, false);
+  });
+  resizeTokenSource(token, {width: 2, height: 2, depth: 1, shape: 0});
+  const committed = await fireMoveTokenHook(fixture, {
+    movement,
+    user: {...PLAYER, isSelf: false},
+    game: fixture.gmGame
+  });
+
+  assert.equal(committed.ok, true);
+  assert.equal(committed.spent, false);
+  assert.equal(actor.system.resources.movement.value, 5);
+  assert.equal(persistence.operations.length, 0);
+});
+
+test("stale Token resize origin is rejected before payment or completion", async () => {
+  const fixture = createMovementRuntimeFixture();
+  const {actor, token, persistence} = fixture;
+  const origin = tokenStateForOffset(token, {i: 0, j: 0}, {width: 1, height: 1, depth: 1, shape: 0});
+  const movement = resizeOperation(token, {
+    id: "resize-stale-origin",
+    origin,
+    destination: {...origin, width: 2, height: 2}
+  });
+  resizeTokenSource(token, {width: 2, height: 2, depth: 1, shape: 0});
+
+  await withFoundryGlobals(fixture, async () => {
+    const allowed = await token._preUpdateMovement(movement, {});
+    assert.equal(allowed, false);
+  });
+
+  assert.equal(actor.system.resources.movement.value, 30);
+  assert.equal(persistence.operations.length, 0);
+  assert.equal(fixture.playerAuthority.errors.at(-1).approval.code, FOUNDRY_MOVEMENT_CODES.ORIGIN_MISMATCH);
+});
+
+test("hex Token resize uses the existing Large hex footprint provider and consumes no movement", async () => {
+  const fixture = createMovementRuntimeFixture({
+    grid: new FakeHexGrid()
+  });
+  const {actor, token, gmAuthority, persistence} = fixture;
+  const movement = resizeOperation(token, {id: "resize-hex"});
+
+  await withFoundryGlobals(fixture, async () => {
+    const allowed = await token._preUpdateMovement(movement, {});
+    assert.notEqual(allowed, false);
+  });
+
+  const approval = [...gmAuthority.approvedMovements.values()][0].approval;
+  assert.equal(approval.code, FOUNDRY_MOVEMENT_CODES.OK);
+  assert.equal(approval.footprintTransition.destination.footprint.topology, GRID_TOPOLOGIES.HEX);
+  assert.equal(approval.footprintTransition.destination.footprint.size, CREATURE_SIZES.LARGE);
+  assert.equal(approval.footprintTransition.destination.footprint.fields.length, 3);
+  assert.equal(
+    approval.footprintTransition.destination.footprint.fieldKeys.every(key => key.startsWith("hex:")),
+    true
+  );
+
+  resizeTokenSource(token, {width: 2, height: 2, depth: 1, shape: 0});
+  const committed = await fireMoveTokenHook(fixture, {
+    movement,
+    user: {...PLAYER, isSelf: false},
+    game: fixture.gmGame
+  });
+  const actualFootprint = createFoundryV14TacticalGridAdapter({scene: token.parent}).tokenToFootprint(token);
+
+  assert.equal(committed.ok, true);
+  assert.equal(committed.spent, false);
+  assert.equal(actor.system.resources.movement.value, 30);
+  assert.equal(persistence.operations.length, 0);
+  assert.equal(actualFootprint.footprint.size, CREATURE_SIZES.LARGE);
+  assert.equal(actualFootprint.footprint.fields.length, 3);
+});
+
+test("config position changes with unchanged dimensions remain translation movement", async () => {
+  const fixture = createMovementRuntimeFixture();
+  const {token, gmAuthority} = fixture;
+  const movement = movementOperation(token, {
+    id: "move-config-position",
+    offsets: [{i: 1, j: 0}]
+  });
+  movement.method = "config";
+  movement.constrainOptions = {ignoreCost: true};
+
+  const built = buildFoundryMovementIntent({
+    tokenDocument: token,
+    movement,
+    user: PLAYER,
+    game: fixture.playerGame
+  });
+  assert.equal(built.intent.foundry.tokenOperationType, FOUNDRY_TOKEN_OPERATION_TYPES.TRANSLATION);
+
+  await withFoundryGlobals(fixture, async () => {
+    const allowed = await token._preUpdateMovement(movement, {});
+    assert.notEqual(allowed, false);
+  });
+
+  const approval = [...gmAuthority.approvedMovements.values()][0].approval;
+  assert.equal(approval.path.type, "MovementPath");
+  assert.equal(approval.payment.consumesBudget, true);
+  assert.equal(approval.evaluation.cost.amount, 5);
+});
+
+test("combined translation and resize is distinguished and explicitly rejected", async () => {
+  const fixture = createMovementRuntimeFixture();
+  const {actor, token, persistence} = fixture;
+  const origin = tokenStateForOffset(token, {i: 0, j: 0}, {width: 1, height: 1, depth: 1, shape: 0});
+  const destination = tokenStateForOffset(token, {i: 1, j: 0}, {width: 2, height: 2, depth: 1, shape: 0});
+  const movement = resizeOperation(token, {
+    id: "resize-and-translate",
+    origin,
+    destination
+  });
+  movement.passed.cost = 5;
+  movement.passed.distance = 5;
+  movement.passed.spaces = 1;
+  movement.passed.waypoints = [{
+    ...destination,
+    cost: 5,
+    action: "move",
+    explicit: true,
+    intermediate: false,
+    snapped: false
+  }];
+
+  const built = buildFoundryMovementIntent({
+    tokenDocument: token,
+    movement,
+    user: PLAYER,
+    game: fixture.playerGame
+  });
+  assert.equal(built.intent.foundry.tokenOperationType, FOUNDRY_TOKEN_OPERATION_TYPES.TRANSLATION_RESIZE);
+
+  await withFoundryGlobals(fixture, async () => {
+    const allowed = await token._preUpdateMovement(movement, {});
+    assert.equal(allowed, false);
+  });
+
+  assert.equal(actor.system.resources.movement.value, 30);
+  assert.equal(persistence.operations.length, 0);
+  assert.equal(fixture.playerAuthority.errors.at(-1).approval.code, FOUNDRY_MOVEMENT_CODES.UNSUPPORTED_TOKEN_OPERATION);
 });
 
 test("10-ft orthogonal drag with one raw endpoint expands through the authoritative origin", async () => {

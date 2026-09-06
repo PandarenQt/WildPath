@@ -127,12 +127,15 @@ effective creature size
 ```
 
 The adapter translates Foundry token placement into the anchor field, then calls
-`createTokenGridFootprint()`. It does not infer D&D/house-rule creature size from Foundry token
-`width`, `height`, art scale, or bounding rectangles.
+`createTokenGridFootprint()`. Foundry token `width`/`height` values greater than one grid unit may
+select the matching broad creature-size category for the existing footprint provider, so a 2x2
+Token resolves as Large. The adapter still does not use pixel bounds, art scale, or rectangular
+canvas geometry as the mechanical footprint.
 
-The default size resolver reads an explicit WildPath/token/actor size if present and otherwise
-defaults to Medium. Future effective-size logic should be supplied by rules/application code through
-the `sizeResolver` option or a domain provider.
+The default size resolver reads multi-grid-unit Token dimensions first, then explicit
+WildPath/token/actor size, and otherwise defaults to Medium. Small, Tiny, and other house-rule
+effective-size logic should be supplied by rules/application code through the `sizeResolver` option
+or a domain provider.
 
 Tiny shared-field semantics remain in `CreatureFootprintProvider` through `creaturesPerField`; the
 adapter does not force Tiny tokens to be exclusive occupants.
@@ -251,9 +254,15 @@ Live V14 QA showed that during `moveToken`, `document.x/y` and zero-argument
 `document.getOccupiedGridSpaceOffsets()` may still reflect the prepared pre-move position even after
 `movement.finished` resolves true, while `document.toObject(true)` exposes the updated underlying
 source position. Completion verification therefore reads `TokenDocument#toObject(true)`, extracts
-source `x`, `y`, `elevation`, `width`, `height`, and `depth` when present, and asks the TacticalGrid
-adapter to evaluate the full footprint at that explicit source position. `movement.destination`
-remains correlation/diagnostic data, not the authority for actual completed Token geometry.
+source `x`, `y`, `elevation`, `width`, `height`, `depth`, and `shape` when present, and asks the
+TacticalGrid adapter to evaluate the full footprint at that explicit source position.
+`movement.destination` remains correlation/diagnostic data, not the authority for actual completed
+Token geometry.
+
+Foundry also routes pure Token footprint changes through the Token movement lifecycle. The movement
+adapter preserves those same dimension fields in plain intent/completion data and asks this adapter
+to resolve the origin and destination footprint states. A Large hex resize therefore uses
+WildPath's Large hex footprint definition, not a square 2x2 field rectangle.
 
 Foundry's own movement cost, distance, spaces, terrain, and pathfinding data are not mechanical
 authority for WildPath cost in this slice. A future terrain integration can feed Foundry terrain

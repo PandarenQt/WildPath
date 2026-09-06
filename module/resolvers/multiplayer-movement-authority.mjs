@@ -21,6 +21,7 @@ import {
   createMovementPaymentPlan,
   currentTokenAnchor,
   expectedMovementDestinationAnchor,
+  expectedMovementDestinationState,
   movementKey,
   movementResolutionId,
   resolveMovementCompletionDocuments,
@@ -570,6 +571,22 @@ export function createMultiplayerMovementAuthority({
         }
       );
     }
+    const expectedState = expectedMovementDestinationState(record.approval);
+    const stateCheck = expectedState
+      ? movementDestinationStateMatches(documents.sourcePosition, expectedState)
+      : {matches: true, mismatches: []};
+    if ( !stateCheck.matches ) {
+      return failure(
+        FOUNDRY_MOVEMENT_CODES.DESTINATION_MISMATCH,
+        "Completed Token footprint state does not match the approved resize destination.",
+        {
+          movementId: completion.movementId,
+          mismatches: stateCheck.mismatches,
+          expectedDestination: expectedState,
+          actualDestination: documents.sourcePosition
+        }
+      );
+    }
 
     const paymentPlan = createMovementPaymentPlan({
       movementId: completion.movementId,
@@ -812,6 +829,24 @@ function isMovementMessageType(type) {
 function anchorsMatch(left, right, topology) {
   if ( !left || !right ) return false;
   return fieldKey(left, topology) === fieldKey(right, topology);
+}
+
+function movementDestinationStateMatches(actual=null, expected=null) {
+  const mismatches = [];
+  for ( const field of ["x", "y", "elevation", "width", "height", "depth", "shape"] ) {
+    if ( expected?.[field] == null ) continue;
+    if ( actual?.[field] == null || Number(actual[field]) !== Number(expected[field]) ) {
+      mismatches.push({
+        field,
+        expected: expected[field],
+        actual: actual?.[field] ?? null
+      });
+    }
+  }
+  return {
+    matches: mismatches.length === 0,
+    mismatches
+  };
 }
 
 function failure(code, reason=null, data={}) {

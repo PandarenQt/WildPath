@@ -42,7 +42,8 @@ finished game system name is **WildPath**.
   vertical slice: normal TokenDocument movement proposals become plain MovementIntents, the active
   GM reconstructs Scene/Token/Actor state and evaluates a MovementPath, rejected routes stop before
   movement, and successful completions commit ordinary movement budget exactly once through
-  ResourceResolver.
+  ResourceResolver. Pure Token footprint resize operations are classified separately, validated by
+  authoritative source/destination footprint state, and committed with zero movement spend.
 - Tactical grid and area topology are implemented as pure domain foundations: gridded AoE resolves
   to authoritative `GridFootprint` field sets rather than Euclidean templates pretending to be
   tactical geometry. `module/adapters/foundry-v14-tactical-grid-adapter.mjs` now provides the first

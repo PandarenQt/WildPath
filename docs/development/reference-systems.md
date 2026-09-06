@@ -147,6 +147,10 @@ Official Foundry V14 documentation confirms the platform assumptions used here:
 - `TokenDocument#getOccupiedGridSpaceOffsets(data?)` accepts an optional position plus Token
   dimensions. Zero-argument calls use the prepared/current Token state; explicit data evaluates the
   requested position.
+- V14 Token movement position/segment data includes Token footprint fields such as `width`,
+  `height`, `depth`, and `shape`, plus waypoint metadata such as `action`, `explicit`,
+  `intermediate`, `snapped`, and `cost`. WildPath preserves those fields in plain intent/completion
+  payloads so pure footprint resize is not confused with budgeted locomotion.
 - `TokenDocument#_onUpdateMovement()` is protected movement update post-processing and is not the
   authoritative settled completion seam for WildPath budget accounting.
 - `moveToken` fires after conclusion of the Token update workflow and on all connected clients after
@@ -165,6 +169,7 @@ Primary sources:
 - https://foundryvtt.com/api/v14/functions/hookEvents.preMoveToken.html
 - https://foundryvtt.com/api/v14/interfaces/foundry.documents.types.TokenPreMovementOperation.html
 - https://foundryvtt.com/api/v14/interfaces/foundry.documents.types.TokenMovementOperation.html
+- https://foundryvtt.com/api/v14/interfaces/foundry.documents.types.TokenMovementSegmentData.html
 - https://foundryvtt.com/api/v14/classes/foundry.canvas.placeables.Token.html
 - https://github.com/foundryvtt/crucible/blob/master/crucible.mjs
 - https://github.com/foundryvtt/crucible/blob/master/module/documents/token.mjs

@@ -16,6 +16,8 @@ Implemented:
 - distinct route validity, route cost, and affordability results.
 - Foundry Token movement vertical slice implemented through the V14 TokenDocument pre-movement
   lifecycle, `moveToken` observation, active-GM authority, and post-movement budget commit.
+- Foundry Token footprint resize operations are distinguished from locomotion and validated as
+  zero-spend footprint transitions.
 
 Deferred:
 
@@ -133,6 +135,11 @@ movement.
 `movementMode` remains an identity such as `walk`, `fly`, `swim`, `climb`, `burrow`, or `teleport`.
 The generic path helper does not hardcode terrain or medium-specific rules for those modes.
 
+Foundry Token operation semantics are separate from these domain movement kinds. A V14 Token update
+can be a translation, a footprint resize, or a combined translation plus footprint transition. The
+Foundry adapter records that infrastructure classification in MovementIntent metadata; it does not
+add `resize` as a WildPath `movementKind`.
+
 ## Policy Seams
 
 `evaluateMovementPath()` accepts pure runtime policies:
@@ -194,6 +201,9 @@ supplies `[authoritative origin, ...requested waypoints]` to Foundry before conv
 The MovementIntent may carry Foundry x/y waypoint data because that is the client proposal. That
 data stops at `module/adapters/foundry-v14-movement-adapter.mjs`. The resulting `MovementPath`
 contains only topology anchors, footprint definition, movement kind/mode, and plain metadata.
+MovementIntent also preserves Token footprint state supplied by Foundry (`width`, `height`,
+`depth`, and `shape`) on origins, destinations, and relevant waypoints. That state is used for
+stale-state and completion verification; pixel coordinates still do not enter `MovementPath`.
 
 Authority never trusts the client origin, route legality, affordability, or cost. The active GM
 re-resolves the current Scene, Token, Token Actor, Token anchor/footprint, movement resource, and
@@ -232,6 +242,20 @@ that during `moveToken`, prepared `document.x/y` and zero-argument occupied-spac
 describe the pre-move position, while `document.toObject(true)` contains the persisted destination.
 Ordinary TacticalGrid calls continue to use prepared Token state unless a caller provides an
 explicit position.
+
+Pure Token footprint resize follows the same Foundry lifecycle, but it does not become a
+MovementPath. The adapter classifies a zero-cost V14 footprint change, such as a `config`
+`displace` operation from 1x1 to 2x2, as a Foundry `resize` operation. The active GM verifies that
+the authoritative Token source state still matches the proposed origin state, resolves the proposed
+destination through the TacticalGrid adapter and the existing creature footprint provider, approves
+with `consumesBudget: false`, and verifies the completed source state before marking the operation
+committed. No `economy.movement` resource mutation is planned for pure resize, including when the
+Actor has little or no movement remaining.
+
+Combined translation plus footprint transition is represented distinctly as
+`translation-resize`, but is not yet mechanically resolved. The current slice rejects that operation
+with a structured unsupported-operation code rather than treating the resize as free movement or
+charging the footprint change as travel.
 
 Foundry's measured movement cost/distance/spaces are not used as WildPath mechanical cost in this
 slice. They remain useful future diagnostics or terrain/cost inputs, but WildPath cost currently

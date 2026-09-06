@@ -17,7 +17,10 @@ import {
   createMovementPath,
   evaluateMovementPath
 } from "../helpers/movement-paths.mjs";
-import {fieldKey} from "../helpers/grid-footprints.mjs";
+import {
+  CREATURE_SIZES,
+  fieldKey
+} from "../helpers/grid-footprints.mjs";
 import {
   MULTIPLAYER_AUTHORITY_CODES,
   clonePlainData,
@@ -43,7 +46,14 @@ export const FOUNDRY_MOVEMENT_CODES = Object.freeze({
   ORIGIN_MISMATCH: "ORIGIN_MISMATCH",
   DESTINATION_MISMATCH: "DESTINATION_MISMATCH",
   GRID_ADAPTER_FAILED: "GRID_ADAPTER_FAILED",
+  UNSUPPORTED_TOKEN_OPERATION: "UNSUPPORTED_TOKEN_OPERATION",
   NON_SERIALIZABLE_MOVEMENT: MULTIPLAYER_AUTHORITY_CODES.NON_SERIALIZABLE_MESSAGE
+});
+
+export const FOUNDRY_TOKEN_OPERATION_TYPES = Object.freeze({
+  TRANSLATION: "translation",
+  RESIZE: "resize",
+  TRANSLATION_RESIZE: "translation-resize"
 });
 
 /* -------------------------------------------- */
@@ -76,9 +86,17 @@ export function buildFoundryMovementIntent({
   );
   const scene = token.parent ?? game?.canvas?.scene ?? game?.scenes?.viewed ?? null;
   const actor = token.actor ?? null;
+  const tokenState = tokenPositionState(token);
   const waypoints = foundryMovementWaypoints(movement);
-  const origin = plainMovementPoint(movement?.origin) ?? tokenPositionPoint(token);
-  const destination = plainMovementPoint(movement?.destination) ?? waypoints.at(-1) ?? origin;
+  const origin = mergeTokenMovementState(tokenState, plainTokenMovementState(movement?.origin)) ?? tokenState;
+  const destination = mergeTokenMovementState(origin, plainTokenMovementState(movement?.destination) ?? waypoints.at(-1)) ?? origin;
+  const tokenOperation = classifyFoundryTokenOperation({
+    movement,
+    operation,
+    origin,
+    destination,
+    waypoints
+  });
 
   const intent = {
     type: "MovementIntent",
@@ -97,6 +115,8 @@ export function buildFoundryMovementIntent({
     waypoints: clonePlain(waypoints),
     foundry: {
       method: stringOrNull(movement?.method ?? operation?.movement?.method ?? operation?.method),
+      tokenOperationType: tokenOperation.type,
+      tokenOperation,
       subpathId: stringOrNull(movement?.subpathId ?? operation?.subpathId),
       chain: movement?.chain === true || operation?.chain === true,
       constrained: movement?.constrained === true || operation?.constrained === true,
@@ -140,8 +160,17 @@ export function buildFoundryMovementCompletion({
   const sourceUserId = stringOrNull(user?.id ?? operation?.userId ?? game?.user?.id ?? game?.userId);
   const scene = token.parent ?? game?.canvas?.scene ?? game?.scenes?.viewed ?? null;
   const actor = token.actor ?? null;
+  const tokenState = tokenPositionState(token);
   const waypoints = foundryMovementWaypoints(movement);
-  const destination = plainMovementPoint(movement?.destination) ?? tokenPositionPoint(token) ?? waypoints.at(-1) ?? null;
+  const origin = mergeTokenMovementState(tokenState, plainTokenMovementState(movement?.origin)) ?? tokenState;
+  const destination = mergeTokenMovementState(origin, plainTokenMovementState(movement?.destination) ?? tokenPositionState(token) ?? waypoints.at(-1)) ?? null;
+  const tokenOperation = classifyFoundryTokenOperation({
+    movement,
+    operation,
+    origin,
+    destination,
+    waypoints
+  });
 
   const completion = {
     type: "MovementCompletion",
@@ -157,6 +186,8 @@ export function buildFoundryMovementCompletion({
     waypoints: clonePlain(waypoints),
     foundry: {
       method: stringOrNull(movement?.method ?? operation?.movement?.method ?? operation?.method),
+      tokenOperationType: tokenOperation.type,
+      tokenOperation,
       subpathId: stringOrNull(movement?.subpathId ?? operation?.subpathId),
       chain: movement?.chain === true || operation?.chain === true,
       completed: true
@@ -191,8 +222,8 @@ export function sanitizeMovementIntent(intent={}) {
     sourceUserId: stringOrNull(data.sourceUserId ?? data.userId),
     movementKind: normalizeMovementKind(data.movementKind),
     movementMode: stringOrNull(data.movementMode) ?? "walk",
-    origin: plainMovementPoint(data.origin),
-    destination: plainMovementPoint(data.destination),
+    origin: plainTokenMovementState(data.origin),
+    destination: plainTokenMovementState(data.destination),
     waypoints: normalizeMovementWaypoints(data.waypoints),
     foundry: clonePlain(data.foundry ?? {}),
     metadata: clonePlain(data.metadata ?? {})
@@ -212,7 +243,7 @@ export function sanitizeMovementCompletion(completion={}) {
     tokenRef: normalizeEntityRef(data.tokenRef),
     actorRef: normalizeEntityRef(data.actorRef),
     sourceUserId: stringOrNull(data.sourceUserId ?? data.userId),
-    destination: plainMovementPoint(data.destination),
+    destination: plainTokenMovementState(data.destination),
     waypoints: normalizeMovementWaypoints(data.waypoints),
     foundry: clonePlain(data.foundry ?? {}),
     metadata: clonePlain(data.metadata ?? {})
@@ -230,7 +261,8 @@ export async function resolveFoundryMovementDocuments({intent={}, game=globalThi
   if ( !token ) return failure(FOUNDRY_MOVEMENT_CODES.TOKEN_NOT_FOUND, "MovementIntent tokenRef could not be resolved on the authoritative Scene.");
 
   const actor = token.actor ?? null;
-  if ( !actor && sanitized.movementKind === MOVEMENT_KINDS.VOLUNTARY ) {
+  const operationType = foundryTokenOperationTypeFromIntent(sanitized);
+  if ( !actor && sanitized.movementKind === MOVEMENT_KINDS.VOLUNTARY && operationType === FOUNDRY_TOKEN_OPERATION_TYPES.TRANSLATION ) {
     return failure(FOUNDRY_MOVEMENT_CODES.ACTOR_NOT_FOUND, "Voluntary Token movement requires the moving Token Actor.");
   }
 
@@ -262,11 +294,15 @@ export function foundryMovementIntentToMovementPath({
   const footprintResult = adapter.tokenToFootprint(token);
   if ( !footprintResult.ok || !footprintResult.footprint ) return gridFailure(footprintResult);
 
+  const sourceState = authoritativeTokenSourceState(token);
+  if ( !sourceState.ok ) return sourceState;
+
   const originCheck = validateIntentOrigin({
     intent: sanitized,
     adapter,
     tokenAnchor: footprintResult.anchor,
-    topology: footprintResult.topology
+    topology: footprintResult.topology,
+    authoritativeState: sourceState.state
   });
   if ( !originCheck.ok ) return originCheck;
 
@@ -345,6 +381,21 @@ export async function authorizeFoundryMovementIntent({
     intent: sanitizeMovementIntent(intent)
   });
 
+  const operationType = foundryTokenOperationTypeFromIntent(documents.intent);
+  if ( operationType === FOUNDRY_TOKEN_OPERATION_TYPES.RESIZE ) {
+    return authorizeFoundryTokenResizeIntent({
+      documents
+    });
+  }
+  if ( operationType === FOUNDRY_TOKEN_OPERATION_TYPES.TRANSLATION_RESIZE ) {
+    return movementApproval(false, {
+      code: FOUNDRY_MOVEMENT_CODES.UNSUPPORTED_TOKEN_OPERATION,
+      reason: "Combined Token translation and footprint resize is not yet supported by WildPath movement authority.",
+      intent: documents.intent,
+      foundryOperation: documents.intent.foundry?.tokenOperation ?? {type: operationType}
+    });
+  }
+
   const translated = foundryMovementIntentToMovementPath({
     intent: documents.intent,
     tokenDocument: documents.token,
@@ -414,6 +465,92 @@ export async function authorizeFoundryMovementIntent({
   });
 }
 
+function authorizeFoundryTokenResizeIntent({documents={}}={}) {
+  const intent = documents.intent ?? sanitizeMovementIntent();
+  const adapter = createFoundryV14TacticalGridAdapter({scene: documents.scene});
+  const sceneContext = adapter.getSceneContext();
+  if ( !sceneContext.ok ) return movementApproval(false, {
+    code: FOUNDRY_MOVEMENT_CODES.GRID_ADAPTER_FAILED,
+    reason: sceneContext.reason,
+    intent
+  });
+
+  const sourceState = authoritativeTokenSourceState(documents.token);
+  if ( !sourceState.ok ) return movementApproval(false, {
+    code: sourceState.code,
+    reason: sourceState.reason,
+    intent
+  });
+
+  const origin = tokenFootprintAtMovementState({
+    adapter,
+    tokenDocument: documents.token,
+    state: sourceState.state,
+    fallbackSize: creatureSizeForMovementState(intent.origin, documents.token)
+  });
+  if ( !origin.ok ) return movementApproval(false, {
+    code: origin.code,
+    reason: origin.reason,
+    intent
+  });
+
+  const originCheck = validateFootprintResizeOrigin({
+    intent,
+    sourceState: sourceState.state,
+    origin,
+    adapter,
+    tokenDocument: documents.token
+  });
+  if ( !originCheck.ok ) return movementApproval(false, {
+    code: originCheck.code,
+    reason: originCheck.reason,
+    intent,
+    foundryOperation: intent.foundry?.tokenOperation ?? {type: FOUNDRY_TOKEN_OPERATION_TYPES.RESIZE}
+  });
+
+  const destination = tokenFootprintAtMovementState({
+    adapter,
+    tokenDocument: documents.token,
+    state: intent.destination,
+    fallbackSize: creatureSizeForMovementState(intent.destination, documents.token)
+  });
+  if ( !destination.ok ) return movementApproval(false, {
+    code: destination.code,
+    reason: destination.reason,
+    intent
+  });
+
+  const transition = {
+    type: "TokenFootprintTransition",
+    operationType: FOUNDRY_TOKEN_OPERATION_TYPES.RESIZE,
+    origin: resizeEndpoint({
+      state: sourceState.state,
+      footprintResult: origin
+    }),
+    destination: resizeEndpoint({
+      state: intent.destination,
+      footprintResult: destination
+    }),
+    consumesBudget: false,
+    amount: 0
+  };
+  const evaluation = createResizeEvaluation({
+    intent,
+    transition,
+    sceneContext: sceneContext.context
+  });
+
+  return movementApproval(true, {
+    code: FOUNDRY_MOVEMENT_CODES.OK,
+    intent,
+    evaluation,
+    signature: movementFootprintTransitionSignature({intent, transition}),
+    payment: movementPaymentFromEvaluation(evaluation),
+    footprintTransition: transition,
+    foundryOperation: intent.foundry?.tokenOperation ?? {type: FOUNDRY_TOKEN_OPERATION_TYPES.RESIZE}
+  });
+}
+
 /* -------------------------------------------- */
 
 export function movementPathSignature({intent={}, path={}}={}) {
@@ -428,6 +565,30 @@ export function movementPathSignature({intent={}, path={}}={}) {
     movementKind: sanitized.movementKind,
     movementMode: sanitized.movementMode,
     anchors
+  });
+}
+
+export function movementFootprintTransitionSignature({intent={}, transition=null}={}) {
+  const sanitized = sanitizeMovementIntent(intent);
+  return stableStringify({
+    movementId: sanitized.movementId,
+    sceneRef: sanitized.sceneRef?.ref ?? sanitized.sceneRef?.id ?? null,
+    tokenRef: sanitized.tokenRef?.ref ?? sanitized.tokenRef?.id ?? null,
+    actorRef: sanitized.actorRef?.ref ?? sanitized.actorRef?.id ?? null,
+    sourceUserId: sanitized.sourceUserId,
+    foundryOperationType: transition?.operationType ?? foundryTokenOperationTypeFromIntent(sanitized),
+    origin: transition?.origin ? {
+      state: transition.origin.state,
+      anchor: transition.origin.anchor,
+      size: transition.origin.footprint?.size ?? null,
+      fieldKeys: transition.origin.footprint?.fieldKeys ?? []
+    } : null,
+    destination: transition?.destination ? {
+      state: transition.destination.state,
+      anchor: transition.destination.anchor,
+      size: transition.destination.footprint?.size ?? null,
+      fieldKeys: transition.destination.footprint?.fieldKeys ?? []
+    } : null
   });
 }
 
@@ -499,7 +660,10 @@ export async function resolveMovementCompletionDocuments({completion={}, game=gl
   const token = resolveTokenRef(sanitized.tokenRef, {scene});
   if ( !token ) return failure(FOUNDRY_MOVEMENT_CODES.TOKEN_NOT_FOUND, "MovementCompletion tokenRef could not be resolved on the authoritative Scene.");
   const actor = token.actor ?? null;
-  if ( !actor ) return failure(FOUNDRY_MOVEMENT_CODES.ACTOR_NOT_FOUND, "MovementCompletion Token Actor could not be resolved.");
+  const operationType = foundryTokenOperationTypeFromIntent(sanitized);
+  if ( !actor && operationType !== FOUNDRY_TOKEN_OPERATION_TYPES.RESIZE ) {
+    return failure(FOUNDRY_MOVEMENT_CODES.ACTOR_NOT_FOUND, "MovementCompletion Token Actor could not be resolved.");
+  }
   const sourcePosition = tokenSourceFootprintPosition(token);
   if ( !sourcePosition.ok ) return sourcePosition;
   return {
@@ -527,7 +691,10 @@ async function resolveObservedMovementCompletionDocuments({completion={}, tokenD
   }
 
   const actor = token.actor ?? null;
-  if ( !actor ) return failure(FOUNDRY_MOVEMENT_CODES.ACTOR_NOT_FOUND, "Observed moveToken Actor could not be resolved.");
+  const operationType = foundryTokenOperationTypeFromIntent(completion);
+  if ( !actor && operationType !== FOUNDRY_TOKEN_OPERATION_TYPES.RESIZE ) {
+    return failure(FOUNDRY_MOVEMENT_CODES.ACTOR_NOT_FOUND, "Observed moveToken Actor could not be resolved.");
+  }
   const sourcePosition = tokenSourceFootprintPosition(token);
   if ( !sourcePosition.ok ) return sourcePosition;
   return {
@@ -545,7 +712,10 @@ export function currentTokenAnchor({tokenDocument=null, scene=null, position=nul
   const token = resolveTokenDocument(tokenDocument);
   if ( !token ) return failure(FOUNDRY_MOVEMENT_CODES.TOKEN_NOT_FOUND, "A TokenDocument is required to resolve its current anchor.");
   const adapter = createFoundryV14TacticalGridAdapter({scene: scene ?? token.parent});
-  const footprint = adapter.tokenToFootprint(token, {position});
+  const footprint = adapter.tokenToFootprint(token, {
+    position,
+    size: creatureSizeForMovementState(position, token)
+  });
   if ( !footprint.ok || !footprint.footprint ) return gridFailure(footprint);
   return {
     ok: true,
@@ -589,8 +759,14 @@ export function tokenSourceFootprintPosition(tokenDocument=null) {
 }
 
 export function expectedMovementDestinationAnchor(approval={}) {
+  const transitionAnchor = approval?.footprintTransition?.destination?.anchor;
+  if ( transitionAnchor ) return transitionAnchor;
   const path = approval.path ?? approval.evaluation?.path ?? null;
   return path?.anchors?.length ? path.anchors[path.anchors.length - 1] : null;
+}
+
+export function expectedMovementDestinationState(approval={}) {
+  return plainTokenMovementState(approval?.footprintTransition?.destination?.state);
 }
 
 export function createMovementPaymentPlan({movementId=null, payment=null}={}) {
@@ -621,6 +797,226 @@ export function createMovementPaymentPlan({movementId=null, payment=null}={}) {
 
 /* -------------------------------------------- */
 
+function authoritativeTokenSourceState(tokenDocument=null) {
+  const source = tokenSourceFootprintPosition(tokenDocument);
+  if ( source.ok ) return {
+    ok: true,
+    code: FOUNDRY_MOVEMENT_CODES.OK,
+    state: source.position
+  };
+
+  const prepared = tokenPositionState(tokenDocument);
+  if ( prepared ) return {
+    ok: true,
+    code: FOUNDRY_MOVEMENT_CODES.OK,
+    state: prepared
+  };
+
+  return {
+    ok: false,
+    code: source.code ?? FOUNDRY_MOVEMENT_CODES.TOKEN_NOT_FOUND,
+    reason: source.reason ?? "Token source state could not be resolved."
+  };
+}
+
+function tokenFootprintAtMovementState({adapter=null, tokenDocument=null, state=null, fallbackSize=null}={}) {
+  const normalizedState = plainTokenMovementState(state);
+  if ( !normalizedState ) return failure(
+    FOUNDRY_MOVEMENT_CODES.INVALID_INTENT,
+    "Token footprint state requires finite x and y values."
+  );
+  const footprint = adapter?.tokenToFootprint?.(tokenDocument, {
+    position: normalizedState,
+    size: creatureSizeForMovementState(normalizedState, tokenDocument, fallbackSize)
+  });
+  if ( !footprint?.ok || !footprint.footprint ) return gridFailure(footprint);
+  return {
+    ok: true,
+    code: FOUNDRY_MOVEMENT_CODES.OK,
+    state: normalizedState,
+    anchor: footprint.anchor,
+    topology: footprint.topology,
+    footprint: footprint.footprint,
+    representedFields: footprint.representedFields ?? [],
+    diagnostics: footprint.diagnostics ?? []
+  };
+}
+
+function validateFootprintResizeOrigin({intent={}, sourceState=null, origin=null, adapter=null, tokenDocument=null}={}) {
+  if ( !intent.origin ) return failure(
+    FOUNDRY_MOVEMENT_CODES.ORIGIN_MISMATCH,
+    "MovementIntent must include the client-observed origin so authority can detect stale resize proposals."
+  );
+
+  const proposed = tokenFootprintAtMovementState({
+    adapter,
+    tokenDocument,
+    state: intent.origin,
+    fallbackSize: creatureSizeForMovementState(sourceState, tokenDocument)
+  });
+  if ( !proposed.ok ) return failure(
+    FOUNDRY_MOVEMENT_CODES.ORIGIN_MISMATCH,
+    proposed.reason ?? "MovementIntent resize origin could not be converted to a TokenGridFootprint.",
+    {code: proposed.code}
+  );
+
+  if ( fieldKey(proposed.anchor, proposed.topology) !== fieldKey(origin.anchor, origin.topology) ) {
+    return failure(
+      FOUNDRY_MOVEMENT_CODES.ORIGIN_MISMATCH,
+      "MovementIntent origin does not match the authoritative Token origin.",
+      {
+        intentOrigin: proposed.anchor,
+        authoritativeOrigin: origin.anchor
+      }
+    );
+  }
+
+  const dimensionCheck = compareMovementStateDimensions(intent.origin, sourceState);
+  if ( !dimensionCheck.matches ) return failure(
+    FOUNDRY_MOVEMENT_CODES.ORIGIN_MISMATCH,
+    "MovementIntent origin footprint state does not match the authoritative Token source state.",
+    {
+      mismatches: dimensionCheck.mismatches,
+      intentOrigin: plainTokenMovementState(intent.origin),
+      authoritativeOrigin: plainTokenMovementState(sourceState)
+    }
+  );
+
+  return {ok: true, code: FOUNDRY_MOVEMENT_CODES.OK};
+}
+
+function resizeEndpoint({state=null, footprintResult=null}={}) {
+  return clonePlain({
+    state: plainTokenMovementState(state),
+    anchor: footprintResult?.anchor ?? null,
+    topology: footprintResult?.topology ?? null,
+    footprint: footprintResult?.footprint ?? null,
+    representedFields: footprintResult?.representedFields ?? [],
+    diagnostics: footprintResult?.diagnostics ?? []
+  });
+}
+
+function createResizeEvaluation({intent={}, transition=null, sceneContext=null}={}) {
+  return clonePlain({
+    ok: true,
+    code: FOUNDRY_MOVEMENT_CODES.OK,
+    valid: true,
+    path: null,
+    footprints: [
+      transition?.origin?.footprint,
+      transition?.destination?.footprint
+    ].filter(Boolean),
+    transitions: [{
+      type: "footprint-resize",
+      operationType: FOUNDRY_TOKEN_OPERATION_TYPES.RESIZE,
+      origin: transition?.origin?.anchor ?? null,
+      destination: transition?.destination?.anchor ?? null,
+      adjacent: null,
+      cost: {
+        amount: 0,
+        unit: null,
+        consumesBudget: false
+      }
+    }],
+    routeCost: {
+      ok: true,
+      amount: 0,
+      unit: null,
+      consumesBudget: false
+    },
+    cost: {
+      ok: true,
+      code: "NO_MOVEMENT_BUDGET_CONSUMPTION",
+      amount: 0,
+      unit: null,
+      consumesBudget: false,
+      movementKind: intent.movementKind
+    },
+    budget: null,
+    spend: {
+      ok: true,
+      code: "NO_MOVEMENT_BUDGET_CONSUMPTION",
+      budget: null
+    },
+    affordable: true,
+    failures: [],
+    trace: {
+      movementKind: intent.movementKind,
+      movementMode: intent.movementMode,
+      measurementMode: null,
+      foundryOperationType: FOUNDRY_TOKEN_OPERATION_TYPES.RESIZE
+    },
+    grid: sceneContext?.grid ?? null
+  });
+}
+
+function compareMovementStateDimensions(left, right) {
+  const leftState = plainTokenMovementState(left);
+  const rightState = plainTokenMovementState(right);
+  const mismatches = [];
+  for ( const key of ["elevation", "width", "height", "depth", "shape"] ) {
+    if ( leftState?.[key] == null || rightState?.[key] == null ) continue;
+    if ( Number(leftState[key]) !== Number(rightState[key]) ) {
+      mismatches.push({
+        field: key,
+        expected: leftState[key],
+        actual: rightState[key]
+      });
+    }
+  }
+  return {
+    matches: mismatches.length === 0,
+    mismatches
+  };
+}
+
+function foundryTokenOperationTypeFromIntent(intent={}) {
+  return normalizeFoundryTokenOperationType(
+    intent?.foundry?.tokenOperationType
+    ?? intent?.foundry?.tokenOperation?.type
+    ?? intent?.tokenOperationType
+  );
+}
+
+function normalizeFoundryTokenOperationType(type) {
+  const value = stringOrNull(type) ?? FOUNDRY_TOKEN_OPERATION_TYPES.TRANSLATION;
+  return Object.values(FOUNDRY_TOKEN_OPERATION_TYPES).includes(value)
+    ? value
+    : FOUNDRY_TOKEN_OPERATION_TYPES.TRANSLATION;
+}
+
+function creatureSizeForMovementState(state=null, tokenDocument=null, fallbackSize=null) {
+  return creatureSizeFromTokenDimensions(state)
+    ?? normalizeCreatureSize(fallbackSize)
+    ?? defaultTokenCreatureSize(tokenDocument)
+    ?? CREATURE_SIZES.MEDIUM;
+}
+
+function defaultTokenCreatureSize(tokenDocument=null) {
+  return normalizeCreatureSize(tokenDocument?.wildpathSize)
+    ?? normalizeCreatureSize(tokenDocument?.actor?.system?.traits?.size)
+    ?? normalizeCreatureSize(tokenDocument?.actor?.system?.details?.size)
+    ?? normalizeCreatureSize(tokenDocument?.actor?.system?.size)
+    ?? null;
+}
+
+function creatureSizeFromTokenDimensions(state=null) {
+  const width = finiteNumber(state?.width);
+  const height = finiteNumber(state?.height);
+  const maximum = Math.max(width ?? 0, height ?? 0);
+  if ( maximum >= 4 ) return CREATURE_SIZES.GARGANTUAN;
+  if ( maximum >= 3 ) return CREATURE_SIZES.HUGE;
+  if ( maximum >= 2 ) return CREATURE_SIZES.LARGE;
+  return null;
+}
+
+function normalizeCreatureSize(size) {
+  const value = stringOrNull(size)?.toLowerCase();
+  return Object.values(CREATURE_SIZES).includes(value) ? value : null;
+}
+
+/* -------------------------------------------- */
+
 function getCompleteFoundryMovementWaypoints({intent={}, tokenDocument=null}={}) {
   const token = resolveTokenDocument(tokenDocument);
   if ( typeof token?.getCompleteMovementPath !== "function" ) {
@@ -633,7 +1029,7 @@ function getCompleteFoundryMovementWaypoints({intent={}, tokenDocument=null}={})
   const requested = normalizeMovementWaypoints(
     intent.waypoints?.length ? intent.waypoints : (intent.destination ? [intent.destination] : [])
   );
-  const origin = tokenPositionPoint(token) ?? intent.origin;
+  const origin = tokenPositionState(token) ?? intent.origin;
   if ( !requested.length ) return {
     ok: true,
     code: FOUNDRY_MOVEMENT_CODES.OK,
@@ -663,7 +1059,7 @@ function getCompleteFoundryMovementWaypoints({intent={}, tokenDocument=null}={})
   };
 }
 
-function validateIntentOrigin({intent={}, adapter=null, tokenAnchor=null, topology=null}={}) {
+function validateIntentOrigin({intent={}, adapter=null, tokenAnchor=null, topology=null, authoritativeState=null}={}) {
   if ( !intent.origin ) return failure(
     FOUNDRY_MOVEMENT_CODES.ORIGIN_MISMATCH,
     "MovementIntent must include the client-observed origin so authority can detect stale proposals."
@@ -680,6 +1076,16 @@ function validateIntentOrigin({intent={}, adapter=null, tokenAnchor=null, topolo
     {
       intentOrigin: originField.field,
       authoritativeOrigin: tokenAnchor
+    }
+  );
+  const dimensionCheck = compareMovementStateDimensions(intent.origin, authoritativeState);
+  if ( !dimensionCheck.matches ) return failure(
+    FOUNDRY_MOVEMENT_CODES.ORIGIN_MISMATCH,
+    "MovementIntent origin footprint state does not match the authoritative Token source state.",
+    {
+      mismatches: dimensionCheck.mismatches,
+      intentOrigin: plainTokenMovementState(intent.origin),
+      authoritativeOrigin: plainTokenMovementState(authoritativeState)
     }
   );
   return {ok: true, code: FOUNDRY_MOVEMENT_CODES.OK};
@@ -761,58 +1167,172 @@ function normalizeMovementWaypoints(value) {
 }
 
 function plainMovementWaypoint(value, index=0) {
-  const point = plainMovementPoint(value);
-  if ( !point ) return null;
+  const state = plainTokenMovementState(value);
+  if ( !state ) return null;
   const action = stringOrNull(value?.action);
+  const cost = finiteNumber(value?.cost);
   return {
-    ...point,
+    ...state,
     index,
-    ...(action ? {action} : {})
+    ...(action ? {action} : {}),
+    ...(typeof value?.explicit === "boolean" ? {explicit: value.explicit} : {}),
+    ...(typeof value?.intermediate === "boolean" ? {intermediate: value.intermediate} : {}),
+    ...(typeof value?.snapped === "boolean" ? {snapped: value.snapped} : {}),
+    ...(typeof value?.teleport === "boolean" ? {teleport: value.teleport} : {}),
+    ...(cost != null ? {cost} : {})
   };
 }
 
-function plainMovementPoint(value) {
+function plainTokenMovementState(value) {
   if ( !value || typeof value !== "object" ) return null;
   const x = finiteNumber(value.x ?? value.position?.x);
   const y = finiteNumber(value.y ?? value.position?.y);
   if ( x == null || y == null ) return null;
   const elevation = finiteNumber(value.elevation ?? value.z ?? value.position?.elevation);
-  return {
-    x,
-    y,
-    ...(elevation != null ? {elevation} : {})
-  };
-}
-
-function plainTokenFootprintPosition(value) {
-  if ( !value || typeof value !== "object" ) return null;
-  const x = finiteNumber(value.x);
-  const y = finiteNumber(value.y);
-  if ( x == null || y == null ) return null;
-  const elevation = finiteNumber(value.elevation ?? value.z);
-  const width = finiteNumber(value.width);
-  const height = finiteNumber(value.height);
-  const depth = finiteNumber(value.depth);
+  const width = finiteNumber(value.width ?? value.position?.width);
+  const height = finiteNumber(value.height ?? value.position?.height);
+  const depth = finiteNumber(value.depth ?? value.position?.depth);
+  const shape = finiteNumber(value.shape ?? value.position?.shape);
   return {
     x,
     y,
     ...(elevation != null ? {elevation} : {}),
     ...(width != null ? {width} : {}),
     ...(height != null ? {height} : {}),
-    ...(depth != null ? {depth} : {})
+    ...(depth != null ? {depth} : {}),
+    ...(shape != null ? {shape} : {})
   };
 }
 
-function tokenPositionPoint(token) {
+function plainTokenFootprintPosition(value) {
+  return plainTokenMovementState(value);
+}
+
+function tokenPositionState(token) {
   const x = finiteNumber(token?.x ?? token?._source?.x ?? token?.object?.x);
   const y = finiteNumber(token?.y ?? token?._source?.y ?? token?.object?.y);
   if ( x == null || y == null ) return null;
   const elevation = finiteNumber(token?.elevation ?? token?._source?.elevation ?? token?.object?.elevation);
+  const width = finiteNumber(token?.width ?? token?._source?.width ?? token?.object?.width);
+  const height = finiteNumber(token?.height ?? token?._source?.height ?? token?.object?.height);
+  const depth = finiteNumber(token?.depth ?? token?._source?.depth ?? token?.object?.depth);
+  const shape = finiteNumber(token?.shape ?? token?._source?.shape ?? token?.object?.shape);
   return {
     x,
     y,
-    ...(elevation != null ? {elevation} : {})
+    ...(elevation != null ? {elevation} : {}),
+    ...(width != null ? {width} : {}),
+    ...(height != null ? {height} : {}),
+    ...(depth != null ? {depth} : {}),
+    ...(shape != null ? {shape} : {})
   };
+}
+
+function mergeTokenMovementState(base=null, override=null) {
+  const normalizedBase = plainTokenMovementState(base);
+  const normalizedOverride = plainTokenMovementState(override);
+  if ( !normalizedBase ) return normalizedOverride;
+  if ( !normalizedOverride ) return normalizedBase;
+  return clonePlain({
+    ...normalizedBase,
+    ...normalizedOverride
+  });
+}
+
+export function classifyFoundryTokenOperation({
+  movement=null,
+  operation={},
+  origin=null,
+  destination=null,
+  waypoints=null
+}={}) {
+  const normalizedOrigin = plainTokenMovementState(origin ?? movement?.origin);
+  const normalizedDestination = plainTokenMovementState(destination ?? movement?.destination);
+  const normalizedWaypoints = Array.isArray(waypoints) ? waypoints : foundryMovementWaypoints(movement);
+  const metrics = foundryMovementMetrics(movement);
+  const actions = normalizedWaypoints
+    .map(waypoint => stringOrNull(waypoint?.action))
+    .filter(Boolean);
+  const hasFootprintChange = movementFootprintChanges({
+    origin: normalizedOrigin,
+    destination: normalizedDestination,
+    waypoints: normalizedWaypoints
+  });
+  const hasPositiveMetrics = metrics.cost > 0 || metrics.distance > 0 || metrics.spaces > 0;
+  const hasMovementAction = actions.some(action => action !== "displace");
+  const hasPositionChange = movementPositionChanges({
+    origin: normalizedOrigin,
+    destination: normalizedDestination,
+    waypoints: normalizedWaypoints
+  });
+  const ignoreCost = movement?.constrainOptions?.ignoreCost === true
+    || operation?.constrainOptions?.ignoreCost === true
+    || operation?.movement?.constrainOptions?.ignoreCost === true;
+  const displaceOnly = actions.length > 0 && actions.every(action => action === "displace");
+  const pureResizeEvidence = hasFootprintChange
+    && !hasPositiveMetrics
+    && !hasMovementAction
+    && (ignoreCost || displaceOnly);
+
+  let type = FOUNDRY_TOKEN_OPERATION_TYPES.TRANSLATION;
+  if ( hasFootprintChange && pureResizeEvidence ) type = FOUNDRY_TOKEN_OPERATION_TYPES.RESIZE;
+  else if ( hasFootprintChange ) type = FOUNDRY_TOKEN_OPERATION_TYPES.TRANSLATION_RESIZE;
+
+  return clonePlain({
+    type,
+    hasFootprintChange,
+    hasTranslation: type === FOUNDRY_TOKEN_OPERATION_TYPES.TRANSLATION
+      || type === FOUNDRY_TOKEN_OPERATION_TYPES.TRANSLATION_RESIZE,
+    hasPositionChange,
+    metrics,
+    ignoreCost,
+    waypointActions: actions,
+    method: stringOrNull(movement?.method ?? operation?.movement?.method ?? operation?.method)
+  });
+}
+
+function foundryMovementMetrics(movement=null) {
+  return {
+    cost: sectionMetricTotal(movement, "cost"),
+    distance: sectionMetricTotal(movement, "distance"),
+    spaces: sectionMetricTotal(movement, "spaces")
+  };
+}
+
+function sectionMetricTotal(movement=null, key) {
+  return [
+    movement?.[key],
+    movement?.passed?.[key],
+    movement?.pending?.[key]
+  ].reduce((total, value) => total + Math.max(finiteNumber(value) ?? 0, 0), 0);
+}
+
+function movementFootprintChanges({origin=null, destination=null, waypoints=[]}={}) {
+  const baseline = plainTokenMovementState(origin);
+  if ( !baseline ) return false;
+  return [destination, ...waypoints]
+    .map(plainTokenMovementState)
+    .filter(Boolean)
+    .some(state => !sameFootprintDimensions(baseline, state));
+}
+
+function movementPositionChanges({origin=null, destination=null, waypoints=[]}={}) {
+  const baseline = plainTokenMovementState(origin);
+  if ( !baseline ) return false;
+  return [destination, ...waypoints]
+    .map(plainTokenMovementState)
+    .filter(Boolean)
+    .some(state => !samePoint(state, baseline));
+}
+
+function sameFootprintDimensions(left=null, right=null) {
+  const leftState = plainTokenMovementState(left);
+  const rightState = plainTokenMovementState(right);
+  for ( const key of ["width", "height", "depth", "shape"] ) {
+    if ( leftState?.[key] == null || rightState?.[key] == null ) continue;
+    if ( Number(leftState?.[key]) !== Number(rightState?.[key]) ) return false;
+  }
+  return true;
 }
 
 function plainSceneRef(scene) {
@@ -956,7 +1476,7 @@ function resolveMovementMeasurementMode({game=globalThis.game, measurementMode=n
 }
 
 function prependPointIfDifferent(origin, waypoints) {
-  const normalizedOrigin = plainMovementPoint(origin);
+  const normalizedOrigin = plainTokenMovementState(origin);
   const normalizedWaypoints = normalizeMovementWaypoints(waypoints);
   if ( !normalizedOrigin ) return normalizedWaypoints;
   const first = normalizedWaypoints[0] ?? null;
@@ -988,7 +1508,9 @@ function movementApproval(approved, {
   path=null,
   evaluation=null,
   signature=null,
-  payment=null
+  payment=null,
+  footprintTransition=null,
+  foundryOperation=null
 }={}) {
   const sanitizedIntent = intent ? sanitizeMovementIntent(intent) : null;
   const payload = {
@@ -1004,8 +1526,10 @@ function movementApproval(approved, {
     sourceUserId: sanitizedIntent?.sourceUserId ?? null,
     intentSignature: signature ?? (path ? movementPathSignature({intent: sanitizedIntent, path}) : null),
     path: path ? clonePlain(path) : null,
+    footprintTransition: footprintTransition ? clonePlain(footprintTransition) : null,
     evaluation: evaluation ? summarizeMovementEvaluation(evaluation) : null,
-    payment: payment ? clonePlain(payment) : null
+    payment: payment ? clonePlain(payment) : null,
+    foundryOperation: foundryOperation ? clonePlain(foundryOperation) : null
   };
   return clonePlain(payload);
 }

@@ -1181,13 +1181,15 @@ function normalizeTokenFootprintPosition(position) {
   const width = finiteNumber(position.width);
   const height = finiteNumber(position.height);
   const depth = finiteNumber(position.depth);
+  const shape = finiteNumber(position.shape);
   return {
     x,
     y,
     ...(elevation != null ? {elevation} : {}),
     ...(width != null ? {width} : {}),
     ...(height != null ? {height} : {}),
-    ...(depth != null ? {depth} : {})
+    ...(depth != null ? {depth} : {}),
+    ...(shape != null ? {shape} : {})
   };
 }
 
@@ -1241,11 +1243,25 @@ function squaredDistance(a, b) {
 }
 
 function defaultTokenSizeResolver(tokenDocument) {
-  return tokenDocument?.wildpathSize
+  const dimensionSize = creatureSizeFromTokenDimensions(tokenDocument);
+  return (dimensionSize && dimensionSize !== CREATURE_SIZES.MEDIUM ? dimensionSize : null)
+    ?? tokenDocument?.wildpathSize
     ?? tokenDocument?.actor?.system?.traits?.size
     ?? tokenDocument?.actor?.system?.details?.size
     ?? tokenDocument?.actor?.system?.size
+    ?? dimensionSize
     ?? CREATURE_SIZES.MEDIUM;
+}
+
+function creatureSizeFromTokenDimensions(tokenDocument) {
+  const width = finiteNumber(tokenDocument?.width ?? tokenDocument?._source?.width);
+  const height = finiteNumber(tokenDocument?.height ?? tokenDocument?._source?.height);
+  const maximum = Math.max(width ?? 0, height ?? 0);
+  if ( maximum >= 4 ) return CREATURE_SIZES.GARGANTUAN;
+  if ( maximum >= 3 ) return CREATURE_SIZES.HUGE;
+  if ( maximum >= 2 ) return CREATURE_SIZES.LARGE;
+  if ( maximum > 0 ) return CREATURE_SIZES.MEDIUM;
+  return null;
 }
 
 function normalizeCreatureSize(size) {

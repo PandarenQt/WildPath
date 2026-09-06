@@ -241,6 +241,14 @@ completions for the same movement key share an in-flight commit promise, so only
 persistence transaction can spend movement. Failed persistence clears the in-flight guard without
 marking the movement committed, allowing a later retry.
 
+The Foundry movement adapter also distinguishes Token operation semantics from WildPath movement
+kinds. Ordinary translation still becomes a MovementPath and can spend `economy.movement`. A pure
+Token footprint resize, such as a zero-cost V14 `config`/`displace` operation from 1x1 to 2x2,
+preserves `width`, `height`, `depth`, and `shape` in the plain intent, validates the authoritative
+origin footprint state on the active GM, approves with no movement payment, and verifies the
+completed source state before marking it committed. Combined translation plus resize is represented
+separately and currently rejected with a structured unsupported-operation result.
+
 The authority commits movement spend through the existing `ResourceResolver` mapping:
 
 ```text

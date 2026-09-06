@@ -300,7 +300,9 @@ through `WildPathTokenDocument#_preUpdateMovement()`,
 MovementIntent, routes to active-GM authority over the existing `system.wildpath` transport,
 reconstructs authoritative Scene/Token/Actor state, evaluates a MovementPath with anchors including
 origin, rejects invalid or unaffordable movement before commit, and spends ordinary movement budget
-once after Foundry reports successful movement completion.
+once after Foundry reports successful movement completion. Pure Foundry Token footprint resize
+operations are preserved as source/destination footprint-state transitions and commit with no
+ordinary movement spend.
 
 Remaining Stage H work: live Foundry movement QA, semantic movement events, pause/interruption,
 opportunity-reaction composition, terrain/cost policies, Region/Area movement hooks, and
