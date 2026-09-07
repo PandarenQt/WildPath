@@ -212,10 +212,10 @@ player TokenDocument#_preUpdateMovement
 -> MOVEMENT_APPROVAL
 -> Foundry continues or rejects movement
 -> moveToken hook fires after the Token update workflow concludes
--> movement.finished true
--> active GM verifies source footprint and observed ordered route
+-> checkpoint / pause / stop observation, or movement.finished true
+-> active GM verifies source footprint and observed ordered prefix
 -> authoritative informational movement AutomationEvents
--> approved economy.movement spend once
+-> newly verified economy.movement cost minus already paid prefix cost
 -> MOVEMENT_RESULT
 ```
 
@@ -223,44 +223,52 @@ No active GM follows the existing local-authority policy: local authority is onl
 initiating client can prove local commit permission. Otherwise movement approval fails with the same
 authority-unavailable behavior used by Actions.
 
-The active GM stores approval records keyed by Foundry movement id plus Scene/Token identity. In
-normal active-GM play, completion is observed from Foundry's `moveToken` hook, not
+The active GM stores root approval records keyed by Foundry movement id plus Scene/Token identity.
+Linked operations are indexed privately to that root and retain their starting transition index.
+Continuation requires an exact prior chain, the same subpath, and the same approved suffix and costs;
+new splits, missing prior observations, or terminal roots are rejected. In normal active-GM play,
+progress is observed from Foundry's `moveToken`, `pauseToken`, and `stopToken` hooks, not
 `TokenDocument#_onUpdateMovement`. V14 documents `moveToken` as firing after conclusion of the Token
-update workflow and on all connected clients after the update has been processed. At commit time the
-GM uses the hook's updated Token document as the local authoritative observation, reads its
+update workflow and on all connected clients after the update has been processed. Before yielding,
+the adapter snapshots the hook's updated Token document as local authoritative evidence and reads its
 underlying source values with `TokenDocument#toObject(true)`, evaluates the full Token footprint at
 that explicit source position through the TacticalGrid adapter, and confirms the resulting anchor is
-the approved route destination. This is intentionally stronger than comparing
+the verified route prefix destination. This is intentionally stronger than comparing
 `TokenMovementOperation.destination` to the approval. The committed movement cache makes duplicate
 completion delivery idempotent.
 
-The `MOVEMENT_COMMIT` socket path remains available for explicit fallback/manual delivery. For
+The `MOVEMENT_COMMIT` socket path remains available for retrying locally verified unpaid cost. For
 remote completion envelopes, the socket envelope sender is the authority fact. If a
 `MovementCompletion.sourceUserId` claim is present and differs from `senderUserId`, the active GM
 rejects the commit as `WRONG_USER` before resolving documents or persistence. The approved movement's
-initiator is also checked independently against the sender. Concurrent observed or delivered
-completions for the same movement key share an in-flight commit promise, so only the first successful
-persistence transaction can spend movement. Failed persistence clears the in-flight guard without
-marking the movement committed, allowing a later retry.
+initiator is also checked independently against the sender. A per-root serial queue covers local
+observations, continuation approval, and payment retries. Increasing observations each reconcile
+against the latest verified/paid state; duplicate or lower prefixes never charge twice. Payment
+failure preserves actual progress/events, leaves paid cost/count unchanged, and records the failure.
+Retries pay `verified cumulative prefix budget cost - committed prefix cost` through ResourceResolver.
 
-Only a local authoritative `moveToken` observation can generate movement facts. The GM reconstructs
-its observed ordered route through the footprint-aware adapter and requires agreement with approval,
-including the full saved destination footprint. Pending approval never emits events. Reconciliation
+Only local authoritative movement lifecycle evidence can generate movement facts. The GM reconstructs
+the ordered passed segment through the footprint-aware adapter and matches it at its approved index,
+including the full source footprint. A repeated anchor does not reset that index. Pending waypoints
+and unfiltered recorded/unrecorded history are never used as proof. Pending approval emits nothing. Reconciliation
 stores the completed progress and stable-ID events before notifying observers, so duplicate or
 concurrent callbacks cannot replay steps. Payment failure leaves those verified facts intact; a
 successful retry only retries payment.
 
-Socket fallback completion retains its existing payment verification but cannot author semantic
-events from a client route claim. If it commits before the GM's local hook arrives, that later local
-observation can still reconcile events without repeating payment. The informational
+Socket completion without local progress fails as `MOVEMENT_PROGRESS_UNVERIFIED`; route and endpoint
+claims cannot authorize payment or semantic events. It may retry a debt already verified locally,
+even after the Token has moved elsewhere, using the approved Token Actor association. The informational
 `wildpath.automationEvent` hook runs on the authority only; no event socket protocol, reaction
 prompts, or client-side authoritative event generation is added. See
 [event contracts and observer failure semantics](events-and-reactions.md#movement-automationevents).
 The existing permitted no-GM local authority policy remains in force. Approval/progress/event records
 and duplicate guards remain in memory, with no durable replay or GM-handoff recovery protocol.
-Before first event reconciliation, authority selection is checked again. If the GM is unavailable
+Before reconciliation and payment, authority selection is checked again. If the GM is unavailable
 or authority has changed, the old approval owner fails closed instead of authoring facts or paying
-that local observation; transfer/recovery of the approval is not implemented.
+that local observation; transfer/recovery of the approval is not implemented. A new authority without
+the root record rejects with `MOVEMENT_NOT_APPROVED`. No durable or distributed exactly-once claim
+is made. A copy-only `getMovementProgress()` diagnostic reports verified and paid prefixes without
+exposing another mutable map; see [movement paths](movement-paths.md#verified-v14-lifecycle-and-production-interruption).
 
 The Foundry movement adapter also distinguishes Token operation semantics from WildPath movement
 kinds. Ordinary translation still becomes a MovementPath and can spend `economy.movement`. A pure
@@ -273,7 +281,7 @@ separately and currently rejected with a structured unsupported-operation result
 The authority commits movement spend through the existing `ResourceResolver` mapping:
 
 ```text
-approved MovementPath cost
+newly verified, unpaid MovementPath prefix cost
 -> movement payment plan for economy.movement
 -> createActorResourceMutationPlan()
 -> commitActorResourceMutationPlan()
@@ -315,7 +323,6 @@ Not implemented here:
 - mid-resolution authority failover
 - full HUD request routing
 - chat rendering
-- movement interruption/pause accounting
 - movement undo/refund accounting
 - persistent area lifecycle networking
 - cross-client secret visibility policy beyond sanitized result/request payloads

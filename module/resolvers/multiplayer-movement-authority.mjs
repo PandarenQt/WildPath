@@ -11,7 +11,9 @@ import {
 } from "../helpers/multiplayer-authority.mjs";
 import {fieldKey} from "../helpers/grid-footprints.mjs";
 import {normalizeEntityRef, uuidRef} from "../helpers/entity-refs.mjs";
-import {advanceMovementProgress, createMovementProgress} from "../helpers/movement-events.mjs";
+import {
+  advanceMovementProgress, completedMovementPrefix, createMovementProgress, movementPaymentDelta, sameMovementFootprint
+} from "../helpers/movement-events.mjs";
 import {
   RESOURCE_RESOLUTION_CODES,
   commitActorResourceMutationPlan,
@@ -27,6 +29,7 @@ import {
   foundryMovementCompletionToMovementPath,
   movementKey,
   movementResolutionId,
+  movementPaymentFromEvaluation,
   resolveMovementCompletionDocuments,
   sanitizeMovementCompletion,
   sanitizeMovementIntent
@@ -55,6 +58,7 @@ export function createMultiplayerMovementAuthority({
 }={}) {
   const localUserId = stringOrNull(userId ?? transport?.userId ?? game?.user?.id ?? game?.userId);
   const approvedMovements = new Map();
+  const operationRoots = new Map();
   const committedMovements = createBoundedIdCache({limit: duplicateCacheLimit});
   const inFlightMovementCommits = new Map();
   const pendingApprovals = new Map();
@@ -83,6 +87,9 @@ export function createMultiplayerMovementAuthority({
     async observeMovementCompletion(completion={}, options={}) {
       return observeMovementCompletion(completion, options);
     },
+    async observeMovementProgress(observation={}, options={}) {
+      return observeMovementCompletion(observation, options);
+    },
     async commitMovementCompletion(completion={}) {
       return commitMovementCompletion(completion);
     },
@@ -90,10 +97,14 @@ export function createMultiplayerMovementAuthority({
       return handleEnvelope(envelope);
     },
     getApproval(value={}) {
-      return approvedMovements.get(movementKey(value)) ?? null;
+      return approvedMovements.get(recordKey(value)) ?? null;
     },
     getCommitted(value={}) {
-      return committedMovements.get(movementKey(value)) ?? null;
+      return committedMovements.get(recordKey(value)) ?? null;
+    },
+    getMovementProgress(value={}) {
+      const record = approvedMovements.get(recordKey(value));
+      return record ? progressSnapshot(record) : null;
     }
   };
 
@@ -277,16 +288,17 @@ export function createMultiplayerMovementAuthority({
     };
   }
 
-  async function observeMovementCompletion(completion={}, {tokenDocument=null}={}) {
+  async function observeMovementCompletion(completion={}, {tokenDocument=null, sourcePosition=null}={}) {
     const sanitized = sanitizeMovementCompletion(completion);
     if ( !sanitized.movementId ) return failure(FOUNDRY_MOVEMENT_CODES.MISSING_MOVEMENT_ID, "MovementCompletion requires movementId.");
 
-    const key = movementKey(sanitized);
+    const key = recordKey(sanitized);
     const record = approvedMovements.get(key);
     if ( record?.authorityUserId === localUserId ) {
       const result = await applyMovementCompletion(sanitized, {
         senderUserId: sanitized.sourceUserId ?? record.initiatorUserId ?? null,
-        tokenDocument
+        tokenDocument,
+        sourcePosition
       });
       if ( record.initiatorUserId && record.initiatorUserId !== localUserId ) {
         const sent = await sendMovementResult({
@@ -311,6 +323,9 @@ export function createMultiplayerMovementAuthority({
       movementId: sanitized.movementId
     };
 
+    if ( activeGMId() === localUserId ) return failure(FOUNDRY_MOVEMENT_CODES.MOVEMENT_NOT_APPROVED,
+      "No local approval/progress record exists; movement cannot be reconstructed after reload or authority handoff.",
+      {movementId: sanitized.movementId});
     return {
       ok: true,
       code: MULTIPLAYER_AUTHORITY_CODES.OK,
@@ -453,15 +468,53 @@ export function createMultiplayerMovementAuthority({
   }
 
   async function authorizeAndRecord(intent, {initiatorUserId=null, localCommitAllowed=false}={}) {
+    const chain = intent.foundry?.chain === undefined ? [] : intent.foundry.chain;
+    if ( !Array.isArray(chain) || chain.some(id => typeof id !== "string" || !id) ) {
+      return rejectedContinuation(intent, "Foundry movement chain must contain movement IDs.");
+    }
+    const key = movementKey({...intent, movementId: chain[0] ?? intent.movementId});
+    return serializeMovement(key, () => authorizeOperation(intent, {initiatorUserId, localCommitAllowed, chain, key}));
+  }
+
+  async function authorizeOperation(intent, {initiatorUserId, localCommitAllowed, chain, key}) {
+    const authorityContext = {initiatorUserId, localCommitAllowed};
+    const authority = verifyCurrentAuthority(authorityContext, intent);
+    if ( !authority.ok ) return {...authority, approved: false, resolutionId: intent.resolutionId};
+    const record = approvedMovements.get(key);
+    const existing = record?.operations.find(operation => operation.id === intent.movementId);
+    if ( existing ) return JSON.stringify(existing.intent) === JSON.stringify(intent)
+      && record.initiatorUserId === initiatorUserId
+      ? clonePlainData(existing.approval) : rejectedContinuation(intent, "Movement identity was reused with different intent.");
+    if ( chain.length && (!record?.progress || record.initiatorUserId !== initiatorUserId
+      || ["interrupted", "completed"].includes(record.progress.status)
+      || JSON.stringify(chain) !== JSON.stringify(record.operations.map(operation => operation.id))
+      || !intent.foundry.subpathId || intent.foundry.subpathId !== record.operations[0].subpathId
+      || intent.foundry.split === true
+      || record.operations.at(-1).observedTransitionCount !== record.progress.completedTransitionCount) ) {
+      return rejectedContinuation(intent, "Continuation requires the observed prior operation chain and the same subpath.");
+    }
+    const baseTransitionCount = record?.progress?.completedTransitionCount ?? 0;
     let approval;
     let progress = null;
     try {
       approval = await authorizeMovement({
-        intent,
+        intent: chain.length ? {...intent, movementKind: record.approval.path.movementKind,
+          movementMode: record.approval.path.movementMode} : intent,
         game,
-        measurementMode
+        measurementMode: record?.progress?.measurementMode ?? measurementMode
       });
-      if ( approval.approved && approval.path ) progress = createMovementProgress({
+      if ( chain.length && approval.approved ) {
+        const end = completedMovementPrefix(record.progress, approval.path.anchors, baseTransitionCount);
+        if ( end !== record.progress.approvedTransitions.length
+          || !approval.evaluation.footprints.every((footprint, index) =>
+            sameMovementFootprint(footprint, record.progress.approvedFootprints[baseTransitionCount + index]))
+          || JSON.stringify(approval.evaluation.transitions.map(step => step.cost)) !== JSON.stringify(
+            record.progress.approvedTransitions.slice(baseTransitionCount).map(step => step.cost))
+          || approval.actorRef?.uuid !== record.approval.actorRef?.uuid ) {
+          return rejectedContinuation(intent, "Continuation route, footprint, Actor, or costs differ from the approved suffix.");
+        }
+      }
+      if ( !chain.length && approval.approved && approval.path ) progress = createMovementProgress({
         movementId: approval.movementId,
         source: {
           actorRef: approval.actorRef?.uuid ? uuidRef(approval.actorRef.uuid) : normalizeEntityRef(approval.actorRef),
@@ -477,15 +530,20 @@ export function createMultiplayerMovementAuthority({
       approval = {
         ok: true,
         approved: false,
-        code: FOUNDRY_MOVEMENT_CODES.MOVEMENT_REJECTED,
+        code: chain.length ? FOUNDRY_MOVEMENT_CODES.MOVEMENT_CONTINUATION_MISMATCH : FOUNDRY_MOVEMENT_CODES.MOVEMENT_REJECTED,
         reason: error?.message ?? String(error),
         movementId: intent.movementId,
         resolutionId: intent.resolutionId
       };
     }
     if ( approval?.approved === true ) {
-      const key = movementKey(approval);
-      approvedMovements.set(key, {
+      const currentAuthority = verifyCurrentAuthority(authorityContext, intent);
+      if ( !currentAuthority.ok ) return {...currentAuthority, approved: false, resolutionId: intent.resolutionId};
+      const operation = {id: intent.movementId, chain, subpathId: intent.foundry?.subpathId ?? null,
+        baseTransitionCount, observedTransitionCount: null,
+        intent: clonePlainData(intent), approval: clonePlainData(approval)};
+      if ( chain.length ) record.operations.push(operation);
+      else approvedMovements.set(key, {
         key,
         movementId: approval.movementId,
         resolutionId: approval.resolutionId ?? movementResolutionId(approval.movementId),
@@ -495,16 +553,21 @@ export function createMultiplayerMovementAuthority({
         approval: clonePlainData(approval, "movementApproval"),
         originState: clonePlainData(approval.foundryOriginState, "movementOrigin"),
         progress,
+        operations: [operation],
+        paidMovementCost: 0,
+        paidTransitionCount: 0,
+        paymentFailure: null,
         semanticEvents: [],
         eventDeliveryErrors: [],
         committed: false
       });
+      operationRoots.set(movementKey(intent), key);
     }
     return clonePlainData(approval, "movementApproval");
   }
 
-  async function applyMovementCompletion(completion, {senderUserId=null, tokenDocument=null}={}) {
-    const key = movementKey(completion);
+  async function applyMovementCompletion(completion, {senderUserId=null, tokenDocument=null, sourcePosition=null}={}) {
+    const key = recordKey(completion);
     const record = approvedMovements.get(key);
     if ( !record ) return failure(
       FOUNDRY_MOVEMENT_CODES.MOVEMENT_NOT_APPROVED,
@@ -537,37 +600,22 @@ export function createMultiplayerMovementAuthority({
       );
     }
 
-    if ( committedMovements.has(key) ) return completedMovementDuplicate({key, record, completion, tokenDocument});
-
-    const inFlight = inFlightMovementCommits.get(key);
-    if ( inFlight ) {
-      const result = await inFlight;
-      if ( committedMovements.has(key) ) return completedMovementDuplicate({key, record, completion, tokenDocument});
-      return result;
-    }
-
-    const commitPromise = Promise.resolve()
-      .then(() => executeMovementCompletionCommit({key, record, completion, tokenDocument}));
-    inFlightMovementCommits.set(key, commitPromise);
-    try {
-      return await commitPromise;
-    } finally {
-      inFlightMovementCommits.delete(key);
-    }
+    return serializeMovement(key, () => executeMovementCompletionCommit({key, record, completion, tokenDocument, sourcePosition}));
   }
 
-  async function verifyMovementCompletion({record, completion, tokenDocument=null}) {
+  async function verifyMovementCompletion({record, completion, tokenDocument=null, sourcePosition=null}) {
     const documents = await resolveMovementCompletionDocuments({completion, game, tokenDocument});
     if ( !documents.ok ) return documents;
 
     const destination = currentTokenAnchor({
       tokenDocument: documents.token,
       scene: documents.scene,
-      position: documents.sourcePosition ?? null
+      position: sourcePosition ?? documents.sourcePosition ?? null
     });
     if ( !destination.ok ) return destination;
     const expectedDestination = expectedMovementDestinationAnchor(record.approval);
-    if ( !expectedDestination || !anchorsMatch(destination.anchor, expectedDestination, destination.topology) ) {
+    const partial = record.progress && completion.foundry?.progressStatus;
+    if ( !partial && (!expectedDestination || !anchorsMatch(destination.anchor, expectedDestination, destination.topology)) ) {
       return failure(
         FOUNDRY_MOVEMENT_CODES.DESTINATION_MISMATCH,
         "Completed Token position does not match the approved movement destination.",
@@ -580,7 +628,7 @@ export function createMultiplayerMovementAuthority({
     }
     const expectedState = expectedMovementDestinationState(record.approval);
     const stateCheck = expectedState
-      ? movementDestinationStateMatches(documents.sourcePosition, expectedState)
+      ? movementDestinationStateMatches(sourcePosition ?? documents.sourcePosition, expectedState)
       : {matches: true, mismatches: []};
     if ( !stateCheck.matches ) {
       return failure(
@@ -597,27 +645,7 @@ export function createMultiplayerMovementAuthority({
     return {ok: true, documents, destination};
   }
 
-  async function completedMovementDuplicate({key, record, completion, tokenDocument}) {
-    // A fallback payment may arrive before the GM's local hook. It cannot suppress later
-    // authoritative facts, and a local observation must never repeat the payment.
-    if ( tokenDocument && record.progress && record.progress.status !== "completed" ) {
-      const verified = await verifyMovementCompletion({record, completion, tokenDocument});
-      if ( !verified.ok ) return verified;
-      const facts = reconcileMovementFacts({record, completion, verified});
-      if ( !facts.ok ) return facts;
-    }
-    return {
-      ok: true,
-      code: FOUNDRY_MOVEMENT_CODES.MOVEMENT_ALREADY_COMMITTED,
-      movementId: completion.movementId,
-      duplicate: true,
-      committed: false,
-      previous: committedMovements.get(key)
-    };
-  }
-
-  function reconcileMovementFacts({record, completion, verified}) {
-    if ( !record.progress || record.progress.status === "completed" ) return {ok: true};
+  function verifyCurrentAuthority(record, completion) {
     const authority = selectResolutionAuthority({
       initiatorUserId: record.initiatorUserId,
       localUserId,
@@ -628,32 +656,62 @@ export function createMultiplayerMovementAuthority({
     });
     if ( !authority.ok ) return {...authority, movementId: completion.movementId};
     if ( authority.userId !== localUserId ) return failure(MULTIPLAYER_AUTHORITY_CODES.WRONG_AUTHORITY,
-      "Movement authority changed before semantic completion could be reconciled.", {movementId: completion.movementId});
+      "Movement authority changed before the operation could be reconciled.", {movementId: completion.movementId});
+    return {ok: true};
+  }
+
+  function reconcileMovementFacts({record, completion, verified}) {
+    if ( !record.progress ) return {ok: true};
+    const operation = record.operations.find(entry => entry.id === completion.movementId);
+    if ( !operation || JSON.stringify(completion.foundry?.chain === undefined ? [] : completion.foundry.chain) !== JSON.stringify(operation.chain)
+      || (operation.subpathId && completion.foundry?.subpathId !== operation.subpathId)
+      || completion.waypoints.some(waypoint => waypoint.movementId != null && waypoint.movementId !== operation.id) ) {
+      return failure(FOUNDRY_MOVEMENT_CODES.MOVEMENT_CONTINUATION_MISMATCH,
+        "Observed movement does not match its approved operation and subpath.", {movementId: completion.movementId});
+    }
     const observed = foundryMovementCompletionToMovementPath({
       completion,
-      approval: record.approval,
-      originState: record.originState,
+      approval: operation.approval,
+      originState: operation.approval.foundryOriginState,
       tokenDocument: verified.documents.token,
       scene: verified.documents.scene
     });
     if ( !observed.ok ) return {...observed, movementId: completion.movementId};
-    const approvedPath = record.approval.path;
-    if ( observed.path.topology !== approvedPath.topology
-      || JSON.stringify(observed.path.anchors.map(anchor => fieldKey(anchor, observed.path.topology)))
-        !== JSON.stringify(approvedPath.anchors.map(anchor => fieldKey(anchor, approvedPath.topology))) ) {
-      return failure(FOUNDRY_MOVEMENT_CODES.COMPLETION_ROUTE_MISMATCH,
-        "Observed completed movement route does not match the approved tactical route.", {movementId: completion.movementId});
-    }
+    const status = completion.foundry?.progressStatus ?? "completed";
     let reconciled;
     try {
-      reconciled = advanceMovementProgress(record.progress, {
-        completedTransitionCount: observed.path.anchors.length - 1,
-        actualFootprint: verified.destination.footprint,
-        status: "completed",
-        provenance: {source: "foundry-v14", lifecycle: "moveToken", timing: "completion-reconciled", finished: true}
+      if ( observed.path.topology !== record.approval.path.topology ) throw new Error("Observed topology differs from approval.");
+      const count = completedMovementPrefix(record.progress, observed.path.anchors, operation.baseTransitionCount);
+      if ( !sameMovementFootprint(verified.destination.footprint, record.progress.approvedFootprints[count]) ) {
+        throw new Error("Observed source footprint differs from the completed prefix.");
+      }
+      if ( count < record.progress.completedTransitionCount
+        || (count === record.progress.completedTransitionCount && record.progress.status === "paused" && status === "moving") ) {
+        return {ok: true, duplicate: true, stale: true};
+      }
+      if ( count === record.progress.completedTransitionCount && ["interrupted", "completed"].includes(record.progress.status) ) {
+        return {ok: true, duplicate: true};
+      }
+      const provenance = {source: "foundry-v14", lifecycle: completion.metadata?.foundryLifecycle ?? "moveToken",
+        timing: status === "completed" ? "completion-reconciled" : "prefix-reconciled", finished: status === "completed"};
+      if ( status !== "completed" || operation.chain.length ) Object.assign(provenance, {
+        operationId: operation.id, chain: operation.chain, subpathId: operation.subpathId,
+        split: completion.foundry?.split === true, state: completion.foundry?.state ?? null
       });
+      reconciled = advanceMovementProgress(record.progress, {
+        completedTransitionCount: count,
+        actualFootprint: verified.destination.footprint,
+        status,
+        provenance,
+        ...(status === "interrupted" ? {interruption: {
+          reason: completion.foundry?.constrained ? "foundry-constrained" : "foundry-stopped",
+          source: "foundry-v14", resumable: false
+        }} : {})
+      });
+      operation.observedTransitionCount = count;
     } catch (error) {
-      return failure(FOUNDRY_MOVEMENT_CODES.COMPLETION_ROUTE_MISMATCH, error.message, {movementId: completion.movementId});
+      return failure(status === "completed" ? FOUNDRY_MOVEMENT_CODES.COMPLETION_ROUTE_MISMATCH
+        : FOUNDRY_MOVEMENT_CODES.MOVEMENT_PREFIX_MISMATCH, error.message, {movementId: completion.movementId});
     }
     // Facts describe verified locomotion independently of payment success. Store the new
     // prefix before notifying consumers so reentrant or retried delivery cannot re-emit it.
@@ -670,80 +728,131 @@ export function createMultiplayerMovementAuthority({
         logger?.error?.("Wild Path | Movement event consumer failed", deliveryError);
       }
     }
-    return {ok: true};
+    return {ok: true, duplicate: reconciled.duplicate};
   }
 
-  async function executeMovementCompletionCommit({key, record, completion, tokenDocument=null}) {
-    const verified = await verifyMovementCompletion({record, completion, tokenDocument});
-    if ( !verified.ok ) return verified;
-    const {documents} = verified;
-    // Socket completion claims may request existing payment verification, but only the
-    // authority's local Foundry observation can author semantic route facts.
+  async function executeMovementCompletionCommit({key, record, completion, tokenDocument=null, sourcePosition=null}) {
+    const authority = verifyCurrentAuthority(record, completion);
+    if ( !authority.ok ) return authority;
+    let documents;
+    let duplicate = false;
     if ( tokenDocument ) {
+      const verified = await verifyMovementCompletion({record, completion, tokenDocument, sourcePosition});
+      if ( !verified.ok ) return {...verified, movementId: completion.movementId};
+      documents = verified.documents;
+      const currentAuthority = verifyCurrentAuthority(record, completion);
+      if ( !currentAuthority.ok ) return currentAuthority;
+      if ( record.approval.actorRef?.uuid && documents.actor?.uuid !== record.approval.actorRef.uuid ) {
+        return failure(FOUNDRY_MOVEMENT_CODES.ACTOR_NOT_FOUND, "The approved Token Actor association changed.", {movementId: completion.movementId});
+      }
       const facts = reconcileMovementFacts({record, completion, verified});
       if ( !facts.ok ) return facts;
+      if ( facts.stale ) return {ok: true, code: FOUNDRY_MOVEMENT_CODES.MOVEMENT_ALREADY_COMMITTED,
+        movementId: completion.movementId, duplicate: true, committed: false, progress: progressSnapshot(record)};
+      duplicate = facts.duplicate === true;
+    } else {
+      // Socket messages can retry a debt already proved locally, never authorize a prefix.
+      if ( !record.progress || record.progress.status === "pending" ) return failure(
+        FOUNDRY_MOVEMENT_CODES.MOVEMENT_PROGRESS_UNVERIFIED,
+        "Payment requires a locally verified movement prefix before a retry can be requested.", {movementId: completion.movementId});
+      documents = await resolveMovementCompletionDocuments({completion, game});
+      if ( !documents.ok ) return {...documents, movementId: completion.movementId};
+      if ( documents.actor?.uuid !== record.approval.actorRef?.uuid ) return failure(
+        FOUNDRY_MOVEMENT_CODES.ACTOR_NOT_FOUND, "The approved Token Actor association changed.", {movementId: completion.movementId});
+      duplicate = true;
     }
-
-    const paymentPlan = createMovementPaymentPlan({
-      movementId: completion.movementId,
-      payment: record.approval.payment
-    });
-    if ( !paymentPlan.resources.length ) {
-      record.committed = true;
-      committedMovements.add(key, {
-        movementId: completion.movementId,
-        committed: true,
-        spent: false,
-        paymentPlan
-      });
-      return {
-        ok: true,
-        code: FOUNDRY_MOVEMENT_CODES.OK,
-        movementId: completion.movementId,
-        committed: true,
-        spent: false,
-        paymentPlan
-      };
-    }
-
-    const mutationPlan = createActorResourceMutationPlan(documents.actor.system, paymentPlan);
-    if ( !mutationPlan.ok ) return failure(
-      mutationPlan.code ?? RESOURCE_RESOLUTION_CODES.COMMIT_FAILED,
-      mutationPlan.reason ?? "Movement resource mutation could not be planned.",
-      {movementId: completion.movementId, paymentPlan, mutationPlan}
-    );
-
-    let committed;
+    const paymentAuthority = verifyCurrentAuthority(record, completion);
+    if ( !paymentAuthority.ok ) return paymentAuthority;
+    let delta = {amount: 0, cumulativeCost: 0};
     try {
-      committed = await commitActorResourceMutationPlan(documents.actor, mutationPlan, {persistencePort});
+      if ( record.progress ) delta = movementPaymentDelta(record.progress, record.paidMovementCost);
     } catch (error) {
-      return failure(
-        FOUNDRY_MOVEMENT_CODES.MOVEMENT_COMMIT_FAILED,
-        error?.message ?? "Movement resource mutation could not be committed.",
-        {movementId: completion.movementId, paymentPlan, mutationPlan}
-      );
+      return failure(FOUNDRY_MOVEMENT_CODES.MOVEMENT_PAYMENT_MISMATCH, error.message, {movementId: completion.movementId});
     }
-    if ( committed !== true ) return failure(
-      FOUNDRY_MOVEMENT_CODES.MOVEMENT_COMMIT_FAILED,
-      "Movement resource mutation could not be committed.",
-      {movementId: completion.movementId, paymentPlan, mutationPlan}
-    );
-
+    const payment = record.progress ? movementPaymentFromEvaluation({
+      ...record.approval.evaluation,
+      cost: {...record.approval.evaluation.cost, amount: delta.amount}
+    }) : record.approval.payment;
+    const paymentPlan = createMovementPaymentPlan({movementId: record.movementId, payment});
+    paymentPlan.id += `:prefix:${record.progress?.completedTransitionCount ?? 0}`;
+    let mutationPlan = null;
+    let paymentFailure = null;
+    if ( paymentPlan.resources.length ) {
+      mutationPlan = createActorResourceMutationPlan(documents.actor.system, paymentPlan);
+      if ( !mutationPlan.ok ) paymentFailure = failure(
+        mutationPlan.code ?? RESOURCE_RESOLUTION_CODES.COMMIT_FAILED, mutationPlan.reason, {movementId: completion.movementId});
+      else {
+        try {
+          if ( await commitActorResourceMutationPlan(documents.actor, mutationPlan, {persistencePort}) !== true ) {
+            paymentFailure = failure(FOUNDRY_MOVEMENT_CODES.MOVEMENT_COMMIT_FAILED,
+              "Movement resource mutation could not be committed.", {movementId: completion.movementId});
+          }
+        } catch (error) {
+          paymentFailure = failure(FOUNDRY_MOVEMENT_CODES.MOVEMENT_COMMIT_FAILED, error?.message ?? String(error), {movementId: completion.movementId});
+        }
+      }
+    }
+    if ( paymentFailure ) {
+      record.paymentFailure = clonePlainData(paymentFailure);
+      return {...paymentFailure, paymentPlan, mutationPlan, progress: progressSnapshot(record)};
+    }
+    record.paidMovementCost = delta.cumulativeCost;
+    record.paidTransitionCount = record.progress?.completedTransitionCount ?? 0;
+    record.paymentFailure = null;
+    const alreadyCommitted = record.committed;
+    record.committed = !record.progress || ["completed", "interrupted"].includes(record.progress.status);
     const result = {
-      movementId: completion.movementId,
-      committed: true,
-      spent: true,
-      paymentPlan,
-      mutationPlan
-    };
-    record.committed = true;
-    record.commit = clonePlainData(result, "movementCommitResult");
-    committedMovements.add(key, result);
-    return {
       ok: true,
-      code: FOUNDRY_MOVEMENT_CODES.OK,
-      ...clonePlainData(result, "movementCommitResult")
+      code: (duplicate || alreadyCommitted) && !delta.amount ? FOUNDRY_MOVEMENT_CODES.MOVEMENT_ALREADY_COMMITTED : FOUNDRY_MOVEMENT_CODES.OK,
+      movementId: completion.movementId,
+      rootMovementId: record.movementId,
+      duplicate: (duplicate || alreadyCommitted) && !delta.amount,
+      committed: !((duplicate || alreadyCommitted) && !delta.amount),
+      spent: paymentPlan.resources.length > 0,
+      paymentPlan,
+      mutationPlan,
+      progress: progressSnapshot(record)
     };
+    record.commit = clonePlainData(result);
+    if ( record.committed ) committedMovements.add(key, result);
+    return result;
+  }
+
+  function recordKey(value) {
+    const key = movementKey(value);
+    return operationRoots.get(key) ?? key;
+  }
+
+  function rejectedContinuation(intent, reason) {
+    return {ok: true, approved: false, code: FOUNDRY_MOVEMENT_CODES.MOVEMENT_CONTINUATION_MISMATCH,
+      reason, movementId: intent.movementId, resolutionId: intent.resolutionId};
+  }
+
+  async function serializeMovement(key, run) {
+    const previous = inFlightMovementCommits.get(key) ?? Promise.resolve();
+    const pending = previous.then(run, run);
+    inFlightMovementCommits.set(key, pending);
+    try { return await pending; }
+    finally { if ( inFlightMovementCommits.get(key) === pending ) inFlightMovementCommits.delete(key); }
+  }
+
+  function progressSnapshot(record) {
+    const progress = record.progress;
+    if ( !progress ) return null;
+    return clonePlainData({
+      movementId: record.movementId,
+      operationIds: record.operations.map(operation => operation.id),
+      approvedTransitionCount: progress.approvedTransitions.length,
+      completedTransitionCount: progress.completedTransitionCount,
+      remainingTransitionCount: progress.approvedTransitions.length - progress.completedTransitionCount,
+      actualDestination: {anchor: progress.actualFootprint.anchor, footprint: progress.actualFootprint},
+      status: progress.status,
+      cumulativeMovementCost: progress.cumulativeCost,
+      committedMovementCost: record.paidMovementCost,
+      paidTransitionCount: record.paidTransitionCount,
+      measurementMode: progress.measurementMode,
+      paymentFailure: record.paymentFailure
+    });
   }
 
   function createPendingApproval({intent, authorityUserId}) {

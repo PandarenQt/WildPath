@@ -3,6 +3,29 @@ import { AUTOMATION_EVENT_PHASES, AUTOMATION_EVENT_TYPES, createAutomationEvent 
 import { fieldKey, normalizeGridField } from "./grid-footprints.mjs";
 import { isPlainSerializableData } from "./multiplayer-authority.mjs";
 import { requireEntityRefString } from "./entity-refs.mjs";
+/** Match an observed segment by ordered index, including routes that revisit an anchor. */
+export function completedMovementPrefix(progress, anchors, startTransitionIndex = 0) {
+    if (!Number.isInteger(startTransitionIndex) || startTransitionIndex < 0 || !anchors.length
+        || startTransitionIndex + anchors.length > progress.approvedPath.anchors.length) {
+        throw new Error("Observed movement segment is outside the approved route.");
+    }
+    for (const [index, anchor] of anchors.entries()) {
+        const approved = progress.approvedPath.anchors[startTransitionIndex + index];
+        if (!approved || fieldKey(anchor, progress.approvedPath.topology) !== fieldKey(approved, progress.approvedPath.topology)) {
+            throw new Error("Observed ordered movement is not a prefix of the approved route.");
+        }
+    }
+    return startTransitionIndex + anchors.length - 1;
+}
+/** Costs are in the approved measurement mode; the adapter owns conversion to Actor resources. */
+export function movementPaymentDelta(progress, committedMovementCost) {
+    const cumulativeCost = progress.consumesBudget ? progress.cumulativeCost : 0;
+    if (!Number.isFinite(cumulativeCost) || !Number.isFinite(committedMovementCost)
+        || committedMovementCost < 0 || committedMovementCost > cumulativeCost) {
+        throw new Error("Committed movement cost must be between zero and verified cumulative cost.");
+    }
+    return { cumulativeCost, committedCost: committedMovementCost, amount: cumulativeCost - committedMovementCost };
+}
 /** Approval creates pending state, never semantic movement facts. */
 export function createMovementProgress({ movementId, source, authority, evaluation }) {
     plainCopy({ movementId, source, authority, evaluation });
@@ -74,8 +97,8 @@ export function advanceMovementProgress(progress, observation) {
     }
     if (observation.status === "completed" && count !== total)
         throw new Error("An incomplete prefix cannot complete movement.");
-    if (observation.status === "interrupted" && (count === total || !observation.interruption?.reason)) {
-        throw new Error("Interrupted movement requires an uncompleted suffix and an interruption reason.");
+    if (observation.status === "interrupted" && !observation.interruption?.reason) {
+        throw new Error("Interrupted movement requires an interruption reason.");
     }
     if (count < progress.completedTransitionCount)
         return { progress: plainCopy(progress), events: [], duplicate: true };

@@ -24,6 +24,8 @@ import {MOVEMENT_MEASUREMENT_MODES} from "./module/helpers/movement.mjs";
 import {executeEffectLifecycleCommit} from "./module/resolvers/effect-lifecycle-commit-resolver.mjs";
 import {
   onFoundryV14MoveToken,
+  onFoundryV14PauseToken,
+  onFoundryV14StopToken,
   registerFoundryV14MultiplayerResolution
 } from "./module/resolvers/foundry-multiplayer-runtime.mjs";
 
@@ -187,3 +189,5 @@ function collectionContents(collection) {
 
 Hooks.on("deleteCombat", combat => onCombatEnd(combat));
 Hooks.on("moveToken", (document, movement, operation, user) => onFoundryV14MoveToken(document, movement, operation, user));
+Hooks.on("pauseToken", document => onFoundryV14PauseToken(document));
+Hooks.on("stopToken", document => onFoundryV14StopToken(document));

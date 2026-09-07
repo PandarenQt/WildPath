@@ -300,16 +300,18 @@ through `WildPathTokenDocument#_preUpdateMovement()`,
 MovementIntent, routes to active-GM authority over the existing `system.wildpath` transport,
 reconstructs authoritative Scene/Token/Actor state, evaluates a MovementPath with anchors including
 origin, rejects invalid or unaffordable movement before commit, and spends ordinary movement budget
-once after Foundry reports successful movement completion. Pure Foundry Token footprint resize
+incrementally for locally verified completed prefixes. Pure Foundry Token footprint resize
 operations are preserved as source/destination footprint-state transitions and commit with no
 ordinary movement spend.
 
 The maintainer confirmed prerequisite Large hex one/two-step and Large square one-step accounting
-QA passed. Semantic movement events now use the existing AutomationEvent factory, full-footprint
-deltas, stable IDs, and active-GM completion reconciliation. The pure progress contract also models
-interrupted prefixes; production pause/stop correlation and partial payment remain deferred.
+QA passed. Completed semantic-event QA also passed: Large hex two-step events/cost/full-footprint
+deltas, new IDs for new operations, and one player-to-GM batch. Production checkpoint/pause/stop
+correlation, same-subpath continuation, and partial payment now use the existing authority,
+AutomationEvent, and ResourceResolver contracts. See the movement interruption QA procedure;
+this new lifecycle integration has automated coverage but still needs live verification.
 
-Remaining Stage H work: live Foundry semantic-event QA, production pause/interruption,
+Remaining Stage H work: live Foundry interruption/continuation QA,
 opportunity-reaction composition, terrain/cost policies, Region/Area movement hooks, and
 undo/refund accounting.
 

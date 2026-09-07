@@ -20,14 +20,16 @@ Implemented:
   zero-spend footprint transitions.
 - generic AutomationEvents for verified completed routes, with full-footprint transitions and
   a pure progress model that distinguishes actual prefixes from approved routes.
+- production checkpoint/pause/stop observation, completed-prefix payment, and same-subpath
+  continuation correlation; live interruption QA remains outstanding.
 
 Deferred:
 
-- production interruption observation and movement-triggered reaction windows.
+- movement-triggered reaction windows.
 - opportunity reactions, auras, hazards, and Regions.
 - terrain, squeezing, ally/enemy occupancy, and mode-specific collision rules beyond supplied
   policy functions.
-- movement undo/refund and pause/resume accounting.
+- movement undo/refund, new-subpath continuation, and durable handoff/reload recovery.
 
 ## Canonical Path
 
@@ -267,8 +269,10 @@ Budget is not spent during approval. `TokenDocument#_onUpdateMovement()` is Foun
 movement update post-processing method and is too early for WildPath's authoritative final-position
 budget check. Normal movement accounting therefore starts from Foundry's `moveToken` hook, which V14
 documents as firing after conclusion of the update workflow on all connected clients. The hook
-adapter waits for `TokenMovementOperation.finished` to resolve true before building the plain
-`MovementCompletion`.
+adapter snapshots the source position before yielding. A checkpoint with passed and pending
+waypoints proves a partial observation immediately; final completion still requires
+`TokenMovementOperation.finished === true`. Public `pauseToken` and `stopToken` hooks snapshot
+`document.movement` and require the corresponding `paused` or `stopped` state.
 
 Because `moveToken` fires on all clients, only the client that owns the approval record as the
 selected authority commits. In normal active-GM play this is the active GM. The player observes the
@@ -277,11 +281,12 @@ the observed completion to the approval record by movement id plus Scene/Token i
 hook's updated Token document as the local authoritative observation, reads the underlying source
 state with `TokenDocument#toObject(true)`, evaluates the full Token footprint at that explicit source
 position through `TokenDocument#getOccupiedGridSpaceOffsets(position)`, confirms that anchor matches
-the approved route destination, and only then commits the approved
+the verified prefix destination, and only then commits the newly completed
 `economy.movement` spend through `ResourceResolver` and `DocumentPersistencePort`. Duplicate
-observations for the same movement id are idempotent and do not spend twice, including concurrent
-completion delivery. The existing `MOVEMENT_COMMIT` socket path remains for explicit fallback/manual
-delivery and retains sender binding: client payload `sourceUserId` is treated as a claim and must
+observations for the same route are serialized and do not spend twice, including concurrent
+increasing prefixes. The existing `MOVEMENT_COMMIT` socket path may retry locally verified unpaid
+cost; it cannot establish progress or pay an approved but unobserved route. It retains sender
+binding: client payload `sourceUserId` is treated as a claim and must
 match the envelope sender and the approved movement initiator before any document resolution or
 persistence work occurs.
 
@@ -333,7 +338,8 @@ The pure domain remains the mechanical authority for ordered path semantics.
 ## Movement Progress And Semantic Facts
 
 `module/helpers/movement-events.mts` implements `MovementProgress`, `createMovementProgress()`,
-`advanceMovementProgress()`, and `diffMovementFootprints()` as pure TypeScript. Its tracked `.mjs`
+`advanceMovementProgress()`, `completedMovementPrefix()`, `movementPaymentDelta()`, and
+`diffMovementFootprints()` as pure TypeScript. Its tracked `.mjs`
 output is emitted by `npm run build` for Foundry and Node; see [TypeScript migration](typescript-migration.md).
 It uses `createAutomationEvent()` and the existing event/trigger contracts, with no separate event bus.
 
@@ -349,7 +355,9 @@ transition facts, then `movement.interrupted` with actual destination C, approve
 completed cost, and suffix `C -> D`. It emits neither a C-to-D transition nor completion. Paused
 progress may continue; interrupted/completed records are terminal. `resumable` is descriptive
 interruption data for a future authorized continuation, not permission to rewrite a terminal record.
-No partial payment or Foundry resume action is performed by this pure model.
+The pure model calculates the payment delta; the authority commits it through ResourceResolver.
+It does not invoke Foundry pause/resume methods. A constrained stop at the last approved waypoint
+may have an empty remaining suffix; without successful completion evidence it is still interrupted.
 
 Each transition carries full before/after `TokenGridFootprint` endpoints and deterministic
 `leftFields`, `enteredFields`, and `retainedFields`. Deltas use sorted unique topology-aware field
@@ -368,12 +376,14 @@ observation. Facts describe verified locomotion independently of payment success
 payment retry does not emit them again. See [events and reactions](events-and-reactions.md) for
 payloads and the public observer hook.
 
-### Verified V14 Lifecycle And Deferred Interruption
+### Verified V14 Lifecycle And Production Interruption
 
-The production batch is **retrospective**: `movement.started`, ordered `movement.transition`, and
-`movement.completed` are delivered together after verified completion. Every event is informational
-and carries `metadata.observation.timing = "completion-reconciled"`. These are actual route facts,
-not real-time pre-step reaction windows. Approval never emits a started event.
+Events are **retrospective** facts about a verified prefix. Checkpoint or pause observation emits
+`movement.started` once and only newly completed `movement.transition` events. Pause is nonterminal
+and emits no interrupted/completed event. Stop emits `movement.interrupted` once with the actual
+destination, cost, and remaining suffix. A linked final completion emits only the remaining
+transitions and `movement.completed`. Approval emits nothing. These informational events do not
+open pre-step reaction windows or control Foundry movement.
 
 Official V14 API references and the selected boundaries:
 
@@ -381,18 +391,52 @@ Official V14 API references and the selected boundaries:
 | --- | --- |
 | [TokenDocument](https://foundryvtt.com/api/v14/classes/foundry.documents.TokenDocument.html) | `_preUpdateMovement` approves/rejects the final route; `getCompleteMovementPath` expands explicit waypoints; `toObject(true)` and explicit occupied-space queries verify source footprints. |
 | [moveToken](https://foundryvtt.com/api/v14/functions/hookEvents.moveToken.html) | Post-update observation on all clients; only selected authority reconciles facts. |
-| [TokenMovementOperation](https://foundryvtt.com/api/v14/interfaces/foundry.documents.types.TokenMovementOperation.html) | `finished` resolves true only for fully completed movement. False, rejection, or absent confirmation produces no production facts or payment. `chain`, `subpathId`, `split`, and `history` matter for future continuation correlation. |
-| [TokenMovementSectionData](https://foundryvtt.com/api/v14/interfaces/foundry.documents.types.TokenMovementSectionData.html) | `passed`/`pending` waypoints describe operation sections; they are reconciled only after full completion in this slice. Foundry measured cost remains separate from WildPath cost. |
-| [pauseToken](https://foundryvtt.com/api/v14/functions/hookEvents.pauseToken.html), [stopToken](https://foundryvtt.com/api/v14/functions/hookEvents.stopToken.html) | Document-only notifications do not themselves identify the approved operation and completed prefix. They are not wired to semantic interruption yet. |
+| [TokenMovementOperation](https://foundryvtt.com/api/v14/interfaces/foundry.documents.types.TokenMovementOperation.html) | `finished` confirms whole-chain completion. False/rejection/missing confirmation alone is ambiguous and proves no prefix. `chain` is an ordered array of prior IDs; `subpathId` and `split` identify continuation boundaries. |
+| [TokenMovementSectionData](https://foundryvtt.com/api/v14/interfaces/foundry.documents.types.TokenMovementSectionData.html) | Ordered `passed` waypoints prove the current operation segment after update. `pending` waypoints remain plans. Foundry measured cost never replaces approved WildPath cost. |
+| [pauseToken](https://foundryvtt.com/api/v14/functions/hookEvents.pauseToken.html), [stopToken](https://foundryvtt.com/api/v14/functions/hookEvents.stopToken.html), [TokenMovementData](https://foundryvtt.com/api/v14/interfaces/foundry.documents.types.TokenMovementData.html) | The document-only hooks obtain ID, chain, subpath, state, user, origin, and passed section from `document.movement`, then snapshot the source footprint synchronously. |
 | [recordToken](https://foundryvtt.com/api/v14/functions/hookEvents.recordToken.html), [TokenMovementHistoryData](https://foundryvtt.com/api/v14/interfaces/foundry.documents.types.TokenMovementHistoryData.html) | History may be recorded or cleared; this notification alone is not proof of an individual completed tactical step. |
 
-Production interruption needs authority correlation between pause/stop, the Token's movement/history,
-and the approved operation/chain, including repeated anchors, split operations, and resumed suffixes.
-It also needs partial-budget accounting and continuation validation. The current all-or-nothing
-completion/payment seam cannot infer those safely from a destination. This integration is explicitly
-deferred; the pure prefix/interruption contract and its tests are implemented now.
-The existing movement message serializer does not yet retain the operation's full chain/history;
-the continuation slice must preserve and validate those identifiers and section data explicitly.
+The official versioned API pages identify V14.365. Read-only inspection of the installed official
+V14.367 `client/documents/token.mjs` resolved lifecycle ordering: each checkpoint commits its passed
+section; pause retains pending; stop clears pending but retains the operation identity and passed
+section; continuation submits a new update with a new ID and the prior ordered chain. This source
+observation is not live WildPath QA. No private pause/stop/continuation implementation is invoked
+or copied into WildPath. The public seams above remain the integration boundary.
+
+The authority retains one root approval and a private operation-to-root index scoped by Scene and
+Token. Each continuation must name the entire observed prior chain, retain the root subpath, and
+have `split === false`. Its authoritative origin, full footprints, remaining route, Actor UUID,
+movement kind/mode, and step costs must agree with the original suffix. The original measurement
+mode remains fixed. Missing links, unobserved prior operations, changed subpaths, or a split fail
+closed. Stopped/completed records cannot resume; a new independent move needs a new approval.
+
+Each operation stores its starting transition index. The translated passed segment is matched at
+that exact index, so loops such as `A -> B -> A -> B` retain all three transitions. Passed waypoint
+movement/subpath IDs must agree with the operation. The actual full source footprint must equal
+the last verified footprint; matching a final anchor or an unfiltered history entry is insufficient.
+History recording/clearing is not observed: unrelated recorded or unrecorded history cannot prove
+the current prefix. Malformed evidence returns a typed diagnostic without facts or payment.
+
+Partial payment uses this invariant in the approved measurement mode:
+
+```text
+verified cumulative prefix budget cost - already committed prefix cost = new payment
+```
+
+The existing adapter converts that delta to the Actor resource amount (fields multiply by grid
+distance). Forced movement/teleport have zero budget cost. A per-root serial queue coordinates
+observations, continuation approval, and retries; increasing prefixes wait their turn rather than
+being dropped as duplicates. Lower verified prefixes are ignored, with no refund or replay.
+Progress and facts advance before observer delivery. Only successful persistence advances paid
+cost/count. Failure retains the verified prefix and an explicit unpaid debt; a later observation or
+sender-bound socket retry pays only that debt, without re-emitting facts. Observer exceptions do not
+prevent payment. These records are session-local; authority handoff/reload does not reconstruct them.
+
+`game.wildpath.movement.getMovementProgress({movementId, sceneRef, tokenRef})` returns a separate
+plain snapshot: root movement ID, operation IDs, approved/completed/remaining transition counts,
+actual destination/full footprint, status, cumulative movement cost, committed movement cost,
+paid transition count, measurement mode, and payment failure. Scene/Token UUID strings may be used
+as refs. Mutating this snapshot cannot change accounting. No new mutable record map is exposed.
 
 Forced movement generates the same events with `movementKind: "forced"`, evaluated travel cost,
 and zero ordinary budget cost. Teleport emits supplied jumps with `discontinuous: true` and endpoint
@@ -415,10 +459,10 @@ translation/resize remains unsupported.
 The maintainer confirmed prerequisite Foundry V14 QA passed for Large hex one-step movement
 (`30 -> 25`), Large hex two-step movement (`30 -> 20`), and Large square one-step movement
 (`30 -> 25`) on baseline `17858525f060c097763bc782e95ecced08c88afc` before this milestone began.
-The new semantic observer still needs live QA; Node contract fixtures do not prove its runtime timing.
-
-For that QA, observe `wildpath.automationEvent` on the active GM, perform one- and two-step player
-moves, and inspect ordered types, unique IDs, footprints/deltas, costs, and completion provenance.
-The player's same hook must receive no authoritative events. Also verify forced movement,
-teleport endpoint-only transitions, and resize producing no locomotion events. Interrupted movement
-is expected to produce no production batch in this slice.
+The maintainer also confirmed the completed semantic observer on baseline `f47ef23034be2291d4ee25820041fb99891257da`:
+Large hex two-step `30 -> 20`, started/transition 0/transition 1/completed, three-field footprints,
+two left/two entered/one retained, unique IDs for new movement, and one player-to-GM event batch.
+That prerequisite remains accepted. New Node regressions cover stopped prefixes, pause/linked
+continuation, concurrent increasing observations, repeated anchors, field-mode conversion, invalid
+evidence, payment/observer failure, synthetic Actors, and lost authority. New interruption timing
+still requires live QA; follow [the exact checkpoint console procedure](../development/movement-interruption-qa.md).

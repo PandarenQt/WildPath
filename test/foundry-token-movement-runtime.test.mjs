@@ -27,13 +27,14 @@ import {
 import {
   FOUNDRY_MOVEMENT_CODES,
   FOUNDRY_TOKEN_OPERATION_TYPES,
+  authorizeFoundryMovementIntent,
   buildFoundryMovementCompletion,
   buildFoundryMovementIntent,
   classifyFoundryTokenOperation,
   foundryMovementIntentToMovementPath
 } from "../module/adapters/foundry-v14-movement-adapter.mjs";
 import {createMultiplayerMovementAuthority} from "../module/resolvers/multiplayer-movement-authority.mjs";
-import {onFoundryV14MoveToken, registerFoundryV14MultiplayerResolution} from "../module/resolvers/foundry-multiplayer-runtime.mjs";
+import {onFoundryV14MoveToken, onFoundryV14PauseToken, onFoundryV14StopToken, registerFoundryV14MultiplayerResolution} from "../module/resolvers/foundry-multiplayer-runtime.mjs";
 import WildPathTokenDocument from "../module/documents/token.mjs";
 
 /* -------------------------------------------- */
@@ -665,6 +666,399 @@ function footprintTranslationFixture({topology=GRID_TOPOLOGIES.HEX, size=CREATUR
   };
   return {...fixture, occupiedStates};
 }
+
+// V14 checkpoints commit passed waypoints and continue with a new ID plus the prior chain.
+function checkpointOperation(token, {id="checkpoint-root", offsets=null, passedCount=2, chain=[], subpathId=chain[0] ?? id, kind=null}={}) {
+  const origin = token.toObject(true);
+  const start = token.parent.grid.getOffset(origin);
+  const route = offsets ?? [1, 2, 3].map(step => ({i: start.i + step, j: start.j}));
+  const waypoints = route.map((offset, index) => ({...pointForOffset(token.parent, offset),
+    checkpoint: true, movementId: index < passedCount ? id : null, subpathId, userId: PLAYER.id}));
+  return {id, chain, subpathId, split: false, origin,
+    destination: waypoints[passedCount - 1] ?? origin, method: "drag", constrained: false,
+    passed: {waypoints: waypoints.slice(0, passedCount)}, pending: {waypoints: waypoints.slice(passedCount)},
+    finished: passedCount < route.length ? new Promise(() => {}) : Promise.resolve(true),
+    ...(kind ? {wildpath: {movementKind: kind}} : {})};
+}
+
+async function approveCheckpoint(fixture, movement) {
+  await withFoundryGlobals(fixture, async () => {
+    assert.notEqual(await fixture.token._preUpdateMovement(movement, {}), false, fixture.warnings.at(-1));
+  });
+}
+
+function checkpointSnapshot(fixture, movement, state="pending") {
+  const offset = fixture.scene.grid.getOffset(movement.passed.waypoints.at(-1) ?? movement.origin);
+  const document = observedTokenAtOffset(fixture.token, offset);
+  document.movement = {...movement, state, user: PLAYER,
+    pending: state === "stopped" ? {waypoints: []} : movement.pending};
+  return document;
+}
+
+function progressOf(fixture, movement) {
+  const {completion} = buildFoundryMovementCompletion({tokenDocument: fixture.token, movement, user: PLAYER, game: fixture.gmGame});
+  return fixture.gmAuthority.getMovementProgress(completion);
+}
+
+async function lifecycleHook(fixture, document, state, game=fixture.gmGame) {
+  const handler = state === "paused" ? onFoundryV14PauseToken : onFoundryV14StopToken;
+  return withFoundryGlobals(fixture, () => handler(document, {game}), {game});
+}
+
+for ( const topology of ["square", "hex"] ) for ( const size of ["medium", "large"] ) {
+  test(`${size} ${topology} player stop after two of three steps pays 10 and preserves full footprints once`, async () => {
+    const fixture = footprintTranslationFixture({topology, size});
+    const movement = checkpointOperation(fixture.token);
+    await approveCheckpoint(fixture, movement);
+    assert.equal(progressOf(fixture, movement).completedTransitionCount, 0);
+    const document = checkpointSnapshot(fixture, movement, "stopped");
+    assert.equal((await lifecycleHook(fixture, document, "stopped", fixture.playerGame)).ignored, true);
+    assert.equal((await lifecycleHook(fixture, document, "stopped")).ok, true);
+    assert.equal((await lifecycleHook(fixture, document, "stopped")).duplicate, true);
+    const events = fixture.semanticEvents.gm;
+    assert.deepEqual(events.map(event => event.type), ["movement.started", "movement.transition", "movement.transition", "movement.interrupted"]);
+    assert.deepEqual(events.filter(event => event.type === "movement.transition").map(event => event.data.transitionIndex), [0, 1]);
+    const fields = size === "medium" ? 1 : topology === "hex" ? 3 : 4;
+    assert.equal(events[1].data.to.footprint.fields.length, fields);
+    assert.equal(events[2].data.to.footprint.fields.length, fields);
+    assert.equal(events[1].data.stepCost.amount, 5);
+    if ( size === "large" ) {
+      assert.equal(events[1].data.enteredFields.length, 2);
+      assert.equal(events[1].data.leftFields.length, 2);
+      assert.equal(events[1].data.retainedFields.length, topology === "hex" ? 1 : 2);
+    }
+    const progress = progressOf(fixture, movement);
+    assert.equal(progress.status, "interrupted");
+    assert.equal(progress.completedTransitionCount, 2);
+    assert.equal(progress.remainingTransitionCount, 1);
+    assert.equal(progress.cumulativeMovementCost, 10);
+    assert.equal(progress.committedMovementCost, 10);
+    assert.equal(progress.paidTransitionCount, 2);
+    assert.equal(fixture.actor.system.resources.movement.value, 20);
+    assert.equal(fixture.persistence.operations.length, 1);
+    assert.deepEqual(fixture.semanticEvents.player, []);
+    assert.equal(isPlainSerializableData(progress), true);
+    progress.operationIds.push("mutated");
+    progress.actualDestination.footprint.fields.length = 0;
+    assert.equal(progressOf(fixture, movement).operationIds.length, 1);
+    assert.equal(progressOf(fixture, movement).actualDestination.footprint.fields.length, fields);
+  });
+}
+
+test("concurrent increasing checkpoints serialize deltas and ignore a late lower prefix", async () => {
+  const fixture = createMovementRuntimeFixture();
+  const first = checkpointOperation(fixture.token, {passedCount: 1});
+  const second = checkpointOperation(fixture.token, {passedCount: 2});
+  await approveCheckpoint(fixture, first);
+  const before = checkpointSnapshot(fixture, first);
+  const after = checkpointSnapshot(fixture, second);
+  await withFoundryGlobals(fixture, async () => {
+    const results = await Promise.all([before, after, after].map(document =>
+      onFoundryV14MoveToken(document, document.movement, {}, PLAYER, {game: fixture.gmGame})));
+    assert.equal(results.every(result => result.ok), true);
+  });
+  assert.equal((await fireMoveTokenHook(fixture, {token: before, movement: before.movement})).duplicate, true);
+  assert.equal(fixture.actor.system.resources.movement.value, 20);
+  assert.deepEqual(fixture.persistence.operations.map(operation => operation.updates["system.resources.movement.value"]), [25, 20]);
+  assert.equal(fixture.semanticEvents.gm.length, 3);
+  assert.equal(progressOf(fixture, first).completedTransitionCount, 2);
+});
+
+test("checkpoint snapshots survive the same Token updating again before queued reconciliation", async () => {
+  const fixture = createMovementRuntimeFixture();
+  const first = checkpointOperation(fixture.token, {passedCount: 1});
+  const second = checkpointOperation(fixture.token, {passedCount: 2});
+  await approveCheckpoint(fixture, first);
+  await withFoundryGlobals(fixture, async () => {
+    fixture.token.setSourceOffset({i: 1, j: 0});
+    const before = onFoundryV14MoveToken(fixture.token, first, {}, PLAYER, {game: fixture.gmGame});
+    fixture.token.setSourceOffset({i: 2, j: 0});
+    const after = onFoundryV14MoveToken(fixture.token, second, {}, PLAYER, {game: fixture.gmGame});
+    assert.equal((await Promise.all([before, after])).every(result => result.ok), true);
+  });
+  assert.deepEqual(fixture.persistence.operations.map(operation => operation.updates["system.resources.movement.value"]), [25, 20]);
+  assert.equal(fixture.semanticEvents.gm.length, 3);
+  assert.equal(fixture.gmAuthority.getMovementProgress({movementId: first.id,
+    sceneRef: fixture.scene.uuid, tokenRef: fixture.token.uuid}).completedTransitionCount, 2);
+});
+
+test("continuation approval waits for the prior checkpoint payment instead of dropping the new operation", async () => {
+  const fixture = createMovementRuntimeFixture();
+  const first = checkpointOperation(fixture.token, {passedCount: 1});
+  await approveCheckpoint(fixture, first);
+  let release, entered;
+  const enteredPromise = new Promise(resolve => { entered = resolve; });
+  const gate = new Promise(resolve => { release = resolve; });
+  const update = fixture.persistence.updateActor;
+  fixture.persistence.updateActor = async args => { entered(); await gate; return update(args); };
+  await withFoundryGlobals(fixture, async () => {
+    fixture.token.setOffset({i: 1, j: 0});
+    const observing = onFoundryV14MoveToken(fixture.token, first, {}, PLAYER, {game: fixture.gmGame});
+    await enteredPromise;
+    const next = checkpointOperation(fixture.token, {id: "queued-continuation", chain: [first.id], passedCount: 1,
+      offsets: [{i: 2, j: 0}, {i: 3, j: 0}]});
+    const approving = fixture.token._preUpdateMovement(next, {});
+    release();
+    assert.equal((await observing).ok, true);
+    assert.notEqual(await approving, false);
+    assert.deepEqual(progressOf(fixture, next).operationIds, [first.id, next.id]);
+  });
+  assert.equal(fixture.actor.system.resources.movement.value, 25);
+  assert.equal(fixture.persistence.operations.length, 1);
+});
+
+test("pause preserves the approved suffix and linked continuation completes without replay", async () => {
+  const fixture = createMovementRuntimeFixture();
+  const movement = checkpointOperation(fixture.token);
+  await approveCheckpoint(fixture, movement);
+  const paused = checkpointSnapshot(fixture, movement, "paused");
+  assert.equal((await lifecycleHook(fixture, paused, "paused")).ok, true);
+  assert.equal((await lifecycleHook(fixture, paused, "paused")).duplicate, true);
+  assert.equal(progressOf(fixture, movement).status, "paused");
+  assert.equal(fixture.semanticEvents.gm.length, 3);
+  fixture.token.setOffset({i: 2, j: 0});
+  const resumed = checkpointOperation(fixture.token, {id: "checkpoint-resumed", chain: [movement.id], offsets: [{i: 3, j: 0}], passedCount: 1});
+  await approveCheckpoint(fixture, resumed);
+  assert.equal(progressOf(fixture, resumed).completedTransitionCount, 2);
+  const completed = checkpointSnapshot(fixture, resumed, "completed");
+  assert.equal((await fireMoveTokenHook(fixture, {token: completed, movement: resumed})).ok, true);
+  assert.equal((await fireMoveTokenHook(fixture, {token: completed, movement: resumed})).duplicate, true);
+  assert.deepEqual(fixture.semanticEvents.gm.map(event => event.type), [
+    "movement.started", "movement.transition", "movement.transition", "movement.transition", "movement.completed"
+  ]);
+  assert.deepEqual(fixture.semanticEvents.gm.filter(event => event.type === "movement.transition").map(event => event.data.transitionIndex), [0, 1, 2]);
+  assert.equal(new Set(fixture.semanticEvents.gm.map(event => event.id)).size, 5);
+  assert.equal(progressOf(fixture, movement).status, "completed");
+  assert.equal(progressOf(fixture, resumed).committedMovementCost, 15);
+  assert.equal(fixture.actor.system.resources.movement.value, 15);
+  assert.equal(fixture.persistence.operations.length, 2);
+});
+
+test("pause followed by stop is terminal without replay or suffix payment", async () => {
+  const fixture = createMovementRuntimeFixture();
+  const movement = checkpointOperation(fixture.token);
+  await approveCheckpoint(fixture, movement);
+  await lifecycleHook(fixture, checkpointSnapshot(fixture, movement, "paused"), "paused");
+  await lifecycleHook(fixture, checkpointSnapshot(fixture, movement, "stopped"), "stopped");
+  fixture.token.setOffset({i: 2, j: 0});
+  const resumed = checkpointOperation(fixture.token, {id: "cannot-resume", chain: [movement.id], offsets: [{i: 3, j: 0}], passedCount: 1});
+  await withFoundryGlobals(fixture, async () => assert.equal(await fixture.token._preUpdateMovement(resumed, {}), false));
+  assert.equal(fixture.semanticEvents.gm.at(-1).type, "movement.interrupted");
+  assert.equal(fixture.semanticEvents.gm.length, 4);
+  assert.equal(fixture.persistence.operations.length, 1);
+});
+
+for ( const mismatch of ["route", "footprint", "movementId", "pending-id", "subpath", "missing-passed"] ) {
+  test(`interruption fails closed for ${mismatch} evidence`, async () => {
+    const fixture = createMovementRuntimeFixture();
+    const movement = checkpointOperation(fixture.token);
+    await approveCheckpoint(fixture, movement);
+    const document = checkpointSnapshot(fixture, movement, "stopped");
+    document.movement.passed = structuredClone(movement.passed);
+    if ( mismatch === "route" ) document.movement.passed.waypoints[0].y += 50;
+    if ( mismatch === "footprint" ) { document.width = 2; document.setSourceOffset({i: 2, j: 0}); }
+    if ( mismatch === "movementId" ) document.movement.passed.waypoints[0].movementId = "unrelated";
+    if ( mismatch === "pending-id" ) document.movement.passed.waypoints[0].movementId = null;
+    if ( mismatch === "subpath" ) document.movement.subpathId = "unrelated";
+    if ( mismatch === "missing-passed" ) delete document.movement.passed;
+    assert.equal((await lifecycleHook(fixture, document, "stopped")).ok, false);
+    assert.equal(fixture.persistence.operations.length, 0);
+    assert.equal(fixture.semanticEvents.gm.length, 0);
+    assert.equal(progressOf(fixture, movement).status, "pending");
+  });
+}
+
+for ( const mismatch of ["chain", "malformed-chain", "subpath", "split", "route", "unobserved"] ) {
+  test(`continuation rejects ${mismatch} rather than guessing the root or suffix`, async () => {
+    const fixture = createMovementRuntimeFixture();
+    const root = checkpointOperation(fixture.token);
+    await approveCheckpoint(fixture, root);
+    if ( mismatch !== "unobserved" ) await lifecycleHook(fixture, checkpointSnapshot(fixture, root, "paused"), "paused");
+    fixture.token.setOffset({i: 2, j: 0});
+    const next = checkpointOperation(fixture.token, {id: "next", chain: [root.id], offsets: [{i: 3, j: 0}], passedCount: 1});
+    if ( mismatch === "chain" ) next.chain.push("missing-operation");
+    if ( mismatch === "malformed-chain" ) next.chain = null;
+    if ( mismatch === "subpath" ) next.subpathId = "other-subpath";
+    if ( mismatch === "split" ) next.split = true;
+    if ( mismatch === "route" ) next.passed.waypoints[0].y = 50;
+    await withFoundryGlobals(fixture, async () => assert.equal(await fixture.token._preUpdateMovement(next, {}), false));
+    assert.equal(progressOf(fixture, root).operationIds.length, 1);
+    assert.equal(fixture.actor.system.resources.movement.value, mismatch === "unobserved" ? 30 : 20);
+  });
+}
+
+test("repeated anchors are matched by ordered prefix, not by first endpoint occurrence", async () => {
+  const fixture = createMovementRuntimeFixture();
+  const movement = checkpointOperation(fixture.token, {offsets: [{i: 1, j: 0}, {i: 0, j: 0}, {i: 1, j: 0}, {i: 2, j: 0}], passedCount: 3});
+  await approveCheckpoint(fixture, movement);
+  await lifecycleHook(fixture, checkpointSnapshot(fixture, movement, "stopped"), "stopped");
+  assert.equal(progressOf(fixture, movement).completedTransitionCount, 3);
+  assert.equal(fixture.actor.system.resources.movement.value, 15);
+  assert.deepEqual(fixture.semanticEvents.gm.filter(event => event.type === "movement.transition").map(event => event.data.transitionIndex), [0, 1, 2]);
+});
+
+test("interrupted synthetic Token Actor payment preserves the unrelated world Actor", async () => {
+  const synthetic = fakeActor("synthetic");
+  synthetic.uuid = "Scene.scene-a.Token.token-a.Actor.synthetic";
+  const fixture = createMovementRuntimeFixture({actor: synthetic});
+  const worldActor = fakeActor("synthetic");
+  fixture.playerGame.actors.set(worldActor.id, worldActor);
+  fixture.gmGame.actors.set(worldActor.id, worldActor);
+  const movement = checkpointOperation(fixture.token);
+  await approveCheckpoint(fixture, movement);
+  await lifecycleHook(fixture, checkpointSnapshot(fixture, movement, "stopped"), "stopped");
+  assert.equal(synthetic.system.resources.movement.value, 20);
+  assert.equal(worldActor.system.resources.movement.value, 30);
+  assert.equal(fixture.persistence.operations[0].actorRef, synthetic.uuid);
+});
+
+test("forced interruption retains actual travel facts without ordinary movement payment", async () => {
+  const fixture = createMovementRuntimeFixture();
+  const movement = checkpointOperation(fixture.token, {kind: "forced"});
+  await approveCheckpoint(fixture, movement);
+  await lifecycleHook(fixture, checkpointSnapshot(fixture, movement, "stopped"), "stopped");
+  assert.equal(progressOf(fixture, movement).cumulativeMovementCost, 10);
+  assert.equal(progressOf(fixture, movement).committedMovementCost, 0);
+  assert.equal(fixture.actor.system.resources.movement.value, 30);
+  assert.equal(fixture.semanticEvents.gm[2].data.budgetCost, 0);
+  assert.equal(fixture.persistence.operations.length, 0);
+});
+
+test("teleport stopped before displacement does not invent the approved jump", async () => {
+  const fixture = createMovementRuntimeFixture();
+  const movement = checkpointOperation(fixture.token, {kind: "teleport", passedCount: 0, offsets: [{i: 8, j: 0}]});
+  await approveCheckpoint(fixture, movement);
+  assert.equal((await lifecycleHook(fixture, checkpointSnapshot(fixture, movement, "stopped"), "stopped")).ok, true);
+  assert.equal(progressOf(fixture, movement).completedTransitionCount, 0);
+  assert.deepEqual(fixture.semanticEvents.gm.map(event => event.type), ["movement.interrupted"]);
+  assert.equal(fixture.actor.system.resources.movement.value, 30);
+});
+
+test("prefix payment failure preserves facts and retries only the unpaid cumulative amount", async () => {
+  let failNext = true;
+  const fixture = createMovementRuntimeFixture({persistenceOptions: {
+    failOn() { const fail = failNext; failNext = false; return fail; }
+  }, onAutomationEvent() { throw new Error("observer failure"); }});
+  const movement = checkpointOperation(fixture.token);
+  await approveCheckpoint(fixture, movement);
+  const stopped = checkpointSnapshot(fixture, movement, "stopped");
+  assert.equal((await lifecycleHook(fixture, stopped, "stopped")).ok, false);
+  const failed = progressOf(fixture, movement);
+  assert.equal(failed.completedTransitionCount, 2);
+  assert.equal(failed.committedMovementCost, 0);
+  assert.equal(failed.paidTransitionCount, 0);
+  assert.equal(failed.cumulativeMovementCost, 10);
+  assert.equal(failed.paymentFailure.code, FOUNDRY_MOVEMENT_CODES.MOVEMENT_COMMIT_FAILED);
+  assert.equal(fixture.semanticEvents.gm.length, 4);
+  assert.equal((await lifecycleHook(fixture, stopped, "stopped")).ok, true);
+  assert.equal((await lifecycleHook(fixture, stopped, "stopped")).duplicate, true);
+  assert.equal(progressOf(fixture, movement).committedMovementCost, 10);
+  assert.equal(progressOf(fixture, movement).paymentFailure, null);
+  assert.equal(fixture.semanticEvents.gm.length, 4);
+  assert.equal(fixture.actor.system.resources.movement.value, 20);
+  assert.equal(fixture.persistence.operations.length, 2);
+});
+
+test("handoff or reload cannot infer an interrupted prefix from an approval on another client", async () => {
+  const fixture = createMovementRuntimeFixture();
+  const movement = checkpointOperation(fixture.token);
+  await approveCheckpoint(fixture, movement);
+  const stopped = checkpointSnapshot(fixture, movement, "stopped");
+  fixture.gmGame.users.activeGM = {id: "replacement", active: true, isGM: true};
+  assert.equal((await lifecycleHook(fixture, stopped, "stopped")).ok, false);
+  assert.equal(fixture.semanticEvents.gm.length, 0);
+  fixture.gmGame.users.activeGM = GM;
+  fixture.gmGame.wildpath.movement = createMultiplayerMovementAuthority({userId: GM.id, users: fixture.users,
+    activeGMUserId: GM.id, game: fixture.gmGame, persistencePort: fixture.persistence});
+  assert.equal((await lifecycleHook(fixture, stopped, "stopped")).code, FOUNDRY_MOVEMENT_CODES.MOVEMENT_NOT_APPROVED);
+  assert.equal(fixture.persistence.operations.length, 0);
+});
+
+test("authority loss during asynchronous approval cannot retain or approve the route", async () => {
+  const fixture = createMovementRuntimeFixture();
+  const movement = checkpointOperation(fixture.token);
+  const authority = createMultiplayerMovementAuthority({userId: GM.id, users: fixture.users,
+    activeGMUserId: () => fixture.gmGame.users.activeGM?.id, game: fixture.gmGame,
+    authorizeMovement: async options => {
+      const result = await authorizeFoundryMovementIntent(options);
+      fixture.gmGame.users.activeGM = OTHER_PLAYER;
+      return result;
+    }});
+  const {intent} = buildFoundryMovementIntent({tokenDocument: fixture.token, movement, user: PLAYER, game: fixture.playerGame});
+  assert.equal((await authority.requestMovementApproval(intent)).approved, false);
+  assert.equal(authority.getMovementProgress(intent), null);
+  assert.equal(fixture.persistence.operations.length, 0);
+});
+
+test("three linked Large hex checkpoints retain one route and original measurement mode", async () => {
+  const fixture = footprintTranslationFixture();
+  const start = fixture.token.offset;
+  const offsets = [1, 2, 3].map(step => ({i: start.i + step, j: start.j}));
+  const chain = [];
+  for ( let index = 0; index < 3; index++ ) {
+    const movement = checkpointOperation(fixture.token, {id: `linked-${index}`, offsets: offsets.slice(index), passedCount: 1, chain: [...chain]});
+    await approveCheckpoint(fixture, movement);
+    // Later configuration changes must not change the approved route's cost units.
+    fixture.gmGame.settings.get = () => MOVEMENT_MEASUREMENT_MODES.FIELDS;
+    const document = checkpointSnapshot(fixture, movement, index === 2 ? "completed" : "pending");
+    assert.equal((await fireMoveTokenHook(fixture, {token: document, movement})).ok, true);
+    fixture.token.setOffset(offsets[index]);
+    chain.push(movement.id);
+    assert.equal(progressOf(fixture, movement).completedTransitionCount, index + 1);
+    assert.equal(progressOf(fixture, movement).measurementMode, MOVEMENT_MEASUREMENT_MODES.DISTANCE);
+    assert.equal(progressOf(fixture, movement).committedMovementCost, 5 * (index + 1));
+  }
+  assert.equal(fixture.actor.system.resources.movement.value, 15);
+  assert.equal(fixture.semanticEvents.gm.length, 5);
+  assert.equal(fixture.semanticEvents.gm.filter(event => event.type === "movement.transition").every(event => event.data.to.footprint.fields.length === 3), true);
+});
+
+test("field-mode interrupted cost converts only the newly verified fields into Actor movement", async () => {
+  const fixture = createMovementRuntimeFixture({measurementMode: MOVEMENT_MEASUREMENT_MODES.FIELDS});
+  const first = checkpointOperation(fixture.token, {passedCount: 1});
+  await approveCheckpoint(fixture, first);
+  await lifecycleHook(fixture, checkpointSnapshot(fixture, first, "paused"), "paused");
+  const stopped = checkpointOperation(fixture.token, {passedCount: 2});
+  await lifecycleHook(fixture, checkpointSnapshot(fixture, stopped, "stopped"), "stopped");
+  assert.equal(progressOf(fixture, first).cumulativeMovementCost, 2);
+  assert.equal(progressOf(fixture, first).committedMovementCost, 2);
+  assert.deepEqual(fixture.persistence.operations.map(operation => operation.updates["system.resources.movement.value"]), [25, 20]);
+});
+
+test("a longer verified prefix retries failed debt together with only the new step", async () => {
+  let attempt = 0;
+  const fixture = createMovementRuntimeFixture({persistenceOptions: {failOn() { return ++attempt === 2; }}});
+  const first = checkpointOperation(fixture.token, {passedCount: 1});
+  await approveCheckpoint(fixture, first);
+  assert.equal((await lifecycleHook(fixture, checkpointSnapshot(fixture, first, "paused"), "paused")).ok, true);
+  const second = checkpointOperation(fixture.token, {passedCount: 2});
+  assert.equal((await lifecycleHook(fixture, checkpointSnapshot(fixture, second, "paused"), "paused")).ok, false);
+  assert.equal(progressOf(fixture, first).committedMovementCost, 5);
+  const third = checkpointOperation(fixture.token, {passedCount: 3});
+  const document = checkpointSnapshot(fixture, third, "completed");
+  assert.equal((await fireMoveTokenHook(fixture, {token: document, movement: third})).ok, true);
+  assert.equal(progressOf(fixture, first).committedMovementCost, 15);
+  assert.equal(progressOf(fixture, first).paymentFailure, null);
+  assert.equal(fixture.actor.system.resources.movement.value, 15);
+  assert.equal(fixture.semanticEvents.gm.length, 5);
+  assert.deepEqual(fixture.persistence.operations.map(operation => operation.updates["system.resources.movement.value"]), [25, 20, 15]);
+});
+
+test("a constrained stop at the approved final waypoint remains interruption, never guessed completion", async () => {
+  const fixture = createMovementRuntimeFixture();
+  const movement = checkpointOperation(fixture.token, {passedCount: 3});
+  movement.constrained = true;
+  movement.finished = Promise.resolve(false);
+  await approveCheckpoint(fixture, movement);
+  const document = checkpointSnapshot(fixture, movement, "stopped");
+  assert.equal((await fireMoveTokenHook(fixture, {token: document, movement})).ok, true);
+  assert.equal((await lifecycleHook(fixture, document, "stopped")).duplicate, true);
+  assert.equal(progressOf(fixture, movement).status, "interrupted");
+  assert.equal(progressOf(fixture, movement).remainingTransitionCount, 0);
+  assert.equal(fixture.semanticEvents.gm.at(-1).data.interruption.reason, "foundry-constrained");
+  assert.equal(fixture.semanticEvents.gm.some(event => event.type === "movement.completed"), false);
+  assert.equal(fixture.actor.system.resources.movement.value, 15);
+});
 
 /* -------------------------------------------- */
 /*  Tests                                       */
@@ -1505,7 +1899,8 @@ test("moveToken observation does not spend when Foundry movement finished false"
     user: {...PLAYER, isSelf: false},
     game: fixture.gmGame
   });
-  assert.equal(observed.ok, true);
+  assert.equal(observed.ok, false);
+  assert.equal(observed.code, FOUNDRY_MOVEMENT_CODES.MOVEMENT_OBSERVATION_AMBIGUOUS);
   assert.equal(observed.ignored, true);
   assert.equal(actor.system.resources.movement.value, 30);
   assert.equal(persistence.operations.length, 0);
@@ -1646,6 +2041,7 @@ test("duplicate completed movement spends ordinary movement budget only once", a
     assert.notEqual(await token._preUpdateMovement(movement, {}), false);
   });
   moveTokenToOffset(token, {i: 2, j: 0});
+  assert.equal((await fireMoveTokenHook(fixture, {movement})).ok, true);
 
   const completion = buildFoundryMovementCompletion({
     tokenDocument: token,
@@ -1682,8 +2078,8 @@ test("concurrent duplicate movement completions share one budget commit", async 
     game: fixture.playerGame
   }).completion;
   const [first, second] = await Promise.all([
-    fixture.playerAuthority.commitMovementCompletion(completion),
-    fixture.playerAuthority.commitMovementCompletion(completion)
+    fixture.gmAuthority.observeMovementCompletion(completion, {tokenDocument: token}),
+    fixture.gmAuthority.observeMovementCompletion(completion, {tokenDocument: token})
   ]);
 
   assert.equal(first.ok, true);
@@ -1693,7 +2089,10 @@ test("concurrent duplicate movement completions share one budget commit", async 
 });
 
 test("concurrent movement commit socket envelopes spend movement once", async () => {
-  const fixture = createMovementRuntimeFixture();
+  let failNext = true;
+  const fixture = createMovementRuntimeFixture({persistenceOptions: {
+    failOn() { const fail = failNext; failNext = false; return fail; }
+  }});
   const {actor, token, gmAuthority, persistence} = fixture;
   const movement = movementOperation(token, {
     id: "move-concurrent-socket-completion",
@@ -1704,6 +2103,8 @@ test("concurrent movement commit socket envelopes spend movement once", async ()
     assert.notEqual(await token._preUpdateMovement(movement, {}), false);
   });
   moveTokenToOffset(token, {i: 2, j: 0});
+  assert.equal((await fireMoveTokenHook(fixture, {movement})).ok, false);
+  assert.equal(fixture.semanticEvents.gm.length, 4);
 
   const completion = buildFoundryMovementCompletion({
     tokenDocument: token,
@@ -1737,7 +2138,8 @@ test("concurrent movement commit socket envelopes spend movement once", async ()
   assert.equal(results.some(result => result.result.code === FOUNDRY_MOVEMENT_CODES.OK), true);
   assert.equal(results.some(result => result.result.code === FOUNDRY_MOVEMENT_CODES.MOVEMENT_ALREADY_COMMITTED), true);
   assert.equal(actor.system.resources.movement.value, 20);
-  assert.equal(persistence.operations.filter(operation => operation.type === "updateActor").length, 1);
+  assert.equal(persistence.operations.filter(operation => operation.type === "updateActor").length, 2);
+  assert.equal(fixture.semanticEvents.gm.length, 4);
 });
 
 test("failed movement commit clears the in-flight idempotency guard for retry", async () => {
@@ -1769,8 +2171,8 @@ test("failed movement commit clears the in-flight idempotency guard for retry", 
     game: fixture.playerGame
   }).completion;
 
-  const failed = await fixture.playerAuthority.commitMovementCompletion(completion);
-  assert.equal(failed.ok, true);
+  const failed = await fireMoveTokenHook(fixture, {movement});
+  assert.equal(failed.ok, false);
   assert.equal(actor.system.resources.movement.value, 30);
   assert.equal(gmAuthority.getCommitted(completion), null);
   assert.equal(fixture.playerAuthority.errors.at(-1).result.code, FOUNDRY_MOVEMENT_CODES.MOVEMENT_COMMIT_FAILED);
@@ -2028,7 +2430,7 @@ for ( const mismatch of ["source", "route", "missing-route"] ) {
   });
 }
 
-test("socket fallback payment cannot author facts or suppress later local GM observation", async () => {
+test("socket claims cannot pay an unverified route or suppress later local GM observation", async () => {
   const fixture = createMovementRuntimeFixture();
   const movement = movementOperation(fixture.token);
   await withFoundryGlobals(fixture, async () => {
@@ -2039,9 +2441,10 @@ test("socket fallback payment cannot author facts or suppress later local GM obs
     tokenDocument: fixture.token, movement, user: PLAYER, game: fixture.playerGame
   });
   await fixture.playerAuthority.commitMovementCompletion(completion);
-  assert.equal(fixture.actor.system.resources.movement.value, 25);
+  assert.equal(fixture.actor.system.resources.movement.value, 30);
+  assert.equal(fixture.playerAuthority.errors.at(-1).result.code, FOUNDRY_MOVEMENT_CODES.MOVEMENT_PROGRESS_UNVERIFIED);
   assert.deepEqual(fixture.semanticEvents, {player: [], gm: []});
-  assert.equal((await fireMoveTokenHook(fixture, {movement})).duplicate, true);
+  assert.equal((await fireMoveTokenHook(fixture, {movement})).committed, true);
   assert.equal((await fireMoveTokenHook(fixture, {movement})).duplicate, true);
   assert.equal(fixture.semanticEvents.gm.length, 3);
   assert.equal(fixture.persistence.operations.length, 1);

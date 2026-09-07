@@ -46,6 +46,11 @@ export const FOUNDRY_MOVEMENT_CODES = Object.freeze({
   ORIGIN_MISMATCH: "ORIGIN_MISMATCH",
   DESTINATION_MISMATCH: "DESTINATION_MISMATCH",
   COMPLETION_ROUTE_MISMATCH: "COMPLETION_ROUTE_MISMATCH",
+  MOVEMENT_PREFIX_MISMATCH: "MOVEMENT_PREFIX_MISMATCH",
+  MOVEMENT_CONTINUATION_MISMATCH: "MOVEMENT_CONTINUATION_MISMATCH",
+  MOVEMENT_PROGRESS_UNVERIFIED: "MOVEMENT_PROGRESS_UNVERIFIED",
+  MOVEMENT_PAYMENT_MISMATCH: "MOVEMENT_PAYMENT_MISMATCH",
+  MOVEMENT_OBSERVATION_AMBIGUOUS: "MOVEMENT_OBSERVATION_AMBIGUOUS",
   MOVEMENT_EVENT_DELIVERY_FAILED: "MOVEMENT_EVENT_DELIVERY_FAILED",
   GRID_ADAPTER_FAILED: "GRID_ADAPTER_FAILED",
   UNSUPPORTED_TOKEN_OPERATION: "UNSUPPORTED_TOKEN_OPERATION",
@@ -120,7 +125,8 @@ export function buildFoundryMovementIntent({
       tokenOperationType: tokenOperation.type,
       tokenOperation,
       subpathId: stringOrNull(movement?.subpathId ?? operation?.subpathId),
-      chain: movement?.chain === true || operation?.chain === true,
+      chain: movementChain(movement),
+      split: movement?.split === true,
       constrained: movement?.constrained === true || operation?.constrained === true,
       waypointCount: waypoints.length,
       completePathRequired: true
@@ -151,7 +157,8 @@ export function buildFoundryMovementCompletion({
   operation={},
   user=null,
   game=globalThis.game,
-  foundryLifecycle="moveToken"
+  foundryLifecycle="moveToken",
+  captureSource=false
 }={}) {
   const token = resolveTokenDocument(tokenDocument);
   if ( !token ) return failure(FOUNDRY_MOVEMENT_CODES.TOKEN_NOT_FOUND, "A TokenDocument is required to build a movement completion.");
@@ -191,7 +198,8 @@ export function buildFoundryMovementCompletion({
       tokenOperationType: tokenOperation.type,
       tokenOperation,
       subpathId: stringOrNull(movement?.subpathId ?? operation?.subpathId),
-      chain: movement?.chain === true || operation?.chain === true,
+      chain: movementChain(movement),
+      split: movement?.split === true,
       completed: true
     },
     metadata: {
@@ -204,10 +212,39 @@ export function buildFoundryMovementCompletion({
   if ( !isPlainSerializableData(completion) ) {
     return failure(FOUNDRY_MOVEMENT_CODES.NON_SERIALIZABLE_MOVEMENT, "MovementCompletion must be plain JSON-serializable data.");
   }
-  return {ok: true, code: FOUNDRY_MOVEMENT_CODES.OK, completion};
+  const source = captureSource ? tokenSourceFootprintPosition(token) : null;
+  if ( source && !source.ok ) return source;
+  return {ok: true, code: FOUNDRY_MOVEMENT_CODES.OK, completion, sourcePosition: source?.position ?? null};
 }
 
 /* -------------------------------------------- */
+
+/** Snapshot local lifecycle evidence before any await; pending waypoints never prove travel. */
+export function buildFoundryMovementProgressObservation({tokenDocument, movement, user, game, lifecycle, status}) {
+  if ( !["moving", "paused", "interrupted"].includes(status)
+    || !Array.isArray(movement?.passed?.waypoints)
+    || (lifecycle === "pauseToken" && movement.state !== "paused")
+    || (lifecycle === "stopToken" && movement.state !== "stopped") ) {
+    return failure(FOUNDRY_MOVEMENT_CODES.MOVEMENT_OBSERVATION_AMBIGUOUS,
+      "Movement lifecycle lacks a correlated state and passed path.");
+  }
+  const built = buildFoundryMovementCompletion({tokenDocument, movement, user, game,
+    foundryLifecycle: lifecycle, captureSource: true});
+  if ( !built.ok ) return built;
+  const passed = normalizeMovementWaypoints(movement.passed.waypoints);
+  if ( passed.length !== movement.passed.waypoints.length || !plainTokenMovementState(movement.origin)
+    || passed.some(waypoint => waypoint.movementId !== movement.id || waypoint.subpathId !== movement.subpathId) ) {
+    return failure(FOUNDRY_MOVEMENT_CODES.MOVEMENT_OBSERVATION_AMBIGUOUS, "Passed movement waypoints are malformed.");
+  }
+  const completion = built.completion;
+  completion.waypoints = passed.length ? passed : [plainTokenMovementState(movement.origin)];
+  completion.foundry.completed = false;
+  completion.foundry.progressStatus = status;
+  completion.foundry.state = stringOrNull(movement.state);
+  completion.foundry.constrained = movement.constrained === true;
+  completion.foundry.passedWaypointCount = passed.length;
+  return built;
+}
 
 export function sanitizeMovementIntent(intent={}) {
   const data = clonePlainData(intent, "movementIntent") ?? {};
@@ -1165,6 +1202,12 @@ function foundryMovementWaypoints(movement, {allowDestinationFallback=true}={}) 
   return normalizeMovementWaypoints(waypoints);
 }
 
+function movementChain(movement) {
+  const chain = movement?.chain === undefined ? [] : movement.chain;
+  return Array.isArray(chain) && chain.every(id => typeof id === "string" && id.length > 0)
+    ? [...chain] : null;
+}
+
 function sectionWaypoints(section) {
   if ( !section ) return [];
   if ( Array.isArray(section.waypoints) ) return section.waypoints;
@@ -1190,6 +1233,10 @@ function plainMovementWaypoint(value, index=0) {
     ...(typeof value?.explicit === "boolean" ? {explicit: value.explicit} : {}),
     ...(typeof value?.intermediate === "boolean" ? {intermediate: value.intermediate} : {}),
     ...(typeof value?.snapped === "boolean" ? {snapped: value.snapped} : {}),
+    ...(typeof value?.checkpoint === "boolean" ? {checkpoint: value.checkpoint} : {}),
+    ...(Object.hasOwn(value, "movementId") ? {movementId: stringOrNull(value.movementId)} : {}),
+    ...(value?.subpathId ? {subpathId: String(value.subpathId)} : {}),
+    ...(value?.userId ? {userId: String(value.userId)} : {}),
     ...(typeof value?.teleport === "boolean" ? {teleport: value.teleport} : {}),
     ...(cost != null ? {cost} : {})
   };

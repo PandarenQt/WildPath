@@ -8,6 +8,7 @@ import {
 import {createFoundryV14TacticalGridAdapter} from "../adapters/foundry-v14-tactical-grid-adapter.mjs";
 import {
   buildFoundryMovementCompletion,
+  buildFoundryMovementProgressObservation,
   FOUNDRY_MOVEMENT_CODES,
   resolveFoundryMovementDocuments
 } from "../adapters/foundry-v14-movement-adapter.mjs";
@@ -92,6 +93,7 @@ export function registerFoundryV14MultiplayerResolution({
     executeActionIntent: intent => coordinator.declareActionIntent(intent),
     requestMovementApproval: intent => movement.requestMovementApproval(intent),
     observeMovementCompletion: (completion, options={}) => movement.observeMovementCompletion(completion, options),
+    observeMovementProgress: (observation, options={}) => movement.observeMovementProgress(observation, options),
     commitMovementCompletion: completion => movement.commitMovementCompletion(completion)
   };
   game.wildpath = {
@@ -116,9 +118,9 @@ export function registerFoundryV14MultiplayerResolution({
 /* -------------------------------------------- */
 
 /**
- * Observe Foundry's post-update Token movement hook and route completed movement to the existing
- * WildPath movement authority. The hook's updated Token document is local infrastructure input for
- * final anchor verification; it is not stored in authority records or socket payloads.
+ * Observe Foundry's post-update Token movement hook and route verified progress to the existing
+ * WildPath movement authority. The hook's source snapshot survives later Token updates while the
+ * authority queue runs. Documents are not stored in authority records or socket payloads.
  * @param {object} document
  * @param {object} movement
  * @param {object} operation
@@ -146,13 +148,25 @@ async function observeFoundryV14MoveToken(document, movement, operation={}, user
   game=globalThis.game,
   logger=globalThis.console
 }={}) {
+  // Capture source data before yielding: another linked checkpoint can update the Token
+  // while this observation waits for authority or persistence. Pending waypoints are plans.
+  if ( movement?.passed?.waypoints?.length && movement?.pending?.waypoints?.length ) {
+    return observeFoundryMovementPrefix(document, movement, user, "moveToken", "moving", {game, logger});
+  }
+  const completion = buildFoundryMovementCompletion({
+    tokenDocument: document, movement, operation, user, game,
+    foundryLifecycle: "moveToken", captureSource: true
+  });
   const finished = await movementFinished(movement);
-  if ( finished !== true ) return {
-    ok: true,
-    code: MULTIPLAYER_AUTHORITY_CODES.OK,
-    ignored: true,
-    reason: "Foundry movement did not complete."
-  };
+  if ( finished !== true ) {
+    if ( document?.movement?.id === movement?.id && document.movement.state === "stopped" ) {
+      return observeFoundryMovementPrefix(document, document.movement, user, "stopToken", "interrupted", {game, logger});
+    }
+    return {
+      ok: false, code: FOUNDRY_MOVEMENT_CODES.MOVEMENT_OBSERVATION_AMBIGUOUS,
+      ignored: true, reason: "Movement completion alone does not establish a completed prefix or interruption."
+    };
+  }
 
   const runtime = movementRuntime(game);
   if ( !runtime || typeof runtime.observeMovementCompletion !== "function" ) {
@@ -165,24 +179,51 @@ async function observeFoundryV14MoveToken(document, movement, operation={}, user
     return result;
   }
 
-  const completion = buildFoundryMovementCompletion({
-    tokenDocument: document,
-    movement,
-    operation,
-    user,
-    game,
-    foundryLifecycle: "moveToken"
-  });
   if ( !completion.ok ) {
     notifyMovementHookFailure(completion, {logger});
     return completion;
   }
 
   const observed = await runtime.observeMovementCompletion(completion.completion, {
-    tokenDocument: document
+    tokenDocument: document, sourcePosition: completion.sourcePosition
   });
   if ( observed?.ok === false ) notifyMovementHookFailure(observed, {logger});
   return observed;
+}
+
+/** Public V14 lifecycle snapshots prove the passed section even when stop clears pending. */
+export function onFoundryV14PauseToken(document, options={}) {
+  return observeFoundryMovementPrefix(document, document?.movement, document?.movement?.user,
+    "pauseToken", "paused", options);
+}
+
+export function onFoundryV14StopToken(document, options={}) {
+  return observeFoundryMovementPrefix(document, document?.movement, document?.movement?.user,
+    "stopToken", "interrupted", options);
+}
+
+async function observeFoundryMovementPrefix(document, movement, user, lifecycle, status, {
+  game=globalThis.game, logger=globalThis.console
+}={}) {
+  try {
+    const built = buildFoundryMovementProgressObservation({tokenDocument: document, movement, user, game, lifecycle, status});
+    if ( !built.ok ) { notifyMovementHookFailure(built, {logger}); return built; }
+    const runtime = movementRuntime(game);
+    if ( typeof runtime?.observeMovementProgress !== "function" ) return {
+      ok: false, code: MULTIPLAYER_AUTHORITY_CODES.AUTHORITY_UNAVAILABLE,
+      reason: "WildPath movement authority is not available for progress observation."
+    };
+    const result = await runtime.observeMovementProgress(built.completion, {
+      tokenDocument: document, sourcePosition: built.sourcePosition
+    });
+    if ( result?.ok === false ) notifyMovementHookFailure(result, {logger});
+    return result;
+  } catch (error) {
+    const result = {ok: false, code: FOUNDRY_MOVEMENT_CODES.MOVEMENT_COMMIT_FAILED,
+      reason: error?.message ?? String(error)};
+    notifyMovementHookFailure(result, {logger});
+    return result;
+  }
 }
 
 function movementRuntime(game=globalThis.game) {

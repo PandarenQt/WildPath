@@ -74,18 +74,25 @@ produce identical IDs. The progress record suppresses repeated emission of alrea
 IDs also allow downstream consumers to deduplicate their own work.
 
 The [movement progress model](movement-paths.md#movement-progress-and-semantic-facts) separates
-approval from the completed prefix and supports pure interruption/pause tests. Production currently
-emits started/transition/completed together after `moveToken`, `finished === true`, source-footprint
-verification, and observed-route reconciliation. `metadata.observation` is:
+approval from verified and paid prefixes. Production checkpoint, pause, and stop observations use
+the operation's passed section plus a source-footprint snapshot. Started is emitted once; transitions
+are emitted only when their ordered prefix is newly verified. Pause remains nonterminal and adds no
+terminal event. Stop emits interrupted once; a stopped record cannot resume. A correlated continuation
+retains the root movement ID and transition indices. Final completion requires the entire approved
+route and `finished === true`. Ordinary completed-movement `metadata.observation` remains:
 
 ```js
 {source: "foundry-v14", lifecycle: "moveToken", timing: "completion-reconciled", finished: true}
 ```
 
-These delayed informational events support future generic trigger predicates such as cumulative
-travel or occupancy changes. They are not a pre-step interruption seam. Production interruption,
-movement-triggered reaction windows, observer-relative reach predicates, and Area/Region consumers
-are not implemented in this milestone.
+Partial facts use `timing: "prefix-reconciled"`, their `moveToken`/`pauseToken`/`stopToken` lifecycle,
+and `finished: false`; they also retain plain operation ID, ordered chain, subpath, split, and state
+provenance. Linked completion retains those identifiers with completion timing. A stop before any
+step emits an interrupted event with zero completed transitions, never an invented teleport jump.
+
+These informational events support future generic trigger predicates such as cumulative travel or
+occupancy changes. They do not interrupt a step themselves. Movement-triggered reaction windows,
+observer-relative reach predicates, and Area/Region consumers remain deferred.
 
 ### Foundry Observer Extension Point
 

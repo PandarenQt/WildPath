@@ -41,14 +41,15 @@ finished game system name is **WildPath**.
   `module/resolvers/multiplayer-movement-authority.mjs` implement the Foundry Token movement
   vertical slice: normal TokenDocument movement proposals become plain MovementIntents, the active
   GM reconstructs Scene/Token/Actor state and evaluates a MovementPath, rejected routes stop before
-  movement, and successful completions commit ordinary movement budget exactly once through
+  movement, and verified route prefixes commit only their unpaid ordinary movement cost through
   ResourceResolver. Pure Token footprint resize operations are classified separately, validated by
   authoritative source/destination footprint state, and committed with zero movement spend.
 - `module/helpers/movement-events.mts` adds pure, typed MovementProgress and full-footprint
   started/transition/completed/interrupted AutomationEvents through the existing event factory.
-  The movement authority emits completion-reconciled informational facts from verified local GM
-  observations, with deterministic IDs and duplicate suppression. Production interruption and
-  movement-triggered reaction windows remain deferred.
+  The movement authority emits informational facts from verified local GM checkpoint, pause, stop,
+  and completion observations, with deterministic IDs and duplicate suppression. Same-subpath
+  continuation preserves one root route, events, and cumulative payment. Interruption integration
+  needs live QA; movement-triggered reaction windows remain deferred.
 - Tactical grid and area topology are implemented as pure domain foundations: gridded AoE resolves
   to authoritative `GridFootprint` field sets rather than Euclidean templates pretending to be
   tactical geometry. `module/adapters/foundry-v14-tactical-grid-adapter.mjs` now provides the first
@@ -251,8 +252,8 @@ tactical boundary vertex rather than token center.
 
 The first Foundry adapter proof has landed, pure topology-aware MovementPath evaluation now builds
 on the same footprint conventions, and normal Foundry Token movement now passes through active-GM
-MovementPath approval and post-movement budget accounting. Opportunity attacks, movement
-interruption, movement-triggered reactions, auras, emanations, persistent hazards, terrain cost, and
+MovementPath approval and completed-prefix budget accounting, including pause/stop and correlated
+continuation. Opportunity attacks, movement-triggered reactions, auras, emanations, persistent hazards, terrain cost, and
 movement undo/refund remain later slices. See
 `docs/architecture/tactical-grid.md`, `docs/architecture/areas.md`, and
 `docs/architecture/foundry-tactical-grid-adapter.md`.
@@ -324,10 +325,10 @@ routing, duplicate/stale rejection, and the current Foundry socket adapter. See
 2. Expand ReactionResolver timing coverage beyond action-declared and after-attack-outcome only
    where semantic events require it, then perform live Foundry reaction QA. Avoid named-feature
    reaction code.
-3. Perform live Foundry V14 QA for the new authoritative movement event observer. Prerequisite
-   Large hex one/two-step and Large square one-step movement accounting QA has passed.
-4. Integrate production interruption/prefix observation and partial payment before composing
-   movement-triggered reaction windows. The pure semantic event/progress foundation is implemented.
+3. Perform live Foundry V14 interruption QA using `docs/development/movement-interruption-qa.md`.
+   Completed semantic-event QA has passed, including Large hex footprints and player-to-GM routing.
+4. After interruption QA, compose MovementEvent -> Trigger/Predicate -> ReactionResolver using the
+   implemented prefix accounting and event contracts.
 5. Compose persistent Areas, auras, and emanations from Spatial + Movement + Events + Reactions.
 6. Add representative content and character-system slices only after those execution boundaries are
    proven in live runtime.

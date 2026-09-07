@@ -156,8 +156,9 @@ Official Foundry V14 documentation confirms the platform assumptions used here:
 - `moveToken` fires after conclusion of the Token update workflow and on all connected clients after
   the update has been processed. Normal movement budget accounting starts there.
 - `TokenMovementOperation.finished` resolves true when the entire movement completed and false when
-  it did not. WildPath requires both `moveToken` observation and `finished === true` before spending
-  ordinary movement budget.
+  it did not. WildPath requires true for completion; partial payment instead requires locally
+  correlated passed waypoints and the corresponding source footprint. False alone proves neither
+  progress nor interruption.
 - `Token#planMovement()` and `TokenDocument#startMovement()` are the future planned-movement seam.
 
 Primary sources:
@@ -173,6 +174,28 @@ Primary sources:
 - https://foundryvtt.com/api/v14/classes/foundry.canvas.placeables.Token.html
 - https://github.com/foundryvtt/crucible/blob/master/crucible.mjs
 - https://github.com/foundryvtt/crucible/blob/master/module/documents/token.mjs
+
+## Movement Interruption Evidence (V14)
+
+Official V14 API documentation defines `TokenDocument.movement`, ordered `chain` IDs, `subpathId`,
+`split`, passed/pending sections, checkpoint waypoint metadata, and the public pause/stop/resume
+methods. Pause and stop hooks receive only the document. `recordToken` may record or clear history,
+so it cannot independently establish route progress. Versioned API pages inspected identify 14.365.
+
+Read-only inspection of the locally installed official Foundry V14.367 source
+(`resources/app/client/documents/token.mjs`) supplied sequencing evidence: checkpoint passed/pending
+sections exist before pre-approval; passed waypoints receive operation/subpath/user IDs; stop clears
+pending and retains passed/identity; pause retains pending; continuation submits a new operation with
+the prior chain. These are source observations, not a live WildPath QA result. No private source was
+copied and no private lifecycle function is called by this integration.
+
+- [TokenMovementData](https://foundryvtt.com/api/v14/interfaces/foundry.documents.types.TokenMovementData.html)
+- [TokenMovementOperation](https://foundryvtt.com/api/v14/interfaces/foundry.documents.types.TokenMovementOperation.html)
+- [TokenMeasuredMovementWaypoint](https://foundryvtt.com/api/v14/interfaces/foundry.documents.types.TokenMeasuredMovementWaypoint.html)
+- [TokenMovementHistoryData](https://foundryvtt.com/api/v14/interfaces/foundry.documents.types.TokenMovementHistoryData.html)
+- [pauseToken](https://foundryvtt.com/api/v14/functions/hookEvents.pauseToken.html)
+- [stopToken](https://foundryvtt.com/api/v14/functions/hookEvents.stopToken.html)
+- [recordToken](https://foundryvtt.com/api/v14/functions/hookEvents.recordToken.html)
 
 ## Ongoing Rule
 

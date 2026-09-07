@@ -2,7 +2,7 @@ import {test} from "node:test";
 import assert from "node:assert/strict";
 import {createTokenGridFootprint, fieldKey} from "../module/helpers/grid-footprints.mjs";
 import {createMovementPath, evaluateMovementPath} from "../module/helpers/movement-paths.mjs";
-import {advanceMovementProgress, createMovementProgress, diffMovementFootprints} from "../module/helpers/movement-events.mjs";
+import {advanceMovementProgress, completedMovementPrefix, createMovementProgress, diffMovementFootprints, movementPaymentDelta} from "../module/helpers/movement-events.mjs";
 import {AUTOMATION_EVENT_TYPES, collectTriggeredAutomations, createTriggerDefinition} from "../module/helpers/automation-events.mjs";
 import {isPlainSerializableData} from "../module/helpers/multiplayer-authority.mjs";
 
@@ -29,6 +29,23 @@ function observe(progress, count, status="moving", extra={}) {
     ...extra
   });
 }
+
+test("ordered prefix matching distinguishes repeated anchors and rejects unproved segments", () => {
+  const progress = progressFixture({anchors: [{x: 0, y: 0}, {x: 1, y: 0}, {x: 0, y: 0}, {x: 1, y: 0}]});
+  assert.equal(completedMovementPrefix(progress, progress.approvedPath.anchors.slice(0, 3)), 2);
+  assert.equal(completedMovementPrefix(progress, progress.approvedPath.anchors.slice(2), 2), 3);
+  assert.throws(() => completedMovementPrefix(progress, [{x: 1, y: 0}], 0), /ordered/);
+  assert.throws(() => completedMovementPrefix(progress, [], 0), /outside/);
+  assert.throws(() => completedMovementPrefix(progress, [{x: 0, y: 0}], -1), /outside/);
+});
+
+test("payment delta uses only verified budget cost and rejects invalid committed amounts", () => {
+  const progress = observe(progressFixture({steps: 3}), 2).progress;
+  assert.deepEqual(movementPaymentDelta(progress, 5), {cumulativeCost: 10, committedCost: 5, amount: 5});
+  assert.equal(movementPaymentDelta(progress, 10).amount, 0);
+  for ( const paid of [-1, 11, NaN, Infinity] ) assert.throws(() => movementPaymentDelta(progress, paid));
+  assert.equal(movementPaymentDelta(observe(progressFixture({steps: 3, kind: "forced"}), 2).progress, 0).amount, 0);
+});
 
 test("Medium square completion yields canonical started, transition, and completed facts", () => {
   const progress = progressFixture();
