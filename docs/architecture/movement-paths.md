@@ -273,6 +273,9 @@ adapter snapshots the source position before yielding. A checkpoint with passed 
 waypoints proves a partial observation immediately; final completion still requires
 `TokenMovementOperation.finished === true`. Public `pauseToken` and `stopToken` hooks snapshot
 `document.movement` and require the corresponding `paused` or `stopped` state.
+A correlated stopped state already present at `moveToken` entry is captured there too. A later
+false `finished` result cannot reconstruct a stop from a newer `document.movement`; the stop hook
+owns that observation's synchronous snapshot.
 
 Because `moveToken` fires on all clients, only the client that owns the approval record as the
 selected authority commits. In normal active-GM play this is the active GM. The player observes the
@@ -412,8 +415,11 @@ closed. Stopped/completed records cannot resume; a new independent move needs a 
 
 Each operation stores its starting transition index. The translated passed segment is matched at
 that exact index, so loops such as `A -> B -> A -> B` retain all three transitions. Passed waypoint
-movement/subpath IDs must agree with the operation. The actual full source footprint must equal
-the last verified footprint; matching a final anchor or an unfiltered history entry is insufficient.
+movement/subpath IDs must agree with the operation. After validating identity and ordered route,
+strictly older prefixes are ignored before comparing the observed source to that prefix's footprint:
+a delayed historical callback may capture newer source data. No facts, payment, or debt retry occurs.
+Same-count and advancing observations still require the actual full source footprint to equal
+the approved footprint at that count; matching a final anchor or an unfiltered history entry is insufficient.
 History recording/clearing is not observed: unrelated recorded or unrecorded history cannot prove
 the current prefix. Malformed evidence returns a typed diagnostic without facts or payment.
 Prefix mismatch diagnostics include lifecycle, operation/root IDs, chain/subpath, observed and
@@ -468,10 +474,16 @@ The maintainer also confirmed terminal interruption on `48b72f9ceacf9b1666bbd471
 Large hex stop after two of three transitions, movement `30 -> 20`, exactly started/transitions 0/1/
 interrupted on the GM, no player events, and idempotent repeated stop. Pause/continuation accounting
 also reached the correct `20 -> 15` and five-event history, but the player received a prefix warning
-before resume. That warning remains under investigation; successful accounting is not warning-free QA.
+before resume. The diagnostic run on `a4c645e` subsequently captured matching moveToken/pauseToken
+prefix-2 source footprints and a successful continuation to prefix 3 with no warning on either
+client. Its event filter incorrectly compared normalized refs with raw UUIDs; its zero event count
+was not valid evidence. The original failing observation was not captured.
 Node regressions cover stopped prefixes, pause/linked
 continuation, concurrent increasing observations, repeated anchors, field-mode conversion, invalid
-evidence, payment/observer failure, synthetic Actors, and lost authority. Same/new-prefix mismatch
-tests verify the structured diagnostic context without changing validation decisions. The candidate
-historical-checkpoint repair is set aside while collecting the original pre-resume warning's trace.
+evidence, payment/observer failure, synthetic Actors, and lost authority. Historical-prefix regressions
+deterministically reproduced the exact warning before this repair, including delayed root delivery
+after Large hex continuation. Same/new-prefix corruption, historical identity/route checks, unpaid
+debt isolation, and normalized QA event filtering are covered. These regressions establish the
+stale-validation defect; they do not identify the original uncaptured live callback. Final live QA
+of the repair remains required before reaction composition.
 Follow [the exact checkpoint console procedure](../development/movement-interruption-qa.md).

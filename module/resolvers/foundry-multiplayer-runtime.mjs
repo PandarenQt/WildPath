@@ -150,6 +150,10 @@ async function observeFoundryV14MoveToken(document, movement, operation={}, user
 }={}) {
   // Capture source data before yielding: another linked checkpoint can update the Token
   // while this observation waits for authority or persistence. Pending waypoints are plans.
+  const currentMovement = document?.movement;
+  if ( currentMovement?.id === movement?.id && currentMovement?.state === "stopped" ) {
+    return observeFoundryMovementPrefix(document, currentMovement, user, "stopToken", "interrupted", {game, logger});
+  }
   if ( movement?.passed?.waypoints?.length && movement?.pending?.waypoints?.length ) {
     return observeFoundryMovementPrefix(document, movement, user, "moveToken", "moving", {game, logger});
   }
@@ -159,9 +163,8 @@ async function observeFoundryV14MoveToken(document, movement, operation={}, user
   });
   const finished = await movementFinished(movement);
   if ( finished !== true ) {
-    if ( document?.movement?.id === movement?.id && document.movement.state === "stopped" ) {
-      return observeFoundryMovementPrefix(document, document.movement, user, "stopToken", "interrupted", {game, logger});
-    }
+    // A later stop has its own synchronous hook snapshot. Do not pair this operation
+    // with document.movement or source values read after the whole-chain Promise settles.
     return {
       ok: false, code: FOUNDRY_MOVEMENT_CODES.MOVEMENT_OBSERVATION_AMBIGUOUS,
       ignored: true, reason: "Movement completion alone does not establish a completed prefix or interruption."
@@ -193,12 +196,14 @@ async function observeFoundryV14MoveToken(document, movement, operation={}, user
 
 /** Public V14 lifecycle snapshots prove the passed section even when stop clears pending. */
 export function onFoundryV14PauseToken(document, options={}) {
-  return observeFoundryMovementPrefix(document, document?.movement, document?.movement?.user,
+  const movement = document?.movement;
+  return observeFoundryMovementPrefix(document, movement, movement?.user,
     "pauseToken", "paused", options);
 }
 
 export function onFoundryV14StopToken(document, options={}) {
-  return observeFoundryMovementPrefix(document, document?.movement, document?.movement?.user,
+  const movement = document?.movement;
+  return observeFoundryMovementPrefix(document, movement, movement?.user,
     "stopToken", "interrupted", options);
 }
 

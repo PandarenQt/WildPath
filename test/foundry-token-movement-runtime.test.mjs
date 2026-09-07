@@ -1,6 +1,7 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
+import {normalizeEntityRef, sameEntityRef} from "../module/helpers/entity-refs.mjs";
 import {
   MOVEMENT_KINDS,
   MOVEMENT_MEASUREMENT_MODES
@@ -834,6 +835,144 @@ test("pause preserves the approved suffix and linked continuation completes with
   assert.equal(fixture.persistence.operations.length, 2);
 });
 
+test("late root moveToken after Large hex pause continuation ignores historical source mismatch", async () => {
+  const fixture = footprintTranslationFixture();
+  const {token, actor, gmAuthority} = fixture;
+  actor.uuid = `Scene.${fixture.scene.id}.Token.${token.id}.Actor.${actor.id}`;
+  const worldActor = fakeActor(actor.id, {size: CREATURE_SIZES.LARGE});
+  fixture.gmGame.actors.set(actor.id, worldActor);
+  fixture.playerGame.actors.set(actor.id, worldActor);
+  const start = token.offset;
+  const offsets = [1, 2, 3].map(step => ({i: start.i + step, j: start.j}));
+  const root = checkpointOperation(token, {id: "delayed-root", offsets});
+  await approveCheckpoint(fixture, root);
+  // V14.367 dispatches pauseToken in the document update, while moveToken runs in
+  // the operation post-workflow after an await. Keep that older raw operation pending.
+  let deliverRoot;
+  const rootReady = new Promise(resolve => { deliverRoot = resolve; });
+  await withFoundryGlobals(fixture, async () => {
+    const lateRoot = rootReady.then(() => onFoundryV14MoveToken(token, root, {}, PLAYER, {game: fixture.gmGame}));
+    token.setOffset(offsets[1]);
+    token.movement = {...root, state: "paused", user: PLAYER};
+    assert.equal((await onFoundryV14PauseToken(token, {game: fixture.gmGame})).ok, true);
+    assert.equal(progressOf(fixture, root).status, "paused");
+    assert.equal(actor.system.resources.movement.value, 20);
+    const prefixIds = fixture.semanticEvents.gm.map(event => event.id);
+    const resumed = checkpointOperation(token, {id: "delayed-child", chain: [root.id], offsets: [offsets[2]], passedCount: 1});
+    assert.notEqual(await token._preUpdateMovement(resumed, {}), false);
+    token.setOffset(offsets[2]);
+    token.movement = {...resumed, state: "completed", user: PLAYER};
+    assert.equal((await onFoundryV14MoveToken(token, resumed, {}, PLAYER, {game: fixture.gmGame})).ok, true);
+    const beforeLate = progressOf(fixture, root);
+    assert.equal(beforeLate.completedTransitionCount, 3);
+    assert.equal(beforeLate.committedMovementCost, 15);
+    deliverRoot();
+    const stale = await lateRoot;
+    assert.equal(stale.ok, true, JSON.stringify(stale));
+    assert.equal(stale.stale, true);
+    assert.deepEqual(progressOf(fixture, root), beforeLate);
+    assert.deepEqual(fixture.semanticEvents.gm.slice(0, 3).map(event => event.id), prefixIds);
+    assert.equal((await onFoundryV14MoveToken(token, root, {}, PLAYER, {game: fixture.playerGame})).ignored, true);
+  });
+  assert.deepEqual(fixture.semanticEvents.gm.map(event => event.type), [
+    "movement.started", "movement.transition", "movement.transition", "movement.transition", "movement.completed"
+  ]);
+  assert.deepEqual(fixture.semanticEvents.gm.filter(event => event.type === "movement.transition").map(event => event.data.transitionIndex), [0, 1, 2]);
+  assert.equal(new Set(fixture.semanticEvents.gm.map(event => event.id)).size, 5);
+  for ( const event of fixture.semanticEvents.gm.filter(event => event.type === "movement.transition") ) {
+    assert.equal(event.data.to.footprint.fields.length, 3);
+    assert.equal(event.data.leftFields.length, 2);
+    assert.equal(event.data.enteredFields.length, 2);
+    assert.equal(event.data.retainedFields.length, 1);
+    assert.equal(event.data.stepCost.amount, 5);
+  }
+  assert.deepEqual(fixture.persistence.operations.map(operation => operation.updates["system.resources.movement.value"]), [20, 15]);
+  assert.equal(actor.system.resources.movement.value, 15);
+  assert.equal(worldActor.system.resources.movement.value, 30);
+  assert.deepEqual(fixture.semanticEvents.player, []);
+  assert.deepEqual(fixture.warnings, []);
+  assert.deepEqual(gmAuthority.errors, []);
+});
+
+test("historical checkpoints still validate ordered route and chain before being ignored", async () => {
+  const fixture = createMovementRuntimeFixture();
+  const first = checkpointOperation(fixture.token, {passedCount: 1});
+  await approveCheckpoint(fixture, first);
+  const second = checkpointOperation(fixture.token, {passedCount: 2});
+  await lifecycleHook(fixture, checkpointSnapshot(fixture, second, "paused"), "paused");
+  const document = checkpointSnapshot(fixture, second, "paused");
+  const before = progressOf(fixture, first);
+  const historical = await fireMoveTokenHook(fixture, {token: document, movement: first});
+  assert.equal(historical.ok, true, JSON.stringify(historical));
+  assert.equal(historical.stale, true);
+  assert.equal(historical.committed, false);
+  assert.deepEqual(fixture.warnings, []);
+  assert.deepEqual(progressOf(fixture, first), before);
+  const invalidRoute = {...first, passed: {waypoints: [{...first.passed.waypoints[0], y: 50}]}};
+  assert.equal((await fireMoveTokenHook(fixture, {token: document, movement: invalidRoute})).ok, false);
+  const invalidChain = {...first, chain: ["foreign-root"]};
+  assert.equal((await fireMoveTokenHook(fixture, {token: document, movement: invalidChain})).code,
+    FOUNDRY_MOVEMENT_CODES.MOVEMENT_CONTINUATION_MISMATCH);
+  const invalidSubpath = {...first, subpathId: "foreign-subpath"};
+  assert.equal((await fireMoveTokenHook(fixture, {token: document, movement: invalidSubpath})).ok, false);
+  const invalidOperation = {...first, id: "foreign-operation"};
+  assert.equal((await fireMoveTokenHook(fixture, {token: document, movement: invalidOperation})).ok, false);
+  assert.deepEqual(progressOf(fixture, first), before);
+  assert.equal(progressOf(fixture, first).completedTransitionCount, 2);
+  assert.equal(fixture.semanticEvents.gm.length, 3);
+  assert.equal(fixture.persistence.operations.length, 1);
+});
+
+test("stale history cannot retry unpaid debt or replay facts after a newer prefix", async () => {
+  let failNext = true;
+  const fixture = createMovementRuntimeFixture({persistenceOptions: {
+    failOn() { const failed = failNext; failNext = false; return failed; }
+  }});
+  const first = checkpointOperation(fixture.token, {passedCount: 1});
+  const second = checkpointOperation(fixture.token, {passedCount: 2});
+  await approveCheckpoint(fixture, first);
+  const document = checkpointSnapshot(fixture, second, "paused");
+  assert.equal((await lifecycleHook(fixture, document, "paused")).ok, false);
+  const before = progressOf(fixture, first);
+  assert.equal(before.completedTransitionCount, 2);
+  assert.equal(before.committedMovementCost, 0);
+  assert.notEqual(before.paymentFailure, null);
+  const eventIds = fixture.semanticEvents.gm.map(event => event.id);
+  const warningCount = fixture.warnings.length;
+  for ( let i = 0; i < 2; i++ ) {
+    const result = await fireMoveTokenHook(fixture, {token: document, movement: first});
+    assert.equal(result.ok, true);
+    assert.equal(result.stale, true);
+    assert.equal(result.committed, false);
+  }
+  assert.deepEqual(progressOf(fixture, first), before);
+  assert.equal(fixture.persistence.operations.length, 1);
+  assert.equal(fixture.warnings.length, warningCount);
+  assert.equal(fixture.actor.system.resources.movement.value, 30);
+  // Current, spatially consistent evidence may still settle that existing debt once.
+  assert.equal((await lifecycleHook(fixture, document, "paused")).ok, true);
+  assert.equal(fixture.actor.system.resources.movement.value, 20);
+  assert.deepEqual(fixture.semanticEvents.gm.map(event => event.id), eventIds);
+});
+
+test("finished false never reads a replacement lifecycle snapshot after awaiting", async () => {
+  const fixture = createMovementRuntimeFixture();
+  const movement = checkpointOperation(fixture.token, {passedCount: 3});
+  let finish;
+  movement.finished = new Promise(resolve => { finish = resolve; });
+  await approveCheckpoint(fixture, movement);
+  await withFoundryGlobals(fixture, async () => {
+    fixture.token.setOffset({i: 3, j: 0});
+    fixture.token.movement = {...movement, user: PLAYER, state: "pending"};
+    const observing = onFoundryV14MoveToken(fixture.token, movement, {}, PLAYER, {game: fixture.gmGame});
+    fixture.token.movement = {...movement, user: PLAYER, state: "stopped"};
+    finish(false);
+    assert.equal((await observing).code, FOUNDRY_MOVEMENT_CODES.MOVEMENT_OBSERVATION_AMBIGUOUS);
+  });
+  assert.equal(fixture.persistence.operations.length, 0);
+  assert.equal(fixture.semanticEvents.gm.length, 0);
+});
+
 for ( const authoritativeCount of [1, 2] ) {
   test(`${authoritativeCount === 2 ? "same" : "advancing"}-prefix source mismatch includes plain reconciliation diagnostics`, async () => {
     const fixture = createMovementRuntimeFixture();
@@ -859,6 +998,37 @@ for ( const authoritativeCount of [1, 2] ) {
     assert.equal(fixture.persistence.operations.length, 1);
   });
 }
+
+test("same-count moving checkpoint cannot hide corrupt source behind paused progress", async () => {
+  const fixture = createMovementRuntimeFixture();
+  const movement = checkpointOperation(fixture.token);
+  await approveCheckpoint(fixture, movement);
+  const document = checkpointSnapshot(fixture, movement, "paused");
+  await lifecycleHook(fixture, document, "paused");
+  const before = progressOf(fixture, movement);
+  document.setSourceOffset({i: 8, j: 0});
+  const result = await fireMoveTokenHook(fixture, {token: document, movement});
+  assert.equal(result.code, FOUNDRY_MOVEMENT_CODES.MOVEMENT_PREFIX_MISMATCH);
+  assert.equal(result.observation.lifecycle, "moveToken");
+  assert.equal(result.observation.observedTransitionCount, 2);
+  assert.equal(result.observation.authoritativeTransitionCount, 2);
+  assert.deepEqual(progressOf(fixture, movement), before);
+  assert.equal(fixture.semanticEvents.gm.length, 3);
+  assert.equal(fixture.persistence.operations.length, 1);
+});
+
+test("QA Token ref normalization selects the authoritative movement events for only that Scene Token", async () => {
+  const fixture = createMovementRuntimeFixture();
+  const movement = checkpointOperation(fixture.token);
+  await approveCheckpoint(fixture, movement);
+  await lifecycleHook(fixture, checkpointSnapshot(fixture, movement, "paused"), "paused");
+  const expectedRef = normalizeEntityRef({tokenId: fixture.token.id, sceneId: fixture.scene.id});
+  const otherSceneRef = normalizeEntityRef({tokenId: fixture.token.id, sceneId: "other-scene"});
+  assert.notEqual(fixture.semanticEvents.gm[0].data.tokenRef, fixture.token.uuid);
+  assert.equal(fixture.semanticEvents.gm.filter(event => sameEntityRef(event.data.tokenRef, expectedRef)).length, 3);
+  assert.equal(fixture.semanticEvents.gm.filter(event => sameEntityRef(event.data.tokenRef, otherSceneRef)).length, 0);
+  assert.equal(fixture.semanticEvents.player.filter(event => sameEntityRef(event.data.tokenRef, expectedRef)).length, 0);
+});
 
 test("pause followed by stop is terminal without replay or suffix payment", async () => {
   const fixture = createMovementRuntimeFixture();

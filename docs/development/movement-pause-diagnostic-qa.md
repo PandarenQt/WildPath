@@ -1,7 +1,9 @@
-# One-run pause warning capture
+# One-run pause/resume validation with diagnostic capture
 
-This is a diagnostic run, not a claimed fix. The build preserves baseline movement validation and
-adds plain mismatch provenance. Finish the previous test and reload both clients with this build.
+The historical-observation repair and corrected event-ref filter require final live validation.
+The prior diagnostic run had matching source footprints and no warning; its zero event count was
+caused by comparing normalized refs with raw UUIDs. The original failing observation remains unknown.
+Finish the previous test and reload both clients with the repaired build.
 Select the same player-owned Large hex Token on each client, with open space to its right.
 Use a 5-ft grid and distance measurement. The GM setup resets only this Token Actor's movement to 30.
 
@@ -11,16 +13,18 @@ Use a 5-ft grid and distance measurement. The GM setup resets only this Token Ac
 {
   if (game.user.id !== game.users.activeGM?.id) throw new Error("Run on the active GM.");
   if (canvas.tokens.controlled.length !== 1) throw new Error("Select exactly one QA Token.");
+  const {normalizeEntityRef, sameEntityRef} = await import("/systems/wildpath/module/helpers/entity-refs.mjs");
   const d = canvas.tokens.controlled[0].document;
   if (["pending", "paused"].includes(d.movement.state)) throw new Error("Finish the previous movement first.");
   globalThis.wpPauseQA?.cleanup?.();
   globalThis.wpPauseTraceCleanup?.();
   const a = game.wildpath.movement;
   const qa = globalThis.wpPauseQA = {d, traces: [], events: []};
+  qa.tokenRef = normalizeEntityRef({tokenId: d.id, sceneId: d.parent.id});
   qa.baseWorldBefore = d.baseActor?.system.resources.movement.value;
   await d.actor.update({"system.resources.movement.value": 30});
   qa.eventHook = Hooks.on("wildpath.automationEvent", e => {
-    if (e.type.startsWith("movement.") && e.data.tokenRef === d.uuid) qa.events.push(structuredClone(e));
+    if (e.type.startsWith("movement.") && sameEntityRef(e.data.tokenRef, qa.tokenRef)) qa.events.push(structuredClone(e));
   });
   const point = p => p ? Object.fromEntries([
     "x", "y", "elevation", "width", "height", "depth", "shape", "level",
@@ -56,9 +60,13 @@ Use a 5-ft grid and distance measurement. The GM setup resets only this Token Ac
   }
   qa.dump = () => {
     const m = d.movement, rootId = m.chain[0] ?? m.id;
+    const events = qa.events.filter(e => e.data.movementId === rootId);
     const output = {
-      rootId, state: m.state, movement: d.actor.system.resources.movement.value,
-      eventCount: qa.events.length, events: qa.events,
+      rootId, operationId: m.id, chain: [...m.chain], subpathId: m.subpathId,
+      state: m.state, movement: d.actor.system.resources.movement.value,
+      eventCount: events.length, uniqueEventIds: new Set(events.map(e => e.id)).size,
+      eventIds: events.map(e => e.id), types: events.map(e => e.type),
+      indices: events.filter(e => e.type === "movement.transition").map(e => e.data.transitionIndex), events,
       progress: a.getMovementProgress({movementId: rootId, sceneRef: d.parent.uuid, tokenRef: d.uuid}),
       baseWorldBefore: qa.baseWorldBefore, baseWorldNow: d.baseActor?.system.resources.movement.value,
       traces: qa.traces
@@ -70,7 +78,8 @@ Use a 5-ft grid and distance measurement. The GM setup resets only this Token Ac
     Hooks.off("wildpath.automationEvent", qa.eventHook);
     for (const name of Object.keys(originals)) if (a[name] === wrappers[name]) a[name] = originals[name];
   };
-  console.log({gmRecorderInstalled: true, token: d.uuid, movement: d.actor.system.resources.movement.value});
+  console.log({gmRecorderInstalled: true, token: d.uuid, tokenRef: qa.tokenRef,
+    movement: d.actor.system.resources.movement.value});
 }
 ```
 
@@ -80,14 +89,16 @@ Use a 5-ft grid and distance measurement. The GM setup resets only this Token Ac
 {
   if (game.user.isGM) throw new Error("Run on the initiating player.");
   if (canvas.tokens.controlled.length !== 1) throw new Error("Select exactly one QA Token.");
+  const {normalizeEntityRef, sameEntityRef} = await import("/systems/wildpath/module/helpers/entity-refs.mjs");
   const d = canvas.tokens.controlled[0].document;
   if (["pending", "paused"].includes(d.movement.state)) throw new Error("Finish the previous movement first.");
   globalThis.wpPauseQA?.cleanup?.();
   const qa = globalThis.wpPauseQA = {
     d, id: foundry.utils.randomID(), key: `wildpath-qa-${foundry.utils.randomID()}`, events: []
   };
+  qa.tokenRef = normalizeEntityRef({tokenId: d.id, sceneId: d.parent.id});
   qa.eventHook = Hooks.on("wildpath.automationEvent", e => {
-    if (e.type.startsWith("movement.") && e.data.tokenRef === d.uuid) qa.events.push(structuredClone(e));
+    if (e.type.startsWith("movement.") && sameEntityRef(e.data.tokenRef, qa.tokenRef)) qa.events.push(structuredClone(e));
   });
   const grid = canvas.grid, origin = d.toObject(true), route = [];
   let offset = grid.getOffset(origin);
@@ -120,12 +131,22 @@ Use a 5-ft grid and distance measurement. The GM setup resets only this Token Ac
 
 ## 3. Active GM: capture before resume
 
-Once paused and after any warning appears, paste this and return the entire `WP pause capture` JSON.
-The expected accounting is movement 20, three events, and paused progress 2/3. The warning is
-deliberately not suppressed. Include whether either client displayed it.
+Once paused, paste this before resuming. Expected: movement 20, three unique events, paused progress
+2/3, and no warning on either client. If a warning recurs, retain the entire `WP pause capture` JSON.
 
 ```js
-globalThis.wpPauseQA.dump();
+{
+  const qa = globalThis.wpPauseQA, paused = qa.dump();
+  console.assert(paused.movement === 20 && paused.eventCount === 3 && paused.uniqueEventIds === 3);
+  console.assert(paused.progress.status === "paused" && paused.progress.completedTransitionCount === 2);
+  console.assert(paused.progress.remainingTransitionCount === 1 && paused.progress.paidTransitionCount === 2);
+  console.assert(paused.progress.committedMovementCost === 10 && paused.progress.paymentFailure === null);
+  console.assert(JSON.stringify(paused.types) === JSON.stringify([
+    "movement.started", "movement.transition", "movement.transition"
+  ]));
+  console.assert(JSON.stringify(paused.indices) === "[0,1]");
+  qa.paused = paused;
+}
 ```
 
 A failed trace's `result.observation` records the lifecycle, operation/root relationship, derived
@@ -151,7 +172,21 @@ Expected Player output: `resumed: true`, `completed: true`, `playerEventCount: 0
 On the GM, run the complete final capture block:
 
 ```js
-globalThis.wpPauseQA.dump();
+{
+  const qa = globalThis.wpPauseQA, final = qa.dump();
+  console.assert(final.movement === 15 && final.eventCount === 5 && final.uniqueEventIds === 5);
+  console.assert(final.rootId === qa.paused.rootId && final.subpathId === qa.paused.subpathId);
+  console.assert(final.progress.status === "completed" && final.progress.completedTransitionCount === 3);
+  console.assert(final.progress.remainingTransitionCount === 0 && final.progress.paidTransitionCount === 3);
+  console.assert(final.progress.committedMovementCost === 15 && final.progress.paymentFailure === null);
+  console.assert(final.progress.operationIds.length === 2);
+  console.assert(JSON.stringify(final.types) === JSON.stringify([
+    "movement.started", "movement.transition", "movement.transition", "movement.transition", "movement.completed"
+  ]));
+  console.assert(JSON.stringify(final.indices) === "[0,1,2]");
+  console.assert(JSON.stringify(final.eventIds.slice(0, 3)) === JSON.stringify(qa.paused.eventIds));
+  if (!qa.d.actorLink) console.assert(final.baseWorldBefore === final.baseWorldNow);
+}
 ```
 
 Expected final accounting: movement 15, five unique events (started, transitions 0/1/2, completed),

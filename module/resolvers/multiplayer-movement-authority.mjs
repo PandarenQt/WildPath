@@ -683,11 +683,13 @@ export function createMultiplayerMovementAuthority({
     try {
       if ( observed.path.topology !== record.approval.path.topology ) throw new Error("Observed topology differs from approval.");
       count = completedMovementPrefix(record.progress, observed.path.anchors, operation.baseTransitionCount);
+      // Identity and ordered route must match before classifying history. A strictly
+      // older prefix cannot change facts/payment and may arrive against a newer source.
+      if ( count < record.progress.completedTransitionCount ) return {ok: true, duplicate: true, stale: true};
       if ( !sameMovementFootprint(verified.destination.footprint, record.progress.approvedFootprints[count]) ) {
         throw new Error("Observed source footprint differs from the completed prefix.");
       }
-      if ( count < record.progress.completedTransitionCount
-        || (count === record.progress.completedTransitionCount && record.progress.status === "paused" && status === "moving") ) {
+      if ( count === record.progress.completedTransitionCount && record.progress.status === "paused" && status === "moving" ) {
         return {ok: true, duplicate: true, stale: true};
       }
       if ( count === record.progress.completedTransitionCount && ["interrupted", "completed"].includes(record.progress.status) ) {
@@ -763,7 +765,7 @@ export function createMultiplayerMovementAuthority({
       const facts = reconcileMovementFacts({record, completion, verified});
       if ( !facts.ok ) return facts;
       if ( facts.stale ) return {ok: true, code: FOUNDRY_MOVEMENT_CODES.MOVEMENT_ALREADY_COMMITTED,
-        movementId: completion.movementId, duplicate: true, committed: false, progress: progressSnapshot(record)};
+        movementId: completion.movementId, duplicate: true, stale: true, committed: false, progress: progressSnapshot(record)};
       duplicate = facts.duplicate === true;
     } else {
       // Socket messages can retry a debt already proved locally, never authorize a prefix.

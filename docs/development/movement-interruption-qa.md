@@ -8,11 +8,17 @@ stop. Preserve those accepted results.
 The reported pause defect occurs **before resume on the initiating player**: GM state is correctly
 paused at 2/3, movement 20, and three events, but the player receives
 `Observed source footprint differs from the completed prefix.` Resume then succeeds with movement
-15 and exactly five GM events. A separate late historical checkpoint reproduced that warning in
-development tests; its candidate repair is set aside for this diagnostic run. The original pre-resume
-callback must be distinguished with observation diagnostics. Automated tests
-are not live closure. Do not proceed to movement-triggered reactions until this procedure passes
-without the warning.
+15 and exactly five GM events. The later diagnostic run on `a4c645e` did not reproduce the warning:
+root `HdXYUBySCsLtscQu` advanced from pending to moving prefix 2, then paused at the same source
+footprint; continuation `Ay7wACO07hmGcWsf` completed prefix 3 and movement 15. Its zero event count
+was an observer-filter error: normalized Token refs cannot be compared to raw Foundry UUIDs.
+
+The repair addresses a deterministic historical-observation defect: validation compared an older
+prefix to a newer source footprint before classifying it as stale. Identity and ordered route are
+still validated first; only a strictly lower count bypasses that spatial comparison. Same/new-prefix
+footprint checks and structured mismatch diagnostics remain strict. This does not prove which
+observation caused the original warning. Final live QA with the corrected event filter is required
+before movement-triggered reactions.
 
 ## Verified public API: V14.365 docs and installed V14.367
 
@@ -40,13 +46,14 @@ used. The helpers are temporary console diagnostics and are removed by cleanup.
 
 Use a test Scene with open space to the right, a 5-ft square/hex grid, and WildPath distance
 measurement. Select exactly one player-owned Token on **both** clients, preferably the same unlinked
-Large hex QA Token. Reload both clients with the same diagnostic build before installing these helpers.
+Large hex QA Token. Reload both clients with the repaired build before installing these helpers.
 Run this complete setup block on each client. Later blocks call these helpers without changing an
 earlier paste.
 
 ```js
 {
   if (canvas.tokens.controlled.length !== 1) throw new Error("Select exactly one QA Token.");
+  const {normalizeEntityRef, sameEntityRef} = await import("/systems/wildpath/module/helpers/entity-refs.mjs");
   globalThis.wpMovementQA?.cleanup?.();
   if (globalThis.wpMovementEventHook != null) {
     Hooks.off("wildpath.automationEvent", globalThis.wpMovementEventHook);
@@ -55,8 +62,9 @@ earlier paste.
   const qa = globalThis.wpMovementQA = {
     d: canvas.tokens.controlled[0].document, events: [], hook: null, run: null
   };
+  qa.tokenRef = normalizeEntityRef({tokenId: qa.d.id, sceneId: qa.d.parent.id});
   qa.observer = Hooks.on("wildpath.automationEvent", event => {
-    if (event.type.startsWith("movement.")) {
+    if (event.type.startsWith("movement.") && sameEntityRef(event.data.tokenRef, qa.tokenRef)) {
       qa.events.push(structuredClone(event));
       console.log(event.type, event.data, event.metadata);
     }
@@ -306,9 +314,9 @@ Record Foundry build, topology/size, linked/unlinked Actor, both clients' warnin
 paused/final snapshots. Repeat with Large square and Medium square/hex. Only a warning-free
 pause/continuation rerun closes this repair.
 
-## Diagnostic capture for the unresolved pre-resume warning
+## One-run final validation and optional diagnostics
 
-Use the [complete one-run GM and Player capture blocks](movement-pause-diagnostic-qa.md).
-They install temporary recorders before starting a fresh keyed pause and capture the GM result
-before resuming. The diagnostic build preserves the original validation decisions; the trace is
-required to identify the failing observation before applying the candidate repair.
+Use the [complete one-run GM and Player capture blocks](movement-pause-diagnostic-qa.md) for the
+final warning-free pause/resume validation. They use canonical `token:<sceneId>.<tokenId>` refs,
+retain optional diagnostic context if the warning recurs, and assert the three/five-event root
+history. Do not treat the old diagnostic listener's zero count as evidence that events were absent.
