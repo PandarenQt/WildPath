@@ -5,6 +5,7 @@
   "description": "Wild Path Foundry VTT system. This package.json runs pure rules/domain tests and TypeScript contract checks for staged automation work.",
   "type": "module",
   "scripts": {
+    "build": "npm run typecheck && tsc -p tsconfig.runtime.json",
     "test": "node --test test/*.test.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },

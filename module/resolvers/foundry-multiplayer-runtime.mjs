@@ -77,7 +77,9 @@ export function registerFoundryV14MultiplayerResolution({
       userId,
       game
     }),
-    notify: event => notifyMultiplayerMovementFailure(event, {logger})
+    notify: event => notifyMultiplayerMovementFailure(event, {logger}),
+    logger,
+    onAutomationEvent: event => globalThis.Hooks.callAll("wildpath.automationEvent", event)
   });
   const movementRegistration = movement.register();
   const runtime = {
@@ -190,7 +192,7 @@ function movementRuntime(game=globalThis.game) {
 }
 
 async function movementFinished(movement) {
-  if ( movement?.finished == null ) return true;
+  if ( movement?.finished == null ) return false;
   try {
     return await Promise.resolve(movement.finished);
   } catch {

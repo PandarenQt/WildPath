@@ -10,6 +10,8 @@ import {
   validateResolutionSocketEnvelope
 } from "../helpers/multiplayer-authority.mjs";
 import {fieldKey} from "../helpers/grid-footprints.mjs";
+import {normalizeEntityRef, uuidRef} from "../helpers/entity-refs.mjs";
+import {advanceMovementProgress, createMovementProgress} from "../helpers/movement-events.mjs";
 import {
   RESOURCE_RESOLUTION_CODES,
   commitActorResourceMutationPlan,
@@ -22,6 +24,7 @@ import {
   currentTokenAnchor,
   expectedMovementDestinationAnchor,
   expectedMovementDestinationState,
+  foundryMovementCompletionToMovementPath,
   movementKey,
   movementResolutionId,
   resolveMovementCompletionDocuments,
@@ -47,7 +50,8 @@ export function createMultiplayerMovementAuthority({
   approvalTimeoutMs=DEFAULT_APPROVAL_TIMEOUT_MS,
   duplicateCacheLimit=200,
   logger=null,
-  notify=null
+  notify=null,
+  onAutomationEvent=null
 }={}) {
   const localUserId = stringOrNull(userId ?? transport?.userId ?? game?.user?.id ?? game?.userId);
   const approvedMovements = new Map();
@@ -450,11 +454,24 @@ export function createMultiplayerMovementAuthority({
 
   async function authorizeAndRecord(intent, {initiatorUserId=null, localCommitAllowed=false}={}) {
     let approval;
+    let progress = null;
     try {
       approval = await authorizeMovement({
         intent,
         game,
         measurementMode
+      });
+      if ( approval.approved && approval.path ) progress = createMovementProgress({
+        movementId: approval.movementId,
+        source: {
+          actorRef: approval.actorRef?.uuid ? uuidRef(approval.actorRef.uuid) : normalizeEntityRef(approval.actorRef),
+          actorId: approval.actorRef?.id ?? null,
+          tokenRef: normalizeEntityRef(approval.tokenRef),
+          tokenId: approval.tokenRef?.id,
+          sceneRef: normalizeEntityRef(approval.sceneRef)
+        },
+        authority: {userId: localUserId, mode: localCommitAllowed ? "local-no-active-gm" : "active-gm"},
+        evaluation: approval.evaluation
       });
     } catch (error) {
       approval = {
@@ -476,6 +493,10 @@ export function createMultiplayerMovementAuthority({
         authorityUserId: localUserId,
         localCommitAllowed,
         approval: clonePlainData(approval, "movementApproval"),
+        originState: clonePlainData(approval.foundryOriginState, "movementOrigin"),
+        progress,
+        semanticEvents: [],
+        eventDeliveryErrors: [],
         committed: false
       });
     }
@@ -516,26 +537,12 @@ export function createMultiplayerMovementAuthority({
       );
     }
 
-    if ( committedMovements.has(key) ) return {
-      ok: true,
-      code: FOUNDRY_MOVEMENT_CODES.MOVEMENT_ALREADY_COMMITTED,
-      movementId: completion.movementId,
-      duplicate: true,
-      committed: false,
-      previous: committedMovements.get(key)
-    };
+    if ( committedMovements.has(key) ) return completedMovementDuplicate({key, record, completion, tokenDocument});
 
     const inFlight = inFlightMovementCommits.get(key);
     if ( inFlight ) {
       const result = await inFlight;
-      if ( committedMovements.has(key) ) return {
-        ok: true,
-        code: FOUNDRY_MOVEMENT_CODES.MOVEMENT_ALREADY_COMMITTED,
-        movementId: completion.movementId,
-        duplicate: true,
-        committed: false,
-        previous: committedMovements.get(key)
-      };
+      if ( committedMovements.has(key) ) return completedMovementDuplicate({key, record, completion, tokenDocument});
       return result;
     }
 
@@ -549,7 +556,7 @@ export function createMultiplayerMovementAuthority({
     }
   }
 
-  async function executeMovementCompletionCommit({key, record, completion, tokenDocument=null}) {
+  async function verifyMovementCompletion({record, completion, tokenDocument=null}) {
     const documents = await resolveMovementCompletionDocuments({completion, game, tokenDocument});
     if ( !documents.ok ) return documents;
 
@@ -586,6 +593,95 @@ export function createMultiplayerMovementAuthority({
           actualDestination: documents.sourcePosition
         }
       );
+    }
+    return {ok: true, documents, destination};
+  }
+
+  async function completedMovementDuplicate({key, record, completion, tokenDocument}) {
+    // A fallback payment may arrive before the GM's local hook. It cannot suppress later
+    // authoritative facts, and a local observation must never repeat the payment.
+    if ( tokenDocument && record.progress && record.progress.status !== "completed" ) {
+      const verified = await verifyMovementCompletion({record, completion, tokenDocument});
+      if ( !verified.ok ) return verified;
+      const facts = reconcileMovementFacts({record, completion, verified});
+      if ( !facts.ok ) return facts;
+    }
+    return {
+      ok: true,
+      code: FOUNDRY_MOVEMENT_CODES.MOVEMENT_ALREADY_COMMITTED,
+      movementId: completion.movementId,
+      duplicate: true,
+      committed: false,
+      previous: committedMovements.get(key)
+    };
+  }
+
+  function reconcileMovementFacts({record, completion, verified}) {
+    if ( !record.progress || record.progress.status === "completed" ) return {ok: true};
+    const authority = selectResolutionAuthority({
+      initiatorUserId: record.initiatorUserId,
+      localUserId,
+      users: userDirectory(),
+      activeGMUserId: activeGMId(),
+      allowLocalWithoutGM,
+      canCommitLocally: record.localCommitAllowed
+    });
+    if ( !authority.ok ) return {...authority, movementId: completion.movementId};
+    if ( authority.userId !== localUserId ) return failure(MULTIPLAYER_AUTHORITY_CODES.WRONG_AUTHORITY,
+      "Movement authority changed before semantic completion could be reconciled.", {movementId: completion.movementId});
+    const observed = foundryMovementCompletionToMovementPath({
+      completion,
+      approval: record.approval,
+      originState: record.originState,
+      tokenDocument: verified.documents.token,
+      scene: verified.documents.scene
+    });
+    if ( !observed.ok ) return {...observed, movementId: completion.movementId};
+    const approvedPath = record.approval.path;
+    if ( observed.path.topology !== approvedPath.topology
+      || JSON.stringify(observed.path.anchors.map(anchor => fieldKey(anchor, observed.path.topology)))
+        !== JSON.stringify(approvedPath.anchors.map(anchor => fieldKey(anchor, approvedPath.topology))) ) {
+      return failure(FOUNDRY_MOVEMENT_CODES.COMPLETION_ROUTE_MISMATCH,
+        "Observed completed movement route does not match the approved tactical route.", {movementId: completion.movementId});
+    }
+    let reconciled;
+    try {
+      reconciled = advanceMovementProgress(record.progress, {
+        completedTransitionCount: observed.path.anchors.length - 1,
+        actualFootprint: verified.destination.footprint,
+        status: "completed",
+        provenance: {source: "foundry-v14", lifecycle: "moveToken", timing: "completion-reconciled", finished: true}
+      });
+    } catch (error) {
+      return failure(FOUNDRY_MOVEMENT_CODES.COMPLETION_ROUTE_MISMATCH, error.message, {movementId: completion.movementId});
+    }
+    // Facts describe verified locomotion independently of payment success. Store the new
+    // prefix before notifying consumers so reentrant or retried delivery cannot re-emit it.
+    record.progress = reconciled.progress;
+    record.semanticEvents.push(...clonePlainData(reconciled.events, "movementEvents"));
+    for ( const event of reconciled.events ) {
+      try {
+        onAutomationEvent?.(clonePlainData(event, "movementEvent"));
+      } catch (error) {
+        const deliveryError = failure(FOUNDRY_MOVEMENT_CODES.MOVEMENT_EVENT_DELIVERY_FAILED,
+          error?.message ?? String(error), {movementId: completion.movementId, eventId: event.id});
+        record.eventDeliveryErrors.push(deliveryError);
+        errors.push(deliveryError);
+        logger?.error?.("Wild Path | Movement event consumer failed", deliveryError);
+      }
+    }
+    return {ok: true};
+  }
+
+  async function executeMovementCompletionCommit({key, record, completion, tokenDocument=null}) {
+    const verified = await verifyMovementCompletion({record, completion, tokenDocument});
+    if ( !verified.ok ) return verified;
+    const {documents} = verified;
+    // Socket completion claims may request existing payment verification, but only the
+    // authority's local Foundry observation can author semantic route facts.
+    if ( tokenDocument ) {
+      const facts = reconcileMovementFacts({record, completion, verified});
+      if ( !facts.ok ) return facts;
     }
 
     const paymentPlan = createMovementPaymentPlan({

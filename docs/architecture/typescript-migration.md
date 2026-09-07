@@ -64,9 +64,21 @@ The first scaffold is intentionally narrow:
 - `typescript` is a dev dependency
 - `npm run typecheck` runs `tsc -p tsconfig.json --noEmit`
 
-The typecheck currently covers TypeScript declaration and `.ts` source files, not the existing
+The typecheck currently covers TypeScript declaration, `.ts`, and `.mts` source files, not the existing
 `.mjs` runtime modules. Runtime JavaScript remains covered by focused unit tests until individual
 modules are intentionally migrated.
+
+The movement semantics slice introduces `module/helpers/movement-events.mts` as strict TypeScript
+source. `npm run build` first runs the full strict typecheck, then uses `tsconfig.runtime.json` to
+emit its tracked `.mjs` runtime beside the source. Foundry and Node continue to import `.mjs`.
+Edit the `.mts` source, run `npm run build` before tests, and commit both source and generated output.
+No dependency or whole-repository JavaScript conversion is required.
+
+The second compiler pass is emit-only (`noCheck: true`, `allowJs: false`): the first pass already
+checks the source and its imported contracts. This prevents the emitter from copying the legacy
+JavaScript dependency graph or trying to overwrite those source files. It does not disable strict
+checking in `tsconfig.json` or in `npm run build`. See the official
+[TypeScript `noCheck` option](https://www.typescriptlang.org/tsconfig/noCheck.html).
 
 ## Recommended First Type Targets
 

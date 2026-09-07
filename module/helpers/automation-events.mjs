@@ -29,7 +29,9 @@ export const AUTOMATION_EVENT_TYPES = Object.freeze({
   HEALING_APPLIED: "healing.applied",
   EFFECT_APPLIED: "effect.applied",
   MOVEMENT_STARTED: "movement.started",
+  MOVEMENT_TRANSITION: "movement.transition",
   MOVEMENT_COMPLETED: "movement.completed",
+  MOVEMENT_INTERRUPTED: "movement.interrupted",
   AREA_ENTERED: "area.entered",
   AREA_EXITED: "area.exited",
   TURN_STARTED: "turn.started",
@@ -61,6 +63,10 @@ export const AUTOMATION_CODES = Object.freeze({
 
 /* -------------------------------------------- */
 
+/**
+ * @param {import("../types/contracts.js").AutomationEventOptions} options
+ * @returns {import("../types/contracts.js").AutomationEvent}
+ */
 export function createAutomationEvent({
   id=null,
   type,

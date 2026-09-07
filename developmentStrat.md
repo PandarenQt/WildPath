@@ -304,7 +304,12 @@ once after Foundry reports successful movement completion. Pure Foundry Token fo
 operations are preserved as source/destination footprint-state transitions and commit with no
 ordinary movement spend.
 
-Remaining Stage H work: live Foundry movement QA, semantic movement events, pause/interruption,
+The maintainer confirmed prerequisite Large hex one/two-step and Large square one-step accounting
+QA passed. Semantic movement events now use the existing AutomationEvent factory, full-footprint
+deltas, stable IDs, and active-GM completion reconciliation. The pure progress contract also models
+interrupted prefixes; production pause/stop correlation and partial payment remain deferred.
+
+Remaining Stage H work: live Foundry semantic-event QA, production pause/interruption,
 opportunity-reaction composition, terrain/cost policies, Region/Area movement hooks, and
 undo/refund accounting.
 

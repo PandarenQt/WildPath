@@ -213,7 +213,9 @@ player TokenDocument#_preUpdateMovement
 -> Foundry continues or rejects movement
 -> moveToken hook fires after the Token update workflow concludes
 -> movement.finished true
--> active GM observes its updated Token document and commits approved economy.movement spend once
+-> active GM verifies source footprint and observed ordered route
+-> authoritative informational movement AutomationEvents
+-> approved economy.movement spend once
 -> MOVEMENT_RESULT
 ```
 
@@ -240,6 +242,25 @@ initiator is also checked independently against the sender. Concurrent observed 
 completions for the same movement key share an in-flight commit promise, so only the first successful
 persistence transaction can spend movement. Failed persistence clears the in-flight guard without
 marking the movement committed, allowing a later retry.
+
+Only a local authoritative `moveToken` observation can generate movement facts. The GM reconstructs
+its observed ordered route through the footprint-aware adapter and requires agreement with approval,
+including the full saved destination footprint. Pending approval never emits events. Reconciliation
+stores the completed progress and stable-ID events before notifying observers, so duplicate or
+concurrent callbacks cannot replay steps. Payment failure leaves those verified facts intact; a
+successful retry only retries payment.
+
+Socket fallback completion retains its existing payment verification but cannot author semantic
+events from a client route claim. If it commits before the GM's local hook arrives, that later local
+observation can still reconcile events without repeating payment. The informational
+`wildpath.automationEvent` hook runs on the authority only; no event socket protocol, reaction
+prompts, or client-side authoritative event generation is added. See
+[event contracts and observer failure semantics](events-and-reactions.md#movement-automationevents).
+The existing permitted no-GM local authority policy remains in force. Approval/progress/event records
+and duplicate guards remain in memory, with no durable replay or GM-handoff recovery protocol.
+Before first event reconciliation, authority selection is checked again. If the GM is unavailable
+or authority has changed, the old approval owner fails closed instead of authoring facts or paying
+that local observation; transfer/recovery of the approval is not implemented.
 
 The Foundry movement adapter also distinguishes Token operation semantics from WildPath movement
 kinds. Ordinary translation still becomes a MovementPath and can spend `economy.movement`. A pure

@@ -45,6 +45,8 @@ export const FOUNDRY_MOVEMENT_CODES = Object.freeze({
   COMPLETE_PATH_FAILED: "COMPLETE_PATH_FAILED",
   ORIGIN_MISMATCH: "ORIGIN_MISMATCH",
   DESTINATION_MISMATCH: "DESTINATION_MISMATCH",
+  COMPLETION_ROUTE_MISMATCH: "COMPLETION_ROUTE_MISMATCH",
+  MOVEMENT_EVENT_DELIVERY_FAILED: "MOVEMENT_EVENT_DELIVERY_FAILED",
   GRID_ADAPTER_FAILED: "GRID_ADAPTER_FAILED",
   UNSUPPORTED_TOKEN_OPERATION: "UNSUPPORTED_TOKEN_OPERATION",
   NON_SERIALIZABLE_MOVEMENT: MULTIPLAYER_AUTHORITY_CODES.NON_SERIALIZABLE_MESSAGE
@@ -161,7 +163,7 @@ export function buildFoundryMovementCompletion({
   const scene = token.parent ?? game?.canvas?.scene ?? game?.scenes?.viewed ?? null;
   const actor = token.actor ?? null;
   const tokenState = tokenPositionState(token);
-  const waypoints = foundryMovementWaypoints(movement);
+  const waypoints = foundryMovementWaypoints(movement, {allowDestinationFallback: false});
   const origin = mergeTokenMovementState(tokenState, plainTokenMovementState(movement?.origin)) ?? tokenState;
   const destination = mergeTokenMovementState(origin, plainTokenMovementState(movement?.destination) ?? tokenPositionState(token) ?? waypoints.at(-1)) ?? null;
   const tokenOperation = classifyFoundryTokenOperation({
@@ -310,18 +312,45 @@ export function foundryMovementIntentToMovementPath({
   });
   if ( !originCheck.ok ) return originCheck;
 
+  return translateFoundryMovementWaypoints({
+    intent: sanitized, token, adapter, sceneContext, originState: sourceState.state, footprintResult
+  });
+}
+
+/** Reconstruct an observed completed route; source/destination authority is verified by the caller. */
+export function foundryMovementCompletionToMovementPath({completion, approval, originState, tokenDocument, scene}) {
+  const token = resolveTokenDocument(tokenDocument);
+  const adapter = createFoundryV14TacticalGridAdapter({scene});
+  const sceneContext = adapter.getSceneContext();
+  if ( !sceneContext.ok ) return gridFailure(sceneContext);
+  const footprintResult = tokenFootprintAtMovementState({adapter, tokenDocument: token, state: originState});
+  if ( !footprintResult.ok ) return footprintResult;
+  if ( !completion.waypoints?.length ) return failure(
+    FOUNDRY_MOVEMENT_CODES.COMPLETION_ROUTE_MISMATCH,
+    "Observed movement must include route waypoints before semantic transitions can be confirmed."
+  );
+  const intent = sanitizeMovementIntent({
+    ...completion,
+    origin: originState,
+    movementKind: approval.path.movementKind,
+    movementMode: approval.path.movementMode
+  });
+  return translateFoundryMovementWaypoints({intent, token, adapter, sceneContext, originState, footprintResult});
+}
+
+function translateFoundryMovementWaypoints({intent: sanitized, token, adapter, sceneContext, originState, footprintResult}) {
   const complete = getCompleteFoundryMovementWaypoints({
     intent: sanitized,
     tokenDocument: token,
-    origin: sourceState.state
+    origin: originState
   });
   if ( !complete.ok ) return complete;
 
   const converted = complete.waypoints.map((waypoint, index) => {
     // Foundry waypoints are Token placements, not tactical anchors. Pure translation
     // retains the source dimensions even when intermediate waypoints contain only x/y.
-    const state = mergeTokenMovementState(sourceState.state, waypoint);
-    if ( !sameFootprintDimensions(state, sourceState.state) ) return {
+    const state = mergeTokenMovementState(originState, waypoint);
+    if ( !sameFootprintDimensions(state, originState) ) return {
       ...failure(FOUNDRY_MOVEMENT_CODES.UNSUPPORTED_TOKEN_OPERATION,
         "Combined Token translation and footprint resize is not yet supported by WildPath movement authority."),
       index
@@ -371,6 +400,7 @@ export function foundryMovementIntentToMovementPath({
     intent: sanitized,
     sceneContext: sceneContext.context,
     tokenFootprint: footprintResult.footprint,
+    originState: clonePlain(originState),
     anchors: clonePlain(anchors),
     path: movementPath,
     completeWaypointCount: complete.waypoints.length
@@ -475,6 +505,7 @@ export async function authorizeFoundryMovementIntent({
     path: translated.path,
     evaluation,
     signature,
+    foundryOriginState: translated.originState,
     payment: movementPaymentFromEvaluation(evaluation)
   });
 }
@@ -1025,6 +1056,13 @@ function normalizeCreatureSize(size) {
 
 function getCompleteFoundryMovementWaypoints({intent={}, tokenDocument=null, origin=null}={}) {
   const token = resolveTokenDocument(tokenDocument);
+  // Teleport waypoints are discontinuous endpoints. Foundry's direct-path expansion would
+  // invent intermediate fields which were never traversed.
+  if ( intent.movementKind === MOVEMENT_KINDS.TELEPORT ) return {
+    ok: true,
+    code: FOUNDRY_MOVEMENT_CODES.OK,
+    waypoints: prependPointIfDifferent(origin, intent.waypoints?.length ? intent.waypoints : [intent.destination].filter(Boolean))
+  };
   if ( typeof token?.getCompleteMovementPath !== "function" ) {
     return failure(
       FOUNDRY_MOVEMENT_CODES.COMPLETE_PATH_UNAVAILABLE,
@@ -1116,13 +1154,14 @@ function movementBudgetForActor({actor=null, movementMode="walk", movementKind=M
   };
 }
 
-function foundryMovementWaypoints(movement) {
+function foundryMovementWaypoints(movement, {allowDestinationFallback=true}={}) {
   const waypoints = [
     ...sectionWaypoints(movement?.passed),
     ...sectionWaypoints(movement?.pending)
   ];
   if ( !waypoints.length ) waypoints.push(...normalizeArray(movement?.waypoints ?? movement?.path));
-  if ( !waypoints.length && movement?.destination ) waypoints.push(movement.destination);
+  // An endpoint can describe a proposal, but cannot substitute for an observed completed route.
+  if ( allowDestinationFallback && !waypoints.length && movement?.destination ) waypoints.push(movement.destination);
   return normalizeMovementWaypoints(waypoints);
 }
 
@@ -1484,7 +1523,8 @@ function movementApproval(approved, {
   payment=null,
   footprintTransition=null,
   foundryOperation=null,
-  diagnostics=null
+  diagnostics=null,
+  foundryOriginState=null
 }={}) {
   const sanitizedIntent = intent ? sanitizeMovementIntent(intent) : null;
   const payload = {
@@ -1504,7 +1544,8 @@ function movementApproval(approved, {
     footprintTransition: footprintTransition ? clonePlain(footprintTransition) : null,
     evaluation: evaluation ? summarizeMovementEvaluation(evaluation) : null,
     payment: payment ? clonePlain(payment) : null,
-    foundryOperation: foundryOperation ? clonePlain(foundryOperation) : null
+    foundryOperation: foundryOperation ? clonePlain(foundryOperation) : null,
+    foundryOriginState: foundryOriginState ? clonePlain(foundryOriginState) : null
   };
   return clonePlain(payload);
 }

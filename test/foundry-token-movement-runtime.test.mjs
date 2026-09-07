@@ -33,7 +33,7 @@ import {
   foundryMovementIntentToMovementPath
 } from "../module/adapters/foundry-v14-movement-adapter.mjs";
 import {createMultiplayerMovementAuthority} from "../module/resolvers/multiplayer-movement-authority.mjs";
-import {onFoundryV14MoveToken} from "../module/resolvers/foundry-multiplayer-runtime.mjs";
+import {onFoundryV14MoveToken, registerFoundryV14MultiplayerResolution} from "../module/resolvers/foundry-multiplayer-runtime.mjs";
 import WildPathTokenDocument from "../module/documents/token.mjs";
 
 /* -------------------------------------------- */
@@ -334,7 +334,8 @@ function createMovementRuntimeFixture({
   actor=fakeActor("actor-a"),
   tokenOptions={},
   measurementMode=MOVEMENT_MEASUREMENT_MODES.DISTANCE,
-  persistenceOptions={}
+  persistenceOptions={},
+  onAutomationEvent=null
 }={}) {
   const scene = fakeScene(grid);
   const token = fakeTokenDocument({actor, scene, ...tokenOptions});
@@ -353,22 +354,28 @@ function createMovementRuntimeFixture({
   const gmGame = fakeGame({user: GM, users, scenes: [scene], actors: [actor], movementMode: measurementMode});
   const authorityOptions = {
     users: () => hub.userDirectory(),
-    activeGMUserId: () => GM.id,
+    activeGMUserId: () => gmGame.users.activeGM?.id ?? null,
     persistencePort: persistence,
     measurementMode,
     approvalTimeoutMs: 50
   };
+  const semanticEvents = {player: [], gm: []};
   const playerAuthority = createMultiplayerMovementAuthority({
     ...authorityOptions,
     userId: PLAYER.id,
     transport: playerTransport,
-    game: playerGame
+    game: playerGame,
+    onAutomationEvent: event => semanticEvents.player.push(event)
   });
   const gmAuthority = createMultiplayerMovementAuthority({
     ...authorityOptions,
     userId: GM.id,
     transport: gmTransport,
-    game: gmGame
+    game: gmGame,
+    onAutomationEvent: event => {
+      semanticEvents.gm.push(structuredClone(event));
+      onAutomationEvent?.(event);
+    }
   });
   playerAuthority.register();
   gmAuthority.register();
@@ -385,6 +392,7 @@ function createMovementRuntimeFixture({
     playerAuthority,
     gmAuthority,
     persistence,
+    semanticEvents,
     warnings: []
   };
 }
@@ -683,6 +691,7 @@ for ( const row of [2, 3] ) {
       assert.deepEqual(approval.evaluation.footprints.map(footprint => footprint.fields.length), [3, 3]);
       assert.equal(actor.system.resources.movement.value, 30);
       assert.equal(persistence.operations.length, 0);
+      assert.deepEqual(fixture.semanticEvents, {player: [], gm: []});
       assert.equal(hub.messages.some(message => message.messageType === MULTIPLAYER_MESSAGE_TYPES.MOVEMENT_INTENT
         && message.senderUserId === PLAYER.id && message.recipientUserId === GM.id), true);
 
@@ -694,6 +703,15 @@ for ( const row of [2, 3] ) {
       assert.equal(actor.system.resources.movement.value, 25);
       assert.equal(persistence.operations.filter(operation => operation.type === "updateActor").length, 1);
       assert.equal(hub.messages.every(message => isPlainSerializableData(message)), true);
+      assert.deepEqual(fixture.semanticEvents.player, []);
+      assert.deepEqual(fixture.semanticEvents.gm.map(event => event.type), [
+        "movement.started", "movement.transition", "movement.completed"
+      ]);
+      const transition = fixture.semanticEvents.gm[1];
+      assert.deepEqual(transition.data.from.footprint, approval.evaluation.footprints[0]);
+      assert.deepEqual(transition.data.to.footprint, approval.evaluation.footprints[1]);
+      assert.equal(transition.data.stepCost.amount, 5);
+      assert.equal(transition.metadata.authority.userId, GM.id);
     });
   }
 }
@@ -730,6 +748,17 @@ for ( const [topology, size, fieldCount] of [
       assert.equal((await fireMoveTokenHook(fixture, {movement})).committed, true);
       assert.equal(actor.system.resources.movement.value, 30 - steps * 5);
       assert.equal(persistence.operations.filter(operation => operation.type === "updateActor").length, 1);
+      const transitions = fixture.semanticEvents.gm.filter(event => event.type === "movement.transition");
+      assert.equal(transitions.length, steps);
+      assert.deepEqual(transitions.map(event => event.data.transitionIndex), Array.from({length: steps}, (_, i) => i));
+      for ( const [index, event] of transitions.entries() ) {
+        assert.equal(event.data.from.footprint.fields.length, fieldCount);
+        assert.equal(event.data.to.footprint.fields.length, fieldCount);
+        assert.equal(event.data.cumulativeCost, (index + 1) * 5);
+        assert.equal(event.data.leftFields.length + event.data.retainedFields.length, fieldCount);
+        assert.equal(event.data.enteredFields.length + event.data.retainedFields.length, fieldCount);
+      }
+      assert.equal(fixture.semanticEvents.gm.at(-1).data.actualTotalCost, steps * 5);
     });
   }
 }
@@ -813,6 +842,12 @@ test("pixel origins representing the same full tactical footprint remain valid",
   const approval = await playerAuthority.requestMovementApproval(intent);
   assert.equal(approval.approved, true, approval.reason);
   assert.equal(approval.payment.actorResourceAmount, 5);
+  const record = [...fixture.gmAuthority.approvedMovements.values()][0];
+  assert.equal(record.originState.x, intent.origin.x - 1);
+  assert.equal(record.originState.y, intent.origin.y - 1);
+  token.setSourceOffset(scene.grid.cubeToOffset({q: 3, r: 2}));
+  assert.equal((await fireMoveTokenHook(fixture, {movement})).committed, true);
+  assert.equal(fixture.semanticEvents.gm.length, 3);
 });
 
 test("translation fails closed when authoritative Token source cannot be read", async () => {
@@ -857,6 +892,7 @@ test("resize then Large hex player movement spends only the synthetic Token Acto
   });
   resizeTokenSource(token, {width: 2, height: 2});
   assert.equal((await fireMoveTokenHook(fixture, {movement: resize})).spent, false);
+  assert.deepEqual(fixture.semanticEvents, {player: [], gm: []});
   assert.equal(actor.system.resources.movement.value, 30);
   assert.equal(persistence.operations.length, 0);
 
@@ -880,6 +916,9 @@ test("resize then Large hex player movement spends only the synthetic Token Acto
   assert.equal(worldActor.system.resources.movement.value, 30);
   assert.equal(persistence.operations.length, 1);
   assert.equal(persistence.operations[0].actorRef, actor.uuid);
+  assert.equal(fixture.semanticEvents.gm.length, 3);
+  assert.deepEqual(fixture.semanticEvents.player, []);
+  assert.equal(fixture.semanticEvents.gm.every(event => event.data.actorRef === `uuid:${actor.uuid}`), true);
 });
 
 test("WildPath registers the moveToken hook as the normal movement completion seam", () => {
@@ -1908,3 +1947,220 @@ test("explicit forced and teleport movement preserve no-ordinary-budget semantic
 
   assert.equal(actor.system.resources.movement.value, 30);
 });
+
+test("authoritative facts wait for finished and emit once across concurrent GM and repeated player observations", async () => {
+  const fixture = createMovementRuntimeFixture();
+  const {token, gmAuthority, semanticEvents, actor} = fixture;
+  const movement = movementOperation(token, {offsets: [{i: 2, j: 0}]});
+  let finish;
+  movement.finished = new Promise(resolve => { finish = resolve; });
+  await withFoundryGlobals(fixture, async () => {
+    assert.notEqual(await token._preUpdateMovement(movement, {}), false);
+  });
+  const record = [...gmAuthority.approvedMovements.values()][0];
+  assert.equal(record.progress.status, "pending");
+  assert.deepEqual(record.semanticEvents, []);
+  token.setSourceOffset({i: 2, j: 0});
+  await withFoundryGlobals(fixture, async () => {
+    const observations = [fixture.playerGame, fixture.gmGame, fixture.gmGame].map(game =>
+      onFoundryV14MoveToken(token, movement, {}, PLAYER, {game}));
+    await Promise.resolve();
+    assert.deepEqual(semanticEvents, {player: [], gm: []});
+    assert.equal(actor.system.resources.movement.value, 30);
+    finish(true);
+    const results = await Promise.all(observations);
+    assert.equal(results.filter(result => result.committed).length, 1);
+  }, {game: fixture.gmGame});
+  assert.equal((await fireMoveTokenHook(fixture, {movement})).duplicate, true);
+  assert.equal((await fireMoveTokenHook(fixture, {movement, game: fixture.playerGame})).ignored, true);
+  assert.deepEqual(semanticEvents.player, []);
+  assert.deepEqual(semanticEvents.gm.map(event => event.type), [
+    "movement.started", "movement.transition", "movement.transition", "movement.completed"
+  ]);
+  assert.equal(new Set(semanticEvents.gm.map(event => event.id)).size, 4);
+  assert.equal(record.progress.status, "completed");
+  assert.equal(record.progress.completedTransitionCount, 2);
+  assert.equal(record.progress.cumulativeCost, 10);
+  assert.equal(actor.system.resources.movement.value, 20);
+  assert.equal(fixture.persistence.operations.length, 1);
+  for ( const event of semanticEvents.gm ) {
+    assert.equal(isPlainSerializableData(event), true);
+    assert.deepEqual(event.metadata.authority, {userId: GM.id, mode: "active-gm"});
+    assert.deepEqual(event.metadata.observation, {
+      source: "foundry-v14", lifecycle: "moveToken", timing: "completion-reconciled", finished: true
+    });
+  }
+});
+
+for ( const outcome of ["false", "rejected", "missing"] ) {
+  test(`movement with ${outcome} finished confirmation emits no movement facts`, async () => {
+    const fixture = createMovementRuntimeFixture();
+    const movement = movementOperation(fixture.token);
+    await withFoundryGlobals(fixture, async () => {
+      assert.notEqual(await fixture.token._preUpdateMovement(movement, {}), false);
+    });
+    fixture.token.setSourceOffset({i: 1, j: 0});
+    movement.finished = outcome === "missing" ? undefined
+      : outcome === "rejected" ? Promise.reject(new Error("stopped")) : Promise.resolve(false);
+    assert.equal((await fireMoveTokenHook(fixture, {movement})).ignored, true);
+    assert.deepEqual(fixture.semanticEvents, {player: [], gm: []});
+    assert.equal(fixture.persistence.operations.length, 0);
+    assert.equal([...fixture.gmAuthority.approvedMovements.values()][0].progress.status, "pending");
+  });
+}
+
+for ( const mismatch of ["source", "route", "missing-route"] ) {
+  test(`completed movement rejects ${mismatch} mismatch without authoring approved route facts`, async () => {
+    const fixture = createMovementRuntimeFixture();
+    const movement = movementOperation(fixture.token, {offsets: [{i: 2, j: 0}]});
+    await withFoundryGlobals(fixture, async () => {
+      assert.notEqual(await fixture.token._preUpdateMovement(movement, {}), false);
+    });
+    fixture.token.setSourceOffset({i: mismatch === "source" ? 1 : 2, j: 0});
+    if ( mismatch === "route" ) movement.pending.waypoints.unshift(pointForOffset(fixture.scene, {i: 0, j: 1}));
+    if ( mismatch === "missing-route" ) movement.pending.waypoints = [];
+    const result = await fireMoveTokenHook(fixture, {movement});
+    assert.equal(result.ok, false);
+    assert.equal(result.code, mismatch === "source" ? FOUNDRY_MOVEMENT_CODES.DESTINATION_MISMATCH
+      : FOUNDRY_MOVEMENT_CODES.COMPLETION_ROUTE_MISMATCH);
+    assert.deepEqual(fixture.semanticEvents, {player: [], gm: []});
+    assert.equal(fixture.persistence.operations.length, 0);
+  });
+}
+
+test("socket fallback payment cannot author facts or suppress later local GM observation", async () => {
+  const fixture = createMovementRuntimeFixture();
+  const movement = movementOperation(fixture.token);
+  await withFoundryGlobals(fixture, async () => {
+    assert.notEqual(await fixture.token._preUpdateMovement(movement, {}), false);
+  });
+  fixture.token.setSourceOffset({i: 1, j: 0});
+  const {completion} = buildFoundryMovementCompletion({
+    tokenDocument: fixture.token, movement, user: PLAYER, game: fixture.playerGame
+  });
+  await fixture.playerAuthority.commitMovementCompletion(completion);
+  assert.equal(fixture.actor.system.resources.movement.value, 25);
+  assert.deepEqual(fixture.semanticEvents, {player: [], gm: []});
+  assert.equal((await fireMoveTokenHook(fixture, {movement})).duplicate, true);
+  assert.equal((await fireMoveTokenHook(fixture, {movement})).duplicate, true);
+  assert.equal(fixture.semanticEvents.gm.length, 3);
+  assert.equal(fixture.persistence.operations.length, 1);
+});
+
+test("verified movement facts survive payment failure without repeating on successful retry", async () => {
+  let failNext = true;
+  const fixture = createMovementRuntimeFixture({persistenceOptions: {
+    failOn() { const fail = failNext; failNext = false; return fail; }
+  }});
+  const movement = movementOperation(fixture.token);
+  await withFoundryGlobals(fixture, async () => {
+    assert.notEqual(await fixture.token._preUpdateMovement(movement, {}), false);
+  });
+  fixture.token.setSourceOffset({i: 1, j: 0});
+  assert.equal((await fireMoveTokenHook(fixture, {movement})).code, FOUNDRY_MOVEMENT_CODES.MOVEMENT_COMMIT_FAILED);
+  assert.equal(fixture.semanticEvents.gm.length, 3);
+  assert.equal(fixture.actor.system.resources.movement.value, 30);
+  assert.equal((await fireMoveTokenHook(fixture, {movement})).committed, true);
+  assert.equal(fixture.semanticEvents.gm.length, 3);
+  assert.equal(fixture.actor.system.resources.movement.value, 25);
+});
+
+test("consumer mutation and synchronous failure cannot corrupt stored facts or repeat movement payment", async () => {
+  const fixture = createMovementRuntimeFixture({onAutomationEvent(event) {
+    event.data.movementId = "listener-mutated";
+    throw new Error("consumer failed");
+  }});
+  const movement = movementOperation(fixture.token);
+  await withFoundryGlobals(fixture, async () => {
+    assert.notEqual(await fixture.token._preUpdateMovement(movement, {}), false);
+  });
+  fixture.token.setSourceOffset({i: 1, j: 0});
+  assert.equal((await fireMoveTokenHook(fixture, {movement})).committed, true);
+  assert.equal((await fireMoveTokenHook(fixture, {movement})).duplicate, true);
+  const record = [...fixture.gmAuthority.approvedMovements.values()][0];
+  assert.equal(record.semanticEvents.length, 3);
+  assert.equal(record.semanticEvents.every(event => event.data.movementId === movement.id), true);
+  assert.equal(record.eventDeliveryErrors.length, 3);
+  assert.equal(record.eventDeliveryErrors.every(error => error.code === FOUNDRY_MOVEMENT_CODES.MOVEMENT_EVENT_DELIVERY_FAILED), true);
+  assert.equal(fixture.persistence.operations.length, 1);
+});
+
+for ( const kind of ["forced", "teleport"] ) {
+  test(`${kind} production semantics retain costs and topology without ordinary payment`, async () => {
+    const fixture = createMovementRuntimeFixture();
+    const movement = movementOperation(fixture.token, {kind, offsets: [{i: 6, j: 0}]});
+    await withFoundryGlobals(fixture, async () => {
+      assert.notEqual(await fixture.token._preUpdateMovement(movement, {}), false);
+    });
+    fixture.token.setSourceOffset({i: 6, j: 0});
+    assert.equal((await fireMoveTokenHook(fixture, {movement})).spent, false);
+    const events = fixture.semanticEvents.gm;
+    const transitions = events.filter(event => event.type === "movement.transition");
+    assert.equal(transitions.length, kind === "teleport" ? 1 : 6);
+    assert.equal(events.every(event => event.data.movementKind === kind && event.data.consumesBudget === false), true);
+    assert.equal(transitions.every(event => event.data.discontinuous === (kind === "teleport")), true);
+    assert.equal(events.at(-1).data.actualTotalCost, kind === "teleport" ? 0 : 30);
+    assert.equal(events.at(-1).data.budgetCost, 0);
+    if ( kind === "teleport" ) {
+      assert.deepEqual(transitions[0].data.leftFields, [{x: 0, y: 0}]);
+      assert.deepEqual(transitions[0].data.enteredFields, [{x: 6, y: 0}]);
+      assert.equal(fixture.token.completePathCalls, 0);
+    }
+    assert.equal(fixture.actor.system.resources.movement.value, 30);
+    assert.equal(fixture.persistence.operations.length, 0);
+  });
+}
+
+test("zero-transition production update emits no locomotion facts", async () => {
+  const fixture = createMovementRuntimeFixture();
+  const movement = movementOperation(fixture.token, {offsets: [{i: 0, j: 0}]});
+  await withFoundryGlobals(fixture, async () => {
+    assert.notEqual(await fixture.token._preUpdateMovement(movement, {}), false);
+  });
+  assert.equal((await fireMoveTokenHook(fixture, {movement})).spent, false);
+  assert.deepEqual(fixture.semanticEvents, {player: [], gm: []});
+});
+
+test("Foundry runtime publishes informational AutomationEvents through the generic hook", async () => {
+  const fixture = createMovementRuntimeFixture();
+  const game = fixture.gmGame;
+  game.socket = {on() {}, emit() {}};
+  const previousHooks = globalThis.Hooks;
+  const delivered = [];
+  globalThis.Hooks = {callAll(name, event) { delivered.push({name, event}); return false; }};
+  try {
+    const registered = registerFoundryV14MultiplayerResolution({game});
+    assert.equal(registered.ok, true);
+    const movement = movementOperation(fixture.token, {kind: "forced"});
+    await withFoundryGlobals(fixture, async () => {
+      assert.notEqual(await fixture.token._preUpdateMovement(movement, {}), false);
+    }, {game});
+    fixture.token.setSourceOffset({i: 1, j: 0});
+    assert.equal((await fireMoveTokenHook(fixture, {movement, user: GM})).committed, true);
+    assert.equal(delivered.length, 3);
+    assert.equal(delivered.every(({name, event}) => name === "wildpath.automationEvent" && event.phase === "information"), true);
+  } finally {
+    if ( previousHooks === undefined ) delete globalThis.Hooks;
+    else globalThis.Hooks = previousHooks;
+  }
+});
+
+for ( const handoff of [false, true] ) {
+  test(`approval owner cannot author events after its GM authority is ${handoff ? "replaced" : "unavailable"}`, async () => {
+    const fixture = createMovementRuntimeFixture();
+    const movement = movementOperation(fixture.token);
+    await withFoundryGlobals(fixture, async () => {
+      assert.notEqual(await fixture.token._preUpdateMovement(movement, {}), false);
+    });
+    fixture.token.setSourceOffset({i: 1, j: 0});
+    fixture.hub.users.set(GM.id, {...GM, active: false});
+    const nextGM = handoff ? {...GM, id: "gm-b"} : null;
+    fixture.gmGame.users.activeGM = nextGM;
+    if ( nextGM ) fixture.hub.users.set(nextGM.id, nextGM);
+    const result = await fireMoveTokenHook(fixture, {movement});
+    assert.equal(result.ok, false);
+    assert.equal(result.code, handoff ? MULTIPLAYER_AUTHORITY_CODES.WRONG_AUTHORITY : MULTIPLAYER_AUTHORITY_CODES.AUTHORITY_UNAVAILABLE, JSON.stringify(result));
+    assert.deepEqual(fixture.semanticEvents, {player: [], gm: []});
+    assert.equal(fixture.persistence.operations.length, 0);
+  });
+}

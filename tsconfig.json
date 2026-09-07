@@ -19,6 +19,7 @@
   "include": [
     "module/**/*.d.ts",
     "module/**/*.ts",
+    "module/**/*.mts",
     "test/**/*.ts"
   ]
 }

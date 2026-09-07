@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "allowJs": false,
+    "noEmit": false,
+    "noCheck": true
+  },
+  "include": ["module/helpers/movement-events.mts"]
+}

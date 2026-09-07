@@ -1712,6 +1712,19 @@ export interface ActionResult {
   readonly metadata: Readonly<Record<string, unknown>>;
 }
 
+export interface AutomationEventOptions {
+  readonly id?: string | null;
+  readonly type: string;
+  readonly phase?: string;
+  readonly actorId?: string | null;
+  readonly tokenId?: string | null;
+  readonly source?: EntityRef | Partial<EntityReference> | null;
+  readonly targets?: readonly (EntityRef | Partial<EntityReference>)[];
+  readonly tags?: readonly string[];
+  readonly data?: Readonly<Record<string, unknown>>;
+  readonly metadata?: Readonly<Record<string, unknown>>;
+}
+
 export interface AutomationEvent {
   readonly id: string | null;
   readonly type: string;

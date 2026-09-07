@@ -348,6 +348,11 @@ export function sortGridFields(fields, topology) {
   return sortFields(fields, normalizeTopology(topology));
 }
 
+/**
+ * @param {import("../types/contracts.js").GridField} field
+ * @param {import("../types/contracts.js").GridTopology} [topology]
+ * @returns {string}
+ */
 export function fieldKey(field, topology=GRID_TOPOLOGIES.SQUARE) {
   const normalizedTopology = normalizeTopology(topology);
   if ( normalizedTopology === GRID_TOPOLOGIES.HEX ) return `hex:${Number(field.q)},${Number(field.r)}`;

@@ -43,6 +43,75 @@ condition-provided Trigger RuleElements for a narrow durability-change payload o
 turn-start events. That resolver plans mutations through the durability domain; trigger
 registration itself still does not execute actions or mutate documents.
 
+## Movement AutomationEvents
+
+`module/helpers/movement-events.mts` creates the following events through `createAutomationEvent()`.
+All use `phase: "information"`. They describe observed movement and cannot modify or cancel it.
+
+Common `data` includes `movementId`, `movementKind`, `movementMode`, `sceneRef`, `actorRef`,
+`tokenRef`, `measurementMode`, and `consumesBudget`. References are plain opaque entity refs;
+Actor UUID refs preserve synthetic Token Actor identity. `source` identifies the moving Token with
+Actor/Token IDs. Tags include `movement`, kind, and mode. `metadata.authority` identifies the
+authoring user and authority mode; `metadata.observation` records the lifecycle source and timing.
+Endpoints below have `{anchor, footprint}` with a complete `TokenGridFootprint`.
+
+| Type | Event-specific `data` |
+| --- | --- |
+| `movement.started` | `origin`, `approvedDestination`, `approvedTransitionCount` |
+| `movement.transition` | zero-based `transitionIndex`, `from`, `to`, `leftFields`, `enteredFields`, `retainedFields`, `stepCost`, `cumulativeCost`, `budgetCost`, `discontinuous` |
+| `movement.completed` | `origin`, `actualDestination`, `completedTransitionCount`, `actualTotalCost`, `budgetCost` |
+| `movement.interrupted` | `approvedDestination`, `actualDestination`, `completedTransitionCount`, `remainingTransitionCount`, `completedAnchors`, `remainingAnchors`, `completedCost`, `interruption: {reason, source, resumable}` |
+
+`stepCost` retains the evaluator's amount, unit, and measurement mode. Cumulative/total costs are
+numeric amounts in that measurement mode; `budgetCost` is the cumulative ordinary-budget amount,
+zero for forced movement and teleport. A cost is not evidence of a successful resource transaction.
+Field deltas describe occupancy, independently of cost. Teleports mark discontinuity and do not
+invent fields between supplied endpoints. Resize emits no locomotion events.
+
+IDs are deterministic: `movement:<encoded-scene-ref>:<encoded-token-ref>:<encoded-movement-id>:<suffix>`.
+The suffix is `started`, `transition:<index>`, `completed`, or `interrupted`. Identical observations
+produce identical IDs. The progress record suppresses repeated emission of already observed steps;
+IDs also allow downstream consumers to deduplicate their own work.
+
+The [movement progress model](movement-paths.md#movement-progress-and-semantic-facts) separates
+approval from the completed prefix and supports pure interruption/pause tests. Production currently
+emits started/transition/completed together after `moveToken`, `finished === true`, source-footprint
+verification, and observed-route reconciliation. `metadata.observation` is:
+
+```js
+{source: "foundry-v14", lifecycle: "moveToken", timing: "completion-reconciled", finished: true}
+```
+
+These delayed informational events support future generic trigger predicates such as cumulative
+travel or occupancy changes. They are not a pre-step interruption seam. Production interruption,
+movement-triggered reaction windows, observer-relative reach predicates, and Area/Region consumers
+are not implemented in this milestone.
+
+### Foundry Observer Extension Point
+
+The existing movement authority accepts a synchronous `onAutomationEvent(event)` observer. The
+Foundry runtime bridges it to:
+
+```js
+Hooks.on("wildpath.automationEvent", event => {
+  // Observe canonical AutomationEvent data; keep consequences in their normal resolvers.
+});
+```
+
+This generic informational hook is dispatched with V14
+[`Hooks.callAll`](https://foundryvtt.com/api/v14/classes/foundry.helpers.Hooks.html#callAll).
+Listener return values cannot cancel locomotion, events, or payment. The authority stores plain
+event snapshots and advanced progress before notification; it passes a separate copy to the
+observer. Synchronous observer failures are recorded as `MOVEMENT_EVENT_DELIVERY_FAILED` with
+event/movement IDs, without replaying events or preventing payment. Hook listeners must handle
+their own asynchronous failures; delivery is not awaited and is not a durable retry queue.
+
+Only the active GM authors events during active-GM play. The established permitted local fallback
+may author them when no GM is active. Events are not broadcast through a new socket protocol.
+The approval record's `semanticEvents` and `eventDeliveryErrors` are available for diagnostics.
+Records and duplicate guards are session-local; this is not a durable exactly-once guarantee across
+reloads or authority handoff. See [multiplayer authority](multiplayer-authority.md#movement-authority).
+
 ## Reaction Windows
 
 Reaction triggers are normal triggers with a reaction payload and a payment requirement. The helper
