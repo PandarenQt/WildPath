@@ -834,6 +834,32 @@ test("pause preserves the approved suffix and linked continuation completes with
   assert.equal(fixture.persistence.operations.length, 2);
 });
 
+for ( const authoritativeCount of [1, 2] ) {
+  test(`${authoritativeCount === 2 ? "same" : "advancing"}-prefix source mismatch includes plain reconciliation diagnostics`, async () => {
+    const fixture = createMovementRuntimeFixture();
+    const initial = checkpointOperation(fixture.token, {passedCount: authoritativeCount});
+    await approveCheckpoint(fixture, initial);
+    await lifecycleHook(fixture, checkpointSnapshot(fixture, initial, "paused"), "paused");
+    const before = progressOf(fixture, initial);
+    const events = structuredClone(fixture.semanticEvents);
+    const bad = checkpointOperation(fixture.token, {passedCount: 2});
+    const document = checkpointSnapshot(fixture, bad, "paused");
+    document.setSourceOffset({i: 8, j: 0});
+    const result = await lifecycleHook(fixture, document, "paused");
+    assert.equal(result.code, FOUNDRY_MOVEMENT_CODES.MOVEMENT_PREFIX_MISMATCH);
+    assert.equal(isPlainSerializableData(result.observation), true);
+    assert.equal(result.observation.lifecycle, "pauseToken");
+    assert.equal(result.observation.operationId, initial.id);
+    assert.equal(result.observation.rootMovementId, initial.id);
+    assert.equal(result.observation.observedTransitionCount, 2);
+    assert.equal(result.observation.authoritativeTransitionCount, authoritativeCount);
+    assert.notDeepEqual(result.observation.observedSourceFootprint, result.observation.expectedFootprint);
+    assert.deepEqual(progressOf(fixture, initial), before);
+    assert.deepEqual(fixture.semanticEvents, events);
+    assert.equal(fixture.persistence.operations.length, 1);
+  });
+}
+
 test("pause followed by stop is terminal without replay or suffix payment", async () => {
   const fixture = createMovementRuntimeFixture();
   const movement = checkpointOperation(fixture.token);

@@ -416,6 +416,8 @@ movement/subpath IDs must agree with the operation. The actual full source footp
 the last verified footprint; matching a final anchor or an unfiltered history entry is insufficient.
 History recording/clearing is not observed: unrelated recorded or unrecorded history cannot prove
 the current prefix. Malformed evidence returns a typed diagnostic without facts or payment.
+Prefix mismatch diagnostics include lifecycle, operation/root IDs, chain/subpath, observed and
+authoritative counts, observed anchors, and observed/expected/authoritative footprints as plain data.
 
 Partial payment uses this invariant in the approved measurement mode:
 
@@ -462,7 +464,14 @@ The maintainer confirmed prerequisite Foundry V14 QA passed for Large hex one-st
 The maintainer also confirmed the completed semantic observer on baseline `f47ef23034be2291d4ee25820041fb99891257da`:
 Large hex two-step `30 -> 20`, started/transition 0/transition 1/completed, three-field footprints,
 two left/two entered/one retained, unique IDs for new movement, and one player-to-GM event batch.
-That prerequisite remains accepted. New Node regressions cover stopped prefixes, pause/linked
+The maintainer also confirmed terminal interruption on `48b72f9ceacf9b1666bbd471c99a1fd3c53ae99c`:
+Large hex stop after two of three transitions, movement `30 -> 20`, exactly started/transitions 0/1/
+interrupted on the GM, no player events, and idempotent repeated stop. Pause/continuation accounting
+also reached the correct `20 -> 15` and five-event history, but the player received a prefix warning
+before resume. That warning remains under investigation; successful accounting is not warning-free QA.
+Node regressions cover stopped prefixes, pause/linked
 continuation, concurrent increasing observations, repeated anchors, field-mode conversion, invalid
-evidence, payment/observer failure, synthetic Actors, and lost authority. New interruption timing
-still requires live QA; follow [the exact checkpoint console procedure](../development/movement-interruption-qa.md).
+evidence, payment/observer failure, synthetic Actors, and lost authority. Same/new-prefix mismatch
+tests verify the structured diagnostic context without changing validation decisions. The candidate
+historical-checkpoint repair is set aside while collecting the original pre-resume warning's trace.
+Follow [the exact checkpoint console procedure](../development/movement-interruption-qa.md).

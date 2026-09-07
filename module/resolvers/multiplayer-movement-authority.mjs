@@ -679,9 +679,10 @@ export function createMultiplayerMovementAuthority({
     if ( !observed.ok ) return {...observed, movementId: completion.movementId};
     const status = completion.foundry?.progressStatus ?? "completed";
     let reconciled;
+    let count = null;
     try {
       if ( observed.path.topology !== record.approval.path.topology ) throw new Error("Observed topology differs from approval.");
-      const count = completedMovementPrefix(record.progress, observed.path.anchors, operation.baseTransitionCount);
+      count = completedMovementPrefix(record.progress, observed.path.anchors, operation.baseTransitionCount);
       if ( !sameMovementFootprint(verified.destination.footprint, record.progress.approvedFootprints[count]) ) {
         throw new Error("Observed source footprint differs from the completed prefix.");
       }
@@ -711,7 +712,21 @@ export function createMultiplayerMovementAuthority({
       operation.observedTransitionCount = count;
     } catch (error) {
       return failure(status === "completed" ? FOUNDRY_MOVEMENT_CODES.COMPLETION_ROUTE_MISMATCH
-        : FOUNDRY_MOVEMENT_CODES.MOVEMENT_PREFIX_MISMATCH, error.message, {movementId: completion.movementId});
+        : FOUNDRY_MOVEMENT_CODES.MOVEMENT_PREFIX_MISMATCH, error.message, {
+        movementId: completion.movementId,
+        observation: {
+          lifecycle: completion.metadata?.foundryLifecycle ?? null,
+          operationId: operation.id, rootMovementId: record.movementId,
+          chain: operation.chain, subpathId: operation.subpathId,
+          state: completion.foundry?.state ?? null, status,
+          observedTransitionCount: count,
+          authoritativeTransitionCount: record.progress.completedTransitionCount,
+          observedAnchors: observed.path.anchors,
+          observedSourceFootprint: verified.destination.footprint,
+          expectedFootprint: count === null ? null : record.progress.approvedFootprints[count],
+          authoritativeActualFootprint: record.progress.actualFootprint
+        }
+      });
     }
     // Facts describe verified locomotion independently of payment success. Store the new
     // prefix before notifying consumers so reentrant or retried delivery cannot re-emit it.
