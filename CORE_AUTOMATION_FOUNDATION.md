@@ -48,8 +48,11 @@ finished game system name is **WildPath**.
   started/transition/completed/interrupted AutomationEvents through the existing event factory.
   The movement authority emits informational facts from verified local GM checkpoint, pause, stop,
   and completion observations, with deterministic IDs and duplicate suppression. Same-subpath
-  continuation preserves one root route, events, and cumulative payment. Interruption integration
-  needs live QA; movement-triggered reaction windows remain deferred.
+  continuation preserves one root route, events, and cumulative payment. The maintainer confirmed
+  terminal interruption and final warning-free pause/continuation QA, including normalized event
+  observation, on the movement-semantics milestone. See the
+  [accepted live result](docs/development/movement-pause-diagnostic-qa.md).
+  Movement-triggered reaction composition is the next milestone and remains unimplemented.
 - Tactical grid and area topology are implemented as pure domain foundations: gridded AoE resolves
   to authoritative `GridFootprint` field sets rather than Euclidean templates pretending to be
   tactical geometry. `module/adapters/foundry-v14-tactical-grid-adapter.mjs` now provides the first

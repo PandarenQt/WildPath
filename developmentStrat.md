@@ -308,11 +308,14 @@ The maintainer confirmed prerequisite Large hex one/two-step and Large square on
 QA passed. Completed semantic-event QA also passed: Large hex two-step events/cost/full-footprint
 deltas, new IDs for new operations, and one player-to-GM batch. Production checkpoint/pause/stop
 correlation, same-subpath continuation, and partial payment now use the existing authority,
-AutomationEvent, and ResourceResolver contracts. See the movement interruption QA procedure;
-this new lifecycle integration has automated coverage but still needs live verification.
+AutomationEvent, and ResourceResolver contracts. The maintainer confirmed terminal interruption
+and final warning-free pause/continuation QA on `26e7161797059ff7ff5a7cf4419a3427adf9d1ce`:
+movement 20 with three unique GM events while paused, then movement 15 with five unique GM events
+after resume, stable root/prefix identities, and zero player events. See the
+[accepted live result](docs/development/movement-pause-diagnostic-qa.md).
 
-Remaining Stage H work: live Foundry interruption/continuation QA,
-opportunity-reaction composition, terrain/cost policies, Region/Area movement hooks, and
+Remaining Stage H work: MovementEvent -> Trigger/Predicate -> ReactionResolver composition,
+opportunity-reaction rules, terrain/cost policies, Region/Area movement hooks, and
 undo/refund accounting.
 
 ## Stage I — Persistent Spatial Mechanics
