@@ -1,8 +1,37 @@
 # One-run pause/resume validation with diagnostic capture
 
-The historical-observation repair and corrected event-ref filter require final live validation.
-The prior diagnostic run had matching source footprints and no warning; its zero event count was
-caused by comparing normalized refs with raw UUIDs. The original failing observation remains unknown.
+The maintainer confirmed this final live procedure passed on
+`26e7161797059ff7ff5a7cf4419a3427adf9d1ce` (`Fix stale movement observation reconciliation`).
+The accepted result uses the corrected normalized Token-ref observer on the active GM and initiating
+player, with a Large hex Token, 5-ft grid, and distance measurement.
+
+| Observed result | Paused after two transitions | Completed after resume |
+| --- | --- | --- |
+| Token Actor movement (starting at 30) | 20 | 15 |
+| Progress status | paused | completed |
+| Approved / completed / remaining transitions | 3 / 2 / 1 | 3 / 3 / 0 |
+| Paid transitions / committed cost | 2 / 10 ft | 3 / 15 ft |
+| Active-GM events / unique event IDs | 3 / 3 | 5 / 5 |
+| Transition indices | 0, 1 | 0, 1, 2 |
+| Operation count | 1 | 2 |
+| Payment failure | null | null |
+
+The paused history is exactly `movement.started`, transition 0, and transition 1. Resume appends
+only transition 2 and `movement.completed`; the root/subpath and first three event IDs are preserved.
+There is no `movement.interrupted`, duplicate event, or duplicate prefix payment. The initiating
+player has zero authoritative movement events. Neither client displays the prefix-mismatch warning,
+and the final checks pass, including the unchanged base world Actor for the unlinked Token.
+
+This closes the final live-QA gate for movement semantics. The original uncaptured warning's exact
+lifecycle remains unknown; the deterministic stale-observation defect and the normal live sequence
+are documented separately. The earlier diagnostic run's zero GM event count came from the old
+raw-UUID filter and is superseded by this corrected observer result.
+
+The blocks below remain the repeatable acceptance procedure. Reaction composition is the next
+milestone; it is not implemented by this handoff.
+
+## Rerun preparation
+
 Finish the previous test and reload both clients with the repaired build.
 Select the same player-owned Large hex Token on each client, with open space to its right.
 Use a 5-ft grid and distance measurement. The GM setup resets only this Token Actor's movement to 30.

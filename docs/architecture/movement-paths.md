@@ -484,6 +484,15 @@ evidence, payment/observer failure, synthetic Actors, and lost authority. Histor
 deterministically reproduced the exact warning before this repair, including delayed root delivery
 after Large hex continuation. Same/new-prefix corruption, historical identity/route checks, unpaid
 debt isolation, and normalized QA event filtering are covered. These regressions establish the
-stale-validation defect; they do not identify the original uncaptured live callback. Final live QA
-of the repair remains required before reaction composition.
+stale-validation defect; they do not identify the original uncaptured live callback.
+
+The maintainer confirmed final live acceptance on `26e7161797059ff7ff5a7cf4419a3427adf9d1ce` using
+the corrected normalized Token-ref observer. Large hex pause at prefix 2/3 retained movement 20,
+paid cost 10, and exactly three unique GM events. Resume completed prefix 3/3 with movement 15,
+paid cost 15, and exactly five unique GM events: started, transitions 0/1/2, completed. The root and
+subpath remained stable across two operations, the first three event IDs were retained, the player
+authored no events, neither client warned, and the unlinked Token's base world Actor stayed unchanged.
+The [accepted live result](../development/movement-pause-diagnostic-qa.md) closes the movement-semantics
+live-QA gate. The next milestone is MovementEvent -> Trigger/Predicate -> ReactionResolver composition;
+this handoff records acceptance and prepares its branch without implementing reactions.
 Follow [the exact checkpoint console procedure](../development/movement-interruption-qa.md).

@@ -17,8 +17,14 @@ The repair addresses a deterministic historical-observation defect: validation c
 prefix to a newer source footprint before classifying it as stale. Identity and ordered route are
 still validated first; only a strictly lower count bypasses that spatial comparison. Same/new-prefix
 footprint checks and structured mismatch diagnostics remain strict. This does not prove which
-observation caused the original warning. Final live QA with the corrected event filter is required
-before movement-triggered reactions.
+observation caused the original warning.
+
+The maintainer confirmed final live QA passed on `26e7161797059ff7ff5a7cf4419a3427adf9d1ce` with
+the corrected event filter: paused movement 20, three unique GM events and prefix 2/3; resumed
+movement 15, five unique GM events and completed prefix 3/3; one root/subpath with stable prefix
+event IDs; zero player events; no warning on either client; and all final assertions passed.
+See the [exact accepted live result](movement-pause-diagnostic-qa.md). Movement semantics is live-green;
+reaction composition remains a separate, unimplemented milestone.
 
 ## Verified public API: V14.365 docs and installed V14.367
 
@@ -311,8 +317,8 @@ On the **GM**:
 ```
 
 Record Foundry build, topology/size, linked/unlinked Actor, both clients' warnings, and the GM
-paused/final snapshots. Repeat with Large square and Medium square/hex. Only a warning-free
-pause/continuation rerun closes this repair.
+paused/final snapshots. Repeat with Large square and Medium square/hex when extending regression QA.
+The final Large hex pause/continuation acceptance run is recorded above.
 
 ## One-run final validation and optional diagnostics
 
