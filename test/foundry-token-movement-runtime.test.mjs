@@ -20,6 +20,7 @@ import {
 } from "../module/helpers/multiplayer-authority.mjs";
 import {createTestResolutionTransportHub} from "../module/adapters/test-resolution-transport.mjs";
 import {createTestDocumentPersistenceAdapter} from "../module/adapters/test-persistence-adapter.mjs";
+import {createFoundryV14PromptAdapter} from "../module/adapters/foundry-v14-prompt-adapter.mjs";
 import {
   FOUNDRY_GRID_TYPES,
   FOUNDRY_HEX_OFFSET_VARIANTS,
@@ -135,6 +136,47 @@ async function finishMovementReactionRoute(fixture, root) {
   assert.equal(fixture.semanticEvents.player.length, 0);
   assert.equal(fixture.hub.messages.every(isPlainSerializableData), true);
 }
+
+for ( const cancel of [false, true] ) test(`movement reaction through real Foundry prompt commits a child then ${cancel ? "terminates" : "resumes"}`, async () => {
+  const fixture = movementReactionFixture({cancel});
+  const root = await openMovementReaction(fixture);
+  const pending = latestReactionRequest(fixture);
+  const candidateId = pending.payload.request.payload.options[0].id;
+  const answered = await answerPendingRequestLocally({request: pending.payload.request,
+    context: {currentUserId: PLAYER.id},
+    promptPorts: [createFoundryV14PromptAdapter({DialogV2: {async input({content}) {
+      assert.match(content, />Test event action<\/option>/);
+      assert.equal(fixture.token.movement.state, "paused");
+      assert.equal(fixture.token.x, 50);
+      assert.equal(fixture.actor.system.resources.movement.value, 25);
+      assert.equal(fixture.resumeCount(), 0);
+      return {"choice:choice": candidateId};
+    }}})]});
+  assert.equal(answered.ok, true, JSON.stringify(answered));
+  assert.deepEqual(answered.response.value, {decision: "use", candidateId});
+  await fixture.playerTransport.send(createResolutionSocketEnvelope({messageType: "REQUEST_RESPONSE",
+    senderUserId: PLAYER.id, recipientUserId: GM.id, resolutionId: pending.resolutionId,
+    requestId: pending.requestId, payload: {response: answered.response}}));
+  const record = fixture.coordinator.records.get(`event-host:${fixture.semanticEvents.gm[1].id}`);
+  assert.equal(record.state.results.reactions.length, 1);
+  assert.equal(record.state.results.reactions[0].childStatus, "completed");
+  assert.equal(fixture.reactors[0].system.resources.reaction.value, 0);
+  assert.equal(fixture.reactors[0].effects.length, 1);
+  if ( cancel ) {
+    assert.equal(fixture.stopCount(), 1);
+    assert.equal(fixture.resumeCount(), 0);
+    assert.equal(fixture.token.movement.state, "stopped");
+    assert.equal(fixture.token.x, 50);
+    assert.equal(fixture.actor.system.resources.movement.value, 25);
+    assert.equal(progressOf(fixture, root).remainingTransitionCount, 1);
+    assert.deepEqual(fixture.semanticEvents.gm.map(event => event.type),
+      ["movement.started", "movement.transition", "movement.interrupted"]);
+  } else {
+    assert.equal(fixture.resumeCount(), 1);
+    assert.equal(fixture.stopCount(), 0);
+    await finishMovementReactionRoute(fixture, root);
+  }
+});
 
 test("movement reaction decline holds at B then resumes exact suffix once", async () => {
   const fixture = movementReactionFixture();

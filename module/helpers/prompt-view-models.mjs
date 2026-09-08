@@ -74,6 +74,12 @@ export function createPromptViewModel(request, {state=null, metadata={}}={}) {
         targeting: clonePromptData(payload.targeting ?? null, "payload.targeting")
       };
     case RESOLUTION_REQUEST_TYPES.REACTION_CHOICE:
+      return {
+        ...base,
+        // Explicitly select Decline instead of the browser's implicit first candidate.
+        controls: genericControls({...payload,
+          defaultValue: payload.options?.find(option => option.value?.decision === "decline")?.value ?? null})
+      };
     case RESOLUTION_REQUEST_TYPES.CHOICE:
     default:
       return {

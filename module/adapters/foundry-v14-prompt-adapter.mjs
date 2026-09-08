@@ -1,5 +1,6 @@
 import {ACTION_CHOICE_TYPES} from "../helpers/action-configuration.mjs";
 import {RESOLUTION_REQUEST_TYPES} from "../helpers/resolution-state.mjs";
+import {reactionChoiceValueFromForm} from "./foundry-v14-reaction-choice-adapter.mjs";
 import {
   PROMPT_CONTROL_TYPES,
   clonePromptData,
@@ -208,6 +209,9 @@ function renderGenericControl(control) {
 /* -------------------------------------------- */
 
 function valueFromDialogResponse(viewModel, response) {
+  if ( viewModel.requestType === RESOLUTION_REQUEST_TYPES.REACTION_CHOICE ) {
+    return reactionChoiceValueFromForm(viewModel, response);
+  }
   if ( viewModel.requestType === RESOLUTION_REQUEST_TYPES.ACTION_CONFIGURATION ) {
     return {choices: actionConfigurationChoicesFromForm(viewModel, response)};
   }

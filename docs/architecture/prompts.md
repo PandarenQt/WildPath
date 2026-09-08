@@ -72,6 +72,21 @@ Target selection and target refinement may be rendered as a list prompt when app
 targeting legality remains in the Targeting domain. Full canvas/battlefield interaction belongs to
 the TacticalGrid/Target adapter milestone.
 
+Reaction prompts keep the canonical `reaction-choice` options, including their plain semantic
+`value`, in the view model. Decline is explicitly selected by default; candidate order and labels
+remain as offered. On submit, the Foundry adapter looks up the selected HTML option ID in the
+offered control and clones its value: `{decision: "use", candidateId}` or `{decision: "decline"}`.
+Missing, unknown, or ambiguous IDs fail at the prompt boundary and leave the request unconsumed.
+The form cannot provide its own semantic JSON or derive candidate identity from a label.
+Generic `choice` responses retain their existing shape. ReactionResolver's conservative handling
+of malformed responses remains unchanged; it never needs to understand `choices.choice`.
+
+Live QA on `69b4675` exposed the previous generic ID decoding of reaction choices, which made a
+visible candidate resolve as Decline. Adapter and integration regressions now exercise the real
+Foundry prompt decoder with both DialogV2's plain object output and FormData-like input. The
+Decline/Accept/Terminate live gate is documented in
+[`movement-reaction-qa.md`](../development/movement-reaction-qa.md).
+
 ## Correlation And Staleness
 
 Prompt responses must correlate with:

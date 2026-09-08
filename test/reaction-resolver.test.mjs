@@ -30,6 +30,8 @@ import {
 } from "../module/helpers/resolution-state.mjs";
 import {createTestDocumentPersistenceAdapter} from "../module/adapters/test-persistence-adapter.mjs";
 import {createTestPromptAdapter} from "../module/adapters/test-prompt-adapter.mjs";
+import {createFoundryV14PromptAdapter} from "../module/adapters/foundry-v14-prompt-adapter.mjs";
+import {coordinateResolutionPrompt} from "../module/resolvers/choice-coordinator.mjs";
 import {createTestResolutionTransportHub} from "../module/adapters/test-resolution-transport.mjs";
 import {resolveAttackTargets} from "../module/resolvers/attack-resolver.mjs";
 import {
@@ -294,6 +296,34 @@ test("ReactionResolver offers multiple reactors in deterministic order and advan
   assert.equal(declined.waiting, true);
   assert.deepEqual(declined.request.payload.candidates.map(candidate => candidate.reactor.actorId), ["beta"]);
   assert.equal(declined.state.metadata.reactionWindows[0].declinedCandidateIds.length, 1);
+});
+
+for ( const decision of ["use", "decline"] ) test(`Foundry prompt through ChoiceCoordinator preserves ${decision} for a non-movement reaction`, async () => {
+  const stages = [createReactionWindowStage({id: "reaction.after-outcome", event: hitEvent(),
+    discovery: {triggers: [reactionTrigger()], resourcesByActor: {defender: reactionResources()},
+      controllerUserIdsByActor: {defender: ["player-b"]}}})];
+  const waiting = runResolutionPipeline({state: parentState(), stages});
+  const request = waiting.state.pendingRequests[0];
+  const candidateId = request.payload.options[0].id;
+  const result = await coordinateResolutionPrompt({state: waiting.state, stages,
+    context: {currentUserId: "player-b"},
+    promptPorts: [createFoundryV14PromptAdapter({DialogV2: {async input() {
+      return new Map([["choice:choice", decision === "use" ? candidateId : "decline"]]);
+    }}})]});
+  assert.equal(result.ok, true, JSON.stringify(result));
+  assert.deepEqual(result.response.value, decision === "use" ? {decision, candidateId} : {decision});
+  if ( decision === "use" ) {
+    assert.equal(result.state.status, RESOLUTION_STATE_STATUS.PAUSED);
+    const child = result.state.metadata.activeChildResolution;
+    assert.ok(child, "A visible candidate selection must create a child ResolutionState.");
+    assert.equal(child.parentId, waiting.state.id);
+    assert.equal(child.relationship, "reaction");
+    assert.equal(child.actionDefinition.id, "action:reactive-guard");
+  } else {
+    assert.equal(result.state.status, RESOLUTION_STATE_STATUS.COMPLETED);
+    assert.equal(result.state.metadata.activeChildResolution, undefined);
+    assert.equal(result.state.metadata.reactionWindows[0].childResolutionIds.length, 0);
+  }
 });
 
 test("ReactionWindowStage pauses parent resolution and resumes after a decline", () => {

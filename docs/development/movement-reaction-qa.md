@@ -1,6 +1,26 @@
 # Generic movement/reaction live QA (V14.367)
 
-Status: automated tests pass; **live QA has not been performed**. Use an isolated QA world with
+## STOP CONDITIONS
+
+Stop the current case immediately if a block throws `STOP QA`, a prompt or socket error occurs,
+the Token reaches C while the reaction dialog is open, the active GM changes, or a proof fails.
+Keep the full `WP movement reaction QA` JSON, `wpMovementReactionQA.lastDump`, and console errors.
+Do not continue to the next case or manually resume a failed case. Use the cleanup blocks at the
+end after retaining diagnostics; only the initiating player stops an outstanding movement.
+
+## CONTINUE CONDITIONS
+
+Continue only when the current block completes without errors and its stated proof passes.
+While a reaction dialog is open, both pause proofs must pass before selecting a response.
+Start the next case only after both final GM and player proofs pass for the current case.
+The final live gate requires **Decline, Accept, and Terminate** to pass on this repaired build.
+
+Status: live QA on `69b4675` passed Decline but exposed incorrect prompt decoding in Accept and
+Terminate. The prompt mapping is repaired and automated regressions pass; **the repaired build
+has not passed live QA yet**. Load the repaired system, finish or stop any previous QA movement,
+and refresh both clients before starting. Do not reuse console helpers from the previous run.
+
+Use an isolated QA world with
 no other active resolutions; setup temporarily replaces the reaction service provider and cleanup
 restores it. Use a disposable player-owned
 Token on a clear square or hex route, with at least 10 ft movement maximum and one reaction.
@@ -8,9 +28,10 @@ For Large hex, use the same three-field Token configuration accepted in the move
 Select that exact Token on both clients. The generic fixture lets the moving Actor react to its
 own first completed transition; this is a software fixture, not a gameplay rule.
 
-Run the GM setup and player setup once. Then run the decline case, accept case, and termination
-case in order. Use the real reaction dialog on the player. Each console block is complete;
-no editing of an earlier snippet is needed. Nothing here patches the production resolver,
+Run the new GM setup and player setup once. Then follow each case's own complete blocks below
+in order. No prior guide or old console snippet is needed. Use the real reaction dialog on the
+player; **Decline is explicitly selected by default**. For Accept and Terminate, select
+**QA reaction Action** before clicking Submit. Nothing here patches the production resolver,
 movement pause, socket protocol, or Action commit implementation.
 
 ## 1. Active GM setup and generic TriggerDefinition fixture
@@ -40,14 +61,20 @@ movement pause, socket protocol, or Action commit implementation.
   qa.eventHook = Hooks.on("wildpath.automationEvent", event => {
     if (!event.type.startsWith("movement.") || !sameEntityRef(event.data.tokenRef, tokenRef)) return;
     qa.events.push(structuredClone(event));
-    for (const waiter of [...qa.waiters]) if (waiter.type === event.type) {
+    for (const waiter of [...qa.waiters]) if (waiter.types.includes(event.type)) {
       qa.waiters.splice(qa.waiters.indexOf(waiter), 1);
       waiter.resolve(event);
     }
   });
-  qa.waitFor = type => {
-    const event = qa.events.find(e => e.type === type);
-    return event ? Promise.resolve(event) : new Promise(resolve => qa.waiters.push({type, resolve}));
+  qa.waitFor = types => {
+    types = Array.isArray(types) ? types : [types];
+    const event = qa.events.find(e => types.includes(e.type));
+    return event ? Promise.resolve(event) : new Promise(resolve => qa.waiters.push({types, resolve}));
+  };
+  qa.require = (condition, message) => {
+    if (condition) return;
+    console.error("STOP QA:", message, qa.lastDump);
+    throw new Error(`STOP QA: ${message}; full diagnostic JSON remains in wpMovementReactionQA.lastDump.`);
   };
   for (const name of ["observeMovementProgress", "observeMovementCompletion"]) {
     const original = qa.originals[name] = authority[name];
@@ -108,6 +135,7 @@ movement pause, socket protocol, or Action commit implementation.
       progress, hosts, effectIds: qa.effectIds(), events: qa.events,
       uniqueEventIds: new Set(qa.events.map(e => e.id)).size,
       baseWorldBefore: qa.baseWorldBefore, baseWorldNow: d.baseActor?.system.resources.movement.value};
+    qa.lastDump = output;
     console.log("WP movement reaction QA", JSON.stringify(output, null, 2));
     return output;
   };
@@ -130,16 +158,35 @@ movement pause, socket protocol, or Action commit implementation.
   qa.eventHook = Hooks.on("wildpath.automationEvent", event => {
     if (event.type.startsWith("movement.") && sameEntityRef(event.data.tokenRef, tokenRef)) qa.events.push(structuredClone(event));
   });
+  qa.require = (condition, message) => {
+    if (condition) return;
+    qa.lastDump = {rootMovementId: qa.id, state: d.movement.state, source: d.toObject(true),
+      route: qa.route, events: qa.events};
+    console.error("STOP QA:", message, qa.lastDump);
+    throw new Error(`STOP QA: ${message}; diagnostics remain in wpMovementReactionQA.lastDump.`);
+  };
   console.log({playerReady: true, token: d.uuid, playerEventCount: qa.events.length});
 }
 ```
 
-## 3. Initiating player: start movement (use this complete block for each case)
+## 3. Decline
+
+Active GM: prepare this case.
 
 ```js
 {
   const qa = globalThis.wpMovementReactionQA;
-  if (!qa || game.user.isGM) throw new Error("Install the player setup first.");
+  if (!qa?.prepare || game.users.activeGM?.id !== game.user.id) throw new Error("Install the GM setup first.");
+  await qa.prepare("decline");
+}
+```
+
+Initiating player: start this case from the current Token position.
+
+```js
+{
+  const qa = globalThis.wpMovementReactionQA;
+  if (!qa?.require || game.user.isGM) throw new Error("Install the player setup first.");
   const d = qa.d;
   if (["pending", "paused"].includes(d.movement.state)) throw new Error("Finish the prior movement first.");
   const grid = canvas.grid, origin = d.toObject(true), route = [];
@@ -156,174 +203,354 @@ movement pause, socket protocol, or Action commit implementation.
   qa.id = foundry.utils.randomID();
   qa.route = route;
   qa.finished = d.move(route, {id: qa.id});
+  qa.finished.catch(error => console.error("STOP QA: movement failed", error));
   console.log({started: true, rootMovementId: qa.id, route, playerEventCount: qa.events.length});
 }
 ```
 
-No checkpoint or pause is manually installed by this block. Production preparation and the
-production moveToken handler must establish the hold. Leave the player reaction dialog open.
+Leave the reaction dialog open. No checkpoint or pause is manually installed by the start block.
 
-## 4. Active GM: prove pause after transition 0
+Active GM: prove the first transition is paid and the reaction is pending.
 
 ```js
 {
   const qa = globalThis.wpMovementReactionQA;
-  if (!qa?.dump || game.users.activeGM?.id !== game.user.id) throw new Error("Install the GM setup first.");
-  await qa.waitFor("movement.transition");
+  if (!qa?.require || game.users.activeGM?.id !== game.user.id) throw new Error("Install the GM setup first.");
+  await qa.waitFor(["movement.transition", "movement.interrupted"]);
   await Promise.all([...qa.observations]);
   const result = qa.dump();
-  console.assert(result.progress.completedTransitionCount === 1 && result.progress.remainingTransitionCount === 1);
-  console.assert(result.movement === qa.startBudget - 5 && result.reaction === 1);
-  console.assert(result.events.length === 2 && result.uniqueEventIds === 2);
-  console.assert(result.hosts[0].actionDefinition === null && result.hosts[0].pendingRequests[0].type === "reaction-choice");
+  qa.require(result.progress && Array.isArray(result.hosts), "Expected movement progress and reaction host diagnostics.");
+  qa.require(result.progress.completedTransitionCount === 1 && result.progress.remainingTransitionCount === 1,
+    "Expected exactly one completed transition and one unexecuted transition.");
+  qa.require(result.movement === qa.startBudget - 5 && result.reaction === 1, "Expected only the first transition paid.");
+  qa.require(result.events.map(e => e.type).join() === "movement.started,movement.transition" && result.uniqueEventIds === 2,
+    "Expected only started and transition 0 while the dialog is open.");
+  const first = result.hosts.find(host => host.sourceEvent?.data?.transitionIndex === 0);
+  qa.require(first && Array.isArray(first.pendingRequests), "Expected a host for transition 0 with pending requests.");
+  qa.require(first.actionDefinition === null && first.pendingRequests[0]?.type === "reaction-choice",
+    "Expected an informational event host awaiting a reaction-choice request.");
+  console.log("PASS: GM paid-prefix and pending-reaction proof.");
 }
 ```
 
-Player position proof, while the reaction dialog is still open:
+Initiating player: prove the Token is held at B.
 
 ```js
 {
   const qa = globalThis.wpMovementReactionQA;
-  if (!qa?.route || game.user.isGM) throw new Error("Start the player QA movement first.");
+  if (!qa?.require || game.user.isGM) throw new Error("Install the player setup first.");
+  qa.require(qa.route?.length === 2, "Expected the current two-transition QA route.");
   const position = qa.d.toObject(true);
-  console.assert(qa.d.movement.state === "paused");
-  console.assert(position.x === qa.route[0].x && position.y === qa.route[0].y);
-  console.assert(qa.events.length === 0);
-  console.log({pausedAtB: position, remainingDestination: qa.route[1], playerEventCount: qa.events.length});
+  qa.require(qa.d.movement.state === "paused", "Expected movement paused while the dialog is open.");
+  qa.require(position.x === qa.route[0].x && position.y === qa.route[0].y, "Expected the Token at B, before C.");
+  qa.require(qa.events.length === 0, "The initiating player must not emit authoritative movement events.");
+  console.log("PASS: player paused at B", {position, remainingDestination: qa.route[1], playerEventCount: qa.events.length});
 }
 ```
 
-## 5. Decline proof
+Leave **Decline** selected and click **Submit**. Only do this after both pause proofs pass.
 
-On the player, choose **Decline** in the existing reaction dialog and click **Submit**. Then:
+Initiating player: prove the final position and completion result.
 
 ```js
 {
   const qa = globalThis.wpMovementReactionQA;
-  if (!qa?.finished || game.user.isGM) throw new Error("Run on the initiating player after Decline.");
+  if (!qa?.require || game.user.isGM) throw new Error("Install the player setup first.");
+  qa.require(qa.finished && qa.route?.length === 2, "Expected the current QA movement and route.");
   const finished = await qa.finished;
   const position = qa.d.toObject(true);
-  console.assert(finished === true);
-  console.assert(position.x === qa.route[1].x && position.y === qa.route[1].y);
-  console.assert(qa.events.length === 0);
-  console.log({declineResumed: finished, source: position, playerEventCount: qa.events.length});
+  qa.require(finished === true && qa.d.movement.state === "completed", "Expected completed movement after the reaction choice.");
+  qa.require(position.x === qa.route[1].x && position.y === qa.route[1].y, "Expected final position at C.");
+  qa.require(qa.events.length === 0, "The initiating player must not emit authoritative movement events.");
+  console.log("PASS: Decline player proof", {finished, state: qa.d.movement.state, position, playerEventCount: qa.events.length});
 }
 ```
 
-GM final semantic history:
+Active GM: prove the semantic history, payment, and child result. This waits for either terminal event,
+so an incorrect completion in the Terminate case produces a clear failure.
 
 ```js
 {
   const qa = globalThis.wpMovementReactionQA;
-  if (!qa?.dump || game.users.activeGM?.id !== game.user.id) throw new Error("Run on the active GM.");
-  await qa.waitFor("movement.completed");
+  if (!qa?.require || game.users.activeGM?.id !== game.user.id) throw new Error("Install the GM setup first.");
+  await qa.waitFor(["movement.completed", "movement.interrupted"]);
   await Promise.all([...qa.observations]);
   const result = qa.dump();
-  console.assert(result.events.map(e => e.type).join() === "movement.started,movement.transition,movement.transition,movement.completed");
-  console.assert(result.uniqueEventIds === 4 && result.progress.completedTransitionCount === 2);
-  console.assert(result.movement === qa.startBudget - 10 && result.reaction === 1 && result.effectIds.length === 0);
-  console.assert(result.hosts.every(host => host.status === "completed" && host.childIds.length === 0));
+  qa.require(result.progress && Array.isArray(result.hosts), "Expected progress and host diagnostics.");
+  qa.require(result.events.map(e => e.type).join() === "movement.started,movement.transition,movement.transition,movement.completed", "Unexpected Decline semantic history.");
+  qa.require(result.uniqueEventIds === 4 && result.progress.completedTransitionCount === 2
+    && result.progress.remainingTransitionCount === 0 && result.progress.status === "completed",
+    "Expected one root with unique events and the correct completed prefix.");
+  qa.require(result.movement === qa.startBudget - 10, "Movement payment must match only completed transitions.");
+  qa.require(result.hosts.length > 0 && result.hosts.every(host => host.status === "completed" && host.childIds.length === 0),
+    "Decline must complete without creating a child Action.");
+  qa.require(result.reaction === 1 && result.effectIds.length === 0, "Decline must leave the reaction and effects untouched.");
+  if (!qa.d.actorLink) qa.require(result.baseWorldNow === result.baseWorldBefore,
+    "Synthetic Token Actor payment must not change the base world Actor.");
+  console.log("PASS: Decline GM proof; retain the complete JSON above.");
 }
 ```
 
-## 6. Accept case setup and normal child Action proof
+## 4. Accept
 
-GM:
+Active GM: prepare this case.
 
 ```js
 {
   const qa = globalThis.wpMovementReactionQA;
-  if (!qa?.prepare || game.users.activeGM?.id !== game.user.id) throw new Error("Run on the active GM.");
+  if (!qa?.prepare || game.users.activeGM?.id !== game.user.id) throw new Error("Install the GM setup first.");
   await qa.prepare("accept");
 }
 ```
 
-Run the complete player start block from section 3, and the pause proof blocks from section 4.
-On the player choose **QA reaction Action** and click **Submit**. The ordinary child Action
-commits one reaction resource and the marked test effect, then movement resumes. GM proof:
+Initiating player: start this case from the current Token position.
 
 ```js
 {
   const qa = globalThis.wpMovementReactionQA;
-  if (!qa?.dump || game.users.activeGM?.id !== game.user.id) throw new Error("Run on the active GM.");
-  await qa.waitFor("movement.completed");
+  if (!qa?.require || game.user.isGM) throw new Error("Install the player setup first.");
+  const d = qa.d;
+  if (["pending", "paused"].includes(d.movement.state)) throw new Error("Finish the prior movement first.");
+  const grid = canvas.grid, origin = d.toObject(true), route = [];
+  let offset = grid.getOffset(origin);
+  const center = grid.getCenterPoint(offset);
+  for (let step = 0; step < 2; step++) {
+    offset = [...grid.getAdjacentOffsets(offset)].sort((a, b) => {
+      const pa = grid.getCenterPoint(a), pb = grid.getCenterPoint(b);
+      return pb.x - pa.x || Math.abs(pa.y - center.y) - Math.abs(pb.y - center.y);
+    })[0];
+    const next = grid.getCenterPoint(offset);
+    route.push({x: Math.round(origin.x + next.x - center.x), y: Math.round(origin.y + next.y - center.y)});
+  }
+  qa.id = foundry.utils.randomID();
+  qa.route = route;
+  qa.finished = d.move(route, {id: qa.id});
+  qa.finished.catch(error => console.error("STOP QA: movement failed", error));
+  console.log({started: true, rootMovementId: qa.id, route, playerEventCount: qa.events.length});
+}
+```
+
+Leave the reaction dialog open. No checkpoint or pause is manually installed by the start block.
+
+Active GM: prove the first transition is paid and the reaction is pending.
+
+```js
+{
+  const qa = globalThis.wpMovementReactionQA;
+  if (!qa?.require || game.users.activeGM?.id !== game.user.id) throw new Error("Install the GM setup first.");
+  await qa.waitFor(["movement.transition", "movement.interrupted"]);
   await Promise.all([...qa.observations]);
   const result = qa.dump();
-  const first = result.hosts.find(host => host.sourceEvent.data.transitionIndex === 0);
-  console.assert(first.status === "completed" && first.childIds.length === 1);
-  console.assert(first.reactions[0].childStatus === "completed");
-  console.assert(result.effectIds.length === 1 && result.reaction === 0);
-  console.assert(result.movement === qa.startBudget - 10 && result.uniqueEventIds === 4);
-  console.assert(result.events.filter(e => e.type === "movement.started").length === 1);
-  console.assert(result.events.filter(e => e.type === "movement.completed").length === 1);
+  qa.require(result.progress && Array.isArray(result.hosts), "Expected movement progress and reaction host diagnostics.");
+  qa.require(result.progress.completedTransitionCount === 1 && result.progress.remainingTransitionCount === 1,
+    "Expected exactly one completed transition and one unexecuted transition.");
+  qa.require(result.movement === qa.startBudget - 5 && result.reaction === 1, "Expected only the first transition paid.");
+  qa.require(result.events.map(e => e.type).join() === "movement.started,movement.transition" && result.uniqueEventIds === 2,
+    "Expected only started and transition 0 while the dialog is open.");
+  const first = result.hosts.find(host => host.sourceEvent?.data?.transitionIndex === 0);
+  qa.require(first && Array.isArray(first.pendingRequests), "Expected a host for transition 0 with pending requests.");
+  qa.require(first.actionDefinition === null && first.pendingRequests[0]?.type === "reaction-choice",
+    "Expected an informational event host awaiting a reaction-choice request.");
+  console.log("PASS: GM paid-prefix and pending-reaction proof.");
 }
 ```
 
-Player resume and authority proof:
+Initiating player: prove the Token is held at B.
 
 ```js
 {
   const qa = globalThis.wpMovementReactionQA;
-  if (!qa?.finished || game.user.isGM) throw new Error("Run on the initiating player after accepting.");
+  if (!qa?.require || game.user.isGM) throw new Error("Install the player setup first.");
+  qa.require(qa.route?.length === 2, "Expected the current two-transition QA route.");
+  const position = qa.d.toObject(true);
+  qa.require(qa.d.movement.state === "paused", "Expected movement paused while the dialog is open.");
+  qa.require(position.x === qa.route[0].x && position.y === qa.route[0].y, "Expected the Token at B, before C.");
+  qa.require(qa.events.length === 0, "The initiating player must not emit authoritative movement events.");
+  console.log("PASS: player paused at B", {position, remainingDestination: qa.route[1], playerEventCount: qa.events.length});
+}
+```
+
+Select **QA reaction Action** and click **Submit**. Only do this after both pause proofs pass.
+
+Initiating player: prove the final position and completion result.
+
+```js
+{
+  const qa = globalThis.wpMovementReactionQA;
+  if (!qa?.require || game.user.isGM) throw new Error("Install the player setup first.");
+  qa.require(qa.finished && qa.route?.length === 2, "Expected the current QA movement and route.");
   const finished = await qa.finished;
   const position = qa.d.toObject(true);
-  console.assert(finished === true && position.x === qa.route[1].x && position.y === qa.route[1].y);
-  console.assert(qa.events.length === 0);
-  console.log({acceptedReactionResumed: finished, source: position, playerEventCount: qa.events.length});
+  qa.require(finished === true && qa.d.movement.state === "completed", "Expected completed movement after the reaction choice.");
+  qa.require(position.x === qa.route[1].x && position.y === qa.route[1].y, "Expected final position at C.");
+  qa.require(qa.events.length === 0, "The initiating player must not emit authoritative movement events.");
+  console.log("PASS: Accept player proof", {finished, state: qa.d.movement.state, position, playerEventCount: qa.events.length});
 }
 ```
 
-## 7. Termination case and paid-prefix proof
-
-GM:
+Active GM: prove the semantic history, payment, and child result. This waits for either terminal event,
+so an incorrect completion in the Terminate case produces a clear failure.
 
 ```js
 {
   const qa = globalThis.wpMovementReactionQA;
-  if (!qa?.prepare || game.users.activeGM?.id !== game.user.id) throw new Error("Run on the active GM.");
+  if (!qa?.require || game.users.activeGM?.id !== game.user.id) throw new Error("Install the GM setup first.");
+  await qa.waitFor(["movement.completed", "movement.interrupted"]);
+  await Promise.all([...qa.observations]);
+  const result = qa.dump();
+  qa.require(result.progress && Array.isArray(result.hosts), "Expected progress and host diagnostics.");
+  qa.require(result.events.map(e => e.type).join() === "movement.started,movement.transition,movement.transition,movement.completed", "Unexpected Accept semantic history.");
+  qa.require(result.uniqueEventIds === 4 && result.progress.completedTransitionCount === 2
+    && result.progress.remainingTransitionCount === 0 && result.progress.status === "completed",
+    "Expected one root with unique events and the correct completed prefix.");
+  qa.require(result.movement === qa.startBudget - 10, "Movement payment must match only completed transitions.");
+  const first = result.hosts.find(host => host.sourceEvent?.data?.transitionIndex === 0);
+  qa.require(first && Array.isArray(first.childIds) && first.childIds.length === 1,
+    "Expected exactly one child Action for the selected QA reaction Action.");
+  qa.require(Array.isArray(first.reactions) && first.reactions.length === 1,
+    "Expected one reaction result before inspecting child completion.");
+  qa.require(first.reactions[0]?.childStatus === "completed", "Expected the ordinary child Action to complete.");
+  qa.require(result.reaction === 0 && result.effectIds.length === 1, "Expected one committed reaction cost and marked effect.");
+  qa.require(first.status === "completed", "Expected the event host to complete before movement resumes.");
+  if (!qa.d.actorLink) qa.require(result.baseWorldNow === result.baseWorldBefore,
+    "Synthetic Token Actor payment must not change the base world Actor.");
+  console.log("PASS: Accept GM proof; retain the complete JSON above.");
+}
+```
+
+## 5. Terminate
+
+Active GM: prepare this case.
+
+```js
+{
+  const qa = globalThis.wpMovementReactionQA;
+  if (!qa?.prepare || game.users.activeGM?.id !== game.user.id) throw new Error("Install the GM setup first.");
   await qa.prepare("terminate");
 }
 ```
 
-Run section 3's player start block and section 4's pause proof blocks. Accept **QA reaction Action**
-on the player. This fixture configures the generic child `parentDirective: cancel-parent`;
-it does not patch child completion or move the Token back. GM proof:
+Initiating player: start this case from the current Token position.
 
 ```js
 {
   const qa = globalThis.wpMovementReactionQA;
-  if (!qa?.dump || game.users.activeGM?.id !== game.user.id) throw new Error("Run on the active GM.");
-  await qa.waitFor("movement.interrupted");
+  if (!qa?.require || game.user.isGM) throw new Error("Install the player setup first.");
+  const d = qa.d;
+  if (["pending", "paused"].includes(d.movement.state)) throw new Error("Finish the prior movement first.");
+  const grid = canvas.grid, origin = d.toObject(true), route = [];
+  let offset = grid.getOffset(origin);
+  const center = grid.getCenterPoint(offset);
+  for (let step = 0; step < 2; step++) {
+    offset = [...grid.getAdjacentOffsets(offset)].sort((a, b) => {
+      const pa = grid.getCenterPoint(a), pb = grid.getCenterPoint(b);
+      return pb.x - pa.x || Math.abs(pa.y - center.y) - Math.abs(pb.y - center.y);
+    })[0];
+    const next = grid.getCenterPoint(offset);
+    route.push({x: Math.round(origin.x + next.x - center.x), y: Math.round(origin.y + next.y - center.y)});
+  }
+  qa.id = foundry.utils.randomID();
+  qa.route = route;
+  qa.finished = d.move(route, {id: qa.id});
+  qa.finished.catch(error => console.error("STOP QA: movement failed", error));
+  console.log({started: true, rootMovementId: qa.id, route, playerEventCount: qa.events.length});
+}
+```
+
+Leave the reaction dialog open. No checkpoint or pause is manually installed by the start block.
+
+Active GM: prove the first transition is paid and the reaction is pending.
+
+```js
+{
+  const qa = globalThis.wpMovementReactionQA;
+  if (!qa?.require || game.users.activeGM?.id !== game.user.id) throw new Error("Install the GM setup first.");
+  await qa.waitFor(["movement.transition", "movement.interrupted"]);
   await Promise.all([...qa.observations]);
   const result = qa.dump();
-  console.assert(result.events.map(e => e.type).join() === "movement.started,movement.transition,movement.interrupted");
-  console.assert(result.uniqueEventIds === 3 && result.progress.remainingTransitionCount === 1);
-  console.assert(result.movement === qa.startBudget - 5 && result.reaction === 0 && result.effectIds.length === 1);
-  console.assert(result.hosts[0].reactions[0].childStatus === "completed");
-  console.assert(result.progress.status === "interrupted");
+  qa.require(result.progress && Array.isArray(result.hosts), "Expected movement progress and reaction host diagnostics.");
+  qa.require(result.progress.completedTransitionCount === 1 && result.progress.remainingTransitionCount === 1,
+    "Expected exactly one completed transition and one unexecuted transition.");
+  qa.require(result.movement === qa.startBudget - 5 && result.reaction === 1, "Expected only the first transition paid.");
+  qa.require(result.events.map(e => e.type).join() === "movement.started,movement.transition" && result.uniqueEventIds === 2,
+    "Expected only started and transition 0 while the dialog is open.");
+  const first = result.hosts.find(host => host.sourceEvent?.data?.transitionIndex === 0);
+  qa.require(first && Array.isArray(first.pendingRequests), "Expected a host for transition 0 with pending requests.");
+  qa.require(first.actionDefinition === null && first.pendingRequests[0]?.type === "reaction-choice",
+    "Expected an informational event host awaiting a reaction-choice request.");
+  console.log("PASS: GM paid-prefix and pending-reaction proof.");
 }
 ```
 
-Player terminal position and authority proof:
+Initiating player: prove the Token is held at B.
 
 ```js
 {
   const qa = globalThis.wpMovementReactionQA;
-  if (!qa?.finished || game.user.isGM) throw new Error("Run on the initiating player after accepting termination.");
-  const finished = await qa.finished;
+  if (!qa?.require || game.user.isGM) throw new Error("Install the player setup first.");
+  qa.require(qa.route?.length === 2, "Expected the current two-transition QA route.");
   const position = qa.d.toObject(true);
-  console.assert(finished === false && qa.d.movement.state === "stopped");
-  console.assert(position.x === qa.route[0].x && position.y === qa.route[0].y);
-  console.assert(qa.events.length === 0);
-  console.log({terminated: !finished, paidPrefixPosition: position, unexecutedDestination: qa.route[1], playerEventCount: qa.events.length});
+  qa.require(qa.d.movement.state === "paused", "Expected movement paused while the dialog is open.");
+  qa.require(position.x === qa.route[0].x && position.y === qa.route[0].y, "Expected the Token at B, before C.");
+  qa.require(qa.events.length === 0, "The initiating player must not emit authoritative movement events.");
+  console.log("PASS: player paused at B", {position, remainingDestination: qa.route[1], playerEventCount: qa.events.length});
 }
 ```
 
-Retain the complete GM JSON for each case and any warnings/errors. On an unlinked Token, verify
-the base world Actor value remains at `baseWorldBefore`. For Large hex, transition 0 must show
-three fields at each endpoint, two left, two entered, one retained, and cost 5.
+Select **QA reaction Action** and click **Submit**. Only do this after both pause proofs pass.
 
-## 8. Cleanup
+Initiating player: prove the final position and completion result.
+
+```js
+{
+  const qa = globalThis.wpMovementReactionQA;
+  if (!qa?.require || game.user.isGM) throw new Error("Install the player setup first.");
+  qa.require(qa.finished && qa.route?.length === 2, "Expected the current QA movement and route.");
+  const finished = await qa.finished;
+  const position = qa.d.toObject(true);
+  qa.require(finished === false && qa.d.movement.state === "stopped", "Expected terminal stop after the reaction.");
+  qa.require(position.x === qa.route[0].x && position.y === qa.route[0].y, "Expected final position at B with C unexecuted.");
+  qa.require(qa.events.length === 0, "The initiating player must not emit authoritative movement events.");
+  console.log("PASS: Terminate player proof", {finished, state: qa.d.movement.state, position, playerEventCount: qa.events.length});
+}
+```
+
+Active GM: prove the semantic history, payment, and child result. This waits for either terminal event,
+so an incorrect completion in the Terminate case produces a clear failure.
+
+```js
+{
+  const qa = globalThis.wpMovementReactionQA;
+  if (!qa?.require || game.users.activeGM?.id !== game.user.id) throw new Error("Install the GM setup first.");
+  await qa.waitFor(["movement.completed", "movement.interrupted"]);
+  await Promise.all([...qa.observations]);
+  const result = qa.dump();
+  qa.require(result.progress && Array.isArray(result.hosts), "Expected progress and host diagnostics.");
+  qa.require(result.events.map(e => e.type).join() === "movement.started,movement.transition,movement.interrupted", "Unexpected Terminate semantic history.");
+  qa.require(result.uniqueEventIds === 3 && result.progress.completedTransitionCount === 1
+    && result.progress.remainingTransitionCount === 1 && result.progress.status === "interrupted",
+    "Expected one root with unique events and the correct completed prefix.");
+  qa.require(result.movement === qa.startBudget - 5, "Movement payment must match only completed transitions.");
+  const first = result.hosts.find(host => host.sourceEvent?.data?.transitionIndex === 0);
+  qa.require(first && Array.isArray(first.childIds) && first.childIds.length === 1,
+    "Expected exactly one child Action for the selected QA reaction Action.");
+  qa.require(Array.isArray(first.reactions) && first.reactions.length === 1,
+    "Expected one reaction result before inspecting child completion.");
+  qa.require(first.reactions[0]?.childStatus === "completed", "Expected the ordinary child Action to complete.");
+  qa.require(result.reaction === 0 && result.effectIds.length === 1, "Expected one committed reaction cost and marked effect.");
+  if (!qa.d.actorLink) qa.require(result.baseWorldNow === result.baseWorldBefore,
+    "Synthetic Token Actor payment must not change the base world Actor.");
+  console.log("PASS: Terminate GM proof; retain the complete JSON above.");
+}
+```
+
+The termination fixture configures the existing child `parentDirective: cancel-parent`.
+It does not patch child completion or restore the Token to an earlier position.
+
+For Large hex, retain transition 0 showing three occupied fields at each endpoint, two left,
+two entered, one retained, and cost 5. All three cases must pass before declaring the live gate green.
+
+## 6. Cleanup
 
 If a failed case leaves a hold, the initiating player can call the supported terminal stop first:
 
