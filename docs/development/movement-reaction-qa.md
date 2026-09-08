@@ -15,10 +15,12 @@ While a reaction dialog is open, both pause proofs must pass before selecting a 
 Start the next case only after both final GM and player proofs pass for the current case.
 The final live gate requires **Decline, Accept, and Terminate** to pass on this repaired build.
 
-Status: live QA on `69b4675` passed Decline but exposed incorrect prompt decoding in Accept and
-Terminate. The prompt mapping is repaired and automated regressions pass; **the repaired build
-has not passed live QA yet**. Load the repaired system, finish or stop any previous QA movement,
-and refresh both clients before starting. Do not reuse console helpers from the previous run.
+Status: live QA on `b6e95f7` confirmed correct USE decoding, then child creation rejected the live
+Actor system DataModel. Movement correctly stopped at its paid first-transition prefix without
+spending the reaction or applying an effect. The Foundry snapshot boundary and fixture maps are
+now repaired; **this build has not passed live QA yet**. Load the repaired system, finish or stop
+any previous QA movement, and refresh both clients before starting. Do not reuse console helpers
+from the previous run.
 
 Use an isolated QA world with
 no other active resolutions; setup temporarily replaces the reaction service provider and cleanup
@@ -49,6 +51,7 @@ movement pause, socket protocol, or Action commit implementation.
   const {normalizeEntityRef, sameEntityRef} = await import("/systems/wildpath/module/helpers/entity-refs.mjs");
   const {createActionReactionChildState} = await import("/systems/wildpath/module/resolvers/action-pipeline-resolver.mjs");
   const {updateResolutionState} = await import("/systems/wildpath/module/helpers/resolution-state.mjs");
+  const {foundryActorSystemSnapshot} = await import("/systems/wildpath/module/adapters/foundry-v14-actor-system-adapter.mjs");
   const authority = game.wildpath.movement;
   const tokenRef = normalizeEntityRef({tokenId: d.id, sceneId: d.parent.id});
   const qa = globalThis.wpMovementReactionQA = {
@@ -103,18 +106,20 @@ movement pause, socket protocol, or Action commit implementation.
     costs: {allOf: [{capability: "reaction", amount: 1}]}, targeting: {type: "self", required: true},
     effects: [{id: "qa-effect", type: "condition", conditionId: "prone", metadata: {source: qa.marker}}]};
   qa.provider = ({intent} = {}) => {
-    const actorMap = {[d.actor.id]: d.actor, [d.actor.uuid]: d.actor};
-    return {targetActors: actorMap, reactions: {
+    const actorDocuments = {[d.actor.id]: d.actor, [d.actor.uuid]: d.actor};
+    const actorSystemSnapshot = foundryActorSystemSnapshot(d.actor);
+    const actorSystems = {[d.actor.id]: actorSystemSnapshot, [d.actor.uuid]: actorSystemSnapshot};
+    return {targetActors: actorDocuments, reactions: {
       triggers: [createReactionTrigger({id: qa.marker, event: "movement.transition", actorId: d.actor.id,
         tokenId: d.id, action, actionId: action.id, chooser: {kind: "specific", userId: intent?.sourceUserId},
         predicate: {all: [{equals: {path: "event.data.tokenRef", value: tokenRef}},
           {equals: {path: "event.data.transitionIndex", value: 0}}]}})],
-      actorSystemsByActor: actorMap,
+      actorSystemsByActor: actorSystems,
       resourcesByActor: () => ({[d.actor.id]: [createBuiltinEconomyResource("economy.reaction", {
         current: d.actor.system.resources.reaction.value, maximum: d.actor.system.resources.reaction.max})]}),
       createChildState(context) {
         const child = createActionReactionChildState({...context,
-          services: {reactions: {actorSystemsByActor: actorMap}}});
+          services: {reactions: {actorSystemsByActor: actorSystems}}});
         return qa.mode === "terminate" ? updateResolutionState(child,
           {results: {...child.results, parentDirective: {type: "cancel-parent"}}}) : child;
       }

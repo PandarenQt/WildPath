@@ -4,7 +4,9 @@ import {readFileSync} from "node:fs";
 import {fileURLToPath} from "node:url";
 import {ECONOMY_CAPABILITIES} from "../module/helpers/action-economy.mjs";
 import {CREATURE_SIZES} from "../module/helpers/grid-footprints.mjs";
-import {RESOLUTION_STATE_STATUS} from "../module/helpers/resolution-state.mjs";
+import {RESOLUTION_STATE_STATUS, validateResolutionStateSerializable} from "../module/helpers/resolution-state.mjs";
+import {planStagedActionResolution} from "../module/resolvers/action-pipeline-resolver.mjs";
+import {withFoundryActorSystem} from "./fixtures/foundry-actor-system.mjs";
 import {
   MULTIPLAYER_AUTHORITY_CODES,
   MULTIPLAYER_MESSAGE_TYPES,
@@ -132,6 +134,10 @@ function fakeActor(id, {system, size=CREATURE_SIZES.MEDIUM, statistics={}}={}) {
     },
     getActiveTokens(linked, document) {
       return this.tokens;
+    },
+    toObject(source) {
+      assert.equal(source, true);
+      return {system: structuredClone(this.system)};
     }
   };
   return actor;
@@ -269,6 +275,39 @@ test("production Action intent conversion builds TacticalGrid spatial context fr
   const adapter = createFoundryV14TacticalGridAdapter({scene});
   const expected = adapter.tokenToTargetFootprint(targetToken, {disposition: "unknown"}).tokenFootprint;
   assert.deepEqual(targetFootprint.footprint.fields, expected.footprint.fields);
+});
+
+test("ordinary Foundry Action planning snapshots a live Actor DataModel before ResolutionState", async () => {
+  const actor = withFoundryActorSystem(fakeActor("model-actor", {system: actorSystem()}));
+  const action = actionItem({schemaVersion: 1, id: "action:model", label: "Model action",
+    targeting: {type: "self", required: true}, costs: {allOf: [{capability: "action", amount: 1}]}});
+  const resolved = await foundryActionIntentToStagedOptions({
+    intent: {actorRef: actor.uuid, actionRef: action.uuid}, game: fakeGame({actors: [actor], items: [action]})
+  });
+  assert.equal(resolved.ok, true, JSON.stringify(resolved.reason));
+  assert.equal(resolved.options.actor, actor, "Commit keeps the live document handle.");
+  const planned = await planStagedActionResolution(resolved.options);
+  assert.equal(planned.ok, true, JSON.stringify(planned.state.errors));
+  assert.equal(planned.state.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT);
+  assert.equal(Object.getPrototypeOf(planned.state.input.actorSystem), Object.prototype);
+  assert.equal(validateResolutionStateSerializable(planned.state).ok, true);
+  assert.deepEqual(actor.sourceSnapshotCalls, [true]);
+  planned.state.input.actorSystem.resources.action.value = 0;
+  assert.equal(actor.system.resources.action.value, 1);
+});
+
+test("ordinary Foundry Action rejects invalid serialized system data at the Foundry boundary", async () => {
+  const actor = withFoundryActorSystem(fakeActor("invalid-model", {system: actorSystem()}));
+  actor.toObject = () => ({system: actor.system});
+  const action = actionItem({schemaVersion: 1, id: "action:invalid-model", label: "Model action"});
+  const resolved = await foundryActionIntentToStagedOptions({
+    intent: {actorRef: actor.uuid, actionRef: action.uuid}, game: fakeGame({actors: [actor], items: [action]})
+  });
+  assert.equal(resolved.ok, false);
+  assert.equal(resolved.code, MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED);
+  assert.match(resolved.reason, /Cannot snapshot Foundry Actor Actor.invalid-model system/);
+  assert.equal(resolved.options, undefined);
+  assert.equal(actor.system.resources.action.value, 1);
 });
 
 test("production Action intent conversion snapshots Actor combat statistics into plain staged inputs", async () => {

@@ -143,7 +143,14 @@ callbacks never enter ResolutionState or sockets. `reactions.triggers` must enum
 registered TriggerDefinitions when called without an event during preparation/approval; event
 filtering belongs in TriggerDefinition matchers and Predicate. It can be an array or a function
 returning that array. `resourcesByActor` can read current resources through a function;
-`actorSystemsByActor` supplies current reactor documents/systems. The default provider is empty.
+`actorSystemsByActor` supplies plain reactor system snapshots, or a lookup function returning a
+current plain snapshot. Foundry providers obtain these with `foundryActorSystemSnapshot(actor)`
+from `module/adapters/foundry-v14-actor-system-adapter.mts`, which serializes the actual Actor's
+source data, validates it, and detaches it. Pass `token.actor` for synthetic Actors; never replace
+it with the base world Actor. Keep live documents in `targetActors` or
+`reactions.actorDocumentsByActor`, separately from the plain system map. The staged domain does
+not serialize Foundry documents or DataModels; its plain-data validator continues to reject them.
+See [ResolutionState](resolution-state.md#foundry-actor-system-snapshots). The default provider is empty.
 No authored gameplay feature or new configuration UI is supplied by this milestone.
 
 An approved operation snapshots its trigger definitions. Predicates, resource availability, and

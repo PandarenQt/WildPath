@@ -1,6 +1,7 @@
 import {createFoundryDigitalRollProvider} from "../adapters/foundry-digital-roll-provider.mjs";
 import {createFoundryV14DocumentPersistenceAdapter} from "../adapters/foundry-v14-persistence-adapter.mjs";
 import {createFoundryV14PromptAdapter} from "../adapters/foundry-v14-prompt-adapter.mjs";
+import {foundryActorSystemSnapshot} from "../adapters/foundry-v14-actor-system-adapter.mjs";
 import {
   createFoundryV14ResolutionSocketAdapter,
   foundryUserDirectory
@@ -359,6 +360,11 @@ export async function foundryActionIntentToStagedOptions({intent={}, game=global
     reason: "Action intent actionRef could not be resolved."
   };
 
+  let actorSystem;
+  try { actorSystem = foundryActorSystemSnapshot(actor); }
+  catch (error) {
+    return {ok: false, code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED, reason: error.message};
+  }
   const combatStatistics = combatStatisticsForAction({actor, action});
   const defenseKey = combatStatistics.defenseKey;
   const targetActors = {};
@@ -409,6 +415,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, game=global
     ok: true,
     options: {
       actor,
+      actorSystem,
       action,
       source,
       targets,

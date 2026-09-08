@@ -258,7 +258,8 @@ function guardServices({defender, targetActors, action=reactiveGuardDefinition()
       triggers: [guardTrigger(action, {actorId: defender.id, userId})],
       resourcesByActor: {[defender.id]: reactionResourcesFor(defender)},
       controllerUserIdsByActor: {[defender.id]: [userId]},
-      actorSystemsByActor: {[defender.id]: defender}
+      actorDocumentsByActor: {[defender.id]: defender},
+      actorSystemsByActor: {[defender.id]: defender.system}
     }
   };
 }
@@ -276,7 +277,8 @@ function disruptServices({
       triggers: [disruptTrigger(action, {actorId: defender.id, userId})],
       resourcesByActor: {[defender.id]: reactionResourcesFor(defender)},
       controllerUserIdsByActor: {[defender.id]: [userId]},
-      actorSystemsByActor: {[defender.id]: defender},
+      actorDocumentsByActor: {[defender.id]: defender},
+      actorSystemsByActor: {[defender.id]: defender.system},
       createChildState({parentState, candidate, baseChildState}) {
         return createActionResolutionState({
           id: baseChildState.id,

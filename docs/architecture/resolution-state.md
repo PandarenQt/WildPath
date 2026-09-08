@@ -32,6 +32,34 @@ Runtime-only values such as Foundry documents, DOM nodes, Applications, closures
 functions do not belong in `ResolutionState`. Stage descriptors are runtime objects; the state
 stores only their stable ids and trace/results.
 
+### Foundry Actor system snapshots
+
+Foundry Actor documents and their `system` DataModels are runtime handles. Before current Actor
+system state enters `ResolutionState.input.actorSystem`, the Foundry boundary calls
+`foundryActorSystemSnapshot(actor)` from `module/adapters/foundry-v14-actor-system-adapter.mts`.
+It explicitly obtains `actor.toObject(true).system`, then validates and detaches that plain source
+object with the existing `clonePlainData` helper. Unknown source fields are preserved. Derived
+runtime values and DataModel prototypes are not state input; combat statistics continue through
+their existing explicit snapshot path.
+
+`foundryActionIntentToStagedOptions()` supplies both `actorSystem` (plain snapshot) and `actor`
+(runtime document for commit). For an unlinked Token, pass its actual `token.actor`; the helper
+never substitutes the base world Actor. Missing serialization or invalid source data fails at
+the Foundry boundary rather than falling back to a live DataModel.
+
+Reaction services keep separate inputs:
+
+- `targetActors` / `reactions.actorDocumentsByActor`: live document handles for runtime lookups
+  and commits.
+- `reactions.actorSystemsByActor`: plain system snapshots for child state construction. A
+  lookup function may obtain a fresh snapshot at child creation; it must return plain data.
+
+Foundry providers use the same snapshot helper when populating the system service. Pure-domain
+callers supply plain objects directly, without a Foundry adapter. A live DataModel supplied to
+the system service remains invalid and is rejected by the unchanged ResolutionState validator.
+Child planning failure still fails closed; movement keeps its completed, paid prefix and
+interrupts the remaining suffix without committing a reaction resource or effect.
+
 ## Lifecycle
 
 The current lifecycle statuses are:

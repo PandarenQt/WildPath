@@ -21,6 +21,8 @@ import {
 import {createTestResolutionTransportHub} from "../module/adapters/test-resolution-transport.mjs";
 import {createTestDocumentPersistenceAdapter} from "../module/adapters/test-persistence-adapter.mjs";
 import {createFoundryV14PromptAdapter} from "../module/adapters/foundry-v14-prompt-adapter.mjs";
+import {foundryActorSystemSnapshot} from "../module/adapters/foundry-v14-actor-system-adapter.mjs";
+import {withFoundryActorSystem} from "./fixtures/foundry-actor-system.mjs";
 import {
   FOUNDRY_GRID_TYPES,
   FOUNDRY_HEX_OFFSET_VARIANTS,
@@ -47,27 +49,32 @@ import {updateResolutionState} from "../module/helpers/resolution-state.mjs";
 import {createFoundryV14ReactionPauseAdapter} from "../module/adapters/foundry-v14-reaction-pause-adapter.mjs";
 import {prepareFoundryReactionCheckpoints} from "../module/adapters/foundry-v14-reaction-checkpoint-adapter.mjs";
 
-function movementReactionFixture({count=1, cancel=false, match=true, grid, size="medium", kind=null, largeHex=false}={}) {
-  const reactors = Array.from({length: count}, (_, i) => fakeActor(`reactor-${i}`));
+function movementReactionFixture({count=1, cancel=false, match=true, grid, size="medium", kind=null, largeHex=false,
+  foundrySystems=false, reactorActors=null, moverActor=null}={}) {
+  const reactors = reactorActors ?? Array.from({length: count}, (_, i) => fakeActor(`reactor-${i}`));
+  if ( foundrySystems ) reactors.forEach(withFoundryActorSystem);
   const action = {schemaVersion: 1, id: "action:test-event", label: "Test event action",
     costs: {allOf: [{capability: "reaction", amount: 1}]}, targeting: {type: "self", required: true},
-    effects: [{id: "test-effect", type: "condition", conditionId: "prone"}]};
+    effects: [{id: "test-effect", type: "condition", conditionId: "prone", metadata: {source: "movement-reaction-test"}}]};
   const triggers = reactors.map((actor, i) => createReactionTrigger({id: `trigger:event-${i}`,
     event: "movement.transition", actorId: actor.id, action, actionId: action.id,
     chooser: {kind: "specific", userId: PLAYER.id}, priority: 10 + i,
     predicate: {equals: {path: "event.data.transitionIndex", value: match ? 0 : 99}}}));
   const actorMap = Object.fromEntries(reactors.flatMap(actor => [[actor.id, actor], [actor.uuid, actor]]));
+  const actorSystemsByActor = foundrySystems
+    ? ({actorId}) => foundryActorSystemSnapshot(actorMap[actorId])
+    : Object.fromEntries(reactors.flatMap(actor => [[actor.id, actor.system], [actor.uuid, actor.system]]));
   const services = {targetActors: actorMap, reactions: {
-    triggers, actorSystemsByActor: actorMap,
+    triggers, actorSystemsByActor,
     resourcesByActor: () => Object.fromEntries(reactors.map(actor => [actor.id,
       [createBuiltinEconomyResource("economy.reaction", {current: actor.system.resources.reaction.value, maximum: 1})]]))
   }};
   if ( cancel ) services.reactions.createChildState = context => updateResolutionState(
-    createActionReactionChildState({...context, services: {reactions: {actorSystemsByActor: actorMap}}}),
+    createActionReactionChildState({...context, services: {reactions: {actorSystemsByActor}}}),
     {results: {parentDirective: {type: "cancel-parent"}}});
   const fixture = largeHex ? footprintTranslationFixture({reactionServices: () => services})
     : createMovementRuntimeFixture({...(grid ? {grid} : {}),
-      actor: fakeActor("mover", {size}), reactionServices: () => services});
+      actor: moverActor ?? fakeActor("mover", {size}), reactionServices: () => services});
   let resumeCount = 0;
   let stopCount = 0;
   fixture.token.pauseMovement = function(key) {
@@ -121,6 +128,23 @@ function reactionResponse(request, decision="decline", extra={}) {
       value: {decision, ...(decision === "use" ? {candidateId: pending.validation.candidateIds[0]} : {})}}}, ...extra});
 }
 
+async function useMovementReactionThroughFoundryPrompt(fixture) {
+  const pending = latestReactionRequest(fixture);
+  const candidateId = pending.payload.request.payload.options[0].id;
+  const answered = await answerPendingRequestLocally({request: pending.payload.request,
+    context: {currentUserId: PLAYER.id},
+    promptPorts: [createFoundryV14PromptAdapter({DialogV2: {async input() {
+      assert.equal(fixture.token.movement.state, "paused");
+      return {"choice:choice": candidateId};
+    }}})]});
+  assert.equal(answered.ok, true, JSON.stringify(answered));
+  assert.deepEqual(answered.response.value, {decision: "use", candidateId});
+  await fixture.playerTransport.send(createResolutionSocketEnvelope({messageType: "REQUEST_RESPONSE",
+    senderUserId: PLAYER.id, recipientUserId: GM.id, resolutionId: pending.resolutionId,
+    requestId: pending.requestId, payload: {response: answered.response}}));
+  return fixture.coordinator.records.get(pending.resolutionId);
+}
+
 async function finishMovementReactionRoute(fixture, root) {
   const continued = checkpointOperation(fixture.token, {id: "reaction-continuation", chain: [root.id],
     offsets: [{i: 2, j: 0}], passedCount: 1});
@@ -137,8 +161,8 @@ async function finishMovementReactionRoute(fixture, root) {
   assert.equal(fixture.hub.messages.every(isPlainSerializableData), true);
 }
 
-for ( const cancel of [false, true] ) test(`movement reaction through real Foundry prompt commits a child then ${cancel ? "terminates" : "resumes"}`, async () => {
-  const fixture = movementReactionFixture({cancel});
+for ( const foundrySystems of [false, true] ) for ( const cancel of [false, true] ) test(`movement reaction through real Foundry prompt commits a child then ${cancel ? "terminates" : "resumes"} with ${foundrySystems ? "DataModel snapshots" : "plain systems"}`, async () => {
+  const fixture = movementReactionFixture({cancel, foundrySystems});
   const root = await openMovementReaction(fixture);
   const pending = latestReactionRequest(fixture);
   const candidateId = pending.payload.request.payload.options[0].id;
@@ -162,6 +186,8 @@ for ( const cancel of [false, true] ) test(`movement reaction through real Found
   assert.equal(record.state.results.reactions[0].childStatus, "completed");
   assert.equal(fixture.reactors[0].system.resources.reaction.value, 0);
   assert.equal(fixture.reactors[0].effects.length, 1);
+  assert.equal(fixture.reactors[0].effects[0].flags.wildpath.conditionEffect.metadata.source, "movement-reaction-test");
+  if ( foundrySystems ) assert.deepEqual(fixture.reactors[0].sourceSnapshotCalls, [true]);
   if ( cancel ) {
     assert.equal(fixture.stopCount(), 1);
     assert.equal(fixture.resumeCount(), 0);
@@ -176,6 +202,63 @@ for ( const cancel of [false, true] ) test(`movement reaction through real Found
     assert.equal(fixture.stopCount(), 0);
     await finishMovementReactionRoute(fixture, root);
   }
+});
+
+test("synthetic mover reaction snapshots Token delta data and commits only to that Token Actor", async () => {
+  const world = fakeActor("synthetic", {movement: 45, maxMovement: 45});
+  world.system.resources.reaction.value = 0;
+  world.toObject = () => { throw new Error("The base world Actor must not supply the synthetic snapshot."); };
+  const before = structuredClone({system: world.system, effects: world.effects});
+  const synthetic = fakeActor(world.id);
+  synthetic.uuid = "Scene.scene-a.Token.token-a.Actor.synthetic";
+  synthetic.system.tokenDelta = {marker: "only-on-token"};
+  const fixture = movementReactionFixture({foundrySystems: true, reactorActors: [synthetic], moverActor: synthetic});
+  fixture.token.baseActor = world;
+  synthetic.token = fixture.token;
+  fixture.gmGame.actors.set(world.id, world);
+  fixture.playerGame.actors.set(world.id, world);
+  const sourceSystems = [];
+  const serialize = synthetic.toObject;
+  synthetic.toObject = function(source) {
+    assert.equal(this, fixture.token.actor);
+    const data = serialize.call(this, source);
+    sourceSystems.push(data.system);
+    return data;
+  };
+  const root = await openMovementReaction(fixture);
+  const record = await useMovementReactionThroughFoundryPrompt(fixture);
+  assert.equal(record.state.results.reactions[0].childStatus, "completed");
+  assert.equal(sourceSystems.length, 1);
+  assert.deepEqual(sourceSystems[0].tokenDelta, {marker: "only-on-token"});
+  assert.equal(sourceSystems[0].resources.movement.value, 25, "Snapshot follows the paid prefix.");
+  assert.equal(sourceSystems[0].resources.reaction.value, 1);
+  assert.equal(synthetic.system.resources.reaction.value, 0);
+  assert.equal(synthetic.effects.length, 1);
+  assert.equal(fixture.resumeCount(), 1);
+  await finishMovementReactionRoute(fixture, root);
+  assert.equal(fixture.persistence.operations.every(operation => operation.actorRef === synthetic.uuid), true);
+  assert.deepEqual({system: world.system, effects: world.effects}, before);
+});
+
+test("movement reaction snapshot failure preserves paid prefix without reaction or effect commit", async () => {
+  const fixture = movementReactionFixture({foundrySystems: true});
+  const root = await openMovementReaction(fixture);
+  fixture.reactors[0].toObject = () => ({system: fixture.reactors[0].system});
+  const record = await useMovementReactionThroughFoundryPrompt(fixture);
+  assert.equal(record.state.status, "failed");
+  assert.match(record.state.errors[0].reason, /Cannot snapshot Foundry Actor .* system/);
+  assert.equal(record.knownResolutionIds.size, 1, "No child was registered or committed.");
+  assert.equal(fixture.reactors[0].system.resources.reaction.value, 1);
+  assert.equal(fixture.reactors[0].effects.length, 0);
+  assert.equal(fixture.token.x, 50);
+  assert.equal(fixture.actor.system.resources.movement.value, 25);
+  assert.equal(progressOf(fixture, root).remainingTransitionCount, 1);
+  assert.equal(fixture.stopCount(), 1);
+  assert.equal(fixture.resumeCount(), 0);
+  await onFoundryV14StopToken(fixture.token, {game: fixture.gmGame});
+  assert.deepEqual(fixture.semanticEvents.gm.map(event => event.type),
+    ["movement.started", "movement.transition", "movement.interrupted"]);
+  assert.equal(fixture.persistence.operations.length, 1, "Only the completed movement prefix was paid.");
 });
 
 test("movement reaction decline holds at B then resumes exact suffix once", async () => {
