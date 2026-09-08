@@ -52,7 +52,11 @@ finished game system name is **WildPath**.
   terminal interruption and final warning-free pause/continuation QA, including normalized event
   observation, on the movement-semantics milestone. See the
   [accepted live result](docs/development/movement-pause-diagnostic-qa.md).
-  Movement-triggered reaction composition is the next milestone and remains unimplemented.
+  Generic movement-triggered reaction composition now has automated coverage through the
+  triggered-event host, existing ReactionResolver, and multiplayer Action coordinator. Initiator
+  checkpoint holds preserve completed-prefix payment and one semantic root; the GM revalidates
+  the suffix before releasing or terminating it. Live QA remains pending; see
+  [the complete console procedure](docs/development/movement-reaction-qa.md).
 - Tactical grid and area topology are implemented as pure domain foundations: gridded AoE resolves
   to authoritative `GridFootprint` field sets rather than Euclidean templates pretending to be
   tactical geometry. `module/adapters/foundry-v14-tactical-grid-adapter.mjs` now provides the first
@@ -328,10 +332,10 @@ routing, duplicate/stale rejection, and the current Foundry socket adapter. See
 2. Expand ReactionResolver timing coverage beyond action-declared and after-attack-outcome only
    where semantic events require it, then perform live Foundry reaction QA. Avoid named-feature
    reaction code.
-3. Perform live Foundry V14 interruption QA using `docs/development/movement-interruption-qa.md`.
-   Completed semantic-event QA has passed, including Large hex footprints and player-to-GM routing.
-4. After interruption QA, compose MovementEvent -> Trigger/Predicate -> ReactionResolver using the
-   implemented prefix accounting and event contracts.
+3. Preserve the live-accepted movement interruption/continuation baseline, including Large hex
+   footprints, prefix accounting, and player-to-GM authority.
+4. Run `docs/development/movement-reaction-qa.md` for the implemented generic composition. After
+   live acceptance, add the observer-relative spatial predicate as a separate milestone.
 5. Compose persistent Areas, auras, and emanations from Spatial + Movement + Events + Reactions.
 6. Add representative content and character-system slices only after those execution boundaries are
    proven in live runtime.

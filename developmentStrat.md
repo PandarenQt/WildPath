@@ -314,7 +314,12 @@ movement 20 with three unique GM events while paused, then movement 15 with five
 after resume, stable root/prefix identities, and zero player events. See the
 [accepted live result](docs/development/movement-pause-diagnostic-qa.md).
 
-Remaining Stage H work: MovementEvent -> Trigger/Predicate -> ReactionResolver composition,
+Generic MovementEvent -> Trigger/Predicate -> ReactionResolver composition is implemented with
+automated tests. Initiator checkpoints/keyed holds surround GM-owned completed-event windows;
+children use the normal multiplayer Action pipeline, then suffix revalidation authorizes resume
+or termination. This work is not live-green; run [the self-contained GM/player QA](docs/development/movement-reaction-qa.md).
+
+Remaining Stage H work: live reaction composition QA, observer-relative spatial predicates,
 opportunity-reaction rules, terrain/cost policies, Region/Area movement hooks, and
 undo/refund accounting.
 

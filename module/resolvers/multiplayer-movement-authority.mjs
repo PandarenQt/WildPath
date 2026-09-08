@@ -10,6 +10,7 @@ import {
   validateResolutionSocketEnvelope
 } from "../helpers/multiplayer-authority.mjs";
 import {fieldKey} from "../helpers/grid-footprints.mjs";
+import {movementReactionBoundary, needsMovementReactionCheckpoints} from "../helpers/movement-reaction-boundaries.mjs";
 import {normalizeEntityRef, uuidRef} from "../helpers/entity-refs.mjs";
 import {
   advanceMovementProgress, completedMovementPrefix, createMovementProgress, movementPaymentDelta, sameMovementFootprint
@@ -27,6 +28,7 @@ import {
   expectedMovementDestinationAnchor,
   expectedMovementDestinationState,
   foundryMovementCompletionToMovementPath,
+  getCompleteFoundryMovementWaypoints,
   movementKey,
   movementResolutionId,
   movementPaymentFromEvaluation,
@@ -54,7 +56,10 @@ export function createMultiplayerMovementAuthority({
   duplicateCacheLimit=200,
   logger=null,
   notify=null,
-  onAutomationEvent=null
+  onAutomationEvent=null,
+  reactionServices=() => ({}),
+  actionCoordinator=null,
+  reactionPauseAdapter=null
 }={}) {
   const localUserId = stringOrNull(userId ?? transport?.userId ?? game?.user?.id ?? game?.userId);
   const approvedMovements = new Map();
@@ -73,6 +78,9 @@ export function createMultiplayerMovementAuthority({
     committedMovements,
     notifications,
     errors,
+    prepareReactionCheckpoints: !!actionCoordinator,
+    expectReactionPause: boundary => reactionPauseAdapter?.expect(boundary),
+    pauseReactionBoundary: (token, operationId) => reactionPauseAdapter?.pause(token, operationId),
     register() {
       if ( !transport || typeof transport.register !== "function" ) return {
         ok: false,
@@ -140,6 +148,14 @@ export function createMultiplayerMovementAuthority({
         return receiveMovementCommit(data);
       case MULTIPLAYER_MESSAGE_TYPES.MOVEMENT_RESULT:
         return receiveMovementResult(data);
+      case MULTIPLAYER_MESSAGE_TYPES.MOVEMENT_CONTINUATION: {
+        if ( data.resolutionId !== movementResolutionId(data.payload?.boundary?.operationId) ) return failure(
+          "MOVEMENT_BOUNDARY_MISMATCH", "Continuation envelope and boundary operation do not match.");
+        const expected = initiatedAuthorities.get(data.resolutionId);
+        if ( !expected || expected !== data.senderUserId || expected !== activeGMId() ) return failure(
+          MULTIPLAYER_AUTHORITY_CODES.WRONG_AUTHORITY, "Movement continuation requires the current approved authority.");
+        return reactionPauseAdapter?.release(data.payload) ?? failure("MOVEMENT_BOUNDARY_MISMATCH", "No local reaction pause exists.");
+      }
       default:
         return {
           ok: false,
@@ -300,6 +316,7 @@ export function createMultiplayerMovementAuthority({
         tokenDocument,
         sourcePosition
       });
+      if ( result.ok && !result.stale ) await dispatchMovementReactions(record);
       if ( record.initiatorUserId && record.initiatorUserId !== localUserId ) {
         const sent = await sendMovementResult({
           recipientUserId: record.initiatorUserId,
@@ -341,7 +358,7 @@ export function createMultiplayerMovementAuthority({
 
     const expectedAuthorityUserId = initiatedAuthorities.get(sanitized.resolutionId);
     if ( expectedAuthorityUserId && expectedAuthorityUserId === localUserId ) {
-      return applyMovementCompletion(sanitized, {senderUserId: localUserId});
+      return retryMovementPayment(sanitized, localUserId);
     }
     if ( expectedAuthorityUserId ) {
       const envelope = createResolutionSocketEnvelope({
@@ -380,7 +397,7 @@ export function createMultiplayerMovementAuthority({
     });
     if ( !authority.ok ) return failAndNotify(authority);
     if ( authority.userId === localUserId ) {
-      return applyMovementCompletion(sanitized, {senderUserId: localUserId});
+      return retryMovementPayment(sanitized, localUserId);
     }
     const envelope = createResolutionSocketEnvelope({
       messageType: MULTIPLAYER_MESSAGE_TYPES.MOVEMENT_COMMIT,
@@ -432,7 +449,7 @@ export function createMultiplayerMovementAuthority({
       authorityUserId: authority.userId
     };
 
-    const result = await applyMovementCompletion(completion, {senderUserId: envelope.senderUserId});
+    const result = await retryMovementPayment(completion, envelope.senderUserId);
     return sendMovementResult({
       recipientUserId: envelope.senderUserId,
       result
@@ -468,6 +485,17 @@ export function createMultiplayerMovementAuthority({
   }
 
   async function authorizeAndRecord(intent, {initiatorUserId=null, localCommitAllowed=false}={}) {
+    if ( intent.metadata?.reactionPreparation === true ) {
+      const authority = verifyCurrentAuthority({initiatorUserId, localCommitAllowed}, intent);
+      if ( !authority.ok ) return {...authority, approved: false, resolutionId: intent.resolutionId};
+      const services = reactionServices({intent});
+      const triggers = typeof services.reactions?.triggers === "function"
+        ? services.reactions.triggers({intent}) : services.reactions?.triggers ?? [];
+      // Foundry has not constrained/split this route yet. This is only a preparation
+      // capability, never approval of its speculative geometry, budget, or eligibility.
+      return {approved: true, ok: true, movementId: intent.movementId, resolutionId: intent.resolutionId,
+        reactionCheckpoints: needsMovementReactionCheckpoints(triggers)};
+    }
     const chain = intent.foundry?.chain === undefined ? [] : intent.foundry.chain;
     if ( !Array.isArray(chain) || chain.some(id => typeof id !== "string" || !id) ) {
       return rejectedContinuation(intent, "Foundry movement chain must contain movement IDs.");
@@ -486,6 +514,7 @@ export function createMultiplayerMovementAuthority({
       && record.initiatorUserId === initiatorUserId
       ? clonePlainData(existing.approval) : rejectedContinuation(intent, "Movement identity was reused with different intent.");
     if ( chain.length && (!record?.progress || record.initiatorUserId !== initiatorUserId
+      || record.reactionPending
       || ["interrupted", "completed"].includes(record.progress.status)
       || JSON.stringify(chain) !== JSON.stringify(record.operations.map(operation => operation.id))
       || !intent.foundry.subpathId || intent.foundry.subpathId !== record.operations[0].subpathId
@@ -496,6 +525,7 @@ export function createMultiplayerMovementAuthority({
     const baseTransitionCount = record?.progress?.completedTransitionCount ?? 0;
     let approval;
     let progress = null;
+    let reactionTriggers = [];
     try {
       approval = await authorizeMovement({
         intent: chain.length ? {...intent, movementKind: record.approval.path.movementKind,
@@ -526,6 +556,26 @@ export function createMultiplayerMovementAuthority({
         authority: {userId: localUserId, mode: localCommitAllowed ? "local-no-active-gm" : "active-gm"},
         evaluation: approval.evaluation
       });
+      if ( approval.approved && approval.path ) {
+        const services = reactionServices({intent});
+        const triggers = typeof services.reactions?.triggers === "function"
+          ? services.reactions.triggers({intent}) : services.reactions?.triggers ?? [];
+        const checkpointed = needsMovementReactionCheckpoints(triggers);
+        reactionTriggers = clonePlainData(triggers, "movementReactionTriggers");
+        approval.reactionCheckpoints = checkpointed;
+        if ( checkpointed && approval.evaluation.transitions.length ) {
+          if ( !actionCoordinator ) throw new Error("Movement reactions require an Action coordinator.");
+          const documents = await resolveMovementCompletionDocuments({completion: intent, game});
+          const passed = foundryMovementCompletionToMovementPath({
+            completion: {...intent, waypoints: intent.foundry.passedWaypoints ?? []},
+            approval, originState: approval.foundryOriginState, tokenDocument: documents.token, scene: documents.scene
+          });
+          if ( !passed.ok || passed.path.anchors.length !== 2 ) throw new Error(
+            "Reaction-capable movement must commit exactly one approved transition per Foundry checkpoint.");
+          if ( approval.evaluation.transitions.length > 1 ) approval.reactionBoundary = movementReactionBoundary(
+            record?.progress ?? progress, intent.movementId, baseTransitionCount);
+        }
+      }
     } catch (error) {
       approval = {
         ok: true,
@@ -540,6 +590,7 @@ export function createMultiplayerMovementAuthority({
       const currentAuthority = verifyCurrentAuthority(authorityContext, intent);
       if ( !currentAuthority.ok ) return {...currentAuthority, approved: false, resolutionId: intent.resolutionId};
       const operation = {id: intent.movementId, chain, subpathId: intent.foundry?.subpathId ?? null,
+        reactionTriggers,
         baseTransitionCount, observedTransitionCount: null,
         intent: clonePlainData(intent), approval: clonePlainData(approval)};
       if ( chain.length ) record.operations.push(operation);
@@ -559,6 +610,9 @@ export function createMultiplayerMovementAuthority({
         paymentFailure: null,
         semanticEvents: [],
         eventDeliveryErrors: [],
+        handledReactionEventIds: [],
+        usedReactionTriggerIds: [],
+        reactionPending: null,
         committed: false
       });
       operationRoots.set(movementKey(intent), key);
@@ -733,6 +787,10 @@ export function createMultiplayerMovementAuthority({
     // Facts describe verified locomotion independently of payment success. Store the new
     // prefix before notifying consumers so reentrant or retried delivery cannot re-emit it.
     record.progress = reconciled.progress;
+    const boundary = operation.approval.reactionBoundary;
+    if ( boundary && count === boundary.transitionIndex + 1 && !["completed", "interrupted"].includes(status) ) {
+      record.reactionPending ??= clonePlainData(boundary);
+    }
     record.semanticEvents.push(...clonePlainData(reconciled.events, "movementEvents"));
     for ( const event of reconciled.events ) {
       try {
@@ -833,6 +891,124 @@ export function createMultiplayerMovementAuthority({
     record.commit = clonePlainData(result);
     if ( record.committed ) committedMovements.add(key, result);
     return result;
+  }
+
+  async function retryMovementPayment(completion, senderUserId) {
+    const result = await applyMovementCompletion(completion, {senderUserId});
+    if ( result.ok ) await dispatchMovementReactions(approvedMovements.get(recordKey(completion)));
+    return result;
+  }
+
+  async function dispatchMovementReactions(record) {
+    if ( !actionCoordinator || record.paymentFailure || record.paidTransitionCount !== record.progress?.completedTransitionCount ) return;
+    for ( const event of record.semanticEvents ) {
+      if ( event.type !== "movement.transition" || record.handledReactionEventIds.includes(event.id) ) continue;
+      const operation = record.operations.find(entry => entry.baseTransitionCount === event.data.transitionIndex);
+      // An uncheckpointed operation has no reaction subscription. Approval is the planning boundary.
+      if ( !operation?.approval.reactionCheckpoints ) { record.handledReactionEventIds.push(event.id); continue; }
+      record.handledReactionEventIds.push(event.id);
+      const boundary = movementReactionBoundary(record.progress, operation.id, event.data.transitionIndex);
+      const terminal = ["completed", "interrupted"].includes(record.progress.status);
+      if ( !terminal ) record.reactionPending = boundary;
+      const supplied = reactionServices({event: clonePlainData(event), intent: operation.intent});
+      const services = {...supplied, reactions: {...supplied.reactions,
+        triggers: operation.reactionTriggers,
+        usedTriggerIds: [...(supplied.reactions?.usedTriggerIds ?? []), ...record.usedReactionTriggerIds]}};
+      const hosted = await actionCoordinator.resolveTriggeredEvent({event: clonePlainData(event), services,
+        options: {persistencePort, targetActors: services.targetActors},
+        onComplete: ({state}) => closeMovementReaction(record, boundary, state)
+      });
+      if ( !hosted.ok && !hosted.state ) {
+        failAndNotify(hosted);
+        await closeMovementReaction(record, boundary, {status: "failed", metadata: {}});
+      }
+    }
+  }
+
+  async function closeMovementReaction(record, boundary, state) {
+    const result = await serializeMovement(record.key, async () => {
+      const authority = verifyCurrentAuthority(record, {movementId: record.movementId});
+      if ( !authority.ok ) return authority;
+      for ( const window of state.metadata.reactionWindows ?? [] ) {
+        for ( const candidate of window.candidates ) {
+          if ( window.resolvedCandidateIds.includes(candidate.id) && !record.usedReactionTriggerIds.includes(candidate.triggerId) ) {
+            record.usedReactionTriggerIds.push(candidate.triggerId);
+          }
+        }
+      }
+      if ( ["completed", "interrupted"].includes(record.progress.status) ) return {ok: true, ignored: true};
+      if ( record.reactionPending?.eventId !== boundary.eventId
+        || record.progress.completedTransitionCount !== boundary.transitionIndex + 1 ) return failure(
+        "MOVEMENT_BOUNDARY_MISMATCH", "Reaction completion does not match the verified movement boundary.");
+      let cancelled = state.status !== "completed";
+      let reason = cancelled ? "reaction-parent-cancelled" : null;
+      if ( !cancelled ) {
+        let validation;
+        try { validation = await revalidateRemainingMovement(record); }
+        catch (error) { validation = failure("MOVEMENT_SUFFIX_INVALID", error.message); }
+        cancelled = !validation.ok;
+        reason = validation.reason ?? "movement-suffix-invalid";
+      }
+      // Recheck after asynchronous reconstruction; an old GM cannot release locomotion.
+      const currentAuthority = verifyCurrentAuthority(record, {movementId: record.movementId});
+      if ( !currentAuthority.ok ) return currentAuthority;
+      if ( cancelled ) {
+        const stopped = advanceMovementProgress(record.progress, {
+          completedTransitionCount: record.progress.completedTransitionCount,
+          actualFootprint: record.progress.actualFootprint, status: "interrupted",
+          provenance: {source: "reaction-resolution", eventId: boundary.eventId},
+          interruption: {reason, source: "reaction-resolution", resumable: false}
+        });
+        record.progress = stopped.progress;
+        record.semanticEvents.push(...clonePlainData(stopped.events));
+        for ( const event of stopped.events ) {
+          try { onAutomationEvent?.(clonePlainData(event)); }
+          catch (error) { record.eventDeliveryErrors.push({eventId: event.id, reason: error.message}); }
+        }
+        record.committed = true;
+      }
+      record.reactionPending = null;
+      return {ok: true, payload: {boundary, directive: cancelled ? "cancel-parent" : "continue"}};
+    });
+    if ( !result.ok || result.ignored ) return result;
+    if ( record.initiatorUserId === localUserId ) return reactionPauseAdapter?.release(result.payload);
+    return sendEnvelope(createResolutionSocketEnvelope({
+      messageType: MULTIPLAYER_MESSAGE_TYPES.MOVEMENT_CONTINUATION,
+      senderUserId: localUserId, recipientUserId: record.initiatorUserId,
+      resolutionId: movementResolutionId(boundary.operationId), payload: result.payload
+    }));
+  }
+
+  async function revalidateRemainingMovement(record) {
+    const operation = record.operations.at(-1);
+    const documents = await resolveMovementCompletionDocuments({completion: operation.intent, game});
+    if ( !documents.ok ) return documents;
+    const current = currentTokenAnchor({tokenDocument: documents.token, scene: documents.scene,
+      position: documents.token.toObject(true)});
+    if ( !current.ok || !sameMovementFootprint(current.footprint, record.progress.actualFootprint)
+      || documents.actor.uuid !== record.approval.actorRef.uuid ) return failure(
+      "MOVEMENT_SUFFIX_INVALID", "The moving Token footprint or Actor association changed during the reaction.");
+    const complete = getCompleteFoundryMovementWaypoints({intent: operation.intent,
+      tokenDocument: documents.token, origin: operation.intent.origin});
+    if ( !complete.ok ) return complete;
+    const remaining = [];
+    let index = operation.baseTransitionCount;
+    for ( const point of complete.waypoints ) {
+      const position = currentTokenAnchor({tokenDocument: documents.token, scene: documents.scene, position: point});
+      if ( !position.ok ) return position;
+      if ( !anchorsMatch(position.anchor, record.progress.approvedPath.anchors[index], record.approval.path.topology) ) index++;
+      if ( index > record.progress.completedTransitionCount ) remaining.push(point);
+    }
+    const intent = {...operation.intent, origin: documents.token.toObject(true), waypoints: remaining,
+      movementKind: record.approval.path.movementKind, movementMode: record.approval.path.movementMode};
+    const approval = await authorizeMovement({intent, game, measurementMode: record.progress.measurementMode});
+    const start = record.progress.completedTransitionCount;
+    if ( !approval.approved || completedMovementPrefix(record.progress, approval.path.anchors, start) !== record.progress.approvedTransitions.length
+      || !approval.evaluation.footprints.every((footprint, i) => sameMovementFootprint(footprint, record.progress.approvedFootprints[start + i]))
+      || JSON.stringify(approval.evaluation.transitions.map(step => step.cost)) !== JSON.stringify(record.progress.approvedTransitions.slice(start).map(step => step.cost)) ) {
+      return failure("MOVEMENT_SUFFIX_INVALID", approval.reason ?? "The original movement suffix is no longer valid.");
+    }
+    return {ok: true};
   }
 
   function recordKey(value) {
@@ -1044,7 +1220,8 @@ function isMovementMessageType(type) {
     MULTIPLAYER_MESSAGE_TYPES.MOVEMENT_INTENT,
     MULTIPLAYER_MESSAGE_TYPES.MOVEMENT_APPROVAL,
     MULTIPLAYER_MESSAGE_TYPES.MOVEMENT_COMMIT,
-    MULTIPLAYER_MESSAGE_TYPES.MOVEMENT_RESULT
+    MULTIPLAYER_MESSAGE_TYPES.MOVEMENT_RESULT,
+    MULTIPLAYER_MESSAGE_TYPES.MOVEMENT_CONTINUATION
   ].includes(type);
 }
 

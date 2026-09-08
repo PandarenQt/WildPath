@@ -129,6 +129,7 @@ export function buildFoundryMovementIntent({
       split: movement?.split === true,
       constrained: movement?.constrained === true || operation?.constrained === true,
       waypointCount: waypoints.length,
+      passedWaypoints: normalizeMovementWaypoints(movement?.passed?.waypoints ?? []),
       completePathRequired: true
     },
     metadata: {
@@ -1091,7 +1092,7 @@ function normalizeCreatureSize(size) {
 
 /* -------------------------------------------- */
 
-function getCompleteFoundryMovementWaypoints({intent={}, tokenDocument=null, origin=null}={}) {
+export function getCompleteFoundryMovementWaypoints({intent={}, tokenDocument=null, origin=null}={}) {
   const token = resolveTokenDocument(tokenDocument);
   // Teleport waypoints are discontinuous endpoints. Foundry's direct-path expansion would
   // invent intermediate fields which were never traversed.
@@ -1298,6 +1299,7 @@ function mergeTokenMovementState(base=null, override=null) {
   });
 }
 
+/** @param {{movement?: object|null, operation?: object, origin?: object|null, destination?: object|null, waypoints?: readonly object[]|null}} [options] */
 export function classifyFoundryTokenOperation({
   movement=null,
   operation={},

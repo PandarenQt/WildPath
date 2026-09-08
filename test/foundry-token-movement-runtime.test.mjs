@@ -37,6 +37,432 @@ import {
 import {createMultiplayerMovementAuthority} from "../module/resolvers/multiplayer-movement-authority.mjs";
 import {onFoundryV14MoveToken, onFoundryV14PauseToken, onFoundryV14StopToken, registerFoundryV14MultiplayerResolution} from "../module/resolvers/foundry-multiplayer-runtime.mjs";
 import WildPathTokenDocument from "../module/documents/token.mjs";
+import {createReactionTrigger} from "../module/helpers/automation-events.mjs";
+import {createBuiltinEconomyResource} from "../module/helpers/action-economy.mjs";
+import {createMultiplayerActionCoordinator, answerPendingRequestLocally} from "../module/resolvers/multiplayer-action-coordinator.mjs";
+import {createPhysicalDiceProvider} from "../module/resolvers/roll-provider-resolver.mjs";
+import {createActionReactionChildState, createActionResolutionState} from "../module/resolvers/action-pipeline-resolver.mjs";
+import {updateResolutionState} from "../module/helpers/resolution-state.mjs";
+import {createFoundryV14ReactionPauseAdapter} from "../module/adapters/foundry-v14-reaction-pause-adapter.mjs";
+import {prepareFoundryReactionCheckpoints} from "../module/adapters/foundry-v14-reaction-checkpoint-adapter.mjs";
+
+function movementReactionFixture({count=1, cancel=false, match=true, grid, size="medium", kind=null, largeHex=false}={}) {
+  const reactors = Array.from({length: count}, (_, i) => fakeActor(`reactor-${i}`));
+  const action = {schemaVersion: 1, id: "action:test-event", label: "Test event action",
+    costs: {allOf: [{capability: "reaction", amount: 1}]}, targeting: {type: "self", required: true},
+    effects: [{id: "test-effect", type: "condition", conditionId: "prone"}]};
+  const triggers = reactors.map((actor, i) => createReactionTrigger({id: `trigger:event-${i}`,
+    event: "movement.transition", actorId: actor.id, action, actionId: action.id,
+    chooser: {kind: "specific", userId: PLAYER.id}, priority: 10 + i,
+    predicate: {equals: {path: "event.data.transitionIndex", value: match ? 0 : 99}}}));
+  const actorMap = Object.fromEntries(reactors.flatMap(actor => [[actor.id, actor], [actor.uuid, actor]]));
+  const services = {targetActors: actorMap, reactions: {
+    triggers, actorSystemsByActor: actorMap,
+    resourcesByActor: () => Object.fromEntries(reactors.map(actor => [actor.id,
+      [createBuiltinEconomyResource("economy.reaction", {current: actor.system.resources.reaction.value, maximum: 1})]]))
+  }};
+  if ( cancel ) services.reactions.createChildState = context => updateResolutionState(
+    createActionReactionChildState({...context, services: {reactions: {actorSystemsByActor: actorMap}}}),
+    {results: {parentDirective: {type: "cancel-parent"}}});
+  const fixture = largeHex ? footprintTranslationFixture({reactionServices: () => services})
+    : createMovementRuntimeFixture({...(grid ? {grid} : {}),
+      actor: fakeActor("mover", {size}), reactionServices: () => services});
+  let resumeCount = 0;
+  let stopCount = 0;
+  fixture.token.pauseMovement = function(key) {
+    assert.equal(this.movement.state, "pending");
+    this.movement = {...this.movement, state: "paused"};
+    this.pauseKey = key;
+    return new Promise(() => {});
+  };
+  fixture.token.resumeMovement = function(id, key) {
+    assert.equal(id, this.movement.id);
+    assert.equal(key, this.pauseKey);
+    assert.equal(this.movement.state, "paused");
+    resumeCount++;
+    this.movement = {...this.movement, state: "pending"};
+  };
+  fixture.token.stopMovement = function() { stopCount++; this.movement = {...this.movement, state: "stopped"}; };
+  return {...fixture, reactors, services, triggers, kind,
+    resumeCount: () => resumeCount, stopCount: () => stopCount};
+}
+
+async function openMovementReaction(fixture, {authorityFirst=false, expectedObservationOK=true}={}) {
+  const origin = fixture.scene.grid.getOffset(fixture.token.toObject(true));
+  const offsets = [1, 2].map(step => ({i: origin.i + step, j: origin.j}));
+  const operation = checkpointOperation(fixture.token, {passedCount: 1,
+    offsets, kind: fixture.kind});
+  await approveCheckpoint(fixture, operation);
+  fixture.token.setOffset(offsets[0]);
+  fixture.token.movement = {...operation, user: PLAYER, state: "pending"};
+  const observe = game => onFoundryV14MoveToken(fixture.token, operation, {}, PLAYER, {game});
+  if ( authorityFirst ) {
+    assert.equal((await observe(fixture.gmGame)).ok, expectedObservationOK);
+    await observe(fixture.playerGame);
+  } else {
+    const local = observe(fixture.playerGame);
+    assert.equal(fixture.token.movement.state, "paused", "initiator establishes pause synchronously");
+    await local;
+    assert.equal((await observe(fixture.gmGame)).ok, expectedObservationOK);
+  }
+  return operation;
+}
+
+function latestReactionRequest(fixture) {
+  return fixture.hub.messages.filter(message => message.messageType === "PENDING_REQUEST").at(-1);
+}
+
+function reactionResponse(request, decision="decline", extra={}) {
+  const pending = request.payload.request;
+  return createResolutionSocketEnvelope({messageType: "REQUEST_RESPONSE", senderUserId: PLAYER.id,
+    recipientUserId: GM.id, resolutionId: request.resolutionId, requestId: request.requestId,
+    payload: {response: {resolutionId: request.resolutionId, requestId: request.requestId, type: "reaction-choice",
+      value: {decision, ...(decision === "use" ? {candidateId: pending.validation.candidateIds[0]} : {})}}}, ...extra});
+}
+
+async function finishMovementReactionRoute(fixture, root) {
+  const continued = checkpointOperation(fixture.token, {id: "reaction-continuation", chain: [root.id],
+    offsets: [{i: 2, j: 0}], passedCount: 1});
+  await approveCheckpoint(fixture, continued);
+  fixture.token.setOffset({i: 2, j: 0});
+  fixture.token.movement = {...continued, user: PLAYER, state: "completed"};
+  const result = await onFoundryV14MoveToken(fixture.token, continued, {}, PLAYER, {game: fixture.gmGame});
+  assert.equal(result.ok, true, JSON.stringify(result));
+  assert.deepEqual(fixture.semanticEvents.gm.map(event => event.type),
+    ["movement.started", "movement.transition", "movement.transition", "movement.completed"]);
+  assert.equal(new Set(fixture.semanticEvents.gm.map(event => event.id)).size, 4);
+  assert.equal(fixture.actor.system.resources.movement.value, fixture.kind ? 30 : 20);
+  assert.equal(fixture.semanticEvents.player.length, 0);
+  assert.equal(fixture.hub.messages.every(isPlainSerializableData), true);
+}
+
+test("movement reaction decline holds at B then resumes exact suffix once", async () => {
+  const fixture = movementReactionFixture();
+  const root = await openMovementReaction(fixture);
+  assert.equal(fixture.token.x, 50);
+  assert.equal(fixture.actor.system.resources.movement.value, 25);
+  assert.equal(fixture.resumeCount(), 0);
+  const response = reactionResponse(latestReactionRequest(fixture));
+  await fixture.playerTransport.send(response);
+  assert.equal(fixture.resumeCount(), 1);
+  await finishMovementReactionRoute(fixture, root);
+  assert.equal(fixture.hub.messages.filter(message => message.messageType === "PENDING_REQUEST").length, 1);
+  await fixture.playerTransport.send({...response, messageId: "duplicate-decline"});
+  assert.equal(fixture.resumeCount(), 1);
+});
+
+test("movement reaction accepted child commits through the normal multiplayer Action pipeline", async () => {
+  const fixture = movementReactionFixture();
+  const root = await openMovementReaction(fixture);
+  const event = fixture.semanticEvents.gm[1];
+  const record = fixture.coordinator.records.get(`event-host:${event.id}`);
+  assert.deepEqual(record.state.sourceEvent, event);
+  assert.equal(record.state.actionDefinition, null);
+  const response = reactionResponse(latestReactionRequest(fixture), "use");
+  await fixture.playerTransport.send(response);
+  assert.equal(record.state.status, "completed", JSON.stringify(record.state.errors));
+  assert.equal(fixture.reactors[0].system.resources.reaction.value, 0, JSON.stringify(record.state.results.reactions));
+  assert.equal(fixture.reactors[0].effects.length, 1);
+  assert.equal(fixture.resumeCount(), 1);
+  const calls = fixture.persistence.operations.length;
+  await Promise.all([fixture.playerTransport.send({...response, messageId: "duplicate-use-1"}),
+    fixture.playerTransport.send({...response, messageId: "duplicate-use-2"})]);
+  assert.equal(fixture.persistence.operations.length, calls);
+  await finishMovementReactionRoute(fixture, root);
+});
+
+test("movement reaction parent cancellation preserves position and paid prefix", async () => {
+  const fixture = movementReactionFixture({cancel: true});
+  const root = await openMovementReaction(fixture);
+  await fixture.playerTransport.send(reactionResponse(latestReactionRequest(fixture), "use"));
+  assert.equal(fixture.reactors[0].system.resources.reaction.value, 0);
+  assert.equal(fixture.reactors[0].effects.length, 1);
+  assert.equal(fixture.token.x, 50);
+  assert.equal(fixture.actor.system.resources.movement.value, 25);
+  assert.equal(fixture.stopCount(), 1);
+  assert.equal(fixture.resumeCount(), 0);
+  assert.deepEqual(fixture.semanticEvents.gm.map(event => event.type),
+    ["movement.started", "movement.transition", "movement.interrupted"]);
+  assert.equal(progressOf(fixture, root).remainingTransitionCount, 1);
+  await onFoundryV14StopToken(fixture.token, {game: fixture.gmGame});
+  assert.equal(fixture.semanticEvents.gm.length, 3);
+});
+
+for ( const authorityFirst of [false, true] ) test(`false-positive reaction pause releases with authority first=${authorityFirst}`, async () => {
+  const fixture = movementReactionFixture({match: false});
+  const root = await openMovementReaction(fixture, {authorityFirst});
+  assert.equal(fixture.resumeCount(), 1);
+  assert.equal(fixture.hub.messages.some(message => message.messageType === "PENDING_REQUEST"), false);
+  await finishMovementReactionRoute(fixture, root);
+});
+
+test("movement holds through ordered decline/use candidates without reoffering declined candidate", async () => {
+  const fixture = movementReactionFixture({count: 3});
+  await openMovementReaction(fixture);
+  assert.equal(latestReactionRequest(fixture).payload.request.payload.candidates[0].triggerId, "trigger:event-0");
+  await fixture.playerTransport.send(reactionResponse(latestReactionRequest(fixture)));
+  assert.equal(fixture.resumeCount(), 0);
+  await fixture.playerTransport.send(reactionResponse(latestReactionRequest(fixture), "use"));
+  assert.equal(fixture.resumeCount(), 0);
+  assert.equal(latestReactionRequest(fixture).payload.request.payload.candidates[0].triggerId, "trigger:event-2");
+  await fixture.playerTransport.send(reactionResponse(latestReactionRequest(fixture), "use"));
+  assert.equal(fixture.resumeCount(), 1);
+  assert.deepEqual(fixture.reactors.map(actor => actor.system.resources.reaction.value), [1, 0, 0]);
+});
+
+test("movement reaction revalidation rejects changed remaining movement budget", async () => {
+  const fixture = movementReactionFixture();
+  await openMovementReaction(fixture);
+  fixture.actor.system.resources.movement.value = 0;
+  await fixture.playerTransport.send(reactionResponse(latestReactionRequest(fixture), "use"));
+  assert.equal(fixture.stopCount(), 1);
+  assert.equal(fixture.resumeCount(), 0);
+  assert.equal(fixture.semanticEvents.gm.at(-1).type, "movement.interrupted");
+});
+
+test("reaction checkpoint preparation is authoritative, side-effect-free, and optional without triggers", async () => {
+  for ( const enabled of [false, true] ) {
+    const fixture = movementReactionFixture();
+    if ( !enabled ) fixture.triggers.length = 0;
+    const operation = {movement: {[fixture.token.id]: {waypoints: [{x: 100, y: 0}]}}};
+    await prepareFoundryReactionCheckpoints(fixture.token, {}, operation, PLAYER, fixture.playerAuthority, "prepare-event-route");
+    assert.equal(fixture.gmAuthority.approvedMovements.size, 0);
+    assert.equal(fixture.persistence.operations.length, 0);
+    assert.equal(fixture.semanticEvents.gm.length, 0);
+    assert.deepEqual(operation.movement[fixture.token.id].waypoints.map(point => point.x), enabled ? [50, 100] : [100]);
+    if ( enabled ) assert.equal(operation.movement[fixture.token.id].waypoints.every(point => point.checkpoint && !point.intermediate), true);
+  }
+  const fixture = movementReactionFixture();
+  const resize = {movement: {[fixture.token.id]: {waypoints: [{x: 0, y: 0, width: 2, height: 2, action: "displace"}]}}};
+  const before = structuredClone(resize);
+  await prepareFoundryReactionCheckpoints(fixture.token, {}, resize, PLAYER, fixture.playerAuthority, "resize-preparation");
+  assert.deepEqual(resize, before);
+  assert.equal(fixture.hub.messages.length, 0);
+});
+
+test("reaction authority rejects a missing checkpoint before the route can move", async () => {
+  const fixture = movementReactionFixture();
+  const movement = checkpointOperation(fixture.token, {passedCount: 2, offsets: [{i: 1, j: 0}, {i: 2, j: 0}]});
+  const built = buildFoundryMovementIntent({tokenDocument: fixture.token, movement, user: PLAYER});
+  const result = await fixture.playerAuthority.requestMovementApproval(built.intent);
+  assert.equal(result.approved, false);
+  assert.equal(fixture.token.x, 0);
+  assert.equal(fixture.semanticEvents.gm.length, 0);
+});
+
+test("movement reactions reject wrong and stale responses and duplicate continuation identities", async () => {
+  const fixture = movementReactionFixture();
+  await openMovementReaction(fixture);
+  const response = reactionResponse(latestReactionRequest(fixture), "use");
+  const wrong = await fixture.coordinator.handleEnvelope({...response, messageId: "wrong-controller", senderUserId: OTHER_PLAYER.id});
+  assert.equal(wrong.code, "WRONG_USER");
+  const stale = await fixture.coordinator.handleEnvelope({...response, messageId: "stale-choice", requestId: "stale",
+    payload: {response: {...response.payload.response, requestId: "stale"}}});
+  assert.equal(stale.ok, false);
+  assert.equal(fixture.resumeCount(), 0);
+  assert.equal(fixture.reactors[0].effects.length, 0);
+  await Promise.all([fixture.playerTransport.send(response),
+    fixture.playerTransport.send({...response, messageId: "concurrent-duplicate"})]);
+  assert.equal(fixture.reactors[0].effects.length, 1);
+  const directive = fixture.hub.messages.find(message => message.messageType === "MOVEMENT_CONTINUATION");
+  const calls = fixture.persistence.operations.length;
+  for ( const key of ["rootMovementId", "operationId", "transitionIndex", "eventId", "windowId", "pauseKey"] ) {
+    const result = await fixture.playerAuthority.handleEnvelope({...directive, messageId: `bad-${key}`,
+      payload: {...directive.payload, boundary: {...directive.payload.boundary,
+        [key]: key === "transitionIndex" ? 99 : "wrong"}}});
+    assert.equal(result.ok, false, key);
+  }
+  assert.equal((await fixture.playerAuthority.handleEnvelope({...directive, messageId: "wrong-gm", senderUserId: OTHER_PLAYER.id})).code, "WRONG_AUTHORITY");
+  assert.equal((await fixture.playerAuthority.handleEnvelope({...directive, messageId: "duplicate-resume"})).duplicate, true);
+  assert.equal(fixture.resumeCount(), 1);
+  assert.equal(fixture.persistence.operations.length, calls);
+  assert.equal(fixture.semanticEvents.gm.length, 2);
+});
+
+test("movement reaction Large hex canonical geometry preserves all occupied fields", async () => {
+  const fixture = movementReactionFixture({largeHex: true});
+  await openMovementReaction(fixture);
+  const event = fixture.semanticEvents.gm[1];
+  assert.equal(event.data.from.footprint.fields.length, 3);
+  assert.equal(event.data.to.footprint.fields.length, 3);
+  assert.deepEqual([event.data.leftFields.length, event.data.enteredFields.length, event.data.retainedFields.length], [2, 2, 1]);
+  assert.equal(event.data.stepCost.amount, 5);
+  const record = fixture.coordinator.records.get(`event-host:${event.id}`);
+  assert.deepEqual(record.state.sourceEvent, event);
+  await fixture.playerTransport.send(reactionResponse(latestReactionRequest(fixture)));
+  assert.equal(fixture.resumeCount(), 1);
+});
+
+for ( const kind of ["forced", "teleport"] ) test(`movement reaction predicates can allow or reject ${kind}`, async () => {
+  for ( const allowed of [false, true] ) {
+    const fixture = movementReactionFixture({kind});
+    fixture.triggers[0].predicate = {all: [
+      {equals: {path: "event.data.transitionIndex", value: 0}},
+      {equals: {path: "event.data.movementKind", value: allowed ? kind : "voluntary"}}
+    ]};
+    await openMovementReaction(fixture);
+    const event = fixture.semanticEvents.gm[1];
+    assert.equal(event.data.movementKind, kind);
+    assert.equal(event.data.discontinuous, kind === "teleport");
+    assert.equal(fixture.actor.system.resources.movement.value, 30);
+    assert.equal(!!latestReactionRequest(fixture), allowed);
+    if ( allowed ) await fixture.playerTransport.send(reactionResponse(latestReactionRequest(fixture)));
+    assert.equal(fixture.resumeCount(), 1);
+  }
+});
+
+test("movement reaction accepted Action can host a nested Action-triggered reaction", async () => {
+  const fixture = movementReactionFixture({count: 2});
+  fixture.triggers[1].event = {type: "action.declared"};
+  fixture.triggers[1].predicate = {equals: {path: "event.source.actorId", value: fixture.reactors[0].id}};
+  await openMovementReaction(fixture);
+  const parentRequest = latestReactionRequest(fixture);
+  await fixture.playerTransport.send(reactionResponse(parentRequest, "use"));
+  const nestedRequest = latestReactionRequest(fixture);
+  assert.notEqual(nestedRequest.resolutionId, parentRequest.resolutionId);
+  assert.equal(nestedRequest.payload.request.type, "reaction-choice");
+  assert.equal(fixture.resumeCount(), 0);
+  assert.equal(fixture.reactors[0].system.resources.reaction.value, 1);
+  await fixture.playerTransport.send(reactionResponse(nestedRequest, "use"));
+  assert.equal(fixture.resumeCount(), 1);
+  assert.deepEqual(fixture.reactors.map(actor => actor.effects.length), [1, 1]);
+  assert.deepEqual(fixture.reactors.map(actor => actor.system.resources.reaction.value), [0, 0]);
+});
+
+test("movement reaction child roll is routed by child resolution ID while movement stays paused", async () => {
+  const fixture = movementReactionFixture();
+  fixture.services.reactions.controllerUserIdsByActor = {[fixture.reactors[0].id]: [PLAYER.id]};
+  fixture.services.reactions.createChildState = ({candidate, baseChildState}) => createActionResolutionState({
+    ...baseChildState, actorSystem: fixture.reactors[0].system,
+    action: {id: "test-roll-child", type: "action", system: {definition: {schemaVersion: 1, id: "test-roll-child",
+      label: "Test roll", costs: {allOf: [{capability: "reaction", amount: 1}]},
+      targeting: {type: "single", required: true, count: 1}, attack: {type: "reaction-check", statistic: "reaction", defenseKey: "ac"}}}},
+    source: candidate.reactor,
+    targets: [{id: fixture.reactors[0].id, actorId: fixture.reactors[0].id, defenses: {ac: {value: 10}}}],
+    attack: {modifier: 0, targetContexts: [{target: {actorId: fixture.reactors[0].id}, selected: true, defenses: {ac: {value: 10}}}]}
+  });
+  await openMovementReaction(fixture);
+  const parent = latestReactionRequest(fixture);
+  await fixture.playerTransport.send(reactionResponse(parent, "use"));
+  const roll = latestReactionRequest(fixture);
+  assert.notEqual(roll.resolutionId, parent.resolutionId);
+  assert.equal(roll.payload.request.type, "roll");
+  assert.equal(fixture.resumeCount(), 0);
+  const answered = await answerPendingRequestLocally({request: roll.payload.request,
+    rollProviders: [createPhysicalDiceProvider()], context: {physicalRolls: [{natural: 15, total: 15}]}});
+  assert.equal(answered.ok, true);
+  await fixture.playerTransport.send(createResolutionSocketEnvelope({messageType: "REQUEST_RESPONSE", senderUserId: PLAYER.id,
+    recipientUserId: GM.id, resolutionId: roll.resolutionId, requestId: roll.requestId,
+    payload: {response: answered.response}}));
+  assert.equal(fixture.reactors[0].system.resources.reaction.value, 0);
+  assert.equal(fixture.resumeCount(), 1);
+});
+
+test("movement reaction one-shot trigger stays handled across the semantic root", async () => {
+  const fixture = movementReactionFixture();
+  fixture.triggers[0].once = true;
+  fixture.triggers[0].predicate = null;
+  const root = await openMovementReaction(fixture);
+  await fixture.playerTransport.send(reactionResponse(latestReactionRequest(fixture), "use"));
+  fixture.reactors[0].system.resources.reaction.value = 1;
+  await finishMovementReactionRoute(fixture, root);
+  assert.equal(fixture.hub.messages.filter(message => message.messageType === "PENDING_REQUEST").length, 1);
+});
+
+test("movement reaction revalidation stops a displaced mover without restoring its old position", async () => {
+  const fixture = movementReactionFixture();
+  await openMovementReaction(fixture);
+  fixture.token.setOffset({i: 4, j: 0});
+  await fixture.playerTransport.send(reactionResponse(latestReactionRequest(fixture), "use"));
+  assert.equal(fixture.token.x, 200);
+  assert.equal(fixture.actor.system.resources.movement.value, 25);
+  assert.equal(fixture.resumeCount(), 0);
+  assert.equal(fixture.stopCount(), 1);
+});
+
+test("movement reaction composition preserves synthetic Token Actor payment", async () => {
+  const fixture = movementReactionFixture();
+  fixture.actor.uuid = `${fixture.token.uuid}.Actor.${fixture.actor.id}`;
+  const worldActor = fakeActor(fixture.actor.id);
+  fixture.gmGame.actors.set(worldActor.id, worldActor);
+  const root = await openMovementReaction(fixture);
+  await fixture.playerTransport.send(reactionResponse(latestReactionRequest(fixture)));
+  await finishMovementReactionRoute(fixture, root);
+  assert.equal(worldActor.system.resources.movement.value, 30);
+  assert.equal(fixture.actor.system.resources.movement.value, 20);
+});
+
+test("movement reaction pause cannot be released by an old GM after authority handoff", async () => {
+  const fixture = movementReactionFixture();
+  await openMovementReaction(fixture);
+  fixture.gmGame.users.activeGM = {id: "new-gm", active: true, isGM: true};
+  await fixture.playerTransport.send(reactionResponse(latestReactionRequest(fixture)));
+  assert.equal(fixture.resumeCount(), 0);
+  assert.equal(fixture.token.movement.state, "paused");
+  assert.equal(fixture.hub.messages.some(message => message.messageType === "MOVEMENT_CONTINUATION"), false);
+});
+
+test("movement reaction preparation runs before the inherited Foundry preUpdate path split", async () => {
+  const fixture = movementReactionFixture();
+  fixture.playerAuthority.prepareReactionCheckpoints = true;
+  const base = Object.getPrototypeOf(WildPathTokenDocument.prototype);
+  const previous = base._preUpdate;
+  let reached = false;
+  base._preUpdate = async function(changed, operation) {
+    reached = true;
+    assert.deepEqual(operation.movement[this.id].waypoints.map(point => point.x), [50, 100]);
+    assert.equal(operation.movement[this.id].waypoints.every(point => point.checkpoint), true);
+    return true;
+  };
+  try {
+    const operation = {movement: {[fixture.token.id]: {id: "early-hook", waypoints: [{x: 100, y: 0}]}}};
+    await withFoundryGlobals(fixture, () => fixture.token._preUpdate({}, operation, PLAYER));
+    assert.equal(reached, true);
+    assert.equal(fixture.gmAuthority.approvedMovements.size, 0);
+  } finally {
+    if ( previous === undefined ) delete base._preUpdate;
+    else base._preUpdate = previous;
+  }
+});
+
+test("movement reaction waits for failed prefix payment and opens once after verified-debt retry", async () => {
+  const fixture = movementReactionFixture();
+  const original = fixture.persistence.updateActor;
+  let fail = true;
+  fixture.persistence.updateActor = async args => {
+    if ( fail ) { fail = false; throw new Error("Test movement payment failure"); }
+    return original(args);
+  };
+  const root = await openMovementReaction(fixture, {expectedObservationOK: false});
+  assert.equal(fixture.actor.system.resources.movement.value, 30);
+  assert.equal(fixture.semanticEvents.gm.length, 2);
+  assert.equal(fixture.resumeCount(), 0);
+  assert.equal(latestReactionRequest(fixture), undefined);
+  const {completion} = buildFoundryMovementCompletion({tokenDocument: fixture.token, movement: root,
+    user: PLAYER, game: fixture.playerGame});
+  await fixture.playerAuthority.commitMovementCompletion(completion);
+  assert.equal(fixture.actor.system.resources.movement.value, 25);
+  assert.equal(fixture.semanticEvents.gm.length, 2);
+  assert.equal(latestReactionRequest(fixture).payload.request.type, "reaction-choice");
+  await fixture.playerTransport.send(reactionResponse(latestReactionRequest(fixture)));
+  await finishMovementReactionRoute(fixture, root);
+});
+
+test("movement with an empty reaction provider retains the uninterrupted no-trigger path", async () => {
+  const fixture = movementReactionFixture({count: 0});
+  const operation = checkpointOperation(fixture.token, {passedCount: 2, offsets: [{i: 1, j: 0}, {i: 2, j: 0}]});
+  await approveCheckpoint(fixture, operation);
+  fixture.token.setOffset({i: 2, j: 0});
+  fixture.token.movement = {...operation, state: "completed", user: PLAYER};
+  await onFoundryV14MoveToken(fixture.token, operation, {}, PLAYER, {game: fixture.playerGame});
+  assert.equal((await onFoundryV14MoveToken(fixture.token, operation, {}, PLAYER, {game: fixture.gmGame})).ok, true);
+  assert.equal(fixture.resumeCount(), 0);
+  assert.equal(fixture.coordinator.records.size, 0);
+  assert.equal(fixture.actor.system.resources.movement.value, 20);
+  assert.deepEqual(fixture.semanticEvents.gm.map(event => event.type),
+    ["movement.started", "movement.transition", "movement.transition", "movement.completed"]);
+  assert.equal(fixture.semanticEvents.player.length, 0);
+});
 
 /* -------------------------------------------- */
 /*  Fixtures                                    */
@@ -337,7 +763,8 @@ function createMovementRuntimeFixture({
   tokenOptions={},
   measurementMode=MOVEMENT_MEASUREMENT_MODES.DISTANCE,
   persistenceOptions={},
-  onAutomationEvent=null
+  onAutomationEvent=null,
+  reactionServices=null
 }={}) {
   const scene = fakeScene(grid);
   const token = fakeTokenDocument({actor, scene, ...tokenOptions});
@@ -362,11 +789,16 @@ function createMovementRuntimeFixture({
     approvalTimeoutMs: 50
   };
   const semanticEvents = {player: [], gm: []};
+  const pauseAdapter = createFoundryV14ReactionPauseAdapter();
+  const coordinator = reactionServices ? createMultiplayerActionCoordinator({userId: GM.id,
+    users: () => hub.userDirectory(), activeGMUserId: GM.id, transport: gmTransport}) : null;
+  coordinator?.register();
   const playerAuthority = createMultiplayerMovementAuthority({
     ...authorityOptions,
     userId: PLAYER.id,
     transport: playerTransport,
     game: playerGame,
+    reactionPauseAdapter: pauseAdapter,
     onAutomationEvent: event => semanticEvents.player.push(event)
   });
   const gmAuthority = createMultiplayerMovementAuthority({
@@ -374,6 +806,7 @@ function createMovementRuntimeFixture({
     userId: GM.id,
     transport: gmTransport,
     game: gmGame,
+    ...(reactionServices ? {reactionServices, actionCoordinator: coordinator} : {}),
     onAutomationEvent: event => {
       semanticEvents.gm.push(structuredClone(event));
       onAutomationEvent?.(event);
@@ -395,7 +828,10 @@ function createMovementRuntimeFixture({
     gmAuthority,
     persistence,
     semanticEvents,
-    warnings: []
+    warnings: [],
+    coordinator,
+    playerTransport,
+    pauseAdapter
   };
 }
 
@@ -636,11 +1072,12 @@ async function fireMoveTokenHook(fixture, {
   return withFoundryGlobals(fixture, () => onFoundryV14MoveToken(token, movement, operation, user, {game}), {game});
 }
 
-function footprintTranslationFixture({topology=GRID_TOPOLOGIES.HEX, size=CREATURE_SIZES.LARGE, row=2}={}) {
+function footprintTranslationFixture({topology=GRID_TOPOLOGIES.HEX, size=CREATURE_SIZES.LARGE, row=2, reactionServices=null}={}) {
   const hex = topology === GRID_TOPOLOGIES.HEX;
   const grid = hex ? new FakeOddRowHexGrid() : new FakeSquareGrid();
   const fixture = createMovementRuntimeFixture({
     grid,
+    reactionServices,
     actor: fakeActor("footprint-actor", {size}),
     tokenOptions: {
       offset: hex ? grid.cubeToOffset({q: 2, r: row}) : {i: 2, j: row},

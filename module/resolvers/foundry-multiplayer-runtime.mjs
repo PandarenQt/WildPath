@@ -23,6 +23,7 @@ import {
 } from "../helpers/combat-statistics.mjs";
 import {createMultiplayerActionCoordinator} from "./multiplayer-action-coordinator.mjs";
 import {createMultiplayerMovementAuthority} from "./multiplayer-movement-authority.mjs";
+import {createFoundryV14ReactionPauseAdapter} from "../adapters/foundry-v14-reaction-pause-adapter.mjs";
 
 export function registerFoundryV14MultiplayerResolution({
   game=globalThis.game,
@@ -80,6 +81,10 @@ export function registerFoundryV14MultiplayerResolution({
     }),
     notify: event => notifyMultiplayerMovementFailure(event, {logger}),
     logger,
+    actionCoordinator: coordinator,
+    reactionPauseAdapter: createFoundryV14ReactionPauseAdapter(),
+    reactionServices: context => typeof game.wildpath?.reactionServices === "function"
+      ? game.wildpath.reactionServices(context) : {},
     onAutomationEvent: event => globalThis.Hooks.callAll("wildpath.automationEvent", event)
   });
   const movementRegistration = movement.register();
@@ -132,6 +137,10 @@ export function onFoundryV14MoveToken(document, movement, operation={}, user=nul
   game=globalThis.game,
   logger=globalThis.console
 }={}) {
+  // Hooks are synchronous. Establish the initiator's hold before any observation awaits.
+  if ( (user?.id ?? movement?.user?.id) === (game?.user?.id ?? game?.userId) ) {
+    movementRuntime(game)?.pauseReactionBoundary?.(document, movement.id);
+  }
   return observeFoundryV14MoveToken(document, movement, operation, user, {game, logger})
     .catch(error => {
       const result = {

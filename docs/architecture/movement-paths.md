@@ -494,5 +494,66 @@ subpath remained stable across two operations, the first three event IDs were re
 authored no events, neither client warned, and the unlinked Token's base world Actor stayed unchanged.
 The [accepted live result](../development/movement-pause-diagnostic-qa.md) closes the movement-semantics
 live-QA gate. The next milestone is MovementEvent -> Trigger/Predicate -> ReactionResolver composition;
-this handoff records acceptance and prepares its branch without implementing reactions.
+that baseline handoff recorded acceptance before the reaction composition described below.
 Follow [the exact checkpoint console procedure](../development/movement-interruption-qa.md).
+
+## Generic movement/reaction synchronization
+
+Implemented with automated coverage; **not yet live-verified**. See
+[the complete reaction QA procedure](../development/movement-reaction-qa.md).
+
+The synchronization seam was checked against the official V14 documentation and installed
+V14.367 `client/documents/token.mjs` (release build confirmed in the installed package.json):
+
+1. WildPath's protected `_preUpdate` override runs before Foundry's private path construction.
+   It asks the selected authority whether registered TriggerDefinitions can subscribe to
+   informational `movement.transition`. This preparation reply authorizes only checkpoint
+   preparation, never movement, eligibility, or payment. With no such subscriptions, the raw
+   route is untouched. Otherwise the adapter uses public `getCompleteMovementPath` and public
+   waypoint `checkpoint` flags. Teleport endpoints stay discontinuous.
+2. Foundry constructs, constrains, and splits the route, then freezes its geometry before
+   `_preUpdateMovement`. The existing approval gate evaluates that final MovementPath and full
+   footprints. A reaction-capable operation must pass exactly one tactical transition. Missing
+   checkpoints fail before movement. Its approval includes a plain `MovementReactionBoundary`
+   for a nonfinal transition: root ID, operation ID, transition index, canonical event ID,
+   window ID, and deterministic pause key. Trigger definitions are snapshotted per approval.
+3. Foundry commits the passed segment. On the initiating client, the `moveToken` handler calls
+   `pauseMovement(key)` synchronously, before any await. Installed V14.367 dispatches this hook
+   before its continuation workflow tests `movement.state === "pending"`. The keyed pause
+   changes that state to paused. Transition N+1 therefore cannot auto-continue while authority
+   verification, sockets, prompts, or child Actions are pending. No animation duration, timer,
+   public-hook return value, or GM-side pause is used for synchronization.
+4. The GM's independent lifecycle snapshot proves the canonical transition and commits only the
+   unpaid prefix delta. The authority marks the boundary pending within its serial queue and
+   sends the exact stored AutomationEvent to the generic event host after successful payment.
+   The host uses ReactionResolver and the multiplayer Action coordinator. Even an empty window
+   passes through an explicit continuation decision. Payment retry can open the held window.
+5. When the entire window closes, the authority reconstructs the current Token source footprint,
+   Actor association, and original remaining route. It reuses `authorizeFoundryMovementIntent`
+   and the continuation suffix checks: same ordered anchors, full footprints, costs, movement
+   kind/mode, and current affordability. CONTINUE and REEVALUATE both pass this revalidation;
+   CANCEL_PARENT or an invalid suffix terminates the remaining route. A displaced Token is not
+   moved back. Existing completed-prefix costs and events remain intact.
+6. The GM sends `MOVEMENT_CONTINUATION` to the initiator. Its adapter checks the current approved
+   authority and all boundary identities, then calls `resumeMovement(operationId, pauseKey)`
+   or `stopMovement()`. An early directive waits in plain local bookkeeping until the actual
+   keyed pause exists. Duplicate messages cannot call the keyed primitive twice. Old operation
+   or window identities cannot release a different hold; terminal movement cannot resume.
+
+Foundry continuation creates another operation ID, while WildPath keeps the original semantic
+root, prefix indices, and started/completed/interrupted identity. No continuation bypasses the
+existing `_preUpdateMovement` authority gate. The completed transition cannot be retroactively
+cancelled or refunded. Final-transition reactions have no remaining movement to pause.
+
+The preparation capability deliberately over-approximates eligibility using trigger event type
+and phase; it does not speculate about dynamic predicates or resource availability. All potential
+subscribed boundaries are checkpoints, and false positives release without extra semantic events.
+The provider must enumerate registrations independently of the event; registrations changed
+during an operation take effect at its next approval, not retroactively. Full-footprint geometry
+remains mechanically authoritative. No named reaction, reach predicate, terrain, or Region policy
+is part of this milestone.
+
+Public references: [TokenDocument lifecycle and movement methods](https://foundryvtt.com/api/v14/classes/foundry.documents.TokenDocument.html),
+[checkpoint waypoint contract](https://foundryvtt.com/api/v14/interfaces/foundry.documents.types.TokenMovementWaypoint.html),
+and [post-update moveToken hook](https://foundryvtt.com/api/v14/functions/hookEvents.moveToken.html).
+The installed source was inspected only; no Foundry private method is called by this integration.

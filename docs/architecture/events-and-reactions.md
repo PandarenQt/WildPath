@@ -91,8 +91,9 @@ provenance. Linked completion retains those identifiers with completion timing. 
 step emits an interrupted event with zero completed transitions, never an invented teleport jump.
 
 These informational events support future generic trigger predicates such as cumulative travel or
-occupancy changes. They do not interrupt a step themselves. Movement-triggered reaction windows,
-observer-relative reach predicates, and Area/Region consumers remain deferred.
+occupancy changes. They do not interrupt a step themselves. Movement-triggered reaction windows
+now use the explicit host described below. Observer-relative reach predicates and Area/Region
+consumers remain deferred.
 
 ### Foundry Observer Extension Point
 
@@ -120,6 +121,45 @@ Records and duplicate guards are session-local; this is not a durable exactly-on
 reloads or authority handoff. See [multiplayer authority](multiplayer-authority.md#movement-authority).
 
 ## Reaction Windows
+
+### Generic completed-event host
+
+`module/resolvers/triggered-event-host.mts` composes a canonical AutomationEvent with an ordinary
+ResolutionState and `createReactionWindowStage`. The host has no ActionDefinition, targeting,
+resource payment, or transaction stage. `coordinator.resolveTriggeredEvent()` is an authority-local
+application port, not a socket intent. It reuses chooser routing, response validation, child
+traversal, RollProvider requests, and Action transaction commit. Children use the exported
+`createActionReactionChildState` factory; nested Action reactions retain the existing Action
+pipeline. Future turn, rest, or area events can use the same host without movement semantics.
+
+The host re-enters the same ReactionResolver window after each child. ReactionResolver retains
+handled candidates and consumed request IDs and applies its existing ordering. Movement stays
+held until the entire window closes or a parent-cancel directive terminates it. Event IDs prevent
+rehosting; accepted trigger IDs retain one-shot behavior across the same movement root.
+
+The Foundry application extension point is `game.wildpath.reactionServices(context)`, returning
+the existing `{reactions, targetActors}` services shape. It is runtime-only: document maps and
+callbacks never enter ResolutionState or sockets. `reactions.triggers` must enumerate the full
+registered TriggerDefinitions when called without an event during preparation/approval; event
+filtering belongs in TriggerDefinition matchers and Predicate. It can be an array or a function
+returning that array. `resourcesByActor` can read current resources through a function;
+`actorSystemsByActor` supplies current reactor documents/systems. The default provider is empty.
+No authored gameplay feature or new configuration UI is supplied by this milestone.
+
+An approved operation snapshots its trigger definitions. Predicates, resource availability, and
+child state are evaluated against the canonical verified event. Registration changes are adopted
+at the next operation approval; they cannot retroactively subscribe to transitions in flight.
+Planning does not run predicates or spend resources. Forced/teleport policy uses normal tags and
+structured data predicates.
+
+Reaction timing is **after verified A -> B, before B -> C**. The GM calls the host after successful
+prefix payment. Failed payment keeps the hold; a successful verified-debt retry opens the event
+once. The public `wildpath.automationEvent` hook stays synchronous and informational, with copy
+delivery and observer-failure isolation. Listeners neither own the hold nor supply reaction
+results. Final-transition windows have no suffix to hold or resume and retain completion semantics.
+
+This composition has automated coverage. Live V14 QA is still required:
+[complete GM/player procedure](../development/movement-reaction-qa.md).
 
 Reaction triggers are normal triggers with a reaction payload and a payment requirement. The helper
 uses the existing action-economy primitives to determine whether a reaction resource can pay the

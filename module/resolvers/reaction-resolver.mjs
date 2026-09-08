@@ -63,6 +63,7 @@ export const REACTION_RESOLVER_CODES = Object.freeze({
 
 /* -------------------------------------------- */
 
+/** @param {import("./triggered-event-host.mjs").ReactionStageOptions} [options] */
 export function createReactionWindowStage({
   id,
   timing=REACTION_WINDOW_TIMINGS.AFTER_OUTCOME,
@@ -89,6 +90,8 @@ export function createReactionWindowStage({
       });
 
       if ( accepted ) {
+        state = updateResolutionState(state, {metadata: {...state.metadata,
+          handledReactionRequestIds: [...(state.metadata.handledReactionRequestIds ?? []), accepted.request.id]}});
         const stageChildStateFactory = typeof createChildState === "function"
           ? (context) => createChildState({...context, services, event: selectedEvent, timing})
           : null;
@@ -136,6 +139,7 @@ export function createReactionWindowStage({
 
       const planned = planReactionWindow({
         parentState: state,
+        windowId: reactionWindowId({parent: state, timing, event: selectedEvent}),
         event: selectedEvent,
         timing,
         stageId: id,
@@ -937,6 +941,7 @@ function latestReactionChoiceResponse(state, {stageId=null, windowId=null}={}) {
   const current = createResolutionState(state);
   return Object.values(current.requestResponses ?? {}).reverse().find(entry => {
     const request = entry?.request ?? {};
+    if ( current.metadata.handledReactionRequestIds?.includes(request.id) ) return false;
     if ( request.type !== RESOLUTION_REQUEST_TYPES.REACTION_CHOICE ) return false;
     if ( stageId != null && request.stageId !== stageId ) return false;
     const requestWindowId = request.validation?.reactionWindowId

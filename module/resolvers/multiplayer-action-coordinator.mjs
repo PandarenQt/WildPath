@@ -29,6 +29,7 @@ import {
   resumeStagedActionResolution
 } from "./action-pipeline-resolver.mjs";
 import {createChoiceCoordinator} from "./choice-coordinator.mjs";
+import {createTriggeredEventHost} from "./triggered-event-host.mjs";
 import {executeRollRequest} from "./roll-provider-resolver.mjs";
 
 export function createMultiplayerActionCoordinator({
@@ -67,6 +68,22 @@ export function createMultiplayerActionCoordinator({
     completedResults,
     notifications,
     errors,
+    async resolveTriggeredEvent({event, services={}, options={}, onComplete=null}={}) {
+      // This is an authority-local application port, never an accepted socket intent.
+      if ( activeGMId() !== localUserId ) return failure(MULTIPLAYER_AUTHORITY_CODES.WRONG_AUTHORITY,
+        "Only the active GM may host an authoritative automation event.");
+      const host = createTriggeredEventHost({event, services});
+      const existing = records.get(host.state.id);
+      if ( existing ) return {ok: true, duplicate: true, state: existing.state};
+      const record = {
+        resolutionId: host.state.id, initiatorUserId: localUserId, authorityUserId: localUserId,
+        state: host.state, options, services, host, onComplete, requestContext: {}, localCommitAllowed: false,
+        requestExpectations: new Map(), processedRequestIds: new Set(), routedRequestIds: new Set(),
+        knownResolutionIds: new Set([host.state.id]), resultSent: false
+      };
+      records.set(record.resolutionId, record);
+      return advanceRecord(record);
+    },
     register() {
       if ( !transport || typeof transport.register !== "function" ) return {
         ok: false,
@@ -315,7 +332,7 @@ export function createMultiplayerActionCoordinator({
       }
 
       if ( execution.state?.status === RESOLUTION_STATE_STATUS.CREATED || execution.state?.status === RESOLUTION_STATE_STATUS.RUNNING ) {
-        const planned = await planResolution({
+        const planned = await (record.host && !execution.nested ? record.host.plan : planResolution)({
           ...optionsForResolutionState(record, execution.state),
           state: execution.state,
           services: record.services
@@ -520,7 +537,9 @@ export function createMultiplayerActionCoordinator({
       return validation;
     }
 
-    const resumed = await resumeResolution({
+    // Claim before yielding: concurrent duplicate envelopes cannot create two children.
+    record.processedRequestIds.add(requestKey({id: response.requestId, resolutionId: execution.state.id}, execution.state));
+    const resumed = await (record.host && !execution.nested ? record.host.resume : resumeResolution)({
       state: execution.state,
       response,
       services: record.services
@@ -682,6 +701,7 @@ export function createMultiplayerActionCoordinator({
       initiatorUserId: record.initiatorUserId
     });
     completedResults.set(record.resolutionId, sanitized);
+    if ( record.onComplete ) await record.onComplete({state: record.state, result: sanitized});
     const envelope = createResolutionSocketEnvelope({
       messageType: MULTIPLAYER_MESSAGE_TYPES.RESOLUTION_RESULT,
       senderUserId: localUserId,
@@ -821,7 +841,7 @@ export function createMultiplayerActionCoordinator({
   function completeActiveChildResolution(record, execution) {
     const childState = execution.state;
     const parentState = execution.parent;
-    const completed = completeChildResolution({
+    const completed = (record.host && execution.parentPath.length === 1 ? record.host.completeChild : completeChildResolution)({
       parentState,
       childState,
       services: record.services,

@@ -68,6 +68,8 @@ let nextRequestSequence = 1;
 
 /* -------------------------------------------- */
 
+/** @param {Partial<import("../types/contracts.js").ResolutionState>} [options]
+ * @returns {import("../types/contracts.js").ResolutionState} */
 export function createResolutionState({
   schemaVersion=RESOLUTION_STATE_SCHEMA_VERSION,
   id=null,
@@ -155,6 +157,8 @@ export function createResolutionState({
 
 /* -------------------------------------------- */
 
+/** @param {import("../types/contracts.js").ResolutionState} state
+ * @param {Partial<import("../types/contracts.js").ResolutionState>} [patch] */
 export function updateResolutionState(state, patch={}) {
   return createResolutionState({
     ...createResolutionState(state),
@@ -353,6 +357,7 @@ export function createResolutionRequest({
 
 /* -------------------------------------------- */
 
+/** @param {{state?: import("../types/contracts.js").ResolutionState, stages?: readonly import("../types/contracts.js").ResolutionPipelineStage[], services?: object}} [options] */
 export function runResolutionPipeline({
   state,
   stages=[],
@@ -440,6 +445,7 @@ export function runResolutionPipeline({
 
 /* -------------------------------------------- */
 
+/** @param {{state?: import("../types/contracts.js").ResolutionState, response?: unknown, stages?: readonly import("../types/contracts.js").ResolutionPipelineStage[], services?: object}} [options] */
 export function resumeResolutionPipeline({
   state,
   response,

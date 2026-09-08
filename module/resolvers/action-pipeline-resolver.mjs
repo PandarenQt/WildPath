@@ -1921,7 +1921,7 @@ function attackOutcomeReactionEvent(state) {
   });
 }
 
-function createActionReactionChildState({parentState, candidate, baseChildState, services={}}) {
+export function createActionReactionChildState({parentState, candidate, baseChildState, services={}}) {
   const reactionOptions = reactionOptionsForState(parentState, services);
   const custom = reactionOptions.createChildState;
   if ( typeof custom === "function" ) return custom({parentState, candidate, baseChildState});

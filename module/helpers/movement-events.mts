@@ -290,10 +290,15 @@ function endpoint(footprint: TokenGridFootprint | undefined) {
   return {anchor: footprint.anchor, footprint};
 }
 
-function movementEvent(progress: MovementProgress, type: string, suffix: string, data: Record<string, unknown>, observation: MovementObservation): AutomationEvent {
+/** Shared identity for canonical facts and their pre-approved application boundaries. */
+export function movementEventId(progress: Pick<MovementProgress, "source" | "movementId">, suffix: string): string {
   const identity = [progress.source.sceneRef, progress.source.tokenRef, progress.movementId].map(encodeURIComponent).join(":");
+  return `movement:${identity}:${suffix}`;
+}
+
+function movementEvent(progress: MovementProgress, type: string, suffix: string, data: Record<string, unknown>, observation: MovementObservation): AutomationEvent {
   return createAutomationEvent({
-    id: `movement:${identity}:${suffix}`,
+    id: movementEventId(progress, suffix),
     type,
     phase: AUTOMATION_EVENT_PHASES.INFORMATION,
     source: {ref: progress.source.tokenRef, actorId: progress.source.actorId, tokenId: progress.source.tokenId},

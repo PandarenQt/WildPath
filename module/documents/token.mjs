@@ -1,13 +1,27 @@
 import {
   buildFoundryMovementIntent
 } from "../adapters/foundry-v14-movement-adapter.mjs";
+import {prepareFoundryReactionCheckpoints} from "../adapters/foundry-v14-reaction-checkpoint-adapter.mjs";
 
 const BaseTokenDocument = globalThis.TokenDocument ?? class {};
 
 export default class WildPathTokenDocument extends BaseTokenDocument {
+  async _preUpdate(changed, operation, user) {
+    const runtime = movementRuntime();
+    if ( runtime?.prepareReactionCheckpoints ) {
+      try {
+        await prepareFoundryReactionCheckpoints(this, changed, operation, user, runtime,
+          operation.movement?.[this.id]?.id ?? globalThis.foundry.utils.randomID());
+      } catch (error) {
+        notifyMovementFailure(error.message);
+        return false;
+      }
+    }
+    return super._preUpdate(changed, operation, user);
+  }
   /**
    * Foundry V14 awaits this protected lifecycle after it has determined final movement
-   * waypoints. WildPath uses it only as an approve/reject gate; the waypoints are not mutated.
+   * waypoints. This remains an approve/reject gate; checkpoint preparation occurs earlier.
    * @param {object} movement
    * @param {object} operation
    * @returns {Promise<boolean|void>}
@@ -40,6 +54,7 @@ export default class WildPathTokenDocument extends BaseTokenDocument {
       notifyMovementFailure(approval?.reason ?? approval?.code ?? "Movement was rejected by WildPath.");
       return false;
     }
+    if ( approval.reactionBoundary ) runtime.expectReactionPause(approval.reactionBoundary);
     return parentResult;
   }
 }
