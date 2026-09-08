@@ -1,4 +1,5 @@
 import {WILDPATH} from "./module/config.mjs";
+import {registerFoundryV14ConditionStatuses} from "./module/adapters/foundry-v14-status-effects-adapter.mjs";
 
 import WildPathCharacter from "./module/data/actor/character.mjs";
 import WildPathNPC from "./module/data/actor/npc.mjs";
@@ -80,16 +81,7 @@ Hooks.once("init", () => {
 
   // Populate CONFIG.statusEffects from our condition config so conditions are togglable
   // from the Token HUD like any other Foundry status.
-  CONFIG.statusEffects = Object.values(WILDPATH.CONDITIONS).map(c => ({
-    id: c.id,
-    name: c.name,
-    img: c.img,
-    type: "condition",
-    system: {
-      type: c.id,
-      level: null
-    }
-  }));
+  registerFoundryV14ConditionStatuses(CONFIG.statusEffects, WILDPATH.CONDITIONS);
 
   game.settings.register("wildpath", "movementMeasurementMode", {
     name: "WILDPATH.SETTINGS.MovementMeasurementMode.Name",

@@ -146,6 +146,13 @@ source/controller maps, with normal GM fallback policy if no controller is avail
 Terminal child completion is idempotent. Replayed completion or request-response messages do not
 re-run child commits, re-apply child effects, or resume the parent a second time.
 
+Failed/cancelled child completion retains a bounded plain `results.reactions[].childOutcome`
+before clearing the active child. It contains the child ID/status, failed stage, error and trace
+projections, action-result code, target-preparation failures, and transaction/rollback operation
+provenance. Lists are bounded to eight entries and strings to 1,024 characters; document objects
+and arbitrary payloads are never retained. The summary applies to all reaction Action children and
+does not alter either parent failure policy. See the [commit reproduction record](../development/nested-reaction-child-commit.md).
+
 ## Loop Protection
 
 Reaction child creation uses `createChildResolutionState()`, so existing depth limits and repeated

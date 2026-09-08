@@ -61,6 +61,13 @@ document-lifecycle work for later consolidation.
 
 ## Constraints
 
+Condition plans can carry a TargetCandidate rather than a flat document reference. The commit
+boundary unwraps its `target` identity before looking up the supplied Actor document; the candidate's
+outer ID may name a Token. This does not re-resolve synthetic Actors through the world collection.
+
+Foundry V14 status creation requires ID lookup in `CONFIG.statusEffects`. Startup registers the
+system condition set in Foundry's existing registry instead of replacing it with an array.
+
 - `ResolutionState` and mutation plans remain serializable plain data.
 - Live Foundry documents may appear in transient transaction operations and persistence adapters,
   but not in persisted resolution state.

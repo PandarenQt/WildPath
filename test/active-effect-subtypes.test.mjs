@@ -2,6 +2,7 @@ import {readFileSync} from "node:fs";
 import {test} from "node:test";
 import assert from "node:assert/strict";
 import {fileURLToPath} from "node:url";
+import {startupStatusEffects} from "./fixtures/foundry-document-persistence.mjs";
 
 const RESERVED_ACTIVE_EFFECT_SUBTYPES = new Set(["base"]);
 
@@ -133,11 +134,16 @@ test("WildPath ActiveEffect data models preserve inherited V14 changes schema", 
   }
 });
 
-test("WildPath status effects create condition ActiveEffects", () => {
-  const source = readProjectText("wildpath.mjs");
-
-  assert.match(source, /CONFIG\.statusEffects\s*=\s*Object\.values\(WILDPATH\.CONDITIONS\)\.map\(c\s*=>\s*\(\{[\s\S]*type:\s*"condition"/u);
-  assert.match(source, /system:\s*\{[\s\S]*type:\s*c\.id[\s\S]*level:\s*null/u);
+test("WildPath status effects create condition ActiveEffects", async () => {
+  const registry = {legacy: {id: "legacy"}};
+  const statuses = await startupStatusEffects(undefined, registry);
+  assert.equal(statuses, registry, "Keep the Foundry registry identity");
+  assert.equal(statuses.legacy, undefined);
+  assert.equal(statuses.prone.id, "prone", "V14 looks up conditions by ID");
+  for ( const status of Object.values(statuses) ) {
+    assert.equal(status.type, "condition");
+    assert.deepEqual({...status.system}, {type: status.id, level: null});
+  }
 });
 
 test("WildPath startup uses V14 sheet registration API instead of deprecated globals", () => {

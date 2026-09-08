@@ -15,17 +15,20 @@ While a reaction dialog is open, both pause proofs must pass before selecting a 
 Start the next case only after both final GM and player proofs pass for the current case.
 The final live gate requires **Decline, Accept, and Terminate** to pass on this repaired build.
 
-Status: live QA on `b6e95f7` confirmed correct USE decoding, then child creation rejected the live
-Actor system DataModel. Movement correctly stopped at its paid first-transition prefix without
-spending the reaction or applying an effect. The Foundry snapshot boundary and fixture maps are
-now repaired; **this build has not passed live QA yet**. Load the repaired system, finish or stop
-any previous QA movement, and refresh both clients before starting. Do not reuse console helpers
-from the previous run.
+Status: the reported Accept run reached child commit and failed after successful planning.
+Production-shaped replay found a condition TargetCandidate identity mismatch at commit preflight,
+then the installed V14.367 `Actor.toggleStatusEffect()` rejected the array-shaped status registry.
+Both boundaries are repaired; failed/cancelled children now retain bounded diagnostics.
+**This build has not passed live QA yet.** Finish or stop any previous QA movement, load the repaired
+system, and refresh both clients so startup restores the Foundry status registry. Do not reuse console
+helpers from the previous run. See [the reproduction record](nested-reaction-child-commit.md).
 
 Use an isolated QA world with
 no other active resolutions; setup temporarily replaces the reaction service provider and cleanup
 restores it. Use a disposable player-owned
-Token on a clear square or hex route, with at least 10 ft movement maximum and one reaction.
+Token on a clear square or hex route with two available cells to its left, at least 10 ft movement
+maximum, and one reaction.
+All three fresh start blocks prefer decreasing world X, with deterministic hex tie-breaking.
 For Large hex, use the same three-field Token configuration accepted in the movement milestone.
 Select that exact Token on both clients. The generic fixture lets the moving Actor react to its
 own first completed transition; this is a software fixture, not a gameplay rule.
@@ -59,7 +62,8 @@ movement pause, socket protocol, or Action commit implementation.
     marker: `movement-reaction-qa:${d.uuid}`, previousServices: game.wildpath.reactionServices,
     originalResources: {movement: d.actor.system.resources.movement.value, reaction: d.actor.system.resources.reaction.value},
     originals: {}, wrappers: {},
-    baseWorldBefore: d.baseActor?.system.resources.movement.value
+    baseWorldBefore: d.baseActor ? {resources: foundryActorSystemSnapshot(d.baseActor).resources,
+      effects: [...d.baseActor.effects].map(effect => effect.toObject())} : null
   };
   qa.eventHook = Hooks.on("wildpath.automationEvent", event => {
     if (!event.type.startsWith("movement.") || !sameEntityRef(event.data.tokenRef, tokenRef)) return;
@@ -76,6 +80,9 @@ movement pause, socket protocol, or Action commit implementation.
   };
   qa.require = (condition, message) => {
     if (condition) return;
+    const failures = (qa.lastDump?.hosts ?? []).flatMap(host => (host.reactions ?? [])
+      .filter(reaction => ["failed", "cancelled"].includes(reaction.childStatus)).map(reaction => reaction.childOutcome));
+    console.error("WP nested child failure summaries", JSON.stringify(failures, null, 2));
     console.error("STOP QA:", message, qa.lastDump);
     throw new Error(`STOP QA: ${message}; full diagnostic JSON remains in wpMovementReactionQA.lastDump.`);
   };
@@ -139,7 +146,9 @@ movement pause, socket protocol, or Action commit implementation.
       movement: d.actor.system.resources.movement.value, reaction: d.actor.system.resources.reaction.value,
       progress, hosts, effectIds: qa.effectIds(), events: qa.events,
       uniqueEventIds: new Set(qa.events.map(e => e.id)).size,
-      baseWorldBefore: qa.baseWorldBefore, baseWorldNow: d.baseActor?.system.resources.movement.value};
+      baseWorldBefore: qa.baseWorldBefore, baseWorldNow: d.baseActor ? {
+        resources: foundryActorSystemSnapshot(d.baseActor).resources,
+        effects: [...d.baseActor.effects].map(effect => effect.toObject())} : null};
     qa.lastDump = output;
     console.log("WP movement reaction QA", JSON.stringify(output, null, 2));
     return output;
@@ -198,10 +207,15 @@ Initiating player: start this case from the current Token position.
   let offset = grid.getOffset(origin);
   const center = grid.getCenterPoint(offset);
   for (let step = 0; step < 2; step++) {
-    offset = [...grid.getAdjacentOffsets(offset)].sort((a, b) => {
-      const pa = grid.getCenterPoint(a), pb = grid.getCenterPoint(b);
-      return pb.x - pa.x || Math.abs(pa.y - center.y) - Math.abs(pb.y - center.y);
-    })[0];
+    const current = grid.getCenterPoint(offset);
+    offset = [...grid.getAdjacentOffsets(offset)]
+      .filter(candidate => grid.getCenterPoint(candidate).x < current.x)
+      .sort((a, b) => {
+        const pa = grid.getCenterPoint(a), pb = grid.getCenterPoint(b);
+        return pa.x - pb.x || Math.abs(pa.y - center.y) - Math.abs(pb.y - center.y)
+          || pa.y - pb.y || a.i - b.i || a.j - b.j;
+      })[0];
+    qa.require(offset, "No adjacent leftward cell; stop and choose a clear QA route.");
     const next = grid.getCenterPoint(offset);
     route.push({x: Math.round(origin.x + next.x - center.x), y: Math.round(origin.y + next.y - center.y)});
   }
@@ -234,6 +248,14 @@ Active GM: prove the first transition is paid and the reaction is pending.
   qa.require(first && Array.isArray(first.pendingRequests), "Expected a host for transition 0 with pending requests.");
   qa.require(first.actionDefinition === null && first.pendingRequests[0]?.type === "reaction-choice",
     "Expected an informational event host awaiting a reaction-choice request.");
+  const transition = first.sourceEvent.data;
+  if (canvas.grid.isHexagonal && transition.from?.footprint?.effectiveSize === "large") {
+    qa.require(transition.from?.footprint?.fields?.length === 3 && transition.to?.footprint?.fields?.length === 3,
+      "Large hex must retain three occupied fields at both endpoints.");
+    qa.require(transition.leftFields?.length === 2 && transition.enteredFields?.length === 2
+      && transition.retainedFields?.length === 1 && transition.stepCost?.amount === 5,
+      "Large hex transition must have two left, two entered, one retained, and cost 5.");
+  }
   console.log("PASS: GM paid-prefix and pending-reaction proof.");
 }
 ```
@@ -290,7 +312,7 @@ so an incorrect completion in the Terminate case produces a clear failure.
   qa.require(result.hosts.length > 0 && result.hosts.every(host => host.status === "completed" && host.childIds.length === 0),
     "Decline must complete without creating a child Action.");
   qa.require(result.reaction === 1 && result.effectIds.length === 0, "Decline must leave the reaction and effects untouched.");
-  if (!qa.d.actorLink) qa.require(result.baseWorldNow === result.baseWorldBefore,
+  if (!qa.d.actorLink) qa.require(JSON.stringify(result.baseWorldNow) === JSON.stringify(result.baseWorldBefore),
     "Synthetic Token Actor payment must not change the base world Actor.");
   console.log("PASS: Decline GM proof; retain the complete JSON above.");
 }
@@ -320,10 +342,15 @@ Initiating player: start this case from the current Token position.
   let offset = grid.getOffset(origin);
   const center = grid.getCenterPoint(offset);
   for (let step = 0; step < 2; step++) {
-    offset = [...grid.getAdjacentOffsets(offset)].sort((a, b) => {
-      const pa = grid.getCenterPoint(a), pb = grid.getCenterPoint(b);
-      return pb.x - pa.x || Math.abs(pa.y - center.y) - Math.abs(pb.y - center.y);
-    })[0];
+    const current = grid.getCenterPoint(offset);
+    offset = [...grid.getAdjacentOffsets(offset)]
+      .filter(candidate => grid.getCenterPoint(candidate).x < current.x)
+      .sort((a, b) => {
+        const pa = grid.getCenterPoint(a), pb = grid.getCenterPoint(b);
+        return pa.x - pb.x || Math.abs(pa.y - center.y) - Math.abs(pb.y - center.y)
+          || pa.y - pb.y || a.i - b.i || a.j - b.j;
+      })[0];
+    qa.require(offset, "No adjacent leftward cell; stop and choose a clear QA route.");
     const next = grid.getCenterPoint(offset);
     route.push({x: Math.round(origin.x + next.x - center.x), y: Math.round(origin.y + next.y - center.y)});
   }
@@ -356,6 +383,14 @@ Active GM: prove the first transition is paid and the reaction is pending.
   qa.require(first && Array.isArray(first.pendingRequests), "Expected a host for transition 0 with pending requests.");
   qa.require(first.actionDefinition === null && first.pendingRequests[0]?.type === "reaction-choice",
     "Expected an informational event host awaiting a reaction-choice request.");
+  const transition = first.sourceEvent.data;
+  if (canvas.grid.isHexagonal && transition.from?.footprint?.effectiveSize === "large") {
+    qa.require(transition.from?.footprint?.fields?.length === 3 && transition.to?.footprint?.fields?.length === 3,
+      "Large hex must retain three occupied fields at both endpoints.");
+    qa.require(transition.leftFields?.length === 2 && transition.enteredFields?.length === 2
+      && transition.retainedFields?.length === 1 && transition.stepCost?.amount === 5,
+      "Large hex transition must have two left, two entered, one retained, and cost 5.");
+  }
   console.log("PASS: GM paid-prefix and pending-reaction proof.");
 }
 ```
@@ -417,7 +452,7 @@ so an incorrect completion in the Terminate case produces a clear failure.
   qa.require(first.reactions[0]?.childStatus === "completed", "Expected the ordinary child Action to complete.");
   qa.require(result.reaction === 0 && result.effectIds.length === 1, "Expected one committed reaction cost and marked effect.");
   qa.require(first.status === "completed", "Expected the event host to complete before movement resumes.");
-  if (!qa.d.actorLink) qa.require(result.baseWorldNow === result.baseWorldBefore,
+  if (!qa.d.actorLink) qa.require(JSON.stringify(result.baseWorldNow) === JSON.stringify(result.baseWorldBefore),
     "Synthetic Token Actor payment must not change the base world Actor.");
   console.log("PASS: Accept GM proof; retain the complete JSON above.");
 }
@@ -447,10 +482,15 @@ Initiating player: start this case from the current Token position.
   let offset = grid.getOffset(origin);
   const center = grid.getCenterPoint(offset);
   for (let step = 0; step < 2; step++) {
-    offset = [...grid.getAdjacentOffsets(offset)].sort((a, b) => {
-      const pa = grid.getCenterPoint(a), pb = grid.getCenterPoint(b);
-      return pb.x - pa.x || Math.abs(pa.y - center.y) - Math.abs(pb.y - center.y);
-    })[0];
+    const current = grid.getCenterPoint(offset);
+    offset = [...grid.getAdjacentOffsets(offset)]
+      .filter(candidate => grid.getCenterPoint(candidate).x < current.x)
+      .sort((a, b) => {
+        const pa = grid.getCenterPoint(a), pb = grid.getCenterPoint(b);
+        return pa.x - pb.x || Math.abs(pa.y - center.y) - Math.abs(pb.y - center.y)
+          || pa.y - pb.y || a.i - b.i || a.j - b.j;
+      })[0];
+    qa.require(offset, "No adjacent leftward cell; stop and choose a clear QA route.");
     const next = grid.getCenterPoint(offset);
     route.push({x: Math.round(origin.x + next.x - center.x), y: Math.round(origin.y + next.y - center.y)});
   }
@@ -483,6 +523,14 @@ Active GM: prove the first transition is paid and the reaction is pending.
   qa.require(first && Array.isArray(first.pendingRequests), "Expected a host for transition 0 with pending requests.");
   qa.require(first.actionDefinition === null && first.pendingRequests[0]?.type === "reaction-choice",
     "Expected an informational event host awaiting a reaction-choice request.");
+  const transition = first.sourceEvent.data;
+  if (canvas.grid.isHexagonal && transition.from?.footprint?.effectiveSize === "large") {
+    qa.require(transition.from?.footprint?.fields?.length === 3 && transition.to?.footprint?.fields?.length === 3,
+      "Large hex must retain three occupied fields at both endpoints.");
+    qa.require(transition.leftFields?.length === 2 && transition.enteredFields?.length === 2
+      && transition.retainedFields?.length === 1 && transition.stepCost?.amount === 5,
+      "Large hex transition must have two left, two entered, one retained, and cost 5.");
+  }
   console.log("PASS: GM paid-prefix and pending-reaction proof.");
 }
 ```
@@ -543,7 +591,7 @@ so an incorrect completion in the Terminate case produces a clear failure.
     "Expected one reaction result before inspecting child completion.");
   qa.require(first.reactions[0]?.childStatus === "completed", "Expected the ordinary child Action to complete.");
   qa.require(result.reaction === 0 && result.effectIds.length === 1, "Expected one committed reaction cost and marked effect.");
-  if (!qa.d.actorLink) qa.require(result.baseWorldNow === result.baseWorldBefore,
+  if (!qa.d.actorLink) qa.require(JSON.stringify(result.baseWorldNow) === JSON.stringify(result.baseWorldBefore),
     "Synthetic Token Actor payment must not change the base world Actor.");
   console.log("PASS: Terminate GM proof; retain the complete JSON above.");
 }

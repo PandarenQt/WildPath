@@ -1,3 +1,4 @@
+import {summarizeNestedChildOutcome} from "../helpers/nested-child-outcome.mjs";
 import {
   AUTOMATION_CODES,
   collectReactionWindows
@@ -651,6 +652,7 @@ export function completeReactionChildResolution({
   const childStatus = child?.status ?? childResult?.status ?? null;
   const childFailed = [RESOLUTION_STATE_STATUS.FAILED, RESOLUTION_STATE_STATUS.CANCELLED].includes(childStatus)
     || childResult?.ok === false;
+  const childOutcome = summarizeNestedChildOutcome(child, childResult);
   if ( childFailed && failurePolicy === "cancel-parent" ) {
     const failedWindow = createReactionWindowState({
       ...window,
@@ -670,7 +672,15 @@ export function completeReactionChildResolution({
         ...(clonePlain(metadata) ?? {})
       }
     });
-    const cancelled = cancelResolutionState(clearActiveReactionChild(putReactionWindow(parent, failedWindow)), {
+    const retained = updateResolutionState(parent, {results: {
+      ...parent.results,
+      reactions: upsertReactionResult(parent.results?.reactions, {
+        windowId: failedWindow.id, status: failedWindow.status,
+        chosenCandidateId: failedWindow.chosenCandidateId,
+        childResolutionId, childStatus, childFailed, childOutcome
+      })
+    }});
+    const cancelled = cancelResolutionState(clearActiveReactionChild(putReactionWindow(retained, failedWindow)), {
       stageId: parent.currentStageId,
       code: REACTION_RESOLVER_CODES.CHILD_RESOLUTION_FAILED,
       reason: childResult?.reason ?? "Reaction child resolution failed.",
@@ -720,7 +730,8 @@ export function completeReactionChildResolution({
         childResolutionId,
         childStatus,
         directive: normalizedDirective,
-        childFailed
+        childFailed,
+        ...(childOutcome ? {childOutcome} : {})
       })
     }
   });

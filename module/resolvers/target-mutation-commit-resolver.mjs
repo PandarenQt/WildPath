@@ -1,4 +1,5 @@
 import {resolveTargetLookupValue, targetLookupRefs} from "../helpers/target-actor-refs.mjs";
+import {mutationTargetIdentity} from "../helpers/mutation-target.mjs";
 import {createActorUpdateTransactionOperation} from "./resolution-transaction-resolver.mjs";
 import {commitActorDurabilityMutationPlan} from "./durability-resolver.mjs";
 import {
@@ -38,7 +39,7 @@ export function prepareTargetMutationCommitOperations({
   const operations = [];
   const failures = [];
   for ( const [index, mutationPlan] of mutationPlans.entries() ) {
-    const target = mutationPlan.target ?? mutationPlan.plan?.target ?? {};
+    const target = mutationTargetIdentity(mutationPlan.target ?? mutationPlan.plan?.target ?? {});
     const actor = resolveTargetActor(targetActors, target, mutationPlan);
     if ( !actor ) {
       failures.push({
@@ -122,7 +123,7 @@ export async function commitTargetMutationPlans({
   const committed = [];
   const failures = [];
   for ( const mutationPlan of mutationPlans ) {
-    const target = mutationPlan.target ?? mutationPlan.plan?.target ?? {};
+    const target = mutationTargetIdentity(mutationPlan.target ?? mutationPlan.plan?.target ?? {});
     const actor = resolveTargetActor(targetActors, target, mutationPlan);
     if ( !actor ) {
       failures.push({
