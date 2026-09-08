@@ -107,15 +107,16 @@ change now requires evidence of at least one of:
 
 Current development priorities are:
 
-1. live Foundry V14 runtime QA for staged action execution and multiplayer request routing
-2. production insertion and live QA for generic ReactionResolver windows
-3. Movement
-4. persistent Areas, auras, and emanations
-5. representative content as architecture proof
-6. progression / character systems
-7. Homebrew Builder
-8. finished Character Sheet
-9. gameplay HUD
+1. Normal player-facing Foundry Action runtime live verification: persisted Item Actions, targeting,
+   digital roll routing, attack/save resolution, damage/healing/effect mutation, authoritative
+   commit, and structured results.
+2. Close remaining production request/roll integration gaps exposed by ordinary Action live QA,
+   preserving physical/manual and digital RollProvider convergence.
+3. Persistent spatial mechanics: observer-relative predicates, leave/enter relationships,
+   opportunity reactions, and persistent Areas, hazards, auras, and emanations.
+4. Representative content as architecture proof.
+5. Progression and character systems.
+6. Homebrew Builder and finished product surfaces.
 
 Do not prioritize large spell, monster, class, or item catalogs before the existing foundations
 have been proven through real Foundry integration.
@@ -1198,6 +1199,11 @@ Prove persisted ActionDefinition -> configuration -> preview -> real target/area
 staged resolution -> mutation plans -> transaction commit -> structured result/chat presentation.
 Use a small representative mechanic set rather than content volume.
 
+Status: Node integration proves the production `WildPathItem#use()` entry through active-GM staged
+resolution for representative mechanics. A dedicated real Foundry vertical-slice gate still needs
+to cover ordinary targeting, digital roll routing, melee/ranged attack outcomes, saves,
+damage/healing/effects, authoritative commit, and structured results.
+
 Stage E — Extract Legacy Resolution Incrementally
 
 Replace `action.legacy-resolution` one responsibility at a time with dedicated stages that call
@@ -1216,13 +1222,20 @@ Stage G — Reactions / Interruptible Resolution
 Status: generic foundation implemented. ReactionResolver now discovers eligible triggered Actions,
 opens `reaction-choice` requests, creates child ResolutionState provenance, pauses/resumes the
 parent, supports generic reevaluation/cancel directives, and reuses multiplayer request routing.
-Remaining Stage G work is production insertion into the default action pipeline timings and live
-Foundry reaction QA.
+The generic MovementEvent -> Trigger/Predicate -> ReactionResolver -> ordinary nested Action path is
+live-verified in Foundry V14.367, including Decline, resource/effect commit, resume, and
+`cancel-parent` termination. Remaining work is limited to additional semantic timings required by
+real mechanics, opportunity reactions, simultaneous/multiple-reaction ordering, and representative
+production reaction content.
 
 Stage H — Movement
 
-Implement paths, movement modes, complete-footprint movement, costs, voluntary/forced/teleport
-movement, and semantic movement events using the same tactical spatial authority.
+Status: topology-aware Token movement, active-GM authority, completed-prefix accounting, semantic
+movement events, and real pause/resume/stop are implemented and live-verified. The Foundry V14.367
+movement/reaction proof covered a Large hex footprint, synthetic Token Actor isolation, real prompt
+response and mutation commit, and terminal interruption. Observer-relative predicates,
+opportunity-reaction semantics, terrain/cost policies, Region/Area movement hooks, and movement
+undo/refund remain future work.
 
 Stage I — Opportunity Attacks / Persistent Areas / Auras / Emanations
 

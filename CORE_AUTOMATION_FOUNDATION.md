@@ -18,8 +18,10 @@ finished game system name is **WildPath**.
 
 - Actor and Item data models define abilities, resources, custom pools, actions, gear, features,
   modifiers, and conditions.
-- `WildPathActor#useAction` currently follows the sheet-driven cost-only path. The resolver layer
-  can already accept plain target, attack, save, and damage data from future Foundry adapters.
+- `WildPathItem#use()` now builds a plain Action intent and routes it through
+  `game.wildpath.executeActionIntent()` to the active-GM staged pipeline. Node integration covers
+  representative targeting, rolls, outcomes, mutation plans, and authoritative commit, while the
+  ordinary player-facing Action path still requires a dedicated representative live Foundry gate.
 - `WildPathActor#getStatistic(domain)` and `WildPathStatistic` are the current calculation engine.
   New mechanics should build on that domain/modifier model rather than creating one-off math.
 - `module/helpers/rule-elements.mjs` provides the first pure RuleElement registry/collector for
@@ -55,8 +57,13 @@ finished game system name is **WildPath**.
   Generic movement-triggered reaction composition now has automated coverage through the
   triggered-event host, existing ReactionResolver, and multiplayer Action coordinator. Initiator
   checkpoint holds preserve completed-prefix payment and one semantic root; the GM revalidates
-  the suffix before releasing or terminating it. Live QA remains pending; see
-  [the complete console procedure](docs/development/movement-reaction-qa.md).
+  the suffix before releasing or terminating it. Foundry V14.367 live QA passed for Decline,
+  accepted nested Action commit, and `cancel-parent` termination on a Large hex footprint with a
+  player-owned synthetic Token Actor. The live run exercised repair commit
+  `ddb26f6591c95db9b5dc21a856d3bfa5f15f90e4`, where the automated suite passed 729/729;
+  documentation closure merged at `bf1a9fd417416f88fc913db26c31511d76aff091`. Keep
+  [the complete console procedure](docs/development/movement-reaction-qa.md) as the regression
+  runbook.
 - Tactical grid and area topology are implemented as pure domain foundations: gridded AoE resolves
   to authoritative `GridFootprint` field sets rather than Euclidean templates pretending to be
   tactical geometry. `module/adapters/foundry-v14-tactical-grid-adapter.mjs` now provides the first
@@ -235,8 +242,10 @@ The first resolver implementations live under `module/resolvers/`:
   reevaluation/cancel directives, and loop protection. The staged action pipeline now inserts
   opt-in action-declared and after-attack-outcome windows. The multiplayer coordinator now advances
   active child ResolutionStates through the default staged runner, routes child pending requests by
-  child `resolutionId`, and treats replayed child completions/responses idempotently; broader timing
-  coverage and live Foundry reaction QA remain outstanding.
+  child `resolutionId`, and treats replayed child completions/responses idempotently. The generic
+  movement-event composition is live-verified in Foundry V14.367; broader semantic timings,
+  simultaneous/multiple-reaction ordering, opportunity reactions, and representative production
+  reaction content remain outstanding.
 - `AreaResolver`: handles instantaneous and persistent areas plus movement/turn triggers.
 - `ResolutionTransaction`: orders mutation operations and delegates document writes to
   `DocumentPersistencePort`.
@@ -257,13 +266,18 @@ active tactical grid defines adjacency, direction, source-border placement, and 
 Ordinary creature-originated Lines and Cones should originate from an eligible source Token's
 tactical boundary vertex rather than token center.
 
-The first Foundry adapter proof has landed, pure topology-aware MovementPath evaluation now builds
-on the same footprint conventions, and normal Foundry Token movement now passes through active-GM
-MovementPath approval and completed-prefix budget accounting, including pause/stop and correlated
-continuation. Opportunity attacks, movement-triggered reactions, auras, emanations, persistent hazards, terrain cost, and
-movement undo/refund remain later slices. See
-`docs/architecture/tactical-grid.md`, `docs/architecture/areas.md`, and
-`docs/architecture/foundry-tactical-grid-adapter.md`.
+Live-proven Foundry integration currently includes:
+
+- square and hex Token movement where covered by the movement acceptance gates;
+- Large-hex complete-footprint movement and transition footprint deltas;
+- active-GM MovementPath approval with completed-prefix budget accounting; and
+- synchronized movement/reaction pause, resume, stop, and terminal interruption.
+
+Representative live proof is still required for radial areas, lines, cones, walls,
+source-border AoE placement, and normal player-facing Action target/area execution. Opportunity
+reactions, observer-relative predicates, auras, emanations, persistent hazards, terrain cost, and
+movement undo/refund remain later slices. See `docs/architecture/tactical-grid.md`,
+`docs/architecture/areas.md`, and `docs/architecture/foundry-tactical-grid-adapter.md`.
 
 ## Targeting And Inventory
 
@@ -326,18 +340,15 @@ routing, duplicate/stale rejection, and the current Foundry socket adapter. See
 
 ## Near-Term Order
 
-1. Perform live Foundry V14 runtime QA for staged persisted actions, tactical-grid adaptation,
-   PromptPort/RollProvider choices, active-GM socket routing, nested reaction children, and
-   DocumentPersistencePort commits.
-2. Expand ReactionResolver timing coverage beyond action-declared and after-attack-outcome only
-   where semantic events require it, then perform live Foundry reaction QA. Avoid named-feature
-   reaction code.
-3. Preserve the live-accepted movement interruption/continuation baseline, including Large hex
-   footprints, prefix accounting, and player-to-GM authority.
-4. Run `docs/development/movement-reaction-qa.md` for the implemented generic composition. After
-   live acceptance, add the observer-relative spatial predicate as a separate milestone.
-5. Compose persistent Areas, auras, and emanations from Spatial + Movement + Events + Reactions.
-6. Add representative content and character-system slices only after those execution boundaries are
-   proven in live runtime.
+1. Live-verify the normal player-facing Foundry Action runtime with representative persisted Item
+   Actions, targeting, digital roll routing, attack/save resolution, damage/healing/effect mutation,
+   authoritative commit, and structured results.
+2. Close production request/roll integration gaps exposed by that gate while preserving convergence
+   between physical/manual and digital RollProviders.
+3. Build the remaining persistent spatial mechanics: observer-relative predicates, leave/enter
+   relationships, opportunity reactions, and persistent Areas, hazards, auras, and emanations.
+4. Add representative content as architecture proof.
+5. Expand progression and character systems.
+6. Build the Homebrew Builder and finished product surfaces over the proven runtime.
 
 Keep every slice small, testable, and compatible with synthetic Token Actors.

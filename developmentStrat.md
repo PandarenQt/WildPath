@@ -16,8 +16,9 @@ The current strategy is **integration proof**:
 > foundational systems.
 
 Current status: the staged action, persistence-port, vertical-slice, multiplayer authority/socket,
-and first reaction-window integration proofs exist in Node integration tests. Live Foundry V14
-runtime QA is still required before those paths are considered manually verified in-engine.
+and reaction-window foundations have broad Node integration coverage. Movement semantics and the
+generic movement-event reaction composition are live-verified in Foundry V14.367. The ordinary
+player-facing Action runtime still requires its own representative live Foundry vertical-slice gate.
 
 ---
 
@@ -284,8 +285,17 @@ authority, routes child pending requests by child `resolutionId`, and handles re
 idempotently. The staged action pipeline has opt-in windows for action-declared interrupts and
 after attack outcome/before damage.
 
-Remaining Stage G work: add additional semantic timings only where needed and perform live Foundry
-reaction QA.
+The generic movement-event path is live-verified in Foundry V14.367: a player-owned synthetic Token
+Actor routed through active-GM authority, presented a real reaction prompt, and executed an accepted
+ordinary nested staged Action that paid its Reaction, committed a Prone ActiveEffect, and either
+resumed movement or returned `cancel-parent` to terminate it. Decline was also verified. The live
+run exercised repair commit `ddb26f6591c95db9b5dc21a856d3bfa5f15f90e4`, where the automated
+suite passed 729/729. Documentation closure merged on
+`bf1a9fd417416f88fc913db26c31511d76aff091`.
+
+Remaining Stage G work: add semantic timings required by real mechanics, opportunity reactions,
+simultaneous/multiple-reaction ordering, and representative production reaction content. These
+broader timings and content are not implied by the movement-specific live proof.
 
 ## Stage H — Movement
 
@@ -317,11 +327,15 @@ after resume, stable root/prefix identities, and zero player events. See the
 Generic MovementEvent -> Trigger/Predicate -> ReactionResolver composition is implemented with
 automated tests. Initiator checkpoints/keyed holds surround GM-owned completed-event windows;
 children use the normal multiplayer Action pipeline, then suffix revalidation authorizes resume
-or termination. This work is not live-green; run [the self-contained GM/player QA](docs/development/movement-reaction-qa.md).
+or termination. The complete composition is live-verified in Foundry V14.367 on a Large hex
+three-field footprint, including transition footprint deltas, completed-prefix accounting, real
+pause/resume/stop, player-to-active-GM authority, real prompt response, nested Action resource and
+ActiveEffect commits against a synthetic Token Actor, `cancel-parent`, and terminal interruption.
+The [self-contained GM/player QA](docs/development/movement-reaction-qa.md) remains the regression
+runbook.
 
-Remaining Stage H work: live reaction composition QA, observer-relative spatial predicates,
-opportunity-reaction rules, terrain/cost policies, Region/Area movement hooks, and
-undo/refund accounting.
+Remaining Stage H work: observer-relative spatial predicates, opportunity-reaction semantics,
+terrain/cost policies, Region/Area movement hooks, and movement undo/refund accounting.
 
 ## Stage I — Persistent Spatial Mechanics
 
