@@ -165,8 +165,9 @@ once. The public `wildpath.automationEvent` hook stays synchronous and informati
 delivery and observer-failure isolation. Listeners neither own the hold nor supply reaction
 results. Final-transition windows have no suffix to hold or resume and retain completion semantics.
 
-This composition has automated coverage. Live V14 QA is still required:
-[complete GM/player procedure](../development/movement-reaction-qa.md).
+This composition has automated coverage and passed real Foundry V14.367 multiplayer verification
+on `ddb26f6591c95db9b5dc21a856d3bfa5f15f90e4`. The accepted Decline, Accept, and Terminate results
+and retained regression procedure are in [movement/reaction live QA](../development/movement-reaction-qa.md).
 
 Reaction triggers are normal triggers with a reaction payload and a payment requirement. The helper
 uses the existing action-economy primitives to determine whether a reaction resource can pay the
@@ -216,5 +217,6 @@ This foundation is intended for:
 - homebrew trigger builder output
 
 The helper is not a socket protocol or multiplayer authority layer. It only plans what should be
-offered or dispatched. Multiplayer routing reuses `docs/architecture/multiplayer-authority.md`;
-Foundry adapters still need live runtime QA before reactions are considered manually verified.
+offered or dispatched. Multiplayer routing reuses `docs/architecture/multiplayer-authority.md`.
+The generic movement-event reaction composition is manually verified; other future consumers still
+require their own runtime verification when implemented.

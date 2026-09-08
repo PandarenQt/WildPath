@@ -20,12 +20,11 @@ Implemented:
   zero-spend footprint transitions.
 - generic AutomationEvents for verified completed routes, with full-footprint transitions and
   a pure progress model that distinguishes actual prefixes from approved routes.
-- production checkpoint/pause/stop observation, completed-prefix payment, and same-subpath
-  continuation correlation; live interruption QA remains outstanding.
+- production checkpoint/pause/stop observation, completed-prefix payment, same-subpath continuation
+  correlation, and live-verified movement/reaction synchronization.
 
 Deferred:
 
-- movement-triggered reaction windows.
 - opportunity reactions, auras, hazards, and Regions.
 - terrain, squeezing, ally/enemy occupancy, and mode-specific collision rules beyond supplied
   policy functions.
@@ -493,14 +492,36 @@ paid cost 15, and exactly five unique GM events: started, transitions 0/1/2, com
 subpath remained stable across two operations, the first three event IDs were retained, the player
 authored no events, neither client warned, and the unlinked Token's base world Actor stayed unchanged.
 The [accepted live result](../development/movement-pause-diagnostic-qa.md) closes the movement-semantics
-live-QA gate. The next milestone is MovementEvent -> Trigger/Predicate -> ReactionResolver composition;
-that baseline handoff recorded acceptance before the reaction composition described below.
+live-QA gate. The subsequent milestone was MovementEvent -> Trigger/Predicate -> ReactionResolver
+composition; that baseline handoff recorded acceptance before the live-verified composition described
+below.
 Follow [the exact checkpoint console procedure](../development/movement-interruption-qa.md).
 
 ## Generic movement/reaction synchronization
 
-Implemented with automated coverage; **not yet live-verified**. See
-[the complete reaction QA procedure](../development/movement-reaction-qa.md).
+Implemented with automated coverage and **live-verified in Foundry V14.367** on
+`ddb26f6591c95db9b5dc21a856d3bfa5f15f90e4`. See the accepted result and retained regression
+procedure in [movement/reaction live QA](../development/movement-reaction-qa.md).
+
+The proven generic composition is:
+
+```text
+Foundry movement checkpoint
+-> authoritative semantic movement event
+-> reaction discovery
+-> player reaction choice
+-> ordinary nested staged Action
+-> real Foundry transaction commit
+-> parent directive
+-> resume or terminate movement
+```
+
+The live proof covered active-GM authority, a player-owned synthetic Token Actor, a Large-hex
+three-field footprint, real Foundry pause/resume/stop, the real prompt response, ActiveEffect commit,
+reaction resource payment, `cancel-parent`, and completed-prefix accounting. Decline and Accept
+completed two transitions for 10 ft; Terminate stopped after one transition for 5 ft and emitted
+`movement.started -> movement.transition -> movement.interrupted`. The base world Actor remained
+unchanged throughout.
 
 The synchronization seam was checked against the official V14 documentation and installed
 V14.367 `client/documents/token.mjs` (release build confirmed in the installed package.json):

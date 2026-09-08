@@ -23,8 +23,9 @@ The maintainer confirmed final live QA passed on `26e7161797059ff7ff5a7cf4419a34
 the corrected event filter: paused movement 20, three unique GM events and prefix 2/3; resumed
 movement 15, five unique GM events and completed prefix 3/3; one root/subpath with stable prefix
 event IDs; zero player events; no warning on either client; and all final assertions passed.
-See the [exact accepted live result](movement-pause-diagnostic-qa.md). Movement semantics is live-green;
-reaction composition remains a separate, unimplemented milestone.
+See the [exact accepted live result](movement-pause-diagnostic-qa.md). Movement semantics is live-green.
+The later reaction composition milestone also passed its Foundry V14.367 live gate on `ddb26f6`;
+see [movement/reaction live QA](movement-reaction-qa.md).
 
 ## Verified public API: V14.365 docs and installed V14.367
 

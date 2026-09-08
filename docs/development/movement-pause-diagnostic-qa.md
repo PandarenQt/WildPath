@@ -27,8 +27,9 @@ lifecycle remains unknown; the deterministic stale-observation defect and the no
 are documented separately. The earlier diagnostic run's zero GM event count came from the old
 raw-UUID filter and is superseded by this corrected observer result.
 
-The blocks below remain the repeatable acceptance procedure. Reaction composition is the next
-milestone; it is not implemented by this handoff.
+The blocks below remain the repeatable movement acceptance procedure. The subsequent reaction
+composition milestone passed its Foundry V14.367 live gate on `ddb26f6`; see
+[movement/reaction live QA](movement-reaction-qa.md).
 
 ## Rerun preparation
 

@@ -84,7 +84,7 @@ of malformed responses remains unchanged; it never needs to understand `choices.
 Live QA on `69b4675` exposed the previous generic ID decoding of reaction choices, which made a
 visible candidate resolve as Decline. Adapter and integration regressions now exercise the real
 Foundry prompt decoder with both DialogV2's plain object output and FormData-like input. The
-Decline/Accept/Terminate live gate is documented in
+Decline/Accept/Terminate live gate passed on `ddb26f6`; its accepted result and runbook are in
 [`movement-reaction-qa.md`](../development/movement-reaction-qa.md).
 
 ## Correlation And Staleness

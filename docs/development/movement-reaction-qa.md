@@ -13,15 +13,31 @@ end after retaining diagnostics; only the initiating player stops an outstanding
 Continue only when the current block completes without errors and its stated proof passes.
 While a reaction dialog is open, both pause proofs must pass before selecting a response.
 Start the next case only after both final GM and player proofs pass for the current case.
-The final live gate requires **Decline, Accept, and Terminate** to pass on this repaired build.
+The regression gate requires **Decline, Accept, and Terminate** to pass on the build under test.
 
-Status: the reported Accept run reached child commit and failed after successful planning.
-Production-shaped replay found a condition TargetCandidate identity mismatch at commit preflight,
-then the installed V14.367 `Actor.toggleStatusEffect()` rejected the array-shaped status registry.
-Both boundaries are repaired; failed/cancelled children now retain bounded diagnostics.
-**This build has not passed live QA yet.** Finish or stop any previous QA movement, load the repaired
-system, and refresh both clients so startup restores the Foundry status registry. Do not reuse console
-helpers from the previous run. See [the reproduction record](nested-reaction-child-commit.md).
+## Live verification result
+
+**PASS — Foundry V14.367 multiplayer, commit
+`ddb26f6591c95db9b5dc21a856d3bfa5f15f90e4`.**
+
+The complete Decline, Accept, and Terminate gate passed with an active GM and a player-owned
+synthetic Large-hex Token Actor. All cases paused after transition 0 with a three-field footprint,
+two fields left, two entered, one retained, and 5 ft paid for the completed prefix. The base world
+Actor remained unchanged.
+
+- Decline resumed movement, completed both transitions for 10 ft, left the reaction at 1, and
+  created neither a child Action nor a QA condition effect.
+- Accept completed one ordinary nested child Action, spent the reaction from 1 to 0, committed the
+  marked Prone ActiveEffect to the synthetic Token Actor, completed the event host before resuming,
+  and then completed transition 1 for 10 ft total movement.
+- Terminate completed the same nested Action commit, including reaction payment and marked Prone,
+  then applied `parentDirective: cancel-parent`. Foundry stopped at B; semantic progress was
+  interrupted with one completed transition, one remaining transition, and 5 ft paid. Transition 1
+  never executed. Its semantic history was `movement.started -> movement.transition ->
+  movement.interrupted`.
+
+Automated verification at the repair commit was **729/729**. The blocks below remain the complete
+regression/runbook procedure. See [the repair reproduction record](nested-reaction-child-commit.md).
 
 Use an isolated QA world with
 no other active resolutions; setup temporarily replaces the reaction service provider and cleanup
@@ -601,7 +617,7 @@ The termination fixture configures the existing child `parentDirective: cancel-p
 It does not patch child completion or restore the Token to an earlier position.
 
 For Large hex, retain transition 0 showing three occupied fields at each endpoint, two left,
-two entered, one retained, and cost 5. All three cases must pass before declaring the live gate green.
+two entered, one retained, and cost 5. All three cases must pass on any regression rerun.
 
 ## 6. Cleanup
 

@@ -343,7 +343,8 @@ currently requires an active GM; a configured reaction without one fails closed.
 GM handoff, or transport failure can leave a hold requiring the initiator to stop movement. There is
 no automatic timeout release, durable recovery, or claim of distributed exactly-once processing.
 See [synchronization details](movement-paths.md#generic-movementreaction-synchronization) and
-[live QA](../development/movement-reaction-qa.md). Live multiplayer reaction acceptance is pending.
+[live QA](../development/movement-reaction-qa.md). The movement/reaction composition passed its real
+Foundry V14.367 multiplayer gate on `ddb26f6591c95db9b5dc21a856d3bfa5f15f90e4`.
 
 This is not yet a full authority server or failover system.
 
@@ -358,11 +359,10 @@ Not implemented here:
 - cross-client secret visibility policy beyond sanitized result/request payloads
 
 Generic reaction-choice routing and nested child advancement are covered by deterministic transport
-tests, but live Foundry multiplayer reaction QA remains outstanding.
-
-Live Foundry runtime QA remains required. The Node tests prove the coordinator, envelope,
-deterministic transport, request routing, RollProvider/PromptPort usage, and authority commit
-behavior.
+tests. The live movement/reaction gate additionally proved active-GM authority, a real player prompt,
+synthetic Token Actor persistence, nested ActiveEffect/resource commits, `cancel-parent`, and
+resume/termination delivery. Other multiplayer consumers and failover scenarios require their own
+runtime verification.
 
 ## Foundry V14 References
 

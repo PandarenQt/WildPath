@@ -197,8 +197,10 @@ Not yet implemented:
 - opportunity attacks
 - Movement-driven leave-reach events
 - full simultaneous reaction ordering
-- live Foundry V14 reaction QA
 - final HUD presentation
 
-The next practical step is live Foundry QA for these timings, then broader semantic timing coverage
-driven by actual gameplay events.
+Automated verification is 729/729 at repair commit
+`ddb26f6591c95db9b5dc21a856d3bfa5f15f90e4`. The generic movement-event path also passed the full
+real Foundry V14.367 multiplayer Decline/Accept/Terminate gate. See the
+[accepted live result and regression runbook](../development/movement-reaction-qa.md). Broader
+semantic timings remain driven by actual gameplay consumers.

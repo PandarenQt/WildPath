@@ -1,6 +1,8 @@
 # Nested reaction child commit reproduction (V14.367)
 
-This is an automated boundary reproduction, **not a passed multiplayer live QA gate**.
+This document records the automated boundary reproduction that preceded the successful multiplayer
+live gate. The complete Foundry V14.367 gate subsequently passed on repair commit
+`ddb26f6591c95db9b5dc21a856d3bfa5f15f90e4`.
 The historical failed child state was discarded, so its original exception cannot be recovered.
 The baseline is `1ed4425d7dbcf84521f583ee169aaabe91f29d36` on `milestone/movement-reactions`.
 
@@ -117,8 +119,8 @@ The QA route tests execute all three fresh guide route generators with square an
 orientations. They verify decreasing X, deterministic tie-breaking, adjacency, and Large-hex
 three-field footprints with two left, two entered, and one retained.
 
-Run the complete [GM/Player Decline, Accept, and Terminate blocks](movement-reaction-qa.md) after
-refreshing both clients. Only those live proofs can close the multiplayer live gate.
+The complete [GM/Player Decline, Accept, and Terminate blocks](movement-reaction-qa.md) passed after
+both clients refreshed onto the repair commit. They remain the repeatable regression runbook.
 
 ## Verification on the repair
 
@@ -130,3 +132,15 @@ refreshing both clients. Only those live proofs can close the multiplayer live g
 
 On this Windows host the commands use `npm.cmd` because PowerShell blocks the unsigned `npm.ps1`
 shim. That runs the same configured npm scripts without changing execution policy.
+
+## Live verification after the repair
+
+Real Foundry V14.367 multiplayer verification: **PASS** on
+`ddb26f6591c95db9b5dc21a856d3bfa5f15f90e4`.
+
+Decline and Accept resumed from the verified first-transition prefix and completed two transitions.
+Terminate committed its ordinary nested Action and then stopped at B through `cancel-parent`, leaving
+one transition unexecuted. The live run covered active-GM authority, the real player prompt, a
+player-owned synthetic Large-hex Token Actor, real pause/resume/stop behavior, real ActiveEffect and
+reaction-resource persistence, and completed-prefix accounting. The base world Actor remained
+unchanged in every case.
