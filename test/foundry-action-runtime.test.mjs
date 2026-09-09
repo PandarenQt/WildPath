@@ -196,11 +196,19 @@ function meleeStrikeDefinition() {
 }
 
 // Synthetic Actors deliberately differ from their world bases and expose non-plain DataModels.
-function syntheticRuntimeFixture(t, definition=meleeStrikeDefinition()) {
+function syntheticRuntimeFixture(t, definition=meleeStrikeDefinition(), {targetHealth=20}={}) {
   const scene = fakeScene(new FakeSquareGrid(), {id: "scene-models"});
   const sourceActor = withFoundryActorSystem(fakeActor("source-model", {system: actorSystem(),
     statistics: {"attack.weapon": runtimeStatistic("attack.weapon", 4)}}));
-  const targetActor = withFoundryActorSystem(fakeActor("target-model", {system: targetActorSystem(20, 30, {ac: 14})}));
+  const targetSource = targetActorSystem(targetHealth, 10, {ac: 14});
+  Object.assign(targetSource.resources.health, {base: 30, bonus: 0});
+  const targetActor = withFoundryActorSystem(fakeActor("target-model", {system: targetSource}));
+  targetActor.system.resources.health.max = 30;
+  targetActor.toObject = source => {
+    assert.equal(source, true);
+    targetActor.sourceSnapshotCalls.push(source);
+    return {system: structuredClone(targetSource)};
+  };
   const sourceBase = withFoundryActorSystem(fakeActor(sourceActor.id, {system: actorSystem()}));
   sourceBase.system.resources.action.value = 0;
   const targetBase = withFoundryActorSystem(fakeActor(targetActor.id, {system: targetActorSystem(99, 99)}));
@@ -224,7 +232,7 @@ function syntheticRuntimeFixture(t, definition=meleeStrikeDefinition()) {
   const built = buildFoundryActionUseIntent({actor: sourceActor, action,
     game: {user: {targets: new Set([{document: targetToken}])}}});
   assert.equal(built.ok, true);
-  return {scene, sourceActor, targetActor, sourceBase, targetBase, sourceToken, targetToken, action, game, intent: built.intent};
+  return {scene, sourceActor, targetActor, targetSource, sourceBase, targetBase, sourceToken, targetToken, action, game, intent: built.intent};
 }
 
 /* -------------------------------------------- */
@@ -428,7 +436,10 @@ test("production Action intent conversion rejects ambiguous source Actors with m
 /* -------------------------------------------- */
 
 test("a player's Action use reaches the staged pipeline through the production multiplayer entry point with synthetic DataModels and TacticalGrid", async t => {
-  const {sourceActor, targetActor, sourceBase, targetBase, targetToken, action, game} = syntheticRuntimeFixture(t);
+  const {sourceActor, targetActor, targetSource, sourceBase, targetBase, targetToken, action, game} =
+    syntheticRuntimeFixture(t, undefined, {targetHealth: 30});
+  assert.deepEqual(targetSource.resources.health, {base: 30, bonus: 0, value: 30, max: 10});
+  assert.equal(targetActor.system.resources.health.max, 30);
   const persistencePort = createTestDocumentPersistenceAdapter();
 
   const hub = createTestResolutionTransportHub({users: [
@@ -484,12 +495,32 @@ test("a player's Action use reaches the staged pipeline through the production m
   assert.equal(isPlainSerializableData(record.state.input.durability.targetSystems), true);
   assert.equal(validateResolutionStateSerializable(record.state).ok, true);
   assert.equal(record.options.targetActors[targetActor.uuid], targetActor);
-  assert.equal(record.state.input.durability.targetSystems[targetActor.uuid].resources.health.value, 20);
+  assert.deepEqual(record.state.input.durability.targetSystems[targetActor.uuid].resources.health,
+    {base: 30, bonus: 0, value: 30, max: 30});
+  const damage = record.state.results.damageResolution.results[0];
+  assert.equal(damage.total, 6);
+  assert.equal(damage.byDamageType.slashing, 6);
+  const durability = record.state.mutationPlans.find(p => p.type === "durabilityDamage").plan;
+  assert.equal(durability.from, 30);
+  assert.equal(durability.to, 24);
+  assert.equal(durability.max, 30);
+  assert.equal(durability.amount, 6);
+  assert.equal(durability.appliedAmount, 6);
+  assert.equal(durability.overflow, 0);
+  const payment = record.state.mutationPlans.find(p => p.type === "resourcePayment").plan;
+  assert.deepEqual(payment.updates, {"system.resources.action.value": 0});
+  assert.equal(payment.payments[0].from, 1);
+  assert.equal(payment.payments[0].to, 0);
+  assert.equal(payment.payments[0].amount, 1);
   assert.equal(record.state.completedStageIds.includes("action.damage"), true);
+  assert.equal(record.state.completedStageIds.includes("action.payment"), true);
+  assert.equal(record.state.completedStageIds.includes("action.ready-to-commit"), true);
   assert.equal(record.state.completedStageIds.includes("action.commit"), true);
+  assert.equal(record.state.completedStageIds.includes("action.finalization"), true);
   assert.equal(record.state.results.actionResult.steps.findLast(s => s.data?.transaction).data.transaction.ok, true);
 
-  assert.equal(targetActor.system.resources.health.value, 14);
+  assert.equal(targetActor.system.resources.health.value, 24);
+  assert.equal(targetSource.resources.health.max, 10, "The raw maximum stays intentionally stale");
   assert.equal(sourceActor.system.resources.action.value, 0);
   assert.equal(sourceBase.system.resources.action.value, 0);
   assert.equal(targetBase.system.resources.health.value, 99);
@@ -518,6 +549,8 @@ test("target snapshots retain all live-document aliases, serialize once, and det
   assert.equal(isPlainSerializableData(f.targetActor.system), false);
   assert.equal(isPlainSerializableData(systems), true);
   assert.equal(snapshot.resources.health.value, 20);
+  assert.equal(snapshot.resources.health.max, 30);
+  assert.equal(f.targetSource.resources.health.max, 10);
   assert.equal(validateResolutionStateSerializable(createActionResolutionState(resolved.options)).ok, true);
   snapshot.resources.health.value = 1;
   assert.equal(f.targetActor.system.resources.health.value, 20);
@@ -552,6 +585,14 @@ test("production Healing uses the same plain synthetic target durability snapsho
   assert.equal(planned.state.mutationPlans.some(p => p.type === "durabilityHealing"), true);
   assert.equal(validateResolutionStateSerializable(planned.state).ok, true);
   assert.equal(planned.state.input.durability.targetSystems[f.targetActor.uuid].resources.health.value, 20);
+  assert.equal(planned.state.input.durability.targetSystems[f.targetActor.uuid].resources.health.max, 30);
+  assert.equal(f.targetSource.resources.health.max, 10);
+  const plan = planned.state.mutationPlans.find(p => p.type === "durabilityHealing").plan;
+  assert.equal(plan.from, 20);
+  assert.equal(plan.to, 26);
+  assert.equal(plan.max, 30);
+  assert.equal(plan.appliedAmount, 6);
+  assert.equal(plan.overheal, 0);
   assert.equal(f.targetActor.system.resources.health.value, 20, "Planning does not commit");
   assert.equal(f.targetBase.system.resources.health.value, 99);
 });

@@ -55,6 +55,46 @@ No mutation or transaction occurred. The repair supplies detached target snapsho
 boundary while retaining live target Documents for commit. Both Hit and Miss must be rerun on the
 repair commit. **LIVE QA PENDING.**
 
+## Second failed historical live run — Foundry V14.367
+
+Run: `kzFTKbzh0t9BD7ne`.
+Resolution: `resolution:multiplayer:b4jpqpqd`.
+Tested repair commit: `af16928c26f3b71be1401fd79d031647a21fabe6` (747/747 automated tests).
+
+This run live-proved the previous target-system serialization repair. The real production path
+passed persisted `WildPathItem#use()`, native targeting, Player `ACTION_INTENT`, active-GM routing,
+synthetic source/target reconstruction, square TacticalGrid footprints and 5 ft reach,
+Actor-derived `attack.weapon` +4, and source-controller roll routing to the Player's registered
+Foundry digital provider. Natural 1 + 4 = 5 against AC 1 was correctly a Hit because the marked QA
+Action disables natural-1 automatic miss semantics.
+
+`action.damage`, `action.payment`, `action.ready-to-commit`, `action.commit`, and
+`action.finalization` all completed. The terminal ResolutionState was completed, the transaction
+committed successfully, and the source spent exactly one Action. No rollback occurred.
+
+Acceptance then failed with `Unexpected target HP change`:
+
+```text
+damage total = 6 slashing
+durability input max = 10
+plan from 30 -> 10
+amount = 6
+appliedAmount = 20
+expected HP = 24
+actual HP = 10
+```
+
+The fixture authored `health.base = 30` and `health.value = 30`. Actor preparation derived effective
+maximum 30, but source serialization retained schema-initial maximum 10. The snapshot passed that
+stale maximum to durability planning, whose upper clamp reduced `30 - 6 = 24` further to 10.
+Resolution completed and committed, while QA correctly rejected the semantically wrong mutation.
+This is historical failure evidence, **not acceptance**.
+
+The repair projects effective resource `value`/`max` into detached source snapshots and independently
+makes damage clamp only at zero and healing never lower current values. The fixture still authors
+base/value without persisting maximum. Both Hit and Miss need fresh maintainer-run evidence on the
+new repair commit. **LIVE QA PENDING.**
+
 ## Confirmed production path
 
 `module/documents/item.mjs` implements the real `WildPathItem#use()`. It builds an intent with
@@ -86,6 +126,10 @@ or deleted by the helper.
 
 The chosen Player owns the source; the target grants that Player observer permission. Resource
 preparation uses the actual resource schema (`base`, `value`); HP starts at 30 and Action at 1.
+No creation or preparation block manually persists health `max`. Before arming each case, GM
+preparation asserts the actual synthetic target's prepared health is `value === 30` and `max === 30`.
+The Player checks both effective values again before declaration. An incorrect effective resource
+state therefore stops preparation/declaration, while the Hit acceptance remains HP 30 -> 24.
 The active Item contributes a persisted `attack.weapon` modifier of +4. Its ActionDefinition requires
 one target, costs one Action, has 5 ft reach, and deals a fixed 6 slashing damage.
 

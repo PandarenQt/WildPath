@@ -38,9 +38,23 @@ Foundry Actor documents and their `system` DataModels are runtime handles. Befor
 system state enters `ResolutionState.input.actorSystem`, the Foundry boundary calls
 `foundryActorSystemSnapshot(actor)` from `module/adapters/foundry-v14-actor-system-adapter.mts`.
 It explicitly obtains `actor.toObject(true).system`, then validates and detaches that plain source
-object with the existing `clonePlainData` helper. Unknown source fields are preserved. Derived
-runtime values and DataModel prototypes are not state input; combat statistics continue through
-their existing explicit snapshot path.
+object with the existing `clonePlainData` helper. This source snapshot preserves synthetic deltas,
+authored fields, and unknown/homebrew data, but source serialization alone is not the effective
+mechanical state: resource `max` can still contain its schema initial value even after preparation
+has computed a different maximum.
+
+The same canonical adapter therefore overlays only prepared `value` and `max` for source-defined
+`resources` and custom `pools`, read from the exact supplied Actor's `system`. Built-ins are matched
+by key; pools are matched by ID while retaining source order and thus persisted index update paths.
+Each copied output must be a finite, non-negative number; invalid/missing effective outputs and
+ambiguous prepared pool IDs fail at this boundary rather than falling back to stale source values.
+A field absent from both source and prepared data remains absent. Source `base`, `bonus`, recovery,
+pool IDs/labels, and unknown fields remain detached and unchanged. Transient `modifierBonus` and
+runtime modifier objects are not copied; their contribution is already included in effective `max`.
+
+This is an explicit projection of canonical mechanical outputs needed by pure staged rules, not
+permission to serialize arbitrary prepared DataModel state. No DataModel prototype or runtime handle
+enters the snapshot. Combat statistics continue through their existing explicit authority path.
 
 `foundryActionIntentToStagedOptions()` supplies both `actorSystem` (plain snapshot) and `actor`
 (runtime document for commit). For an unlinked Token, pass its actual `token.actor`; the helper
@@ -51,8 +65,9 @@ Ordinary Action reconstruction also retains `targetActors` as live documents for
 ownership, and persistence while supplying `durability.targetSystems` as detached plain snapshots.
 The Foundry boundary snapshots each resolved target Actor once with the same helper and associates
 its UUID, Actor ID, canonical `actor:<id>`, and original reference aliases with that snapshot.
-Synthetic targets use the resolved Token Actor's source state, including its delta, never the base
-world Actor. Invalid target serialization rejects the intent with the target reference before a
+Synthetic targets use the resolved Token Actor's source state, including its delta, and that same
+Actor's prepared resource outputs, never the base world Actor. Invalid target serialization or
+resource projection rejects the intent with the target reference before a
 staged state is created. Damage and Healing both consume this explicit durability lookup; the
 generic fallback for callers with plain `system`/`actorSystem` inputs is unchanged.
 
@@ -73,6 +88,21 @@ callers supply plain objects directly, without a Foundry adapter. A live DataMod
 the system service remains invalid and is rejected by the unchanged ResolutionState validator.
 Child planning failure still fails closed; movement keeps its completed, paid prefix and
 interrupts the remaining suffix without committing a reaction resource or effect.
+
+### Nearby resource consumers
+
+Action economy discovery/payment (`economyResourcesFromActorResources`, `ResourceResolver`) and
+`resource-current` / `resource-max` value expressions consume these corrected effective inputs in
+the staged Action path. Damage, Healing, and absorption share the corrected target snapshot lookup.
+Reaction providers using the canonical helper receive the same contract; pure callers remain
+responsible for supplying effective plain data.
+
+Foundry movement budget projection, Actor spend/refresh helpers, and sheet view models already
+read prepared `actor.system` resources directly at their own boundaries; they do not reconstruct
+resource maxima from raw source. The live QA base-Actor source snapshots deliberately remain source
+snapshots because they audit persisted isolation, not rules inputs. Direct plain-data payment callers
+can still supply inconsistent over-max state: `ResourceResolver` retains its existing upper clamp
+on payment plans. That separate payment invariant is not changed by the durability repair.
 
 ## Lifecycle
 

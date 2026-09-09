@@ -38,13 +38,100 @@ test("Foundry Actor snapshot rejects missing serialization, invalid source shape
     /Cannot snapshot Foundry Actor .*source unavailable/);
 });
 
+test("Foundry Actor snapshot overlays effective health outputs on detached source data", () => {
+  const source = {resources: {health: {base: 30, bonus: 0, max: 10, value: 30, recovery: "none",
+    homebrew: {tags: ["source"]}}}, customData: {unknown: [1]}};
+  const actor = withFoundryActorSystem({uuid: "Actor.effective", system: source});
+  actor.toObject = sourceOnly => { assert.equal(sourceOnly, true); return {system: source}; };
+  actor.system.resources.health.max = 30;
+  actor.system.resources.health.homebrew.tags = ["prepared"];
+  actor.system.runtimeHandle = actor;
+  const snapshot = foundryActorSystemSnapshot(actor);
+  assert.deepEqual(snapshot, {...source, resources: {health: {...source.resources.health, max: 30}}});
+  assert.equal(Object.getPrototypeOf(snapshot), Object.prototype);
+  assert.equal(isPlainSerializableData(snapshot), true);
+  assert.deepEqual(JSON.parse(JSON.stringify(snapshot)), snapshot);
+  assert.equal(validateResolutionStateSerializable(createActionResolutionState({actorSystem: snapshot})).ok, true);
+  source.resources.health.base = 5;
+  source.resources.health.value = 5;
+  source.resources.health.homebrew.tags.push("changed");
+  source.customData.unknown.push(2);
+  actor.system.resources.health.max = 4;
+  actor.system.resources.health.value = 4;
+  assert.deepEqual(snapshot.resources.health, {base: 30, bonus: 0, max: 30, value: 30, recovery: "none",
+    homebrew: {tags: ["source"]}});
+  assert.deepEqual(snapshot.customData, {unknown: [1]});
+  assert.equal(snapshot.runtimeHandle, undefined);
+});
+
+test("Foundry Actor snapshot includes modifier-derived maximum and prepared clamped value only", () => {
+  const source = {resources: {health: {base: 30, bonus: 2, max: 10, value: 40}}};
+  const actor = withFoundryActorSystem({uuid: "Actor.modifiers", system: source});
+  actor.toObject = () => ({system: source});
+  Object.assign(actor.system.resources.health, {modifierBonus: 3, max: 35, value: 35, runtime: actor});
+  const state = createActionResolutionState({actorSystem: foundryActorSystemSnapshot(actor)});
+  assert.deepEqual(state.input.actorSystem.resources.health, {base: 30, bonus: 2, max: 35, value: 35});
+  assert.equal(validateResolutionStateSerializable(state).ok, true);
+  assert.deepEqual(source.resources.health, {base: 30, bonus: 2, max: 10, value: 40});
+});
+
+test("Foundry Actor snapshot matches prepared custom pools by ID while preserving source order and fields", () => {
+  const source = {pools: [
+    {id: "ward", label: "Ward", base: 8, bonus: 2, value: 12, max: 0, recovery: "shortRest", homebrew: {rank: 1}},
+    {id: "focus", label: "Focus", base: 3, bonus: 0, value: 2, max: 0, recovery: "longRest"}
+  ]};
+  const actor = withFoundryActorSystem({uuid: "Actor.pools", system: source});
+  actor.toObject = () => ({system: source});
+  Object.assign(actor.system.pools[0], {value: 10, max: 10, modifierBonus: 0, runtime: actor});
+  Object.assign(actor.system.pools[1], {value: 2, max: 5, modifierBonus: 2});
+  actor.system.pools.reverse();
+  const snapshot = foundryActorSystemSnapshot(actor);
+  assert.deepEqual(snapshot.pools, [{...source.pools[0], value: 10, max: 10}, {...source.pools[1], max: 5}]);
+  assert.equal(isPlainSerializableData(snapshot), true);
+  source.pools[0].homebrew.rank = 9;
+  actor.system.pools[1].value = 0;
+  assert.equal(snapshot.pools[0].homebrew.rank, 1);
+  assert.equal(snapshot.pools[0].value, 10);
+});
+
+test("Foundry Actor snapshot rejects invalid prepared resource outputs without coercion or source fallback", () => {
+  for ( const location of ["builtin", "pool"] ) {
+    for ( const key of ["value", "max"] ) {
+      for ( const invalid of [undefined, null, -1, NaN, Infinity, "30", {}, () => 30, new FakeActorSystemDataModel({})] ) {
+        const source = {resources: {health: {value: 30, max: 10}}, pools: [{id: "ward", value: 3, max: 10}]};
+        const actor = withFoundryActorSystem({uuid: "Actor.invalid-effective", system: source});
+        actor.toObject = () => ({system: source});
+        const resource = location === "builtin" ? actor.system.resources.health : actor.system.pools[0];
+        resource[key] = invalid;
+        assert.throws(() => foundryActorSystemSnapshot(actor),
+          /Cannot snapshot Foundry Actor Actor.invalid-effective system: Prepared (resources.health|pools.ward)\.(value|max) must be a finite non-negative number/);
+      }
+    }
+  }
+});
+
+test("Foundry Actor snapshot rejects missing or ambiguous prepared pools before planning", () => {
+  const source = {pools: [{id: "ward", value: 3, max: 10}]};
+  const actor = withFoundryActorSystem({uuid: "Actor.pool-identity", system: source});
+  actor.toObject = () => ({system: source});
+  actor.system.pools.push({...actor.system.pools[0]});
+  assert.throws(() => foundryActorSystemSnapshot(actor), /pool IDs must be non-empty, unique strings/);
+  actor.system.pools = [];
+  assert.throws(() => foundryActorSystemSnapshot(actor), /prepared pools.ward must be an object/);
+});
+
 test("Foundry Actor snapshot uses the actual synthetic Actor including delta data", () => {
   const baseActor = withFoundryActorSystem({uuid: "Actor.same", system: {resources: {reaction: {value: 0}}, delta: "base"}});
   const token = {baseActor, actor: withFoundryActorSystem({uuid: "Scene.a.Token.b.Actor.same",
     system: {resources: {reaction: {value: 1}}, delta: "synthetic"}})};
+  const syntheticSource = {resources: {reaction: {value: 1}, health: {base: 30, bonus: 0, value: 30, max: 10}}, delta: "synthetic"};
+  token.actor.toObject = source => { token.actor.sourceSnapshotCalls.push(source); return {system: syntheticSource}; };
+  token.actor.system.resources.health = {base: 30, bonus: 0, value: 30, max: 35};
+  baseActor.system.resources.health = {base: 99, value: 99, max: 99};
   const snapshot = foundryActorSystemSnapshot(token.actor);
   assert.equal(snapshot.resources.reaction.value, 1);
   assert.equal(snapshot.delta, "synthetic");
+  assert.deepEqual(snapshot.resources.health, {base: 30, bonus: 0, value: 30, max: 35});
   assert.deepEqual(token.actor.sourceSnapshotCalls, [true]);
   assert.deepEqual(baseActor.sourceSnapshotCalls, []);
   snapshot.resources.reaction.value = 0;

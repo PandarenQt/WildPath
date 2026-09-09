@@ -322,6 +322,8 @@ export async function setupGM(playerId) {
       const d = documents(fixture);
       await d.sourceActor.update({"system.resources.action.value": 1});
       await d.targetActor.update({"system.resources.health.value": 30, "system.defenses.ac.value": mode === "hit" ? 1 : 100});
+      check(d.targetActor.system.resources.health.value === 30 && d.targetActor.system.resources.health.max === 30,
+        "Synthetic target effective health must be value 30 / max 30 before declaration");
       const before = capture(fixture);
       check(before.action === 1 && before.hp === 30 && before.ac === (mode === "hit" ? 1 : 100)
         && !before.sourceEffects.length && !before.targetEffects.length, "Fixture preparation mismatch");
@@ -368,7 +370,8 @@ export function setupPlayer() {
     const action = d.sourceActor.items.get(fixture.actionId);
     check(action instanceof CONFIG.Item.documentClass && action.actor === d.sourceActor
       && action.uuid === fixture.actionRef, "Expected the real embedded WildPathItem");
-    check(d.sourceActor.system.resources.action.value === 1 && d.targetActor.system.resources.health.value === 30,
+    check(d.sourceActor.system.resources.action.value === 1 && d.targetActor.system.resources.health.value === 30
+      && d.targetActor.system.resources.health.max === 30,
       "Player Documents have not received GM preparation");
     qa.arm(mode, prepared.before);
     qa.startedAt = Date.now();

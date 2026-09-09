@@ -432,7 +432,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, game=global
       targeting: spatial?.targetFootprints.length ? {candidates: spatial.targetFootprints} : null,
       context: spatial ? {spatial: spatial.context} : {},
       ...(combatStatistics.attack ? {attack: combatStatistics.attack} : {}),
-      // Rules consume detached source data; commit retains the exact live (possibly synthetic) Actors.
+      // Rules consume plain effective snapshots; commit retains the exact live (possibly synthetic) Actors.
       durability: {targetSystems},
       configuration: clonePlainData(intent.configuration ?? null, "intent.configuration"),
       persistencePort

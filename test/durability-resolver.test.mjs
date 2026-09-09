@@ -45,6 +45,57 @@ test("damage mutation planning clamps at zero and records overflow", () => {
   assert.deepEqual(plan.updates, {"system.resources.health.value": 0});
 });
 
+for ( const max of [30, 10] ) {
+  test(`six damage from 30 health applies exactly six with maximum ${max}`, () => {
+    const plan = createActorDamageMutationPlan(actorSystem({resources: {health: {value: 30, max}}}), {amount: 6});
+    assert.equal(plan.ok, true);
+    assert.equal(plan.from, 30);
+    assert.equal(plan.to, 24);
+    assert.equal(plan.max, max);
+    assert.equal(plan.appliedAmount, 6);
+    assert.equal(plan.overflow, 0);
+    assert.deepEqual(plan.updates, {"system.resources.health.value": 24});
+  });
+}
+
+test("over-max healing is a no-op with the whole request recorded as overheal", async () => {
+  const plan = createActorHealingMutationPlan(actorSystem({resources: {health: {value: 30, max: 10}}}), {amount: 6});
+  assert.equal(plan.ok, true);
+  assert.equal(plan.from, 30);
+  assert.equal(plan.to, 30);
+  assert.equal(plan.appliedAmount, 0);
+  assert.equal(plan.overheal, 6);
+  assert.deepEqual(plan.updates, {});
+  assert.equal(await commitActorDurabilityMutationPlan({update() { assert.fail("No-op healing must not persist"); }}, plan), true);
+});
+
+test("damage and healing preserve direction and amount invariants for built-ins and custom pools", () => {
+  for ( const type of ["damage", "healing"] ) {
+    for ( const value of [0, 0.5, 10, 30] ) {
+      for ( const max of [0, 0.5, 10, 30, 35] ) {
+        for ( const amount of [0, 0.25, 6, 15, 40] ) {
+          for ( const resourceId of ["health", "ward"] ) {
+            const system = actorSystem({resources: {health: {value, max}}, pools: [{id: "ward", value, max}]});
+            const plan = createActorDurabilityMutationPlan(system, {type, amount, resourceId});
+            const context = JSON.stringify({type, value, max, amount, resourceId});
+            const remainder = type === "damage" ? plan.overflow : plan.overheal;
+            assert.equal(plan.ok, true, context);
+            assert.ok(type === "damage" ? plan.to <= plan.from : plan.to >= plan.from, context);
+            assert.ok(plan.appliedAmount >= 0 && plan.appliedAmount <= amount, context);
+            assert.ok(remainder >= 0, context);
+            assert.equal(plan.appliedAmount + remainder, amount, context);
+            assert.equal(Math.abs(plan.to - plan.from), plan.appliedAmount, context);
+            if (type === "damage") assert.ok(plan.to >= 0, context);
+            else if (value <= max) assert.ok(plan.to <= max, context);
+            assert.equal(system.resources.health.value, value);
+            assert.equal(system.pools[0].value, value);
+          }
+        }
+      }
+    }
+  }
+});
+
 test("healing mutation planning clamps at maximum and records overheal", () => {
   const plan = createActorHealingMutationPlan(actorSystem(), {amount: 15});
 

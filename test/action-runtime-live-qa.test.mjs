@@ -136,6 +136,7 @@ async function playerEnvironment(t) {
     effects: [], toObject: snapshot, getStatistic: () => ({totalModifier: 0}), items: new Values(),
     getFlag: () => ({runId: f.runId})});
   const sourceActor = actor("a", f.sourceRef), targetActor = actor("b", f.targetRef);
+  targetActor.system.resources.health.max = 30;
   const source = {id: "src", uuid: "Scene.s.Token.src", actor: sourceActor, getFlag: () => f};
   const target = {id: "dst", uuid: "Scene.s.Token.dst", actor: targetActor, getFlag: () => ({runId: f.runId, role: "target"})};
   sourceActor.token = source;
@@ -200,6 +201,16 @@ test("QA refuses missing native targets before declaring and captures timeout wi
   assert.equal(qa.lastDump.resolutionId, null);
   assert.match(qa.lastDump.reason, /timeout/);
   assert.throws(() => qa.begin("hit"), /Previous case failed/);
+});
+
+test("QA refuses an incorrect prepared synthetic health maximum before Item declaration", async t => {
+  const env = await playerEnvironment(t);
+  const qa = setupPlayer();
+  env.targetActor.system.resources.health.max = 10;
+  assert.throws(() => qa.begin("hit"), /Player Documents have not received GM preparation/);
+  assert.equal(qa.mode, null);
+  assert.equal(qa.startedAt, null);
+  assert.equal(env.sent.length, 0);
 });
 
 test("runbook native-target prechecks leave the observer reusable for missing or wrong targets", async t => {
@@ -319,6 +330,8 @@ test("GM setup persists marked Documents, reads the attack domain, and prepares 
   const writes = [];
   function actor(data, uuid) {
     const a = {...structuredClone(data), uuid, items: new Values(), effects: []};
+    // Model normal Actor preparation from authored inputs, without adding max to creation data.
+    for (const resource of Object.values(a.system.resources)) resource.max = resource.base + (resource.bonus ?? 0);
     a.getFlag = (scope, key) => a.flags[scope]?.[key];
     a.toObject = () => ({system: structuredClone(a.system), effects: [], items: []});
     a.getStatistic = domain => ({totalModifier: [...a.items.values()].flatMap(i => i.system.modifiers)
@@ -351,6 +364,7 @@ test("GM setup persists marked Documents, reads the attack domain, and prepares 
     const id = `base-${game.actors.size}`;
     const a = actor({...data, id}, `Actor.${id}`);
     assert.equal(data.system.resources.health.base, 30);
+    assert.equal(data.system.resources.health.max, undefined);
     assert.equal(data.flags.wildpath[QA_FLAG].runId, "new-run");
     game.actors.set(id, a); return a;
   }}};
@@ -374,6 +388,12 @@ test("GM setup persists marked Documents, reads the attack domain, and prepares 
   assert.equal(scene.tokens.size, 2);
   assert.equal(qa.fixture.actionRef, "Scene.s.Token.token-0.Actor.base-0.Item.item");
   assert.equal(game.actors.get("base-0").items.size, 0);
+  const target = scene.tokens.get(qa.fixture.targetTokenId).actor;
+  target.system.resources.health.max = 10;
+  await assert.rejects(qa.prepare("hit"), /Synthetic target effective health must be value 30 \/ max 30/);
+  assert.equal(qa.mode, null);
+  assert.equal(env.sent.length, 0);
+  target.system.resources.health.max = 30;
   const prepared = await qa.prepare("hit");
   assert.equal(prepared.before.action, 1);
   assert.equal(prepared.before.hp, 30);

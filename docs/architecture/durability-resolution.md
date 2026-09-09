@@ -19,6 +19,13 @@ The base durability resolver does not read canvas state, inspect selected target
 resistance/immunity, or decide who has authority to update a document. Callers provide the target
 Actor system data and a resolved amount.
 
+Foundry callers obtain effective plain resource state through `foundryActorSystemSnapshot(actor)`:
+detached `actor.toObject(true).system` source data plus explicitly validated prepared `value`/`max`
+outputs for built-in resources and custom pools. Effective maximum includes authored base/bonus and
+prepared modifier contributions. The exact synthetic Token Actor is used when supplied. Damage and
+Healing do not read Foundry DataModels or compute preparation themselves; see
+[the snapshot boundary](resolution-state.md#foundry-actor-system-snapshots).
+
 `module/resolvers/damage-durability-resolver.mjs` is the pure bridge from resolved per-target
 damage to target Actor durability mutation plans. It accepts target Actor systems and optional
 damage adjustment profiles through opaque string refs such as `actor:abc123` or transitional raw
@@ -37,6 +44,7 @@ healing.
 
 - plans damage against `system.resources.health.value` by default
 - clamps at zero
+- is monotonic downward and never applies more than requested, even when current exceeds maximum
 - records `appliedAmount` and `overflow`
 - can consume a `DamageResolver` target result with a `total`
 
@@ -44,6 +52,8 @@ healing.
 
 - plans healing against `system.resources.health.value` by default
 - clamps at resource maximum
+- is monotonic upward and never applies more than requested
+- treats current above maximum as no-op healing, with the entire amount recorded as overheal
 - records `appliedAmount` and `overheal`
 
 `createActorDurabilityMutationPlan()`:
@@ -90,6 +100,39 @@ healing.
 - returns `ResolutionTransaction` operations for ActionResolver execution
 - carries rollback updates from each durability mutation plan
 - carries an optional `DocumentPersistencePort` into each transaction operation
+
+## Direction And Amount Invariants
+
+For finite non-negative resource values and requested amounts (subject to normal JavaScript number
+precision), damage uses:
+
+```text
+to = max(current - amount, 0)
+appliedAmount = current - to
+overflow = max(amount - appliedAmount, 0)
+```
+
+Thus `to <= from`, `0 <= appliedAmount <= amount`, `overflow >= 0`, and
+`appliedAmount + overflow = amount`. The upper resource maximum does not clamp damage. For example,
+current 30, maximum 10, and amount 6 plans 30 -> 24, applied 6, overflow 0. A stale upper maximum
+must never convert 6 requested damage into 20 applied damage. Damage beyond zero still overflows:
+current 10 and amount 15 plans 10 -> 0, applied 10, overflow 5.
+
+Healing uses:
+
+```text
+to = max(current, min(current + amount, max))
+appliedAmount = to - current
+overheal = max(amount - appliedAmount, 0)
+```
+
+Thus `to >= from`, `0 <= appliedAmount <= amount`, `overheal >= 0`, and
+`appliedAmount + overheal = amount`. For valid current <= maximum, healing still clamps at the
+effective maximum. For current > maximum, it preserves current with no update and records all
+requested healing as overheal. It never lowers a resource to repair an inconsistent maximum.
+These policies also apply to custom pools and absorption healing through the same planner.
+Missing-resource and invalid-amount checks remain in place; this is not a replacement for Actor
+preparation or a general resource-data migration.
 
 ## What It Does Not Do Yet
 

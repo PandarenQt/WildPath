@@ -106,10 +106,12 @@ export function createActorDurabilityMutationPlan(actorSystem, {
     });
   }
 
-  const to = type === DURABILITY_CHANGE_TYPES.DAMAGE
-    ? clamp(ref.current - normalizedAmount, 0, ref.max)
-    : clamp(ref.current + normalizedAmount, 0, ref.max);
-  const appliedAmount = Math.abs(to - ref.current);
+  // A stale upper maximum must not amplify damage or turn healing into resource loss.
+  const isDamage = type === DURABILITY_CHANGE_TYPES.DAMAGE;
+  const to = isDamage
+    ? Math.max(ref.current - normalizedAmount, 0)
+    : Math.max(ref.current, Math.min(ref.current + normalizedAmount, ref.max));
+  const appliedAmount = isDamage ? ref.current - to : to - ref.current;
   const remainder = Math.max(normalizedAmount - appliedAmount, 0);
   const updates = to === ref.current ? {} : {[ref.path]: to};
 
@@ -206,10 +208,6 @@ function normalizeAmount(amount) {
   const number = Number(amount);
   if ( !Number.isFinite(number) || number < 0 ) return null;
   return number;
-}
-
-function clamp(value, min, max) {
-  return Math.min(Math.max(value, min), max);
 }
 
 function clonePlain(value) {
