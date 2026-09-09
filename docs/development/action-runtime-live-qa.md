@@ -1,6 +1,8 @@
 ## STOP CONDITIONS
 
-Stop this run on the first failed assertion, error envelope, failed/cancelled state, or timeout.
+After `qa.begin()` starts a case, stop this run on the first failed assertion, error envelope,
+failed/cancelled state, or timeout. A native-target precheck before `qa.begin()` may report
+`TARGET NOT READY`; correct the selection and repeat that precheck without resetting the observer.
 Save the retained dumps from both clients. Do not retry the Action, reset resources during resolution,
 substitute a linked source, answer a roll manually, or weaken an assertion to obtain a pass.
 
@@ -24,13 +26,34 @@ from the ordinary staged transaction. Preparation is allowed only before declari
 # Production Action runtime live QA: persisted melee Hit/Miss
 
 **LIVE QA PENDING.** Starting code baseline: `61d6268b838e286728c829924506c6c931174621`.
-Baseline automated verification: 729/729. Automated tests and console-block parsing do not establish
+Initial milestone baseline: 729/729 automated tests; pre-repair commit `46ae14d`: 740/740.
+Automated tests and console-block parsing do not establish
 live acceptance. Record the actual tested milestone commit and both client dumps when the maintainer
 runs this gate. Movement/reaction live acceptance does not close this ordinary Action gate.
 
 This is limited to melee Hit and Miss. Ranged attacks, saves, healing, conditions, areas, physical/manual
 dice, reactions, movement, configuration choices, HUD/chat presentation, and content expansion remain
 outside this gate.
+
+## Failed historical live run — Foundry V14.367
+
+This is historical failure evidence on `46ae14d82dc8b31ec5a88a8b00de81b455b3d217`, **not acceptance**.
+Run `sXvAPXmBNDso7bg8`, resolution `resolution:multiplayer:wr36w407`, passed Item.use declaration,
+native targeting, active-GM routing, synthetic source/target reconstruction, TacticalGrid 5 ft reach,
+Actor-derived `attack.weapon` +4, source-controller roll routing, and a real `foundry-digital` Hit:
+natural 15 + 4 = 19 against AC 1.
+
+It failed at `action.damage` because a live target `Actor.system` DataModel entered
+`durability.targetSystems`. The retained error was:
+
+```text
+input.durability.targetSystems.Scene.q2HthP7tg8690hK6.Token.VHqbArHuAS68kTgR.Actor.q3BUhuXMr7X3EXeh must be plain JSON-serializable data.
+```
+
+`mutationPlans = []`, `transaction = null`, source Action remained 1, and target HP remained 30.
+No mutation or transaction occurred. The repair supplies detached target snapshots at the Foundry
+boundary while retaining live target Documents for commit. Both Hit and Miss must be rerun on the
+repair commit. **LIVE QA PENDING.**
 
 ## Confirmed production path
 
@@ -91,10 +114,12 @@ attack statistic/outcome/defense, target refs/footprints/range, mutation plans, 
 errors, a trace tail, before/after HP/resource/base-Actor snapshots, and observed envelopes. The
 Player also retains the terminal result envelope accepted by its coordinator. Arrays/strings/depth
 are bounded with explicit truncation markers; assertions inspect the full contracts.
+When the stage runner supplies only a failure code, the Player's existing error envelope now also
+receives the GM's recorded reason, limited to 1,024 characters. Keep the GM dump for full provenance.
 
-Each client has its own JS memory. The documented clipboard handoff combines the GM record and the
-Player's received result in one `lastCombinedDump`, checking run, case, resolution, and user IDs.
-This copies diagnostics only; it does not send or replay gameplay messages.
+Each client has its own JS memory. GM and Player independently export their retained dumps.
+Supply both files to the maintainer and compare run, case, resolution, and user IDs. No browser
+dialog or gameplay transport is used to transfer QA evidence.
 
 ## 0. Preconditions — GM and PLAYER
 
@@ -106,15 +131,20 @@ holds explicit session state established by setup. Do not edit an earlier block.
 
 ## 1. GM — create persisted fixture and start observation
 
-Choose the initiating Player's ID from the prompt's active-player list.
+Log in exactly one non-GM Player. The block enumerates active Players and selects that sole Player;
+otherwise it prints IDs and stops before importing setup or creating any Documents. Adjust which
+Players are logged in, then paste this complete block again.
 
 ```js
 {
-  const {setupGM} = await import("/systems/wildpath/docs/development/action-runtime-live-qa.mjs");
   const players = [...game.users].filter(u => u.active && !u.isGM);
-  const playerId = prompt("Initiating Player ID:\n" + players.map(u => `${u.id}: ${u.name}`).join("\n"));
-  if (!playerId) throw new Error("STOP: Player ID is required; nothing created.");
-  await setupGM(playerId.trim());
+  console.table(players.map(u => ({id: u.id, name: u.name})));
+  if (players.length !== 1) {
+    console.warn("STOP: exactly one active non-GM Player is required; no Documents created.");
+  } else {
+    const {setupGM} = await import("/systems/wildpath/docs/development/action-runtime-live-qa.mjs");
+    await setupGM(players[0].id);
+  }
 }
 ```
 
@@ -152,12 +182,7 @@ target selection.
 {
   const qa = globalThis.wpActionRuntimeQA;
   if (qa?.role !== "player") throw new Error("Run Player setup first.");
-  try {
-    const targets = [...game.user.targets].map(t => t.document);
-    if (targets.length !== 1 || targets[0].id !== qa.fixture.targetTokenId)
-      throw new Error("Use native targeting to target only QA melee target.");
-    console.log("Native target proof", {token: targets[0].uuid, actor: targets[0].actor.uuid});
-  } catch (error) { throw qa.fail(error); }
+  qa.targetReady();
 }
 ```
 
@@ -167,7 +192,7 @@ target selection.
 {
   const qa = globalThis.wpActionRuntimeQA;
   if (qa?.role !== "player") throw new Error("Run Player setup first.");
-  try {
+  if (qa.targetReady()) try {
     qa.begin("hit");
     const sourceActor = canvas.scene.tokens.get(qa.fixture.sourceTokenId).actor;
     const action = sourceActor.items.get(qa.fixture.actionId);
@@ -212,7 +237,7 @@ The GM's `hitDump` is retained independently before the next preparation.
 Requires the initiating Player's coordinator to have received the active GM's successful completed
 result for the same resolution, with digital provenance, the Hit outcome, and replicated persistence.
 
-## 8. GM then PLAYER — retain one combined Hit dump
+## 8. GM then PLAYER — export separate Hit dumps
 
 **GM**, copy its retained evidence to the clipboard (DevTools `copy`):
 
@@ -224,20 +249,19 @@ result for the same resolution, with digital provenance, the Hit outcome, and re
 }
 ```
 
-**PLAYER**, paste the clipboard into the prompt:
+Save the GM clipboard to a file before copying the Player dump. **PLAYER**:
 
 ```js
 {
   const qa = globalThis.wpActionRuntimeQA;
   if (qa?.role !== "player" || !qa.passed.hit) throw new Error("Player Hit proof has not passed.");
-  try {
-    const combined = qa.attachGM(prompt("Paste the GM Hit dump JSON:"));
-    if (!combined.gm.proofPassed || combined.gm.mode !== "hit") throw new Error("GM Hit proof is missing.");
-    qa.hitCombinedDump = combined;
-    console.log("PASS: complete Hit gate; preserve wpActionRuntimeQA.hitCombinedDump.");
-  } catch (error) { throw qa.fail(error); }
+  copy(JSON.stringify(qa.hitDump));
+  console.log("Player Hit evidence", qa.hitDump);
 }
 ```
+
+Save both dumps independently. Confirm both `proofPassed` values are true and their `runId`,
+`mode`, `resolutionId`, `authorityUserId`, and `playerId` match before preparing Miss.
 
 ## 9. GM — prepare Miss after both Hit proofs pass
 
@@ -260,13 +284,8 @@ Use Foundry's normal target tool again if needed. Target only **QA melee target*
 ```js
 {
   const qa = globalThis.wpActionRuntimeQA;
-  if (qa?.role !== "player" || !qa.hitCombinedDump) throw new Error("Complete both Hit proofs first.");
-  try {
-    const targets = [...game.user.targets].map(t => t.document);
-    if (targets.length !== 1 || targets[0].id !== qa.fixture.targetTokenId)
-      throw new Error("Use native targeting to target only QA melee target.");
-    console.log("Native target proof", {token: targets[0].uuid, actor: targets[0].actor.uuid});
-  } catch (error) { throw qa.fail(error); }
+  if (qa?.role !== "player" || !qa.passed.hit) throw new Error("Complete both Hit proofs first.");
+  qa.targetReady();
 }
 ```
 
@@ -276,7 +295,7 @@ Use Foundry's normal target tool again if needed. Target only **QA melee target*
 {
   const qa = globalThis.wpActionRuntimeQA;
   if (qa?.role !== "player") throw new Error("Run Player setup first.");
-  try {
+  if (qa.targetReady()) try {
     qa.begin("miss");
     const sourceActor = canvas.scene.tokens.get(qa.fixture.sourceTokenId).actor;
     const action = sourceActor.items.get(qa.fixture.actionId);
@@ -313,7 +332,7 @@ Requires a new resolution ID, one real digital roll routed to the Player, AC 100
 }
 ```
 
-## 14. GM then PLAYER — retain one combined Miss dump
+## 14. GM then PLAYER — export separate Miss dumps
 
 **GM**:
 
@@ -321,6 +340,7 @@ Requires a new resolution ID, one real digital roll routed to the Player, AC 100
 {
   const qa = globalThis.wpActionRuntimeQA;
   if (qa?.role !== "gm" || !qa.passed.miss) throw new Error("GM Miss proof has not passed.");
+  if (qa.missDump.resolutionId === qa.hitDump?.resolutionId) throw qa.fail(new Error("Cases reused a resolution ID."));
   copy(JSON.stringify(qa.missDump));
 }
 ```
@@ -331,16 +351,16 @@ Requires a new resolution ID, one real digital roll routed to the Player, AC 100
 {
   const qa = globalThis.wpActionRuntimeQA;
   if (qa?.role !== "player" || !qa.passed.miss) throw new Error("Player Miss proof has not passed.");
-  try {
-    const combined = qa.attachGM(prompt("Paste the GM Miss dump JSON:"));
-    if (!combined.gm.proofPassed || combined.gm.mode !== "miss") throw new Error("GM Miss proof is missing.");
-    if (combined.gm.resolutionId === qa.hitCombinedDump?.gm.resolutionId) throw new Error("Cases reused a resolution ID.");
-    qa.missCombinedDump = combined;
-    copy(JSON.stringify({hit: qa.hitCombinedDump, miss: qa.missCombinedDump}));
-    console.log("PASS: both live cases. Save clipboard evidence and record the tested Git SHA before cleanup.");
-  } catch (error) { throw qa.fail(error); }
+  if (qa.missDump.resolutionId === qa.hitDump?.resolutionId) throw qa.fail(new Error("Cases reused a resolution ID."));
+  copy(JSON.stringify(qa.missDump));
+  console.log("Player Miss evidence", qa.missDump);
 }
 ```
+
+Save each clipboard to its own file. Compare GM/Player IDs as in Step 8, confirm both Miss proofs
+passed and that the Miss resolution ID differs from Hit. Supply all four dumps and the tested Git
+SHA to the maintainer before cleanup. Separate exports are sufficient; no combined browser paste
+is required.
 
 ## On any failure — GM and PLAYER retained diagnostics
 
@@ -355,18 +375,6 @@ the Action again. If a setup failed before observation started, the GM has clean
   if (!dump) throw new Error("No QA session evidence exists on this client; save the setup console error.");
   console.log(JSON.stringify(dump, null, 2));
   copy(JSON.stringify(dump));
-}
-```
-
-When both dumps have the same non-null resolution ID, **PLAYER** can combine the GM's exported
-failure dump with its local evidence in one object:
-
-```js
-{
-  const qa = globalThis.wpActionRuntimeQA;
-  if (qa?.role !== "player") throw new Error("Run on the initiating Player.");
-  qa.attachGM(prompt("Paste the GM failure dump JSON:"));
-  copy(JSON.stringify(qa.lastCombinedDump));
 }
 ```
 
@@ -388,8 +396,7 @@ Cleanup may then use the exact saved run ID. Do not manually resume the failed r
   if (qa && qa.role !== "player") throw new Error("Run on the Player.");
   if (qa) {
     qa.detach();
-    globalThis.wpActionRuntimeQAArchive = {hit: qa.hitCombinedDump ?? qa.hitDump,
-      miss: qa.missCombinedDump ?? qa.missDump, last: qa.lastCombinedDump ?? qa.lastDump};
+    globalThis.wpActionRuntimeQAArchive = {hit: qa.hitDump, miss: qa.missDump, last: qa.lastDump};
     delete globalThis.wpActionRuntimeQA;
   }
 }
@@ -402,8 +409,13 @@ Cleanup may then use the exact saved run ID. Do not manually resume the failed r
   const {cleanupGM, QA_FLAG} = await import("/systems/wildpath/docs/development/action-runtime-live-qa.mjs");
   const runs = [...new Set([...game.actors].map(a => a.getFlag("wildpath", QA_FLAG)?.runId).filter(Boolean))];
   const runId = globalThis.wpActionRuntimeQA?.fixture.runId ?? globalThis.wpActionRuntimeQASetup?.runId
-    ?? prompt("Exact saved QA run ID to remove (marked runs: " + runs.join(", ") + "):");
-  await cleanupGM(runId);
+    ?? (runs.length === 1 ? runs[0] : null);
+  if (!runId) {
+    console.table(runs.map(id => ({runId: id})));
+    console.warn("STOP: no unique QA run to remove; retain these IDs for explicit recovery cleanup.");
+  } else {
+    await cleanupGM(runId);
+  }
 }
 ```
 
@@ -416,5 +428,5 @@ Documents. The maintainer may delete the empty test Scene through normal Foundry
 Until the maintainer has run and supplied both Hit and Miss evidence, status remains
 **LIVE QA PENDING**. Record Foundry build, tested milestone SHA, GM/Player IDs, both resolution IDs,
 provider/method/source, natural/total/modifier/AC/outcome, HP/resource deltas, base-Actor isolation,
-and the combined dumps. Do not infer acceptance from Node tests, a successful declaration, or only
+and both clients' separate dumps. Do not infer acceptance from Node tests, a successful declaration, or only
 one completed case.

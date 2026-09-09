@@ -21,6 +21,7 @@ test("every Action live QA console block parses and both case declarations call 
   assert.equal(declarations.length, 2);
   for (const block of declarations) assert.match(block, /sourceActor\.items\.get\(qa\.fixture\.actionId\)/);
   for (const block of blocks) assert.doesNotMatch(block, /executeActionIntent\(|createTestRollProvider\(|targetRefs\s*:/);
+  for (const block of blocks) assert.doesNotMatch(block, /\bprompt\s*\(/);
   assert.ok(guide.startsWith("## STOP CONDITIONS"));
   assert.ok(guide.indexOf("## CONTINUE CONDITIONS") < guide.indexOf("```js"));
 });
@@ -199,6 +200,65 @@ test("QA refuses missing native targets before declaring and captures timeout wi
   assert.equal(qa.lastDump.resolutionId, null);
   assert.match(qa.lastDump.reason, /timeout/);
   assert.throws(() => qa.begin("hit"), /Previous case failed/);
+});
+
+test("runbook native-target prechecks leave the observer reusable for missing or wrong targets", async t => {
+  const env = await playerEnvironment(t);
+  const qa = setupPlayer();
+  t.mock.method(console, "warn", () => {});
+  t.mock.method(console, "log", () => {});
+  const blocks = [...guide.matchAll(/```js\r?\n([\s\S]*?)```/g)].map(m => m[1]);
+  const AsyncFunction = Object.getPrototypeOf(async function() {}).constructor;
+  const hitPrecheck = blocks.find(b => b.includes("qa.targetReady();"));
+  const hitUse = blocks.find(b => b.includes('qa.begin("hit")'));
+  for (const targets of [[], [{document: env.scene.tokens.get("src")}]]) {
+    env.game.user.targets = new Set(targets);
+    await new AsyncFunction(hitPrecheck)();
+    await new AsyncFunction(hitUse)();
+    assert.equal(qa.failed, false);
+    assert.equal(qa.mode, null);
+    assert.equal(qa.startedAt, null);
+    assert.equal(qa.resolutionId, null);
+    assert.equal(env.sent.length, 0);
+  }
+  assert.ok(console.warn.mock.calls.every(c => c.arguments[0].startsWith("TARGET NOT READY")));
+  env.game.user.targets = new Set([{document: env.scene.tokens.get("dst")}]);
+  await new AsyncFunction(hitUse)();
+  assert.equal(qa.declared, true);
+  assert.equal(env.sent.length, 1);
+  assert.equal(qa.resolutionId, env.sent[0].resolutionId);
+});
+
+test("runbook player selection stops before setup for zero or multiple active Players without browser dialogs", async t => {
+  const env = await playerEnvironment(t);
+  t.mock.method(console, "table", () => {});
+  t.mock.method(console, "warn", () => {});
+  const block = [...guide.matchAll(/```js\r?\n([\s\S]*?)```/g)].map(m => m[1])
+    .find(b => b.includes("await setupGM("));
+  const AsyncFunction = Object.getPrototypeOf(async function() {}).constructor;
+  env.game.users.get("p").active = false;
+  await new AsyncFunction(block)();
+  env.game.users.get("p").active = true;
+  env.game.users.set("p2", {id: "p2", name: "second", active: true, isGM: false});
+  await new AsyncFunction(block)();
+  assert.equal(console.warn.mock.calls.length, 2);
+  assert.equal(globalThis.wpActionRuntimeQA, undefined);
+  assert.equal(env.sent.length, 0);
+});
+
+test("runbook keeps strict failure handling after begin when Item declaration fails", async t => {
+  const env = await playerEnvironment(t);
+  const qa = setupPlayer();
+  t.mock.method(console, "log", () => {});
+  t.mock.method(console, "error", () => {});
+  t.mock.method(env.action, "use", async () => false);
+  const block = [...guide.matchAll(/```js\r?\n([\s\S]*?)```/g)].map(m => m[1])
+    .find(b => b.includes('qa.begin("hit")'));
+  const AsyncFunction = Object.getPrototypeOf(async function() {}).constructor;
+  await assert.rejects(new AsyncFunction(block)(), /Item.use\(\) declaration failed/);
+  assert.equal(qa.failed, true);
+  assert.ok(qa.startedAt);
+  assert.equal(qa.lastDump.declarationSuccess, false);
 });
 
 test("QA captures a routed provider error and rejects a second declaration in one case", async t => {

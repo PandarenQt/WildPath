@@ -302,6 +302,29 @@ test("player action intent routes to active GM authority, remote attack roll, si
   assert.equal(hub.messages.some(message => message.messageType === MULTIPLAYER_MESSAGE_TYPES.RESOLUTION_RESULT), true);
 });
 
+test("authoritative stage failures project a bounded plain reason to the initiating Player", async () => {
+  const fixture = attackFixture();
+  fixture.action = actionItem({schemaVersion: 1, id: "action:invalid-target-system",
+    targeting: {type: "single", required: true, count: 1}});
+  // Invalid generic caller reproduces the validator failure without weakening the Foundry boundary.
+  const longRef = `Scene.${"x".repeat(1400)}.Token.target.Actor.model`;
+  fixture.targetActors = {[longRef]: {system: Object.create({runtimeOnly: true})}};
+  const {gm, player, playerB} = setupClients({gmResolver: createFixtureResolver(fixture)});
+  const declared = await player.declareActionIntent({actorRef: fixture.actor.uuid, actionRef: fixture.action.uuid});
+  const record = gm.getRecord(declared.resolutionId);
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.FAILED);
+  const stageReason = record.state.errors[0].reason;
+  assert.match(stageReason, /input.durability.targetSystems.*must be plain JSON-serializable data/);
+  assert.ok(stageReason.length > 1024);
+  const failure = player.errors.find(e => e.envelope?.resolutionId === declared.resolutionId);
+  assert.equal(failure.error.reason, stageReason.slice(0, 1024));
+  assert.equal(failure.error.reason.length, 1024);
+  assert.equal(failure.error.state, undefined);
+  assert.equal(failure.error.errors, undefined);
+  assert.equal(playerB.errors.length, 0);
+  assert.equal(fixture.persistencePort.operations.length, 0);
+});
+
 test("configured action choice and damage roll are routed to the source controller and spend resources only at authority commit", async () => {
   const sourceSystem = spellcastingActorSystem();
   const fixture = attackFixture({sourceSystem});

@@ -5,13 +5,14 @@ import {fileURLToPath} from "node:url";
 import {ECONOMY_CAPABILITIES} from "../module/helpers/action-economy.mjs";
 import {CREATURE_SIZES} from "../module/helpers/grid-footprints.mjs";
 import {RESOLUTION_STATE_STATUS, validateResolutionStateSerializable} from "../module/helpers/resolution-state.mjs";
-import {planStagedActionResolution} from "../module/resolvers/action-pipeline-resolver.mjs";
+import {createActionResolutionState, planStagedActionResolution} from "../module/resolvers/action-pipeline-resolver.mjs";
 import {withFoundryActorSystem} from "./fixtures/foundry-actor-system.mjs";
 import {
   MULTIPLAYER_AUTHORITY_CODES,
   MULTIPLAYER_MESSAGE_TYPES,
   createResolutionSocketEnvelope
 } from "../module/helpers/multiplayer-authority.mjs";
+import {isPlainSerializableData} from "../module/helpers/multiplayer-authority.mjs";
 import {createTestResolutionTransportHub} from "../module/adapters/test-resolution-transport.mjs";
 import {createTestDocumentPersistenceAdapter} from "../module/adapters/test-persistence-adapter.mjs";
 import {createMultiplayerActionCoordinator} from "../module/resolvers/multiplayer-action-coordinator.mjs";
@@ -192,6 +193,38 @@ function meleeStrikeDefinition() {
       provenance: "weapon-base"
     }]
   };
+}
+
+// Synthetic Actors deliberately differ from their world bases and expose non-plain DataModels.
+function syntheticRuntimeFixture(t, definition=meleeStrikeDefinition()) {
+  const scene = fakeScene(new FakeSquareGrid(), {id: "scene-models"});
+  const sourceActor = withFoundryActorSystem(fakeActor("source-model", {system: actorSystem(),
+    statistics: {"attack.weapon": runtimeStatistic("attack.weapon", 4)}}));
+  const targetActor = withFoundryActorSystem(fakeActor("target-model", {system: targetActorSystem(20, 30, {ac: 14})}));
+  const sourceBase = withFoundryActorSystem(fakeActor(sourceActor.id, {system: actorSystem()}));
+  sourceBase.system.resources.action.value = 0;
+  const targetBase = withFoundryActorSystem(fakeActor(targetActor.id, {system: targetActorSystem(99, 99)}));
+  const sourceToken = fakeTokenDocument({id: "source-token", actor: sourceActor, scene, offset: {i: 0, j: 0}});
+  const targetToken = fakeTokenDocument({id: "target-token", actor: targetActor, scene, offset: {i: 1, j: 0}});
+  for (const [actor, token] of [[sourceActor, sourceToken], [targetActor, targetToken]]) {
+    actor.uuid = `${token.uuid}.Actor.${actor.id}`;
+    actor.isToken = true; actor.token = token; actor.tokens = [token];
+  }
+  scene.tokens = [sourceToken, targetToken];
+  const action = actionItem(definition);
+  action.uuid = `${sourceActor.uuid}.Item.${action.id}`;
+  action.actor = sourceActor;
+  sourceActor.items = new Map([[action.id, action]]);
+  const refs = new Map([sourceActor, targetActor, action].map(d => [d.uuid, d]));
+  refs.set("Actor.target-alias", targetActor);
+  const previous = globalThis.fromUuid;
+  globalThis.fromUuid = async ref => refs.get(ref) ?? null;
+  t.after(() => { if (previous === undefined) delete globalThis.fromUuid; else globalThis.fromUuid = previous; });
+  const game = fakeGame({actors: [sourceBase, targetBase], scenes: [scene]});
+  const built = buildFoundryActionUseIntent({actor: sourceActor, action,
+    game: {user: {targets: new Set([{document: targetToken}])}}});
+  assert.equal(built.ok, true);
+  return {scene, sourceActor, targetActor, sourceBase, targetBase, sourceToken, targetToken, action, game, intent: built.intent};
 }
 
 /* -------------------------------------------- */
@@ -394,21 +427,8 @@ test("production Action intent conversion rejects ambiguous source Actors with m
 /*  Multiplayer production entry                 */
 /* -------------------------------------------- */
 
-test("a player's Action use reaches the staged pipeline through the production multiplayer entry point with a real TacticalGrid footprint", async () => {
-  const grid = new FakeSquareGrid();
-  const scene = fakeScene(grid, {id: "scene-mp"});
-  const sourceActor = fakeActor("actor-source", {
-    system: actorSystem(),
-    statistics: {"attack.weapon": runtimeStatistic("attack.weapon", 4)}
-  });
-  const targetActor = fakeActor("actor-enemy", {system: targetActorSystem(20, 20, {ac: 14})});
-  const sourceToken = fakeTokenDocument({id: "source", actor: sourceActor, scene, offset: {i: 0, j: 0}});
-  const targetToken = fakeTokenDocument({id: "enemy", actor: targetActor, scene, offset: {i: 1, j: 0}});
-  sourceActor.tokens = [sourceToken];
-  targetActor.tokens = [targetToken];
-  scene.tokens = [sourceToken, targetToken];
-  const action = actionItem(meleeStrikeDefinition());
-  const game = fakeGame({actors: [sourceActor, targetActor], items: [action], scenes: [scene]});
+test("a player's Action use reaches the staged pipeline through the production multiplayer entry point with synthetic DataModels and TacticalGrid", async t => {
+  const {sourceActor, targetActor, sourceBase, targetBase, targetToken, action, game} = syntheticRuntimeFixture(t);
   const persistencePort = createTestDocumentPersistenceAdapter();
 
   const hub = createTestResolutionTransportHub({users: [
@@ -452,18 +472,88 @@ test("a player's Action use reaches the staged pipeline through the production m
   assert.equal(declared.authorityUserId, "gm-a");
 
   const record = gm.getRecord(declared.resolutionId);
-  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED);
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors));
   assert.ok(record.options.context.spatial, "The production multiplayer entry point must reach a real TacticalGrid spatial context.");
   assert.equal(record.options.context.spatial.sourceFootprint.fields.length >= 1, true);
   assert.equal(record.options.attack.modifierTotal, 4);
   assert.equal(record.state.results.attackResolution.results[0].defense.value, 14);
   assert.equal(record.state.results.attackResolution.hits.length, 1);
+  assert.equal(isPlainSerializableData(sourceActor.system), false);
+  assert.equal(isPlainSerializableData(targetActor.system), false);
+  assert.equal(isPlainSerializableData(record.state.input.actorSystem), true);
+  assert.equal(isPlainSerializableData(record.state.input.durability.targetSystems), true);
+  assert.equal(validateResolutionStateSerializable(record.state).ok, true);
+  assert.equal(record.options.targetActors[targetActor.uuid], targetActor);
+  assert.equal(record.state.input.durability.targetSystems[targetActor.uuid].resources.health.value, 20);
+  assert.equal(record.state.completedStageIds.includes("action.damage"), true);
+  assert.equal(record.state.completedStageIds.includes("action.commit"), true);
+  assert.equal(record.state.results.actionResult.steps.findLast(s => s.data?.transaction).data.transaction.ok, true);
 
   assert.equal(targetActor.system.resources.health.value, 14);
   assert.equal(sourceActor.system.resources.action.value, 0);
+  assert.equal(sourceBase.system.resources.action.value, 0);
+  assert.equal(targetBase.system.resources.health.value, 99);
+  assert.deepEqual(targetBase.sourceSnapshotCalls, []);
+  assert.deepEqual(persistencePort.operations.filter(o => o.type === "updateActor").map(o => o.actorRef).sort(),
+    [sourceActor.uuid, targetActor.uuid].sort());
 
   const result = player.getResult(declared.resolutionId);
   assert.equal(result.status, RESOLUTION_STATE_STATUS.COMPLETED);
+});
+
+test("target snapshots retain all live-document aliases, serialize once, and detach synthetic source data", async t => {
+  const f = syntheticRuntimeFixture(t);
+  const resolved = await foundryActionIntentToStagedOptions({intent: {...f.intent,
+    targetRefs: [...f.intent.targetRefs, {actorRef: "Actor.target-alias"}]}, game: f.game});
+  assert.equal(resolved.ok, true, resolved.reason);
+  const systems = resolved.options.durability.targetSystems;
+  assert.ok(systems, "Foundry reconstruction must provide explicit plain target systems");
+  const snapshot = systems[f.targetActor.uuid];
+  for (const key of [f.targetActor.uuid, f.targetActor.id, `actor:${f.targetActor.id}`, "Actor.target-alias"]) {
+    assert.equal(resolved.options.targetActors[key], f.targetActor);
+    assert.equal(systems[key], snapshot);
+  }
+  assert.deepEqual(f.targetActor.sourceSnapshotCalls, [true]);
+  assert.deepEqual(f.targetBase.sourceSnapshotCalls, []);
+  assert.equal(isPlainSerializableData(f.targetActor.system), false);
+  assert.equal(isPlainSerializableData(systems), true);
+  assert.equal(snapshot.resources.health.value, 20);
+  assert.equal(validateResolutionStateSerializable(createActionResolutionState(resolved.options)).ok, true);
+  snapshot.resources.health.value = 1;
+  assert.equal(f.targetActor.system.resources.health.value, 20);
+  assert.equal(f.targetBase.system.resources.health.value, 99);
+});
+
+test("invalid target source serialization rejects the Action intent with the synthetic target identity", async t => {
+  const f = syntheticRuntimeFixture(t);
+  f.targetActor.toObject = () => ({system: f.targetActor.system});
+  const resolved = await foundryActionIntentToStagedOptions({intent: f.intent, game: f.game});
+  assert.equal(resolved.ok, false);
+  assert.equal(resolved.code, MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED);
+  assert.ok(resolved.reason.includes(f.targetActor.uuid));
+  assert.match(resolved.reason, /target|Target/);
+  assert.equal(resolved.options, undefined);
+  assert.equal(f.sourceActor.system.resources.action.value, 1);
+  assert.equal(f.targetActor.system.resources.health.value, 20);
+});
+
+test("production Healing uses the same plain synthetic target durability snapshots through both shared stages", async t => {
+  const f = syntheticRuntimeFixture(t, {schemaVersion: 1, id: "healing:model", label: "Healing model",
+    targeting: {type: "single", required: true, count: 1},
+    healing: [{id: "fixed", expression: {type: "constant", value: 6}}]});
+  const resolved = await foundryActionIntentToStagedOptions({intent: f.intent, game: f.game});
+  assert.equal(resolved.ok, true, resolved.reason);
+  const planned = await planStagedActionResolution(resolved.options);
+  assert.equal(planned.ok, true, JSON.stringify(planned.state.errors));
+  assert.equal(planned.state.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT);
+  assert.equal(planned.state.completedStageIds.includes("action.damage"), true);
+  assert.equal(planned.state.completedStageIds.includes("action.healing"), true);
+  assert.equal(planned.state.results.healingDurabilityResolution.ok, true);
+  assert.equal(planned.state.mutationPlans.some(p => p.type === "durabilityHealing"), true);
+  assert.equal(validateResolutionStateSerializable(planned.state).ok, true);
+  assert.equal(planned.state.input.durability.targetSystems[f.targetActor.uuid].resources.health.value, 20);
+  assert.equal(f.targetActor.system.resources.health.value, 20, "Planning does not commit");
+  assert.equal(f.targetBase.system.resources.health.value, 99);
 });
 
 test("production multiplayer entry point resolves Actor-derived defense misses without applying damage", async () => {

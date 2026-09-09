@@ -722,9 +722,11 @@ export function createMultiplayerActionCoordinator({
   }
 
   async function sendAuthorityError(record, result, extra={}) {
+    // The stage runner may return only FAILED; retain its useful reason without projecting runtime data.
+    const stageReason = record.state?.errors?.find(error => typeof error?.reason === "string" && error.reason)?.reason;
     const payload = {
       code: result.code ?? MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_RESOLUTION_FAILED,
-      reason: result.reason ?? result.code ?? "Authoritative resolution failed.",
+      reason: result.reason ?? stageReason?.slice(0, 1024) ?? result.code ?? "Authoritative resolution failed.",
       resolutionId: record.resolutionId,
       status: record.state?.status ?? null,
       ...clonePlainData(extra, "error.extra")

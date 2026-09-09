@@ -368,12 +368,20 @@ export async function foundryActionIntentToStagedOptions({intent={}, game=global
   const combatStatistics = combatStatisticsForAction({actor, action});
   const defenseKey = combatStatistics.defenseKey;
   const targetActors = {};
+  const targetSystems = {};
+  const systemSnapshots = new Map([[actor, actorSystem]]);
   const targets = [];
   const targetEntries = [];
   for ( const ref of normalizeArray(intent.targetRefs ?? intent.targets) ) {
     const targetRef = targetActorRefFromIntent(ref);
     const targetActor = await resolveFoundryDocumentRef(targetRef, {game, kind: "actor"});
     if ( !targetActor ) continue;
+    try {
+      if ( !systemSnapshots.has(targetActor) ) systemSnapshots.set(targetActor, foundryActorSystemSnapshot(targetActor));
+    } catch (error) {
+      return {ok: false, code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
+        reason: `Action intent target ${targetRef} could not be snapshotted: ${error.message}`};
+    }
     const target = withActorDefense({
       id: targetActor.id ?? targetRef,
       actorId: targetActor.id ?? null,
@@ -383,6 +391,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, game=global
     targets.push(target);
     for ( const key of uniqueStrings([targetActor.uuid, targetActor.id, `actor:${targetActor.id}`, targetRef]) ) {
       targetActors[key] = targetActor;
+      targetSystems[key] = systemSnapshots.get(targetActor);
     }
     targetEntries.push({
       actor: targetActor,
@@ -423,7 +432,8 @@ export async function foundryActionIntentToStagedOptions({intent={}, game=global
       targeting: spatial?.targetFootprints.length ? {candidates: spatial.targetFootprints} : null,
       context: spatial ? {spatial: spatial.context} : {},
       ...(combatStatistics.attack ? {attack: combatStatistics.attack} : {}),
-      durability: true,
+      // Rules consume detached source data; commit retains the exact live (possibly synthetic) Actors.
+      durability: {targetSystems},
       configuration: clonePlainData(intent.configuration ?? null, "intent.configuration"),
       persistencePort
     },

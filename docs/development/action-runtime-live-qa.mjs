@@ -345,6 +345,18 @@ export function setupPlayer() {
   const fixture = clone(marker(matches[0]));
   check(fixture.playerId === game.user.id, "This is not the chosen Player");
   const qa = observe(fixture, "player");
+  qa.targetReady = () => {
+    requireRuntime("player");
+    check(!qa.failed, "Previous case failed; retain diagnostics and stop");
+    const target = documents(fixture).target;
+    const selected = [...game.user.targets];
+    if (!target || selected.length !== 1 || selected[0].document?.uuid !== target.uuid) {
+      console.warn("TARGET NOT READY: use native targeting to target only QA melee target; then repeat the precheck.");
+      return false;
+    }
+    console.log("Native target proof", {token: target.uuid, actor: target.actor.uuid});
+    return true;
+  };
   qa.begin = mode => {
     requireRuntime("player");
     const d = documents(fixture), prepared = marker(d.source)?.prepared;

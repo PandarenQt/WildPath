@@ -47,6 +47,20 @@ their existing explicit snapshot path.
 never substitutes the base world Actor. Missing serialization or invalid source data fails at
 the Foundry boundary rather than falling back to a live DataModel.
 
+Ordinary Action reconstruction also retains `targetActors` as live documents for identity,
+ownership, and persistence while supplying `durability.targetSystems` as detached plain snapshots.
+The Foundry boundary snapshots each resolved target Actor once with the same helper and associates
+its UUID, Actor ID, canonical `actor:<id>`, and original reference aliases with that snapshot.
+Synthetic targets use the resolved Token Actor's source state, including its delta, never the base
+world Actor. Invalid target serialization rejects the intent with the target reference before a
+staged state is created. Damage and Healing both consume this explicit durability lookup; the
+generic fallback for callers with plain `system`/`actorSystem` inputs is unchanged.
+
+When an authoritative stage fails and its runner returns only a code, the existing multiplayer
+error envelope includes the first recorded string reason, limited to 1,024 characters, for the
+initiating Player. This projection does not include the state or arbitrary error data; full stage
+provenance remains in the GM record.
+
 Reaction services keep separate inputs:
 
 - `targetActors` / `reactions.actorDocumentsByActor`: live document handles for runtime lookups
