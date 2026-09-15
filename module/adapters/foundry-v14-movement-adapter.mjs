@@ -318,6 +318,7 @@ export async function resolveFoundryMovementDocuments({intent={}, game=globalThi
 
 /* -------------------------------------------- */
 
+/** @param {{intent?: object, tokenDocument?: object|null, scene?: object|null}} options */
 export function foundryMovementIntentToMovementPath({
   intent={},
   tokenDocument=null,

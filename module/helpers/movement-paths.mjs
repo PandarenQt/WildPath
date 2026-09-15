@@ -58,7 +58,7 @@ export const MOVEMENT_PATH_CODES = Object.freeze({
  * @param {string} [options.size]
  * @param {object} [options.footprintDefinition]
  * @param {object} [options.provider]
- * @returns {object}
+ * @returns {import("./movement-events.mjs").MovementPathSnapshot}
  */
 export function createMovementPath({
   id=null,
@@ -139,7 +139,7 @@ export function reconstructMovementFootprints(pathLike) {
  *
  * @param {object} pathLike
  * @param {object} options
- * @returns {object}
+ * @returns {import("./movement-events.mjs").MovementEvaluationSnapshot & {cost: {ok: boolean, consumesBudget: boolean, amount: number}, failures: readonly unknown[]}}
  */
 export function evaluateMovementPath(pathLike={}, {
   measurementMode=MOVEMENT_MEASUREMENT_MODES.DISTANCE,

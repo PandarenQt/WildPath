@@ -57,6 +57,7 @@ const HEX_GRID_TYPES = new Set([
 
 /* -------------------------------------------- */
 
+/** @param {object} options */
 export function createFoundryV14TacticalGridAdapter({
   id="foundry-v14-tactical-grid",
   label="Foundry V14 Tactical Grid Adapter",

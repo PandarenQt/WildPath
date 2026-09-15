@@ -293,7 +293,11 @@ run exercised repair commit `ddb26f6591c95db9b5dc21a856d3bfa5f15f90e4`, where th
 suite passed 729/729. Documentation closure merged on
 `bf1a9fd417416f88fc913db26c31511d76aff091`.
 
-Remaining Stage G work: add semantic timings required by real mechanics, opportunity reactions,
+The explicit staged movement intent now proves configured leave-reach reactions through ordinary
+nested attacks, including hit/miss, correct controller routing, and post-child movement revalidation.
+This extension is automated-tested; its [live gate](staged-movement-qa.md) remains pending.
+
+Remaining Stage G work: add semantic timings required by real mechanics, production opportunity-reaction content,
 simultaneous/multiple-reaction ordering, and representative production reaction content. These
 broader timings and content are not implied by the movement-specific live proof.
 
@@ -334,7 +338,11 @@ ActiveEffect commits against a synthetic Token Actor, `cancel-parent`, and termi
 The [self-contained GM/player QA](docs/development/movement-reaction-qa.md) remains the regression
 runbook.
 
-Remaining Stage H work: observer-relative spatial predicates, opportunity-reaction semantics,
+The [staged movement host](../architecture/staged-movement.md) adds observer-relative spatial facts,
+before-transition windows, and a final position/payment transaction over logical traversal. Native
+movement continues using the separate completed-event workflow described above.
+
+Remaining Stage H work: live verification and native integration of proposed-transition reactions,
 terrain/cost policies, Region/Area movement hooks, and movement undo/refund accounting.
 
 ## Stage I — Persistent Spatial Mechanics

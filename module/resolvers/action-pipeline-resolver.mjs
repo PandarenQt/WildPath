@@ -121,6 +121,7 @@ export const ACTION_PIPELINE_CODES = Object.freeze({
 
 /* -------------------------------------------- */
 
+/** @param {object} options */
 export function createActionResolutionState({
   id=null,
   actor=null,
@@ -1921,6 +1922,7 @@ function attackOutcomeReactionEvent(state) {
   });
 }
 
+/** @param {object} options */
 export function createActionReactionChildState({parentState, candidate, baseChildState, services={}}) {
   const reactionOptions = reactionOptionsForState(parentState, services);
   const custom = reactionOptions.createChildState;

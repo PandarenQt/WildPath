@@ -55,6 +55,7 @@ export function createMultiplayerActionCoordinator({
 }={}) {
   const localUserId = stringOrNull(userId ?? transport?.userId);
   const records = new Map();
+  const reservedResolutionIds = new Set();
   const completedResults = new Map();
   const notifications = [];
   const errors = [];
@@ -225,6 +226,15 @@ export function createMultiplayerActionCoordinator({
       duplicate: true
     };
     seenIntents.add(duplicateKey);
+    // Reserve before document resolution awaits. A new intent must not replace a live root
+    // (or reuse its request IDs after completion), even if it supplies a different intent ID.
+    if ( records.has(envelope.resolutionId) || reservedResolutionIds.has(envelope.resolutionId) ) return sendError({
+      resolutionId: envelope.resolutionId,
+      recipientUserId: envelope.senderUserId,
+      code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
+      reason: "Resolution ID is already assigned to another intent."
+    });
+    reservedResolutionIds.add(envelope.resolutionId);
 
     if ( typeof actionIntentResolver !== "function" ) return sendError({
       resolutionId: envelope.resolutionId,
@@ -247,6 +257,9 @@ export function createMultiplayerActionCoordinator({
         reason: error?.message ?? String(error)
       };
     }
+    if ( resolved?.host && (resolved.host.state?.id !== envelope.resolutionId || typeof resolved.host.execute !== "function") ) {
+      resolved = {ok: false, reason: "Hosted intent must preserve its authoritative resolution ID and commit boundary."};
+    }
     if ( resolved?.ok === false ) return sendError({
       resolutionId: envelope.resolutionId,
       recipientUserId: envelope.senderUserId,
@@ -261,7 +274,8 @@ export function createMultiplayerActionCoordinator({
       intentId,
       initiatorUserId: envelope.senderUserId,
       authorityUserId: localUserId,
-      state: null,
+      state: resolved.host?.state ?? null,
+      host: resolved.host ?? null,
       options: {
         ...options,
         id: envelope.resolutionId
@@ -297,7 +311,7 @@ export function createMultiplayerActionCoordinator({
 
       if ( execution.state?.pendingRequests?.length ) return routePendingRequests(record, execution);
       if ( execution.state?.status === RESOLUTION_STATE_STATUS.READY_TO_COMMIT ) {
-        const committed = await executeResolution({
+        const committed = await (record.host && !execution.nested ? record.host.execute : executeResolution)({
           ...optionsForResolutionState(record, execution.state),
           state: execution.state,
           services: record.services,

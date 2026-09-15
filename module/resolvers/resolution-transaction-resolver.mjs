@@ -11,6 +11,9 @@ export const RESOLUTION_TRANSACTION_CODES = Object.freeze({
 
 /* -------------------------------------------- */
 
+/** @param {{id?: string|null, type?: string, actor?: unknown, actorRef?: unknown, mutationPlan?: object|null,
+ * updates?: object|null, rollbackUpdates?: object|null, metadata?: object, persistencePort?: import("../types/contracts.js").DocumentPersistencePort|null,
+ * commit?: ((operation: object) => Promise<boolean>)|null, rollback?: ((operation: object) => Promise<boolean>)|null}} [options] */
 export function createActorUpdateTransactionOperation({
   id=null,
   type="actorUpdate",
@@ -46,6 +49,8 @@ export function createActorUpdateTransactionOperation({
 
 /* -------------------------------------------- */
 
+/** @param {{operations?: readonly object[], metadata?: object, persistencePort?: import("../types/contracts.js").DocumentPersistencePort|null,
+ * commitOperation?: (operation: object) => Promise<boolean>, rollbackOperation?: (operation: object) => Promise<boolean>}} [options] */
 export async function executeResolutionTransaction({
   operations=[],
   metadata={},
@@ -122,9 +127,10 @@ export function prepareResolutionTransactionOperations(operations=[], {persisten
       }));
       continue;
     }
-    if ( Object.keys(normalized.updates).length && !normalized.actor && !normalized.actorRef ) {
+    if ( Object.keys(normalized.updates).length && !normalized.actor && !normalized.actorRef
+      && !normalized.document && !normalized.documentRef ) {
       failures.push(operationFailure(RESOLUTION_TRANSACTION_CODES.INVALID_OPERATION, {
-        reason: "Transaction operation with updates requires an Actor or ActorRef.",
+        reason: "Transaction operation with updates requires a document or document reference.",
         operation: normalized
       }));
       continue;
@@ -297,6 +303,7 @@ function operationSummary(operation, status) {
     id: operation.id ?? null,
     type: operation.type ?? null,
     actorRef: operation.actorRef ?? null,
+    ...(operation.documentRef ? {documentRef: operation.documentRef} : {}),
     updates: clonePlain(operation.updates ?? {}) ?? {},
     rollbackUpdates: clonePlain(operation.rollbackUpdates ?? {}) ?? {},
     metadata: clonePlain(operation.metadata ?? {}) ?? {},

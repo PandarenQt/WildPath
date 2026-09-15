@@ -199,6 +199,8 @@ export function cancelResolutionState(state, {
 
 /* -------------------------------------------- */
 
+/** @param {import("../types/contracts.js").ResolutionState} state
+ * @param {{stageId?: string|null, code?: string, reason?: string|null, data?: unknown}} [options] */
 export function failResolutionState(state, {
   stageId=null,
   code=RESOLUTION_PIPELINE_CODES.FAILED,
@@ -254,6 +256,7 @@ export function createResolutionPipelineStage({
 
 /* -------------------------------------------- */
 
+/** @param {Omit<import("../types/contracts.js").ResolutionStageResult, "type">} [options] */
 export function continueResolutionStage({
   state=null,
   status=null,
@@ -291,6 +294,7 @@ export function waitResolutionStage({
   });
 }
 
+/** @param {Omit<import("../types/contracts.js").ResolutionStageResult, "type">} [options] */
 export function failResolutionStage({
   state=null,
   code=RESOLUTION_PIPELINE_CODES.FAILED,
@@ -310,6 +314,7 @@ export function failResolutionStage({
   });
 }
 
+/** @param {Omit<import("../types/contracts.js").ResolutionStageResult, "type">} [options] */
 export function completeResolutionStage({
   state=null,
   status=RESOLUTION_STATE_STATUS.COMPLETED,

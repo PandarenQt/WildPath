@@ -202,6 +202,7 @@ export function sanitizeResolutionResultForTransport({state=null, result=null, a
   const actionResult = current.results?.actionResult ?? null;
   const transaction = actionResult?.steps?.at?.(-1)?.data?.transaction
     ?? actionResult?.steps?.[actionResult.steps.length - 1]?.data?.transaction
+    ?? current.results?.transaction
     ?? null;
   return clonePlainData({
     resolutionId: current.id ?? result?.resolutionId ?? null,
@@ -230,7 +231,8 @@ export function sanitizeResolutionResultForTransport({state=null, result=null, a
       damage: current.results?.damageResolution ?? null,
       healing: current.results?.healingResolution ?? null,
       effects: current.results?.effectResolution ?? null,
-      payment: current.results?.paymentResolution?.paymentPlan ?? null
+      payment: current.results?.paymentResolution?.paymentPlan ?? null,
+      ...(current.results?.movementOutcome ? {movement: current.results.movementOutcome} : {})
     },
     committedMutations: sanitizeCommittedMutations(transaction),
     trace: (current.trace ?? []).map(entry => ({
@@ -510,6 +512,7 @@ function sanitizeCommittedMutations(transaction) {
     id: operation?.id ?? null,
     type: operation?.type ?? null,
     actorRef: operation?.actorRef ?? operation?.metadata?.actorRef ?? null,
+    ...(operation?.documentRef ? {documentRef: operation.documentRef} : {}),
     role: operation?.metadata?.role ?? null
   }));
 }

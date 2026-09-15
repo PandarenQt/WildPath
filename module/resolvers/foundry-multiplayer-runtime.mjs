@@ -25,6 +25,7 @@ import {
 import {createMultiplayerActionCoordinator} from "./multiplayer-action-coordinator.mjs";
 import {createMultiplayerMovementAuthority} from "./multiplayer-movement-authority.mjs";
 import {createFoundryV14ReactionPauseAdapter} from "../adapters/foundry-v14-reaction-pause-adapter.mjs";
+import {foundryMovementIntentToStagedOptions} from "../adapters/foundry-v14-staged-movement-adapter.mjs";
 
 export function registerFoundryV14MultiplayerResolution({
   game=globalThis.game,
@@ -52,7 +53,10 @@ export function registerFoundryV14MultiplayerResolution({
     transport,
     promptPorts: [createFoundryV14PromptAdapter()],
     rollProviders: [createFoundryDigitalRollProvider()],
-    actionIntentResolver: ({intent}) => foundryActionIntentToStagedOptions({
+    actionIntentResolver: ({intent, envelope}) => intent.resolutionKind === "movement"
+      ? foundryMovementIntentToStagedOptions({intent, resolutionId: envelope.resolutionId,
+        senderUserId: envelope.senderUserId, game, persistencePort})
+      : foundryActionIntentToStagedOptions({
       intent,
       game,
       persistencePort
@@ -97,6 +101,7 @@ export function registerFoundryV14MultiplayerResolution({
     movementRegistration,
     declareActionIntent: intent => coordinator.declareActionIntent(intent),
     executeActionIntent: intent => coordinator.declareActionIntent(intent),
+    executeMovementIntent: intent => coordinator.declareActionIntent({...intent, resolutionKind: "movement"}),
     requestMovementApproval: intent => movement.requestMovementApproval(intent),
     observeMovementCompletion: (completion, options={}) => movement.observeMovementCompletion(completion, options),
     observeMovementProgress: (observation, options={}) => movement.observeMovementProgress(observation, options),
@@ -107,7 +112,8 @@ export function registerFoundryV14MultiplayerResolution({
     multiplayer: runtime,
     movement,
     resolutionTransport: transport,
-    executeActionIntent: runtime.executeActionIntent
+    executeActionIntent: runtime.executeActionIntent,
+    executeMovementIntent: runtime.executeMovementIntent
   };
   return {
     ok: registration.ok !== false && movementRegistration.ok !== false,
@@ -138,6 +144,11 @@ export function onFoundryV14MoveToken(document, movement, operation={}, user=nul
   game=globalThis.game,
   logger=globalThis.console
 }={}) {
+  // Only the authenticated active GM can publish the final position of a staged transaction.
+  // The local pre-update bypass separately requires an in-flight registered document write.
+  if ( operation.wildpathStagedMovement && user?.isGM && user.id === game?.users?.activeGM?.id ) {
+    return Promise.resolve({ok: true, ignored: true, reason: "Position belongs to a staged movement transaction."});
+  }
   // Hooks are synchronous. Establish the initiator's hold before any observation awaits.
   if ( (user?.id ?? movement?.user?.id) === (game?.user?.id ?? game?.userId) ) {
     movementRuntime(game)?.pauseReactionBoundary?.(document, movement.id);

@@ -2,13 +2,14 @@ import {
   buildFoundryMovementIntent
 } from "../adapters/foundry-v14-movement-adapter.mjs";
 import {prepareFoundryReactionCheckpoints} from "../adapters/foundry-v14-reaction-checkpoint-adapter.mjs";
+import {isStagedMovementWrite} from "../adapters/foundry-v14-staged-movement-commit.mjs";
 
 const BaseTokenDocument = globalThis.TokenDocument ?? class {};
 
 export default class WildPathTokenDocument extends BaseTokenDocument {
   async _preUpdate(changed, operation, user) {
     const runtime = movementRuntime();
-    if ( runtime?.prepareReactionCheckpoints ) {
+    if ( runtime?.prepareReactionCheckpoints && !isStagedMovementWrite(this, operation, changed) ) {
       try {
         await prepareFoundryReactionCheckpoints(this, changed, operation, user, runtime,
           operation.movement?.[this.id]?.id ?? globalThis.foundry.utils.randomID());
@@ -31,6 +32,7 @@ export default class WildPathTokenDocument extends BaseTokenDocument {
       ? await super._preUpdateMovement(movement, operation)
       : undefined;
     if ( parentResult === false ) return false;
+    if ( isStagedMovementWrite(this, operation, movement.destination) ) return parentResult;
 
     const runtime = movementRuntime();
     if ( !runtime || typeof runtime.requestMovementApproval !== "function" ) {

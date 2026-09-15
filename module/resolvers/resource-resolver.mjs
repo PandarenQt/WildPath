@@ -23,6 +23,8 @@ const ECONOMY_ID_TO_ACTOR_RESOURCE = Object.freeze(Object.fromEntries(
 
 /* -------------------------------------------- */
 
+/** @param {{actorSystem: unknown, cost: unknown, action?: object, policies?: object,
+ * selectedPaymentOptionId?: string|null, selectedPaymentPlan?: object|null}} options */
 export function resolveActorResourcePayment({
   actorSystem,
   cost,

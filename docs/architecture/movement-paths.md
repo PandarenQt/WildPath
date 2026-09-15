@@ -22,10 +22,14 @@ Implemented:
   a pure progress model that distinguishes actual prefixes from approved routes.
 - production checkpoint/pause/stop observation, completed-prefix payment, same-subpath continuation
   correlation, and live-verified movement/reaction synchronization.
+- an explicit [staged movement intent](staged-movement.md) with before-transition reaction windows,
+  logical footprints for nested attacks, suffix revalidation, and final position/payment transaction.
+  This new entry point has automated coverage; live verification remains pending.
 
 Deferred:
 
-- opportunity reactions, auras, hazards, and Regions.
+- production opportunity-reaction content, native drag integration with proposed-transition timing,
+  auras, hazards, and Regions.
 - terrain, squeezing, ally/enemy occupancy, and mode-specific collision rules beyond supplied
   policy functions.
 - movement undo/refund, new-subpath continuation, and durable handoff/reload recovery.
