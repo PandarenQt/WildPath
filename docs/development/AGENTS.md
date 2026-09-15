@@ -10,7 +10,37 @@ The system is inspired by D&D 5e mechanics and must support both the
 house rules.
 
 This file is the canonical set of engineering instructions for AI coding agents.
+---
 
+# Repository State and Project Handoff
+
+Before planning or implementing a milestone, read:
+
+`docs/development/project-state.md`
+
+`project-state.md` is the canonical rolling project handoff and should be used to understand:
+
+- completed and live-green milestones;
+- the current milestone and branch;
+- latest verified live evidence;
+- known blockers and deferred issues;
+- immediate next-step constraints.
+
+However, its HEAD, branch, test counts, and status fields are a handoff aid only.
+
+The actual repository state is authoritative.
+
+Before relying on `project-state.md` for implementation decisions, independently verify at minimum:
+
+- current branch;
+- current HEAD;
+- worktree status;
+- relevant recent commits;
+- relevant current source and tests.
+
+If the repository is newer than `project-state.md`, inspect the newer repository state before planning or editing.
+
+Do not overwrite verified project-state facts with assumptions or speculative completion claims.
 ---
 
 # 1. Primary Goals
