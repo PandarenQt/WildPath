@@ -1,6 +1,8 @@
 import {WILDPATH} from "./module/config.mjs";
 import {registerFoundryV14ConditionStatuses} from "./module/adapters/foundry-v14-status-effects-adapter.mjs";
 
+import "./module/tests/quench/index.mjs";
+
 import WildPathCharacter from "./module/data/actor/character.mjs";
 import WildPathNPC from "./module/data/actor/npc.mjs";
 
