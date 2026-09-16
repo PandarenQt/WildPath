@@ -6,7 +6,15 @@ checkpoint continuation. Do not substitute its completed-event evidence for this
 
 Use Foundry V14.367 with the rebuilt WildPath files, an active GM, and one active non-GM player.
 For a second player to control the reactor, pass that user's ID as the optional second setup
-argument. Mover and reactor controllers must differ.
+argument. Mover and reactor controllers must differ. With one GM and one player, the reactor
+controller defaults to the GM, so the reaction choice prompt and the child attack roll are routed to
+the GM client while the player submits the movement.
+
+The reused Action QA setup enforces its own preconditions on both clients and stops setup if they
+fail: Foundry build exactly 14.367, the test Scene is the **active** Scene and is viewed on both
+clients, Token Vision disabled, no started Combat, and **no active modules at all** (disable Quench
+and every other module, then reload both clients). Both browser consoles must be open (DevTools
+`copy()` is used for export).
 
 For the first five cases, use the empty active square-grid test Scene required by
 [Action runtime QA](action-runtime-live-qa.md): 5 ft per field, a viewed level, Token Vision off,
@@ -90,7 +98,21 @@ Player:
 console.log(JSON.stringify(mq.dumpPlayer(), null, 2));
 ```
 
-Save each output separately with its role and mode. Pair them by `runId` and `resolutionId`.
+Save each output separately with its role and mode. Export with `copy(JSON.stringify(...))` from
+DevTools rather than reading the console log. Use these file names so the pairs cannot be confused
+with the existing Action-runtime evidence (`evidence/gm-hit.json`, `gm-miss.json`):
+
+| Mode | GM file | Player file |
+| --- | --- | --- |
+| `ordinary` | `evidence/gm-movement-ordinary.json` | `evidence/player-movement-ordinary.json` |
+| `decline` | `evidence/gm-movement-decline.json` | `evidence/player-movement-decline.json` |
+| `miss` | `evidence/gm-movement-miss.json` | `evidence/player-movement-miss.json` |
+| `hit` | `evidence/gm-movement-hit.json` | `evidence/player-movement-hit.json` |
+| `stop` | `evidence/gm-movement-stop.json` | `evidence/player-movement-stop.json` |
+
+The dumps do not record the Foundry build or the tested commit. Record `game.release.build` and the
+exact `git rev-parse HEAD` of the served build once per run alongside the files (for example in the
+commit message that adds them). Pair GM and player files by `runId` and `resolutionId`.
 Verify the player received the GM's completed result and sees the same final HP, reaction,
 movement, and position. GM proof checks routing, request count, actual digital-roll provenance,
 resource changes, continuation, and final position. For `miss`, `hit`, and `stop`, the proof also
@@ -155,7 +177,7 @@ console.log(JSON.stringify(mq.dumpPlayer(), null, 2));
 Require one declined candidate in the same closed window, one choice request, no child or roll,
 all three transitions completed, movement `30 -> 15`, reaction still `1`, HP still `30`, and
 the Token at the third prepared waypoint. Its persisted full footprint must match the final
-logical footprint. Save as `gm-large-hex-decline.json` and `player-large-hex-decline.json`, retaining
+logical footprint. Save as `evidence/gm-large-hex-decline.json` and `evidence/player-large-hex-decline.json`, retaining
 `variant`, `runId`, and `resolutionId`, and check the player's terminal result and values as above.
 If proof fails, retain `hexMovementQA.dump()` and the player dump before cleanup.
 
