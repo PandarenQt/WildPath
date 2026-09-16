@@ -1258,13 +1258,13 @@ existence and unit tests are not evidence of production completion.
 
 | | Runner | Test deps | Test files | Test lines | CI gate |
 | --- | --- | --- | --- | --- | --- |
-| **WildPath** | `node --test` (built-in) | none (TypeScript only) | 72 | 22,731 | `test` + `typecheck` + `build` |
+| **WildPath** | `node --test` (built-in) | none (TypeScript only) | 72 | 22,845 | `test` + `typecheck` + `build` |
 | **PF2e** | vitest 4.1.10 + jsdom 29.1.1 | 2 | 11 | 1,086 | build + lint + test |
 | **dnd5e** | — | none | **0** | 0 | none |
 | **Crucible** | — | none | **0** | 0 | none |
 
 **[repo]** WildPath: `package.json` → `"test": "node --test test/*.test.mjs"`, `engines.node: ">=18"`,
-sole dependency TypeScript. Current suite: **808 tests, 806 pass, 0 fail, 2 skipped**.
+sole dependency TypeScript. Current suite: **811 tests, 809 pass, 0 fail, 2 skipped**.
 
 **[repo]** PF2e (`WildPath-references/pf2e-v14`): `"test": "vitest run"` with `"pretest": "npm run lint"`,
 `engines.node: ">=24.14.0"`. CI (`.github/workflows/ci.yml`) runs on push/PR to `v13-dev` and
@@ -1309,7 +1309,7 @@ largest single file is the migration runner test (347 lines); the second largest
 (330 lines) — their Predicate system, the direct analogue of WildPath's.
 
 **[wildpath]** WildPath has made the same structural bet — a pure, plain-serializable resolution
-domain that is testable without Foundry — but applied it across far more surface (22,731 lines versus
+domain that is testable without Foundry — but applied it across far more surface (22,845 lines versus
 1,086). The boundary itself is worth adopting deliberately rather than by accident: mock-backed tests
 of Document/Roll/Hook-dependent code buy less than they cost, which is why PF2e declined to write them.
 
@@ -1343,7 +1343,7 @@ declares no `scripts` block and no test-related dependencies.
 testing workflow for a V14 system. The absence is a fact about Foundry's documentation, not evidence
 that testing is discouraged.
 
-### 19F. Quench — V14.367 Q1 17/17 and Q2 17/17 (34 cases live-confirmed)
+### 19F. Quench — V14.367 Q1 17/17, Q2 17/17, Combat 6/6 (40 cases live-confirmed)
 
 Quench is the ecosystem's in-Foundry test runner (Mocha + Chai + fast-check, registering a native
 Foundry Application as a test runner UI). It is the only known candidate for **layer 3**.
@@ -1386,6 +1386,20 @@ Item/effect Modifier RuleElements, source integrity, domain/predicate/priority b
 preparation idempotence. Bleeding's Trigger is checked through conversion and registry collection;
 turn dispatch remains outside Q2. No production semantics changed for Q2.
 
+The Combat slice adds `wildpath.combat` (6 cases; **6/6 maintainer-reported on V14.367**, bringing the
+live-confirmed total to **40**). It is the first batch to leave world Actors: a disposable Scene, an unlinked Token, its
+synthetic Actor/ActorDelta, and a real Combat drive `Combat#nextTurn` → `WildPathCombat#_onStartTurn`
+→ `actor.startTurn()`, asserting built-in and custom-pool recovery through the ActorDelta, non-turn
+isolation, base-Actor isolation, exactly-once Bleeding turn-start dispatch, and the existing recovery
+guards. Completion is awaited on `combatTurnChange`, which core fires only after awaiting the whole
+start-turn workflow on the active GM (§7's turn-event notes). The fixture helper now owns and cleans
+Scenes, Tokens, Combats, and Combatants in dependency order. It proves the GM execution path and
+ActorDelta persistence in one client; it does not prove designated-GM uniqueness across clients,
+failover, or anything multiplayer. The live run also reproduced a **core** 14.367 defect: updating a
+Combat that is not the tracker's viewed encounter throws `"turn" in undefined` inside
+`CombatTracker._onRender` (`combat-tracker.mjs:185-188`) — no WildPath frames, no effect on document
+state or the turn-event workflow. Recorded here so it is not mistaken for a system failure.
+
 **Correction recorded.** An earlier draft of this research asserted the Quench repository was "pushed
 April 2026" and inferred active maintenance. That claim **does not reproduce** and has been withdrawn.
 The most recent commit on `master` is 2025-05-30; the branch list is `master`, `gh-pages`, `v12`, and
@@ -1427,7 +1441,8 @@ gate. The live multiplayer cases remain the evidence of record for multiplayer b
 ### 19H. Current test ladder
 
 **[wildpath]** Levels 1 and 2 exist today; 4 and 5 exist as manual procedure. Level 3 is now supported
-by 34 maintainer-confirmed live cases (Q1 17/17 after the custom-pool persistence repair; Q2 17/17).
+by 34 maintainer-confirmed live cases (Q1 17/17 after the custom-pool persistence repair; Q2 17/17),
+plus the Combat slice's 6 cases (6/6 maintainer-reported), for 40 live-confirmed cases in total.
 
 ```text
 Level 1 — Pure Node tests
@@ -1442,6 +1457,7 @@ Level 3 — Semi-automated real-Foundry tests
 Quench v0.10.0: V14.367 Q1 initially 16/17, then 17/17 after the custom-pool fix (maintainer-confirmed).
 Q1: real Documents/TypeDataModels, resources, preparation, and persistence.
 Q2: 17 cases for ActiveEffects, conditions, and RuleElements; 17/17 maintainer-confirmed.
+Combat slice: 6 cases for managed turn start on an unlinked Token (synthetic Actor / ActorDelta); 6/6 maintainer-confirmed.
 
 Level 4 — Live single-client QA
 Real Foundry UX and persistence.

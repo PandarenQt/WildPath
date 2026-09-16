@@ -1,4 +1,4 @@
-# Foundry integration testing: Quench Q1 and Q2
+# Foundry integration testing: Quench Q1, Q2, and the Combat slice
 
 ## Evidence and testing ladder
 
@@ -37,6 +37,14 @@ now live-confirmed**. The maintainer's summary described the expansion as eight 
 repository registers exactly three new batch keys, and no repository structure yields eight, so only
 the three verified batches and the 17-case total are recorded here.
 
+**The Combat slice is live-confirmed.** `wildpath.combat` adds 6 cases proving managed Combat
+turn-start recovery and turn-start condition dispatch on an unlinked Token's synthetic Actor. The
+maintainer ran it on Foundry V14.367 with Quench v0.10.0 and reported all six passing (Quench UI
+green; six `(PASS) Test Complete` lines in the console log). As with Q1/Q2 this is maintainer-reported
+evidence without an exported report. Current standing: **40 live-confirmed** (Q1 17 + Q2 17 + Combat 6).
+The run also surfaced a core `CombatTracker` rendering error that is not a WildPath failure; see the
+Combat run section.
+
 Quench v0.10.0 is not V14-clean: its deprecated `Game`, `SearchFilter`, and `FilePicker` references
 emit vendor compatibility warnings. It also has a reported auto-run/UI ordering problem if execution
 starts before its Application is rendered. Keep those warnings separate from WildPath assertion
@@ -45,19 +53,21 @@ failures. WildPath neither patches Quench nor suppresses compatibility warnings.
 ## Registration and fixtures
 
 `wildpath.mjs` imports only `module/tests/quench/index.mjs` for this layer. That file owns the single
-`quenchReady` subscription and registers exactly six batches. Batch modules never subscribe to
+`quenchReady` subscription and registers exactly seven batches. Batch modules never subscribe to
 hooks themselves. No Quench globals, dependency, client setting writes, fixture creation, or test
 execution are required at normal startup. If Quench is absent, its hook simply never fires.
 The old smoke file and unfinished top-level test index/fixtures have been migrated into this directory.
 Registration follows [Quench's batch/context API](https://github.com/Ethaks/FVTT-Quench#register-a-test-batch).
 
-Each mutation test gets a fresh `foundry.utils.randomID()` run ID in `beforeEach`. Created Actors
-and embedded Items/helper-created ActiveEffects carry `flags.wildpath.quenchFixture: true` and
-`flags.wildpath.quenchRunId`. Condition tests call the production Actor APIs directly on marked
+Each mutation test gets a fresh `foundry.utils.randomID()` run ID in `beforeEach`. Created Actors,
+Scenes, Tokens, Combats, Combatants, and embedded Items/helper-created ActiveEffects carry
+`flags.wildpath.quenchFixture: true` and `flags.wildpath.quenchRunId`. Condition tests call the production Actor APIs directly on marked
 fixture Actors; their generated children are owned by that marked parent without an extra flag
 update that could hide a creation/preparation failure.
-`afterEach` uses real `Actor.deleteDocuments` for Actors with **both** that exact marker and run ID;
-embedded Items and ActiveEffects are removed with their fixture parent. A test that explicitly deletes its fixture is
+`afterEach` uses the real `deleteDocuments` of each owned collection for documents with **both** that
+exact marker and run ID, in the order Combats → Scenes → Actors, because Combats reference Scene
+Tokens and Scenes own Tokens plus their ActorDeltas. Embedded Items, ActiveEffects, Tokens, and
+Combatants are removed with their fixture parent. A test that explicitly deletes its fixture is
 safe to clean again. Cleanup does not depend on creation returning successfully: marked Documents
 are found even if a later creation callback throws. Rejected cleanup is reported as a failure with
 the run ID, rather than hidden.
@@ -67,10 +77,14 @@ Helpers in `module/tests/quench/fixtures.mjs`:
 - `createQuenchActor({runId, name, type, system})`
 - `createEmbeddedQuenchItem(actor, {name, type, system})`, requiring a marked parent
 - `createEmbeddedQuenchEffect(actor, {name, type, system, disabled, duration, start})`, requiring a marked parent and run ID
-- `cleanupQuenchFixtures({runId})`, requiring a nonempty run ID
+- `createQuenchScene({runId, name})`, a disposable 1000×1000 square-grid Scene, never active or in navigation
+- `createUnlinkedQuenchToken(scene, actor, {name, x, y})`, requiring a marked Scene and marked base Actor; fails if no synthetic Actor results
+- `createQuenchCombat(scene, tokens)`, requiring a marked Scene; creates one marked Combatant per Token
+- `findQuenchFixtures({runId?})`, a read-only listing of marked Combats/Scenes/Actors for orphan diagnostics
+- `cleanupQuenchFixtures({runId})`, requiring a nonempty run ID; returns the deleted ids per collection
 - `useQuenchFixtures(context)`, installing GM/ready guards and per-test cleanup
 
-Mutation suites use 30-second timeouts and skip cleanly for non-GMs, including teardown. Their helper
+Q1/Q2 mutation suites use 30-second timeouts and the Combat suite 60 seconds; all skip cleanly for non-GMs, including teardown. Their helper
 APIs independently reject non-GM calls. The two read-only smoke cases may run as a player. Names
 are diagnostic only; a matching name never authorizes deletion. Run one QA client at a time and do
 not edit fixtures while tests are executing. A browser reload or an outstanding operation after a
@@ -190,6 +204,51 @@ Q2 changes no production semantics. Predicate, wildcard, suppression, and priori
 using existing APIs; no new rules are introduced. The earlier Q1 custom-pool runtime repair remains
 in the worktree unchanged. Q3/Q4 systems, migrations, and Quench vendor code are untouched.
 
+## Combat slice: batch and exact cases (6/6 live-confirmed)
+
+New file: `module/tests/quench/combat.mjs`, registered through the existing optional `index.mjs` as the
+seventh batch. It proves the managed turn-start chain in real Foundry on an **unlinked Token**:
+
+```text
+real Scene -> unlinked Token -> synthetic Actor / ActorDelta -> real Combat -> Combatant
+-> Combat#startCombat / Combat#nextTurn -> WildPathCombat#_onStartTurn -> actor.startTurn()
+-> resource persistence -> turn-start condition Trigger dispatch
+```
+
+Fixture chain per case: a marked base Actor, a marked disposable Scene (never activated, not in
+navigation, no background so core skips thumbnails), one unlinked Token on it, and a marked Combat
+bound to that Scene with one Combatant. Each case first calls `startCombat()` — itself a real
+transition into round 1, turn 0 that already invokes `_onStartTurn` once — then sets its degraded
+pre-state on the synthetic Actor, then calls `nextTurn()`. With one Combatant, `nextTurn()` wraps to
+round 2, turn 0 and drives exactly one `_onStartTurn` for the fixture Combatant, so the asserted
+recovery is the `nextTurn`-driven one. `actor.startTurn()` is called directly only in the guard case.
+
+Completion is awaited deterministically, not polled: on the active GM, installed
+`Combat#_manageTurnEvents` awaits the whole turn-event workflow — including
+`WildPathCombat#_onStartTurn` and everything it awaits — before calling `combatTurnChange`. The test
+registers that hook before advancing and treats it as the transition's completion signal.
+
+`wildpath.combat` — **WILDPATH: Real Foundry Combat** (6):
+
+| Exact test name | Integration boundary |
+| --- | --- |
+| `builds an unlinked Token whose synthetic Actor persists through ActorDelta independently of its base Actor` | Fixture verification: `actorLink === false`, `isToken`, distinct instance and UUID from the base Actor, shared id, `Combatant#actor` is the synthetic Actor; a synthetic update lands in `token.delta` source and not in the base Actor. |
+| `Combat#nextTurn restores built-in turn resources on the synthetic Actor through WildPathCombat#_onStartTurn` | action/bonus/reaction/movement from 0/0/0/5 to 1/1/1/30 in synthetic source, prepared state, and ActorDelta source; base Actor's own degraded action/movement stay untouched. |
+| `Combat#nextTurn restores a custom turn pool through the synthetic Actor's ActorDelta without disturbing its neighbor` | Whole-array pool write through ActorDelta: length, order, and the `recovery: "none"` neighbor unchanged; only the `turn` pool value restores; no `modifierBonus` in source; base Actor keeps `pools: []`. |
+| `Combat#nextTurn leaves non-turn resources and pools unchanged` | health (`recovery: "none"`) and a `shortRest` pool are untouched while reaction restores in the same transition. |
+| `Combat#nextTurn dispatches the persisted Bleeding turn-start Trigger exactly once on the synthetic Actor` | Reads the configured constant Bleeding amount, applies Bleeding after round 1 starts, and requires health to drop by exactly that amount once (not zero, not twice) in synthetic, prepared, and ActorDelta state; base Actor untouched; the effect survives; recovery happened in the same turn start. |
+| `Actor#startTurn rejects a stale turn context and a non-incoming Actor without mutating resources` | Existing guards: mismatched turn context → `INVALID_LIFECYCLE`; base world Actor for a synthetic Combatant → `ACTOR_NOT_INCOMING_COMBATANT`; synthetic source, ActorDelta source, and base Actor all unchanged. |
+
+What this slice is designed to prove, in one GM client: the GM execution path of the managed
+callback runs, the hardcoded managed authority object is accepted, the recovery and condition
+consequence commit through the ActorDelta, and the repaired `startTurn()` whole-array write is
+correct on the harder synthetic-Actor boundary. What it cannot prove and does not claim: that
+exactly one of several connected GMs executes, GM failover, that remote clients never duplicate the
+callback, or anything about sockets, prompts, or movement. Those remain multiplayer concerns.
+
+The slice changes no production semantics. `rest()` is not covered here; it shares the repaired
+array write but has no turn transition to drive it and would need its own trigger.
+
 ## Custom-pool persistence repair (Q1 history)
 
 Verified against the installed **V14.367** source at
@@ -270,12 +329,77 @@ cases without document writes. Retain the report/revision, inspect failures by t
 and repeat the batches to check cleanup and preparation stability. Vendor warnings/example failures
 are separate from WildPath assertions. Do not start Q3/Q4 as part of this run.
 
-## Fixture cleanliness (Q1 and Q2)
+## Run the Combat slice in the disposable V14.367 QA world
 
-After a successful or failed run, this GM console check must return `[]`:
+Same world, Quench version, GM login, ready state, rendered Quench window, and manual client settings
+as Q1/Q2. The batch requires the running GM to be Foundry's active GM: core's `_manageTurnEvents`
+only triggers the start-turn workflow when `game.user.isActiveGM`, so run it with a single GM client
+connected. Select only `wildpath.combat`, or run:
 
 ```js
-game.actors.filter(a => a.getFlag("wildpath", "quenchFixture") === true)
+await quench.runBatches([
+  "wildpath.combat"
+]);
+```
+
+Expected: **6 passing, 0 failing, 0 pending** as GM. The maintainer has observed this result once on
+V14.367 (maintainer-reported, no exported report); rerun it after any change to `WildPathCombat`,
+`WildPathActor` recovery, the condition trigger planner, or the fixture helper. Non-GMs skip all six
+cases without document writes. Each case creates and deletes its own Scene,
+Token, Combat, and base Actor; the combat tracker may briefly show a fixture encounter only if the
+fixture Scene were viewed, which the fixture never does.
+
+**Expected console output that is not a WildPath failure.** Two kinds appeared in the maintainer's run:
+
+1. Quench v0.10.0's deprecated `Game` and `SearchFilter` global warnings (known vendor debt).
+2. On every `startCombat()` / `nextTurn()` update, an uncaught promise rejection from **core**:
+   `TypeError: Cannot use 'in' operator to search for 'turn' in undefined` at
+   `CombatTracker._onRender`. Installed 14.367 source
+   (`client/applications/sidebar/tabs/combat-tracker.mjs:185-188`) does
+   `data = renderData.find(d => d._id === this.viewed?.id)` and then `"turn" in data`; when the
+   updated Combat is not the tracker's viewed encounter, `find` returns `undefined` and the `in`
+   test throws. The fixture Combat is deliberately never viewed (its Scene is not the current
+   scene), so every transition trips this. The stack contains no WildPath frames — the update
+   completes, `_manageTurnEvents` runs, and only the tracker's scroll-into-view step is skipped —
+   which is why all six assertions held. It is a core defect reproducible by any system that
+   updates a non-viewed Combat. WildPath does not patch core, and the fixture is not changed to
+   make the encounter viewed, because that would mutate the GM's tracker state to hide a core bug.
+   Worth reporting upstream.
+
+Failures that **would** indicate WildPath defects, by case:
+
+- fixture case: `Combatant#actor` not the synthetic Actor, or a synthetic update reaching the base
+  Actor — the synthetic-Actor identity invariant is broken at the Foundry boundary.
+- built-in recovery: values still degraded after `combatTurnChange` — `_onStartTurn` did not run,
+  `validateTurnRecoveryContext` rejected a real context, or the delta write did not persist.
+- custom pool: neighbor changed, order/length changed, or `modifierBonus` in ActorDelta source — the
+  ArrayField-through-ActorDelta write is wrong (same defect class as the Q1 repair).
+- non-turn: health or the `shortRest` pool restored — recovery selection is too broad.
+- Bleeding: health unchanged (trigger not dispatched from the Combat callback), or reduced twice
+  (duplicate dispatch between `startTurn` and the lifecycle commit) — the failure message includes
+  every persisted synthetic update observed during the transition.
+- guard: any resource mutation after a rejection, or a different rejection code.
+
+A `combatTurnChange did not fire` timeout means the transition never completed on this client;
+check that the client is the active GM before suspecting WildPath.
+
+After the run, the orphan diagnostic must report empty arrays for all three collections:
+
+```js
+const {findQuenchFixtures} = await import("/systems/wildpath/module/tests/quench/fixtures.mjs");
+console.table(Object.entries(findQuenchFixtures()).flatMap(([kind, rows]) => rows.map(row => ({kind, ...row}))));
+```
+
+To remove one abandoned run, use `cleanupQuenchFixtures({runId})` as above; it deletes owned Combats,
+then Scenes (with their Tokens and ActorDeltas), then Actors, and refuses to run without a run ID.
+
+## Fixture cleanliness (Q1, Q2, and Combat)
+
+After a successful or failed run, every array in this GM console check must be empty:
+
+```js
+const {findQuenchFixtures} = await import("/systems/wildpath/module/tests/quench/fixtures.mjs");
+findQuenchFixtures(); // {combats: [], scenes: [], actors: []}
 ```
 
 The existing `afterEach` cleanup remains unchanged: Mocha invokes it after assertion failures and it
@@ -303,17 +427,20 @@ are outside this helper's cleanup scope.
 ## Portable validation and deferred phases
 
 Run `npm.cmd test`, `npm.cmd run typecheck`, `node --check` for the changed modules, and
-`git diff --check`. The eight tests in `test/quench-infrastructure.test.mjs` cover registration with
-Quench absent, six-batch inventory, scoped fixture creation/deletion, ActiveEffect parent/run guards,
-GM guards, and cleanup failures. Q2 adds one fixture-boundary test and extends registration/GM checks;
-it does not mirror the integration assertions in Node. Their controlled API collaborators do **not**
-stand in for execution of the 17 Q1 and 17 Q2 real-Foundry cases. Current portable
+`git diff --check`. The eleven tests in `test/quench-infrastructure.test.mjs` cover registration with
+Quench absent, seven-batch inventory and counts, scoped fixture creation/deletion, ActiveEffect and
+Scene/Token/Combat parent guards, cleanup ordering across collections, the read-only orphan listing,
+GM guards, and cleanup failures. They do not mirror the integration assertions in Node, and their
+controlled API collaborators do **not** stand in for execution of the 17 Q1, 17 Q2, or 6 Combat
+real-Foundry cases. Current portable
 counts and live status are recorded in [project-state.md](project-state.md).
 
-- Q3: synthetic Actors, Combat, Rolls.
+- Q3: the synthetic-Actor/Combat portion is live-confirmed as `wildpath.combat`;
+  Rolls, `rest()`, expiry scheduling, skipped turns, round events, and multiple Combatants remain deferred.
 - Q4: persistence rollback, Action entry.
 - Future: migrations.
 
 The Q1 production repair is limited to correcting custom-pool array persistence in the four Actor
-methods above. Q2 changes test modules, portable infrastructure coverage, and documentation only.
+methods above. Q2 and the Combat slice change test modules, portable infrastructure coverage, and
+documentation only.
 No Quench dependency is added to `system.json`, and no Quench source is vendored.

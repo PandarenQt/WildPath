@@ -12,6 +12,19 @@ function fixtureFlags(runId) {
   return {wildpath:{[QUENCH_FIXTURE_FLAG]:true,quenchRunId:runId}};
 }
 
+function isMarkedFixture(document) {
+  return document?.getFlag?.("wildpath",QUENCH_FIXTURE_FLAG) === true;
+}
+
+function isOwnedFixture(document, runId) {
+  return isMarkedFixture(document) && document.getFlag("wildpath","quenchRunId") === runId;
+}
+
+function requireMarkedParent(document, label) {
+  if (!isMarkedFixture(document)) throw new Error(`${label} require an explicitly marked fixture parent.`);
+  return document.getFlag("wildpath","quenchRunId");
+}
+
 export async function createQuenchActor({runId, name="Actor", type="character", system={}}={}) {
   requireGM();
   const actor = await CONFIG.Actor.documentClass.create({
@@ -50,15 +63,90 @@ export async function createEmbeddedQuenchEffect(actor, {
   return effect;
 }
 
+/**
+ * A disposable Scene for Token fixtures. It is never activated or added to navigation, so the
+ * GM's viewed Scene and canvas are untouched; Foundry does not need a drawn canvas to create
+ * Scenes, embedded Tokens, or their ActorDeltas. Without a background image core skips thumbnails.
+ */
+export async function createQuenchScene({runId, name="Scene"}={}) {
+  requireGM();
+  const scene = await CONFIG.Scene.documentClass.create({
+    name:`${PREFIX} ${name}`,active:false,navigation:false,tokenVision:false,
+    width:1000,height:1000,padding:0,
+    grid:{type:CONST.GRID_TYPES.SQUARE,size:100,distance:5,units:"ft"},
+    flags:fixtureFlags(runId)
+  }, {renderSheet:false});
+  if (!scene) throw new Error(`Scene creation returned no fixture (Quench run ${runId}).`);
+  return scene;
+}
+
+/** An unlinked Token whose synthetic Actor (ActorDelta) is owned by the marked fixture Scene. */
+export async function createUnlinkedQuenchToken(scene, actor, {name="Token", x=100, y=100}={}) {
+  requireGM();
+  const runId = requireMarkedParent(scene, "Quench Tokens");
+  if (!isMarkedFixture(actor)) throw new Error("Quench Tokens require an explicitly marked fixture base Actor.");
+  const [token] = await scene.createEmbeddedDocuments("Token",[{
+    name:`${PREFIX} ${name}`,actorId:actor.id,actorLink:false,x,y,width:1,height:1,
+    flags:fixtureFlags(runId)
+  }]);
+  if (!token) throw new Error(`Embedded Token creation returned no fixture (Quench run ${runId}).`);
+  if (!token.actor) throw new Error(`Unlinked Quench Token ${token.id} exposes no synthetic Actor (Quench run ${runId}).`);
+  return token;
+}
+
+/** A Combat bound to the marked fixture Scene, with one Combatant per supplied Token. */
+export async function createQuenchCombat(scene, tokens=[]) {
+  requireGM();
+  const runId = requireMarkedParent(scene, "Quench Combats");
+  const combat = await CONFIG.Combat.documentClass.create({
+    scene:scene.id,active:false,flags:fixtureFlags(runId)
+  }, {renderSheet:false});
+  if (!combat) throw new Error(`Combat creation returned no fixture (Quench run ${runId}).`);
+  if (tokens.length) {
+    const combatants = await combat.createEmbeddedDocuments("Combatant", tokens.map(token => ({
+      tokenId:token.id,sceneId:scene.id,actorId:token.actorId,flags:fixtureFlags(runId)
+    })));
+    if (combatants.length !== tokens.length) {
+      throw new Error(`Combatant creation returned ${combatants.length} of ${tokens.length} fixtures (Quench run ${runId}).`);
+    }
+  }
+  return combat;
+}
+
+/**
+ * Read-only listing of marked fixtures across every owned collection. Without a run ID it lists
+ * every marked fixture; that is a diagnostic, never a deletion scope.
+ */
+export function findQuenchFixtures({runId=null}={}) {
+  const owned = document => isMarkedFixture(document)
+    && (runId === null || document.getFlag("wildpath","quenchRunId") === runId);
+  const describe = document => ({id:document.id,name:document.name,runId:document.getFlag("wildpath","quenchRunId")});
+  return {
+    combats:(globalThis.game?.combats?.filter(owned) ?? []).map(describe),
+    scenes:(globalThis.game?.scenes?.filter(owned) ?? []).map(describe),
+    actors:(globalThis.game?.actors?.filter(owned) ?? []).map(describe)
+  };
+}
+
 export async function cleanupQuenchFixtures({runId}={}) {
   requireGM();
   fixtureFlags(runId); // A missing run ID must never turn cleanup into a world-wide sweep.
-  const fixtures = () => game.actors.filter(actor => actor.getFlag("wildpath",QUENCH_FIXTURE_FLAG) === true
-    && actor.getFlag("wildpath","quenchRunId") === runId);
-  const ids = fixtures().map(actor => actor.id);
-  if (ids.length) await CONFIG.Actor.documentClass.deleteDocuments(ids);
-  if (fixtures().length) throw new Error(`Quench fixture cleanup incomplete for run ${runId}; inspect marked Actors.`);
-  return ids;
+  // Combats reference Scene Tokens, and Scenes own Tokens plus their ActorDeltas, so delete in
+  // that order before the base Actors. Embedded Items/ActiveEffects/Combatants go with their parent.
+  const deleted = {combats:[],scenes:[],actors:[]};
+  const collections = [
+    ["combats", globalThis.game?.combats, CONFIG.Combat?.documentClass],
+    ["scenes", globalThis.game?.scenes, CONFIG.Scene?.documentClass],
+    ["actors", globalThis.game?.actors, CONFIG.Actor?.documentClass]
+  ];
+  for (const [key, collection, documentClass] of collections) {
+    const owned = () => collection?.filter(document => isOwnedFixture(document, runId)) ?? [];
+    const ids = owned().map(document => document.id);
+    if (ids.length) await documentClass.deleteDocuments(ids);
+    if (owned().length) throw new Error(`Quench fixture cleanup incomplete for run ${runId}; inspect marked ${key}.`);
+    deleted[key] = ids;
+  }
+  return deleted;
 }
 
 /** Install inside the batch's describe block. Mocha runs afterEach even after an assertion fails. */
@@ -83,6 +171,9 @@ export function useQuenchFixtures({beforeEach,afterEach}) {
   return {
     createActor: data => createQuenchActor({...data,runId}),
     createItem: (actor,data) => createEmbeddedQuenchItem(actor,data),
-    createEffect: (actor,data) => createEmbeddedQuenchEffect(actor,data)
+    createEffect: (actor,data) => createEmbeddedQuenchEffect(actor,data),
+    createScene: data => createQuenchScene({...data,runId}),
+    createToken: (scene,actor,data) => createUnlinkedQuenchToken(scene,actor,data),
+    createCombat: (scene,tokens) => createQuenchCombat(scene,tokens)
   };
 }

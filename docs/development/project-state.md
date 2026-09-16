@@ -11,16 +11,18 @@ Last verified: 2026-09-16.
 - Movement implementation commit: `87ed1fae93271b81b14432bb4312be9cd53285c5`.
 - Original milestone starting HEAD: `ea484fd8b503697ddf1c2b7b0f6984ea594378e2`.
 - Local main HEAD: `61d6268b838e286728c829924506c6c931174621`.
-- Portable full suite (`FOUNDRY_V14_APP_PATH` unset): **808 tests, 806 passed, 0 failed, 2 intentionally skipped**.
+- Portable full suite (`FOUNDRY_V14_APP_PATH` unset): **811 tests, 809 passed, 0 failed, 2 intentionally skipped**.
+- Combat-slice delta from 808/806/0/2: **3 new portable tests** (Scene/Token/Combat fixture ownership, cleanup ordering across collections, read-only orphan listing); batch inventory check extended to seven batches.
 - Q2 delta from 807/805/0/2: **1 new portable test** for scoped ActiveEffect fixtures; registration and GM-guard checks extended.
 - Repair delta from 797/795/0/2: **10 new tests** (9 Actor resource persistence cases and 1 assertion-failure cleanup case); existing turn-recovery coverage strengthened.
 - Prior installed-source check: `foundry-nested-reaction-commit.test.mjs` **11 passed, 0 failed, 0 skipped**, including both optional tests against V14.367; not rerun for Q1.
 - Typecheck, changed-module syntax checks, and diff whitespace checks passed. No generated runtime sources changed; the prior implementation build remains the last build verification.
 
-These figures cover the committed Q2 implementation, including the preceding live-confirmed Q1
-custom-pool repair. Q2 and the repair were committed together as `0586485`; the local scratch file
-`docs/development/nextPromptForCodex.md` was untracked and ignored in `33bb766`. Verify actual HEAD,
-branch, worktree, and subsequent changes before relying on them.
+These figures cover the Combat-slice worktree on top of the committed Q2 implementation and the
+live-confirmed Q1 custom-pool repair. Q2 and the repair were committed together as `0586485`; the
+local scratch file `docs/development/nextPromptForCodex.md` was untracked and ignored in `33bb766`;
+the Combat slice was implemented after `04ae4d1`. Verify actual HEAD, branch, worktree, and
+subsequent changes before relying on them.
 
 ## Product and invariants
 
@@ -32,10 +34,24 @@ turn configured reaction content into a second combat engine.
 
 ## Current milestone
 
-**Quench Q2 is live-confirmed.** Three new batches in `module/tests/quench/` cover
+**The Quench Combat slice is live-confirmed.** `wildpath.combat` — **WILDPATH: Real
+Foundry Combat** — adds **6 cases** in `module/tests/quench/combat.mjs` proving, in real Foundry, the
+chain real Scene → unlinked Token → synthetic Actor/ActorDelta → real Combat → Combatant →
+`Combat#nextTurn` → `WildPathCombat#_onStartTurn` → `actor.startTurn()` → resource persistence →
+turn-start Bleeding Trigger dispatch, plus the existing recovery-guard rejections. Fixtures now own
+and clean Scenes, Tokens, Combats, and Combatants (Combats → Scenes → Actors), and expose a read-only
+orphan listing. **Production semantics changed for the Combat slice: NO.** The maintainer ran the
+batch on V14.367 and reported all six passing (Quench UI green, six PASS lines; maintainer-reported,
+no exported report). Standing: **40 cases live-confirmed** (Q1 17, Q2 17, Combat 6). The run exposed
+a core `CombatTracker._onRender` TypeError whenever a non-viewed Combat updates; it has no WildPath
+frames, does not affect document state, and is recorded as a core defect, not a WildPath failure.
+Exact case names, the completion-signal design, run instructions, and console interpretation are in
+the [testing strategy](foundry-testing-strategy.md).
+
+**Quench Q2 is live-confirmed.** Three batches in `module/tests/quench/` cover
 `wildpath.effects` (4), `wildpath.conditions` (5), and `wildpath.rule-elements` (8): **17 Q2 cases**.
-The existing optional `quenchReady` entry registers six batches (34 total cases), without changing
-Q1's 17 cases. The maintainer ran the expanded suite against Foundry V14.367 and reported the 17 new
+The optional `quenchReady` entry now registers seven batches (40 total cases), without changing
+Q1's 17 or Q2's 17 cases. The maintainer ran the expanded suite against Foundry V14.367 and reported the 17 new
 cases passing **17/17**; combined with Q1, **all 34 WildPath Quench cases are live-confirmed**. This is
 maintainer-reported evidence without an exported Quench report, the same evidentiary standing as Q1.
 
@@ -89,8 +105,8 @@ manifests, or client settings were changed. The only startup integration remains
 test registration import. See the
 [testing strategy and exact live run procedure](foundry-testing-strategy.md).
 
-Deferred Quench phases: Q3 synthetic Actors/Combat/Rolls;
-Q4 persistence rollback/Action entry; future migrations.
+Deferred Quench phases: the Rolls portion of Q3 (its synthetic-Actor/Combat portion is live-confirmed
+as `wildpath.combat`); Q4 persistence rollback/Action entry; future migrations.
 
 ## Staged movement status
 
@@ -150,12 +166,12 @@ existing **completed-event** workflow.
 
 ## Deferred work and immediate next step
 
-Q1 and Q2 are both **17/17 live-confirmed** (34 cases). No Q3/Q4 batch exists yet. Two coverage
-facts should shape the next slice: the repaired `startTurn` and `rest` whole-array pool writes are
-proven only in Node, not yet in Quench; and every Quench fixture so far is a world Actor, so
-synthetic Token Actor (ActorDelta) persistence has no layer-3 coverage. The fixture helper also
-cleans up only marked Actors, so any batch creating Scenes, Tokens, or Combats needs a cleanup
-extension before it is written.
+Q1, Q2, and the Combat slice are live-confirmed: **40 Quench cases**. No further Quench slice has been
+chosen or started; Rolls and Q4 remain deferred. Two facts carry forward: `rest()` is now the one
+repaired whole-array pool write still proven only in Node, and core 14.367 throws in
+`CombatTracker._onRender` for updates to a non-viewed Combat (a core defect the Combat batch reliably
+reproduces; not a WildPath failure). Whether the fixture orphan check returned empty arrays for
+Combats, Scenes, and Actors after the live run was not reported; confirm it before the next run.
 
 Separately deferred: all six cases in [staged-movement-qa.md](staged-movement-qa.md): square ordinary, decline, miss,
 hit/continue, effect/stop, and Large hex decline. Export the pending-choice proof plus paired GM/player
