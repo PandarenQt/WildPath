@@ -86,15 +86,25 @@ export function registerResourceTests(quench) {
           {id:"quench-focus",label:"QA focus",base:6,bonus:1,value:6,recovery:"shortRest"}
         ]}});
         const before = actor.toObject(true).system.pools;
-        assert.lengthOf(before,2,"Both custom pools should persist in the ArrayField");
-        assert.equal(actor.getResource("quench-focus").max,7,"Custom pool maximum should prepare from base and bonus");
-        assert.isTrue(await actor.spendResource("quench-focus",2),"Custom pool spend should use the normal Actor API");
-        const persisted = persistedActor(actor), pools = persisted.toObject(true).system.pools;
-        assert.lengthOf(pools,2,"Numeric update path must retain the pool array");
-        assert.deepEqual(pools[0],before[0],"Index-backed update must not mutate the neighboring pool");
-        assert.deepEqual(pools[1],{...before[1],value:4},"Index-backed update must persist only the target pool value");
-        assert.equal(persisted.getResource("quench-focus").value,4,"Custom pool value must survive preparation");
-        assert.equal(persisted.getResource("quench-focus").max,7,"Spending must preserve the custom pool maximum");
+        const preparedBefore = foundry.utils.deepClone(actor.system.pools);
+        try {
+          assert.lengthOf(before,2,"Both custom pools should persist in the ArrayField");
+          assert.equal(actor.getResource("quench-focus").max,7,"Custom pool maximum should prepare from base and bonus");
+          assert.isTrue(await actor.spendResource("quench-focus",2),"Custom pool spend should use the normal Actor API");
+          const persisted = persistedActor(actor), pools = persisted.toObject(true).system.pools;
+          assert.lengthOf(pools,2,"Custom spend must retain the full pool array");
+          assert.deepEqual(pools[0],before[0],"Custom spend must not mutate the neighboring pool");
+          assert.deepEqual(pools[1],{...before[1],value:4},"Custom spend must persist only the target pool value");
+          assert.equal(persisted.getResource("quench-focus").value,4,"Custom pool value must survive preparation");
+          assert.equal(persisted.getResource("quench-focus").max,7,"Spending must preserve the custom pool maximum");
+        } catch (error) {
+          const persisted = game.actors.get(actor.id) ?? actor;
+          const after = persisted.toObject(true).system.pools;
+          error.message += `\nCustom pool snapshot: ${JSON.stringify({before,after,preparedBefore,
+            preparedAfter:persisted.system.pools,targetIndex:1,expectedTargetValue:4,
+            expectedNeighbor:before[0],actualTarget:after?.[1],actualNeighbor:after?.[0]})}`;
+          throw error;
+        }
       });
 
       it("applies an Item maximum modifier once across repeated preparation and removes it on deletion", async function () {

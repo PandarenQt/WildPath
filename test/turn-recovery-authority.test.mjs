@@ -159,14 +159,21 @@ test("managed start turn mutates synthetic combatant actor rather than base acto
 test("managed start turn preserves generic recovery and rest-resource isolation", async () => {
   const actor = fakeActor("actor-a");
   const {combat, combatantA} = managedTurnContext({actorA: actor, turn: 0});
+  const before = actor.toObject(true).system.pools;
+  actor.system.pools[0].max = 5;
+  actor.system.pools[0].modifierBonus = 2;
 
   await combat._onStartTurn(combatantA, {round: 1, turn: 0, skipped: false});
 
-  assert.equal(actor.system.pools.find(pool => pool.id === "focus").value, 3);
+  assert.equal(actor.system.pools.find(pool => pool.id === "focus").value, 5);
   assert.equal(actor.system.resources.shortRest.value, 0);
   assert.equal(actor.system.resources.longRest.value, 0);
   assert.equal(actor.system.pools.find(pool => pool.id === "short-pool").value, 0);
   assert.equal(actor.system.pools.find(pool => pool.id === "long-pool").value, 0);
+  assert.equal(actor.updateCalls.length, 1);
+  assert.deepEqual(actor.updateCalls[0]["system.pools"], [{...before[0], value: 5}, ...before.slice(1)],
+    "Turn recovery must preserve neighboring source fields and exclude prepared contributions");
+  assert.deepEqual(actor.toObject(true).system.pools, actor.updateCalls[0]["system.pools"]);
 });
 
 test("managed start turn emits semantic turnStart for condition triggers exactly once", async () => {
@@ -227,15 +234,25 @@ function fakeActor(id, {uuid=`Actor.${id}`}={}) {
     effects: [],
     updateCalls: [],
     triggerCalls: [],
+    toObject(sourceOnly) {
+      assert.equal(sourceOnly, true);
+      return structuredClone(source);
+    },
     async update(updates) {
+      assert.ok(!Object.keys(updates).some(path => path.startsWith("system.pools.")),
+        "ArrayField element paths are not partial persistence updates");
       this.updateCalls.push(JSON.parse(JSON.stringify(updates)));
-      for ( const [path, value] of Object.entries(updates) ) setPath(this, path, value);
+      for ( const [path, value] of Object.entries(updates) ) {
+        setPath(source, path, structuredClone(value));
+        setPath(this, path, structuredClone(value));
+      }
     },
     async applyConditionTriggers({events=[]}={}) {
       this.triggerCalls.push(JSON.parse(JSON.stringify(events)));
       return {ok: true, events};
     }
   });
+  const source = {system: structuredClone(actor.system)};
   return actor;
 }
 

@@ -123,11 +123,13 @@ export default class WildPathActor extends Actor {
       return true;
     }
 
-    // Custom pool: update by index within the pools array.
-    const index = this.system.pools.findIndex(p => p.id === id);
-    if ( index < 0 ) return false;
-    const value = Math.clamp(resource.value - amount, 0, resource.max);
-    await this.update({[`system.pools.${index}.value`]: value});
+    // V14 ArrayFields are fully replaced. toObject(true) clones persisted source,
+    // excluding prepared maxima and transient modifierBonus contributions.
+    const pools = this.toObject(true).system.pools;
+    const pool = pools.find(p => p.id === id);
+    if ( !pool ) return false;
+    pool.value = Math.clamp(resource.value - amount, 0, resource.max);
+    await this.update({"system.pools": pools});
     return true;
   }
 
@@ -144,14 +146,19 @@ export default class WildPathActor extends Actor {
   async spendResources(costs, {force=false}={}) {
     if ( !force && !this.canAfford(costs) ) return false;
     const updates = {};
+    let pools;
     for ( const [id, amount] of Object.entries(costs) ) {
       const resource = this.getResource(id);
       if ( !resource ) continue;
       const value = Math.clamp(resource.value - amount, 0, resource.max);
       if ( id in this.system.resources ) updates[`system.resources.${id}.value`] = value;
       else {
-        const index = this.system.pools.findIndex(p => p.id === id);
-        if ( index >= 0 ) updates[`system.pools.${index}.value`] = value;
+        pools ??= this.toObject(true).system.pools;
+        const pool = pools.find(p => p.id === id);
+        if ( pool ) {
+          pool.value = value;
+          updates["system.pools"] = pools;
+        }
       }
     }
     if ( foundry.utils.isEmpty(updates) ) return false;
@@ -255,9 +262,12 @@ export default class WildPathActor extends Actor {
     for ( const [id, resource] of Object.entries(this.system.resources) ) {
       if ( resource.recovery === "turn" ) updates[`system.resources.${id}.value`] = resource.max;
     }
-    this.system.pools.forEach((pool, index) => {
-      if ( pool.recovery === "turn" ) updates[`system.pools.${index}.value`] = pool.max;
-    });
+    const pools = this.toObject(true).system.pools;
+    for ( const [index, resource] of this.system.pools.entries() ) {
+      if ( resource.recovery !== "turn" ) continue;
+      pools[index].value = resource.max;
+      updates["system.pools"] = pools;
+    }
     if ( !foundry.utils.isEmpty(updates) ) await this.update(updates);
     const triggers = await this.applyConditionTriggers({events});
     return {
@@ -281,9 +291,12 @@ export default class WildPathActor extends Actor {
     for ( const [id, resource] of Object.entries(this.system.resources) ) {
       if ( resource.recovery === recovery ) updates[`system.resources.${id}.value`] = resource.max;
     }
-    this.system.pools.forEach((pool, index) => {
-      if ( pool.recovery === recovery ) updates[`system.pools.${index}.value`] = pool.max;
-    });
+    const pools = this.toObject(true).system.pools;
+    for ( const [index, resource] of this.system.pools.entries() ) {
+      if ( resource.recovery !== recovery ) continue;
+      pools[index].value = resource.max;
+      updates["system.pools"] = pools;
+    }
     if ( !foundry.utils.isEmpty(updates) ) await this.update(updates);
 
     const events = getRestLifecycleEvents({actor: this, restType: recovery});

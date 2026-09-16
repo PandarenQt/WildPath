@@ -2,7 +2,7 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {createQuenchActor,createEmbeddedQuenchItem,cleanupQuenchFixtures,useQuenchFixtures}
+import {createQuenchActor,createEmbeddedQuenchItem,createEmbeddedQuenchEffect,cleanupQuenchFixtures,useQuenchFixtures}
   from "../module/tests/quench/fixtures.mjs";
 
 function globals(t,values) {
@@ -37,21 +37,22 @@ function fixtureStore(t,{isGM=true}={}) {
   return {actors,calls,add,documentClass};
 }
 
-test("Quench entry loads without Quench or Foundry globals and registers only the three Q1 batches on demand", async t => {
+test("Quench entry loads without Quench or Foundry globals and registers the six Q1/Q2 batches on demand", async t => {
   const hooks = [], batches = [];
   globals(t,{Hooks:{on:(...args) => hooks.push(args)},game:undefined,foundry:undefined,quench:undefined});
   await import("../module/tests/quench/index.mjs");
   assert.equal(hooks.length,1);
   assert.equal(hooks[0][0],"quenchReady");
   hooks[0][1]({registerBatch:(key,register,options) => batches.push({key,register,options})});
-  assert.deepEqual(batches.map(b => b.key),["wildpath.runtime-smoke","wildpath.documents","wildpath.resources"]);
+  assert.deepEqual(batches.map(b => b.key),["wildpath.runtime-smoke","wildpath.documents","wildpath.resources",
+    "wildpath.effects","wildpath.conditions","wildpath.rule-elements"]);
   const counts = batches.map(batch => {
     let count = 0;
     batch.register({describe:(_name,fn) => fn.call({timeout() {}}),it:() => count++,beforeEach() {},afterEach() {},assert:{}});
     assert.equal(batch.options.preSelected,false,"Registration must not opt developers into mutation tests");
     return count;
   });
-  assert.deepEqual(counts,[3,6,8]);
+  assert.deepEqual(counts,[3,6,8,4,5,8]);
   const startup = readFileSync(new URL("../wildpath.mjs",import.meta.url),"utf8");
   assert.deepEqual(startup.match(/import\s+"\.\/module\/tests\/[^"\n]+";/g),['import "./module/tests/quench/index.mjs";']);
 });
@@ -70,6 +71,33 @@ test("Quench fixtures mark real-API creation requests and refuse embedded mutati
   await assert.rejects(createEmbeddedQuenchItem(ordinary),/explicitly marked fixture Actor/);
   await assert.rejects(createQuenchActor({runId:""}),/nonempty/);
   assert.equal(store.calls.length,count,"Refused fixture operations must not reach document mutation APIs");
+});
+
+test("Quench ActiveEffect fixtures require a marked parent and preserve scoped flags and native data", async t => {
+  const store = fixtureStore(t), hooks = {};
+  const fixtures = useQuenchFixtures({beforeEach:fn => hooks.before = fn,afterEach:fn => hooks.after = fn});
+  hooks.before.call({skip() {assert.fail("GM must not skip");}});
+  const actor = await fixtures.createActor();
+  const system = {ruleElements:[{schemaVersion:1,id:"fixture-rule",type:"Modifier",data:{domains:["all"],value:2}}]};
+  const duration = {value:1,units:"seconds",expiry:null,expired:true};
+  const effect = await fixtures.createEffect(actor,{system,duration,start:{time:0},disabled:true});
+  assert.strictEqual(effect.parent,actor);
+  assert.deepEqual(effect.flags,actor.flags);
+  assert.equal(effect.type,"effect");
+  assert.equal(effect.disabled,true);
+  assert.equal(effect.transfer,false);
+  assert.deepEqual(effect.system,system);
+  assert.deepEqual(effect.duration,duration);
+  assert.deepEqual(effect.start,{time:0});
+  assert.equal(store.calls.at(-1).kind,"ActiveEffect");
+  const ordinary = store.add("ordinary");
+  const missingRun = store.add("missing-run",{wildpath:{quenchFixture:true}});
+  const count = store.calls.length;
+  await assert.rejects(createEmbeddedQuenchEffect(ordinary),/explicitly marked fixture Actor/);
+  await assert.rejects(createEmbeddedQuenchEffect(missingRun),/nonempty/);
+  assert.equal(store.calls.length,count,"Refused effect creation must not reach embedded mutation APIs");
+  await hooks.after();
+  assert.deepEqual([...store.actors.keys()],["ordinary","missing-run"]);
 });
 
 test("Quench cleanup requires both exact marker and run ID and is safe to repeat", async t => {
@@ -94,6 +122,7 @@ test("Quench mutation helpers and skipped non-GM teardown never write Documents"
   await hooks.after();
   await assert.rejects(createQuenchActor({runId:"test"}),/require a GM/);
   await assert.rejects(createEmbeddedQuenchItem({}),/require a GM/);
+  await assert.rejects(createEmbeddedQuenchEffect({}),/require a GM/);
   await assert.rejects(cleanupQuenchFixtures({runId:"test"}),/require a GM/);
   assert.deepEqual(store.calls,[]);
 });
@@ -112,6 +141,23 @@ test("Quench teardown finds a marked Actor even when creation throws after persi
   assert.equal(store.actors.size,2);
   await hooks.after();
   assert.deepEqual([...store.actors.keys()],["unrelated"]);
+});
+
+test("Quench teardown removes its fixture after an assertion failure and preserves other runs", async t => {
+  const store = fixtureStore(t), hooks = {};
+  store.add("other-run",{wildpath:{quenchFixture:true,quenchRunId:"other-run"}});
+  const fixtures = useQuenchFixtures({beforeEach:fn => hooks.before = fn,afterEach:fn => hooks.after = fn});
+  hooks.before.call({skip() {assert.fail("GM must not skip");}});
+  await assert.rejects(async () => {
+    try {
+      await fixtures.createActor();
+      assert.equal(store.actors.size,2);
+      assert.fail("deliberate mid-test assertion failure");
+    } finally {
+      await hooks.after(); // Exercise the installed teardown hook after the failed body.
+    }
+  },/deliberate mid-test assertion failure/);
+  assert.deepEqual([...store.actors.keys()],["other-run"]);
 });
 
 test("Quench cleanup reports a rejected deletion instead of silently leaving fixtures", async t => {

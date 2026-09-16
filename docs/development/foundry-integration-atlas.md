@@ -1343,7 +1343,7 @@ declares no `scripts` block and no test-related dependencies.
 testing workflow for a V14 system. The absence is a fact about Foundry's documentation, not evidence
 that testing is discouraged.
 
-### 19F. Quench — V14.367 smoke demonstrated; Q1 live run pending
+### 19F. Quench — V14.367 Q1 17/17; Q2 implemented, live-run pending
 
 Quench is the ecosystem's in-Foundry test runner (Mocha + Chai + fast-check, registering a native
 Foundry Application as a test runner UI). It is the only known candidate for **layer 3**.
@@ -1367,9 +1367,23 @@ It is not a claim of general V14 compatibility: deprecated `Game`, `SearchFilter
 warnings remain external Quench debt, as does the reported auto-run/UI ordering issue.
 
 Phase Q1 now implements runtime-smoke, Documents, and resources batches with scoped marked fixtures.
-**The refactored/expanded Q1 batches have not yet been live-run.** See
+The maintainer's expanded Q1 live run on V14.367 passed smoke **3/3**, Documents **6/6**, and resources
+**7/8**: **16/17 initially passed**. The sole failure exposed an indexed custom `ArrayField` write in
+the Actor resource API. Installed V14.367 source confirms arrays are complete replacement leaves;
+the Actor methods now replace clean persisted pool arrays. On 2026-09-16 the maintainer confirmed
+all tests pass after the repair: resources **8/8**, Q1 **17/17**. **Fix implemented and live-confirmed.**
+This records the maintainer's confirmation, without an exported post-fix report. The original sixteen
+passes remain live evidence; Quench example-suite failures are excluded. See
 [foundry-testing-strategy.md](foundry-testing-strategy.md) for the exact cases and manual run settings.
 Quench remains optional; no vendor patch or manifest dependency is introduced.
+
+Phase Q2 adds `wildpath.effects` (4), `wildpath.conditions` (5), and `wildpath.rule-elements` (8),
+using the same optional registration hook and scoped Actor cleanup. The **17 Q2 cases are implemented;
+live-run pending**. They cover real ActiveEffect persistence and disabled/expired state, condition
+conversion/stacking/removal, persisted Item/effect Modifier RuleElements, source integrity,
+domain/predicate/priority behavior, and preparation idempotence. Bleeding's Trigger is checked through
+conversion and registry collection; turn dispatch remains outside Q2. No production semantics changed
+for Q2. The existing Q1 live result remains 17/17 and is not evidence of a Q2 pass.
 
 **Correction recorded.** An earlier draft of this research asserted the Quench repository was "pushed
 April 2026" and inferred active maintenance. That claim **does not reproduce** and has been withdrawn.
@@ -1412,7 +1426,7 @@ gate. The live multiplayer cases remain the evidence of record for multiplayer b
 ### 19H. Current test ladder
 
 **[wildpath]** Levels 1 and 2 exist today; 4 and 5 exist as manual procedure. Level 3 is now supported
-by the successful Quench smoke experiment; its expanded Q1 batches still need their first live run.
+by Q1's maintainer-confirmed 17/17 live result after the custom-pool persistence repair.
 
 ```text
 Level 1 — Pure Node tests
@@ -1424,8 +1438,9 @@ Deterministic mocks/fakes.
 Existing production-shaped tests.
 
 Level 3 — Semi-automated real-Foundry tests
-Quench v0.10.0: V14.367 smoke proven; expanded Q1 live execution pending.
+Quench v0.10.0: V14.367 Q1 initially 16/17, then 17/17 after the custom-pool fix (maintainer-confirmed).
 Q1: real Documents/TypeDataModels, resources, preparation, and persistence.
+Q2: 17 implemented cases for ActiveEffects, conditions, and RuleElements; live-run pending.
 
 Level 4 — Live single-client QA
 Real Foundry UX and persistence.

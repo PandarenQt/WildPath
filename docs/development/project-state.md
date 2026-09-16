@@ -5,17 +5,22 @@ Last verified: 2026-09-16.
 - Branch: `milestone/action-runtime-live-proof`.
 - Starting HEAD for Quench Q1: `85344524f75e2620c3bc1990e5c75cca7c463602`.
 - Quench Q1 implementation commit: `75ef1fb738433367b549a2171d6665be894a24c4`.
+- Starting HEAD for the custom-pool persistence repair: `5e8ec1453be842c00b39fb04a1099cdb38f0cb98`.
+- Starting HEAD for Quench Q2: `5e8ec1453be842c00b39fb04a1099cdb38f0cb98` (Q1 repair and live-status documentation already uncommitted).
 - Staged-movement QA commit: `7c12977`.
 - Movement implementation commit: `87ed1fae93271b81b14432bb4312be9cd53285c5`.
 - Original milestone starting HEAD: `ea484fd8b503697ddf1c2b7b0f6984ea594378e2`.
 - Local main HEAD: `61d6268b838e286728c829924506c6c931174621`.
-- Portable full suite (`FOUNDRY_V14_APP_PATH` unset): **797 tests, 795 passed, 0 failed, 2 intentionally skipped**.
+- Portable full suite (`FOUNDRY_V14_APP_PATH` unset): **808 tests, 806 passed, 0 failed, 2 intentionally skipped**.
+- Q2 delta from 807/805/0/2: **1 new portable test** for scoped ActiveEffect fixtures; registration and GM-guard checks extended.
+- Repair delta from 797/795/0/2: **10 new tests** (9 Actor resource persistence cases and 1 assertion-failure cleanup case); existing turn-recovery coverage strengthened.
 - Prior installed-source check: `foundry-nested-reaction-commit.test.mjs` **11 passed, 0 failed, 0 skipped**, including both optional tests against V14.367; not rerun for Q1.
 - Typecheck, changed-module syntax checks, and diff whitespace checks passed. No generated runtime sources changed; the prior implementation build remains the last build verification.
 
-These figures cover the Quench Q1 implementation commit above. Verify actual HEAD, branch, worktree, and subsequent
-changes before relying on them. Starting HEAD includes the original Quench smoke module and atlas
-updates; the unfinished registration/fixture drafts present at preflight were migrated into Q1.
+These figures cover the Q2 implementation worktree, including the preceding live-confirmed Q1
+custom-pool repair. No Q2 commit has been created. Verify actual HEAD, branch, worktree, and
+subsequent changes before relying on them. Unrelated edits to
+`docs/development/nextPromptForCodex.md` and the untracked `.claude/` directory were preserved.
 
 ## Product and invariants
 
@@ -27,24 +32,62 @@ turn configured reaction content into a second combat engine.
 
 ## Current milestone
 
+**Quench Q2 is implemented; live-run pending.** Three new batches in `module/tests/quench/` cover
+`wildpath.effects` (4), `wildpath.conditions` (5), and `wildpath.rule-elements` (8): **17 Q2 cases**.
+The existing optional `quenchReady` entry now registers six batches (34 total cases), without
+changing Q1's 17 cases. Only Q1 is live-confirmed so far.
+
+Q2 covers real ActiveEffect lifecycle/disabled state/native expiration suppression, condition
+apply/remove and status conversion, Exhaustion stacking, Prone idempotence, Item/ActiveEffect
+Modifier RuleElements, clean source integrity, exact/wildcard domains, level predicates, priority,
+definition flags, and repeated preparation/deletion. Bleeding's configured Trigger is verified
+through status conversion, persisted payload, and registry collection/removal; Combat turn dispatch
+is outside this milestone. The condition-removal modifier is authored on the disposable Prone
+effect without changing the built-in condition definition.
+
+Fixture additions are limited to `createEmbeddedQuenchEffect` / `fixtures.createEffect`, requiring
+GM, ready state, a marked parent, and a valid run ID. Existing Actor teardown owns all embedded Item
+and ActiveEffect cleanup, including condition effects created directly through production APIs.
+**Production semantics changed for Q2: NO.** The preceding Q1 runtime repair is preserved. Exact
+case names, boundaries, and live-run instructions are in the [testing strategy](foundry-testing-strategy.md).
+
+### Q1 live evidence and preceding repair
+
 Quench Phase Q1 implements an optional real-Foundry integration layer in `module/tests/quench/`:
 one `quenchReady` registration entry, shared marked fixtures with per-test cleanup, and three batches:
 `wildpath.runtime-smoke` (3 cases), `wildpath.documents` (6), and `wildpath.resources` (8).
-The prior smoke batch was live-proven by the maintainer in Foundry V14.367 with Quench v0.10.0.
-**The 17 refactored/expanded Q1 cases are implemented but have not yet been live-run.**
+The maintainer live-ran Q1 in Foundry V14.367 with Quench v0.10.0: smoke **3/3**, Documents **6/6**,
+resources **7/8**; **16/17 initially passed**. The only failing case was the nonzero-index custom-pool
+spend. The other sixteen cases, including Item-backed maxima across repeated preparation and Item
+deletion, remain valid live evidence. On 2026-09-16 the maintainer confirmed all tests pass after the
+repair: resources **8/8**, Q1 **17/17 PASS**. **Fix implemented and live-confirmed.** This records the
+maintainer's rerun confirmation; no exported post-fix Quench report was supplied in this conversation.
 
 Coverage includes actual Actor and Item models/lifecycles, source snapshots, built-in spending and
-restore clamping, unaffordable and multi-resource spending, array-index custom-pool persistence,
-and Item-backed resource maxima across repeated Foundry preparation. Six new portable tests guard
+restore clamping, unaffordable and multi-resource spending, custom-pool persistence,
+and Item-backed resource maxima across repeated Foundry preparation. Eight portable infrastructure tests now guard
 optional registration, GM-only mutation, fixture marking/scoping, and cleanup on failure. They do
 not emulate a pass of the real-Foundry cases.
 
-Quench's V14 deprecated-global warnings and its auto-run/UI ordering issue are external tool debt.
-No vendor files, dependency manifests, client settings, or production semantics were changed.
-The only startup integration is the single optional test registration import. See the
+Installed V14.367 source confirms ArrayFields are fully replaced: `system.pools.1.value` is not a
+safe partial pool patch. The repair changes `spendResource`, `spendResources`, `startTurn`, and
+`rest` to replace clean `toObject(true).system.pools` source arrays, changing only intended values.
+Prepared modifiers/maxima remain transient; affordability, clamping, recovery, lifecycle behavior,
+and built-in paths are unchanged. Mixed built-in/custom costs still use one Actor update. Production
+impact is limited to this persistence correction. Nine new portable cases and strengthened turn
+coverage reject the indexed update shape that permissive Node setters previously accepted.
+
+Quench's V14 deprecated-global warnings, auto-run/UI ordering issue, and example-suite failures are
+external tool debt; example results are excluded from WildPath's Q1 totals. Use `quench.exampleTests = false`,
+`quench.autoRun = false`, `quench.autoShowQuenchWindow = true`; reload after changing example tests.
+The existing scoped `afterEach` cleanup is unchanged and now explicitly tested after assertion
+failure. Manually verify `game.actors.filter(a => a.getFlag("wildpath", "quenchFixture") === true)`
+returns `[]`; the live world's leftovers were not inspected here. No vendor files, dependency
+manifests, or client settings were changed. The only startup integration remains the single optional
+test registration import. See the
 [testing strategy and exact live run procedure](foundry-testing-strategy.md).
 
-Deferred Quench phases: Q2 effects/conditions/RuleElements; Q3 synthetic Actors/Combat/Rolls;
+Deferred Quench phases: Q3 synthetic Actors/Combat/Rolls;
 Q4 persistence rollback/Action entry; future migrations.
 
 ## Staged movement status
@@ -90,7 +133,7 @@ The ordinary Action runtime evidence is tracked in `evidence/gm-hit.json`, `gm-m
 `player-hit.json`, and `player-miss.json`. These artifacts and prior live claims were not replaced
 or rerun during this milestone.
 
-No new live evidence was produced. The staged intent's **before-transition** timing and final
+No new staged-movement live evidence was produced. The staged intent's **before-transition** timing and final
 position persistence still require the new GM/player gate. Native dragging continues to use its
 existing **completed-event** workflow.
 
@@ -105,10 +148,13 @@ existing **completed-event** workflow.
 
 ## Deferred work and immediate next step
 
-Run the three Quench Q1 batches as GM in the disposable V14.367 world, retain the report, and rerun
-to verify cleanup. Expected live gate: 17 passing cases, with vendor warnings assessed separately.
+Immediate next action: run `wildpath.effects`, `wildpath.conditions`, and `wildpath.rule-elements`
+as GM in the disposable V14.367 QA world. Expected Q2 target: **17 passing cases**, not yet observed.
+Retain the report and verify the existing fixture-cleanliness check returns `[]`. Q1 remains
+**17/17 live-confirmed**, including the repaired resource case. Do not mark Q2 live-green until the
+maintainer confirms its real run, and do not begin Q3/Q4 in this milestone.
 
-Run all six cases in [staged-movement-qa.md](staged-movement-qa.md): square ordinary, decline, miss,
+Separately deferred: all six cases in [staged-movement-qa.md](staged-movement-qa.md): square ordinary, decline, miss,
 hit/continue, effect/stop, and Large hex decline. Export the pending-choice proof plus paired GM/player
 evidence before advancing to native UI integration. These strengthened live cases have not been run.
 

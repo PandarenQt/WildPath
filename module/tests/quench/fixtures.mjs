@@ -34,6 +34,22 @@ export async function createEmbeddedQuenchItem(actor, {name="Item", type="featur
   return item;
 }
 
+export async function createEmbeddedQuenchEffect(actor, {
+  name="Effect",type="effect",system={},disabled=false,duration={},start
+}={}) {
+  requireGM();
+  if (actor?.getFlag("wildpath",QUENCH_FIXTURE_FLAG) !== true) {
+    throw new Error("Embedded Quench ActiveEffects require an explicitly marked fixture Actor.");
+  }
+  const runId = actor.getFlag("wildpath","quenchRunId");
+  const [effect] = await actor.createEmbeddedDocuments("ActiveEffect",[{
+    name:`${PREFIX} ${name}`,type,system,disabled,transfer:false,duration,
+    ...(start === undefined ? {} : {start}),flags:fixtureFlags(runId)
+  }]);
+  if (!effect) throw new Error(`Embedded ActiveEffect creation returned no fixture (Quench run ${runId}).`);
+  return effect;
+}
+
 export async function cleanupQuenchFixtures({runId}={}) {
   requireGM();
   fixtureFlags(runId); // A missing run ID must never turn cleanup into a world-wide sweep.
@@ -66,6 +82,7 @@ export function useQuenchFixtures({beforeEach,afterEach}) {
   });
   return {
     createActor: data => createQuenchActor({...data,runId}),
-    createItem: (actor,data) => createEmbeddedQuenchItem(actor,data)
+    createItem: (actor,data) => createEmbeddedQuenchItem(actor,data),
+    createEffect: (actor,data) => createEmbeddedQuenchEffect(actor,data)
   };
 }
