@@ -365,6 +365,124 @@ For the eventual native-drag integration, three concrete points carry over:
    `activeGM` for authority-accounting. WildPath already chose the latter, which is why its
    `moveToken` plus `finished === true` approach is coherent even though Crucible's differs.
 
+### Native V14 movement infrastructure WildPath does not currently use
+
+Separate from the interrupt question, V14 ships a substantial movement execution layer that the
+staged host bypasses entirely. It is recorded here as **candidate infrastructure for the deferred
+native-ruler / native-drag integration**, not as an alternative to the staged host. All statements
+below are verified against the installed 14.367 source.
+
+**Planned movement is a real document state.** `TokenMovementState` is
+`"completed"|"paused"|"planned"|"pending"|"stopped"` (`client/documents/_types.mjs:408`). Passing
+`planned: true` in `TokenMovementOptions` — documented verbatim as *"Don't start the movement yet?"*
+(`_types.mjs:537`) — leaves the movement planned rather than executing it. The `planToken` hook then
+fires, *"when the current movement of a Token document is planned"* (`client/hooks.mjs:765`), with
+`_onMovementPlanned` as the document-level handler. `startMovement(movementId?)` later commits it:
+*"Start the currently planned movement or the planned movement corresponding to given movement ID"*
+(`client/documents/token.mjs:944-950`).
+
+This is the plan/confirm split Crucible uses, and it is the piece that would give WildPath native
+ruler presentation and animation for a route it has already planned itself.
+
+**Interruption is checkpoint-granular, and that is the key comparison point.** The `checkpoint`
+waypoint field is documented verbatim: *"Is this waypoint a checkpoint? There's an update/movement
+operation for each checkpoint in a movement path. At a checkpoint the movement can be stopped or
+paused."* (`client/documents/_types.mjs:303-305`). Because `moveToken` fires *"for every Token
+document that was moved after conclusion of an update workflow"* (`client/hooks.mjs:726-735`), and
+each checkpoint is its own update operation, **`moveToken` fires once per checkpoint** — which is why
+§2 warns it is not "movement finished."
+
+The consequence for WildPath is precise and worth stating before any integration work begins:
+**core's pause granularity is the checkpoint, while WildPath's reaction requirement is the tactical
+transition.** Those are not the same unit. Whether native checkpoints can be made to coincide with
+WildPath transitions — by emitting a checkpoint per transition — is an open question that must be
+answered before native execution could carry reaction windows. Until it is, this remains presentation
+infrastructure, not interrupt infrastructure.
+
+**Pause/resume is genuinely asynchronous, unlike hook cancellation.** `pauseMovement()` returns a
+resume callback; `pauseMovement(key)` returns a promise resolving `true` when resumed with that same
+key. Core's documented rule is *"Only after all callbacks and keys have been called the movement of
+the Token is resumed"* (`token.mjs:810-855`) — pause is additive across independent participants, so
+several behaviors can hold the same movement and it continues only when the last releases. This is
+the one core-sanctioned mechanism for awaiting an async decision mid-movement (§18F).
+
+**Authorization is asymmetric, and the asymmetry matters for a GM-authority system:**
+
+| Operation | Required authority | Source |
+| --- | --- | --- |
+| `pauseMovement` | the User that **initiated** the movement | `token.mjs:810`; enforced by a thrown `Error` at `token.mjs:869` |
+| `stopMovement` | the User that **initiated** the movement | `token.mjs:757-762` |
+| `startMovement` | any **owner** of the Token | `token.mjs:944-950` |
+| `resumeMovement` | any **owner** of the Token | `token.mjs:963-970` |
+
+So a movement can be paused only by its initiator but resumed by any owner. Core's own pressure-plate
+example splits exactly along that line — the initiating client pauses under `event.user.isSelf`,
+while the active GM performs the world mutation and calls `resumeMovement(movementId, key)`
+(`token.mjs:838-853`). That is the same authority shape WildPath already uses, which is a useful
+signal that the model is compatible; it is not evidence that the transports are interchangeable.
+
+**Movement history is recorded state.** `TokenDocument#movementHistory` returns
+`TokenMeasuredMovementWaypoint[]` (`token.mjs:367-371`), maintained by core with `recordToken` firing
+when movement is *"recorded or cleared."* WildPath maintains its own progress record instead; the two
+are independent, and nothing currently reconciles them.
+
+**None of this changes the recommendation for the current milestone.** The staged movement path should
+not be altered before its live QA gate closes. These are notes for the integration that follows it.
+
+### `revertRecordedMovement()` and WildPath's reversal concepts
+
+`revertRecordedMovement(movementId?)` is documented as *"Undo all recorded movement or the recorded
+movement corresponding to given movement ID up to the last movement. The token is displaced to the
+prior recorded position and the movement history [is] rolled back accordingly."* (`token.mjs:716-722`;
+the bracketed word corrects a typo in core's own JSDoc).
+
+It is tempting to file this under "rollback," which would be a category error. Three distinct concepts
+must stay separate:
+
+```text
+revertRecordedMovement()
+    reverses Foundry-recorded Token movement
+
+transaction rollback
+    compensates mutations from a failed WildPath commit
+
+future post-resolution reversal
+    is a third, distinct concept
+```
+
+`ResolutionTransaction` rollback compensates a commit that *failed*, using the `rollbackUpdates` its
+operations already carry, and it is scoped to the transaction boundary. `revertRecordedMovement()`
+operates on Foundry's own movement history for a movement that *succeeded*, and knows nothing about
+resolution state, payment, or reaction children. A future post-resolution reversal feature — undoing a
+completed, committed action after the fact — is a third thing again, and is not implied by either.
+
+The honest assessment: `revertRecordedMovement()` is a **primitive a future movement-reversal planner
+could call** to restore token position and history. It does not restore resources, effects, or
+committed reaction children, and it does not replace transaction semantics. Treat it as one possible
+component of that future work, not as its design.
+
+### The division of responsibility this preserves
+
+For any future native-execution integration, the boundary that must hold:
+
+```text
+Foundry movement machinery
+    may own native execution, ruler presentation,
+    animation, checkpoint pause/resume, and history
+
+WildPath
+    remains authoritative for TacticalGrid semantics,
+    before-transition reaction discovery,
+    nested resolution,
+    continuation/revalidation,
+    movement cost/payment,
+    and transaction ownership
+```
+
+Adopting core's execution layer would mean delegating *presentation and transport*, never rules
+authority. The moment reaction discovery, cost, or commit ownership moved into core's machinery,
+WildPath would lose the properties the staged host exists to guarantee.
+
 ---
 
 ## 8. Actions / reactions / rolls comparison
@@ -968,3 +1086,132 @@ Recorded because each was encountered in research and would have caused real err
 - **"`Roll#evaluate`'s `async` option was removed in V14."** That concluded in **V12** (12.317).
   Already history for any V14 target.
 - **"There is a V13→V14 migration guide."** There is not (§18E).
+
+### 18I. Thickened contracts for deferred integrations
+
+Exact signatures and constraints for three primitives WildPath does not use yet but will evaluate.
+The architectural framing for the movement pair lives in §7; this entry is the contract reference.
+All verified against installed 14.367 source.
+
+**`pauseMovement` / `resumeMovement`** — `client/documents/token.mjs:810-970`
+
+Two overloads, both returning `null` when the movement is not pausable:
+
+```text
+pauseMovement()      -> TokenResumeMovementCallback | null
+pauseMovement(key)   -> Promise<boolean> | null     resolves true when resumed with the same key
+resumeMovement(movementId, key) -> void
+```
+
+Verified semantics:
+
+- Pause only succeeds while `movement.state === "pending"`; it is a no-op returning `true` if already
+  paused, and `false` from any other state (`token.mjs:869-877`).
+- *"Only after all callbacks and keys have been called the movement of the Token is resumed"* — holds
+  are **additive across independent holders**, so multiple behaviors may pause the same movement and
+  it continues only when the last one releases.
+- *"If the callback is called within the update operation workflow, the movement is resumed after the
+  workflow"* — resuming inside a document workflow defers to the end of that workflow rather than
+  re-entering it.
+- Authority is asymmetric: pause/stop require the **initiating user** (pause throws
+  `"Only the User that initiated the movement can pause it."` at `token.mjs:869`), while
+  start/resume require **token ownership**. See the table in §7.
+- Core's own pressure-plate example (`token.mjs:838-853`) is the canonical usage and splits work
+  across clients: the initiator pauses under `event.user.isSelf`, the active GM mutates the world and
+  calls `resumeMovement`. It is an Execute Script Region Behavior on `TOKEN_MOVE_IN`.
+
+**Checkpoints** — `client/documents/_types.mjs:303-305`
+
+Verbatim: *"Is this waypoint a checkpoint? There's an update/movement operation for each checkpoint in
+a movement path. At a checkpoint the movement can be stopped or paused. Default: `false`."*
+
+Consequences: one update operation per checkpoint, therefore one `moveToken` per checkpoint
+(`client/hooks.mjs:726-735`) — this is the mechanism behind §2's warning that `moveToken` is not
+"movement finished." Pause and stop are only available at checkpoint boundaries, so **checkpoint
+density determines interrupt granularity**. Whether checkpoints can be emitted per WildPath tactical
+transition is the open question §7 records; it is unanswered here and should not be assumed.
+
+**`DialogV2.query`** — `client/applications/api/dialog.mjs:429-451`
+
+```text
+static async query(user, type, config={}) -> Promise<any|null>
+    user : User | userId string      (throws if the id does not resolve)
+    type : "prompt" | "confirm" | "input" | "wait"
+```
+
+*"Present an asynchronous Dialog query to a specific User for response."* Returns the response, or
+`null` if none was provided. Mechanics worth knowing:
+
+- It **short-circuits locally**: `if (user.isSelf) return this[type](config)`. Only a genuinely remote
+  target crosses the wire, so one call site serves both local-GM and remote-player cases.
+- Remotely it delegates to `user.query("dialog", {type, config})`, handled by the
+  `CONFIG.queries.dialog` entry (`client/config.mjs:2964`), whose handler is `DialogV2._handleQuery`.
+- `User#query(queryName, queryData, queryOptions)` requires `queryName` to be **registered in
+  `CONFIG.queries`** and `queryData` to be **JSON-serializable**, and accepts `queryOptions.timeout`
+  in milliseconds (`client/documents/user.mjs:281-289`).
+- **"Callback options are not supported"** — the config crosses the wire as data, so no behavior can
+  be passed through it.
+
+**Assessment for WildPath.** This is a plausible *interaction transport* for delivering a
+`PendingRequest` to a specific user and awaiting their reply: it targets one user, it is awaited, it
+supports timeouts, and its JSON-serializable payload constraint aligns with the staged domain's
+plain-data rule. Its advantages over the broadcast socket (§17) are targeting and a real reply
+channel.
+
+What it explicitly does **not** provide, and must not be read as replacing:
+
+```text
+ResolutionState              request identity and lifecycle
+coordinator validation       sender/authority checking
+stale + duplicate rejection  replay and late-response safety
+authority semantics          who may decide, and who may commit
+```
+
+`DialogV2.query` moves a question to a user and brings an answer back. Everything that makes that
+answer *trustworthy and correctly sequenced* remains WildPath's, exactly as it is today. Adopting it
+would replace a transport, not a state machine.
+
+### 18J. Version and QA-environment notes
+
+**Node requirements are per-artifact and must not be conflated.** Four distinct scopes, only two of
+which are established here:
+
+| Scope | Requirement | Source |
+| --- | --- | --- |
+| Foundry V14 application / dedicated server | `>=24.13.1 <25.0.0` | `resources/app/package.json` → `engines.node`; same file records `release: {generation: 14, build: 367, node_version: 24}` |
+| WildPath tooling (tests, build, typecheck) | `>=18` | `package.json:12-13` → `engines.node` |
+| PF2e development tooling | **not established here** | no local PF2e checkout is present; not verified |
+| Reference-system tooling generally | **not established here** | out of scope |
+
+Two things follow. First, a blanket "Node 24 is required for V14" is imprecise: it is Foundry's own
+server/application requirement, not one WildPath's tooling inherits. WildPath's Node tests run outside
+Foundry and declare `>=18`. Second, **PF2e's `package.json` is not evidence of anything about
+WildPath** — a reference system's tooling floor is its own choice. If WildPath ever raises its floor,
+that should be a deliberate decision recorded in WildPath's own manifest, not an inference.
+
+The desktop client bundles its own runtime, so the `>=24.13.1` constraint bites on dedicated-server
+deployments rather than on a developer running the Windows application.
+
+**Treat worlds as version-sensitive, forward-migrated data.** Verified in source: a world records a
+`coreVersion`, and `BaseWorld.migrateData` raises `compatibility.minimum` and `compatibility.verified`
+to that `coreVersion` when `verified` is unset (`common/packages/base-world.mjs:61-62`). Launch
+eligibility is then gated by `testAvailability` / `isIncompatibleWithCoreVersion`
+(`base-world.mjs:93-102`). That is a real forward-only compatibility floor.
+
+A stronger claim circulates — that a world opened in V14 can never be reopened in V13. That is
+**consistent with** the mechanism above but is **not independently verified here**; it comes from
+release-note prose, not source read in this pass. Per §18A, treat it as published-contract-level
+information rather than established runtime behavior until traced.
+
+The operational recommendation does not depend on resolving that difference:
+
+- **Never use the only copy of a campaign world for cross-version QA.** Migration raises the floor
+  whether or not the downgrade is strictly impossible.
+- Use **isolated, disposable worlds** for version testing, created for the purpose and discarded.
+- **Back up before any version transition**, including a Foundry point-release upgrade.
+- Record the exact Foundry build in QA artifacts. The live-QA attestation gap noted elsewhere — no
+  artifact captures the tested build — is precisely the failure this avoids.
+
+Source hierarchy for everything above is unchanged from §18A: installed pinned source for existence
+and runtime behavior, API reference for the published contract, release notes for chronology and
+intent, conceptual articles for background only.
