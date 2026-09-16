@@ -130,8 +130,27 @@ export async function setupGM(moverUserId, reactorUserId=game.user.id, {variant=
     const requests = [...record.requestExpectations.values()];
     check(requests.every(r => r.expectedUserId === reactorUserId),"Reaction request inherited the mover controller.");
     check(requests.length === (mode === "ordinary" ? 0 : used ? 2 : 1),"Unexpected choice/roll count.");
-    const rollResponses = qa.envelopes.filter(e => e.messageType === "REQUEST_RESPONSE" && e.payload?.response?.type === "roll");
-    check(!used || rollResponses.some(e => e.payload.response.value?.provider?.id === "foundry-digital"),"Missing real Foundry digital roll evidence.");
+    const rollResponses = qa.envelopes.filter(
+      e => e.messageType === "REQUEST_RESPONSE"
+        && e.payload?.response?.type === "roll"
+    );
+
+    const socketDigitalRoll = rollResponses.some(
+      e => e.payload?.response?.value?.provider?.id === "foundry-digital"
+    );
+
+    const childDigitalRoll = qa.children.some(
+      entry => entry.child?.rollResults?.some(
+        result =>
+          result?.rollResult?.provider?.id === "foundry-digital"
+          && result?.rollResult?.provenance?.type === "foundry-digital"
+      )
+    );
+
+    check(
+      !used || socketDigitalRoll || childDigitalRoll,
+      "Missing real Foundry digital roll evidence."
+    );
     qa.passed.push(qa.current.resolutionId);
     return qa.dump();
   };
