@@ -29,9 +29,13 @@ maintainer reported all tests pass after the repair. This is maintainer-reported
 no exported post-fix Quench report was supplied in this conversation. Quench's built-in example
 suites also ran during the initial run; their failures are excluded from WildPath's totals.
 
-**Q2 is implemented; live-run pending.** Its 17 additional cases cover ActiveEffects (4), conditions
-(5), and RuleElements (8). The Q1 live result does not establish a Q2 pass. All six batches together
-contain 34 cases; only Q1's 17 are currently live-confirmed.
+**Q2 is live-confirmed.** Its 17 additional cases cover ActiveEffects (4), conditions (5), and
+RuleElements (8). The maintainer subsequently ran the expanded suite against Foundry V14.367 and
+reported the 17 new cases passing **17/17**. As with Q1, this is maintainer-reported live evidence;
+no exported Quench report was supplied. All six batches together contain 34 cases, and all **34 are
+now live-confirmed**. The maintainer's summary described the expansion as eight batches; the
+repository registers exactly three new batch keys, and no repository structure yields eight, so only
+the three verified batches and the 17-case total are recorded here.
 
 Quench v0.10.0 is not V14-clean: its deprecated `Game`, `SearchFilter`, and `FilePicker` references
 emit vendor compatibility warnings. It also has a reported auto-run/UI ordering problem if execution
@@ -123,7 +127,7 @@ equal the effective maximum. This is the existing DataModel contract.
 An awaited Document update plus collection/source inspection exercises Foundry's update workflow;
 it does not claim a server restart/database-reload proof.
 
-## Q2 batches and exact cases (implemented; live-run pending)
+## Q2 batches and exact cases (17/17 live-confirmed)
 
 New files: `module/tests/quench/effects.mjs`, `conditions.mjs`, and `rule-elements.mjs`. They export
 registration functions consumed by the existing optional `index.mjs`. The only fixture extension is
@@ -259,8 +263,9 @@ await quench.runBatches([
 ]);
 ```
 
-Expected: **all 17 implemented Q2 WildPath cases passing** (4 effects + 5 conditions + 8 RuleElements),
-0 failing, 0 pending as GM. This is a target, **not an observed live result**. Non-GMs skip all 17 Q2
+Expected: **all 17 Q2 WildPath cases passing** (4 effects + 5 conditions + 8 RuleElements),
+0 failing, 0 pending as GM. The maintainer has observed this result once on V14.367 (maintainer-reported,
+no exported report); rerun it after any change to the covered production classes. Non-GMs skip all 17 Q2
 cases without document writes. Retain the report/revision, inspect failures by their boundary messages,
 and repeat the batches to check cleanup and preparation stability. Vendor warnings/example failures
 are separate from WildPath assertions. Do not start Q3/Q4 as part of this run.

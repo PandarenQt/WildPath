@@ -17,10 +17,10 @@ Last verified: 2026-09-16.
 - Prior installed-source check: `foundry-nested-reaction-commit.test.mjs` **11 passed, 0 failed, 0 skipped**, including both optional tests against V14.367; not rerun for Q1.
 - Typecheck, changed-module syntax checks, and diff whitespace checks passed. No generated runtime sources changed; the prior implementation build remains the last build verification.
 
-These figures cover the Q2 implementation worktree, including the preceding live-confirmed Q1
-custom-pool repair. No Q2 commit has been created. Verify actual HEAD, branch, worktree, and
-subsequent changes before relying on them. Unrelated edits to
-`docs/development/nextPromptForCodex.md` and the untracked `.claude/` directory were preserved.
+These figures cover the committed Q2 implementation, including the preceding live-confirmed Q1
+custom-pool repair. Q2 and the repair were committed together as `0586485`; the local scratch file
+`docs/development/nextPromptForCodex.md` was untracked and ignored in `33bb766`. Verify actual HEAD,
+branch, worktree, and subsequent changes before relying on them.
 
 ## Product and invariants
 
@@ -32,10 +32,12 @@ turn configured reaction content into a second combat engine.
 
 ## Current milestone
 
-**Quench Q2 is implemented; live-run pending.** Three new batches in `module/tests/quench/` cover
+**Quench Q2 is live-confirmed.** Three new batches in `module/tests/quench/` cover
 `wildpath.effects` (4), `wildpath.conditions` (5), and `wildpath.rule-elements` (8): **17 Q2 cases**.
-The existing optional `quenchReady` entry now registers six batches (34 total cases), without
-changing Q1's 17 cases. Only Q1 is live-confirmed so far.
+The existing optional `quenchReady` entry registers six batches (34 total cases), without changing
+Q1's 17 cases. The maintainer ran the expanded suite against Foundry V14.367 and reported the 17 new
+cases passing **17/17**; combined with Q1, **all 34 WildPath Quench cases are live-confirmed**. This is
+maintainer-reported evidence without an exported Quench report, the same evidentiary standing as Q1.
 
 Q2 covers real ActiveEffect lifecycle/disabled state/native expiration suppression, condition
 apply/remove and status conversion, Exhaustion stacking, Prone idempotence, Item/ActiveEffect
@@ -148,11 +150,12 @@ existing **completed-event** workflow.
 
 ## Deferred work and immediate next step
 
-Immediate next action: run `wildpath.effects`, `wildpath.conditions`, and `wildpath.rule-elements`
-as GM in the disposable V14.367 QA world. Expected Q2 target: **17 passing cases**, not yet observed.
-Retain the report and verify the existing fixture-cleanliness check returns `[]`. Q1 remains
-**17/17 live-confirmed**, including the repaired resource case. Do not mark Q2 live-green until the
-maintainer confirms its real run, and do not begin Q3/Q4 in this milestone.
+Q1 and Q2 are both **17/17 live-confirmed** (34 cases). No Q3/Q4 batch exists yet. Two coverage
+facts should shape the next slice: the repaired `startTurn` and `rest` whole-array pool writes are
+proven only in Node, not yet in Quench; and every Quench fixture so far is a world Actor, so
+synthetic Token Actor (ActorDelta) persistence has no layer-3 coverage. The fixture helper also
+cleans up only marked Actors, so any batch creating Scenes, Tokens, or Combats needs a cleanup
+extension before it is written.
 
 Separately deferred: all six cases in [staged-movement-qa.md](staged-movement-qa.md): square ordinary, decline, miss,
 hit/continue, effect/stop, and Large hex decline. Export the pending-choice proof plus paired GM/player

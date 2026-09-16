@@ -1258,13 +1258,13 @@ existence and unit tests are not evidence of production completion.
 
 | | Runner | Test deps | Test files | Test lines | CI gate |
 | --- | --- | --- | --- | --- | --- |
-| **WildPath** | `node --test` (built-in) | none (TypeScript only) | 70 | 22,395 | `test` + `typecheck` + `build` |
+| **WildPath** | `node --test` (built-in) | none (TypeScript only) | 72 | 22,731 | `test` + `typecheck` + `build` |
 | **PF2e** | vitest 4.1.10 + jsdom 29.1.1 | 2 | 11 | 1,086 | build + lint + test |
 | **dnd5e** | — | none | **0** | 0 | none |
 | **Crucible** | — | none | **0** | 0 | none |
 
 **[repo]** WildPath: `package.json` → `"test": "node --test test/*.test.mjs"`, `engines.node: ">=18"`,
-sole dependency TypeScript. Current suite: **791 tests, 789 pass, 0 fail, 2 skipped**.
+sole dependency TypeScript. Current suite: **808 tests, 806 pass, 0 fail, 2 skipped**.
 
 **[repo]** PF2e (`WildPath-references/pf2e-v14`): `"test": "vitest run"` with `"pretest": "npm run lint"`,
 `engines.node: ">=24.14.0"`. CI (`.github/workflows/ci.yml`) runs on push/PR to `v13-dev` and
@@ -1309,7 +1309,7 @@ largest single file is the migration runner test (347 lines); the second largest
 (330 lines) — their Predicate system, the direct analogue of WildPath's.
 
 **[wildpath]** WildPath has made the same structural bet — a pure, plain-serializable resolution
-domain that is testable without Foundry — but applied it across far more surface (22,395 lines versus
+domain that is testable without Foundry — but applied it across far more surface (22,731 lines versus
 1,086). The boundary itself is worth adopting deliberately rather than by accident: mock-backed tests
 of Document/Roll/Hook-dependent code buy less than they cost, which is why PF2e declined to write them.
 
@@ -1343,7 +1343,7 @@ declares no `scripts` block and no test-related dependencies.
 testing workflow for a V14 system. The absence is a fact about Foundry's documentation, not evidence
 that testing is discouraged.
 
-### 19F. Quench — V14.367 Q1 17/17; Q2 implemented, live-run pending
+### 19F. Quench — V14.367 Q1 17/17 and Q2 17/17 (34 cases live-confirmed)
 
 Quench is the ecosystem's in-Foundry test runner (Mocha + Chai + fast-check, registering a native
 Foundry Application as a test runner UI). It is the only known candidate for **layer 3**.
@@ -1378,12 +1378,13 @@ passes remain live evidence; Quench example-suite failures are excluded. See
 Quench remains optional; no vendor patch or manifest dependency is introduced.
 
 Phase Q2 adds `wildpath.effects` (4), `wildpath.conditions` (5), and `wildpath.rule-elements` (8),
-using the same optional registration hook and scoped Actor cleanup. The **17 Q2 cases are implemented;
-live-run pending**. They cover real ActiveEffect persistence and disabled/expired state, condition
-conversion/stacking/removal, persisted Item/effect Modifier RuleElements, source integrity,
-domain/predicate/priority behavior, and preparation idempotence. Bleeding's Trigger is checked through
-conversion and registry collection; turn dispatch remains outside Q2. No production semantics changed
-for Q2. The existing Q1 live result remains 17/17 and is not evidence of a Q2 pass.
+using the same optional registration hook and scoped Actor cleanup. The maintainer ran the expanded
+suite on V14.367 and reported the **17 Q2 cases passing 17/17**, bringing the live-confirmed total to
+**34**. As with Q1, this is maintainer-reported evidence without an exported report. They cover real
+ActiveEffect persistence and disabled/expired state, condition conversion/stacking/removal, persisted
+Item/effect Modifier RuleElements, source integrity, domain/predicate/priority behavior, and
+preparation idempotence. Bleeding's Trigger is checked through conversion and registry collection;
+turn dispatch remains outside Q2. No production semantics changed for Q2.
 
 **Correction recorded.** An earlier draft of this research asserted the Quench repository was "pushed
 April 2026" and inferred active maintenance. That claim **does not reproduce** and has been withdrawn.
@@ -1426,7 +1427,7 @@ gate. The live multiplayer cases remain the evidence of record for multiplayer b
 ### 19H. Current test ladder
 
 **[wildpath]** Levels 1 and 2 exist today; 4 and 5 exist as manual procedure. Level 3 is now supported
-by Q1's maintainer-confirmed 17/17 live result after the custom-pool persistence repair.
+by 34 maintainer-confirmed live cases (Q1 17/17 after the custom-pool persistence repair; Q2 17/17).
 
 ```text
 Level 1 — Pure Node tests
@@ -1440,7 +1441,7 @@ Existing production-shaped tests.
 Level 3 — Semi-automated real-Foundry tests
 Quench v0.10.0: V14.367 Q1 initially 16/17, then 17/17 after the custom-pool fix (maintainer-confirmed).
 Q1: real Documents/TypeDataModels, resources, preparation, and persistence.
-Q2: 17 implemented cases for ActiveEffects, conditions, and RuleElements; live-run pending.
+Q2: 17 cases for ActiveEffects, conditions, and RuleElements; 17/17 maintainer-confirmed.
 
 Level 4 — Live single-client QA
 Real Foundry UX and persistence.
