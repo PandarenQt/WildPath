@@ -115,6 +115,27 @@ declares generation 14, build 367. Runtime sources: `client/documents/actor.mjs`
 The public [Actor API](https://foundryvtt.com/api/v14/classes/foundry.documents.Actor.html#togglestatuseffect)
 also documents status-toggle return values.
 
+### Optional-test audit (2026-09-16)
+
+Both skips are declared as `{skip: !installedApp}` in
+[`test/foundry-nested-reaction-commit.test.mjs`](../../test/foundry-nested-reaction-commit.test.mjs),
+where `installedApp` is `process.env.FOUNDRY_V14_APP_PATH`. They are intentional installation-dependent
+checks, not disabled movement tests or known failures. An invalid nonempty path fails instead of skipping.
+
+| Exact test name | What the installed-source check proves |
+| --- | --- |
+| `installed V14 Actor method rejects the legacy array registry with exact nested target provenance` | Runs the installed `Actor#toggleStatusEffect` with the legacy array. The nested child fails at `action.commit` with `Invalid status ID "prone"`, retaining the target condition-operation provenance; no effect or reaction payment commits. |
+| `installed V14 Actor method completes the nested child using repaired startup registration` | Runs with the installed keyed registry Proxy and repaired startup registration, removes a stale entry, completes the child, creates the synthetic Actor's effect and spends its reaction, leaving the base Actor unchanged. |
+
+The fixture extracts the installed Actor method and registry Proxy into a Node VM and supplies
+controlled document collaborators (including ActiveEffect creation). It does not exercise the whole
+installed Actor/ActiveEffect runtime. The second test provides a small `findSplice` compatibility shim
+for the Proxy's deletion path. Neither test proves Scene movement, canvas rendering, or multiplayer
+browser behavior. The nine other tests in that file run without an installation.
+
+Audit result: with the V14.367 application path above, all **11 tests passed, 0 failed, 0 skipped**, including
+both optional checks. The portable full-suite baseline is recorded in [project-state.md](project-state.md).
+
 The QA route tests execute all three fresh guide route generators with square and both hex
 orientations. They verify decreasing X, deterministic tie-breaking, adjacency, and Large-hex
 three-field footprints with two left, two entered, and one retained.

@@ -258,15 +258,17 @@ function observe(fixture, role) {
   return qa;
 }
 
-export async function setupGM(playerId) {
+export async function setupGM(playerId, {topology="square"}={}) {
   requireRuntime("gm");
   check(!globalThis.wpActionRuntimeQA, "Clean up existing QA first");
   const player = game.users.get(playerId);
   check(player?.active && !player.isGM, "Choose an active non-GM Player");
   const scene = canvas.scene;
   check(canvas.level?.id && scene.tokenVision === false, "Use a test Scene level with Token Vision disabled");
-  check(canvas.grid.isSquare && canvas.grid.distance === 5 && ["ft", "feet"].includes(canvas.grid.units),
-    "Use a square-grid Scene with 5 ft per field");
+  // Staged movement QA also reuses this disposable one-field fixture on hex.
+  check((topology === "square" ? canvas.grid.isSquare : topology === "hex" && canvas.grid.isHexagonal)
+    && canvas.grid.distance === 5 && ["ft", "feet"].includes(canvas.grid.units),
+    `Use a ${topology}-grid Scene with 5 ft per field`);
   check(scene.tokens.size === 0 && scene.walls.size === 0 && scene.regions.size === 0,
     "Use an empty test Scene without Tokens, walls or Regions");
   check(![...game.actors].some(a => marker(a)), "Marked QA Actors already exist; recover/clean them first");

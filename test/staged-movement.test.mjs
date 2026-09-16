@@ -16,6 +16,9 @@ import {movementTransitionRelations} from "../module/helpers/movement-transition
 import {isStagedMovementWrite, stagedMovementPersistence} from "../module/adapters/foundry-v14-staged-movement-commit.mjs";
 import {createFoundryV14DocumentPersistenceAdapter} from "../module/adapters/foundry-v14-persistence-adapter.mjs";
 import {onFoundryV14MoveToken} from "../module/resolvers/foundry-multiplayer-runtime.mjs";
+import {createFoundryV14TacticalGridAdapter} from "../module/adapters/foundry-v14-tactical-grid-adapter.mjs";
+import {largeHexLayout} from "../docs/development/staged-movement-qa.mjs";
+import {captureMovementQA, verifyPendingMovementQA, verifyMovementQA} from "../docs/development/staged-movement-qa-proof.mjs";
 
 const users = [{id: "gm", isGM: true, active: true}, {id: "mover-user", active: true}, {id: "reactor-user", active: true}];
 function actor(id, owner) {
@@ -54,7 +57,8 @@ function reactionDefinition({stop=false}={}) {
     damage: [{id: "weapon", expression: {type: "constant", value: 6}, damageType: "slashing", provenance: "weapon-base"}],
     ...(stop ? {effects: [{id: "test-stop", type: "condition", conditionId: "prone", metadata: {testMovementStop: true}}]} : {})};
 }
-function fixture({reaction=true, decision="decline", roll=10, stop=false, auto=true, size="medium", failOn=null, fields=false, count=1, hex=false}={}) {
+function fixture({reaction=true, decision="decline", roll=10, stop=false, auto=true, size="medium", failOn=null, fields=false, count=1, hex=false,
+  observerId=i => `observer${i}`}={}) {
   const mover = actor("mover", "mover-user"), reactors = Array.from({length: count}, (_,i) => actor(`reactor${i}`, "reactor-user"));
   const scene = {id: "scene", uuid: "Scene.scene", grid: squareGrid(), tokens: new Map(),
     dimensions: {sceneX: 0, sceneY: 0, sceneWidth: 1000, sceneHeight: 1000, columns: 20, rows: 20}};
@@ -72,15 +76,15 @@ function fixture({reaction=true, decision="decline", roll=10, stop=false, auto=t
   const definition = reactionDefinition({stop});
   const game = {user: gameUsers.get("gm"), users: gameUsers, scenes: new Map([[scene.id, scene]]),
     settings: {get() {return fields ? "fields" : "distance";}}, wildpath: {reactionServices: () => ({
-      movement: {observers: reactorTokens.map((token,i) => ({id: `observer${i}`, token, reachFields: 1, context: {hostile: true}})),
+      movement: {observers: reactorTokens.map((token,i) => ({id: observerId(i), token, reachFields: 1, context: {hostile: true}})),
         validate: () => stop && mover.effects.some(e => e.flags?.wildpath?.conditionEffect?.metadata?.testMovementStop)
           ? {decision: "stop", reason: "Test effect prevents remaining traversal."} : {decision: "continue"}},
       reactions: {triggers: reaction ? reactors.map((a,i) => createReactionTrigger({id: `leave${i}`,
         event: "movement.transition-proposed", match: {phase: "interrupt"}, actorId: a.id, tokenId: reactorTokens[i].id,
         action: definition, actionId: definition.id,
         predicate: {all: [{equals: {path: "event.data.movementKind", value: "voluntary"}},
-          {equals: {path: `event.data.relations.observer${i}.leavesReach`, value: true}},
-          {equals: {path: `event.data.relations.observer${i}.context.hostile`, value: true}}]}})) : []}
+          {equals: {path: `event.data.relations.${observerId(i)}.leavesReach`, value: true}},
+          {equals: {path: `event.data.relations.${observerId(i)}.context.hostile`, value: true}}]}})) : []}
     })}};
   const persistence = createTestDocumentPersistenceAdapter({actors: [mover, ...reactors], failOn});
   const hub = createTestResolutionTransportHub({users});
@@ -189,6 +193,90 @@ function response(request, value, senderUserId="reactor-user") {
     payload:{response:{resolutionId:request.resolutionId, requestId:request.requestId, type:request.payload.request.type,value}}});
 }
 const pending = f => f.hub.messages.filter(m => m.messageType === MESSAGE.PENDING_REQUEST).at(-1);
+
+function liveQAProofFixture(options={}) {
+  const f = fixture({auto:false,observerId:() => "qaReactor",...options});
+  f.mover.system.resources.health.value = 30;
+  const adapter = createFoundryV14TacticalGridAdapter({scene:f.movingToken.parent});
+  const capture = () => captureMovementQA(f.record().state,f.movingToken.toObject(),
+    adapter.tokenToFootprint(f.movingToken).footprint);
+  const proof = (prepared, pending, children=[]) => ({state:f.record().state,prepared,pending,children,
+    after:{x:f.movingToken.x,y:f.movingToken.y,movement:f.mover.system.resources.movement.value,
+      reaction:f.reactors[0].system.resources.reaction.value,hp:f.mover.system.resources.health.value,
+      footprint:adapter.tokenToFootprint(f.movingToken).footprint}});
+  return {...f,adapter,capture,proof};
+}
+
+for (const mode of ["miss","hit","stop"]) test(`live QA ${mode} rejects missing, rendered-origin and proposed child footprints`, async () => {
+  const f = liveQAProofFixture({stop:mode === "stop"});
+  const prepared = {mode,resolutionId:f.intent.resolutionId,moverTokenId:f.movingToken.id,
+    origin:f.intent.origin,route:f.intent.waypoints};
+  await f.start();
+  const paused = f.capture();
+  assert.equal(verifyPendingMovementQA(paused,prepared),true);
+  const choice = pending(f);
+  await f.gm.handleEnvelope(response(choice,{decision:"use",candidateId:choice.payload.request.payload.candidates[0].id}));
+  const child = f.capture(), rollRequest = pending(f);
+  const rolled = await executeRollRequest({request:rollRequest.payload.request.payload.rollRequest,
+    providers:[createTestRollProvider({result:{total:mode === "miss" ? 6 : 14,natural:mode === "miss" ? 2 : 10}})]});
+  assert.equal(rolled.ok,true);
+  await f.gm.handleEnvelope(response(rollRequest,rolled.result));
+  const proof = f.proof(prepared,paused,[child]);
+  assert.equal(verifyMovementQA(proof),true);
+  assert.throws(() => verifyMovementQA({...proof,children:[]}),/Missing reaction child footprint/);
+  assert.throws(() => verifyMovementQA({...proof,pending:null}),/Missing matching interruption/);
+  for (const wrong of [child.origin,child.event.data.proposed]) {
+    const changed = structuredClone(child);
+    changed.child.targetFootprints[0].footprint = wrong;
+    assert.throws(() => verifyMovementQA({...proof,children:[changed]}),/last-completed logical footprint/);
+  }
+});
+
+test("live QA Large hex decline proves full footprints, pre-transition discovery, resume and payment", async () => {
+  const f = liveQAProofFixture({size:"large",hex:true});
+  const layout = largeHexLayout(f.adapter,f.movingToken,f.reactorTokens[0]);
+  Object.assign(f.reactorTokens[0],layout.reactorPosition);
+  f.intent.waypoints = layout.route.map(p => ({...f.intent.origin,...p}));
+  const prepared = {mode:"decline",variant:"large-hex-decline",resolutionId:f.intent.resolutionId,
+    moverTokenId:f.movingToken.id,origin:f.intent.origin,route:layout.route};
+  await f.start();
+  const paused = f.capture();
+  assert.equal(verifyPendingMovementQA(paused,prepared),true);
+  assert.equal(f.persistence.operations.length,0,"Discovery precedes position/payment commit");
+  const invalidPending = [
+    p => {p.logical.topology = "square";},
+    p => {p.event.data.proposed.fields.pop();},
+    p => {p.event.data.relations.qaReactor.leavesReach = false;},
+    p => {p.event.phase = "after";},
+    p => {p.window.timing = "after-transition";},
+    p => {p.window.offeredCandidateIds = [];},
+    p => {p.cursor.completedTransitionCount = 2;},
+    p => {p.renderedPosition.x++;}
+  ];
+  for (const change of invalidPending) {
+    const modified = structuredClone(paused); change(modified);
+    assert.throws(() => verifyPendingMovementQA(modified,prepared));
+  }
+  await f.gm.handleEnvelope(response(pending(f),{decision:"decline"}));
+  const proof = f.proof(prepared,paused);
+  assert.equal(verifyMovementQA(proof),true);
+  assert.equal(f.hub.messages.filter(m => m.messageType === MESSAGE.PENDING_REQUEST).length,1);
+  assert.equal(f.record().knownResolutionIds.size,1,"Decline creates no child resolution");
+  for (const change of [
+    p => {p.after.movement = 20;},
+    p => {p.after.reaction = 0;},
+    p => {p.after.x = p.prepared.origin.x;},
+    p => {p.after.footprint = p.pending.origin;},
+    p => {p.state.results.movementOutcome.completedTransitionCount = 2;},
+    p => {p.state.metadata.reactionWindows.find(w => w.offeredCandidateIds.length).declinedCandidateIds = [];}
+  ]) {
+    const modified = structuredClone(proof); change(modified);
+    assert.throws(() => verifyMovementQA(modified));
+  }
+  // Field collection order is not geometry; retain the full three-field set.
+  const reordered = structuredClone(proof); reordered.after.footprint.fields.reverse();
+  assert.equal(verifyMovementQA(reordered),true);
+});
 test("wrong, duplicate and stale choice/roll responses cannot execute or spend twice", async () => {
   const f = fixture({auto:false}); await f.start();
   const choice = pending(f), value = {decision:"use",candidateId:choice.payload.request.payload.candidates[0].id};
