@@ -1215,3 +1215,242 @@ The operational recommendation does not depend on resolving that difference:
 Source hierarchy for everything above is unchanged from §18A: installed pinned source for existence
 and runtime behavior, API reference for the published contract, release notes for chronology and
 intent, conceptual articles for background only.
+
+---
+
+## 19. Testing practice across reference systems
+
+How PF2e, dnd5e, Crucible, and Foundry itself approach automated testing, and what that implies for
+WildPath's own gate. Every claim below is tagged with its evidence class:
+
+```text
+[repo]      verified repository fact (read directly, this pass)
+[foundry]   official Foundry documentation or shipped application
+[practice]  reference-system practice, observed
+[wildpath]  WildPath inference or recommendation — not an external fact
+```
+
+### 19A. Four testing layers, which are not substitutes for each other
+
+The comparison below is only meaningful if these stay distinct. Most confusion in this area comes
+from treating a lower layer as evidence for a higher one.
+
+```text
+pure automated tests
+    domain logic with no Foundry present
+
+Foundry-adapter/contract tests
+    deterministic mocks or fakes standing in for Foundry
+
+real Foundry-runtime tests
+    executing inside a running Foundry client against real
+    Documents, Hooks, Rolls, CONFIG and canvas APIs
+
+live multiplayer QA
+    multiple real clients, real authority, real timing
+```
+
+A passing layer-1 suite says nothing about layer 3, and a passing layer-3 suite says nothing about
+layer 4. **[wildpath]** This is the same principle already recorded in the audit standard that file
+existence and unit tests are not evidence of production completion.
+
+### 19B. Comparison
+
+| | Runner | Test deps | Test files | Test lines | CI gate |
+| --- | --- | --- | --- | --- | --- |
+| **WildPath** | `node --test` (built-in) | none (TypeScript only) | 70 | 22,395 | `test` + `typecheck` + `build` |
+| **PF2e** | vitest 4.1.10 + jsdom 29.1.1 | 2 | 11 | 1,086 | build + lint + test |
+| **dnd5e** | — | none | **0** | 0 | none |
+| **Crucible** | — | none | **0** | 0 | none |
+
+**[repo]** WildPath: `package.json` → `"test": "node --test test/*.test.mjs"`, `engines.node: ">=18"`,
+sole dependency TypeScript. Current suite: **791 tests, 789 pass, 0 fail, 2 skipped**.
+
+**[repo]** PF2e (`WildPath-references/pf2e-v14`): `"test": "vitest run"` with `"pretest": "npm run lint"`,
+`engines.node: ">=24.14.0"`. CI (`.github/workflows/ci.yml`) runs on push/PR to `v13-dev` and
+`v14-dev`, Node 24.x, steps build → test.
+
+**[repo]** dnd5e and Crucible: no test script, no test framework in devDependencies, no test directory,
+and **exactly one GitHub workflow each — `release.yml`**. There is no CI pipeline, lint gate, or test
+gate in either repository.
+
+**[repo]** Crucible is Foundry's own first-party system and has no automated tests.
+
+**[repo]** V14 targeting strategies differ:
+
+| System | Compatibility | Strategy |
+| --- | --- | --- |
+| dnd5e 5.3.2 | `minimum: 13.347, verified: 14` | one branch straddling both generations |
+| Crucible 0.10.2 | `minimum: 14.366, verified: 14, maximum: 14` | pinned to V14 only |
+| PF2e | — | parallel `v13-dev` / `v14-dev` branches |
+
+Crucible's minimum (14.366) is one build below WildPath's 14.367 target.
+
+### 19C. PF2e's testing boundary — the only reference system with tests
+
+**[practice]** PF2e's `tests/setup.ts` defines the boundary explicitly through what it refuses to
+provide:
+
+- `Roll` is registered as `class {}` — an empty class. Rolls are never unit-tested.
+- `Hooks.on` is a no-op.
+- `game.settings.get` **throws** `"Undefined setting."` for any key not explicitly mocked, so unmocked
+  configuration fails loudly instead of silently returning `undefined`.
+- Hand-written mocks exist for actor, item, token, scene, user, collection, chat-message,
+  journal-entry, macro and roll-table; real JSON fixtures supply character, spell and armor data.
+- `environment: "node"` by default (`vitest.config.ts`), with per-file DOM opt-in via a
+  `// @vitest-environment` docblock.
+
+**[practice]** What survives that filter is the whole story: DC math, degree of success, XP,
+travel speed, recall knowledge, identification, predication, utils, i18n, and migration. Anything
+depending on Documents, Rolls, Hooks or canvas is **not** unit-tested at all.
+
+In the layer vocabulary of §19A, PF2e runs **layer 1 plus a thin layer 2**, and nothing above it. Its
+largest single file is the migration runner test (347 lines); the second largest is predication
+(330 lines) — their Predicate system, the direct analogue of WildPath's.
+
+**[wildpath]** WildPath has made the same structural bet — a pure, plain-serializable resolution
+domain that is testable without Foundry — but applied it across far more surface (22,395 lines versus
+1,086). The boundary itself is worth adopting deliberately rather than by accident: mock-backed tests
+of Document/Roll/Hook-dependent code buy less than they cost, which is why PF2e declined to write them.
+
+### 19D. Migration-runner testing — a lesson to hold for later
+
+**[practice]** PF2e's `tests/module/migration.test.ts` is 347 lines and 14 tests, and every one of them
+exercises the migration **runner**, not any individual migration: version detection, "don't run older
+migrations", sequencing, deep property updates, property removal, adding and removing items on actors,
+referencing previously-added items, and free-function migrations.
+
+**[repo]** There are **120 migration files** in `src/module/migration/migrations/`. **None is
+individually tested.** They test the engine and rely on review for the content.
+
+**[wildpath]** WildPath has no persisted schema migration infrastructure today, and **none should be
+built as part of this work**. The lesson is recorded for when it arrives: once WildPath introduces
+persisted schema migrations, **the migration runner should become a high-priority automated-test
+target**, because a defective runner corrupts world data at scale and silently — the one failure mode
+where a user's data is unrecoverable rather than merely wrong. PF2e's allocation (largest test file in
+the project, aimed at the engine rather than the content) is a reasonable model.
+
+### 19E. Foundry's official position
+
+**[foundry]** Foundry publishes no testing guidance for system developers. The
+[Introduction to System Development](https://foundryvtt.com/article/system-development/) article does
+not mention testing, unit tests, QA, or test-driven development anywhere — verified by direct read.
+
+**[foundry]** The shipped 14.367 application contains no test infrastructure: `resources/app/package.json`
+declares no `scripts` block and no test-related dependencies.
+
+**[foundry]** There is therefore no official harness, no recommended framework, and no documented
+testing workflow for a V14 system. The absence is a fact about Foundry's documentation, not evidence
+that testing is discouraged.
+
+### 19F. Quench — V14 status is UNVERIFIED
+
+Quench is the ecosystem's in-Foundry test runner (Mocha + Chai + fast-check, registering a native
+Foundry Application as a test runner UI). It is the only known candidate for **layer 3**.
+
+**[repo]** Verified facts, current as of this pass:
+
+| Fact | Value |
+| --- | --- |
+| Latest published release | `v0.10.0` |
+| Published | 2025-04-30 |
+| Manifest minimum | `13.341` |
+| Manifest verified | `13` |
+| Declared maximum | none |
+| Repository archived | no |
+
+**[wildpath]** Classification:
+
+```text
+UNVERIFIED
+```
+
+**not**
+
+```text
+NON-FUNCTIONAL
+```
+
+The distinction is load-bearing. Quench declares **no maximum version**, so nothing in its manifest
+prevents it from loading under V14 — it simply carries no V14 verification. Whether it actually works
+against 14.367 has **not been tested**, by this research or by any source found. An absence of declared
+support is not a demonstration of failure.
+
+**[wildpath]** Before WildPath adopts *or* rejects Quench, a **direct V14.367 compatibility spike** is
+required: install it against the pinned build, register a trivial test batch, and observe whether the
+runner initializes and executes. That is a small, bounded experiment and the only thing that can
+convert this row from UNVERIFIED to a decision. **This documentation task does not introduce Quench as
+a dependency.**
+
+**Correction recorded.** An earlier draft of this research asserted the Quench repository was "pushed
+April 2026" and inferred active maintenance. That claim **does not reproduce** and has been withdrawn.
+The most recent commit on `master` is 2025-05-30; the branch list is `master`, `gh-pages`, `v12`, and
+seven `dependabot/*` branches, with no v14 or dev branch and no tag newer than `v0.10.0`. A repository
+`pushed_at` timestamp advances on automated dependency-bot pushes to any branch, so it is not evidence
+of maintainer activity. Per §18A's source-hierarchy discipline, maintenance status is **not claimed
+here**: the atlas records only that the repository is not archived and that the latest published
+release is v0.10.0 from 2025-04-30. Open-issue counts are likewise not used to infer maintenance.
+
+### 19G. What this means for WildPath's live QA gate
+
+**[wildpath]** The accurate statement of the situation:
+
+> No researched reference system or official Foundry facility currently provides a proven V14 harness
+> that replaces WildPath's real multiplayer movement/reaction gate.
+
+That is a claim about what has been *demonstrated*, not about what is *possible*. It remains true even
+if the Quench spike in §19F succeeds, because a working in-world runner occupies **layer 3**, and
+WildPath's gate exercises **layer 5**:
+
+```text
+GM + Player A + Player B
+real remote prompts
+socket routing
+nested resolution
+visual movement
+real timing
+```
+
+An in-Foundry runner executes inside a single client session. It can exercise real Documents, Hooks,
+Rolls and CONFIG — which mocks cannot — but it does not by itself produce a second and third connected
+client, genuine socket round-trips between them, remote prompt delivery and response, authority
+handoff, or the real-time ordering that multiplayer reaction windows depend on. Those are the
+properties WildPath's gate exists to verify.
+
+**[wildpath]** So layer 3 would *reduce* what the manual gate has to carry; it would not remove the
+gate. The live multiplayer cases remain the evidence of record for multiplayer behavior.
+
+### 19H. Candidate test ladder
+
+**[wildpath]** A possible future structure, recorded as a candidate rather than a commitment. Levels 1
+and 2 exist today; 4 and 5 exist as manual procedure; 3 is unproven and gated on §19F.
+
+```text
+Level 1 — Pure Node tests
+Current `node --test` suite.
+Rules, resolvers, contracts, transactions, serialization.
+
+Level 2 — Foundry-shaped adapter tests
+Deterministic mocks/fakes.
+Existing production-shaped tests.
+
+Level 3 — In-Foundry automated tests
+Candidate: Quench if V14.367 compatibility is independently proven.
+Real Documents/Hooks/Rolls/CONFIG/canvas APIs.
+
+Level 4 — Live single-client QA
+Real Foundry UX and persistence.
+
+Level 5 — Live multiplayer QA
+GM + multiple player clients.
+Authority, remote interaction, timing, multiplayer movement/reactions.
+```
+
+**[wildpath]** Two notes on reading the ladder. First, higher is not better — each level answers a
+different question, and a level-5 pass does not justify deleting level-1 coverage. Second, the ladder
+is not a roadmap: level 3 should only be pursued if the §19F spike proves the tooling, and only where
+it would retire specific manual QA steps that are currently expensive to repeat.
+
+**[practice]** For calibration: PF2e occupies levels 1–2 only. dnd5e and Crucible occupy no automated
+level at all, relying entirely on manual play and a large user base. WildPath already occupies levels
+1, 2, 4 and 5 — which is, by the measure of these three systems, an unusually complete ladder already.
