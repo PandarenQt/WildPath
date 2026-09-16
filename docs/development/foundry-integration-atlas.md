@@ -1343,7 +1343,7 @@ declares no `scripts` block and no test-related dependencies.
 testing workflow for a V14 system. The absence is a fact about Foundry's documentation, not evidence
 that testing is discouraged.
 
-### 19F. Quench — V14 status is UNVERIFIED
+### 19F. Quench — V14.367 smoke demonstrated; Q1 live run pending
 
 Quench is the ecosystem's in-Foundry test runner (Mocha + Chai + fast-check, registering a native
 Foundry Application as a test runner UI). It is the only known candidate for **layer 3**.
@@ -1359,28 +1359,17 @@ Foundry Application as a test runner UI). It is the only known candidate for **l
 | Declared maximum | none |
 | Repository archived | no |
 
-**[wildpath]** Classification:
+**[wildpath]** The initial research classified V14 compatibility as **UNVERIFIED**, not non-functional.
+The maintainer subsequently reported a successful Quench v0.10.0 smoke run inside the disposable
+WildPath V14.367 world: system/class/model registration, real Actor create/update/delete, and prepared
+resource defaults. This is direct evidence that Quench can serve as the semi-automated layer 3.
+It is not a claim of general V14 compatibility: deprecated `Game`, `SearchFilter`, and `FilePicker`
+warnings remain external Quench debt, as does the reported auto-run/UI ordering issue.
 
-```text
-UNVERIFIED
-```
-
-**not**
-
-```text
-NON-FUNCTIONAL
-```
-
-The distinction is load-bearing. Quench declares **no maximum version**, so nothing in its manifest
-prevents it from loading under V14 — it simply carries no V14 verification. Whether it actually works
-against 14.367 has **not been tested**, by this research or by any source found. An absence of declared
-support is not a demonstration of failure.
-
-**[wildpath]** Before WildPath adopts *or* rejects Quench, a **direct V14.367 compatibility spike** is
-required: install it against the pinned build, register a trivial test batch, and observe whether the
-runner initializes and executes. That is a small, bounded experiment and the only thing that can
-convert this row from UNVERIFIED to a decision. **This documentation task does not introduce Quench as
-a dependency.**
+Phase Q1 now implements runtime-smoke, Documents, and resources batches with scoped marked fixtures.
+**The refactored/expanded Q1 batches have not yet been live-run.** See
+[foundry-testing-strategy.md](foundry-testing-strategy.md) for the exact cases and manual run settings.
+Quench remains optional; no vendor patch or manifest dependency is introduced.
 
 **Correction recorded.** An earlier draft of this research asserted the Quench repository was "pushed
 April 2026" and inferred active maintenance. That claim **does not reproduce** and has been withdrawn.
@@ -1398,8 +1387,8 @@ release is v0.10.0 from 2025-04-30. Open-issue counts are likewise not used to i
 > No researched reference system or official Foundry facility currently provides a proven V14 harness
 > that replaces WildPath's real multiplayer movement/reaction gate.
 
-That is a claim about what has been *demonstrated*, not about what is *possible*. It remains true even
-if the Quench spike in §19F succeeds, because a working in-world runner occupies **layer 3**, and
+That is a claim about what has been *demonstrated*, not about what is *possible*. It remains true after
+the Quench smoke success in §19F, because a working in-world runner occupies **layer 3**, and
 WildPath's gate exercises **layer 5**:
 
 ```text
@@ -1420,10 +1409,10 @@ properties WildPath's gate exists to verify.
 **[wildpath]** So layer 3 would *reduce* what the manual gate has to carry; it would not remove the
 gate. The live multiplayer cases remain the evidence of record for multiplayer behavior.
 
-### 19H. Candidate test ladder
+### 19H. Current test ladder
 
-**[wildpath]** A possible future structure, recorded as a candidate rather than a commitment. Levels 1
-and 2 exist today; 4 and 5 exist as manual procedure; 3 is unproven and gated on §19F.
+**[wildpath]** Levels 1 and 2 exist today; 4 and 5 exist as manual procedure. Level 3 is now supported
+by the successful Quench smoke experiment; its expanded Q1 batches still need their first live run.
 
 ```text
 Level 1 — Pure Node tests
@@ -1434,9 +1423,9 @@ Level 2 — Foundry-shaped adapter tests
 Deterministic mocks/fakes.
 Existing production-shaped tests.
 
-Level 3 — In-Foundry automated tests
-Candidate: Quench if V14.367 compatibility is independently proven.
-Real Documents/Hooks/Rolls/CONFIG/canvas APIs.
+Level 3 — Semi-automated real-Foundry tests
+Quench v0.10.0: V14.367 smoke proven; expanded Q1 live execution pending.
+Q1: real Documents/TypeDataModels, resources, preparation, and persistence.
 
 Level 4 — Live single-client QA
 Real Foundry UX and persistence.
@@ -1447,9 +1436,9 @@ Authority, remote interaction, timing, multiplayer movement/reactions.
 ```
 
 **[wildpath]** Two notes on reading the ladder. First, higher is not better — each level answers a
-different question, and a level-5 pass does not justify deleting level-1 coverage. Second, the ladder
-is not a roadmap: level 3 should only be pursued if the §19F spike proves the tooling, and only where
-it would retire specific manual QA steps that are currently expensive to repeat.
+different question, and a level-5 pass does not justify deleting level-1 coverage. Second, layer 3
+should grow around assumptions that require real Foundry behavior; it does not replace the live
+multiplayer movement/reaction gate.
 
 **[practice]** For calibration: PF2e occupies levels 1–2 only. dnd5e and Crucible occupy no automated
 level at all, relying entirely on manual play and a large user base. WildPath already occupies levels

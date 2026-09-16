@@ -3,17 +3,19 @@
 Last verified: 2026-09-16.
 
 - Branch: `milestone/action-runtime-live-proof`.
-- HEAD during the staged-movement QA follow-up: `f1bd3f7dc414c88d8416e232386d0e6f987f3bc8`.
+- Starting HEAD for Quench Q1: `85344524f75e2620c3bc1990e5c75cca7c463602`.
+- Quench Q1 implementation commit: `75ef1fb738433367b549a2171d6665be894a24c4`.
+- Staged-movement QA commit: `7c12977`.
 - Movement implementation commit: `87ed1fae93271b81b14432bb4312be9cd53285c5`.
 - Original milestone starting HEAD: `ea484fd8b503697ddf1c2b7b0f6984ea594378e2`.
 - Local main HEAD: `61d6268b838e286728c829924506c6c931174621`.
-- Portable full suite (`FOUNDRY_V14_APP_PATH` unset): **791 tests, 789 passed, 0 failed, 2 intentionally skipped**.
-- Installed-source check: `foundry-nested-reaction-commit.test.mjs` **11 passed, 0 failed, 0 skipped**, including both optional tests against V14.367.
-- Typecheck, QA helper syntax checks, and diff whitespace checks passed. The prior implementation build passed; this follow-up changes only QA, tests, and documentation.
+- Portable full suite (`FOUNDRY_V14_APP_PATH` unset): **797 tests, 795 passed, 0 failed, 2 intentionally skipped**.
+- Prior installed-source check: `foundry-nested-reaction-commit.test.mjs` **11 passed, 0 failed, 0 skipped**, including both optional tests against V14.367; not rerun for Q1.
+- Typecheck, changed-module syntax checks, and diff whitespace checks passed. No generated runtime sources changed; the prior implementation build remains the last build verification.
 
-These figures include the staged-movement QA follow-up in the worktree. Verify actual HEAD,
-branch, worktree, and subsequent changes before relying on them. HEAD includes the subsequent
-Foundry integration atlas documentation commit.
+These figures cover the Quench Q1 implementation commit above. Verify actual HEAD, branch, worktree, and subsequent
+changes before relying on them. Starting HEAD includes the original Quench smoke module and atlas
+updates; the unfinished registration/fixture drafts present at preflight were migrated into Q1.
 
 ## Product and invariants
 
@@ -24,6 +26,28 @@ Callbacks and Foundry Documents remain outside serialized rules state. Code defa
 turn configured reaction content into a second combat engine.
 
 ## Current milestone
+
+Quench Phase Q1 implements an optional real-Foundry integration layer in `module/tests/quench/`:
+one `quenchReady` registration entry, shared marked fixtures with per-test cleanup, and three batches:
+`wildpath.runtime-smoke` (3 cases), `wildpath.documents` (6), and `wildpath.resources` (8).
+The prior smoke batch was live-proven by the maintainer in Foundry V14.367 with Quench v0.10.0.
+**The 17 refactored/expanded Q1 cases are implemented but have not yet been live-run.**
+
+Coverage includes actual Actor and Item models/lifecycles, source snapshots, built-in spending and
+restore clamping, unaffordable and multi-resource spending, array-index custom-pool persistence,
+and Item-backed resource maxima across repeated Foundry preparation. Six new portable tests guard
+optional registration, GM-only mutation, fixture marking/scoping, and cleanup on failure. They do
+not emulate a pass of the real-Foundry cases.
+
+Quench's V14 deprecated-global warnings and its auto-run/UI ordering issue are external tool debt.
+No vendor files, dependency manifests, client settings, or production semantics were changed.
+The only startup integration is the single optional test registration import. See the
+[testing strategy and exact live run procedure](foundry-testing-strategy.md).
+
+Deferred Quench phases: Q2 effects/conditions/RuleElements; Q3 synthetic Actors/Combat/Rolls;
+Q4 persistence rollback/Action entry; future migrations.
+
+## Staged movement status
 
 Interruptible movement and reaction composition is implemented and automated-tested. The explicit
 `game.wildpath.executeMovementIntent` entry point proposes each tactical transition, opens normal
@@ -81,10 +105,12 @@ existing **completed-event** workflow.
 
 ## Deferred work and immediate next step
 
+Run the three Quench Q1 batches as GM in the disposable V14.367 world, retain the report, and rerun
+to verify cleanup. Expected live gate: 17 passing cases, with vendor warnings assessed separately.
+
 Run all six cases in [staged-movement-qa.md](staged-movement-qa.md): square ordinary, decline, miss,
 hit/continue, effect/stop, and Large hex decline. Export the pending-choice proof plus paired GM/player
 evidence before advancing to native UI integration. These strengthened live cases have not been run.
-No push or deployment is part of this implementation milestone.
 
 Current limits are explicit: active GM and voluntary translation at the Foundry entry point;
 no intermediate Token persistence/rendering; no durable host reconstruction after reload/handoff;
