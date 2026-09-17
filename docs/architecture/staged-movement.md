@@ -126,6 +126,10 @@ write matching the exact Token, operation ID, and destination. An arbitrary sock
 not establish that registration. Post-movement observation skips tagged updates only from the
 authenticated active GM. Other Foundry hooks still run. Persisted coordinates are verified;
 partial application is restored before failure is reported. Failed restoration is explicit.
+Destination and persisted-coordinate checks compare `x`, `y`, and `elevation` allowing only
+IEEE-754 noise relative to magnitude, because Foundry cleans Token `x`/`y` as integers and hex
+field-to-pixel conversion is inexact (a planned `260.00000000000006` persists as `260`). Any
+material coordinate difference, and every other field, must still match exactly.
 
 These are compensating client transactions, not database atomic transactions. A committed child
 reaction is independent of a later parent failure and is not refunded with parent movement.

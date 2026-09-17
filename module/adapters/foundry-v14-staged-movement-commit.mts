@@ -2,13 +2,35 @@ import type {DocumentPersistencePort} from "../types/contracts.js";
 
 type Data = Record<string, unknown>;
 interface Token {readonly id: string; toObject(source: boolean): Data}
+
+// Foundry cleans Token `x`/`y` as integer NumberFields, and hex field-to-pixel conversion carries
+// IEEE-754 noise, so a planned 260.00000000000006 persists as 260. Positional finite numbers may
+// therefore differ only by floating-point noise relative to their magnitude. A material coordinate
+// difference, every other key, and every non-number still require strict equality, so this cannot
+// authorize or accept a different tactical position.
+const MOVEMENT_NUMERIC_KEYS = new Set(["x", "y", "elevation"]);
+const MOVEMENT_NOISE_ULPS = 32;
+export function movementValueEquals(key: string, actual: unknown, expected: unknown): boolean {
+  if (MOVEMENT_NUMERIC_KEYS.has(key) && typeof actual === "number" && typeof expected === "number"
+    && Number.isFinite(actual) && Number.isFinite(expected)) {
+    const scale = Math.max(1, Math.abs(actual), Math.abs(expected));
+    return Math.abs(actual - expected) <= Number.EPSILON * MOVEMENT_NOISE_ULPS * scale;
+  }
+  return actual === expected;
+}
+
+/** Every planned update key must be present in `source`, exactly or within positional noise. */
+export function movementUpdatesMatch(source: Data, updates: Data): boolean {
+  return Object.entries(updates).every(([key, expected]) => movementValueEquals(key, source[key], expected));
+}
+
 // A client-supplied option is never enough to bypass movement approval. The authorizing
 // process must be executing this exact document write on the current active GM.
 const writes = new WeakMap<object, {id: string; updates: Data}>();
 export function isStagedMovementWrite(token: object, operation: Data, destination?: Data): boolean {
   const pending = writes.get(token);
   return !!pending && operation.wildpathStagedMovement === pending.id
-    && (!destination || Object.entries(pending.updates).every(([key, value]) => destination[key] === value));
+    && (!destination || movementUpdatesMatch(destination, pending.updates));
 }
 
 export function stagedMovementPersistence(base: DocumentPersistencePort, token: Token, id: string,
@@ -30,13 +52,13 @@ export function stagedMovementPersistence(base: DocumentPersistencePort, token: 
         wildpathStagedMovement: operationId,
         movement: {[token.id]: {waypoints: [{...values, action: "displace"}], showRuler: false}}}});
       const result = await write(updates);
-      if (!Object.entries(updates).every(([key, value]) => token.toObject(true)[key] === value)) {
+      if (!movementUpdatesMatch(token.toObject(true), updates)) {
         // V14 hooks may strip individual movement fields without rejecting the whole Document update.
         // Compensate partial application here: the transaction has not marked this operation committed.
-        if (!Object.entries(before).every(([key,value]) => token.toObject(true)[key] === value)) {
+        if (!movementUpdatesMatch(token.toObject(true), before)) {
           writes.set(token, {id: operationId, updates: before});
           await write(before);
-          if (!Object.entries(before).every(([key,value]) => token.toObject(true)[key] === value)) {
+          if (!movementUpdatesMatch(token.toObject(true), before)) {
             throw new Error("Foundry movement position verification and restoration failed; inspect the Token.");
           }
         }

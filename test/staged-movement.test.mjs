@@ -13,7 +13,7 @@ import {createMovementResolutionHost} from "../module/resolvers/movement-pipelin
 import {createTokenGridFootprint} from "../module/helpers/grid-footprints.mjs";
 import {executeRollRequest} from "../module/resolvers/roll-provider-resolver.mjs";
 import {movementTransitionRelations} from "../module/helpers/movement-transition.mjs";
-import {isStagedMovementWrite, stagedMovementPersistence} from "../module/adapters/foundry-v14-staged-movement-commit.mjs";
+import {isStagedMovementWrite, movementUpdatesMatch, stagedMovementPersistence} from "../module/adapters/foundry-v14-staged-movement-commit.mjs";
 import {createFoundryV14DocumentPersistenceAdapter} from "../module/adapters/foundry-v14-persistence-adapter.mjs";
 import {onFoundryV14MoveToken} from "../module/resolvers/foundry-multiplayer-runtime.mjs";
 import {createFoundryV14TacticalGridAdapter} from "../module/adapters/foundry-v14-tactical-grid-adapter.mjs";
@@ -519,4 +519,71 @@ for (const failurePolicy of ["continue","cancel-parent"]) test(`failed child cle
   assert.equal(f.reactors[0].system.resources.reaction.value,1);
   assert.equal(f.movingToken.x,failurePolicy === "continue" ? 150 : 50);
   assert.equal(f.mover.system.resources.movement.value,failurePolicy === "continue" ? 15 : 25);
+});
+
+test("staged position verification accepts Foundry integer canonicalization of hex pixel noise", async () => {
+  const f = fixture(); const planned = {x:600,y:260.00000000000006};
+  let inFlight = null;
+  const base = {...f.persistence,updateDocument:async input => {
+    // Foundry cleans Token x/y as integer NumberFields; movement hooks see the cleaned destination.
+    inFlight = isStagedMovementWrite(f.movingToken,input.operation,{x:600,y:260});
+    Object.assign(f.movingToken,{x:Math.round(input.updates.x),y:Math.round(input.updates.y)});
+    return {ok:true};
+  }};
+  await stagedMovementPersistence(base,f.movingToken,"hex-noise",() => true)
+    .updateDocument({document:f.movingToken,updates:planned});
+  assert.equal(inFlight,true,"the authorized in-flight destination accepts a floating-point-equivalent coordinate");
+  assert.equal(f.movingToken.x,600); assert.equal(f.movingToken.y,260);
+  assert.equal(isStagedMovementWrite(f.movingToken,{wildpathStagedMovement:"hex-noise:commit"},{x:600,y:260}),false,
+    "registration is released after the write");
+});
+
+test("staged position verification still rejects materially different persisted coordinates", async () => {
+  for (const [planned,persisted] of [[{x:600,y:260.01},{x:600,y:260}],[{x:600,y:260},{x:601,y:260}]]) {
+    const f = fixture(); let inFlight = null, writes = 0;
+    const base = {...f.persistence,updateDocument:async input => {
+      writes++;
+      if (writes === 1) {inFlight = isStagedMovementWrite(f.movingToken,input.operation,persisted); Object.assign(f.movingToken,persisted);}
+      else Object.assign(f.movingToken,input.updates);
+      return {ok:true};
+    }};
+    await assert.rejects(stagedMovementPersistence(base,f.movingToken,"drift",() => true)
+      .updateDocument({document:f.movingToken,updates:planned}),/did not persist the planned movement position/);
+    assert.equal(inFlight,false,"a materially different destination is not the authorized in-flight write");
+    assert.equal(writes,2,"the partial result is restored before the failure is reported");
+    assert.equal(f.movingToken.x,0); assert.equal(f.movingToken.y,50);
+  }
+});
+
+test("movement update comparison tolerates only positional floating-point noise", () => {
+  assert.equal(movementUpdatesMatch({x:600,y:260},{x:600,y:260}),true);
+  assert.equal(movementUpdatesMatch({x:600,y:260},{x:600,y:260.00000000000006}),true);
+  assert.equal(movementUpdatesMatch({elevation:5},{elevation:5+Number.EPSILON*5}),true);
+  assert.equal(movementUpdatesMatch({x:600,y:260},{x:600,y:260.01}),false);
+  assert.equal(movementUpdatesMatch({x:600,y:260},{x:601,y:260}),false);
+  assert.equal(movementUpdatesMatch({x:0,y:0},{x:0,y:1e-9}),false);
+  assert.equal(movementUpdatesMatch({x:600},{x:NaN}),false);
+  assert.equal(movementUpdatesMatch({x:"600"},{x:600}),false);
+  assert.equal(movementUpdatesMatch({},{x:600}),false);
+  // Keys outside the positional set and non-numbers remain strict.
+  assert.equal(movementUpdatesMatch({width:2},{width:2.0000000000000004}),false);
+  assert.equal(movementUpdatesMatch({shape:1},{shape:1}),true);
+  assert.equal(movementUpdatesMatch({shape:1},{shape:"1"}),false);
+});
+
+test("restoration verification tolerates canonicalized coordinates when a write must be reverted", async () => {
+  const f = fixture(); f.movingToken.y = 260.00000000000006; // uncleaned source noise before the write
+  let writes = 0;
+  const base = {...f.persistence,updateDocument:async input => {
+    writes++;
+    if (writes === 1) {f.movingToken.x = input.updates.x; return {ok:true};} // y silently not applied
+    Object.assign(f.movingToken,{x:Math.round(input.updates.x),y:Math.round(input.updates.y)});
+    return {ok:true};
+  }};
+  await assert.rejects(stagedMovementPersistence(base,f.movingToken,"restore",() => true)
+    .updateDocument({document:f.movingToken,updates:{x:600,y:360}}),
+    error => /did not persist the planned movement position/.test(error.message) && !/restoration failed/.test(error.message));
+  assert.equal(writes,2);
+  assert.equal(f.movingToken.x,0);
+  assert.equal(f.movingToken.y,260,"a canonicalized restoration must not be reported as a restoration failure");
 });
