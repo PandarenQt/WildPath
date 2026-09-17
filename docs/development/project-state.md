@@ -1,6 +1,6 @@
 # WildPath — Current Project State
 
-Last verified: 2026-09-16.
+Last verified: 2026-09-17.
 
 - Branch: `milestone/action-runtime-live-proof`.
 - Starting HEAD for Quench Q1: `85344524f75e2620c3bc1990e5c75cca7c463602`.
@@ -11,7 +11,9 @@ Last verified: 2026-09-16.
 - Movement implementation commit: `87ed1fae93271b81b14432bb4312be9cd53285c5`.
 - Original milestone starting HEAD: `ea484fd8b503697ddf1c2b7b0f6984ea594378e2`.
 - Local main HEAD: `61d6268b838e286728c829924506c6c931174621`.
-- Portable full suite (`FOUNDRY_V14_APP_PATH` unset): **811 tests, 809 passed, 0 failed, 2 intentionally skipped**.
+- Portable full suite (`FOUNDRY_V14_APP_PATH` unset): **825 tests, 823 passed, 0 failed, 2 intentionally skipped**.
+- Staged-movement position-verification repair delta from 821/819/0/2: **4 new tests** in `test/staged-movement.test.mjs` (commit `e30d752`; generated `.mjs` rebuilt).
+- Quench staged-movement batch delta from 811/809/0/2: **10 new portable tests** (two fixture, eight orchestration; commit `b22e287`).
 - Combat-slice delta from 808/806/0/2: **3 new portable tests** (Scene/Token/Combat fixture ownership, cleanup ordering across collections, read-only orphan listing); batch inventory check extended to seven batches.
 - Q2 delta from 807/805/0/2: **1 new portable test** for scoped ActiveEffect fixtures; registration and GM-guard checks extended.
 - Repair delta from 797/795/0/2: **10 new tests** (9 Actor resource persistence cases and 1 assertion-failure cleanup case); existing turn-recovery coverage strengthened.
@@ -34,6 +36,20 @@ turn configured reaction content into a second combat engine.
 
 ## Current milestone
 
+**The Quench staged-movement batch is live-confirmed; the six-case semantic movement gate is green
+in real Foundry.** `wildpath.staged-movement` — **WILDPATH: Staged Movement** — runs the six cases of
+[staged-movement-qa.md](staged-movement-qa.md) with the same proof assertions on a single active-GM
+client. The maintainer's first V14.367 run passed five and failed `Large-hex reaction decline` at
+`movement.commit` (`COMMIT_FAILED`): the commit adapter compared the hex-derived planned
+`y = 260.00000000000006` against Foundry's integer-cleaned `260` with strict equality. Commit `e30d752`
+repairs `module/adapters/foundry-v14-staged-movement-commit.mts` (rebuilt `.mjs`) so `x`/`y`/`elevation`
+tolerate only IEEE-754 noise at all four verification and authorization sites; the maintainer then
+reported **6/6 PASS**. **Production code changed: YES**, confined to that comparison boundary;
+movement, reaction, tactical-grid, transaction, and authority semantics are unchanged. Standing:
+**46 Quench cases live-confirmed** (Q1 17, Q2 17, Combat 6, staged movement 6) across eight batches.
+This is Level-3 evidence: it proves the staged architecture in real Foundry on one client, not
+GM/player socket delivery, remote prompts, or multiplayer timing.
+
 **The Quench Combat slice is live-confirmed.** `wildpath.combat` — **WILDPATH: Real
 Foundry Combat** — adds **6 cases** in `module/tests/quench/combat.mjs` proving, in real Foundry, the
 chain real Scene → unlinked Token → synthetic Actor/ActorDelta → real Combat → Combatant →
@@ -50,7 +66,7 @@ the [testing strategy](foundry-testing-strategy.md).
 
 **Quench Q2 is live-confirmed.** Three batches in `module/tests/quench/` cover
 `wildpath.effects` (4), `wildpath.conditions` (5), and `wildpath.rule-elements` (8): **17 Q2 cases**.
-The optional `quenchReady` entry now registers seven batches (40 total cases), without changing
+The optional `quenchReady` entry now registers eight batches (46 total cases), without changing
 Q1's 17 or Q2's 17 cases. The maintainer ran the expanded suite against Foundry V14.367 and reported the 17 new
 cases passing **17/17**; combined with Q1, **all 34 WildPath Quench cases are live-confirmed**. This is
 maintainer-reported evidence without an exported Quench report, the same evidentiary standing as Q1.
@@ -105,8 +121,9 @@ manifests, or client settings were changed. The only startup integration remains
 test registration import. See the
 [testing strategy and exact live run procedure](foundry-testing-strategy.md).
 
-Deferred Quench phases: the Rolls portion of Q3 (its synthetic-Actor/Combat portion is live-confirmed
-as `wildpath.combat`); Q4 persistence rollback/Action entry; future migrations.
+Deferred Quench phases: broader Rolls (real digital attack rolls are live-confirmed inside
+`wildpath.staged-movement`; the Combat portion as `wildpath.combat`); broader Q4 persistence
+rollback/Action entry (nested movement reaction commits are live-confirmed); future migrations.
 
 ## Staged movement status
 
@@ -151,8 +168,16 @@ The ordinary Action runtime evidence is tracked in `evidence/gm-hit.json`, `gm-m
 `player-hit.json`, and `player-miss.json`. These artifacts and prior live claims were not replaced
 or rerun during this milestone.
 
-No new staged-movement live evidence was produced. The staged intent's **before-transition** timing and final
-position persistence still require the new GM/player gate. Native dragging continues to use its
+Staged-movement live evidence now exists at two levels. Level 3: the `wildpath.staged-movement`
+Quench batch is 6/6 on V14.367 (maintainer-reported) after `e30d752`. Level 5 (paired GM/player,
+[staged-movement-qa.md](staged-movement-qa.md)): `evidence/gm-movement-{hit,miss,stop}.json` and
+`evidence/player-movement-{hit,miss,stop}.json` were committed in `302424f`, but they are DevTools
+console transcripts rather than the prescribed `copy(JSON.stringify(...))` exports. The GM
+transcripts each embed one passing pending proof and one passing final proof for hit, miss, and
+stop; the player hit and miss transcripts show a completed terminal result; the player stop
+transcript shows no terminal result; `evidence/gm-movement-ordinary.json` is a player `prepared`
+snapshot under a GM file name with no proof or result. No paired evidence exists for `decline`,
+`ordinary` (GM proof), or `Large-hex reaction decline`. Native dragging continues to use its
 existing **completed-event** workflow.
 
 ## Prerequisite repairs included
@@ -166,16 +191,20 @@ existing **completed-event** workflow.
 
 ## Deferred work and immediate next step
 
-Q1, Q2, and the Combat slice are live-confirmed: **40 Quench cases**. No further Quench slice has been
-chosen or started; Rolls and Q4 remain deferred. Two facts carry forward: `rest()` is now the one
+Q1, Q2, Combat, and staged movement are live-confirmed: **46 Quench cases**. No further Quench slice
+has been chosen or started; broader Rolls and Q4 remain deferred. Two facts carry forward: `rest()` is now the one
 repaired whole-array pool write still proven only in Node, and core 14.367 throws in
 `CombatTracker._onRender` for updates to a non-viewed Combat (a core defect the Combat batch reliably
 reproduces; not a WildPath failure). Whether the fixture orphan check returned empty arrays for
 Combats, Scenes, and Actors after the live run was not reported; confirm it before the next run.
 
-Separately deferred: all six cases in [staged-movement-qa.md](staged-movement-qa.md): square ordinary, decline, miss,
-hit/continue, effect/stop, and Large hex decline. Export the pending-choice proof plus paired GM/player
-evidence before advancing to native UI integration. These strengthened live cases have not been run.
+Movement milestone closure is now a Level-5 decision. The six-case semantic gate is green through
+Quench; the paired GM/player sentinel is partially captured as console transcripts (hit, miss, stop
+GM proofs passing; see above) and is missing `ordinary`, `decline`, and `Large-hex reaction decline`
+pairs. To close the milestone on the standard set in `staged-movement-qa.md`, either re-export the
+paired runs as JSON with build and SHA recorded, or explicitly accept the Quench batch plus the
+existing transcripts as sufficient and record that decision here. Until then the milestone stays
+open, and confidentiality hardening still follows it.
 
 Current limits are explicit: active GM and voluntary translation at the Foundry entry point;
 no intermediate Token persistence/rendering; no durable host reconstruction after reload/handoff;

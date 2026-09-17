@@ -295,7 +295,8 @@ suite passed 729/729. Documentation closure merged on
 
 The explicit staged movement intent now proves configured leave-reach reactions through ordinary
 nested attacks, including hit/miss, correct controller routing, and post-child movement revalidation.
-This extension is automated-tested; its [live gate](staged-movement-qa.md) remains pending.
+This extension is automated-tested and its six-case semantic gate is live-confirmed in Foundry V14.367
+through the `wildpath.staged-movement` Quench batch; the paired GM/player [sentinel](staged-movement-qa.md) is partially captured.
 
 Remaining Stage G work: add semantic timings required by real mechanics, production opportunity-reaction content,
 simultaneous/multiple-reaction ordering, and representative production reaction content. These

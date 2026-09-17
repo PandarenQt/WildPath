@@ -1,6 +1,9 @@
 # Staged movement / nested attack QA
 
-This gate exercises the new explicit movement-intent entry point. It has not yet been run live.
+This gate exercises the new explicit movement-intent entry point. Its six semantic cases are
+live-confirmed in Foundry V14.367 through the `wildpath.staged-movement` Quench batch (single
+active-GM client, same proof assertions); this paired GM/player procedure remains the Level-5
+sentinel for socket delivery, remote prompts, and timing.
 The existing native movement/reaction runbook remains the regression gate for dragging and
 checkpoint continuation. Do not substitute its completed-event evidence for this new timing.
 
@@ -181,7 +184,7 @@ logical footprint. Save as `evidence/gm-large-hex-decline.json` and `evidence/pl
 `variant`, `runId`, and `resolutionId`, and check the player's terminal result and values as above.
 If proof fails, retain `hexMovementQA.dump()` and the player dump before cleanup.
 
-This is a required sixth live case, currently pending execution. Node tests exercise these exact
+This sixth case is live-confirmed through the Quench batch; its paired-client run has not been captured. Node tests exercise these exact
 assertions through the coordinator, including malformed evidence; they do not count as live proof.
 
 ## Cleanup

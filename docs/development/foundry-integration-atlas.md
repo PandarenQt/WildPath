@@ -1343,7 +1343,7 @@ declares no `scripts` block and no test-related dependencies.
 testing workflow for a V14 system. The absence is a fact about Foundry's documentation, not evidence
 that testing is discouraged.
 
-### 19F. Quench — V14.367 Q1 17/17, Q2 17/17, Combat 6/6 (40 cases live-confirmed)
+### 19F. Quench — V14.367 Q1 17/17, Q2 17/17, Combat 6/6, staged movement 6/6 (46 cases live-confirmed)
 
 Quench is the ecosystem's in-Foundry test runner (Mocha + Chai + fast-check, registering a native
 Foundry Application as a test runner UI). It is the only known candidate for **layer 3**.
@@ -1400,6 +1400,15 @@ Combat that is not the tracker's viewed encounter throws `"turn" in undefined` i
 `CombatTracker._onRender` (`combat-tracker.mjs:185-188`) — no WildPath frames, no effect on document
 state or the turn-event workflow. Recorded here so it is not mistaken for a system failure.
 
+The staged-movement batch (`wildpath.staged-movement`, 6 cases; **6/6 maintainer-reported**, total
+**46**) runs the six-case semantic movement gate on one active-GM client with the live QA's own proof
+assertions. Its first run found a real production defect at the persistence boundary: the commit
+adapter's strict equality rejected Foundry's integer-cleaned `260` against a hex-derived planned
+`260.00000000000006`, failing an otherwise correct Large-hex resolution with `COMMIT_FAILED`.
+`e30d752` confines a tolerance to IEEE-754 noise on `x`/`y`/`elevation` at every verification and
+authorization site — a boundary fix in the §13 sense: canonicalization belongs at the Foundry
+persistence seam, not in tactical geometry. It remains layer 3; GM/player socket delivery is not claimed.
+
 **Correction recorded.** An earlier draft of this research asserted the Quench repository was "pushed
 April 2026" and inferred active maintenance. That claim **does not reproduce** and has been withdrawn.
 The most recent commit on `master` is 2025-05-30; the branch list is `master`, `gh-pages`, `v12`, and
@@ -1442,7 +1451,8 @@ gate. The live multiplayer cases remain the evidence of record for multiplayer b
 
 **[wildpath]** Levels 1 and 2 exist today; 4 and 5 exist as manual procedure. Level 3 is now supported
 by 34 maintainer-confirmed live cases (Q1 17/17 after the custom-pool persistence repair; Q2 17/17),
-plus the Combat slice's 6 cases (6/6 maintainer-reported), for 40 live-confirmed cases in total.
+plus the Combat slice's 6 cases (6/6 maintainer-reported) and the staged-movement batch's 6 cases (6/6
+after `e30d752`), for 46 live-confirmed cases in total.
 
 ```text
 Level 1 — Pure Node tests
@@ -1458,6 +1468,7 @@ Quench v0.10.0: V14.367 Q1 initially 16/17, then 17/17 after the custom-pool fix
 Q1: real Documents/TypeDataModels, resources, preparation, and persistence.
 Q2: 17 cases for ActiveEffects, conditions, and RuleElements; 17/17 maintainer-confirmed.
 Combat slice: 6 cases for managed turn start on an unlinked Token (synthetic Actor / ActorDelta); 6/6 maintainer-confirmed.
+Staged movement: the six-case semantic movement gate on one GM client; 6/6 maintainer-confirmed after e30d752.
 
 Level 4 — Live single-client QA
 Real Foundry UX and persistence.
