@@ -68,12 +68,12 @@ export async function createEmbeddedQuenchEffect(actor, {
  * GM's viewed Scene and canvas are untouched; Foundry does not need a drawn canvas to create
  * Scenes, embedded Tokens, or their ActorDeltas. Without a background image core skips thumbnails.
  */
-export async function createQuenchScene({runId, name="Scene"}={}) {
+export async function createQuenchScene({runId, name="Scene", grid={}}={}) {
   requireGM();
   const scene = await CONFIG.Scene.documentClass.create({
     name:`${PREFIX} ${name}`,active:false,navigation:false,tokenVision:false,
     width:1000,height:1000,padding:0,
-    grid:{type:CONST.GRID_TYPES.SQUARE,size:100,distance:5,units:"ft"},
+    grid:{type:CONST.GRID_TYPES.SQUARE,size:100,distance:5,units:"ft",...grid},
     flags:fixtureFlags(runId)
   }, {renderSheet:false});
   if (!scene) throw new Error(`Scene creation returned no fixture (Quench run ${runId}).`);
@@ -81,12 +81,17 @@ export async function createQuenchScene({runId, name="Scene"}={}) {
 }
 
 /** An unlinked Token whose synthetic Actor (ActorDelta) is owned by the marked fixture Scene. */
-export async function createUnlinkedQuenchToken(scene, actor, {name="Token", x=100, y=100}={}) {
+export async function createUnlinkedQuenchToken(scene, actor, {
+  name="Token", x=100, y=100, width=1, height=1, shape, elevation, level
+}={}) {
   requireGM();
   const runId = requireMarkedParent(scene, "Quench Tokens");
   if (!isMarkedFixture(actor)) throw new Error("Quench Tokens require an explicitly marked fixture base Actor.");
   const [token] = await scene.createEmbeddedDocuments("Token",[{
-    name:`${PREFIX} ${name}`,actorId:actor.id,actorLink:false,x,y,width:1,height:1,
+    name:`${PREFIX} ${name}`,actorId:actor.id,actorLink:false,x,y,width,height,
+    ...(shape === undefined ? {} : {shape}),
+    ...(elevation === undefined ? {} : {elevation}),
+    ...(level === undefined ? {} : {level}),
     flags:fixtureFlags(runId)
   }]);
   if (!token) throw new Error(`Embedded Token creation returned no fixture (Quench run ${runId}).`);

@@ -73,7 +73,7 @@ function fixtureStore(t,{isGM=true}={}) {
   return {actors,scenes,combats,calls,add,addScene,addCombat,documentClass,sceneClass,combatClass};
 }
 
-test("Quench entry loads without Quench or Foundry globals and registers the seven batches on demand", async t => {
+test("Quench entry loads without Quench or Foundry globals and registers the eight batches on demand", async t => {
   const hooks = [], batches = [];
   globals(t,{Hooks:{on:(...args) => hooks.push(args)},game:undefined,foundry:undefined,quench:undefined});
   await import("../module/tests/quench/index.mjs");
@@ -81,15 +81,22 @@ test("Quench entry loads without Quench or Foundry globals and registers the sev
   assert.equal(hooks[0][0],"quenchReady");
   hooks[0][1]({registerBatch:(key,register,options) => batches.push({key,register,options})});
   assert.deepEqual(batches.map(b => b.key),["wildpath.runtime-smoke","wildpath.documents","wildpath.resources",
-    "wildpath.effects","wildpath.conditions","wildpath.rule-elements","wildpath.combat"]);
+    "wildpath.effects","wildpath.conditions","wildpath.rule-elements","wildpath.combat","wildpath.staged-movement"]);
+  const movementNames = [];
   const counts = batches.map(batch => {
     let count = 0;
-    batch.register({describe:(_name,fn) => fn.call({timeout() {}}),it:() => count++,beforeEach() {},afterEach() {},assert:{}});
+    batch.register({describe:(_name,fn) => fn.call({timeout(ms) {
+      if (batch.key === "wildpath.staged-movement") assert.equal(ms,60000);
+    }}),it:name => {count++; if (batch.key === "wildpath.staged-movement") movementNames.push(name);},
+    beforeEach() {},afterEach() {},assert:{}});
     assert.equal(batch.options.preSelected,false,"Registration must not opt developers into mutation tests");
     return count;
   });
-  assert.deepEqual(counts,[3,6,8,4,5,8,6]);
-  assert.equal(batches.at(-1).options.displayName,"WILDPATH: Real Foundry Combat");
+  assert.deepEqual(counts,[3,6,8,4,5,8,6,6]);
+  assert.equal(batches.at(-2).options.displayName,"WILDPATH: Real Foundry Combat");
+  assert.equal(batches.at(-1).options.displayName,"WILDPATH: Staged Movement");
+  assert.deepEqual(movementNames,["ordinary square/Medium movement","square/Medium reaction decline",
+    "square/Medium reaction miss","square/Medium reaction hit","square/Medium reaction stop","Large-hex reaction decline"]);
   const startup = readFileSync(new URL("../wildpath.mjs",import.meta.url),"utf8");
   assert.deepEqual(startup.match(/import\s+"\.\/module\/tests\/[^"\n]+";/g),['import "./module/tests/quench/index.mjs";']);
 });
@@ -148,7 +155,9 @@ test("Quench Scene, unlinked Token, and Combat fixtures mark ownership and refus
   assert.deepEqual(sceneCall.data.flags,base.flags,"Scene must carry the same marker and run ID as the Actor");
   assert.equal(sceneCall.data.active,false,"Fixture Scene must never activate");
   assert.equal(sceneCall.data.navigation,false,"Fixture Scene must stay out of navigation");
-  assert.equal(sceneCall.data.grid.size,100);
+  assert.deepEqual(sceneCall.data.grid,{type:1,size:100,distance:5,units:"ft"},"Default Scene grid must remain unchanged");
+  assert.deepEqual([sceneCall.data.width,sceneCall.data.height,sceneCall.data.padding,sceneCall.data.tokenVision],
+    [1000,1000,0,false]);
   assert.deepEqual(sceneCall.options,{renderSheet:false});
   const token = await fixtures.createToken(scene,base,{name:"mover"});
   const tokenCall = store.calls.at(-1);
@@ -157,6 +166,9 @@ test("Quench Scene, unlinked Token, and Combat fixtures mark ownership and refus
   assert.equal(tokenCall.data[0].actorLink,false,"Fixture Token must be unlinked");
   assert.equal(tokenCall.data[0].actorId,base.id);
   assert.deepEqual(tokenCall.data[0].flags,base.flags);
+  assert.deepEqual([tokenCall.data[0].x,tokenCall.data[0].y,tokenCall.data[0].width,tokenCall.data[0].height],[100,100,1,1]);
+  for (const key of ["shape","elevation","level"]) assert.equal(Object.hasOwn(tokenCall.data[0],key),false,
+    "Omitted options must continue using Foundry defaults");
   assert.strictEqual(token.parent,scene);
   const combat = await fixtures.createCombat(scene,[token]);
   const [combatCall,combatantCall] = store.calls.slice(-2);
@@ -179,6 +191,40 @@ test("Quench Scene, unlinked Token, and Combat fixtures mark ownership and refus
   assert.deepEqual([...store.combats.keys()],[]);
   assert.deepEqual([...store.scenes.keys()],["ordinary-scene"]);
   assert.deepEqual([...store.actors.keys()],["ordinary-actor"]);
+});
+
+test("Quench Scene grid overrides preserve defaults and custom native configuration", async t => {
+  const store = fixtureStore(t);
+  const grid = {type:2,size:140,distance:10,units:"m",style:3,color:"#abcdef",alpha:0.25};
+  await createQuenchScene({runId:"hex-run",grid});
+  assert.deepEqual(store.calls.at(-1).data.grid,grid);
+  assert.notStrictEqual(store.calls.at(-1).data.grid,grid,"Caller grid data must not become the creation payload");
+  await createQuenchScene({runId:"five-foot-hex",grid:{type:2}});
+  assert.deepEqual(store.calls.at(-1).data.grid,{type:2,size:100,distance:5,units:"ft"});
+  await cleanupQuenchFixtures({runId:"hex-run"});
+  assert.equal(store.scenes.size,1,"Custom-grid cleanup must preserve another exact run");
+  await cleanupQuenchFixtures({runId:"five-foot-hex"});
+  assert.equal(store.scenes.size,0);
+});
+
+test("Quench Tokens pass optional footprint fields through without losing unlinked identity or cleanup scope", async t => {
+  const store = fixtureStore(t), hooks = {};
+  const fixtures = useQuenchFixtures({beforeEach:fn => hooks.before = fn,afterEach:fn => hooks.after = fn});
+  hooks.before.call({skip() {assert.fail("GM must not skip");}});
+  const base = await fixtures.createActor(), scene = await fixtures.createScene({grid:{type:2}});
+  const data = {x:210,y:320,width:2,height:3,shape:0,elevation:0,level:"fixture-level"};
+  const token = await fixtures.createToken(scene,base,data);
+  const payload = store.calls.at(-1).data[0];
+  for (const [key,value] of Object.entries(data)) assert.equal(payload[key],value);
+  assert.equal(payload.actorLink,false);
+  assert.equal(payload.actorId,base.id);
+  assert.deepEqual(payload.flags,base.flags);
+  assert.strictEqual(token.parent,scene);
+  store.addScene("same-run-unmarked",{wildpath:{quenchRunId:base.flags.wildpath.quenchRunId}});
+  store.addScene("other-run",{wildpath:{quenchFixture:true,quenchRunId:"other"}});
+  await hooks.after();
+  assert.deepEqual([...store.scenes.keys()],["same-run-unmarked","other-run"]);
+  assert.equal(store.actors.size,0);
 });
 
 test("Quench cleanup requires both exact marker and run ID and is safe to repeat", async t => {

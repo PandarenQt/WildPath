@@ -1,4 +1,4 @@
-# Foundry integration testing: Quench Q1, Q2, and the Combat slice
+# Foundry integration testing: Quench and staged movement
 
 ## Evidence and testing ladder
 
@@ -11,7 +11,18 @@
 | 5. Live multiplayer QA | GM/player sockets, remote prompts, authority, timing, and visual movement |
 
 A lower-layer pass does not prove a higher layer. A higher-layer pass does not replace deterministic
-coverage. The [six-case staged movement gate](staged-movement-qa.md) remains a separate requirement.
+coverage. The six-case staged movement **semantic regression gate is now Quench-driven**, using the
+same assertions as the [staged movement live QA](staged-movement-qa.md). Its six newly registered
+cases are **pending live confirmation**: the existing live-confirmed count remains **40**; once the
+maintainer reports all six green in **Foundry V14.367**, the live-confirmed total becomes **46**.
+Node results alone cannot close the movement milestone or establish this Level-3 evidence.
+
+Level-5 multiplayer QA becomes a thin sentinel. Rerun it when multiplayer, socket, authority, or
+prompt transport behavior changes, rather than for every purely mechanical movement change.
+Quench does **not** prove real GM/player browser socket delivery, active-GM failover, network timing,
+remote prompt UX, or visual animation timing. Those still require real browser evidence; no new
+Level-5 pass is claimed by this batch or its portable tests. The paired-client procedure remains
+available in `staged-movement-qa.md` for that sentinel.
 
 The maintainer live-ran the expanded Q1 batches with Quench **v0.10.0** in **Foundry V14.367**:
 
@@ -32,10 +43,10 @@ suites also ran during the initial run; their failures are excluded from WildPat
 **Q2 is live-confirmed.** Its 17 additional cases cover ActiveEffects (4), conditions (5), and
 RuleElements (8). The maintainer subsequently ran the expanded suite against Foundry V14.367 and
 reported the 17 new cases passing **17/17**. As with Q1, this is maintainer-reported live evidence;
-no exported Quench report was supplied. All six batches together contain 34 cases, and all **34 are
-now live-confirmed**. The maintainer's summary described the expansion as eight batches; the
-repository registers exactly three new batch keys, and no repository structure yields eight, so only
-the three verified batches and the 17-case total are recorded here.
+no exported Quench report was supplied. At that point, all six batches together contained 34 cases,
+and all **34 were live-confirmed**. The maintainer's Q2 summary described the expansion as eight
+batches; the Q2 repository registered exactly three new batch keys, so only the three verified
+batches and the 17-case total are recorded as Q2 evidence.
 
 **The Combat slice is live-confirmed.** `wildpath.combat` adds 6 cases proving managed Combat
 turn-start recovery and turn-start condition dispatch on an unlinked Token's synthetic Actor. The
@@ -53,8 +64,9 @@ failures. WildPath neither patches Quench nor suppresses compatibility warnings.
 ## Registration and fixtures
 
 `wildpath.mjs` imports only `module/tests/quench/index.mjs` for this layer. That file owns the single
-`quenchReady` subscription and registers exactly seven batches. Batch modules never subscribe to
-hooks themselves. No Quench globals, dependency, client setting writes, fixture creation, or test
+`quenchReady` subscription and registers exactly eight batches (46 cases: 40 live-confirmed and six
+staged-movement cases pending live confirmation). Batch modules do not add registration hooks.
+No Quench globals, dependency, client setting writes, fixture creation, or test
 execution are required at normal startup. If Quench is absent, its hook simply never fires.
 The old smoke file and unfinished top-level test index/fixtures have been migrated into this directory.
 Registration follows [Quench's batch/context API](https://github.com/Ethaks/FVTT-Quench#register-a-test-batch).
@@ -77,14 +89,14 @@ Helpers in `module/tests/quench/fixtures.mjs`:
 - `createQuenchActor({runId, name, type, system})`
 - `createEmbeddedQuenchItem(actor, {name, type, system})`, requiring a marked parent
 - `createEmbeddedQuenchEffect(actor, {name, type, system, disabled, duration, start})`, requiring a marked parent and run ID
-- `createQuenchScene({runId, name})`, a disposable 1000×1000 square-grid Scene, never active or in navigation
-- `createUnlinkedQuenchToken(scene, actor, {name, x, y})`, requiring a marked Scene and marked base Actor; fails if no synthetic Actor results
+- `createQuenchScene({runId, name, grid})`, a disposable 1000×1000 Scene, never active or in navigation; omitted grid fields keep the original 100-pixel, 5-ft square defaults, and supplied native grid fields pass through
+- `createUnlinkedQuenchToken(scene, actor, {name, x, y, width, height, shape, elevation, level})`, requiring a marked Scene and marked base Actor; fails if no synthetic Actor results. Defaults remain x/y 100, width/height 1; omitted shape/elevation/level retain Foundry defaults
 - `createQuenchCombat(scene, tokens)`, requiring a marked Scene; creates one marked Combatant per Token
 - `findQuenchFixtures({runId?})`, a read-only listing of marked Combats/Scenes/Actors for orphan diagnostics
 - `cleanupQuenchFixtures({runId})`, requiring a nonempty run ID; returns the deleted ids per collection
 - `useQuenchFixtures(context)`, installing GM/ready guards and per-test cleanup
 
-Q1/Q2 mutation suites use 30-second timeouts and the Combat suite 60 seconds; all skip cleanly for non-GMs, including teardown. Their helper
+Q1/Q2 mutation suites use 30-second timeouts and the Combat/staged-movement suites 60 seconds; all skip cleanly for non-GMs, including teardown. Their helper
 APIs independently reject non-GM calls. The two read-only smoke cases may run as a player. Names
 are diagnostic only; a matching name never authorizes deletion. Run one QA client at a time and do
 not edit fixtures while tests are executing. A browser reload or an outstanding operation after a
@@ -393,7 +405,87 @@ console.table(Object.entries(findQuenchFixtures()).flatMap(([kind, rows]) => row
 To remove one abandoned run, use `cleanupQuenchFixtures({runId})` as above; it deletes owned Combats,
 then Scenes (with their Tokens and ActorDeltas), then Actors, and refuses to run without a run ID.
 
-## Fixture cleanliness (Q1, Q2, and Combat)
+## Staged movement: six cases pending live confirmation
+
+`module/tests/quench/staged-movement.mjs` registers the eighth batch, **`wildpath.staged-movement`**
+with display name **WILDPATH: Staged Movement**, through the existing single `quenchReady` hook.
+It adds exactly these cases:
+
+| Exact test name | Expected outcome |
+| --- | --- |
+| `ordinary square/Medium movement` | 3/3 transitions; movement 30 → 15; HP 30; reaction 1; no offered candidates or child. |
+| `square/Medium reaction decline` | Pending proof before decline; one offered/recorded declined candidate; no child; 3/3; movement 15; HP 30; reaction 1. |
+| `square/Medium reaction miss` | Pending proof before use; one real digital attack misses AC 100; HP 30; reaction 0; resumes to 3/3; movement 15. |
+| `square/Medium reaction hit` | Pending proof before use; one real digital attack hits AC 1 for fixed 6 damage; HP 24; reaction 0; resumes to 3/3; movement 15. |
+| `square/Medium reaction stop` | Child hits and commits fixed 6 damage plus the existing QA Prone effect; parent stops before transition 1 traverses and successfully commits 1/3 transitions at waypoint 1; movement 25; HP 24; reaction 0. |
+| `Large-hex reaction decline` | Decline semantics; 3/3; movement 15; HP 30; reaction 1; no child; origin and all three waypoints remain Large three-field hex footprints; persisted final footprint equals logical final footprint. |
+
+Each case creates its own marked base Actors, disposable Scene, two unlinked Tokens with real
+synthetic Actors/ActorDeltas, and a real Action Item on the synthetic reactor. It uses the production
+Foundry movement-intent adapter, tactical-grid adapter, staged movement host, reaction/action
+pipeline, persistence adapter, and `foundry-digital` Roll provider. The shared `qaActionData` fixture
+uses a real d20 with +4, fixed 6 damage, and Item-local policy disabling natural critical hits/misses;
+AC 100/1 therefore makes the expected result deterministic without replacing dice or RollResults.
+The child proof requires both `provider.id === "foundry-digital"` and
+`provenance.type === "foundry-digital"`, plus real serialized Foundry Roll terms.
+
+The suite imports `captureMovementQA`, `verifyPendingMovementQA`, `verifyMovementQA`, and
+`footprintSnapshot` directly from `docs/development/staged-movement-qa-proof.mjs`. It does not
+duplicate or relax their definition of success. The scripted PromptPort is awaited by the real
+coordinator at the pending reaction choice: capture the state, run the pending verifier, then
+return decline/use. A failed proof releases no response. No DOM clicking, dialog operation, polling,
+or manual intervention is needed during a successful batch run. Unexpected additional prompts fail.
+
+A fresh production coordinator per case uses application-local envelope delivery and no socket
+subscription. Its normal result broadcast is consumed locally; remote requests fail explicitly.
+All fixture Actor ownership is confined to the GM. The installed runtime coordinator and prompt
+ports are not replaced. Only `game.wildpath.reactionServices` is temporarily scoped to the exact
+fixture resolution ID and Token UUID, delegates unrelated requests, and is restored in `finally`
+after the awaited execution, including failures. Local GM rolls do not require a socket
+`REQUEST_RESPONSE`. This transport boundary is precisely why the batch cannot establish Level 5.
+
+A read-only wrapper around the normal child execution captures the child with its RollResult and
+logical target footprint before calling the unchanged production commit. It then records the
+completed child transaction and persisted resources/effects while the Token remains at origin and
+movement remains 30. The final proof checks that the parent retained the completed child status,
+paid only its completed prefix, and left the successful child mutations intact. Additional checks
+read synthetic Actor source and ActorDelta source and require the base Actors to remain unchanged.
+The stop fixture uses the same `stagedMovementRun` metadata and Prone condition/effect path as the
+live helper; its continuation validator stops only after that real effect exists.
+
+Both route layouts are proven with the installed tactical adapter: footprint-distance progression
+`1,1,2,3`, adjacent anchors, and full occupancy at origin plus three waypoints. The hex Scene uses
+`HEXODDR`, size 100, distance 5 ft, with Actor size `large` and Token width/height 2,
+`CONST.TOKEN_SHAPES.ELLIPSE_1`. `largeHexLayout` supplies the existing axial layout; every footprint
+must resolve with no occupancy diagnostics. Expected occupied-field arrays are not fabricated.
+
+**No viewed Scene is required.** Installed V14.367 `TokenDocument#getCompleteMovementPath` and
+`getOccupiedGridSpaceOffsets` read the parent Scene grid; occupancy receives the Token's own Level.
+The fixture calls public `Scene#initializeEdges()` on its empty disposable Scene to provide Level
+boundary geometry. It never activates/views that Scene, replaces canvas state, or reads selected
+Tokens. These APIs were checked against installed 14.367 source and the official
+[TokenDocument API](https://foundryvtt.com/api/classes/foundry.documents.TokenDocument.html) and
+[Scene API](https://foundryvtt.com/api/classes/foundry.documents.Scene.html#initializeEdges).
+Actual execution of this new batch remains pending; API inspection is not a live pass.
+
+Run in the disposable V14.367 QA world as the active GM after Foundry is ready and the Quench
+v0.10.0 window has rendered. Retain the existing manual Quench client settings above; WildPath
+does not change them. Select only `wildpath.staged-movement`, or run:
+
+```js
+await quench.runBatches(["wildpath.staged-movement"]);
+```
+
+Expected: **6 passing, 0 failing, 0 pending** as the active GM; non-GMs skip all six without writes.
+Repeat the batch to check isolation, save the Quench report with the worktree revision and
+Foundry/Quench versions, and run the orphan diagnostic below. No fixture Documents should remain
+after success or assertion failure. Cleanup uses the existing exact-marker/exact-run-ID teardown;
+Scene-owned Tokens, ActorDeltas, Items, effects, and Levels disappear with the Scene. A browser
+reload or genuinely stalled Foundry document operation can interrupt teardown; wait for outstanding
+operations before removing a specifically identified abandoned run. Maintainer execution and a
+reported green result are still required before accepting Level-3 evidence or closing the milestone.
+
+## Fixture cleanliness (all Quench batches)
 
 After a successful or failed run, every array in this GM console check must be empty:
 
@@ -427,17 +519,26 @@ are outside this helper's cleanup scope.
 ## Portable validation and deferred phases
 
 Run `npm.cmd test`, `npm.cmd run typecheck`, `node --check` for the changed modules, and
-`git diff --check`. The eleven tests in `test/quench-infrastructure.test.mjs` cover registration with
-Quench absent, seven-batch inventory and counts, scoped fixture creation/deletion, ActiveEffect and
+`git diff --check`. The thirteen tests in `test/quench-infrastructure.test.mjs` cover registration with
+Quench absent, eight-batch inventory and exact movement names/counts, unchanged fixture defaults,
+custom Scene grids and Token footprint fields, scoped fixture creation/deletion, ActiveEffect and
 Scene/Token/Combat parent guards, cleanup ordering across collections, the read-only orphan listing,
-GM guards, and cleanup failures. They do not mirror the integration assertions in Node, and their
-controlled API collaborators do **not** stand in for execution of the 17 Q1, 17 Q2, or 6 Combat
-real-Foundry cases. Current portable
-counts and live status are recorded in [project-state.md](project-state.md).
+GM guards, and cleanup failures. Eight tests in `test/quench-staged-movement.test.mjs` cover pending
+proof ordering/failure, deterministic response selection, unexpected/duplicate prompt rejection,
+exact runtime-service scope and restoration, and local coordinator intent/result delivery and
+remote-delivery rejection. They do not mirror the integration assertions in Node, and their
+controlled API collaborators do **not** stand in for execution of the 17 Q1, 17 Q2, 6 Combat, or
+6 staged-movement real-Foundry cases. Validation for this staged-movement addition: **821 Node tests,
+819 passed, 0 failed, 2 intentionally skipped** (installation-dependent nested condition-commit
+checks); typecheck and diff whitespace checks passed. This adds **10 portable tests** (two fixture
+cases and eight orchestration cases), retaining the previous 811 tests. The prior baseline and
+historical live evidence are recorded in [project-state.md](project-state.md).
 
 - Q3: the synthetic-Actor/Combat portion is live-confirmed as `wildpath.combat`;
-  Rolls, `rest()`, expiry scheduling, skipped turns, round events, and multiple Combatants remain deferred.
-- Q4: persistence rollback, Action entry.
+  real digital attack rolls are now registered in `wildpath.staged-movement`, pending live confirmation.
+  Broader Rolls, `rest()`, expiry scheduling, skipped turns, round events, and multiple Combatants remain deferred.
+- Q4: broader persistence rollback/Action entry; nested movement reaction Action commits are newly
+  registered in the staged-movement batch, pending live confirmation.
 - Future: migrations.
 
 The Q1 production repair is limited to correcting custom-pool array persistence in the four Actor
