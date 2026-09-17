@@ -1,0 +1,64 @@
+await globalThis.mq.submitPlayer();
+Object { ok: true, code: "OK", resolutionId: "qa-movement:ORbJP7KZpp8VOvYA:qyZxU1rUqcaTcTE4", intentId: "qa-movement:ORbJP7KZpp8VOvYA:qyZxU1rUqcaTcTE4", authorityUserId: "hUdU40DWftTFyJzW", envelope: {…} }
+
+globalThis.playerEvidence =
+  globalThis.mq.dumpPlayer();
+
+console.log(
+  JSON.stringify(globalThis.playerEvidence, null, 2)…
+{
+  "runId": "ORbJP7KZpp8VOvYA",
+  "role": "player",
+  "mode": "hit",
+  "variant": "square",
+  "resolutionId": "qa-movement:ORbJP7KZpp8VOvYA:qyZxU1rUqcaTcTE4",
+  "moverUserId": "6JWzwo5Aln6gZUWH",
+  "reactorUserId": "hUdU40DWftTFyJzW",
+  "moverTokenId": "B6voYAbLFa0Vsubl",
+  "reactorTokenId": "PEkf3i6WH38nIk8b",
+  "sceneId": "q2HthP7tg8690hK6",
+  "origin": {
+    "x": 3000,
+    "y": 2300,
+    "elevation": 0,
+    "width": 1,
+    "height": 1,
+    "depth": 1,
+    "shape": 4
+  },
+  "route": [
+    {
+      "x": 3100,
+      "y": 2300
+    },
+    {
+      "x": 3200,
+      "y": 2300
+    },
+    {
+      "x": 3300,
+      "y": 2300
+    }
+  ],
+  "before": {
+    "x": 3000,
+    "y": 2300,
+    "movement": 30,
+    "hp": 30,
+    "reaction": 1,
+    "effects": []
+  },
+  "after": {
+    "x": 3300,
+    "y": 2300,
+    "movement": 15,
+    "hp": 24,
+    "reaction": 0,
+    "effects": []
+  },
+  "result": {
+    "resolutionId": "qa-movement:ORbJP7KZpp8VOvYA:qyZxU1rUqcaTcTE4",
+    "status": "completed",
+    "code": null…
+debugger eval code:4:9
+undefined

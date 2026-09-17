@@ -1,0 +1,3748 @@
+await globalThis.movementQA3.prepare("stop");
+{runId: 'ORbJP7KZpp8VOvYA', role: 'mover', mode: 'stop', variant: 'square', resolutionId: 'qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy', …}
+globalThis.pendingEvidence =
+  globalThis.movementQA3.provePending();
+
+console.log(
+  JSON.stringify(globalThis.pendingEvidence, null, 2)
+);
+VM8592:4 {
+  "pendingProofPassed": true,
+  "resolutionId": "qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy",
+  "status": "awaiting-choice",
+  "stage": "movement.transition:1.reactions",
+  "cursor": {
+    "completedTransitionCount": 1,
+    "cumulativeCost": 5,
+    "stopped": false,
+    "reason": null
+  },
+  "renderedPosition": {
+    "x": 3000,
+    "y": 2300,
+    "elevation": 0,
+    "width": 1,
+    "height": 1,
+    "depth": 1,
+    "shape": 4
+  },
+  "renderedFootprint": {
+    "topology": "square",
+    "size": "medium",
+    "anchor": {
+      "x": 23,
+      "y": 30
+    },
+    "fields": [
+      {
+        "x": 23,
+        "y": 30
+      }
+    ]
+  },
+  "origin": {
+    "topology": "square",
+    "size": "medium",
+    "anchor": {
+      "x": 23,
+      "y": 30
+    },
+    "fields": [
+      {
+        "x": 23,
+        "y": 30
+      }
+    ]
+  },
+  "logical": {
+    "topology": "square",
+    "size": "medium",
+    "anchor": {
+      "x": 23,
+      "y": 31
+    },
+    "fields": [
+      {
+        "x": 23,
+        "y": 31
+      }
+    ]
+  },
+  "event": {
+    "id": "qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1",
+    "type": "movement.transition-proposed",
+    "phase": "interrupt",
+    "data": {
+      "transitionIndex": 1,
+      "previous": {
+        "topology": "square",
+        "size": "medium",
+        "anchor": {
+          "x": 23,
+          "y": 31
+        },
+        "fields": [
+          {
+            "x": 23,
+            "y": 31
+          }
+        ]
+      },
+      "proposed": {
+        "topology": "square",
+        "size": "medium",
+        "anchor": {
+          "x": 23,
+          "y": 32
+        },
+        "fields": [
+          {
+            "x": 23,
+            "y": 32
+          }
+        ]
+      },
+      "cumulativeCost": 5,
+      "relations": {
+        "qaReactor": {
+          "before": 1,
+          "after": 2,
+          "reachFields": 1,
+          "withinBefore": true,
+          "withinAfter": false,
+          "leavesReach": true,
+          "entersReach": false,
+          "context": {
+            "hostile": true
+          }
+        }
+      }
+    }
+  },
+  "window": {
+    "id": "reaction-window:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:before-transition:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1",
+    "timing": "before-transition",
+    "offeredCandidateIds": [
+      "reaction-candidate:qa-leave:ORbJP7KZpp8VOvYA:Scene.q2HthP7tg8690hK6.Token.PEkf3i6WH38nIk8b.Actor.Xhc4umhFEpmvwttd:action:qa-movement-reaction:ORbJP7KZpp8VOvYA:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1"
+    ]
+  },
+  "pendingChoice": true,
+  "child": null
+}
+undefined
+globalThis.gmEvidence =
+  globalThis.movementQA3.prove();
+
+console.log(
+  JSON.stringify(globalThis.gmEvidence, null, 2)
+);
+staged-movement-qa-proof.mjs:4 Uncaught Error: Movement has not completed; inspect dump() and pending prompts.
+    at check (staged-movement-qa-proof.mjs:4:53)
+    at verifyMovementQA (staged-movement-qa-proof.mjs:69:3)
+    at qa.prove (staged-movement-qa.mjs:128:5)
+    at <anonymous>:2:26
+check @ staged-movement-qa-proof.mjs:4
+verifyMovementQA @ staged-movement-qa-proof.mjs:69
+qa.prove @ staged-movement-qa.mjs:128
+(anonymous) @ VM8596:2
+globalThis.gmEvidence =
+  globalThis.movementQA3.prove();
+
+console.log(
+  JSON.stringify(globalThis.gmEvidence, null, 2)
+);
+VM8600:4 {
+  "runId": "ORbJP7KZpp8VOvYA",
+  "role": "gm",
+  "mode": "stop",
+  "variant": "square",
+  "resolutionId": "qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy",
+  "moverUserId": "6JWzwo5Aln6gZUWH",
+  "reactorUserId": "hUdU40DWftTFyJzW",
+  "moverTokenId": "B6voYAbLFa0Vsubl",
+  "reactorTokenId": "PEkf3i6WH38nIk8b",
+  "sceneId": "q2HthP7tg8690hK6",
+  "origin": {
+    "x": 3000,
+    "y": 2300,
+    "elevation": 0,
+    "width": 1,
+    "height": 1,
+    "depth": 1,
+    "shape": 4
+  },
+  "route": [
+    {
+      "x": 3100,
+      "y": 2300
+    },
+    {
+      "x": 3200,
+      "y": 2300
+    },
+    {
+      "x": 3300,
+      "y": 2300
+    }
+  ],
+  "before": {
+    "x": 3000,
+    "y": 2300,
+    "movement": 30,
+    "hp": 30,
+    "reaction": 1,
+    "effects": []
+  },
+  "proofPassed": true,
+  "after": {
+    "x": 3100,
+    "y": 2300,
+    "movement": 25,
+    "hp": 24,
+    "reaction": 0,
+    "effects": [
+      {
+        "id": "MpyHnXtf8MoeMt3n",
+        "metadata": {
+          "actionDefinitionId": "action:qa-movement-reaction:ORbJP7KZpp8VOvYA",
+          "stagedMovementRun": "ORbJP7KZpp8VOvYA",
+          "effectDefinitionId": "qa-stop",
+          "effectIndex": 0,
+          "target": {
+            "id": "B6voYAbLFa0Vsubl",
+            "uuid": "Scene.q2HthP7tg8690hK6.Token.B6voYAbLFa0Vsubl",
+            "actorId": "5fu9rMXyk8pUWEPC",
+            "tokenId": "B6voYAbLFa0Vsubl",
+            "name": "QA melee source",
+            "type": "creature"
+          }
+        }
+      }
+    ]
+  },
+  "footprintProof": {
+    "pending": {
+      "resolutionId": "qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy",
+      "status": "awaiting-choice",
+      "stage": "movement.transition:1.reactions",
+      "cursor": {
+        "completedTransitionCount": 1,
+        "cumulativeCost": 5,
+        "stopped": false,
+        "reason": null
+      },
+      "renderedPosition": {
+        "x": 3000,
+        "y": 2300,
+        "elevation": 0,
+        "width": 1,
+        "height": 1,
+        "depth": 1,
+        "shape": 4
+      },
+      "renderedFootprint": {
+        "topology": "square",
+        "size": "medium",
+        "anchor": {
+          "x": 23,
+          "y": 30
+        },
+        "fields": [
+          {
+            "x": 23,
+            "y": 30
+          }
+        ]
+      },
+      "origin": {
+        "topology": "square",
+        "size": "medium",
+        "anchor": {
+          "x": 23,
+          "y": 30
+        },
+        "fields": [
+          {
+            "x": 23,
+            "y": 30
+          }
+        ]
+      },
+      "logical": {
+        "topology": "square",
+        "size": "medium",
+        "anchor": {
+          "x": 23,
+          "y": 31
+        },
+        "fields": [
+          {
+            "x": 23,
+            "y": 31
+          }
+        ]
+      },
+      "event": {
+        "id": "qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1",
+        "type": "movement.transition-proposed",
+        "phase": "interrupt",
+        "data": {
+          "transitionIndex": 1,
+          "previous": {
+            "topology": "square",
+            "size": "medium",
+            "anchor": {
+              "x": 23,
+              "y": 31
+            },
+            "fields": [
+              {
+                "x": 23,
+                "y": 31
+              }
+            ]
+          },
+          "proposed": {
+            "topology": "square",
+            "size": "medium",
+            "anchor": {
+              "x": 23,
+              "y": 32
+            },
+            "fields": [
+              {
+                "x": 23,
+                "y": 32
+              }
+            ]
+          },
+          "cumulativeCost": 5,
+          "relations": {
+            "qaReactor": {
+              "before": 1,
+              "after": 2,
+              "reachFields": 1,
+              "withinBefore": true,
+              "withinAfter": false,
+              "leavesReach": true,
+              "entersReach": false,
+              "context": {
+                "hostile": true
+              }
+            }
+          }
+        }
+      },
+      "window": {
+        "id": "reaction-window:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:before-transition:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1",
+        "timing": "before-transition",
+        "offeredCandidateIds": [
+          "reaction-candidate:qa-leave:ORbJP7KZpp8VOvYA:Scene.q2HthP7tg8690hK6.Token.PEkf3i6WH38nIk8b.Actor.Xhc4umhFEpmvwttd:action:qa-movement-reaction:ORbJP7KZpp8VOvYA:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1"
+        ]
+      },
+      "pendingChoice": true,
+      "child": null
+    },
+    "children": [
+      {
+        "resolutionId": "qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy",
+        "status": "paused",
+        "stage": "movement.transition:1.reactions",
+        "cursor": {
+          "completedTransitionCount": 1,
+          "cumulativeCost": 5,
+          "stopped": false,
+          "reason": null
+        },
+        "renderedPosition": {
+          "x": 3000,
+          "y": 2300,
+          "elevation": 0,
+          "width": 1,
+          "height": 1,
+          "depth": 1,
+          "shape": 4
+        },
+        "renderedFootprint": {
+          "topology": "square",
+          "size": "medium",
+          "anchor": {
+            "x": 23,
+            "y": 30
+          },
+          "fields": [
+            {
+              "x": 23,
+              "y": 30
+            }
+          ]
+        },
+        "origin": {
+          "topology": "square",
+          "size": "medium",
+          "anchor": {
+            "x": 23,
+            "y": 30
+          },
+          "fields": [
+            {
+              "x": 23,
+              "y": 30
+            }
+          ]
+        },
+        "logical": {
+          "topology": "square",
+          "size": "medium",
+          "anchor": {
+            "x": 23,
+            "y": 31
+          },
+          "fields": [
+            {
+              "x": 23,
+              "y": 31
+            }
+          ]
+        },
+        "event": {
+          "id": "qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1",
+          "type": "movement.transition-proposed",
+          "phase": "interrupt",
+          "data": {
+            "transitionIndex": 1,
+            "previous": {
+              "topology": "square",
+              "size": "medium",
+              "anchor": {
+                "x": 23,
+                "y": 31
+              },
+              "fields": [
+                {
+                  "x": 23,
+                  "y": 31
+                }
+              ]
+            },
+            "proposed": {
+              "topology": "square",
+              "size": "medium",
+              "anchor": {
+                "x": 23,
+                "y": 32
+              },
+              "fields": [
+                {
+                  "x": 23,
+                  "y": 32
+                }
+              ]
+            },
+            "cumulativeCost": 5,
+            "relations": {
+              "qaReactor": {
+                "before": 1,
+                "after": 2,
+                "reachFields": 1,
+                "withinBefore": true,
+                "withinAfter": false,
+                "leavesReach": true,
+                "entersReach": false,
+                "context": {
+                  "hostile": true
+                }
+              }
+            }
+          }
+        },
+        "window": {
+          "id": "reaction-window:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:before-transition:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1",
+          "timing": "before-transition",
+          "offeredCandidateIds": [
+            "reaction-candidate:qa-leave:ORbJP7KZpp8VOvYA:Scene.q2HthP7tg8690hK6.Token.PEkf3i6WH38nIk8b.Actor.Xhc4umhFEpmvwttd:action:qa-movement-reaction:ORbJP7KZpp8VOvYA:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1"
+          ]
+        },
+        "pendingChoice": false,
+        "child": {
+          "id": "resolution:1049",
+          "status": "ready-to-commit",
+          "source": {
+            "actorId": "Xhc4umhFEpmvwttd",
+            "actorRef": "Scene.q2HthP7tg8690hK6.Token.PEkf3i6WH38nIk8b.Actor.Xhc4umhFEpmvwttd",
+            "tokenId": "PEkf3i6WH38nIk8b",
+            "tokenRef": "Scene.q2HthP7tg8690hK6.Token.PEkf3i6WH38nIk8b"
+          },
+          "rollResults": [
+            {
+              "requestId": "request:resolution:1049:attack-roll",
+              "type": "attack-roll",
+              "semanticType": "attack",
+              "rollRequest": {
+                "schemaVersion": 1,
+                "id": "request:resolution:1049:attack-roll",
+                "resolutionId": "resolution:1049",
+                "type": "attack",
+                "formula": null,
+                "data": {},
+                "definition": {
+                  "formula": null,
+                  "expression": null,
+                  "dice": [
+                    "[depth limit]"
+                  ],
+                  "terms": [],
+                  "modifierTotal": 4,
+                  "components": [],
+                  "metadata": {}
+                },
+                "modifiers": [
+                  {
+                    "id": "attack-modifier",
+                    "value": 4,
+                    "label": null,
+                    "source": null,
+                    "metadata": "[depth limit]"
+                  }
+                ],
+                "rollMode": "normal",
+                "dc": null,
+                "visibility": "system",
+                "chooser": "source-controller",
+                "authority": {
+                  "kind": "source-controller"
+                },
+                "source": {
+                  "actorId": "Xhc4umhFEpmvwttd",
+                  "actorRef": "Scene.q2HthP7tg8690hK6.Token.PEkf3i6WH38nIk8b.Actor.Xhc4umhFEpmvwttd",
+                  "tokenId": "PEkf3i6WH38nIk8b",
+                  "tokenRef": "Scene.q2HthP7tg8690hK6.Token.PEkf3i6WH38nIk8b"
+                },
+                "target": {
+                  "id": "B6voYAbLFa0Vsubl",
+                  "ref": "token:q2HthP7tg8690hK6.B6voYAbLFa0Vsubl",
+                  "tokenId": "B6voYAbLFa0Vsubl",
+                  "sceneId": "q2HthP7tg8690hK6",
+                  "sceneRef": "scene:q2HthP7tg8690hK6",
+                  "actorId": "5fu9rMXyk8pUWEPC",
+                  "actorRef": "actor:5fu9rMXyk8pUWEPC",
+                  "uuid": "Scene.q2HthP7tg8690hK6.Token.B6voYAbLFa0Vsubl",
+                  "name": "QA melee source",
+                  "hidden": false
+                },
+                "provenance": {
+                  "type": "unknown",
+                  "providerId": null,
+                  "method": null,
+                  "userRef": null,
+                  "authority": null,
+                  "source": null,
+                  "metadata": {}
+                },
+                "expected": {
+                  "primaryDieFaces": 20,
+                  "requireNatural": true,
+                  "manualInputMode": "natural",
+                  "validateTotalFromNatural": true,
+                  "modifierTotal": 4,
+                  "staleAfterStageId": null,
+                  "metadata": {}
+                },
+                "metadata": {
+                  "actionDefinitionId": "action:qa-movement-reaction:ORbJP7KZpp8VOvYA",
+                  "rollKind": "attack",
+                  "defenseKey": "ac",
+                  "statistic": {
+                    "key": "weapon",
+                    "domain": "attack.weapon",
+                    "modifier": 4,
+                    "totalModifier": 4,
+                    "source": "[depth limit]"
+                  },
+                  "attackType": null,
+                  "d20": true
+                }
+              },
+              "rollResult": {
+                "schemaVersion": 1,
+                "requestId": "request:resolution:1049:attack-roll",
+                "resolutionId": "resolution:1049",
+                "type": "attack",
+                "total": 14,
+                "natural": 10,
+                "dice": [
+                  {
+                    "id": "foundry-die:0",
+                    "number": 1,
+                    "faces": 20,
+                    "modifiers": "[depth limit]",
+                    "purpose": null,
+                    "results": "[depth limit]",
+                    "source": null,
+                    "metadata": "[depth limit]"
+                  }
+                ],
+                "formula": "1d20 + 4",
+                "terms": [
+                  {
+                    "class": "Die",
+                    "options": "[depth limit]",
+                    "evaluated": true,
+                    "number": 1,
+                    "faces": 20,
+                    "modifiers": "[depth limit]",
+                    "results": "[depth limit]"
+                  },
+                  {
+                    "class": "OperatorTerm",
+                    "options": "[depth limit]",
+                    "evaluated": true,
+                    "operator": "+"
+                  },
+                  {
+                    "class": "NumericTerm",
+                    "options": "[depth limit]",
+                    "evaluated": true,
+                    "number": 4
+                  }
+                ],
+                "modifiers": [
+                  {
+                    "id": "attack-modifier",
+                    "value": 4,
+                    "label": null,
+                    "source": null,
+                    "metadata": "[depth limit]"
+                  }
+                ],
+                "rollMode": "normal",
+                "provider": {
+                  "id": "foundry-digital",
+                  "type": "foundry-digital",
+                  "label": "Foundry Digital Roll Provider"
+                },
+                "provenance": {
+                  "type": "foundry-digital",
+                  "providerId": "foundry-digital",
+                  "method": "digital",
+                  "userRef": null,
+                  "authority": {
+                    "kind": "source-controller"
+                  },
+                  "source": "foundry-roll",
+                  "metadata": {}
+                },
+                "validation": {
+                  "ok": true,
+                  "code": "OK",
+                  "reason": null
+                },
+                "raw": {
+                  "foundryRoll": {
+                    "class": "Roll",
+                    "options": "[depth limit]",
+                    "dice": "[depth limit]",
+                    "formula": "1d20 + 4",
+                    "terms": "[depth limit]",
+                    "total": 14,
+                    "evaluated": true
+                  }
+                },
+                "metadata": {}
+              },
+              "roll": {
+                "total": 14,
+                "die": 10,
+                "natural": 10,
+                "d20": 10,
+                "formula": "1d20 + 4",
+                "mode": "normal",
+                "modifiers": [
+                  {
+                    "id": "attack-modifier",
+                    "value": 4,
+                    "label": null,
+                    "source": null,
+                    "metadata": "[depth limit]"
+                  }
+                ],
+                "dice": [
+                  {
+                    "id": "foundry-die:0",
+                    "number": 1,
+                    "faces": 20,
+                    "modifiers": "[depth limit]",
+                    "purpose": null,
+                    "results": "[depth limit]",
+                    "source": null,
+                    "metadata": "[depth limit]"
+                  }
+                ],
+                "metadata": {
+                  "rollRequestId": "request:resolution:1049:attack-roll",
+                  "rollResult": {
+                    "schemaVersion": 1,
+                    "requestId": "request:resolution:1049:attack-roll",
+                    "resolutionId": "resolution:1049",
+                    "type": "attack",
+                    "total": 14,
+                    "natural": 10,
+                    "dice": "[depth limit]",
+                    "formula": "1d20 + 4",
+                    "terms": "[depth limit]",
+                    "modifiers": "[depth limit]",
+                    "rollMode": "normal",
+                    "provider": "[depth limit]",
+                    "provenance": "[depth limit]",
+                    "validation": "[depth limit]",
+                    "raw": "[depth limit]",
+                    "metadata": "[depth limit]"
+                  }
+                }
+              }
+            }
+          ],
+          "targetFootprints": [
+            {
+              "target": {
+                "id": "B6voYAbLFa0Vsubl",
+                "ref": "token:q2HthP7tg8690hK6.B6voYAbLFa0Vsubl",
+                "tokenId": "B6voYAbLFa0Vsubl",
+                "sceneId": "q2HthP7tg8690hK6",
+                "sceneRef": "scene:q2HthP7tg8690hK6",
+                "actorId": "5fu9rMXyk8pUWEPC",
+                "actorRef": "actor:5fu9rMXyk8pUWEPC",
+                "uuid": "Scene.q2HthP7tg8690hK6.Token.B6voYAbLFa0Vsubl",
+                "name": "QA melee source",
+                "hidden": false
+              },
+              "footprint": {
+                "topology": "square",
+                "size": "medium",
+                "anchor": {
+                  "x": 23,
+                  "y": 31
+                },
+                "fields": [
+                  {
+                    "x": 23,
+                    "y": 31
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "captureErrors": [],
+    "route": [
+      {
+        "topology": "square",
+        "size": "medium",
+        "anchor": {
+          "x": 23,
+          "y": 30
+        },
+        "fields": [
+          {
+            "x": 23,
+            "y": 30
+          }
+        ]
+      },
+      {
+        "topology": "square",
+        "size": "medium",
+        "anchor": {
+          "x": 23,
+          "y": 31
+        },
+        "fields": [
+          {
+            "x": 23,
+            "y": 31
+          }
+        ]
+      },
+      {
+        "topology": "square",
+        "size": "medium",
+        "anchor": {
+          "x": 23,
+          "y": 32
+        },
+        "fields": [
+          {
+            "x": 23,
+            "y": 32
+          }
+        ]
+      },
+      {
+        "topology": "square",
+        "size": "medium",
+        "anchor": {
+          "x": 23,
+          "y": 33
+        },
+        "fields": [
+          {
+            "x": 23,
+            "y": 33
+          }
+        ]
+      }
+    ],
+    "final": {
+      "topology": "square",
+      "size": "medium",
+      "anchor": {
+        "x": 23,
+        "y": 31
+      },
+      "fields": [
+        {
+          "x": 23,
+          "y": 31
+        }
+      ]
+    }
+  },
+  "state": {
+    "status": "completed",
+    "errors": [],
+    "movement": {
+      "completedTransitionCount": 1,
+      "intendedTransitionCount": 3,
+      "cumulativeCost": 5,
+      "stopped": true,
+      "reason": "QA effect prevents further movement.",
+      "footprint": {
+        "type": "TokenGridFootprint",
+        "topology": "square",
+        "size": "medium",
+        "effectiveSize": "medium",
+        "anchor": {
+          "x": 23,
+          "y": 31
+        },
+        "definition": {
+          "size": "medium",
+          "topology": "square",
+          "offsets": [
+            {
+              "x": 0,
+              "y": 0
+            }
+          ],
+          "fieldCount": 1,
+          "creaturesPerField": 1,
+          "minimumFields": 1,
+          "metadata": {
+            "ruleset": "dnd5e",
+            "squareWidth": 1
+          }
+        },
+        "fields": [
+          {
+            "x": 23,
+            "y": 31
+          }
+        ],
+        "fieldKeys": [
+          "square:23,31"
+        ],
+        "metadata": {},
+        "boundaryFields": [
+          {
+            "x": 23,
+            "y": 31
+          }
+        ],
+        "boundaryEdges": [
+          {
+            "id": "square:23,31>east",
+            "topology": "square",
+            "field": {
+              "x": 23,
+              "y": 31
+            },
+            "outsideField": {
+              "x": 24,
+              "y": 31
+            },
+            "direction": "east"
+          },
+          {
+            "id": "square:23,31>north",
+            "topology": "square",
+            "field": {
+              "x": 23,
+              "y": 31
+            },
+            "outsideField": {
+              "x": 23,
+              "y": 30
+            },
+            "direction": "north"
+          },
+          {
+            "id": "square:23,31>south",
+            "topology": "square",
+            "field": {
+              "x": 23,
+              "y": 31
+            },
+            "outsideField": {
+              "x": 23,
+              "y": 32
+            },
+            "direction": "south"
+          },
+          {
+            "id": "square:23,31>west",
+            "topology": "square",
+            "field": {
+              "x": 23,
+              "y": 31
+            },
+            "outsideField": {
+              "x": 22,
+              "y": 31
+            },
+            "direction": "west"
+          }
+        ],
+        "boundaryVertices": [
+          {
+            "id": "square-vertex:23,31",
+            "x": 23,
+            "y": 31,
+            "incidentFields": [
+              {
+                "x": 22,
+                "y": 30
+              },
+              {
+                "x": 23,
+                "y": 30
+              },
+              {
+                "x": 22,
+                "y": 31
+              },
+              {
+                "x": 23,
+                "y": 31
+              }
+            ],
+            "topology": "square",
+            "occupiedIncidentFields": [
+              {
+                "x": 23,
+                "y": 31
+              }
+            ],
+            "external": true
+          },
+          {
+            "id": "square-vertex:23,32",
+            "x": 23,
+            "y": 32,
+            "incidentFields": [
+              {
+                "x": 22,
+                "y": 31
+              },
+              {
+                "x": 23,
+                "y": 31
+              },
+              {
+                "x": 22,
+                "y": 32
+              },
+              {
+                "x": 23,
+                "y": 32
+              }
+            ],
+            "topology": "square",
+            "occupiedIncidentFields": [
+              {
+                "x": 23,
+                "y": 31
+              }
+            ],
+            "external": true
+          },
+          {
+            "id": "square-vertex:24,31",
+            "x": 24,
+            "y": 31,
+            "incidentFields": [
+              {
+                "x": 23,
+                "y": 30
+              },
+              {
+                "x": 24,
+                "y": 30
+              },
+              {
+                "x": 23,
+                "y": 31
+              },
+              {
+                "x": 24,
+                "y": 31
+              }
+            ],
+            "topology": "square",
+            "occupiedIncidentFields": [
+              {
+                "x": 23,
+                "y": 31
+              }
+            ],
+            "external": true
+          },
+          {
+            "id": "square-vertex:24,32",
+            "x": 24,
+            "y": 32,
+            "incidentFields": [
+              {
+                "x": 23,
+                "y": 31
+              },
+              {
+                "x": 24,
+                "y": 31
+              },
+              {
+                "x": 23,
+                "y": 32
+              },
+              {
+                "x": 24,
+                "y": 32
+              }
+            ],
+            "topology": "square",
+            "occupiedIncidentFields": [
+              {
+                "x": 23,
+                "y": 31
+              }
+            ],
+            "external": true
+          }
+        ],
+        "internalVertices": []
+      },
+      "committed": true
+    },
+    "reactions": [
+      {
+        "windowId": "reaction-window:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:before-transition:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1",
+        "status": "closed",
+        "chosenCandidateId": "reaction-candidate:qa-leave:ORbJP7KZpp8VOvYA:Scene.q2HthP7tg8690hK6.Token.PEkf3i6WH38nIk8b.Actor.Xhc4umhFEpmvwttd:action:qa-movement-reaction:ORbJP7KZpp8VOvYA:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1",
+        "childResolutionId": "resolution:1049",
+        "childStatus": "completed",
+        "directive": {
+          "type": "continue",
+          "code": null,
+          "reason": null,
+          "data": {}
+        },
+        "childFailed": false
+      }
+    ],
+    "windows": [
+      {
+        "id": "reaction-window:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:before-transition:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:0",
+        "status": "closed",
+        "offeredCandidateIds": [],
+        "declinedCandidateIds": [],
+        "childResolutionIds": []
+      },
+      {
+        "id": "reaction-window:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:before-transition:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1",
+        "status": "closed",
+        "offeredCandidateIds": [
+          "reaction-candidate:qa-leave:ORbJP7KZpp8VOvYA:Scene.q2HthP7tg8690hK6.Token.PEkf3i6WH38nIk8b.Actor.Xhc4umhFEpmvwttd:action:qa-movement-reaction:ORbJP7KZpp8VOvYA:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1"
+        ],
+        "declinedCandidateIds": [],
+        "childResolutionIds": [
+          "resolution:1049"
+        ]
+      }
+    ],
+    "transaction": {
+      "ok": true,
+      "code": "OK",
+      "committed": [
+        {
+          "id": "qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:position",
+          "type": "documentUpdate",
+          "actorRef": null,
+          "documentRef": "Scene.q2HthP7tg8690hK6.Token.B6voYAbLFa0Vsubl",
+          "updates": {
+            "x": 3100,
+            "y": 2300
+          },
+          "rollbackUpdates": {
+            "x": 3000,
+            "y": 2300
+          },
+          "metadata": {
+            "role": "movementPosition"
+          },
+          "status": "committed"
+        },
+        {
+          "id": "qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:payment",
+          "type": "actorUpdate",
+          "actorRef": "Scene.q2HthP7tg8690hK6.Token.B6voYAbLFa0Vsubl.Actor.5fu9rMXyk8pUWEPC",
+          "updates": {
+            "system.resources.movement.value": 25
+          },
+          "rollbackUpdates": {
+            "system.resources.movement.value": 30
+          },
+          "metadata": {},
+          "status": "committed"
+        }
+      ],
+      "rollbacks": [],
+      "failures": [],
+      "rolledBack": false,
+      "metadata": {
+        "resolutionId": "qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy"
+      }
+    }
+  },
+  "routing": [
+    {
+      "request": {
+        "id": "request:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:reaction:reaction-window:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:before-transition:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1:offer:1",
+        "resolutionId": "qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy",
+        "stageId": "movement.transition:1.reactions",
+        "type": "reaction-choice",
+        "expectedResponseType": "reaction-choice",
+        "validation": {
+          "required": false,
+          "reactionWindowId": "reaction-window:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:before-transition:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1",
+          "offerSequence": 1,
+          "candidateIds": [
+            "reaction-candidate:qa-leave:ORbJP7KZpp8VOvYA:Scene.q2HthP7tg8690hK6.Token.PEkf3i6WH38nIk8b.Actor.Xhc4umhFEpmvwttd:action:qa-movement-reaction:ORbJP7KZpp8VOvYA:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1"
+          ]
+        },
+        "chooser": {
+          "kind": "specific",
+          "userId": "hUdU40DWftTFyJzW"
+        },
+        "authority": {
+          "kind": "specific",
+          "userId": "hUdU40DWftTFyJzW"
+        },
+        "payload": {
+          "reactionWindowId": "reaction-window:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:before-transition:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1",
+          "offerSequence": 1,
+          "timing": "before-transition",
+          "event": {
+            "id": "qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1",
+            "type": "movement.transition-proposed",
+            "phase": "interrupt",
+            "source": {
+              "ref": "token:B6voYAbLFa0Vsubl",
+              "id": "B6voYAbLFa0Vsubl",
+              "actorId": "5fu9rMXyk8pUWEPC",
+              "tokenId": "B6voYAbLFa0Vsubl",
+              "type": null,
+              "disposition": null,
+              "tags": []
+            },
+            "targets": [],
+            "tags": [],
+            "data": {
+              "movementId": "qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy",
+              "transitionIndex": 1,
+              "previous": {
+                "type": "TokenGridFootprint",
+                "topology": "square",
+                "size": "medium",
+                "effectiveSize": "medium",
+                "anchor": {
+                  "x": 23,
+                  "y": 31
+                },
+                "definition": {
+                  "size": "medium",
+                  "topology": "square",
+                  "offsets": [
+                    "[depth limit]"
+                  ],
+                  "fieldCount": 1,
+                  "creaturesPerField": 1,
+                  "minimumFields": 1,
+                  "metadata": {
+                    "ruleset": "dnd5e",
+                    "squareWidth": 1
+                  }
+                },
+                "fields": [
+                  {
+                    "x": 23,
+                    "y": 31
+                  }
+                ],
+                "fieldKeys": [
+                  "square:23,31"
+                ],
+                "metadata": {},
+                "boundaryFields": [
+                  {
+                    "x": 23,
+                    "y": 31
+                  }
+                ],
+                "boundaryEdges": [
+                  {
+                    "id": "square:23,31>east",
+                    "topology": "square",
+                    "field": "[depth limit]",
+                    "outsideField": "[depth limit]",
+                    "direction": "east"
+                  },
+                  {
+                    "id": "square:23,31>north",
+                    "topology": "square",
+                    "field": "[depth limit]",
+                    "outsideField": "[depth limit]",
+                    "direction": "north"
+                  },
+                  {
+                    "id": "square:23,31>south",
+                    "topology": "square",
+                    "field": "[depth limit]",
+                    "outsideField": "[depth limit]",
+                    "direction": "south"
+                  },
+                  {
+                    "id": "square:23,31>west",
+                    "topology": "square",
+                    "field": "[depth limit]",
+                    "outsideField": "[depth limit]",
+                    "direction": "west"
+                  }
+                ],
+                "boundaryVertices": [
+                  {
+                    "id": "square-vertex:23,31",
+                    "x": 23,
+                    "y": 31,
+                    "incidentFields": "[depth limit]",
+                    "topology": "square",
+                    "occupiedIncidentFields": "[depth limit]",
+                    "external": true
+                  },
+                  {
+                    "id": "square-vertex:23,32",
+                    "x": 23,
+                    "y": 32,
+                    "incidentFields": "[depth limit]",
+                    "topology": "square",
+                    "occupiedIncidentFields": "[depth limit]",
+                    "external": true
+                  },
+                  {
+                    "id": "square-vertex:24,31",
+                    "x": 24,
+                    "y": 31,
+                    "incidentFields": "[depth limit]",
+                    "topology": "square",
+                    "occupiedIncidentFields": "[depth limit]",
+                    "external": true
+                  },
+                  {
+                    "id": "square-vertex:24,32",
+                    "x": 24,
+                    "y": 32,
+                    "incidentFields": "[depth limit]",
+                    "topology": "square",
+                    "occupiedIncidentFields": "[depth limit]",
+                    "external": true
+                  }
+                ],
+                "internalVertices": []
+              },
+              "proposed": {
+                "type": "TokenGridFootprint",
+                "topology": "square",
+                "size": "medium",
+                "effectiveSize": "medium",
+                "anchor": {
+                  "x": 23,
+                  "y": 32
+                },
+                "definition": {
+                  "size": "medium",
+                  "topology": "square",
+                  "offsets": [
+                    "[depth limit]"
+                  ],
+                  "fieldCount": 1,
+                  "creaturesPerField": 1,
+                  "minimumFields": 1,
+                  "metadata": {
+                    "ruleset": "dnd5e",
+                    "squareWidth": 1
+                  }
+                },
+                "fields": [
+                  {
+                    "x": 23,
+                    "y": 32
+                  }
+                ],
+                "fieldKeys": [
+                  "square:23,32"
+                ],
+                "metadata": {},
+                "boundaryFields": [
+                  {
+                    "x": 23,
+                    "y": 32
+                  }
+                ],
+                "boundaryEdges": [
+                  {
+                    "id": "square:23,32>east",
+                    "topology": "square",
+                    "field": "[depth limit]",
+                    "outsideField": "[depth limit]",
+                    "direction": "east"
+                  },
+                  {
+                    "id": "square:23,32>north",
+                    "topology": "square",
+                    "field": "[depth limit]",
+                    "outsideField": "[depth limit]",
+                    "direction": "north"
+                  },
+                  {
+                    "id": "square:23,32>south",
+                    "topology": "square",
+                    "field": "[depth limit]",
+                    "outsideField": "[depth limit]",
+                    "direction": "south"
+                  },
+                  {
+                    "id": "square:23,32>west",
+                    "topology": "square",
+                    "field": "[depth limit]",
+                    "outsideField": "[depth limit]",
+                    "direction": "west"
+                  }
+                ],
+                "boundaryVertices": [
+                  {
+                    "id": "square-vertex:23,32",
+                    "x": 23,
+                    "y": 32,
+                    "incidentFields": "[depth limit]",
+                    "topology": "square",
+                    "occupiedIncidentFields": "[depth limit]",
+                    "external": true
+                  },
+                  {
+                    "id": "square-vertex:23,33",
+                    "x": 23,
+                    "y": 33,
+                    "incidentFields": "[depth limit]",
+                    "topology": "square",
+                    "occupiedIncidentFields": "[depth limit]",
+                    "external": true
+                  },
+                  {
+                    "id": "square-vertex:24,32",
+                    "x": 24,
+                    "y": 32,
+                    "incidentFields": "[depth limit]",
+                    "topology": "square",
+                    "occupiedIncidentFields": "[depth limit]",
+                    "external": true
+                  },
+                  {
+                    "id": "square-vertex:24,33",
+                    "x": 24,
+                    "y": 33,
+                    "incidentFields": "[depth limit]",
+                    "topology": "square",
+                    "occupiedIncidentFields": "[depth limit]",
+                    "external": true
+                  }
+                ],
+                "internalVertices": []
+              },
+              "transition": {
+                "index": 1,
+                "from": {
+                  "x": 23,
+                  "y": 31
+                },
+                "to": {
+                  "x": 23,
+                  "y": 32
+                },
+                "fromFootprintIndex": 1,
+                "toFootprintIndex": 2,
+                "adjacent": true,
+                "allowed": true,
+                "movementKind": "voluntary",
+                "movementMode": "walk",
+                "cost": {
+                  "amount": 5,
+                  "unit": "ft",
+                  "measurementMode": "distance",
+                  "source": "default",
+                  "reason": null,
+                  "metadata": {}
+                }
+              },
+              "cumulativeCost": 5,
+              "movementKind": "voluntary",
+              "movementMode": "walk",
+              "relations": {
+                "qaReactor": {
+                  "before": 1,
+                  "after": 2,
+                  "reachFields": 1,
+                  "withinBefore": true,
+                  "withinAfter": false,
+                  "leavesReach": true,
+                  "entersReach": false,
+                  "context": {
+                    "hostile": true
+                  }
+                }
+              }
+            }
+          },
+          "candidates": [
+            {
+              "id": "reaction-candidate:qa-leave:ORbJP7KZpp8VOvYA:Scene.q2HthP7tg8690hK6.Token.PEkf3i6WH38nIk8b.Actor.Xhc4umhFEpmvwttd:action:qa-movement-reaction:ORbJP7KZpp8VOvYA:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1",
+              "timing": "before-transition",
+              "triggerId": "qa-leave:ORbJP7KZpp8VOvYA",
+              "eventId": "qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1",
+              "reactor": {
+                "actorId": "Scene.q2HthP7tg8690hK6.Token.PEkf3i6WH38nIk8b.Actor.Xhc4umhFEpmvwttd",
+                "tokenId": "PEkf3i6WH38nIk8b",
+                "ref": "actor:Scene.q2HthP7tg8690hK6.Token.PEkf3i6WH38nIk8b.Actor.Xhc4umhFEpmvwttd"
+              },
+              "actionId": "action:qa-movement-reaction:ORbJP7KZpp8VOvYA",
+              "actionRef": "action:qa-movement-reaction:ORbJP7KZpp8VOvYA",
+              "action": {
+                "id": "action:qa-movement-reaction:ORbJP7KZpp8VOvYA",
+                "label": "QA ordinary melee",
+                "slug": null,
+                "category": "action",
+                "source": {
+                  "type": "item",
+                  "ref": "uuid:Scene.q2HthP7tg8690hK6.Token.PEkf3i6WH38nIk8b.Actor.Xhc4umhFEpmvwttd.Item.eo5h3zPD31KvdPI1",
+                  "uuid": "Scene.q2HthP7tg8690hK6.Token.PEkf3i6WH38nIk8b.Actor.Xhc4umhFEpmvwttd.Item.eo5h3zPD31KvdPI1",
+                  "id": "eo5h3zPD31KvdPI1",
+                  "itemType": "action",
+                  "name": "QA ordinary melee"
+                }
+              },
+              "chooser": {
+                "kind": "specific",
+                "userId": "hUdU40DWftTFyJzW"
+              },
+              "payment": {
+                "selectedPaymentOption": {
+                  "id": "payment-1",
+                  "code": "AVAILABLE",
+                  "mode": "direct",
+                  "priority": 10,
+                  "resources": [
+                    "[depth limit]"
+                  ],
+                  "selection": "deterministic-priority",
+                  "trace": [
+                    "[depth limit]"
+                  ]
+                },
+                "options": [
+                  {
+                    "id": "payment-1",
+                    "code": "AVAILABLE",
+                    "mode": "direct",
+                    "priority": 10,
+                    "resources": "[depth limit]",
+                    "selection": "deterministic-priority",
+                    "trace": "[depth limit]"
+                  }
+                ]
+              },
+              "provenance": {
+                "triggerId": "qa-leave:ORbJP7KZpp8VOvYA",
+                "eventId": "qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1",
+                "source": {},
+                "owner": {
+                  "ref": "token:PEkf3i6WH38nIk8b",
+                  "id": "PEkf3i6WH38nIk8b",
+                  "actorId": "Scene.q2HthP7tg8690hK6.Token.PEkf3i6WH38nIk8b.Actor.Xhc4umhFEpmvwttd",
+                  "tokenId": "PEkf3i6WH38nIk8b",
+                  "type": null,
+                  "disposition": null,
+                  "tags": []
+                }
+              },
+              "priority": 100
+            }
+          ],
+          "options": [
+            {
+              "id": "reaction-candidate:qa-leave:ORbJP7KZpp8VOvYA:Scene.q2HthP7tg8690hK6.Token.PEkf3i6WH38nIk8b.Actor.Xhc4umhFEpmvwttd:action:qa-movement-reaction:ORbJP7KZpp8VOvYA:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1",
+              "label": "QA ordinary melee",
+              "value": {
+                "decision": "use",
+                "candidateId": "reaction-candidate:qa-leave:ORbJP7KZpp8VOvYA:Scene.q2HthP7tg8690hK6.Token.PEkf3i6WH38nIk8b.Actor.Xhc4umhFEpmvwttd:action:qa-movement-reaction:ORbJP7KZpp8VOvYA:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1"
+              },
+              "resources": [
+                {
+                  "resourceId": "economy.reaction",
+                  "amount": 1,
+                  "capability": "reaction",
+                  "unit": "uses",
+                  "mode": "direct",
+                  "source": {
+                    "type": "actor",
+                    "slug": "reaction"
+                  }
+                }
+              ],
+              "paymentPlan": {
+                "id": "payment-1",
+                "code": "AVAILABLE",
+                "mode": "direct",
+                "priority": 10,
+                "resources": [
+                  {
+                    "resourceId": "economy.reaction",
+                    "amount": 1,
+                    "capability": "reaction",
+                    "unit": "uses",
+                    "mode": "direct",
+                    "source": "[depth limit]"
+                  }
+                ],
+                "selection": "deterministic-priority",
+                "trace": [
+                  {
+                    "resourceId": "economy.reaction",
+                    "capability": "reaction",
+                    "amount": 1,
+                    "mode": "direct",
+                    "policy": null
+                  }
+                ]
+              },
+              "source": {},
+              "metadata": {
+                "triggerId": "qa-leave:ORbJP7KZpp8VOvYA",
+                "reactor": {
+                  "actorId": "Scene.q2HthP7tg8690hK6.Token.PEkf3i6WH38nIk8b.Actor.Xhc4umhFEpmvwttd",
+                  "tokenId": "PEkf3i6WH38nIk8b",
+                  "ref": "actor:Scene.q2HthP7tg8690hK6.Token.PEkf3i6WH38nIk8b.Actor.Xhc4umhFEpmvwttd"
+                }
+              }
+            },
+            {
+              "id": "decline",
+              "label": "Decline",
+              "value": {
+                "decision": "decline"
+              },
+              "metadata": {
+                "reactionWindowId": "reaction-window:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:before-transition:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1"
+              }
+            }
+          ]
+        },
+        "metadata": {
+          "required": false,
+          "title": "Reaction Available",
+          "reactionWindowId": "reaction-window:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:before-transition:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1",
+          "offerSequence": 1
+        }
+      },
+      "resolutionId": "qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy",
+      "expectedUserId": "hUdU40DWftTFyJzW",
+      "chooser": {
+        "ok": true,
+        "code": "OK",
+        "reason": null,
+        "userId": "hUdU40DWftTFyJzW",
+        "kind": "specific",
+        "policy": {
+          "kind": "specific",
+          "userId": "hUdU40DWftTFyJzW"
+        }
+      }
+    },
+    {
+      "request": {
+        "id": "request:resolution:1049:attack-roll",
+        "resolutionId": "resolution:1049",
+        "stageId": "action.attack-roll",
+        "type": "roll",
+        "expectedResponseType": "roll-result",
+        "validation": {
+          "rollRequestId": "request:resolution:1049:attack-roll",
+          "semanticType": "attack",
+          "requireNatural": true,
+          "formula": "1d20 + 4"
+        },
+        "chooser": "source-controller",
+        "authority": {
+          "kind": "source-controller"
+        },
+        "payload": {
+          "actionDefinitionId": "action:qa-movement-reaction:ORbJP7KZpp8VOvYA",
+          "rollKind": "attack",
+          "rollRequest": {
+            "schemaVersion": 1,
+            "id": "request:resolution:1049:attack-roll",
+            "resolutionId": "resolution:1049",
+            "type": "attack",
+            "formula": null,
+            "data": {},
+            "definition": {
+              "formula": null,
+              "expression": null,
+              "dice": [
+                {
+                  "id": "d20",
+                  "number": 1,
+                  "faces": 20,
+                  "modifiers": [],
+                  "purpose": "d20",
+                  "source": null,
+                  "metadata": {}
+                }
+              ],
+              "terms": [],
+              "modifierTotal": 4,
+              "components": [],
+              "metadata": {}
+            },
+            "modifiers": [
+              {
+                "id": "attack-modifier",
+                "value": 4,
+                "label": null,
+                "source": null,
+                "metadata": {}
+              }
+            ],
+            "rollMode": "normal",
+            "dc": null,
+            "visibility": "system",
+            "chooser": "source-controller",
+            "authority": {
+              "kind": "source-controller"
+            },
+            "source": {
+              "actorId": "Xhc4umhFEpmvwttd",
+              "actorRef": "Scene.q2HthP7tg8690hK6.Token.PEkf3i6WH38nIk8b.Actor.Xhc4umhFEpmvwttd",
+              "tokenId": "PEkf3i6WH38nIk8b",
+              "tokenRef": "Scene.q2HthP7tg8690hK6.Token.PEkf3i6WH38nIk8b"
+            },
+            "target": {
+              "id": "B6voYAbLFa0Vsubl",
+              "ref": "token:q2HthP7tg8690hK6.B6voYAbLFa0Vsubl",
+              "tokenId": "B6voYAbLFa0Vsubl",
+              "sceneId": "q2HthP7tg8690hK6",
+              "sceneRef": "scene:q2HthP7tg8690hK6",
+              "actorId": "5fu9rMXyk8pUWEPC",
+              "actorRef": "actor:5fu9rMXyk8pUWEPC",
+              "uuid": "Scene.q2HthP7tg8690hK6.Token.B6voYAbLFa0Vsubl",
+              "name": "QA melee source",
+              "hidden": false
+            },
+            "provenance": {
+              "type": "unknown",
+              "providerId": null,
+              "method": null,
+              "userRef": null,
+              "authority": null,
+              "source": null,
+              "metadata": {}
+            },
+            "expected": {
+              "primaryDieFaces": 20,
+              "requireNatural": true,
+              "manualInputMode": "natural",
+              "validateTotalFromNatural": true,
+              "modifierTotal": 4,
+              "staleAfterStageId": null,
+              "metadata": {}
+            },
+            "metadata": {
+              "actionDefinitionId": "action:qa-movement-reaction:ORbJP7KZpp8VOvYA",
+              "rollKind": "attack",
+              "defenseKey": "ac",
+              "statistic": {
+                "key": "weapon",
+                "domain": "attack.weapon",
+                "modifier": 4,
+                "totalModifier": 4,
+                "source": {
+                  "type": "actor-combat-statistic",
+                  "actorId": "Xhc4umhFEpmvwttd",
+                  "actorRef": "Scene.q2HthP7tg8690hK6.Token.PEkf3i6WH38nIk8b.Actor.Xhc4umhFEpmvwttd",
+                  "statisticKey": "weapon",
+                  "statistic": {
+                    "domain": "attack.weapon",
+                    "total": 4,
+                    "candidates": "[depth limit]",
+                    "applied": "[depth limit]"
+                  }
+                }
+              },
+              "attackType": null,
+              "d20": true
+            }
+          },
+          "attack": {
+            "defenseKey": "ac",
+            "policy": {
+              "naturalCriticalHits": false,
+              "naturalCriticalMisses": false
+            },
+            "context": {
+              "attackDefinition": {
+                "type": "melee",
+                "statistic": "weapon",
+                "defenseKey": "ac",
+                "policy": {
+                  "naturalCriticalHits": false,
+                  "naturalCriticalMisses": false
+                }
+              }
+            },
+            "statistic": {
+              "key": "weapon",
+              "domain": "attack.weapon",
+              "modifier": 4,
+              "totalModifier": 4,
+              "source": {
+                "type": "actor-combat-statistic",
+                "actorId": "Xhc4umhFEpmvwttd",
+                "actorRef": "Scene.q2HthP7tg8690hK6.Token.PEkf3i6WH38nIk8b.Actor.Xhc4umhFEpmvwttd",
+                "statisticKey": "weapon",
+                "statistic": {
+                  "domain": "attack.weapon",
+                  "total": 4,
+                  "candidates": [
+                    "[depth limit]"
+                  ],
+                  "applied": [
+                    "[depth limit]"
+                  ]
+                }
+              }
+            },
+            "modifierTotal": 4,
+            "eligibilityPolicy": {},
+            "refinementPolicy": {},
+            "metadata": {}
+          },
+          "targets": [
+            {
+              "id": "B6voYAbLFa0Vsubl",
+              "ref": "token:q2HthP7tg8690hK6.B6voYAbLFa0Vsubl",
+              "tokenId": "B6voYAbLFa0Vsubl",
+              "sceneId": "q2HthP7tg8690hK6",
+              "sceneRef": "scene:q2HthP7tg8690hK6",
+              "actorId": "5fu9rMXyk8pUWEPC",
+              "actorRef": "actor:5fu9rMXyk8pUWEPC",
+              "uuid": "Scene.q2HthP7tg8690hK6.Token.B6voYAbLFa0Vsubl",
+              "name": "QA melee source",
+              "hidden": false
+            }
+          ],
+          "targeting": {
+            "required": true,
+            "eligibilityPolicy": {},
+            "refinementPolicy": {
+              "minSelections": 1,
+              "maxSelections": 1
+            },
+            "targets": [],
+            "metadata": {
+              "actionDefinitionId": "action:qa-movement-reaction:ORbJP7KZpp8VOvYA",
+              "targetingType": "single",
+              "range": {
+                "type": "reach",
+                "distance": {
+                  "value": 5,
+                  "unit": "ft"
+                },
+                "normal": null,
+                "long": null,
+                "unit": null,
+                "metadata": {}
+              },
+              "area": null
+            },
+            "candidates": [
+              {
+                "id": "token:q2HthP7tg8690hK6.B6voYAbLFa0Vsubl",
+                "target": {
+                  "id": "B6voYAbLFa0Vsubl",
+                  "ref": "token:q2HthP7tg8690hK6.B6voYAbLFa0Vsubl",
+                  "tokenId": "B6voYAbLFa0Vsubl",
+                  "sceneId": "q2HthP7tg8690hK6",
+                  "sceneRef": "scene:q2HthP7tg8690hK6",
+                  "actorId": "5fu9rMXyk8pUWEPC",
+                  "actorRef": "actor:5fu9rMXyk8pUWEPC",
+                  "uuid": "Scene.q2HthP7tg8690hK6.Token.B6voYAbLFa0Vsubl",
+                  "name": "QA melee source",
+                  "hidden": false
+                },
+                "actor": {
+                  "id": "5fu9rMXyk8pUWEPC",
+                  "ref": "actor:5fu9rMXyk8pUWEPC",
+                  "uuid": "Scene.q2HthP7tg8690hK6.Token.B6voYAbLFa0Vsubl.Actor.5fu9rMXyk8pUWEPC",
+                  "name": "QA melee source",
+                  "type": "character"
+                },
+                "occupiedFields": [
+                  {
+                    "x": 23,
+                    "y": 31
+                  }
+                ],
+                "footprint": {
+                  "type": "TokenGridFootprint",
+                  "topology": "square",
+                  "size": "medium",
+                  "effectiveSize": "medium",
+                  "anchor": {
+                    "x": 23,
+                    "y": 31
+                  },
+                  "definition": {
+                    "size": "medium",
+                    "topology": "square",
+                    "offsets": "[depth limit]",
+                    "fieldCount": 1,
+                    "creaturesPerField": 1,
+                    "minimumFields": 1,
+                    "metadata": "[depth limit]"
+                  },
+                  "fields": [
+                    "[depth limit]"
+                  ],
+                  "fieldKeys": [
+                    "square:23,31"
+                  ],
+                  "metadata": {
+                    "scene": "[depth limit]",
+                    "token": "[depth limit]",
+                    "adapter": "foundry-v14-tactical-grid"
+                  },
+                  "boundaryFields": [
+                    "[depth limit]"
+                  ],
+                  "boundaryEdges": [
+                    "[depth limit]",
+                    "[depth limit]",
+                    "[depth limit]",
+                    "[depth limit]"
+                  ],
+                  "boundaryVertices": [
+                    "[depth limit]",
+                    "[depth limit]",
+                    "[depth limit]",
+                    "[depth limit]"
+                  ],
+                  "internalVertices": []
+                },
+                "kind": "creature",
+                "disposition": "unknown",
+                "willing": false,
+                "size": "medium",
+                "tags": [],
+                "conditions": [],
+                "metadata": {
+                  "foundry": {
+                    "tokenId": "B6voYAbLFa0Vsubl",
+                    "tokenRef": "token:q2HthP7tg8690hK6.B6voYAbLFa0Vsubl",
+                    "actorRef": "actor:5fu9rMXyk8pUWEPC",
+                    "sceneRef": "scene:q2HthP7tg8690hK6",
+                    "disposition": -1,
+                    "hidden": false,
+                    "level": "[depth limit]"
+                  },
+                  "diagnostics": []
+                },
+                "defense": {
+                  "value": 1,
+                  "slug": "ac",
+                  "source": {
+                    "type": "actor-combat-statistic",
+                    "actorId": "5fu9rMXyk8pUWEPC",
+                    "actorRef": "Scene.q2HthP7tg8690hK6.Token.B6voYAbLFa0Vsubl.Actor.5fu9rMXyk8pUWEPC",
+                    "statisticKey": "ac",
+                    "base": 1,
+                    "modifier": 0,
+                    "statistic": "[depth limit]"
+                  }
+                },
+                "defenses": {
+                  "ac": {
+                    "value": 1,
+                    "slug": "ac",
+                    "source": "[depth limit]"
+                  }
+                }
+              }
+            ],
+            "policy": {},
+            "context": {}
+          }
+        },
+        "metadata": {}
+      },
+      "resolutionId": "resolution:1049",
+      "expectedUserId": "hUdU40DWftTFyJzW",
+      "chooser": {
+        "ok": true,
+        "code": "OK",
+        "reason": null,
+        "userId": "hUdU40DWftTFyJzW",
+        "kind": "source-controller",
+        "policy": {
+          "kind": "source-controller"
+        }
+      }
+    }
+  ],
+  "history": [
+    {
+      "resolutionId": "qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy",
+      "status": "awaiting-choice",
+      "stage": "movement.transition:1.reactions",
+      "cursor": {
+        "completedTransitionCount": 1,
+        "cumulativeCost": 5,
+        "stopped": false,
+        "reason": null
+      },
+      "renderedPosition": {
+        "x": 3000,
+        "y": 2300,
+        "elevation": 0,
+        "width": 1,
+        "height": 1,
+        "depth": 1,
+        "shape": 4
+      },
+      "renderedFootprint": {
+        "topology": "square",
+        "size": "medium",
+        "anchor": {
+          "x": 23,
+          "y": 30
+        },
+        "fields": [
+          {
+            "x": 23,
+            "y": 30
+          }
+        ]
+      },
+      "origin": {
+        "topology": "square",
+        "size": "medium",
+        "anchor": {
+          "x": 23,
+          "y": 30
+        },
+        "fields": [
+          {
+            "x": 23,
+            "y": 30
+          }
+        ]
+      },
+      "logical": {
+        "topology": "square",
+        "size": "medium",
+        "anchor": {
+          "x": 23,
+          "y": 31
+        },
+        "fields": [
+          {
+            "x": 23,
+            "y": 31
+          }
+        ]
+      },
+      "event": {
+        "id": "qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1",
+        "type": "movement.transition-proposed",
+        "phase": "interrupt",
+        "data": {
+          "transitionIndex": 1,
+          "previous": {
+            "topology": "square",
+            "size": "medium",
+            "anchor": {
+              "x": 23,
+              "y": 31
+            },
+            "fields": [
+              {
+                "x": 23,
+                "y": 31
+              }
+            ]
+          },
+          "proposed": {
+            "topology": "square",
+            "size": "medium",
+            "anchor": {
+              "x": 23,
+              "y": 32
+            },
+            "fields": [
+              {
+                "x": 23,
+                "y": 32
+              }
+            ]
+          },
+          "cumulativeCost": 5,
+          "relations": {
+            "qaReactor": {
+              "before": 1,
+              "after": 2,
+              "reachFields": 1,
+              "withinBefore": true,
+              "withinAfter": false,
+              "leavesReach": true,
+              "entersReach": false,
+              "context": {
+                "hostile": true
+              }
+            }
+          }
+        }
+      },
+      "window": {
+        "id": "reaction-window:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:before-transition:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1",
+        "timing": "before-transition",
+        "offeredCandidateIds": [
+          "reaction-candidate:qa-leave:ORbJP7KZpp8VOvYA:Scene.q2HthP7tg8690hK6.Token.PEkf3i6WH38nIk8b.Actor.Xhc4umhFEpmvwttd:action:qa-movement-reaction:ORbJP7KZpp8VOvYA:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1"
+        ]
+      },
+      "pendingChoice": true,
+      "child": null
+    },
+    {
+      "resolutionId": "qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy",
+      "status": "paused",
+      "stage": "movement.transition:1.reactions",
+      "cursor": {
+        "completedTransitionCount": 1,
+        "cumulativeCost": 5,
+        "stopped": false,
+        "reason": null
+      },
+      "renderedPosition": {
+        "x": 3000,
+        "y": 2300,
+        "elevation": 0,
+        "width": 1,
+        "height": 1,
+        "depth": 1,
+        "shape": 4
+      },
+      "renderedFootprint": {
+        "topology": "square",
+        "size": "medium",
+        "anchor": {
+          "x": 23,
+          "y": 30
+        },
+        "fields": [
+          {
+            "x": 23,
+            "y": 30
+          }
+        ]
+      },
+      "origin": {
+        "topology": "square",
+        "size": "medium",
+        "anchor": {
+          "x": 23,
+          "y": 30
+        },
+        "fields": [
+          {
+            "x": 23,
+            "y": 30
+          }
+        ]
+      },
+      "logical": {
+        "topology": "square",
+        "size": "medium",
+        "anchor": {
+          "x": 23,
+          "y": 31
+        },
+        "fields": [
+          {
+            "x": 23,
+            "y": 31
+          }
+        ]
+      },
+      "event": {
+        "id": "qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1",
+        "type": "movement.transition-proposed",
+        "phase": "interrupt",
+        "data": {
+          "transitionIndex": 1,
+          "previous": {
+            "topology": "square",
+            "size": "medium",
+            "anchor": {
+              "x": 23,
+              "y": 31
+            },
+            "fields": [
+              {
+                "x": 23,
+                "y": 31
+              }
+            ]
+          },
+          "proposed": {
+            "topology": "square",
+            "size": "medium",
+            "anchor": {
+              "x": 23,
+              "y": 32
+            },
+            "fields": [
+              {
+                "x": 23,
+                "y": 32
+              }
+            ]
+          },
+          "cumulativeCost": 5,
+          "relations": {
+            "qaReactor": {
+              "before": 1,
+              "after": 2,
+              "reachFields": 1,
+              "withinBefore": true,
+              "withinAfter": false,
+              "leavesReach": true,
+              "entersReach": false,
+              "context": {
+                "hostile": true
+              }
+            }
+          }
+        }
+      },
+      "window": {
+        "id": "reaction-window:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:before-transition:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1",
+        "timing": "before-transition",
+        "offeredCandidateIds": [
+          "reaction-candidate:qa-leave:ORbJP7KZpp8VOvYA:Scene.q2HthP7tg8690hK6.Token.PEkf3i6WH38nIk8b.Actor.Xhc4umhFEpmvwttd:action:qa-movement-reaction:ORbJP7KZpp8VOvYA:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1"
+        ]
+      },
+      "pendingChoice": false,
+      "child": {
+        "id": "resolution:1049",
+        "status": "ready-to-commit",
+        "source": {
+          "actorId": "Xhc4umhFEpmvwttd",
+          "actorRef": "Scene.q2HthP7tg8690hK6.Token.PEkf3i6WH38nIk8b.Actor.Xhc4umhFEpmvwttd",
+          "tokenId": "PEkf3i6WH38nIk8b",
+          "tokenRef": "Scene.q2HthP7tg8690hK6.Token.PEkf3i6WH38nIk8b"
+        },
+        "rollResults": [
+          {
+            "requestId": "request:resolution:1049:attack-roll",
+            "type": "attack-roll",
+            "semanticType": "attack",
+            "rollRequest": {
+              "schemaVersion": 1,
+              "id": "request:resolution:1049:attack-roll",
+              "resolutionId": "resolution:1049",
+              "type": "attack",
+              "formula": null,
+              "data": {},
+              "definition": {
+                "formula": null,
+                "expression": null,
+                "dice": [
+                  {
+                    "id": "d20",
+                    "number": 1,
+                    "faces": 20,
+                    "modifiers": "[depth limit]",
+                    "purpose": "d20",
+                    "source": null,
+                    "metadata": "[depth limit]"
+                  }
+                ],
+                "terms": [],
+                "modifierTotal": 4,
+                "components": [],
+                "metadata": {}
+              },
+              "modifiers": [
+                {
+                  "id": "attack-modifier",
+                  "value": 4,
+                  "label": null,
+                  "source": null,
+                  "metadata": {}
+                }
+              ],
+              "rollMode": "normal",
+              "dc": null,
+              "visibility": "system",
+              "chooser": "source-controller",
+              "authority": {
+                "kind": "source-controller"
+              },
+              "source": {
+                "actorId": "Xhc4umhFEpmvwttd",
+                "actorRef": "Scene.q2HthP7tg8690hK6.Token.PEkf3i6WH38nIk8b.Actor.Xhc4umhFEpmvwttd",
+                "tokenId": "PEkf3i6WH38nIk8b",
+                "tokenRef": "Scene.q2HthP7tg8690hK6.Token.PEkf3i6WH38nIk8b"
+              },
+              "target": {
+                "id": "B6voYAbLFa0Vsubl",
+                "ref": "token:q2HthP7tg8690hK6.B6voYAbLFa0Vsubl",
+                "tokenId": "B6voYAbLFa0Vsubl",
+                "sceneId": "q2HthP7tg8690hK6",
+                "sceneRef": "scene:q2HthP7tg8690hK6",
+                "actorId": "5fu9rMXyk8pUWEPC",
+                "actorRef": "actor:5fu9rMXyk8pUWEPC",
+                "uuid": "Scene.q2HthP7tg8690hK6.Token.B6voYAbLFa0Vsubl",
+                "name": "QA melee source",
+                "hidden": false
+              },
+              "provenance": {
+                "type": "unknown",
+                "providerId": null,
+                "method": null,
+                "userRef": null,
+                "authority": null,
+                "source": null,
+                "metadata": {}
+              },
+              "expected": {
+                "primaryDieFaces": 20,
+                "requireNatural": true,
+                "manualInputMode": "natural",
+                "validateTotalFromNatural": true,
+                "modifierTotal": 4,
+                "staleAfterStageId": null,
+                "metadata": {}
+              },
+              "metadata": {
+                "actionDefinitionId": "action:qa-movement-reaction:ORbJP7KZpp8VOvYA",
+                "rollKind": "attack",
+                "defenseKey": "ac",
+                "statistic": {
+                  "key": "weapon",
+                  "domain": "attack.weapon",
+                  "modifier": 4,
+                  "totalModifier": 4,
+                  "source": {
+                    "type": "actor-combat-statistic",
+                    "actorId": "Xhc4umhFEpmvwttd",
+                    "actorRef": "Scene.q2HthP7tg8690hK6.Token.PEkf3i6WH38nIk8b.Actor.Xhc4umhFEpmvwttd",
+                    "statisticKey": "weapon",
+                    "statistic": "[depth limit]"
+                  }
+                },
+                "attackType": null,
+                "d20": true
+              }
+            },
+            "rollResult": {
+              "schemaVersion": 1,
+              "requestId": "request:resolution:1049:attack-roll",
+              "resolutionId": "resolution:1049",
+              "type": "attack",
+              "total": 14,
+              "natural": 10,
+              "dice": [
+                {
+                  "id": "foundry-die:0",
+                  "number": 1,
+                  "faces": 20,
+                  "modifiers": [],
+                  "purpose": null,
+                  "results": [
+                    "[depth limit]"
+                  ],
+                  "source": null,
+                  "metadata": {}
+                }
+              ],
+              "formula": "1d20 + 4",
+              "terms": [
+                {
+                  "class": "Die",
+                  "options": {
+                    "flavor": null
+                  },
+                  "evaluated": true,
+                  "number": 1,
+                  "faces": 20,
+                  "modifiers": [],
+                  "results": [
+                    "[depth limit]"
+                  ]
+                },
+                {
+                  "class": "OperatorTerm",
+                  "options": {},
+                  "evaluated": true,
+                  "operator": "+"
+                },
+                {
+                  "class": "NumericTerm",
+                  "options": {
+                    "flavor": null
+                  },
+                  "evaluated": true,
+                  "number": 4
+                }
+              ],
+              "modifiers": [
+                {
+                  "id": "attack-modifier",
+                  "value": 4,
+                  "label": null,
+                  "source": null,
+                  "metadata": {}
+                }
+              ],
+              "rollMode": "normal",
+              "provider": {
+                "id": "foundry-digital",
+                "type": "foundry-digital",
+                "label": "Foundry Digital Roll Provider"
+              },
+              "provenance": {
+                "type": "foundry-digital",
+                "providerId": "foundry-digital",
+                "method": "digital",
+                "userRef": null,
+                "authority": {
+                  "kind": "source-controller"
+                },
+                "source": "foundry-roll",
+                "metadata": {}
+              },
+              "validation": {
+                "ok": true,
+                "code": "OK",
+                "reason": null
+              },
+              "raw": {
+                "foundryRoll": {
+                  "class": "Roll",
+                  "options": {
+                    "wildpath": "[depth limit]"
+                  },
+                  "dice": [],
+                  "formula": "1d20 + 4",
+                  "terms": [
+                    "[depth limit]",
+                    "[depth limit]",
+                    "[depth limit]"
+                  ],
+                  "total": 14,
+                  "evaluated": true
+                }
+              },
+              "metadata": {}
+            },
+            "roll": {
+              "total": 14,
+              "die": 10,
+              "natural": 10,
+              "d20": 10,
+              "formula": "1d20 + 4",
+              "mode": "normal",
+              "modifiers": [
+                {
+                  "id": "attack-modifier",
+                  "value": 4,
+                  "label": null,
+                  "source": null,
+                  "metadata": {}
+                }
+              ],
+              "dice": [
+                {
+                  "id": "foundry-die:0",
+                  "number": 1,
+                  "faces": 20,
+                  "modifiers": [],
+                  "purpose": null,
+                  "results": [
+                    "[depth limit]"
+                  ],
+                  "source": null,
+                  "metadata": {}
+                }
+              ],
+              "metadata": {
+                "rollRequestId": "request:resolution:1049:attack-roll",
+                "rollResult": {
+                  "schemaVersion": 1,
+                  "requestId": "request:resolution:1049:attack-roll",
+                  "resolutionId": "resolution:1049",
+                  "type": "attack",
+                  "total": 14,
+                  "natural": 10,
+                  "dice": [
+                    "[depth limit]"
+                  ],
+                  "formula": "1d20 + 4",
+                  "terms": [
+                    "[depth limit]",
+                    "[depth limit]",
+                    "[depth limit]"
+                  ],
+                  "modifiers": [
+                    "[depth limit]"
+                  ],
+                  "rollMode": "normal",
+                  "provider": {
+                    "id": "foundry-digital",
+                    "type": "foundry-digital",
+                    "label": "Foundry Digital Roll Provider"
+                  },
+                  "provenance": {
+                    "type": "foundry-digital",
+                    "providerId": "foundry-digital",
+                    "method": "digital",
+                    "userRef": null,
+                    "authority": "[depth limit]",
+                    "source": "foundry-roll",
+                    "metadata": "[depth limit]"
+                  },
+                  "validation": {
+                    "ok": true,
+                    "code": "OK",
+                    "reason": null
+                  },
+                  "raw": {
+                    "foundryRoll": "[depth limit]"
+                  },
+                  "metadata": {}
+                }
+              }
+            }
+          }
+        ],
+        "targetFootprints": [
+          {
+            "target": {
+              "id": "B6voYAbLFa0Vsubl",
+              "ref": "token:q2HthP7tg8690hK6.B6voYAbLFa0Vsubl",
+              "tokenId": "B6voYAbLFa0Vsubl",
+              "sceneId": "q2HthP7tg8690hK6",
+              "sceneRef": "scene:q2HthP7tg8690hK6",
+              "actorId": "5fu9rMXyk8pUWEPC",
+              "actorRef": "actor:5fu9rMXyk8pUWEPC",
+              "uuid": "Scene.q2HthP7tg8690hK6.Token.B6voYAbLFa0Vsubl",
+              "name": "QA melee source",
+              "hidden": false
+            },
+            "footprint": {
+              "topology": "square",
+              "size": "medium",
+              "anchor": {
+                "x": 23,
+                "y": 31
+              },
+              "fields": [
+                {
+                  "x": 23,
+                  "y": 31
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "resolutionId": "qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy",
+      "status": "ready-to-commit",
+      "stage": "movement.ready-to-commit",
+      "cursor": {
+        "completedTransitionCount": 1,
+        "cumulativeCost": 5,
+        "stopped": true,
+        "reason": "QA effect prevents further movement."
+      },
+      "renderedPosition": {
+        "x": 3000,
+        "y": 2300,
+        "elevation": 0,
+        "width": 1,
+        "height": 1,
+        "depth": 1,
+        "shape": 4
+      },
+      "renderedFootprint": {
+        "topology": "square",
+        "size": "medium",
+        "anchor": {
+          "x": 23,
+          "y": 30
+        },
+        "fields": [
+          {
+            "x": 23,
+            "y": 30
+          }
+        ]
+      },
+      "origin": {
+        "topology": "square",
+        "size": "medium",
+        "anchor": {
+          "x": 23,
+          "y": 30
+        },
+        "fields": [
+          {
+            "x": 23,
+            "y": 30
+          }
+        ]
+      },
+      "logical": {
+        "topology": "square",
+        "size": "medium",
+        "anchor": {
+          "x": 23,
+          "y": 31
+        },
+        "fields": [
+          {
+            "x": 23,
+            "y": 31
+          }
+        ]
+      },
+      "event": {
+        "id": "qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1",
+        "type": "movement.transition-proposed",
+        "phase": "interrupt",
+        "data": {
+          "transitionIndex": 1,
+          "previous": {
+            "topology": "square",
+            "size": "medium",
+            "anchor": {
+              "x": 23,
+              "y": 31
+            },
+            "fields": [
+              {
+                "x": 23,
+                "y": 31
+              }
+            ]
+          },
+          "proposed": {
+            "topology": "square",
+            "size": "medium",
+            "anchor": {
+              "x": 23,
+              "y": 32
+            },
+            "fields": [
+              {
+                "x": 23,
+                "y": 32
+              }
+            ]
+          },
+          "cumulativeCost": 5,
+          "relations": {
+            "qaReactor": {
+              "before": 1,
+              "after": 2,
+              "reachFields": 1,
+              "withinBefore": true,
+              "withinAfter": false,
+              "leavesReach": true,
+              "entersReach": false,
+              "context": {
+                "hostile": true
+              }
+            }
+          }
+        }
+      },
+      "window": {
+        "id": "reaction-window:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:before-transition:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1",
+        "timing": "before-transition",
+        "offeredCandidateIds": [
+          "reaction-candidate:qa-leave:ORbJP7KZpp8VOvYA:Scene.q2HthP7tg8690hK6.Token.PEkf3i6WH38nIk8b.Actor.Xhc4umhFEpmvwttd:action:qa-movement-reaction:ORbJP7KZpp8VOvYA:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1"
+        ]
+      },
+      "pendingChoice": false,
+      "child": null
+    },
+    {
+      "resolutionId": "qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy",
+      "status": "ready-to-commit",
+      "stage": "movement.ready-to-commit",
+      "cursor": {
+        "completedTransitionCount": 1,
+        "cumulativeCost": 5,
+        "stopped": true,
+        "reason": "QA effect prevents further movement."
+      },
+      "renderedPosition": {
+        "x": 3100,
+        "y": 2300,
+        "elevation": 0,
+        "width": 1,
+        "height": 1,
+        "depth": 1,
+        "shape": 4
+      },
+      "renderedFootprint": {
+        "topology": "square",
+        "size": "medium",
+        "anchor": {
+          "x": 23,
+          "y": 31
+        },
+        "fields": [
+          {
+            "x": 23,
+            "y": 31
+          }
+        ]
+      },
+      "origin": {
+        "topology": "square",
+        "size": "medium",
+        "anchor": {
+          "x": 23,
+          "y": 30
+        },
+        "fields": [
+          {
+            "x": 23,
+            "y": 30
+          }
+        ]
+      },
+      "logical": {
+        "topology": "square",
+        "size": "medium",
+        "anchor": {
+          "x": 23,
+          "y": 31
+        },
+        "fields": [
+          {
+            "x": 23,
+            "y": 31
+          }
+        ]
+      },
+      "event": {
+        "id": "qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1",
+        "type": "movement.transition-proposed",
+        "phase": "interrupt",
+        "data": {
+          "transitionIndex": 1,
+          "previous": {
+            "topology": "square",
+            "size": "medium",
+            "anchor": {
+              "x": 23,
+              "y": 31
+            },
+            "fields": [
+              {
+                "x": 23,
+                "y": 31
+              }
+            ]
+          },
+          "proposed": {
+            "topology": "square",
+            "size": "medium",
+            "anchor": {
+              "x": 23,
+              "y": 32
+            },
+            "fields": [
+              {
+                "x": 23,
+                "y": 32
+              }
+            ]
+          },
+          "cumulativeCost": 5,
+          "relations": {
+            "qaReactor": {
+              "before": 1,
+              "after": 2,
+              "reachFields": 1,
+              "withinBefore": true,
+              "withinAfter": false,
+              "leavesReach": true,
+              "entersReach": false,
+              "context": {
+                "hostile": true
+              }
+            }
+          }
+        }
+      },
+      "window": {
+        "id": "reaction-window:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:before-transition:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1",
+        "timing": "before-transition",
+        "offeredCandidateIds": [
+          "reaction-candidate:qa-leave:ORbJP7KZpp8VOvYA:Scene.q2HthP7tg8690hK6.Token.PEkf3i6WH38nIk8b.Actor.Xhc4umhFEpmvwttd:action:qa-movement-reaction:ORbJP7KZpp8VOvYA:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1"
+        ]
+      },
+      "pendingChoice": false,
+      "child": null
+    },
+    {
+      "resolutionId": "qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy",
+      "status": "completed",
+      "stage": "movement.finalization",
+      "cursor": {
+        "completedTransitionCount": 1,
+        "cumulativeCost": 5,
+        "stopped": true,
+        "reason": "QA effect prevents further movement."
+      },
+      "renderedPosition": {
+        "x": 3100,
+        "y": 2300,
+        "elevation": 0,
+        "width": 1,
+        "height": 1,
+        "depth": 1,
+        "shape": 4
+      },
+      "renderedFootprint": {
+        "topology": "square",
+        "size": "medium",
+        "anchor": {
+          "x": 23,
+          "y": 31
+        },
+        "fields": [
+          {
+            "x": 23,
+            "y": 31
+          }
+        ]
+      },
+      "origin": {
+        "topology": "square",
+        "size": "medium",
+        "anchor": {
+          "x": 23,
+          "y": 30
+        },
+        "fields": [
+          {
+            "x": 23,
+            "y": 30
+          }
+        ]
+      },
+      "logical": {
+        "topology": "square",
+        "size": "medium",
+        "anchor": {
+          "x": 23,
+          "y": 31
+        },
+        "fields": [
+          {
+            "x": 23,
+            "y": 31
+          }
+        ]
+      },
+      "event": {
+        "id": "qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1",
+        "type": "movement.transition-proposed",
+        "phase": "interrupt",
+        "data": {
+          "transitionIndex": 1,
+          "previous": {
+            "topology": "square",
+            "size": "medium",
+            "anchor": {
+              "x": 23,
+              "y": 31
+            },
+            "fields": [
+              {
+                "x": 23,
+                "y": 31
+              }
+            ]
+          },
+          "proposed": {
+            "topology": "square",
+            "size": "medium",
+            "anchor": {
+              "x": 23,
+              "y": 32
+            },
+            "fields": [
+              {
+                "x": 23,
+                "y": 32
+              }
+            ]
+          },
+          "cumulativeCost": 5,
+          "relations": {
+            "qaReactor": {
+              "before": 1,
+              "after": 2,
+              "reachFields": 1,
+              "withinBefore": true,
+              "withinAfter": false,
+              "leavesReach": true,
+              "entersReach": false,
+              "context": {
+                "hostile": true
+              }
+            }
+          }
+        }
+      },
+      "window": {
+        "id": "reaction-window:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:before-transition:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1",
+        "timing": "before-transition",
+        "offeredCandidateIds": [
+          "reaction-candidate:qa-leave:ORbJP7KZpp8VOvYA:Scene.q2HthP7tg8690hK6.Token.PEkf3i6WH38nIk8b.Actor.Xhc4umhFEpmvwttd:action:qa-movement-reaction:ORbJP7KZpp8VOvYA:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1"
+        ]
+      },
+      "pendingChoice": false,
+      "child": null
+    }
+  ],
+  "envelopes": [
+    {
+      "protocolVersion": 1,
+      "messageId": "resolution-message:action-intent:1789578039659:3",
+      "messageType": "ACTION_INTENT",
+      "senderUserId": "6JWzwo5Aln6gZUWH",
+      "recipientUserId": "hUdU40DWftTFyJzW",
+      "recipientUserIds": [],
+      "recipientPolicy": null,
+      "resolutionId": "qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy",
+      "requestId": null,
+      "payload": {
+        "resolutionId": "qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy",
+        "intentId": "qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy",
+        "movementId": "qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy",
+        "sceneRef": "Scene.q2HthP7tg8690hK6",
+        "tokenRef": "Scene.q2HthP7tg8690hK6.Token.B6voYAbLFa0Vsubl",
+        "origin": {
+          "x": 3000,
+          "y": 2300,
+          "elevation": 0,
+          "width": 1,
+          "height": 1,
+          "depth": 1,
+          "shape": 4
+        },
+        "waypoints": [
+          {
+            "x": 3100,
+            "y": 2300,
+            "elevation": 0
+          },
+          {
+            "x": 3200,
+            "y": 2300,
+            "elevation": 0
+          },
+          {
+            "x": 3300,
+            "y": 2300,
+            "elevation": 0
+          }
+        ],
+        "movementKind": "voluntary",
+        "movementMode": "walk",
+        "resolutionKind": "movement"
+      },
+      "metadata": {
+        "authority": {
+          "ok": true,
+          "code": "OK",
+          "reason": null,
+          "userId": "hUdU40DWftTFyJzW",
+          "mode": "active-gm",
+          "activeGMUserId": "hUdU40DWftTFyJzW"
+        },
+        "multiplayer": {
+          "intentOnly": true
+        }
+      }
+    },
+    {
+      "protocolVersion": 1,
+      "messageId": "resolution-message:resolution-result:1789578080070:9",
+      "messageType": "RESOLUTION_RESULT",
+      "senderUserId": "hUdU40DWftTFyJzW",
+      "recipientUserId": null,
+      "recipientUserIds": [],
+      "recipientPolicy": "all",
+      "resolutionId": "qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy",
+      "requestId": null,
+      "payload": {
+        "result": {
+          "resolutionId": "qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy",
+          "status": "completed",
+          "code": null,
+          "ok": true,
+          "authorityUserId": "hUdU40DWftTFyJzW",
+          "initiatorUserId": "6JWzwo5Aln6gZUWH",
+          "action": {
+            "id": null,
+            "name": null,
+            "type": "action",
+            "source": null
+          },
+          "source": {
+            "actorId": "5fu9rMXyk8pUWEPC",
+            "actorRef": "Scene.q2HthP7tg8690hK6.Token.B6voYAbLFa0Vsubl.Actor.5fu9rMXyk8pUWEPC",
+            "tokenId": "B6voYAbLFa0Vsubl",
+            "tokenRef": "Scene.q2HthP7tg8690hK6.Token.B6voYAbLFa0Vsubl"
+          },
+          "targets": [],
+          "configuration": null,
+          "preview": null,
+          "rolls": [],
+          "outcomes": {
+            "attack": null,
+            "save": null,
+            "damage": null,
+            "healing": null,
+            "effects": null,
+            "payment": {
+              "id": "payment-1",
+              "code": "AVAILABLE",
+              "mode": "direct",
+              "priority": 10,
+              "resources": [
+                {
+                  "resourceId": "economy.movement",
+                  "amount": 5,
+                  "capability": "movement",
+                  "unit": "movement",
+                  "mode": "direct",
+                  "source": {
+                    "type": "actor",
+                    "slug": "movement"
+                  }
+                }
+              ],
+              "selection": "deterministic-priority",
+              "trace": [
+                {
+                  "resourceId": "economy.movement",
+                  "capability": "movement",
+                  "amount": 5,
+                  "mode": "direct",
+                  "policy": null
+                }
+              ]
+            },
+            "movement": {
+              "completedTransitionCount": 1,
+              "intendedTransitionCount": 3,
+              "cumulativeCost": 5,
+              "stopped": true,
+              "reason": "QA effect prevents further movement.",
+              "footprint": {
+                "type": "TokenGridFootprint",
+                "topology": "square",
+                "size": "medium",
+                "effectiveSize": "medium",
+                "anchor": {
+                  "x": 23,
+                  "y": 31
+                },
+                "definition": {
+                  "size": "medium",
+                  "topology": "square",
+                  "offsets": [
+                    "[depth limit]"
+                  ],
+                  "fieldCount": 1,
+                  "creaturesPerField": 1,
+                  "minimumFields": 1,
+                  "metadata": {
+                    "ruleset": "dnd5e",
+                    "squareWidth": 1
+                  }
+                },
+                "fields": [
+                  {
+                    "x": 23,
+                    "y": 31
+                  }
+                ],
+                "fieldKeys": [
+                  "square:23,31"
+                ],
+                "metadata": {},
+                "boundaryFields": [
+                  {
+                    "x": 23,
+                    "y": 31
+                  }
+                ],
+                "boundaryEdges": [
+                  {
+                    "id": "square:23,31>east",
+                    "topology": "square",
+                    "field": "[depth limit]",
+                    "outsideField": "[depth limit]",
+                    "direction": "east"
+                  },
+                  {
+                    "id": "square:23,31>north",
+                    "topology": "square",
+                    "field": "[depth limit]",
+                    "outsideField": "[depth limit]",
+                    "direction": "north"
+                  },
+                  {
+                    "id": "square:23,31>south",
+                    "topology": "square",
+                    "field": "[depth limit]",
+                    "outsideField": "[depth limit]",
+                    "direction": "south"
+                  },
+                  {
+                    "id": "square:23,31>west",
+                    "topology": "square",
+                    "field": "[depth limit]",
+                    "outsideField": "[depth limit]",
+                    "direction": "west"
+                  }
+                ],
+                "boundaryVertices": [
+                  {
+                    "id": "square-vertex:23,31",
+                    "x": 23,
+                    "y": 31,
+                    "incidentFields": "[depth limit]",
+                    "topology": "square",
+                    "occupiedIncidentFields": "[depth limit]",
+                    "external": true
+                  },
+                  {
+                    "id": "square-vertex:23,32",
+                    "x": 23,
+                    "y": 32,
+                    "incidentFields": "[depth limit]",
+                    "topology": "square",
+                    "occupiedIncidentFields": "[depth limit]",
+                    "external": true
+                  },
+                  {
+                    "id": "square-vertex:24,31",
+                    "x": 24,
+                    "y": 31,
+                    "incidentFields": "[depth limit]",
+                    "topology": "square",
+                    "occupiedIncidentFields": "[depth limit]",
+                    "external": true
+                  },
+                  {
+                    "id": "square-vertex:24,32",
+                    "x": 24,
+                    "y": 32,
+                    "incidentFields": "[depth limit]",
+                    "topology": "square",
+                    "occupiedIncidentFields": "[depth limit]",
+                    "external": true
+                  }
+                ],
+                "internalVertices": []
+              },
+              "committed": true
+            }
+          },
+          "committedMutations": [
+            {
+              "id": "qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:position",
+              "type": "documentUpdate",
+              "actorRef": null,
+              "documentRef": "Scene.q2HthP7tg8690hK6.Token.B6voYAbLFa0Vsubl",
+              "role": "movementPosition"
+            },
+            {
+              "id": "qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:payment",
+              "type": "actorUpdate",
+              "actorRef": "Scene.q2HthP7tg8690hK6.Token.B6voYAbLFa0Vsubl.Actor.5fu9rMXyk8pUWEPC",
+              "role": null
+            }
+          ],
+          "trace": [
+            {
+              "stageId": "movement.intention",
+              "status": "completed",
+              "result": "continue",
+              "code": "OK",
+              "requestIds": []
+            },
+            {
+              "stageId": "movement.route",
+              "status": "completed",
+              "result": "continue",
+              "code": "OK",
+              "requestIds": []
+            },
+            {
+              "stageId": "movement.validation",
+              "status": "completed",
+              "result": "continue",
+              "code": "OK",
+              "requestIds": []
+            },
+            {
+              "stageId": "movement.transition:0.propose",
+              "status": "completed",
+              "result": "continue",
+              "code": "OK",
+              "requestIds": []
+            },
+            {
+              "stageId": "movement.transition:0.reactions",
+              "status": "running",
+              "result": "continue",
+              "code": "NO_CANDIDATES",
+              "requestIds": []
+            },
+            {
+              "stageId": "movement.transition:0.reactions",
+              "status": "completed",
+              "result": "continue",
+              "code": "OK",
+              "requestIds": []
+            },
+            {
+              "stageId": "movement.transition:0.revalidation",
+              "status": "completed",
+              "result": "continue",
+              "code": "OK",
+              "requestIds": []
+            },
+            {
+              "stageId": "movement.transition:0.traverse",
+              "status": "completed",
+              "result": "continue",
+              "code": "OK",
+              "requestIds": []
+            },
+            {
+              "stageId": "movement.transition:1.propose",
+              "status": "completed",
+              "result": "continue",
+              "code": "OK",
+              "requestIds": []
+            },
+            {
+              "stageId": "movement.transition:1.reactions",
+              "status": "awaiting-choice",
+              "result": "wait",
+              "code": "WAITING",
+              "requestIds": [
+                "request:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:reaction:reaction-window:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:before-transition:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1:offer:1"
+              ]
+            },
+            {
+              "stageId": "movement.transition:1.reactions",
+              "status": "waiting",
+              "result": "wait",
+              "code": "OK",
+              "requestIds": [
+                "request:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:reaction:reaction-window:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:before-transition:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1:offer:1"
+              ]
+            },
+            {
+              "stageId": "movement.transition:1.reactions",
+              "status": "running",
+              "result": "continue",
+              "code": "OK",
+              "requestIds": [
+                "request:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:reaction:reaction-window:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:before-transition:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1:offer:1"
+              ]
+            },
+            {
+              "stageId": "movement.transition:1.reactions",
+              "status": "paused",
+              "result": "continue",
+              "code": "CHILD_RESOLUTION_CREATED",
+              "requestIds": []
+            },
+            {
+              "stageId": "movement.transition:1.reactions",
+              "status": "completed",
+              "result": "complete",
+              "code": "CHILD_RESOLUTION_CREATED",
+              "requestIds": []
+            },
+            {
+              "stageId": "movement.transition:1.reactions",
+              "status": "running",
+              "result": "continue",
+              "code": "OK",
+              "requestIds": []
+            },
+            {
+              "stageId": "movement.transition:1.reactions",
+              "status": "skipped",
+              "result": "continue",
+              "code": "OK",
+              "requestIds": []
+            },
+            {
+              "stageId": "movement.transition:1.revalidation",
+              "status": "skipped",
+              "result": "continue",
+              "code": "OK",
+              "requestIds": []
+            },
+            {
+              "stageId": "movement.transition:1.traverse",
+              "status": "skipped",
+              "result": "continue",
+              "code": "OK",
+              "requestIds": []
+            },
+            {
+              "stageId": "movement.transition:2.propose",
+              "status": "skipped",
+              "result": "continue",
+              "code": "OK",
+              "requestIds": []
+            },
+            {
+              "stageId": "movement.transition:2.reactions",
+              "status": "skipped",
+              "result": "continue",
+              "code": "OK",
+              "requestIds": []
+            },
+            "[6 more entries]"
+          ]
+        }
+      },
+      "metadata": {}
+    }
+  ],
+  "result": {
+    "resolutionId": "qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy",
+    "status": "completed",
+    "code": null,
+    "ok": true,
+    "authorityUserId": "hUdU40DWftTFyJzW",
+    "initiatorUserId": "6JWzwo5Aln6gZUWH",
+    "action": {
+      "id": null,
+      "name": null,
+      "type": "action",
+      "source": null
+    },
+    "source": {
+      "actorId": "5fu9rMXyk8pUWEPC",
+      "actorRef": "Scene.q2HthP7tg8690hK6.Token.B6voYAbLFa0Vsubl.Actor.5fu9rMXyk8pUWEPC",
+      "tokenId": "B6voYAbLFa0Vsubl",
+      "tokenRef": "Scene.q2HthP7tg8690hK6.Token.B6voYAbLFa0Vsubl"
+    },
+    "targets": [],
+    "configuration": null,
+    "preview": null,
+    "rolls": [],
+    "outcomes": {
+      "attack": null,
+      "save": null,
+      "damage": null,
+      "healing": null,
+      "effects": null,
+      "payment": {
+        "id": "payment-1",
+        "code": "AVAILABLE",
+        "mode": "direct",
+        "priority": 10,
+        "resources": [
+          {
+            "resourceId": "economy.movement",
+            "amount": 5,
+            "capability": "movement",
+            "unit": "movement",
+            "mode": "direct",
+            "source": {
+              "type": "actor",
+              "slug": "movement"
+            }
+          }
+        ],
+        "selection": "deterministic-priority",
+        "trace": [
+          {
+            "resourceId": "economy.movement",
+            "capability": "movement",
+            "amount": 5,
+            "mode": "direct",
+            "policy": null
+          }
+        ]
+      },
+      "movement": {
+        "completedTransitionCount": 1,
+        "intendedTransitionCount": 3,
+        "cumulativeCost": 5,
+        "stopped": true,
+        "reason": "QA effect prevents further movement.",
+        "footprint": {
+          "type": "TokenGridFootprint",
+          "topology": "square",
+          "size": "medium",
+          "effectiveSize": "medium",
+          "anchor": {
+            "x": 23,
+            "y": 31
+          },
+          "definition": {
+            "size": "medium",
+            "topology": "square",
+            "offsets": [
+              {
+                "x": 0,
+                "y": 0
+              }
+            ],
+            "fieldCount": 1,
+            "creaturesPerField": 1,
+            "minimumFields": 1,
+            "metadata": {
+              "ruleset": "dnd5e",
+              "squareWidth": 1
+            }
+          },
+          "fields": [
+            {
+              "x": 23,
+              "y": 31
+            }
+          ],
+          "fieldKeys": [
+            "square:23,31"
+          ],
+          "metadata": {},
+          "boundaryFields": [
+            {
+              "x": 23,
+              "y": 31
+            }
+          ],
+          "boundaryEdges": [
+            {
+              "id": "square:23,31>east",
+              "topology": "square",
+              "field": {
+                "x": 23,
+                "y": 31
+              },
+              "outsideField": {
+                "x": 24,
+                "y": 31
+              },
+              "direction": "east"
+            },
+            {
+              "id": "square:23,31>north",
+              "topology": "square",
+              "field": {
+                "x": 23,
+                "y": 31
+              },
+              "outsideField": {
+                "x": 23,
+                "y": 30
+              },
+              "direction": "north"
+            },
+            {
+              "id": "square:23,31>south",
+              "topology": "square",
+              "field": {
+                "x": 23,
+                "y": 31
+              },
+              "outsideField": {
+                "x": 23,
+                "y": 32
+              },
+              "direction": "south"
+            },
+            {
+              "id": "square:23,31>west",
+              "topology": "square",
+              "field": {
+                "x": 23,
+                "y": 31
+              },
+              "outsideField": {
+                "x": 22,
+                "y": 31
+              },
+              "direction": "west"
+            }
+          ],
+          "boundaryVertices": [
+            {
+              "id": "square-vertex:23,31",
+              "x": 23,
+              "y": 31,
+              "incidentFields": [
+                {
+                  "x": 22,
+                  "y": 30
+                },
+                {
+                  "x": 23,
+                  "y": 30
+                },
+                {
+                  "x": 22,
+                  "y": 31
+                },
+                {
+                  "x": 23,
+                  "y": 31
+                }
+              ],
+              "topology": "square",
+              "occupiedIncidentFields": [
+                {
+                  "x": 23,
+                  "y": 31
+                }
+              ],
+              "external": true
+            },
+            {
+              "id": "square-vertex:23,32",
+              "x": 23,
+              "y": 32,
+              "incidentFields": [
+                {
+                  "x": 22,
+                  "y": 31
+                },
+                {
+                  "x": 23,
+                  "y": 31
+                },
+                {
+                  "x": 22,
+                  "y": 32
+                },
+                {
+                  "x": 23,
+                  "y": 32
+                }
+              ],
+              "topology": "square",
+              "occupiedIncidentFields": [
+                {
+                  "x": 23,
+                  "y": 31
+                }
+              ],
+              "external": true
+            },
+            {
+              "id": "square-vertex:24,31",
+              "x": 24,
+              "y": 31,
+              "incidentFields": [
+                {
+                  "x": 23,
+                  "y": 30
+                },
+                {
+                  "x": 24,
+                  "y": 30
+                },
+                {
+                  "x": 23,
+                  "y": 31
+                },
+                {
+                  "x": 24,
+                  "y": 31
+                }
+              ],
+              "topology": "square",
+              "occupiedIncidentFields": [
+                {
+                  "x": 23,
+                  "y": 31
+                }
+              ],
+              "external": true
+            },
+            {
+              "id": "square-vertex:24,32",
+              "x": 24,
+              "y": 32,
+              "incidentFields": [
+                {
+                  "x": 23,
+                  "y": 31
+                },
+                {
+                  "x": 24,
+                  "y": 31
+                },
+                {
+                  "x": 23,
+                  "y": 32
+                },
+                {
+                  "x": 24,
+                  "y": 32
+                }
+              ],
+              "topology": "square",
+              "occupiedIncidentFields": [
+                {
+                  "x": 23,
+                  "y": 31
+                }
+              ],
+              "external": true
+            }
+          ],
+          "internalVertices": []
+        },
+        "committed": true
+      }
+    },
+    "committedMutations": [
+      {
+        "id": "qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:position",
+        "type": "documentUpdate",
+        "actorRef": null,
+        "documentRef": "Scene.q2HthP7tg8690hK6.Token.B6voYAbLFa0Vsubl",
+        "role": "movementPosition"
+      },
+      {
+        "id": "qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:payment",
+        "type": "actorUpdate",
+        "actorRef": "Scene.q2HthP7tg8690hK6.Token.B6voYAbLFa0Vsubl.Actor.5fu9rMXyk8pUWEPC",
+        "role": null
+      }
+    ],
+    "trace": [
+      {
+        "stageId": "movement.intention",
+        "status": "completed",
+        "result": "continue",
+        "code": "OK",
+        "requestIds": []
+      },
+      {
+        "stageId": "movement.route",
+        "status": "completed",
+        "result": "continue",
+        "code": "OK",
+        "requestIds": []
+      },
+      {
+        "stageId": "movement.validation",
+        "status": "completed",
+        "result": "continue",
+        "code": "OK",
+        "requestIds": []
+      },
+      {
+        "stageId": "movement.transition:0.propose",
+        "status": "completed",
+        "result": "continue",
+        "code": "OK",
+        "requestIds": []
+      },
+      {
+        "stageId": "movement.transition:0.reactions",
+        "status": "running",
+        "result": "continue",
+        "code": "NO_CANDIDATES",
+        "requestIds": []
+      },
+      {
+        "stageId": "movement.transition:0.reactions",
+        "status": "completed",
+        "result": "continue",
+        "code": "OK",
+        "requestIds": []
+      },
+      {
+        "stageId": "movement.transition:0.revalidation",
+        "status": "completed",
+        "result": "continue",
+        "code": "OK",
+        "requestIds": []
+      },
+      {
+        "stageId": "movement.transition:0.traverse",
+        "status": "completed",
+        "result": "continue",
+        "code": "OK",
+        "requestIds": []
+      },
+      {
+        "stageId": "movement.transition:1.propose",
+        "status": "completed",
+        "result": "continue",
+        "code": "OK",
+        "requestIds": []
+      },
+      {
+        "stageId": "movement.transition:1.reactions",
+        "status": "awaiting-choice",
+        "result": "wait",
+        "code": "WAITING",
+        "requestIds": [
+          "request:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:reaction:reaction-window:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:before-transition:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1:offer:1"
+        ]
+      },
+      {
+        "stageId": "movement.transition:1.reactions",
+        "status": "waiting",
+        "result": "wait",
+        "code": "OK",
+        "requestIds": [
+          "request:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:reaction:reaction-window:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:before-transition:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1:offer:1"
+        ]
+      },
+      {
+        "stageId": "movement.transition:1.reactions",
+        "status": "running",
+        "result": "continue",
+        "code": "OK",
+        "requestIds": [
+          "request:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:reaction:reaction-window:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:before-transition:qa-movement:ORbJP7KZpp8VOvYA:krtf689OwQRKLgxy:transition:1:offer:1"
+        ]
+      },
+      {
+        "stageId": "movement.transition:1.reactions",
+        "status": "paused",
+        "result": "continue",
+        "code": "CHILD_RESOLUTION_CREATED",
+        "requestIds": []
+      },
+      {
+        "stageId": "movement.transition:1.reactions",
+        "status": "completed",
+        "result": "complete",
+        "code": "CHILD_RESOLUTION_CREATED",
+        "requestIds": []
+      },
+      {
+        "stageId": "movement.transition:1.reactions",
+        "status": "running",
+        "result": "continue",
+        "code": "OK",
+        "requestIds": []
+      },
+      {
+        "stageId": "movement.transition:1.reactions",
+        "status": "skipped",
+        "result": "continue",
+        "code": "OK",
+        "requestIds": []
+      },
+      {
+        "stageId": "movement.transition:1.revalidation",
+        "status": "skipped",
+        "result": "continue",
+        "code": "OK",
+        "requestIds": []
+      },
+      {
+        "stageId": "movement.transition:1.traverse",
+        "status": "skipped",
+        "result": "continue",
+        "code": "OK",
+        "requestIds": []
+      },
+      {
+        "stageId": "movement.transition:2.propose",
+        "status": "skipped",
+        "result": "continue",
+        "code": "OK",
+        "requestIds": []
+      },
+      {
+        "stageId": "movement.transition:2.reactions",
+        "status": "skipped",
+        "result": "continue",
+        "code": "OK",
+        "requestIds": []
+      },
+      "[6 more entries]"
+    ]
+  }
+}
