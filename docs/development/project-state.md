@@ -58,7 +58,8 @@ turn-start Bleeding Trigger dispatch, plus the existing recovery-guard rejection
 and clean Scenes, Tokens, Combats, and Combatants (Combats → Scenes → Actors), and expose a read-only
 orphan listing. **Production semantics changed for the Combat slice: NO.** The maintainer ran the
 batch on V14.367 and reported all six passing (Quench UI green, six PASS lines; maintainer-reported,
-no exported report). Standing: **40 cases live-confirmed** (Q1 17, Q2 17, Combat 6). The run exposed
+no exported report), which brought the standing at that time to **40 cases live-confirmed** (Q1 17,
+Q2 17, Combat 6); the staged-movement batch has since raised it to 46. The run exposed
 a core `CombatTracker._onRender` TypeError whenever a non-viewed Combat updates; it has no WildPath
 frames, does not affect document state, and is recorded as a core defect, not a WildPath failure.
 Exact case names, the completion-signal design, run instructions, and console interpretation are in
