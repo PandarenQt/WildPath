@@ -112,3 +112,100 @@ export function verifyMovementQA({state,prepared,after,pending,children=[]}) {
   }
   return true;
 }
+
+/* -------------------------------------------- */
+/*  Level-5 evidence wrapper (development only)  */
+/* -------------------------------------------- */
+
+export const STAGED_MOVEMENT_EVIDENCE_SCHEMA = 1;
+export const STAGED_MOVEMENT_EVIDENCE_TYPE = "staged-movement-level5";
+/** The only cases the canonical two-browser sentinel may label. Everything else is Quench-owned. */
+export const STAGED_MOVEMENT_SENTINELS = Object.freeze({
+  "ordinary":{mode:"ordinary",variant:"square"},
+  "decline":{mode:"decline",variant:"square"},
+  "large-hex-decline":{mode:"decline",variant:"large-hex-decline"}
+});
+export const STAGED_MOVEMENT_EVIDENCE_FILES = Object.freeze({
+  "ordinary":{gm:"evidence/gm-movement-ordinary.json",player:"evidence/player-movement-ordinary.json"},
+  "decline":{gm:"evidence/gm-movement-decline.json",player:"evidence/player-movement-decline.json"},
+  "large-hex-decline":{gm:"evidence/gm-large-hex-decline.json",player:"evidence/player-large-hex-decline.json"}
+});
+
+export function sentinelForCase(mode, variant) {
+  const entry = Object.entries(STAGED_MOVEMENT_SENTINELS).find(([,s]) => s.mode === mode && s.variant === variant);
+  return entry ? entry[0] : null;
+}
+
+// JSON.stringify would silently drop functions/undefined, empty Maps and Sets, and stringify Dates and
+// Documents' enumerable state. Canonical evidence must fail closed instead.
+function assertPlainJSON(value, path, seen) {
+  if (value === null) return;
+  const type = typeof value;
+  if (type === "string" || type === "boolean") return;
+  if (type === "number") {check(Number.isFinite(value),`${path} must be a finite number.`); return;}
+  check(type === "object",`${path} must be JSON data, not ${type}.`);
+  check(!seen.has(value),`${path} is circular.`);
+  seen.add(value);
+  if (Array.isArray(value)) value.forEach((entry, index) => assertPlainJSON(entry,`${path}[${index}]`,seen));
+  else {
+    const proto = Object.getPrototypeOf(value);
+    check(proto === Object.prototype || proto === null,
+      `${path} must be a plain object (found ${proto?.constructor?.name ?? "unknown prototype"}).`);
+    for (const [key, entry] of Object.entries(value)) assertPlainJSON(entry,`${path}.${key}`,seen);
+  }
+  seen.delete(value);
+}
+
+/**
+ * Wrap the helper's bounded GM `prove()`/`dump()` or player `dumpPlayer()` object as canonical Level-5
+ * evidence. Pure and deterministic: runtime metadata and the Git SHA are supplied by the caller, and
+ * `capturedAt` may be injected for tests. Throws rather than producing misleading evidence.
+ */
+export function buildStagedMovementLevel5Evidence({role, evidence, gitSha, runtime, sentinel=null, capturedAt=null}={}) {
+  check(role === "gm" || role === "player","Evidence role must be \"gm\" or \"player\".");
+  check(evidence && typeof evidence === "object" && !Array.isArray(evidence),"Evidence must be the helper's dump object.");
+  check(evidence.role === role,`Evidence was captured as ${evidence.role ?? "<unknown>"}, not ${role}.`);
+  const label = sentinelForCase(evidence.mode,evidence.variant);
+  check(label,`mode ${JSON.stringify(evidence.mode)} with variant ${JSON.stringify(evidence.variant)} is not a Level-5 sentinel case; `
+    + "only ordinary (square), decline (square) and large-hex-decline are canonical.");
+  if (sentinel !== null) check(sentinel === label,`Requested sentinel ${JSON.stringify(sentinel)} does not match the prepared case ${label}.`);
+  check(typeof evidence.runId === "string" && evidence.runId,"Evidence must carry the fixture runId.");
+  check(typeof evidence.resolutionId === "string" && evidence.resolutionId,"Evidence must carry the resolutionId.");
+  if (role === "gm") {
+    check(evidence.proofPassed === true,"GM evidence requires a passed final proof (movementQA.prove()) before export.");
+    check(evidence.state?.status === "completed",`GM evidence requires a completed resolution, found ${JSON.stringify(evidence.state?.status)}.`);
+    check(evidence.footprintProof && typeof evidence.footprintProof === "object","GM evidence must include footprintProof.");
+    if (label !== "ordinary") check(evidence.footprintProof.pending,"Reaction sentinels require the captured pending proof.");
+    check(!evidence.footprintProof.captureErrors?.length,"GM evidence has capture errors; inspect dump().footprintProof.captureErrors.");
+  } else {
+    const result = evidence.result;
+    check(result && typeof result === "object",
+      "Player evidence requires the terminal result received by the player client; the prepared flag alone is not evidence.");
+    check(result.resolutionId === evidence.resolutionId,"Player terminal result belongs to a different resolution.");
+    check(result.status === "completed" && result.ok !== false,
+      `Player evidence requires a completed terminal result, found ${JSON.stringify(result.status)}.`);
+  }
+  check(typeof gitSha === "string" && /^[0-9a-f]{7,40}$/i.test(gitSha.trim()),
+    "gitSha must be the exact Git commit SHA (7-40 hex characters) of the served build; canonical evidence is never exported without it.");
+  check(runtime && typeof runtime === "object","Foundry runtime metadata is required.");
+  check(typeof runtime.foundryVersion === "string" && runtime.foundryVersion.trim(),"runtime.foundryVersion must be Foundry's version string.");
+  for (const key of ["generation","build"]) {
+    if (runtime[key] != null) check(Number.isInteger(runtime[key]),`runtime.${key} must be an integer when supplied.`);
+  }
+  check(runtime.systemId === "wildpath","Evidence must be captured with the wildpath system active.");
+  const stamp = capturedAt ?? new Date().toISOString();
+  check(typeof stamp === "string" && Number.isFinite(Date.parse(stamp)) && new Date(stamp).toISOString() === stamp,
+    "capturedAt must be an ISO-8601 UTC timestamp such as new Date().toISOString().");
+  assertPlainJSON(evidence,"evidence",new Set());
+  return {
+    schemaVersion:STAGED_MOVEMENT_EVIDENCE_SCHEMA, evidenceType:STAGED_MOVEMENT_EVIDENCE_TYPE,
+    role, case:label, mode:evidence.mode, variant:evidence.variant,
+    foundryVersion:runtime.foundryVersion.trim(),
+    foundry:{generation:runtime.generation ?? null, build:runtime.build ?? null},
+    systemId:runtime.systemId, systemVersion:typeof runtime.systemVersion === "string" ? runtime.systemVersion : null,
+    gitSha:gitSha.trim().toLowerCase(), capturedAt:stamp,
+    runId:evidence.runId, resolutionId:evidence.resolutionId,
+    evidenceFile:STAGED_MOVEMENT_EVIDENCE_FILES[label][role],
+    evidence:JSON.parse(JSON.stringify(evidence))
+  };
+}

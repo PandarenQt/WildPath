@@ -22,8 +22,24 @@ the maintainer reported **6/6 PASS**. The live-confirmed Quench total is therefo
 (Q1 17, Q2 17, Combat 6, staged movement 6). As with every batch this is maintainer-reported
 evidence without an exported Quench report. Node results alone never established this Level-3 evidence.
 
-Level-5 multiplayer QA becomes a thin sentinel. Rerun it when multiplayer, socket, authority, or
-prompt transport behavior changes, rather than for every purely mechanical movement change.
+Level-5 multiplayer QA becomes a thin sentinel of exactly three paired GM/player cases —
+`ordinary` (square), `decline` (square), and `large-hex-decline` — exported only through the helper's
+canonical `exportEvidence`/`exportPlayerEvidence` wrapper (see [staged-movement-qa.md](staged-movement-qa.md)).
+Ongoing policy:
+
+```text
+Pure movement/mechanical changes:
+  -> Node
+  -> Quench six-case staged movement suite
+  -> do not automatically require manual multiplayer reruns
+
+Changes touching socket transport, authority, request routing, prompt ownership,
+multiplayer orchestration, or disclosure/confidentiality transport:
+  -> rerun the appropriate Level-5 multiplayer sentinel(s)
+```
+
+Rerun the sentinel when multiplayer, socket, authority, or prompt transport behavior changes, rather
+than for every purely mechanical movement change.
 Quench does **not** prove real GM/player browser socket delivery, active-GM failover, network timing,
 remote prompt UX, or visual animation timing. Those still require real browser evidence; no new
 Level-5 pass is claimed by this batch or its portable tests. The paired-client procedure remains

@@ -169,17 +169,35 @@ The ordinary Action runtime evidence is tracked in `evidence/gm-hit.json`, `gm-m
 `player-hit.json`, and `player-miss.json`. These artifacts and prior live claims were not replaced
 or rerun during this milestone.
 
-Staged-movement live evidence now exists at two levels. Level 3: the `wildpath.staged-movement`
-Quench batch is 6/6 on V14.367 (maintainer-reported) after `e30d752`. Level 5 (paired GM/player,
-[staged-movement-qa.md](staged-movement-qa.md)): `evidence/gm-movement-{hit,miss,stop}.json` and
-`evidence/player-movement-{hit,miss,stop}.json` were committed in `302424f`, but they are DevTools
-console transcripts rather than the prescribed `copy(JSON.stringify(...))` exports. The GM
-transcripts each embed one passing pending proof and one passing final proof for hit, miss, and
-stop; the player hit and miss transcripts show a completed terminal result; the player stop
-transcript shows no terminal result; `evidence/gm-movement-ordinary.json` is a player `prepared`
-snapshot under a GM file name with no proof or result. No paired evidence exists for `decline`,
-`ordinary` (GM proof), or `Large-hex reaction decline`. Native dragging continues to use its
-existing **completed-event** workflow.
+Staged-movement live evidence exists at two levels.
+
+```text
+Quench semantic gate (Level 3):
+  wildpath.staged-movement  6/6 live-confirmed, Foundry V14.367, after e30d752
+  total Quench              46/46
+
+Level-5 multiplayer sentinel (two real browsers, staged-movement-qa.md):
+  pending canonical paired JSON exports for
+  - ordinary square/Medium           evidence/gm-movement-ordinary.json  + player-movement-ordinary.json
+  - square/Medium reaction decline   evidence/gm-movement-decline.json   + player-movement-decline.json
+  - Large-hex reaction decline       evidence/gm-large-hex-decline.json  + player-large-hex-decline.json
+
+Milestone: OPEN pending the three paired Level-5 sentinel exports.
+Next milestone: confidentiality hardening, after movement closure.
+```
+
+`miss`, `hit`, and `stop` are deliberately not repeated manually; Quench owns their mechanics. The
+canonical exports are produced only by `movementQA.exportEvidence({gitSha})` (GM, after `prove()`)
+and `mq.exportPlayerEvidence({gitSha})` (player, after the completed terminal result), which wrap
+the existing bounded dumps with schema/type, role, case, variant, Foundry version/generation/build,
+system id/version, the exact served Git SHA, an ISO capture timestamp, run and resolution IDs, and
+the canonical file name, and refuse non-sentinel cases, pre-proof state, missing terminal results,
+missing SHAs, and any non-JSON value. The files committed in `302424f`
+(`evidence/*-movement-{hit,miss,stop}.json`, and `gm-movement-ordinary.json`, which is a player
+`prepared` snapshot under a GM name) are DevTools console transcripts, not exports; they remain
+historical, supplementary evidence and are not closure evidence. The current
+`gm-movement-ordinary.json` will be replaced by the canonical GM export of the same name. Native
+dragging continues to use its existing **completed-event** workflow.
 
 ## Prerequisite repairs included
 
@@ -199,13 +217,11 @@ repaired whole-array pool write still proven only in Node, and core 14.367 throw
 reproduces; not a WildPath failure). Whether the fixture orphan check returned empty arrays for
 Combats, Scenes, and Actors after the live run was not reported; confirm it before the next run.
 
-Movement milestone closure is now a Level-5 decision. The six-case semantic gate is green through
-Quench; the paired GM/player sentinel is partially captured as console transcripts (hit, miss, stop
-GM proofs passing; see above) and is missing `ordinary`, `decline`, and `Large-hex reaction decline`
-pairs. To close the milestone on the standard set in `staged-movement-qa.md`, either re-export the
-paired runs as JSON with build and SHA recorded, or explicitly accept the Quench batch plus the
-existing transcripts as sufficient and record that decision here. Until then the milestone stays
-open, and confidentiality hardening still follows it.
+Movement milestone closure requires the three paired Level-5 sentinel exports above, produced in two
+real browser sessions with the helper's canonical export, paired by `runId`/`resolutionId`, carrying
+the same `gitSha` and `foundryVersion` 14.367, and committed. Only that manual run changes the
+Level-5 state from pending to passed; nothing in this repository change closes it. Confidentiality
+hardening follows movement closure and is not moved ahead of it.
 
 Current limits are explicit: active GM and voluntary translation at the Foundry entry point;
 no intermediate Token persistence/rendering; no durable host reconstruction after reload/handoff;

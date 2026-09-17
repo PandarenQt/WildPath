@@ -6,7 +6,8 @@ import {createFoundryV14DocumentPersistenceAdapter} from "../../module/adapters/
 import {stagedMovementPersistence} from "../../module/adapters/foundry-v14-staged-movement-commit.mjs";
 import {createFoundryV14TacticalGridAdapter} from "../../module/adapters/foundry-v14-tactical-grid-adapter.mjs";
 import {footprintDistance} from "../../module/helpers/grid-footprints.mjs";
-import {captureMovementQA, footprintSnapshot, verifyPendingMovementQA, verifyMovementQA} from "./staged-movement-qa-proof.mjs";
+import {buildStagedMovementLevel5Evidence, captureMovementQA, footprintSnapshot, verifyPendingMovementQA, verifyMovementQA}
+  from "./staged-movement-qa-proof.mjs";
 
 const FLAG = "stagedMovementQA";
 const check = (value, reason) => {if (!value) throw new Error(reason);};
@@ -15,6 +16,13 @@ const runtime = () => game.wildpath.multiplayer;
 const markedMover = () => [...canvas.scene.tokens].find(t => t.getFlag("wildpath", FLAG)?.role === "mover");
 const positionKeys = ["x","y","elevation","width","height","depth","shape"];
 const position = token => Object.fromEntries(positionKeys.map(key => [key,token.toObject(true)[key]]).filter(([,value]) => value !== undefined));
+/** Plain runtime identity read at export time; only stable primitive fields are serialized. */
+export function foundryRuntimeMetadata() {
+  return {foundryVersion:game.version, generation:game.release?.generation ?? null, build:game.release?.build ?? null,
+    systemId:game.system?.id ?? null, systemVersion:game.system?.version ?? null};
+}
+const packageEvidence = object => ({object, json:JSON.stringify(object,null,2), file:object.evidenceFile});
+
 function snapshot(mover, reactor) {
   return {x:mover.x,y:mover.y,movement:mover.actor.system.resources.movement.value,
     hp:mover.actor.system.resources.health.value,reaction:reactor.actor.system.resources.reaction.value,
@@ -169,6 +177,10 @@ export async function setupGM(moverUserId, reactorUserId=game.user.id, {variant=
       history:qa.history,envelopes:qa.envelopes.filter(e => ids.has(e.resolutionId)),
       result:runtime().coordinator.getResult(qa.current?.resolutionId)});
   };
+  // Canonical Level-5 GM export: wraps the same bounded dump that prove() returns, refusing pre-proof
+  // state, non-sentinel cases, or a missing served-build SHA. Use copy(movementQA.exportEvidence({gitSha}).json).
+  qa.exportEvidence = ({gitSha, sentinel=null}={}) => packageEvidence(buildStagedMovementLevel5Evidence({
+    role:"gm", evidence:qa.dump(), gitSha, sentinel, runtime:foundryRuntimeMetadata()}));
   const receive = envelope => {if (qa.current && envelope?.messageType) qa.envelopes.push(clone(envelope));};
   qa.incoming = envelope => receive(envelope);
   qa.outgoing = (channel,envelope) => {if (channel === "system.wildpath") receive(envelope);};
@@ -215,4 +227,10 @@ export function dumpPlayer() {
   return bounded({...prepared,role:"player",after:snapshot(mover,reactor),
     result:runtime().coordinator.getResult(prepared.resolutionId),
     notifications:runtime().coordinator.notifications.filter(n => n.envelope?.resolutionId === prepared.resolutionId)});
+}
+
+/** Canonical Level-5 player export: requires the completed terminal result for the prepared resolution. */
+export function exportPlayerEvidence({gitSha, sentinel=null}={}) {
+  return packageEvidence(buildStagedMovementLevel5Evidence({
+    role:"player", evidence:dumpPlayer(), gitSha, sentinel, runtime:foundryRuntimeMetadata()}));
 }
