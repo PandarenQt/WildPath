@@ -1,53 +1,1556 @@
 {
-  "runId": "azc7oXceEhQV9D7X",
-  "role": "player",
+  "schemaVersion": 1,
+  "evidenceType": "staged-movement-level5",
+  "role": "gm",
+  "case": "ordinary",
   "mode": "ordinary",
   "variant": "square",
-  "resolutionId": "qa-movement:azc7oXceEhQV9D7X:3bIXp4sJzTHg47A6",
-  "moverUserId": "6JWzwo5Aln6gZUWH",
-  "reactorUserId": "hUdU40DWftTFyJzW",
-  "moverTokenId": "rvTm0LSSrDFzzbMH",
-  "reactorTokenId": "IIq7hFUYzdMrq6zc",
-  "sceneId": "q2HthP7tg8690hK6",
-  "origin": {
-    "x": 3000,
-    "y": 2300,
-    "elevation": 0,
-    "width": 1,
-    "height": 1,
-    "depth": 1,
-    "shape": 4
+  "foundryVersion": "14.367",
+  "foundry": {
+    "generation": 14,
+    "build": 367
   },
-  "route": [
-    {
-      "x": 3100,
-      "y": 2300
+  "systemId": "wildpath",
+  "systemVersion": "0.0.1",
+  "gitSha": "a009d3fc588ab86c0f34d8af88d6484936c37367",
+  "capturedAt": "2026-09-20T20:51:18.211Z",
+  "runId": "gSBEb1j8zwImv9KD",
+  "resolutionId": "qa-movement:gSBEb1j8zwImv9KD:v4tfHGU5pJX6jD0D",
+  "evidenceFile": "evidence/gm-movement-ordinary.json",
+  "evidence": {
+    "runId": "gSBEb1j8zwImv9KD",
+    "role": "gm",
+    "mode": "ordinary",
+    "variant": "square",
+    "resolutionId": "qa-movement:gSBEb1j8zwImv9KD:v4tfHGU5pJX6jD0D",
+    "moverUserId": "6JWzwo5Aln6gZUWH",
+    "reactorUserId": "hUdU40DWftTFyJzW",
+    "moverTokenId": "bI9gy9newyMzi4jj",
+    "reactorTokenId": "MZattKbaoq3VzBxP",
+    "sceneId": "q2HthP7tg8690hK6",
+    "origin": {
+      "x": 3000,
+      "y": 2300,
+      "elevation": 0,
+      "width": 1,
+      "height": 1,
+      "depth": 1,
+      "shape": 4
     },
-    {
-      "x": 3200,
-      "y": 2300
+    "route": [
+      {
+        "x": 3100,
+        "y": 2300
+      },
+      {
+        "x": 3200,
+        "y": 2300
+      },
+      {
+        "x": 3300,
+        "y": 2300
+      }
+    ],
+    "before": {
+      "x": 3000,
+      "y": 2300,
+      "movement": 30,
+      "hp": 30,
+      "reaction": 1,
+      "effects": []
     },
-    {
+    "proofPassed": true,
+    "after": {
       "x": 3300,
-      "y": 2300
+      "y": 2300,
+      "movement": 15,
+      "hp": 30,
+      "reaction": 1,
+      "effects": []
+    },
+    "footprintProof": {
+      "pending": null,
+      "children": [],
+      "captureErrors": [],
+      "route": [
+        {
+          "topology": "square",
+          "size": "medium",
+          "anchor": {
+            "x": 23,
+            "y": 30
+          },
+          "fields": [
+            {
+              "x": 23,
+              "y": 30
+            }
+          ]
+        },
+        {
+          "topology": "square",
+          "size": "medium",
+          "anchor": {
+            "x": 23,
+            "y": 31
+          },
+          "fields": [
+            {
+              "x": 23,
+              "y": 31
+            }
+          ]
+        },
+        {
+          "topology": "square",
+          "size": "medium",
+          "anchor": {
+            "x": 23,
+            "y": 32
+          },
+          "fields": [
+            {
+              "x": 23,
+              "y": 32
+            }
+          ]
+        },
+        {
+          "topology": "square",
+          "size": "medium",
+          "anchor": {
+            "x": 23,
+            "y": 33
+          },
+          "fields": [
+            {
+              "x": 23,
+              "y": 33
+            }
+          ]
+        }
+      ],
+      "final": {
+        "topology": "square",
+        "size": "medium",
+        "anchor": {
+          "x": 23,
+          "y": 33
+        },
+        "fields": [
+          {
+            "x": 23,
+            "y": 33
+          }
+        ]
+      }
+    },
+    "state": {
+      "status": "completed",
+      "errors": [],
+      "movement": {
+        "completedTransitionCount": 3,
+        "intendedTransitionCount": 3,
+        "cumulativeCost": 15,
+        "stopped": false,
+        "reason": null,
+        "footprint": {
+          "type": "TokenGridFootprint",
+          "topology": "square",
+          "size": "medium",
+          "effectiveSize": "medium",
+          "anchor": {
+            "x": 23,
+            "y": 33
+          },
+          "definition": {
+            "size": "medium",
+            "topology": "square",
+            "offsets": [
+              {
+                "x": 0,
+                "y": 0
+              }
+            ],
+            "fieldCount": 1,
+            "creaturesPerField": 1,
+            "minimumFields": 1,
+            "metadata": {
+              "ruleset": "dnd5e",
+              "squareWidth": 1
+            }
+          },
+          "fields": [
+            {
+              "x": 23,
+              "y": 33
+            }
+          ],
+          "fieldKeys": [
+            "square:23,33"
+          ],
+          "metadata": {},
+          "boundaryFields": [
+            {
+              "x": 23,
+              "y": 33
+            }
+          ],
+          "boundaryEdges": [
+            {
+              "id": "square:23,33>east",
+              "topology": "square",
+              "field": {
+                "x": 23,
+                "y": 33
+              },
+              "outsideField": {
+                "x": 24,
+                "y": 33
+              },
+              "direction": "east"
+            },
+            {
+              "id": "square:23,33>north",
+              "topology": "square",
+              "field": {
+                "x": 23,
+                "y": 33
+              },
+              "outsideField": {
+                "x": 23,
+                "y": 32
+              },
+              "direction": "north"
+            },
+            {
+              "id": "square:23,33>south",
+              "topology": "square",
+              "field": {
+                "x": 23,
+                "y": 33
+              },
+              "outsideField": {
+                "x": 23,
+                "y": 34
+              },
+              "direction": "south"
+            },
+            {
+              "id": "square:23,33>west",
+              "topology": "square",
+              "field": {
+                "x": 23,
+                "y": 33
+              },
+              "outsideField": {
+                "x": 22,
+                "y": 33
+              },
+              "direction": "west"
+            }
+          ],
+          "boundaryVertices": [
+            {
+              "id": "square-vertex:23,33",
+              "x": 23,
+              "y": 33,
+              "incidentFields": [
+                {
+                  "x": 22,
+                  "y": 32
+                },
+                {
+                  "x": 23,
+                  "y": 32
+                },
+                {
+                  "x": 22,
+                  "y": 33
+                },
+                {
+                  "x": 23,
+                  "y": 33
+                }
+              ],
+              "topology": "square",
+              "occupiedIncidentFields": [
+                {
+                  "x": 23,
+                  "y": 33
+                }
+              ],
+              "external": true
+            },
+            {
+              "id": "square-vertex:23,34",
+              "x": 23,
+              "y": 34,
+              "incidentFields": [
+                {
+                  "x": 22,
+                  "y": 33
+                },
+                {
+                  "x": 23,
+                  "y": 33
+                },
+                {
+                  "x": 22,
+                  "y": 34
+                },
+                {
+                  "x": 23,
+                  "y": 34
+                }
+              ],
+              "topology": "square",
+              "occupiedIncidentFields": [
+                {
+                  "x": 23,
+                  "y": 33
+                }
+              ],
+              "external": true
+            },
+            {
+              "id": "square-vertex:24,33",
+              "x": 24,
+              "y": 33,
+              "incidentFields": [
+                {
+                  "x": 23,
+                  "y": 32
+                },
+                {
+                  "x": 24,
+                  "y": 32
+                },
+                {
+                  "x": 23,
+                  "y": 33
+                },
+                {
+                  "x": 24,
+                  "y": 33
+                }
+              ],
+              "topology": "square",
+              "occupiedIncidentFields": [
+                {
+                  "x": 23,
+                  "y": 33
+                }
+              ],
+              "external": true
+            },
+            {
+              "id": "square-vertex:24,34",
+              "x": 24,
+              "y": 34,
+              "incidentFields": [
+                {
+                  "x": 23,
+                  "y": 33
+                },
+                {
+                  "x": 24,
+                  "y": 33
+                },
+                {
+                  "x": 23,
+                  "y": 34
+                },
+                {
+                  "x": 24,
+                  "y": 34
+                }
+              ],
+              "topology": "square",
+              "occupiedIncidentFields": [
+                {
+                  "x": 23,
+                  "y": 33
+                }
+              ],
+              "external": true
+            }
+          ],
+          "internalVertices": []
+        },
+        "committed": true
+      },
+      "reactions": null,
+      "windows": [
+        {
+          "id": "reaction-window:qa-movement:gSBEb1j8zwImv9KD:v4tfHGU5pJX6jD0D:before-transition:qa-movement:gSBEb1j8zwImv9KD:v4tfHGU5pJX6jD0D:transition:0",
+          "status": "closed",
+          "offeredCandidateIds": [],
+          "declinedCandidateIds": [],
+          "childResolutionIds": []
+        },
+        {
+          "id": "reaction-window:qa-movement:gSBEb1j8zwImv9KD:v4tfHGU5pJX6jD0D:before-transition:qa-movement:gSBEb1j8zwImv9KD:v4tfHGU5pJX6jD0D:transition:1",
+          "status": "closed",
+          "offeredCandidateIds": [],
+          "declinedCandidateIds": [],
+          "childResolutionIds": []
+        },
+        {
+          "id": "reaction-window:qa-movement:gSBEb1j8zwImv9KD:v4tfHGU5pJX6jD0D:before-transition:qa-movement:gSBEb1j8zwImv9KD:v4tfHGU5pJX6jD0D:transition:2",
+          "status": "closed",
+          "offeredCandidateIds": [],
+          "declinedCandidateIds": [],
+          "childResolutionIds": []
+        }
+      ],
+      "transaction": {
+        "ok": true,
+        "code": "OK",
+        "committed": [
+          {
+            "id": "qa-movement:gSBEb1j8zwImv9KD:v4tfHGU5pJX6jD0D:position",
+            "type": "documentUpdate",
+            "actorRef": null,
+            "documentRef": "Scene.q2HthP7tg8690hK6.Token.bI9gy9newyMzi4jj",
+            "updates": {
+              "x": 3300,
+              "y": 2300
+            },
+            "rollbackUpdates": {
+              "x": 3000,
+              "y": 2300
+            },
+            "metadata": {
+              "role": "movementPosition"
+            },
+            "status": "committed"
+          },
+          {
+            "id": "qa-movement:gSBEb1j8zwImv9KD:v4tfHGU5pJX6jD0D:payment",
+            "type": "actorUpdate",
+            "actorRef": "Scene.q2HthP7tg8690hK6.Token.bI9gy9newyMzi4jj.Actor.1ObfyPcL6xauUdf0",
+            "updates": {
+              "system.resources.movement.value": 15
+            },
+            "rollbackUpdates": {
+              "system.resources.movement.value": 30
+            },
+            "metadata": {},
+            "status": "committed"
+          }
+        ],
+        "rollbacks": [],
+        "failures": [],
+        "rolledBack": false,
+        "metadata": {
+          "resolutionId": "qa-movement:gSBEb1j8zwImv9KD:v4tfHGU5pJX6jD0D"
+        }
+      }
+    },
+    "routing": [],
+    "history": [
+      {
+        "resolutionId": "qa-movement:gSBEb1j8zwImv9KD:v4tfHGU5pJX6jD0D",
+        "status": "ready-to-commit",
+        "stage": "movement.ready-to-commit",
+        "cursor": {
+          "completedTransitionCount": 3,
+          "cumulativeCost": 15,
+          "stopped": false,
+          "reason": null
+        },
+        "renderedPosition": {
+          "x": 3300,
+          "y": 2300,
+          "elevation": 0,
+          "width": 1,
+          "height": 1,
+          "depth": 1,
+          "shape": 4
+        },
+        "renderedFootprint": {
+          "topology": "square",
+          "size": "medium",
+          "anchor": {
+            "x": 23,
+            "y": 33
+          },
+          "fields": [
+            {
+              "x": 23,
+              "y": 33
+            }
+          ]
+        },
+        "origin": {
+          "topology": "square",
+          "size": "medium",
+          "anchor": {
+            "x": 23,
+            "y": 30
+          },
+          "fields": [
+            {
+              "x": 23,
+              "y": 30
+            }
+          ]
+        },
+        "logical": {
+          "topology": "square",
+          "size": "medium",
+          "anchor": {
+            "x": 23,
+            "y": 33
+          },
+          "fields": [
+            {
+              "x": 23,
+              "y": 33
+            }
+          ]
+        },
+        "event": {
+          "id": "qa-movement:gSBEb1j8zwImv9KD:v4tfHGU5pJX6jD0D:transition:2",
+          "type": "movement.transition-proposed",
+          "phase": "interrupt",
+          "data": {
+            "transitionIndex": 2,
+            "previous": {
+              "topology": "square",
+              "size": "medium",
+              "anchor": {
+                "x": 23,
+                "y": 32
+              },
+              "fields": [
+                {
+                  "x": 23,
+                  "y": 32
+                }
+              ]
+            },
+            "proposed": {
+              "topology": "square",
+              "size": "medium",
+              "anchor": {
+                "x": 23,
+                "y": 33
+              },
+              "fields": [
+                {
+                  "x": 23,
+                  "y": 33
+                }
+              ]
+            },
+            "cumulativeCost": 10,
+            "relations": {
+              "qaReactor": {
+                "before": 2,
+                "after": 3,
+                "reachFields": 1,
+                "withinBefore": false,
+                "withinAfter": false,
+                "leavesReach": false,
+                "entersReach": false,
+                "context": {
+                  "hostile": true
+                }
+              }
+            }
+          }
+        },
+        "window": {
+          "id": "reaction-window:qa-movement:gSBEb1j8zwImv9KD:v4tfHGU5pJX6jD0D:before-transition:qa-movement:gSBEb1j8zwImv9KD:v4tfHGU5pJX6jD0D:transition:2",
+          "timing": "before-transition",
+          "offeredCandidateIds": []
+        },
+        "pendingChoice": false,
+        "child": null
+      },
+      {
+        "resolutionId": "qa-movement:gSBEb1j8zwImv9KD:v4tfHGU5pJX6jD0D",
+        "status": "completed",
+        "stage": "movement.finalization",
+        "cursor": {
+          "completedTransitionCount": 3,
+          "cumulativeCost": 15,
+          "stopped": false,
+          "reason": null
+        },
+        "renderedPosition": {
+          "x": 3300,
+          "y": 2300,
+          "elevation": 0,
+          "width": 1,
+          "height": 1,
+          "depth": 1,
+          "shape": 4
+        },
+        "renderedFootprint": {
+          "topology": "square",
+          "size": "medium",
+          "anchor": {
+            "x": 23,
+            "y": 33
+          },
+          "fields": [
+            {
+              "x": 23,
+              "y": 33
+            }
+          ]
+        },
+        "origin": {
+          "topology": "square",
+          "size": "medium",
+          "anchor": {
+            "x": 23,
+            "y": 30
+          },
+          "fields": [
+            {
+              "x": 23,
+              "y": 30
+            }
+          ]
+        },
+        "logical": {
+          "topology": "square",
+          "size": "medium",
+          "anchor": {
+            "x": 23,
+            "y": 33
+          },
+          "fields": [
+            {
+              "x": 23,
+              "y": 33
+            }
+          ]
+        },
+        "event": {
+          "id": "qa-movement:gSBEb1j8zwImv9KD:v4tfHGU5pJX6jD0D:transition:2",
+          "type": "movement.transition-proposed",
+          "phase": "interrupt",
+          "data": {
+            "transitionIndex": 2,
+            "previous": {
+              "topology": "square",
+              "size": "medium",
+              "anchor": {
+                "x": 23,
+                "y": 32
+              },
+              "fields": [
+                {
+                  "x": 23,
+                  "y": 32
+                }
+              ]
+            },
+            "proposed": {
+              "topology": "square",
+              "size": "medium",
+              "anchor": {
+                "x": 23,
+                "y": 33
+              },
+              "fields": [
+                {
+                  "x": 23,
+                  "y": 33
+                }
+              ]
+            },
+            "cumulativeCost": 10,
+            "relations": {
+              "qaReactor": {
+                "before": 2,
+                "after": 3,
+                "reachFields": 1,
+                "withinBefore": false,
+                "withinAfter": false,
+                "leavesReach": false,
+                "entersReach": false,
+                "context": {
+                  "hostile": true
+                }
+              }
+            }
+          }
+        },
+        "window": {
+          "id": "reaction-window:qa-movement:gSBEb1j8zwImv9KD:v4tfHGU5pJX6jD0D:before-transition:qa-movement:gSBEb1j8zwImv9KD:v4tfHGU5pJX6jD0D:transition:2",
+          "timing": "before-transition",
+          "offeredCandidateIds": []
+        },
+        "pendingChoice": false,
+        "child": null
+      }
+    ],
+    "envelopes": [
+      {
+        "protocolVersion": 1,
+        "messageId": "resolution-message:action-intent:1789937454572:1",
+        "messageType": "ACTION_INTENT",
+        "senderUserId": "6JWzwo5Aln6gZUWH",
+        "recipientUserId": "hUdU40DWftTFyJzW",
+        "recipientUserIds": [],
+        "recipientPolicy": null,
+        "resolutionId": "qa-movement:gSBEb1j8zwImv9KD:v4tfHGU5pJX6jD0D",
+        "requestId": null,
+        "payload": {
+          "resolutionId": "qa-movement:gSBEb1j8zwImv9KD:v4tfHGU5pJX6jD0D",
+          "intentId": "qa-movement:gSBEb1j8zwImv9KD:v4tfHGU5pJX6jD0D",
+          "movementId": "qa-movement:gSBEb1j8zwImv9KD:v4tfHGU5pJX6jD0D",
+          "sceneRef": "Scene.q2HthP7tg8690hK6",
+          "tokenRef": "Scene.q2HthP7tg8690hK6.Token.bI9gy9newyMzi4jj",
+          "origin": {
+            "x": 3000,
+            "y": 2300,
+            "elevation": 0,
+            "width": 1,
+            "height": 1,
+            "depth": 1,
+            "shape": 4
+          },
+          "waypoints": [
+            {
+              "x": 3100,
+              "y": 2300,
+              "elevation": 0
+            },
+            {
+              "x": 3200,
+              "y": 2300,
+              "elevation": 0
+            },
+            {
+              "x": 3300,
+              "y": 2300,
+              "elevation": 0
+            }
+          ],
+          "movementKind": "voluntary",
+          "movementMode": "walk",
+          "resolutionKind": "movement"
+        },
+        "metadata": {
+          "authority": {
+            "ok": true,
+            "code": "OK",
+            "reason": null,
+            "userId": "hUdU40DWftTFyJzW",
+            "mode": "active-gm",
+            "activeGMUserId": "hUdU40DWftTFyJzW"
+          },
+          "multiplayer": {
+            "intentOnly": true
+          }
+        }
+      },
+      {
+        "protocolVersion": 1,
+        "messageId": "resolution-message:resolution-result:1789937454783:1",
+        "messageType": "RESOLUTION_RESULT",
+        "senderUserId": "hUdU40DWftTFyJzW",
+        "recipientUserId": null,
+        "recipientUserIds": [],
+        "recipientPolicy": "all",
+        "resolutionId": "qa-movement:gSBEb1j8zwImv9KD:v4tfHGU5pJX6jD0D",
+        "requestId": null,
+        "payload": {
+          "result": {
+            "resolutionId": "qa-movement:gSBEb1j8zwImv9KD:v4tfHGU5pJX6jD0D",
+            "status": "completed",
+            "code": null,
+            "ok": true,
+            "authorityUserId": "hUdU40DWftTFyJzW",
+            "initiatorUserId": "6JWzwo5Aln6gZUWH",
+            "action": {
+              "id": null,
+              "name": null,
+              "type": "action",
+              "source": null
+            },
+            "source": {
+              "actorId": "1ObfyPcL6xauUdf0",
+              "actorRef": "Scene.q2HthP7tg8690hK6.Token.bI9gy9newyMzi4jj.Actor.1ObfyPcL6xauUdf0",
+              "tokenId": "bI9gy9newyMzi4jj",
+              "tokenRef": "Scene.q2HthP7tg8690hK6.Token.bI9gy9newyMzi4jj"
+            },
+            "targets": [],
+            "configuration": null,
+            "preview": null,
+            "rolls": [],
+            "outcomes": {
+              "attack": null,
+              "save": null,
+              "damage": null,
+              "healing": null,
+              "effects": null,
+              "payment": {
+                "id": "payment-1",
+                "code": "AVAILABLE",
+                "mode": "direct",
+                "priority": 10,
+                "resources": [
+                  {
+                    "resourceId": "economy.movement",
+                    "amount": 15,
+                    "capability": "movement",
+                    "unit": "movement",
+                    "mode": "direct",
+                    "source": {
+                      "type": "actor",
+                      "slug": "movement"
+                    }
+                  }
+                ],
+                "selection": "deterministic-priority",
+                "trace": [
+                  {
+                    "resourceId": "economy.movement",
+                    "capability": "movement",
+                    "amount": 15,
+                    "mode": "direct",
+                    "policy": null
+                  }
+                ]
+              },
+              "movement": {
+                "completedTransitionCount": 3,
+                "intendedTransitionCount": 3,
+                "cumulativeCost": 15,
+                "stopped": false,
+                "reason": null,
+                "footprint": {
+                  "type": "TokenGridFootprint",
+                  "topology": "square",
+                  "size": "medium",
+                  "effectiveSize": "medium",
+                  "anchor": {
+                    "x": 23,
+                    "y": 33
+                  },
+                  "definition": {
+                    "size": "medium",
+                    "topology": "square",
+                    "offsets": [
+                      "[depth limit]"
+                    ],
+                    "fieldCount": 1,
+                    "creaturesPerField": 1,
+                    "minimumFields": 1,
+                    "metadata": {
+                      "ruleset": "dnd5e",
+                      "squareWidth": 1
+                    }
+                  },
+                  "fields": [
+                    {
+                      "x": 23,
+                      "y": 33
+                    }
+                  ],
+                  "fieldKeys": [
+                    "square:23,33"
+                  ],
+                  "metadata": {},
+                  "boundaryFields": [
+                    {
+                      "x": 23,
+                      "y": 33
+                    }
+                  ],
+                  "boundaryEdges": [
+                    {
+                      "id": "square:23,33>east",
+                      "topology": "square",
+                      "field": "[depth limit]",
+                      "outsideField": "[depth limit]",
+                      "direction": "east"
+                    },
+                    {
+                      "id": "square:23,33>north",
+                      "topology": "square",
+                      "field": "[depth limit]",
+                      "outsideField": "[depth limit]",
+                      "direction": "north"
+                    },
+                    {
+                      "id": "square:23,33>south",
+                      "topology": "square",
+                      "field": "[depth limit]",
+                      "outsideField": "[depth limit]",
+                      "direction": "south"
+                    },
+                    {
+                      "id": "square:23,33>west",
+                      "topology": "square",
+                      "field": "[depth limit]",
+                      "outsideField": "[depth limit]",
+                      "direction": "west"
+                    }
+                  ],
+                  "boundaryVertices": [
+                    {
+                      "id": "square-vertex:23,33",
+                      "x": 23,
+                      "y": 33,
+                      "incidentFields": "[depth limit]",
+                      "topology": "square",
+                      "occupiedIncidentFields": "[depth limit]",
+                      "external": true
+                    },
+                    {
+                      "id": "square-vertex:23,34",
+                      "x": 23,
+                      "y": 34,
+                      "incidentFields": "[depth limit]",
+                      "topology": "square",
+                      "occupiedIncidentFields": "[depth limit]",
+                      "external": true
+                    },
+                    {
+                      "id": "square-vertex:24,33",
+                      "x": 24,
+                      "y": 33,
+                      "incidentFields": "[depth limit]",
+                      "topology": "square",
+                      "occupiedIncidentFields": "[depth limit]",
+                      "external": true
+                    },
+                    {
+                      "id": "square-vertex:24,34",
+                      "x": 24,
+                      "y": 34,
+                      "incidentFields": "[depth limit]",
+                      "topology": "square",
+                      "occupiedIncidentFields": "[depth limit]",
+                      "external": true
+                    }
+                  ],
+                  "internalVertices": []
+                },
+                "committed": true
+              }
+            },
+            "committedMutations": [
+              {
+                "id": "qa-movement:gSBEb1j8zwImv9KD:v4tfHGU5pJX6jD0D:position",
+                "type": "documentUpdate",
+                "actorRef": null,
+                "documentRef": "Scene.q2HthP7tg8690hK6.Token.bI9gy9newyMzi4jj",
+                "role": "movementPosition"
+              },
+              {
+                "id": "qa-movement:gSBEb1j8zwImv9KD:v4tfHGU5pJX6jD0D:payment",
+                "type": "actorUpdate",
+                "actorRef": "Scene.q2HthP7tg8690hK6.Token.bI9gy9newyMzi4jj.Actor.1ObfyPcL6xauUdf0",
+                "role": null
+              }
+            ],
+            "trace": [
+              {
+                "stageId": "movement.intention",
+                "status": "completed",
+                "result": "continue",
+                "code": "OK",
+                "requestIds": []
+              },
+              {
+                "stageId": "movement.route",
+                "status": "completed",
+                "result": "continue",
+                "code": "OK",
+                "requestIds": []
+              },
+              {
+                "stageId": "movement.validation",
+                "status": "completed",
+                "result": "continue",
+                "code": "OK",
+                "requestIds": []
+              },
+              {
+                "stageId": "movement.transition:0.propose",
+                "status": "completed",
+                "result": "continue",
+                "code": "OK",
+                "requestIds": []
+              },
+              {
+                "stageId": "movement.transition:0.reactions",
+                "status": "running",
+                "result": "continue",
+                "code": "NO_CANDIDATES",
+                "requestIds": []
+              },
+              {
+                "stageId": "movement.transition:0.reactions",
+                "status": "completed",
+                "result": "continue",
+                "code": "OK",
+                "requestIds": []
+              },
+              {
+                "stageId": "movement.transition:0.revalidation",
+                "status": "completed",
+                "result": "continue",
+                "code": "OK",
+                "requestIds": []
+              },
+              {
+                "stageId": "movement.transition:0.traverse",
+                "status": "completed",
+                "result": "continue",
+                "code": "OK",
+                "requestIds": []
+              },
+              {
+                "stageId": "movement.transition:1.propose",
+                "status": "completed",
+                "result": "continue",
+                "code": "OK",
+                "requestIds": []
+              },
+              {
+                "stageId": "movement.transition:1.reactions",
+                "status": "running",
+                "result": "continue",
+                "code": "NO_CANDIDATES",
+                "requestIds": []
+              },
+              {
+                "stageId": "movement.transition:1.reactions",
+                "status": "completed",
+                "result": "continue",
+                "code": "OK",
+                "requestIds": []
+              },
+              {
+                "stageId": "movement.transition:1.revalidation",
+                "status": "completed",
+                "result": "continue",
+                "code": "OK",
+                "requestIds": []
+              },
+              {
+                "stageId": "movement.transition:1.traverse",
+                "status": "completed",
+                "result": "continue",
+                "code": "OK",
+                "requestIds": []
+              },
+              {
+                "stageId": "movement.transition:2.propose",
+                "status": "completed",
+                "result": "continue",
+                "code": "OK",
+                "requestIds": []
+              },
+              {
+                "stageId": "movement.transition:2.reactions",
+                "status": "running",
+                "result": "continue",
+                "code": "NO_CANDIDATES",
+                "requestIds": []
+              },
+              {
+                "stageId": "movement.transition:2.reactions",
+                "status": "completed",
+                "result": "continue",
+                "code": "OK",
+                "requestIds": []
+              },
+              {
+                "stageId": "movement.transition:2.revalidation",
+                "status": "completed",
+                "result": "continue",
+                "code": "OK",
+                "requestIds": []
+              },
+              {
+                "stageId": "movement.transition:2.traverse",
+                "status": "completed",
+                "result": "continue",
+                "code": "OK",
+                "requestIds": []
+              },
+              {
+                "stageId": "movement.payment",
+                "status": "completed",
+                "result": "continue",
+                "code": "OK",
+                "requestIds": []
+              },
+              {
+                "stageId": "movement.ready-to-commit",
+                "status": "completed",
+                "result": "complete",
+                "code": "COMPLETED",
+                "requestIds": []
+              },
+              "[2 more entries]"
+            ]
+          }
+        },
+        "metadata": {}
+      }
+    ],
+    "result": {
+      "resolutionId": "qa-movement:gSBEb1j8zwImv9KD:v4tfHGU5pJX6jD0D",
+      "status": "completed",
+      "code": null,
+      "ok": true,
+      "authorityUserId": "hUdU40DWftTFyJzW",
+      "initiatorUserId": "6JWzwo5Aln6gZUWH",
+      "action": {
+        "id": null,
+        "name": null,
+        "type": "action",
+        "source": null
+      },
+      "source": {
+        "actorId": "1ObfyPcL6xauUdf0",
+        "actorRef": "Scene.q2HthP7tg8690hK6.Token.bI9gy9newyMzi4jj.Actor.1ObfyPcL6xauUdf0",
+        "tokenId": "bI9gy9newyMzi4jj",
+        "tokenRef": "Scene.q2HthP7tg8690hK6.Token.bI9gy9newyMzi4jj"
+      },
+      "targets": [],
+      "configuration": null,
+      "preview": null,
+      "rolls": [],
+      "outcomes": {
+        "attack": null,
+        "save": null,
+        "damage": null,
+        "healing": null,
+        "effects": null,
+        "payment": {
+          "id": "payment-1",
+          "code": "AVAILABLE",
+          "mode": "direct",
+          "priority": 10,
+          "resources": [
+            {
+              "resourceId": "economy.movement",
+              "amount": 15,
+              "capability": "movement",
+              "unit": "movement",
+              "mode": "direct",
+              "source": {
+                "type": "actor",
+                "slug": "movement"
+              }
+            }
+          ],
+          "selection": "deterministic-priority",
+          "trace": [
+            {
+              "resourceId": "economy.movement",
+              "capability": "movement",
+              "amount": 15,
+              "mode": "direct",
+              "policy": null
+            }
+          ]
+        },
+        "movement": {
+          "completedTransitionCount": 3,
+          "intendedTransitionCount": 3,
+          "cumulativeCost": 15,
+          "stopped": false,
+          "reason": null,
+          "footprint": {
+            "type": "TokenGridFootprint",
+            "topology": "square",
+            "size": "medium",
+            "effectiveSize": "medium",
+            "anchor": {
+              "x": 23,
+              "y": 33
+            },
+            "definition": {
+              "size": "medium",
+              "topology": "square",
+              "offsets": [
+                {
+                  "x": 0,
+                  "y": 0
+                }
+              ],
+              "fieldCount": 1,
+              "creaturesPerField": 1,
+              "minimumFields": 1,
+              "metadata": {
+                "ruleset": "dnd5e",
+                "squareWidth": 1
+              }
+            },
+            "fields": [
+              {
+                "x": 23,
+                "y": 33
+              }
+            ],
+            "fieldKeys": [
+              "square:23,33"
+            ],
+            "metadata": {},
+            "boundaryFields": [
+              {
+                "x": 23,
+                "y": 33
+              }
+            ],
+            "boundaryEdges": [
+              {
+                "id": "square:23,33>east",
+                "topology": "square",
+                "field": {
+                  "x": 23,
+                  "y": 33
+                },
+                "outsideField": {
+                  "x": 24,
+                  "y": 33
+                },
+                "direction": "east"
+              },
+              {
+                "id": "square:23,33>north",
+                "topology": "square",
+                "field": {
+                  "x": 23,
+                  "y": 33
+                },
+                "outsideField": {
+                  "x": 23,
+                  "y": 32
+                },
+                "direction": "north"
+              },
+              {
+                "id": "square:23,33>south",
+                "topology": "square",
+                "field": {
+                  "x": 23,
+                  "y": 33
+                },
+                "outsideField": {
+                  "x": 23,
+                  "y": 34
+                },
+                "direction": "south"
+              },
+              {
+                "id": "square:23,33>west",
+                "topology": "square",
+                "field": {
+                  "x": 23,
+                  "y": 33
+                },
+                "outsideField": {
+                  "x": 22,
+                  "y": 33
+                },
+                "direction": "west"
+              }
+            ],
+            "boundaryVertices": [
+              {
+                "id": "square-vertex:23,33",
+                "x": 23,
+                "y": 33,
+                "incidentFields": [
+                  {
+                    "x": 22,
+                    "y": 32
+                  },
+                  {
+                    "x": 23,
+                    "y": 32
+                  },
+                  {
+                    "x": 22,
+                    "y": 33
+                  },
+                  {
+                    "x": 23,
+                    "y": 33
+                  }
+                ],
+                "topology": "square",
+                "occupiedIncidentFields": [
+                  {
+                    "x": 23,
+                    "y": 33
+                  }
+                ],
+                "external": true
+              },
+              {
+                "id": "square-vertex:23,34",
+                "x": 23,
+                "y": 34,
+                "incidentFields": [
+                  {
+                    "x": 22,
+                    "y": 33
+                  },
+                  {
+                    "x": 23,
+                    "y": 33
+                  },
+                  {
+                    "x": 22,
+                    "y": 34
+                  },
+                  {
+                    "x": 23,
+                    "y": 34
+                  }
+                ],
+                "topology": "square",
+                "occupiedIncidentFields": [
+                  {
+                    "x": 23,
+                    "y": 33
+                  }
+                ],
+                "external": true
+              },
+              {
+                "id": "square-vertex:24,33",
+                "x": 24,
+                "y": 33,
+                "incidentFields": [
+                  {
+                    "x": 23,
+                    "y": 32
+                  },
+                  {
+                    "x": 24,
+                    "y": 32
+                  },
+                  {
+                    "x": 23,
+                    "y": 33
+                  },
+                  {
+                    "x": 24,
+                    "y": 33
+                  }
+                ],
+                "topology": "square",
+                "occupiedIncidentFields": [
+                  {
+                    "x": 23,
+                    "y": 33
+                  }
+                ],
+                "external": true
+              },
+              {
+                "id": "square-vertex:24,34",
+                "x": 24,
+                "y": 34,
+                "incidentFields": [
+                  {
+                    "x": 23,
+                    "y": 33
+                  },
+                  {
+                    "x": 24,
+                    "y": 33
+                  },
+                  {
+                    "x": 23,
+                    "y": 34
+                  },
+                  {
+                    "x": 24,
+                    "y": 34
+                  }
+                ],
+                "topology": "square",
+                "occupiedIncidentFields": [
+                  {
+                    "x": 23,
+                    "y": 33
+                  }
+                ],
+                "external": true
+              }
+            ],
+            "internalVertices": []
+          },
+          "committed": true
+        }
+      },
+      "committedMutations": [
+        {
+          "id": "qa-movement:gSBEb1j8zwImv9KD:v4tfHGU5pJX6jD0D:position",
+          "type": "documentUpdate",
+          "actorRef": null,
+          "documentRef": "Scene.q2HthP7tg8690hK6.Token.bI9gy9newyMzi4jj",
+          "role": "movementPosition"
+        },
+        {
+          "id": "qa-movement:gSBEb1j8zwImv9KD:v4tfHGU5pJX6jD0D:payment",
+          "type": "actorUpdate",
+          "actorRef": "Scene.q2HthP7tg8690hK6.Token.bI9gy9newyMzi4jj.Actor.1ObfyPcL6xauUdf0",
+          "role": null
+        }
+      ],
+      "trace": [
+        {
+          "stageId": "movement.intention",
+          "status": "completed",
+          "result": "continue",
+          "code": "OK",
+          "requestIds": []
+        },
+        {
+          "stageId": "movement.route",
+          "status": "completed",
+          "result": "continue",
+          "code": "OK",
+          "requestIds": []
+        },
+        {
+          "stageId": "movement.validation",
+          "status": "completed",
+          "result": "continue",
+          "code": "OK",
+          "requestIds": []
+        },
+        {
+          "stageId": "movement.transition:0.propose",
+          "status": "completed",
+          "result": "continue",
+          "code": "OK",
+          "requestIds": []
+        },
+        {
+          "stageId": "movement.transition:0.reactions",
+          "status": "running",
+          "result": "continue",
+          "code": "NO_CANDIDATES",
+          "requestIds": []
+        },
+        {
+          "stageId": "movement.transition:0.reactions",
+          "status": "completed",
+          "result": "continue",
+          "code": "OK",
+          "requestIds": []
+        },
+        {
+          "stageId": "movement.transition:0.revalidation",
+          "status": "completed",
+          "result": "continue",
+          "code": "OK",
+          "requestIds": []
+        },
+        {
+          "stageId": "movement.transition:0.traverse",
+          "status": "completed",
+          "result": "continue",
+          "code": "OK",
+          "requestIds": []
+        },
+        {
+          "stageId": "movement.transition:1.propose",
+          "status": "completed",
+          "result": "continue",
+          "code": "OK",
+          "requestIds": []
+        },
+        {
+          "stageId": "movement.transition:1.reactions",
+          "status": "running",
+          "result": "continue",
+          "code": "NO_CANDIDATES",
+          "requestIds": []
+        },
+        {
+          "stageId": "movement.transition:1.reactions",
+          "status": "completed",
+          "result": "continue",
+          "code": "OK",
+          "requestIds": []
+        },
+        {
+          "stageId": "movement.transition:1.revalidation",
+          "status": "completed",
+          "result": "continue",
+          "code": "OK",
+          "requestIds": []
+        },
+        {
+          "stageId": "movement.transition:1.traverse",
+          "status": "completed",
+          "result": "continue",
+          "code": "OK",
+          "requestIds": []
+        },
+        {
+          "stageId": "movement.transition:2.propose",
+          "status": "completed",
+          "result": "continue",
+          "code": "OK",
+          "requestIds": []
+        },
+        {
+          "stageId": "movement.transition:2.reactions",
+          "status": "running",
+          "result": "continue",
+          "code": "NO_CANDIDATES",
+          "requestIds": []
+        },
+        {
+          "stageId": "movement.transition:2.reactions",
+          "status": "completed",
+          "result": "continue",
+          "code": "OK",
+          "requestIds": []
+        },
+        {
+          "stageId": "movement.transition:2.revalidation",
+          "status": "completed",
+          "result": "continue",
+          "code": "OK",
+          "requestIds": []
+        },
+        {
+          "stageId": "movement.transition:2.traverse",
+          "status": "completed",
+          "result": "continue",
+          "code": "OK",
+          "requestIds": []
+        },
+        {
+          "stageId": "movement.payment",
+          "status": "completed",
+          "result": "continue",
+          "code": "OK",
+          "requestIds": []
+        },
+        {
+          "stageId": "movement.ready-to-commit",
+          "status": "completed",
+          "result": "complete",
+          "code": "COMPLETED",
+          "requestIds": []
+        },
+        "[2 more entries]"
+      ]
     }
-  ],
-  "before": {
-    "x": 3000,
-    "y": 2300,
-    "movement": 30,
-    "hp": 30,
-    "reaction": 1,
-    "effects": []
-  },
-  "after": {
-    "x": 3000,
-    "y": 2300,
-    "movement": 30,
-    "hp": 30,
-    "reaction": 1,
-    "effects": []
-  },
-  "result": null,
-  "notifications": []
+  }
 }
