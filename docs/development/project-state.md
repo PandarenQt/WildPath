@@ -1,6 +1,6 @@
 # WildPath — Current Project State
 
-Last verified: 2026-09-17.
+Last verified: 2026-09-20.
 
 - Branch: `milestone/action-runtime-live-proof`.
 - Starting HEAD for Quench Q1: `85344524f75e2620c3bc1990e5c75cca7c463602`.
@@ -11,7 +11,8 @@ Last verified: 2026-09-17.
 - Movement implementation commit: `87ed1fae93271b81b14432bb4312be9cd53285c5`.
 - Original milestone starting HEAD: `ea484fd8b503697ddf1c2b7b0f6984ea594378e2`.
 - Local main HEAD: `61d6268b838e286728c829924506c6c931174621`.
-- Portable full suite (`FOUNDRY_V14_APP_PATH` unset): **825 tests, 823 passed, 0 failed, 2 intentionally skipped**.
+- Portable full suite (`FOUNDRY_V14_APP_PATH` unset): **834 tests, 832 passed, 0 failed, 2 intentionally skipped**.
+- Level-5 evidence-export delta from 825/823/0/2: **9 new tests** in `test/staged-movement-evidence.test.mjs` (commit `a009d3f`).
 - Staged-movement position-verification repair delta from 821/819/0/2: **4 new tests** in `test/staged-movement.test.mjs` (commit `e30d752`; generated `.mjs` rebuilt).
 - Quench staged-movement batch delta from 811/809/0/2: **10 new portable tests** (two fixture, eight orchestration; commit `b22e287`).
 - Combat-slice delta from 808/806/0/2: **3 new portable tests** (Scene/Token/Combat fixture ownership, cleanup ordering across collections, read-only orphan listing); batch inventory check extended to seven batches.
@@ -172,22 +173,32 @@ or rerun during this milestone.
 Staged-movement live evidence exists at two levels.
 
 ```text
-Quench semantic gate (Level 3):
+Level 3 (Quench):
   wildpath.staged-movement  6/6 live-confirmed, Foundry V14.367, after e30d752
   total Quench              46/46
 
-Level-5 multiplayer sentinel (two real browsers, staged-movement-qa.md):
-  pending canonical paired JSON exports for
-  - ordinary square/Medium           evidence/gm-movement-ordinary.json  + player-movement-ordinary.json
-  - square/Medium reaction decline   evidence/gm-movement-decline.json   + player-movement-decline.json
-  - Large-hex reaction decline       evidence/gm-large-hex-decline.json  + player-large-hex-decline.json
+Level 5 (two real browsers, staged-movement-qa.md; canonical exports committed 2026-09-20):
+  ordinary square/Medium           GM + player JSON PASS   evidence/{gm,player}-movement-ordinary.json   build a009d3f
+  square/Medium reaction decline   GM + player JSON PASS   evidence/{gm,player}-movement-decline.json    build d669a17
+  Large-hex reaction decline       GM + player JSON PASS   evidence/{gm,player}-large-hex-decline.json   build d669a17
 
-Milestone: OPEN pending the three paired Level-5 sentinel exports.
-Next milestone: confidentiality hardening, after movement closure.
+staged movement milestone CLOSED
+confidentiality hardening NEXT
 ```
 
+Each pair shares its `runId`, `resolutionId`, `gitSha`, and `foundryVersion` 14.367; every GM export
+carries a passed final proof on a completed resolution, and every player export carries the
+completed terminal result for the same resolution. The ordinary pair was captured on build
+`a009d3f`; decline and Large-hex on `d669a17`, which differs only in development QA tooling (the
+Large hex mover is now created at its final size instead of resized, because a V14 resize is a
+movement operation that WildPath's own approval rejected) — no runtime code changed between them.
+The Large-hex pair committed its final position at a fractional hex coordinate (`y: 2165`), the
+case that failed before `e30d752`. The reaction sentinels each record one before-transition window
+at transition index 1 with the offered candidate declined and no child resolution, with the pending
+proof captured before the answer.
+
 `miss`, `hit`, and `stop` are deliberately not repeated manually; Quench owns their mechanics. The
-canonical exports are produced only by `movementQA.exportEvidence({gitSha})` (GM, after `prove()`)
+canonical exports were produced only by `movementQA.exportEvidence({gitSha})` (GM, after `prove()`)
 and `mq.exportPlayerEvidence({gitSha})` (player, after the completed terminal result), which wrap
 the existing bounded dumps with schema/type, role, case, variant, Foundry version/generation/build,
 system id/version, the exact served Git SHA, an ISO capture timestamp, run and resolution IDs, and
@@ -195,9 +206,9 @@ the canonical file name, and refuse non-sentinel cases, pre-proof state, missing
 missing SHAs, and any non-JSON value. The files committed in `302424f`
 (`evidence/*-movement-{hit,miss,stop}.json`, and `gm-movement-ordinary.json`, which is a player
 `prepared` snapshot under a GM name) are DevTools console transcripts, not exports; they remain
-historical, supplementary evidence and are not closure evidence. The current
-`gm-movement-ordinary.json` will be replaced by the canonical GM export of the same name. Native
-dragging continues to use its existing **completed-event** workflow.
+historical, supplementary evidence and are not closure evidence; the mislabeled snapshot formerly
+at `gm-movement-ordinary.json` has been replaced by the canonical GM export. Native dragging
+continues to use its existing **completed-event** workflow.
 
 ## Prerequisite repairs included
 
@@ -217,11 +228,12 @@ repaired whole-array pool write still proven only in Node, and core 14.367 throw
 reproduces; not a WildPath failure). Whether the fixture orphan check returned empty arrays for
 Combats, Scenes, and Actors after the live run was not reported; confirm it before the next run.
 
-Movement milestone closure requires the three paired Level-5 sentinel exports above, produced in two
-real browser sessions with the helper's canonical export, paired by `runId`/`resolutionId`, carrying
-the same `gitSha` and `foundryVersion` 14.367, and committed. Only that manual run changes the
-Level-5 state from pending to passed; nothing in this repository change closes it. Confidentiality
-hardening follows movement closure and is not moved ahead of it.
+**The staged movement milestone is closed** on the maintainer's two-browser run of 2026-09-20: the
+three paired Level-5 sentinel exports above exist, validate, and are committed (`f2c5223`, `a85fe80`). The next milestone is **confidentiality hardening** of the
+`system.wildpath` transport, which remains broadcast with routing-only `recipientUserId` semantics
+(see the atlas §17). Rerun the Level-5 sentinel only when socket transport, authority, request
+routing, prompt ownership, multiplayer orchestration, or disclosure behavior changes; purely
+mechanical movement changes are covered by Node plus the Quench six-case batch.
 
 Current limits are explicit: active GM and voluntary translation at the Foundry entry point;
 no intermediate Token persistence/rendering; no durable host reconstruction after reload/handoff;

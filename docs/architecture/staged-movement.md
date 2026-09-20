@@ -136,5 +136,7 @@ reaction is independent of a later parent failure and is not refunded with paren
 Authority handoff/reload recovery, durable host reconstruction, global serialization against
 unrelated concurrent Actor updates, native ruler integration, animation, and Region semantics
 for intermediate logical positions remain deferred. The six-case semantic gate is live-confirmed in
-V14.367 through the `wildpath.staged-movement` Quench batch on a single active-GM client; paired
-GM/player verification remains the Level-5 sentinel in [the QA runbook](../development/staged-movement-qa.md).
+V14.367 through the `wildpath.staged-movement` Quench batch on a single active-GM client, and the
+three paired GM/player Level-5 sentinel cases (ordinary, decline, Large-hex decline) passed in two
+real browser sessions on 2026-09-20 with canonical exports committed under `evidence/`; see
+[the QA runbook](../development/staged-movement-qa.md).

@@ -22,9 +22,11 @@ the maintainer reported **6/6 PASS**. The live-confirmed Quench total is therefo
 (Q1 17, Q2 17, Combat 6, staged movement 6). As with every batch this is maintainer-reported
 evidence without an exported Quench report. Node results alone never established this Level-3 evidence.
 
-Level-5 multiplayer QA becomes a thin sentinel of exactly three paired GM/player cases —
+Level-5 multiplayer QA is a thin sentinel of exactly three paired GM/player cases —
 `ordinary` (square), `decline` (square), and `large-hex-decline` — exported only through the helper's
 canonical `exportEvidence`/`exportPlayerEvidence` wrapper (see [staged-movement-qa.md](staged-movement-qa.md)).
+**All three pairs passed on 2026-09-20** in two real browser sessions on Foundry V14.367 and are
+committed under `evidence/`; the staged movement milestone is closed on that evidence.
 Ongoing policy:
 
 ```text

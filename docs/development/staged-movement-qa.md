@@ -213,6 +213,9 @@ run ID (`cleanupGM` from the Action QA helper).
 
 ## Closure
 
-The staged-movement milestone may be marked closed only after all six canonical files above exist,
-each pair passes the pairing checks, and the files are committed. Until then it stays open and
-confidentiality hardening remains sequenced after it.
+**Closed on 2026-09-20.** All six canonical files exist, each pair passes the pairing checks, and
+they are committed. The ordinary pair was captured on build `a009d3f`, the decline and Large-hex
+pairs on `d669a17` (QA-tooling-only difference: the Large mover is created at its final size).
+Rerun this sentinel when socket transport, authority, request routing, prompt ownership,
+multiplayer orchestration, or disclosure behavior changes; mechanical movement changes are covered
+by Node and the Quench six-case batch. Confidentiality hardening is the next milestone.
