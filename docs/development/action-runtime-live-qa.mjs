@@ -258,8 +258,16 @@ function observe(fixture, role) {
   return qa;
 }
 
-export async function setupGM(playerId, {topology="square"}={}) {
+/**
+ * `source` lets a caller create the mover with its final dimensions/shape (for example a Large
+ * `2 x 2` `ELLIPSE_1` hex mover). V14 treats a later width/height update as a movement operation
+ * that WildPath's own approval may reject, so the size must be right at creation. A non-default
+ * source skips the one-field adjacency requirement; that caller owns its own layout proof.
+ */
+export async function setupGM(playerId, {topology="square", source={}}={}) {
   requireRuntime("gm");
+  const sourceToken = {width: 1, height: 1, ...source};
+  const customSource = sourceToken.width !== 1 || sourceToken.height !== 1 || sourceToken.shape !== undefined;
   check(!globalThis.wpActionRuntimeQA, "Clean up existing QA first");
   const player = game.users.get(playerId);
   check(player?.active && !player.isGM, "Choose an active non-GM Player");
@@ -282,7 +290,7 @@ export async function setupGM(playerId, {topology="square"}={}) {
       const actor = await CONFIG.Actor.documentClass.create({name: `QA melee ${role} ${runId}`, type: "character",
         ownership: {default: 0, [playerId]: role === "source" ? 3 : 2}, flags: flags({...fixture, role}),
         system: {resources: {health: {base: 30, value: 30}, action: {base: 1, value: 1}}},
-        prototypeToken: {actorLink: false, width: 1, height: 1}});
+        prototypeToken: {actorLink: false, ...(role === "source" ? sourceToken : {width: 1, height: 1})}});
       fixture[`${role}ActorId`] = actor.id;
       actors.push(actor);
     }
@@ -294,7 +302,8 @@ export async function setupGM(playerId, {topology="square"}={}) {
       const role = i === 0 ? "source" : "target";
       const token = await actors[i].getTokenDocument({
         ...canvas.grid.getTopLeftPoint(i === 0 ? offset : adjacent),
-        level: canvas.level.id, actorLink: false, width: 1, height: 1, hidden: false,
+        level: canvas.level.id, actorLink: false, hidden: false,
+        ...(role === "source" ? sourceToken : {width: 1, height: 1}),
         name: `QA melee ${role}`, flags: flags({...fixture, role})
       }, {parent: scene});
       const [created] = await scene.createEmbeddedDocuments("Token", [token.toObject()]);
@@ -308,10 +317,17 @@ export async function setupGM(playerId, {topology="square"}={}) {
     check(action.system.getActionDefinition().ok && actionDefinitionFromAction(action).ok, "Persisted ActionDefinition is invalid");
     Object.assign(fixture, {actionId: action.id, actionRef: action.uuid, sourceRef: d.sourceActor.uuid, targetRef: d.targetActor.uuid});
     const adapter = createFoundryV14TacticalGridAdapter({scene});
-    const a = adapter.tokenToFootprint(d.source), b = adapter.tokenToFootprint(d.target);
-    check(a.ok && b.ok && !a.diagnostics.length && !b.diagnostics.length
-      && a.footprint.fields.length === 1 && b.footprint.fields.length === 1
-      && footprintDistance(a.footprint, b.footprint) === 1, "QA Tokens must have adjacent one-field tactical footprints");
+    const a = adapter.tokenToFootprint(d.source, {strictOccupancy: true}), b = adapter.tokenToFootprint(d.target, {strictOccupancy: true});
+    check(a.ok && b.ok && !a.diagnostics.length && !b.diagnostics.length,
+      "QA Token occupancy must match each Token's full tactical footprint");
+    if (customSource) {
+      check(a.footprint.fields.length === adapter.tokenToFootprint(d.source).footprint.fields.length
+        && d.source.width === sourceToken.width && d.source.height === sourceToken.height,
+        "Custom source Token dimensions did not persist at creation");
+    } else {
+      check(a.footprint.fields.length === 1 && b.footprint.fields.length === 1
+        && footprintDistance(a.footprint, b.footprint) === 1, "QA Tokens must have adjacent one-field tactical footprints");
+    }
     check(resolveActorAttackStatistic(d.sourceActor, action.system.definition.attack)?.totalModifier === 4,
       "Persisted Item must contribute +4 to attack.weapon");
     await d.source.setFlag("wildpath", QA_FLAG, {...fixture, role: "source"});

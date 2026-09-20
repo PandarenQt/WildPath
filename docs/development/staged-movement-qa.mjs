@@ -60,14 +60,13 @@ export async function setupGM(moverUserId, reactorUserId=game.user.id, {variant=
   check(!globalThis.wpStagedMovementQA,"Detach the previous staged movement helper first.");
   check(["square","large-hex-decline"].includes(variant),"Unknown staged movement QA variant.");
   const hex = variant === "large-hex-decline";
-  const old = await setupActionGM(moverUserId,{topology:hex ? "hex" : "square"});
+  // The Large hex mover is created at its final size: a later width/height update is a V14 movement
+  // operation subject to WildPath's native approval, which is not what this sentinel tests.
+  const old = await setupActionGM(moverUserId,{topology:hex ? "hex" : "square",
+    source:hex ? {width:2,height:2,shape:CONST.TOKEN_SHAPES.ELLIPSE_1} : {}});
   old.detach();
   const fixture = old.fixture, scene = game.scenes.get(fixture.sceneId);
   const mover = scene.tokens.get(fixture.sourceTokenId), reactor = scene.tokens.get(fixture.targetTokenId);
-  if (hex) {
-    await mover.actor.update({"system.traits.size":"large"});
-    await mover.update({width:2,height:2,shape:CONST.TOKEN_SHAPES.ELLIPSE_1});
-  }
   const adapter = createFoundryV14TacticalGridAdapter({scene});
   const origin = position(mover), offset = canvas.grid.getOffset(origin);
   const {reactorPosition,route} = hex ? largeHexLayout(adapter,mover,reactor) : {

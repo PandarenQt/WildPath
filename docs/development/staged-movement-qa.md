@@ -162,9 +162,10 @@ const hexMovementQA = await mq.setupGM("MOVER_PLAYER_ID", game.user.id, {variant
 await hexMovementQA.prepare("decline");
 ```
 
-Setup creates a marked synthetic **Large** mover (`2 x 2`, `ELLIPSE_1`) and verifies exactly three
-occupied hex fields at origin and every waypoint, with full-footprint distances `1, 1, 2, 3` from
-the observer; occupancy diagnostics fail setup. This variant accepts only `decline`.
+Setup creates a marked synthetic **Large** mover (`2 x 2`, `ELLIPSE_1`) **at creation time** — a
+later resize would itself be a V14 movement operation subject to WildPath approval — and verifies
+exactly three occupied hex fields at origin and every waypoint, with full-footprint distances
+`1, 1, 2, 3` from the observer; occupancy diagnostics fail setup. This variant accepts only `decline`.
 
 ```js
 // Player
