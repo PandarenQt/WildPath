@@ -1,0 +1,3742 @@
+{
+  "schemaVersion": 1,
+  "evidenceType": "staged-movement-level5",
+  "role": "gm",
+  "case": "large-hex-decline",
+  "mode": "decline",
+  "variant": "large-hex-decline",
+  "foundryVersion": "14.367",
+  "foundry": {
+    "generation": 14,
+    "build": 367
+  },
+  "systemId": "wildpath",
+  "systemVersion": "0.0.1",
+  "gitSha": "d669a17cf38e2a5ab5192e0e325a50154c963f49",
+  "capturedAt": "2026-09-20T21:25:07.327Z",
+  "runId": "PHqxUvNV6iKzCIbR",
+  "resolutionId": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l",
+  "evidenceFile": "evidence/gm-large-hex-decline.json",
+  "evidence": {
+    "runId": "PHqxUvNV6iKzCIbR",
+    "role": "gm",
+    "mode": "decline",
+    "variant": "large-hex-decline",
+    "resolutionId": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l",
+    "moverUserId": "6JWzwo5Aln6gZUWH",
+    "reactorUserId": "hUdU40DWftTFyJzW",
+    "moverTokenId": "gBSKwPOiNulNnh4G",
+    "reactorTokenId": "n5IXP0Lly2WbJC0p",
+    "sceneId": "ATdgY1RvViHWwNo8",
+    "origin": {
+      "x": 3000,
+      "y": 2165,
+      "elevation": 0,
+      "width": 2,
+      "height": 2,
+      "depth": 1,
+      "shape": 0
+    },
+    "route": [
+      {
+        "x": 3100,
+        "y": 2165
+      },
+      {
+        "x": 3200,
+        "y": 2165
+      },
+      {
+        "x": 3300,
+        "y": 2165
+      }
+    ],
+    "before": {
+      "x": 3000,
+      "y": 2165,
+      "movement": 30,
+      "hp": 30,
+      "reaction": 1,
+      "effects": []
+    },
+    "proofPassed": true,
+    "after": {
+      "x": 3300,
+      "y": 2165,
+      "movement": 15,
+      "hp": 30,
+      "reaction": 1,
+      "effects": []
+    },
+    "footprintProof": {
+      "pending": {
+        "resolutionId": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l",
+        "status": "awaiting-choice",
+        "stage": "movement.transition:1.reactions",
+        "cursor": {
+          "completedTransitionCount": 1,
+          "cumulativeCost": 5,
+          "stopped": false,
+          "reason": null
+        },
+        "renderedPosition": {
+          "x": 3000,
+          "y": 2165,
+          "elevation": 0,
+          "width": 2,
+          "height": 2,
+          "depth": 1,
+          "shape": 0
+        },
+        "renderedFootprint": {
+          "topology": "hex",
+          "size": "large",
+          "anchor": {
+            "q": 18,
+            "r": 25
+          },
+          "fields": [
+            {
+              "q": 18,
+              "r": 25
+            },
+            {
+              "q": 18,
+              "r": 26
+            },
+            {
+              "q": 19,
+              "r": 25
+            }
+          ]
+        },
+        "origin": {
+          "topology": "hex",
+          "size": "large",
+          "anchor": {
+            "q": 18,
+            "r": 25
+          },
+          "fields": [
+            {
+              "q": 18,
+              "r": 25
+            },
+            {
+              "q": 18,
+              "r": 26
+            },
+            {
+              "q": 19,
+              "r": 25
+            }
+          ]
+        },
+        "logical": {
+          "topology": "hex",
+          "size": "large",
+          "anchor": {
+            "q": 19,
+            "r": 25
+          },
+          "fields": [
+            {
+              "q": 19,
+              "r": 25
+            },
+            {
+              "q": 19,
+              "r": 26
+            },
+            {
+              "q": 20,
+              "r": 25
+            }
+          ]
+        },
+        "event": {
+          "id": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1",
+          "type": "movement.transition-proposed",
+          "phase": "interrupt",
+          "data": {
+            "transitionIndex": 1,
+            "previous": {
+              "topology": "hex",
+              "size": "large",
+              "anchor": {
+                "q": 19,
+                "r": 25
+              },
+              "fields": [
+                {
+                  "q": 19,
+                  "r": 25
+                },
+                {
+                  "q": 19,
+                  "r": 26
+                },
+                {
+                  "q": 20,
+                  "r": 25
+                }
+              ]
+            },
+            "proposed": {
+              "topology": "hex",
+              "size": "large",
+              "anchor": {
+                "q": 20,
+                "r": 25
+              },
+              "fields": [
+                {
+                  "q": 20,
+                  "r": 25
+                },
+                {
+                  "q": 20,
+                  "r": 26
+                },
+                {
+                  "q": 21,
+                  "r": 25
+                }
+              ]
+            },
+            "cumulativeCost": 5,
+            "relations": {
+              "qaReactor": {
+                "before": 1,
+                "after": 2,
+                "reachFields": 1,
+                "withinBefore": true,
+                "withinAfter": false,
+                "leavesReach": true,
+                "entersReach": false,
+                "context": {
+                  "hostile": true
+                }
+              }
+            }
+          }
+        },
+        "window": {
+          "id": "reaction-window:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:before-transition:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1",
+          "timing": "before-transition",
+          "offeredCandidateIds": [
+            "reaction-candidate:qa-leave:PHqxUvNV6iKzCIbR:Scene.ATdgY1RvViHWwNo8.Token.n5IXP0Lly2WbJC0p.Actor.6dMk9fAcJH9aLSIS:action:qa-movement-reaction:PHqxUvNV6iKzCIbR:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1"
+          ]
+        },
+        "pendingChoice": true,
+        "child": null
+      },
+      "children": [],
+      "captureErrors": [],
+      "route": [
+        {
+          "topology": "hex",
+          "size": "large",
+          "anchor": {
+            "q": 18,
+            "r": 25
+          },
+          "fields": [
+            {
+              "q": 18,
+              "r": 25
+            },
+            {
+              "q": 18,
+              "r": 26
+            },
+            {
+              "q": 19,
+              "r": 25
+            }
+          ]
+        },
+        {
+          "topology": "hex",
+          "size": "large",
+          "anchor": {
+            "q": 19,
+            "r": 25
+          },
+          "fields": [
+            {
+              "q": 19,
+              "r": 25
+            },
+            {
+              "q": 19,
+              "r": 26
+            },
+            {
+              "q": 20,
+              "r": 25
+            }
+          ]
+        },
+        {
+          "topology": "hex",
+          "size": "large",
+          "anchor": {
+            "q": 20,
+            "r": 25
+          },
+          "fields": [
+            {
+              "q": 20,
+              "r": 25
+            },
+            {
+              "q": 20,
+              "r": 26
+            },
+            {
+              "q": 21,
+              "r": 25
+            }
+          ]
+        },
+        {
+          "topology": "hex",
+          "size": "large",
+          "anchor": {
+            "q": 21,
+            "r": 25
+          },
+          "fields": [
+            {
+              "q": 21,
+              "r": 25
+            },
+            {
+              "q": 21,
+              "r": 26
+            },
+            {
+              "q": 22,
+              "r": 25
+            }
+          ]
+        }
+      ],
+      "final": {
+        "topology": "hex",
+        "size": "large",
+        "anchor": {
+          "q": 21,
+          "r": 25
+        },
+        "fields": [
+          {
+            "q": 21,
+            "r": 25
+          },
+          {
+            "q": 21,
+            "r": 26
+          },
+          {
+            "q": 22,
+            "r": 25
+          }
+        ]
+      }
+    },
+    "state": {
+      "status": "completed",
+      "errors": [],
+      "movement": {
+        "completedTransitionCount": 3,
+        "intendedTransitionCount": 3,
+        "cumulativeCost": 15,
+        "stopped": false,
+        "reason": null,
+        "footprint": {
+          "type": "TokenGridFootprint",
+          "topology": "hex",
+          "size": "large",
+          "effectiveSize": "large",
+          "anchor": {
+            "q": 21,
+            "r": 25
+          },
+          "definition": {
+            "size": "large",
+            "topology": "hex",
+            "offsets": [
+              {
+                "q": 0,
+                "r": 0
+              },
+              {
+                "q": 1,
+                "r": 0
+              },
+              {
+                "q": 0,
+                "r": 1
+              }
+            ],
+            "fieldCount": 3,
+            "creaturesPerField": 1,
+            "minimumFields": 3,
+            "metadata": {
+              "ruleset": "dnd5e"
+            }
+          },
+          "fields": [
+            {
+              "q": 21,
+              "r": 25
+            },
+            {
+              "q": 21,
+              "r": 26
+            },
+            {
+              "q": 22,
+              "r": 25
+            }
+          ],
+          "fieldKeys": [
+            "hex:21,25",
+            "hex:21,26",
+            "hex:22,25"
+          ],
+          "metadata": {},
+          "boundaryFields": [
+            {
+              "q": 21,
+              "r": 25
+            },
+            {
+              "q": 21,
+              "r": 26
+            },
+            {
+              "q": 22,
+              "r": 25
+            }
+          ],
+          "boundaryEdges": [
+            {
+              "id": "hex:21,25>northeast",
+              "topology": "hex",
+              "field": {
+                "q": 21,
+                "r": 25
+              },
+              "outsideField": {
+                "q": 22,
+                "r": 24
+              },
+              "direction": "northeast"
+            },
+            {
+              "id": "hex:21,25>northwest",
+              "topology": "hex",
+              "field": {
+                "q": 21,
+                "r": 25
+              },
+              "outsideField": {
+                "q": 21,
+                "r": 24
+              },
+              "direction": "northwest"
+            },
+            {
+              "id": "hex:21,25>southwest",
+              "topology": "hex",
+              "field": {
+                "q": 21,
+                "r": 25
+              },
+              "outsideField": {
+                "q": 20,
+                "r": 26
+              },
+              "direction": "southwest"
+            },
+            {
+              "id": "hex:21,25>west",
+              "topology": "hex",
+              "field": {
+                "q": 21,
+                "r": 25
+              },
+              "outsideField": {
+                "q": 20,
+                "r": 25
+              },
+              "direction": "west"
+            },
+            {
+              "id": "hex:21,26>east",
+              "topology": "hex",
+              "field": {
+                "q": 21,
+                "r": 26
+              },
+              "outsideField": {
+                "q": 22,
+                "r": 26
+              },
+              "direction": "east"
+            },
+            {
+              "id": "hex:21,26>southeast",
+              "topology": "hex",
+              "field": {
+                "q": 21,
+                "r": 26
+              },
+              "outsideField": {
+                "q": 21,
+                "r": 27
+              },
+              "direction": "southeast"
+            },
+            {
+              "id": "hex:21,26>southwest",
+              "topology": "hex",
+              "field": {
+                "q": 21,
+                "r": 26
+              },
+              "outsideField": {
+                "q": 20,
+                "r": 27
+              },
+              "direction": "southwest"
+            },
+            {
+              "id": "hex:21,26>west",
+              "topology": "hex",
+              "field": {
+                "q": 21,
+                "r": 26
+              },
+              "outsideField": {
+                "q": 20,
+                "r": 26
+              },
+              "direction": "west"
+            },
+            {
+              "id": "hex:22,25>east",
+              "topology": "hex",
+              "field": {
+                "q": 22,
+                "r": 25
+              },
+              "outsideField": {
+                "q": 23,
+                "r": 25
+              },
+              "direction": "east"
+            },
+            {
+              "id": "hex:22,25>northeast",
+              "topology": "hex",
+              "field": {
+                "q": 22,
+                "r": 25
+              },
+              "outsideField": {
+                "q": 23,
+                "r": 24
+              },
+              "direction": "northeast"
+            },
+            {
+              "id": "hex:22,25>northwest",
+              "topology": "hex",
+              "field": {
+                "q": 22,
+                "r": 25
+              },
+              "outsideField": {
+                "q": 22,
+                "r": 24
+              },
+              "direction": "northwest"
+            },
+            {
+              "id": "hex:22,25>southeast",
+              "topology": "hex",
+              "field": {
+                "q": 22,
+                "r": 25
+              },
+              "outsideField": {
+                "q": 22,
+                "r": 26
+              },
+              "direction": "southeast"
+            }
+          ],
+          "boundaryVertices": [
+            {
+              "id": "hex-vertex:hex:20,25|hex:20,26|hex:21,25",
+              "incidentFields": [
+                {
+                  "q": 21,
+                  "r": 25
+                },
+                {
+                  "q": 20,
+                  "r": 25
+                },
+                {
+                  "q": 20,
+                  "r": 26
+                }
+              ],
+              "topology": "hex",
+              "occupiedIncidentFields": [
+                {
+                  "q": 21,
+                  "r": 25
+                }
+              ],
+              "external": true
+            },
+            {
+              "id": "hex-vertex:hex:20,25|hex:21,24|hex:21,25",
+              "incidentFields": [
+                {
+                  "q": 21,
+                  "r": 25
+                },
+                {
+                  "q": 21,
+                  "r": 24
+                },
+                {
+                  "q": 20,
+                  "r": 25
+                }
+              ],
+              "topology": "hex",
+              "occupiedIncidentFields": [
+                {
+                  "q": 21,
+                  "r": 25
+                }
+              ],
+              "external": true
+            },
+            {
+              "id": "hex-vertex:hex:20,26|hex:20,27|hex:21,26",
+              "incidentFields": [
+                {
+                  "q": 21,
+                  "r": 26
+                },
+                {
+                  "q": 20,
+                  "r": 26
+                },
+                {
+                  "q": 20,
+                  "r": 27
+                }
+              ],
+              "topology": "hex",
+              "occupiedIncidentFields": [
+                {
+                  "q": 21,
+                  "r": 26
+                }
+              ],
+              "external": true
+            },
+            {
+              "id": "hex-vertex:hex:20,26|hex:21,25|hex:21,26",
+              "incidentFields": [
+                {
+                  "q": 21,
+                  "r": 25
+                },
+                {
+                  "q": 20,
+                  "r": 26
+                },
+                {
+                  "q": 21,
+                  "r": 26
+                }
+              ],
+              "topology": "hex",
+              "occupiedIncidentFields": [
+                {
+                  "q": 21,
+                  "r": 25
+                },
+                {
+                  "q": 21,
+                  "r": 26
+                }
+              ],
+              "external": true
+            },
+            {
+              "id": "hex-vertex:hex:20,27|hex:21,26|hex:21,27",
+              "incidentFields": [
+                {
+                  "q": 21,
+                  "r": 26
+                },
+                {
+                  "q": 20,
+                  "r": 27
+                },
+                {
+                  "q": 21,
+                  "r": 27
+                }
+              ],
+              "topology": "hex",
+              "occupiedIncidentFields": [
+                {
+                  "q": 21,
+                  "r": 26
+                }
+              ],
+              "external": true
+            },
+            {
+              "id": "hex-vertex:hex:21,24|hex:21,25|hex:22,24",
+              "incidentFields": [
+                {
+                  "q": 21,
+                  "r": 25
+                },
+                {
+                  "q": 22,
+                  "r": 24
+                },
+                {
+                  "q": 21,
+                  "r": 24
+                }
+              ],
+              "topology": "hex",
+              "occupiedIncidentFields": [
+                {
+                  "q": 21,
+                  "r": 25
+                }
+              ],
+              "external": true
+            },
+            {
+              "id": "hex-vertex:hex:21,25|hex:22,24|hex:22,25",
+              "incidentFields": [
+                {
+                  "q": 21,
+                  "r": 25
+                },
+                {
+                  "q": 22,
+                  "r": 25
+                },
+                {
+                  "q": 22,
+                  "r": 24
+                }
+              ],
+              "topology": "hex",
+              "occupiedIncidentFields": [
+                {
+                  "q": 21,
+                  "r": 25
+                },
+                {
+                  "q": 22,
+                  "r": 25
+                }
+              ],
+              "external": true
+            },
+            {
+              "id": "hex-vertex:hex:21,26|hex:21,27|hex:22,26",
+              "incidentFields": [
+                {
+                  "q": 21,
+                  "r": 26
+                },
+                {
+                  "q": 21,
+                  "r": 27
+                },
+                {
+                  "q": 22,
+                  "r": 26
+                }
+              ],
+              "topology": "hex",
+              "occupiedIncidentFields": [
+                {
+                  "q": 21,
+                  "r": 26
+                }
+              ],
+              "external": true
+            },
+            {
+              "id": "hex-vertex:hex:21,26|hex:22,25|hex:22,26",
+              "incidentFields": [
+                {
+                  "q": 21,
+                  "r": 26
+                },
+                {
+                  "q": 22,
+                  "r": 26
+                },
+                {
+                  "q": 22,
+                  "r": 25
+                }
+              ],
+              "topology": "hex",
+              "occupiedIncidentFields": [
+                {
+                  "q": 21,
+                  "r": 26
+                },
+                {
+                  "q": 22,
+                  "r": 25
+                }
+              ],
+              "external": true
+            },
+            {
+              "id": "hex-vertex:hex:22,24|hex:22,25|hex:23,24",
+              "incidentFields": [
+                {
+                  "q": 22,
+                  "r": 25
+                },
+                {
+                  "q": 23,
+                  "r": 24
+                },
+                {
+                  "q": 22,
+                  "r": 24
+                }
+              ],
+              "topology": "hex",
+              "occupiedIncidentFields": [
+                {
+                  "q": 22,
+                  "r": 25
+                }
+              ],
+              "external": true
+            },
+            {
+              "id": "hex-vertex:hex:22,25|hex:22,26|hex:23,25",
+              "incidentFields": [
+                {
+                  "q": 22,
+                  "r": 25
+                },
+                {
+                  "q": 22,
+                  "r": 26
+                },
+                {
+                  "q": 23,
+                  "r": 25
+                }
+              ],
+              "topology": "hex",
+              "occupiedIncidentFields": [
+                {
+                  "q": 22,
+                  "r": 25
+                }
+              ],
+              "external": true
+            },
+            {
+              "id": "hex-vertex:hex:22,25|hex:23,24|hex:23,25",
+              "incidentFields": [
+                {
+                  "q": 22,
+                  "r": 25
+                },
+                {
+                  "q": 23,
+                  "r": 25
+                },
+                {
+                  "q": 23,
+                  "r": 24
+                }
+              ],
+              "topology": "hex",
+              "occupiedIncidentFields": [
+                {
+                  "q": 22,
+                  "r": 25
+                }
+              ],
+              "external": true
+            }
+          ],
+          "internalVertices": [
+            {
+              "id": "hex-vertex:hex:21,25|hex:21,26|hex:22,25",
+              "incidentFields": [
+                {
+                  "q": 21,
+                  "r": 25
+                },
+                {
+                  "q": 21,
+                  "r": 26
+                },
+                {
+                  "q": 22,
+                  "r": 25
+                }
+              ],
+              "topology": "hex",
+              "occupiedIncidentFields": [
+                {
+                  "q": 21,
+                  "r": 25
+                },
+                {
+                  "q": 21,
+                  "r": 26
+                },
+                {
+                  "q": 22,
+                  "r": 25
+                }
+              ],
+              "external": false
+            }
+          ]
+        },
+        "committed": true
+      },
+      "reactions": null,
+      "windows": [
+        {
+          "id": "reaction-window:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:before-transition:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:0",
+          "status": "closed",
+          "offeredCandidateIds": [],
+          "declinedCandidateIds": [],
+          "childResolutionIds": []
+        },
+        {
+          "id": "reaction-window:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:before-transition:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1",
+          "status": "closed",
+          "offeredCandidateIds": [
+            "reaction-candidate:qa-leave:PHqxUvNV6iKzCIbR:Scene.ATdgY1RvViHWwNo8.Token.n5IXP0Lly2WbJC0p.Actor.6dMk9fAcJH9aLSIS:action:qa-movement-reaction:PHqxUvNV6iKzCIbR:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1"
+          ],
+          "declinedCandidateIds": [
+            "reaction-candidate:qa-leave:PHqxUvNV6iKzCIbR:Scene.ATdgY1RvViHWwNo8.Token.n5IXP0Lly2WbJC0p.Actor.6dMk9fAcJH9aLSIS:action:qa-movement-reaction:PHqxUvNV6iKzCIbR:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1"
+          ],
+          "childResolutionIds": []
+        },
+        {
+          "id": "reaction-window:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:before-transition:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:2",
+          "status": "closed",
+          "offeredCandidateIds": [],
+          "declinedCandidateIds": [],
+          "childResolutionIds": []
+        }
+      ],
+      "transaction": {
+        "ok": true,
+        "code": "OK",
+        "committed": [
+          {
+            "id": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:position",
+            "type": "documentUpdate",
+            "actorRef": null,
+            "documentRef": "Scene.ATdgY1RvViHWwNo8.Token.gBSKwPOiNulNnh4G",
+            "updates": {
+              "x": 3300,
+              "y": 2165
+            },
+            "rollbackUpdates": {
+              "x": 3000,
+              "y": 2165
+            },
+            "metadata": {
+              "role": "movementPosition"
+            },
+            "status": "committed"
+          },
+          {
+            "id": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:payment",
+            "type": "actorUpdate",
+            "actorRef": "Scene.ATdgY1RvViHWwNo8.Token.gBSKwPOiNulNnh4G.Actor.hWhx31At2tbEkirJ",
+            "updates": {
+              "system.resources.movement.value": 15
+            },
+            "rollbackUpdates": {
+              "system.resources.movement.value": 30
+            },
+            "metadata": {},
+            "status": "committed"
+          }
+        ],
+        "rollbacks": [],
+        "failures": [],
+        "rolledBack": false,
+        "metadata": {
+          "resolutionId": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l"
+        }
+      }
+    },
+    "routing": [
+      {
+        "request": {
+          "id": "request:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:reaction:reaction-window:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:before-transition:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1:offer:1",
+          "resolutionId": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l",
+          "stageId": "movement.transition:1.reactions",
+          "type": "reaction-choice",
+          "expectedResponseType": "reaction-choice",
+          "validation": {
+            "required": false,
+            "reactionWindowId": "reaction-window:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:before-transition:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1",
+            "offerSequence": 1,
+            "candidateIds": [
+              "reaction-candidate:qa-leave:PHqxUvNV6iKzCIbR:Scene.ATdgY1RvViHWwNo8.Token.n5IXP0Lly2WbJC0p.Actor.6dMk9fAcJH9aLSIS:action:qa-movement-reaction:PHqxUvNV6iKzCIbR:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1"
+            ]
+          },
+          "chooser": {
+            "kind": "specific",
+            "userId": "hUdU40DWftTFyJzW"
+          },
+          "authority": {
+            "kind": "specific",
+            "userId": "hUdU40DWftTFyJzW"
+          },
+          "payload": {
+            "reactionWindowId": "reaction-window:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:before-transition:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1",
+            "offerSequence": 1,
+            "timing": "before-transition",
+            "event": {
+              "id": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1",
+              "type": "movement.transition-proposed",
+              "phase": "interrupt",
+              "source": {
+                "ref": "token:gBSKwPOiNulNnh4G",
+                "id": "gBSKwPOiNulNnh4G",
+                "actorId": "hWhx31At2tbEkirJ",
+                "tokenId": "gBSKwPOiNulNnh4G",
+                "type": null,
+                "disposition": null,
+                "tags": []
+              },
+              "targets": [],
+              "tags": [],
+              "data": {
+                "movementId": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l",
+                "transitionIndex": 1,
+                "previous": {
+                  "type": "TokenGridFootprint",
+                  "topology": "hex",
+                  "size": "large",
+                  "effectiveSize": "large",
+                  "anchor": {
+                    "q": 19,
+                    "r": 25
+                  },
+                  "definition": {
+                    "size": "large",
+                    "topology": "hex",
+                    "offsets": [
+                      "[depth limit]",
+                      "[depth limit]",
+                      "[depth limit]"
+                    ],
+                    "fieldCount": 3,
+                    "creaturesPerField": 1,
+                    "minimumFields": 3,
+                    "metadata": {
+                      "ruleset": "dnd5e"
+                    }
+                  },
+                  "fields": [
+                    {
+                      "q": 19,
+                      "r": 25
+                    },
+                    {
+                      "q": 19,
+                      "r": 26
+                    },
+                    {
+                      "q": 20,
+                      "r": 25
+                    }
+                  ],
+                  "fieldKeys": [
+                    "hex:19,25",
+                    "hex:19,26",
+                    "hex:20,25"
+                  ],
+                  "metadata": {},
+                  "boundaryFields": [
+                    {
+                      "q": 19,
+                      "r": 25
+                    },
+                    {
+                      "q": 19,
+                      "r": 26
+                    },
+                    {
+                      "q": 20,
+                      "r": 25
+                    }
+                  ],
+                  "boundaryEdges": [
+                    {
+                      "id": "hex:19,25>northeast",
+                      "topology": "hex",
+                      "field": "[depth limit]",
+                      "outsideField": "[depth limit]",
+                      "direction": "northeast"
+                    },
+                    {
+                      "id": "hex:19,25>northwest",
+                      "topology": "hex",
+                      "field": "[depth limit]",
+                      "outsideField": "[depth limit]",
+                      "direction": "northwest"
+                    },
+                    {
+                      "id": "hex:19,25>southwest",
+                      "topology": "hex",
+                      "field": "[depth limit]",
+                      "outsideField": "[depth limit]",
+                      "direction": "southwest"
+                    },
+                    {
+                      "id": "hex:19,25>west",
+                      "topology": "hex",
+                      "field": "[depth limit]",
+                      "outsideField": "[depth limit]",
+                      "direction": "west"
+                    },
+                    {
+                      "id": "hex:19,26>east",
+                      "topology": "hex",
+                      "field": "[depth limit]",
+                      "outsideField": "[depth limit]",
+                      "direction": "east"
+                    },
+                    {
+                      "id": "hex:19,26>southeast",
+                      "topology": "hex",
+                      "field": "[depth limit]",
+                      "outsideField": "[depth limit]",
+                      "direction": "southeast"
+                    },
+                    {
+                      "id": "hex:19,26>southwest",
+                      "topology": "hex",
+                      "field": "[depth limit]",
+                      "outsideField": "[depth limit]",
+                      "direction": "southwest"
+                    },
+                    {
+                      "id": "hex:19,26>west",
+                      "topology": "hex",
+                      "field": "[depth limit]",
+                      "outsideField": "[depth limit]",
+                      "direction": "west"
+                    },
+                    {
+                      "id": "hex:20,25>east",
+                      "topology": "hex",
+                      "field": "[depth limit]",
+                      "outsideField": "[depth limit]",
+                      "direction": "east"
+                    },
+                    {
+                      "id": "hex:20,25>northeast",
+                      "topology": "hex",
+                      "field": "[depth limit]",
+                      "outsideField": "[depth limit]",
+                      "direction": "northeast"
+                    },
+                    {
+                      "id": "hex:20,25>northwest",
+                      "topology": "hex",
+                      "field": "[depth limit]",
+                      "outsideField": "[depth limit]",
+                      "direction": "northwest"
+                    },
+                    {
+                      "id": "hex:20,25>southeast",
+                      "topology": "hex",
+                      "field": "[depth limit]",
+                      "outsideField": "[depth limit]",
+                      "direction": "southeast"
+                    }
+                  ],
+                  "boundaryVertices": [
+                    {
+                      "id": "hex-vertex:hex:18,25|hex:18,26|hex:19,25",
+                      "incidentFields": "[depth limit]",
+                      "topology": "hex",
+                      "occupiedIncidentFields": "[depth limit]",
+                      "external": true
+                    },
+                    {
+                      "id": "hex-vertex:hex:18,25|hex:19,24|hex:19,25",
+                      "incidentFields": "[depth limit]",
+                      "topology": "hex",
+                      "occupiedIncidentFields": "[depth limit]",
+                      "external": true
+                    },
+                    {
+                      "id": "hex-vertex:hex:18,26|hex:18,27|hex:19,26",
+                      "incidentFields": "[depth limit]",
+                      "topology": "hex",
+                      "occupiedIncidentFields": "[depth limit]",
+                      "external": true
+                    },
+                    {
+                      "id": "hex-vertex:hex:18,26|hex:19,25|hex:19,26",
+                      "incidentFields": "[depth limit]",
+                      "topology": "hex",
+                      "occupiedIncidentFields": "[depth limit]",
+                      "external": true
+                    },
+                    {
+                      "id": "hex-vertex:hex:18,27|hex:19,26|hex:19,27",
+                      "incidentFields": "[depth limit]",
+                      "topology": "hex",
+                      "occupiedIncidentFields": "[depth limit]",
+                      "external": true
+                    },
+                    {
+                      "id": "hex-vertex:hex:19,24|hex:19,25|hex:20,24",
+                      "incidentFields": "[depth limit]",
+                      "topology": "hex",
+                      "occupiedIncidentFields": "[depth limit]",
+                      "external": true
+                    },
+                    {
+                      "id": "hex-vertex:hex:19,25|hex:20,24|hex:20,25",
+                      "incidentFields": "[depth limit]",
+                      "topology": "hex",
+                      "occupiedIncidentFields": "[depth limit]",
+                      "external": true
+                    },
+                    {
+                      "id": "hex-vertex:hex:19,26|hex:19,27|hex:20,26",
+                      "incidentFields": "[depth limit]",
+                      "topology": "hex",
+                      "occupiedIncidentFields": "[depth limit]",
+                      "external": true
+                    },
+                    {
+                      "id": "hex-vertex:hex:19,26|hex:20,25|hex:20,26",
+                      "incidentFields": "[depth limit]",
+                      "topology": "hex",
+                      "occupiedIncidentFields": "[depth limit]",
+                      "external": true
+                    },
+                    {
+                      "id": "hex-vertex:hex:20,24|hex:20,25|hex:21,24",
+                      "incidentFields": "[depth limit]",
+                      "topology": "hex",
+                      "occupiedIncidentFields": "[depth limit]",
+                      "external": true
+                    },
+                    {
+                      "id": "hex-vertex:hex:20,25|hex:20,26|hex:21,25",
+                      "incidentFields": "[depth limit]",
+                      "topology": "hex",
+                      "occupiedIncidentFields": "[depth limit]",
+                      "external": true
+                    },
+                    {
+                      "id": "hex-vertex:hex:20,25|hex:21,24|hex:21,25",
+                      "incidentFields": "[depth limit]",
+                      "topology": "hex",
+                      "occupiedIncidentFields": "[depth limit]",
+                      "external": true
+                    }
+                  ],
+                  "internalVertices": [
+                    {
+                      "id": "hex-vertex:hex:19,25|hex:19,26|hex:20,25",
+                      "incidentFields": "[depth limit]",
+                      "topology": "hex",
+                      "occupiedIncidentFields": "[depth limit]",
+                      "external": false
+                    }
+                  ]
+                },
+                "proposed": {
+                  "type": "TokenGridFootprint",
+                  "topology": "hex",
+                  "size": "large",
+                  "effectiveSize": "large",
+                  "anchor": {
+                    "q": 20,
+                    "r": 25
+                  },
+                  "definition": {
+                    "size": "large",
+                    "topology": "hex",
+                    "offsets": [
+                      "[depth limit]",
+                      "[depth limit]",
+                      "[depth limit]"
+                    ],
+                    "fieldCount": 3,
+                    "creaturesPerField": 1,
+                    "minimumFields": 3,
+                    "metadata": {
+                      "ruleset": "dnd5e"
+                    }
+                  },
+                  "fields": [
+                    {
+                      "q": 20,
+                      "r": 25
+                    },
+                    {
+                      "q": 20,
+                      "r": 26
+                    },
+                    {
+                      "q": 21,
+                      "r": 25
+                    }
+                  ],
+                  "fieldKeys": [
+                    "hex:20,25",
+                    "hex:20,26",
+                    "hex:21,25"
+                  ],
+                  "metadata": {},
+                  "boundaryFields": [
+                    {
+                      "q": 20,
+                      "r": 25
+                    },
+                    {
+                      "q": 20,
+                      "r": 26
+                    },
+                    {
+                      "q": 21,
+                      "r": 25
+                    }
+                  ],
+                  "boundaryEdges": [
+                    {
+                      "id": "hex:20,25>northeast",
+                      "topology": "hex",
+                      "field": "[depth limit]",
+                      "outsideField": "[depth limit]",
+                      "direction": "northeast"
+                    },
+                    {
+                      "id": "hex:20,25>northwest",
+                      "topology": "hex",
+                      "field": "[depth limit]",
+                      "outsideField": "[depth limit]",
+                      "direction": "northwest"
+                    },
+                    {
+                      "id": "hex:20,25>southwest",
+                      "topology": "hex",
+                      "field": "[depth limit]",
+                      "outsideField": "[depth limit]",
+                      "direction": "southwest"
+                    },
+                    {
+                      "id": "hex:20,25>west",
+                      "topology": "hex",
+                      "field": "[depth limit]",
+                      "outsideField": "[depth limit]",
+                      "direction": "west"
+                    },
+                    {
+                      "id": "hex:20,26>east",
+                      "topology": "hex",
+                      "field": "[depth limit]",
+                      "outsideField": "[depth limit]",
+                      "direction": "east"
+                    },
+                    {
+                      "id": "hex:20,26>southeast",
+                      "topology": "hex",
+                      "field": "[depth limit]",
+                      "outsideField": "[depth limit]",
+                      "direction": "southeast"
+                    },
+                    {
+                      "id": "hex:20,26>southwest",
+                      "topology": "hex",
+                      "field": "[depth limit]",
+                      "outsideField": "[depth limit]",
+                      "direction": "southwest"
+                    },
+                    {
+                      "id": "hex:20,26>west",
+                      "topology": "hex",
+                      "field": "[depth limit]",
+                      "outsideField": "[depth limit]",
+                      "direction": "west"
+                    },
+                    {
+                      "id": "hex:21,25>east",
+                      "topology": "hex",
+                      "field": "[depth limit]",
+                      "outsideField": "[depth limit]",
+                      "direction": "east"
+                    },
+                    {
+                      "id": "hex:21,25>northeast",
+                      "topology": "hex",
+                      "field": "[depth limit]",
+                      "outsideField": "[depth limit]",
+                      "direction": "northeast"
+                    },
+                    {
+                      "id": "hex:21,25>northwest",
+                      "topology": "hex",
+                      "field": "[depth limit]",
+                      "outsideField": "[depth limit]",
+                      "direction": "northwest"
+                    },
+                    {
+                      "id": "hex:21,25>southeast",
+                      "topology": "hex",
+                      "field": "[depth limit]",
+                      "outsideField": "[depth limit]",
+                      "direction": "southeast"
+                    }
+                  ],
+                  "boundaryVertices": [
+                    {
+                      "id": "hex-vertex:hex:19,25|hex:19,26|hex:20,25",
+                      "incidentFields": "[depth limit]",
+                      "topology": "hex",
+                      "occupiedIncidentFields": "[depth limit]",
+                      "external": true
+                    },
+                    {
+                      "id": "hex-vertex:hex:19,25|hex:20,24|hex:20,25",
+                      "incidentFields": "[depth limit]",
+                      "topology": "hex",
+                      "occupiedIncidentFields": "[depth limit]",
+                      "external": true
+                    },
+                    {
+                      "id": "hex-vertex:hex:19,26|hex:19,27|hex:20,26",
+                      "incidentFields": "[depth limit]",
+                      "topology": "hex",
+                      "occupiedIncidentFields": "[depth limit]",
+                      "external": true
+                    },
+                    {
+                      "id": "hex-vertex:hex:19,26|hex:20,25|hex:20,26",
+                      "incidentFields": "[depth limit]",
+                      "topology": "hex",
+                      "occupiedIncidentFields": "[depth limit]",
+                      "external": true
+                    },
+                    {
+                      "id": "hex-vertex:hex:19,27|hex:20,26|hex:20,27",
+                      "incidentFields": "[depth limit]",
+                      "topology": "hex",
+                      "occupiedIncidentFields": "[depth limit]",
+                      "external": true
+                    },
+                    {
+                      "id": "hex-vertex:hex:20,24|hex:20,25|hex:21,24",
+                      "incidentFields": "[depth limit]",
+                      "topology": "hex",
+                      "occupiedIncidentFields": "[depth limit]",
+                      "external": true
+                    },
+                    {
+                      "id": "hex-vertex:hex:20,25|hex:21,24|hex:21,25",
+                      "incidentFields": "[depth limit]",
+                      "topology": "hex",
+                      "occupiedIncidentFields": "[depth limit]",
+                      "external": true
+                    },
+                    {
+                      "id": "hex-vertex:hex:20,26|hex:20,27|hex:21,26",
+                      "incidentFields": "[depth limit]",
+                      "topology": "hex",
+                      "occupiedIncidentFields": "[depth limit]",
+                      "external": true
+                    },
+                    {
+                      "id": "hex-vertex:hex:20,26|hex:21,25|hex:21,26",
+                      "incidentFields": "[depth limit]",
+                      "topology": "hex",
+                      "occupiedIncidentFields": "[depth limit]",
+                      "external": true
+                    },
+                    {
+                      "id": "hex-vertex:hex:21,24|hex:21,25|hex:22,24",
+                      "incidentFields": "[depth limit]",
+                      "topology": "hex",
+                      "occupiedIncidentFields": "[depth limit]",
+                      "external": true
+                    },
+                    {
+                      "id": "hex-vertex:hex:21,25|hex:21,26|hex:22,25",
+                      "incidentFields": "[depth limit]",
+                      "topology": "hex",
+                      "occupiedIncidentFields": "[depth limit]",
+                      "external": true
+                    },
+                    {
+                      "id": "hex-vertex:hex:21,25|hex:22,24|hex:22,25",
+                      "incidentFields": "[depth limit]",
+                      "topology": "hex",
+                      "occupiedIncidentFields": "[depth limit]",
+                      "external": true
+                    }
+                  ],
+                  "internalVertices": [
+                    {
+                      "id": "hex-vertex:hex:20,25|hex:20,26|hex:21,25",
+                      "incidentFields": "[depth limit]",
+                      "topology": "hex",
+                      "occupiedIncidentFields": "[depth limit]",
+                      "external": false
+                    }
+                  ]
+                },
+                "transition": {
+                  "index": 1,
+                  "from": {
+                    "q": 19,
+                    "r": 25
+                  },
+                  "to": {
+                    "q": 20,
+                    "r": 25
+                  },
+                  "fromFootprintIndex": 1,
+                  "toFootprintIndex": 2,
+                  "adjacent": true,
+                  "allowed": true,
+                  "movementKind": "voluntary",
+                  "movementMode": "walk",
+                  "cost": {
+                    "amount": 5,
+                    "unit": "ft",
+                    "measurementMode": "distance",
+                    "source": "default",
+                    "reason": null,
+                    "metadata": {}
+                  }
+                },
+                "cumulativeCost": 5,
+                "movementKind": "voluntary",
+                "movementMode": "walk",
+                "relations": {
+                  "qaReactor": {
+                    "before": 1,
+                    "after": 2,
+                    "reachFields": 1,
+                    "withinBefore": true,
+                    "withinAfter": false,
+                    "leavesReach": true,
+                    "entersReach": false,
+                    "context": {
+                      "hostile": true
+                    }
+                  }
+                }
+              }
+            },
+            "candidates": [
+              {
+                "id": "reaction-candidate:qa-leave:PHqxUvNV6iKzCIbR:Scene.ATdgY1RvViHWwNo8.Token.n5IXP0Lly2WbJC0p.Actor.6dMk9fAcJH9aLSIS:action:qa-movement-reaction:PHqxUvNV6iKzCIbR:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1",
+                "timing": "before-transition",
+                "triggerId": "qa-leave:PHqxUvNV6iKzCIbR",
+                "eventId": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1",
+                "reactor": {
+                  "actorId": "Scene.ATdgY1RvViHWwNo8.Token.n5IXP0Lly2WbJC0p.Actor.6dMk9fAcJH9aLSIS",
+                  "tokenId": "n5IXP0Lly2WbJC0p",
+                  "ref": "actor:Scene.ATdgY1RvViHWwNo8.Token.n5IXP0Lly2WbJC0p.Actor.6dMk9fAcJH9aLSIS"
+                },
+                "actionId": "action:qa-movement-reaction:PHqxUvNV6iKzCIbR",
+                "actionRef": "action:qa-movement-reaction:PHqxUvNV6iKzCIbR",
+                "action": {
+                  "id": "action:qa-movement-reaction:PHqxUvNV6iKzCIbR",
+                  "label": "QA ordinary melee",
+                  "slug": null,
+                  "category": "action",
+                  "source": {
+                    "type": "item",
+                    "ref": "uuid:Scene.ATdgY1RvViHWwNo8.Token.n5IXP0Lly2WbJC0p.Actor.6dMk9fAcJH9aLSIS.Item.JaeXgARCW8lyofoh",
+                    "uuid": "Scene.ATdgY1RvViHWwNo8.Token.n5IXP0Lly2WbJC0p.Actor.6dMk9fAcJH9aLSIS.Item.JaeXgARCW8lyofoh",
+                    "id": "JaeXgARCW8lyofoh",
+                    "itemType": "action",
+                    "name": "QA ordinary melee"
+                  }
+                },
+                "chooser": {
+                  "kind": "specific",
+                  "userId": "hUdU40DWftTFyJzW"
+                },
+                "payment": {
+                  "selectedPaymentOption": {
+                    "id": "payment-1",
+                    "code": "AVAILABLE",
+                    "mode": "direct",
+                    "priority": 10,
+                    "resources": [
+                      "[depth limit]"
+                    ],
+                    "selection": "deterministic-priority",
+                    "trace": [
+                      "[depth limit]"
+                    ]
+                  },
+                  "options": [
+                    {
+                      "id": "payment-1",
+                      "code": "AVAILABLE",
+                      "mode": "direct",
+                      "priority": 10,
+                      "resources": "[depth limit]",
+                      "selection": "deterministic-priority",
+                      "trace": "[depth limit]"
+                    }
+                  ]
+                },
+                "provenance": {
+                  "triggerId": "qa-leave:PHqxUvNV6iKzCIbR",
+                  "eventId": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1",
+                  "source": {},
+                  "owner": {
+                    "ref": "token:n5IXP0Lly2WbJC0p",
+                    "id": "n5IXP0Lly2WbJC0p",
+                    "actorId": "Scene.ATdgY1RvViHWwNo8.Token.n5IXP0Lly2WbJC0p.Actor.6dMk9fAcJH9aLSIS",
+                    "tokenId": "n5IXP0Lly2WbJC0p",
+                    "type": null,
+                    "disposition": null,
+                    "tags": []
+                  }
+                },
+                "priority": 100
+              }
+            ],
+            "options": [
+              {
+                "id": "reaction-candidate:qa-leave:PHqxUvNV6iKzCIbR:Scene.ATdgY1RvViHWwNo8.Token.n5IXP0Lly2WbJC0p.Actor.6dMk9fAcJH9aLSIS:action:qa-movement-reaction:PHqxUvNV6iKzCIbR:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1",
+                "label": "QA ordinary melee",
+                "value": {
+                  "decision": "use",
+                  "candidateId": "reaction-candidate:qa-leave:PHqxUvNV6iKzCIbR:Scene.ATdgY1RvViHWwNo8.Token.n5IXP0Lly2WbJC0p.Actor.6dMk9fAcJH9aLSIS:action:qa-movement-reaction:PHqxUvNV6iKzCIbR:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1"
+                },
+                "resources": [
+                  {
+                    "resourceId": "economy.reaction",
+                    "amount": 1,
+                    "capability": "reaction",
+                    "unit": "uses",
+                    "mode": "direct",
+                    "source": {
+                      "type": "actor",
+                      "slug": "reaction"
+                    }
+                  }
+                ],
+                "paymentPlan": {
+                  "id": "payment-1",
+                  "code": "AVAILABLE",
+                  "mode": "direct",
+                  "priority": 10,
+                  "resources": [
+                    {
+                      "resourceId": "economy.reaction",
+                      "amount": 1,
+                      "capability": "reaction",
+                      "unit": "uses",
+                      "mode": "direct",
+                      "source": "[depth limit]"
+                    }
+                  ],
+                  "selection": "deterministic-priority",
+                  "trace": [
+                    {
+                      "resourceId": "economy.reaction",
+                      "capability": "reaction",
+                      "amount": 1,
+                      "mode": "direct",
+                      "policy": null
+                    }
+                  ]
+                },
+                "source": {},
+                "metadata": {
+                  "triggerId": "qa-leave:PHqxUvNV6iKzCIbR",
+                  "reactor": {
+                    "actorId": "Scene.ATdgY1RvViHWwNo8.Token.n5IXP0Lly2WbJC0p.Actor.6dMk9fAcJH9aLSIS",
+                    "tokenId": "n5IXP0Lly2WbJC0p",
+                    "ref": "actor:Scene.ATdgY1RvViHWwNo8.Token.n5IXP0Lly2WbJC0p.Actor.6dMk9fAcJH9aLSIS"
+                  }
+                }
+              },
+              {
+                "id": "decline",
+                "label": "Decline",
+                "value": {
+                  "decision": "decline"
+                },
+                "metadata": {
+                  "reactionWindowId": "reaction-window:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:before-transition:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1"
+                }
+              }
+            ]
+          },
+          "metadata": {
+            "required": false,
+            "title": "Reaction Available",
+            "reactionWindowId": "reaction-window:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:before-transition:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1",
+            "offerSequence": 1
+          }
+        },
+        "resolutionId": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l",
+        "expectedUserId": "hUdU40DWftTFyJzW",
+        "chooser": {
+          "ok": true,
+          "code": "OK",
+          "reason": null,
+          "userId": "hUdU40DWftTFyJzW",
+          "kind": "specific",
+          "policy": {
+            "kind": "specific",
+            "userId": "hUdU40DWftTFyJzW"
+          }
+        }
+      }
+    ],
+    "history": [
+      {
+        "resolutionId": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l",
+        "status": "awaiting-choice",
+        "stage": "movement.transition:1.reactions",
+        "cursor": {
+          "completedTransitionCount": 1,
+          "cumulativeCost": 5,
+          "stopped": false,
+          "reason": null
+        },
+        "renderedPosition": {
+          "x": 3000,
+          "y": 2165,
+          "elevation": 0,
+          "width": 2,
+          "height": 2,
+          "depth": 1,
+          "shape": 0
+        },
+        "renderedFootprint": {
+          "topology": "hex",
+          "size": "large",
+          "anchor": {
+            "q": 18,
+            "r": 25
+          },
+          "fields": [
+            {
+              "q": 18,
+              "r": 25
+            },
+            {
+              "q": 18,
+              "r": 26
+            },
+            {
+              "q": 19,
+              "r": 25
+            }
+          ]
+        },
+        "origin": {
+          "topology": "hex",
+          "size": "large",
+          "anchor": {
+            "q": 18,
+            "r": 25
+          },
+          "fields": [
+            {
+              "q": 18,
+              "r": 25
+            },
+            {
+              "q": 18,
+              "r": 26
+            },
+            {
+              "q": 19,
+              "r": 25
+            }
+          ]
+        },
+        "logical": {
+          "topology": "hex",
+          "size": "large",
+          "anchor": {
+            "q": 19,
+            "r": 25
+          },
+          "fields": [
+            {
+              "q": 19,
+              "r": 25
+            },
+            {
+              "q": 19,
+              "r": 26
+            },
+            {
+              "q": 20,
+              "r": 25
+            }
+          ]
+        },
+        "event": {
+          "id": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1",
+          "type": "movement.transition-proposed",
+          "phase": "interrupt",
+          "data": {
+            "transitionIndex": 1,
+            "previous": {
+              "topology": "hex",
+              "size": "large",
+              "anchor": {
+                "q": 19,
+                "r": 25
+              },
+              "fields": [
+                {
+                  "q": 19,
+                  "r": 25
+                },
+                {
+                  "q": 19,
+                  "r": 26
+                },
+                {
+                  "q": 20,
+                  "r": 25
+                }
+              ]
+            },
+            "proposed": {
+              "topology": "hex",
+              "size": "large",
+              "anchor": {
+                "q": 20,
+                "r": 25
+              },
+              "fields": [
+                {
+                  "q": 20,
+                  "r": 25
+                },
+                {
+                  "q": 20,
+                  "r": 26
+                },
+                {
+                  "q": 21,
+                  "r": 25
+                }
+              ]
+            },
+            "cumulativeCost": 5,
+            "relations": {
+              "qaReactor": {
+                "before": 1,
+                "after": 2,
+                "reachFields": 1,
+                "withinBefore": true,
+                "withinAfter": false,
+                "leavesReach": true,
+                "entersReach": false,
+                "context": {
+                  "hostile": true
+                }
+              }
+            }
+          }
+        },
+        "window": {
+          "id": "reaction-window:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:before-transition:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1",
+          "timing": "before-transition",
+          "offeredCandidateIds": [
+            "reaction-candidate:qa-leave:PHqxUvNV6iKzCIbR:Scene.ATdgY1RvViHWwNo8.Token.n5IXP0Lly2WbJC0p.Actor.6dMk9fAcJH9aLSIS:action:qa-movement-reaction:PHqxUvNV6iKzCIbR:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1"
+          ]
+        },
+        "pendingChoice": true,
+        "child": null
+      },
+      {
+        "resolutionId": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l",
+        "status": "ready-to-commit",
+        "stage": "movement.ready-to-commit",
+        "cursor": {
+          "completedTransitionCount": 3,
+          "cumulativeCost": 15,
+          "stopped": false,
+          "reason": null
+        },
+        "renderedPosition": {
+          "x": 3000,
+          "y": 2165,
+          "elevation": 0,
+          "width": 2,
+          "height": 2,
+          "depth": 1,
+          "shape": 0
+        },
+        "renderedFootprint": {
+          "topology": "hex",
+          "size": "large",
+          "anchor": {
+            "q": 18,
+            "r": 25
+          },
+          "fields": [
+            {
+              "q": 18,
+              "r": 25
+            },
+            {
+              "q": 18,
+              "r": 26
+            },
+            {
+              "q": 19,
+              "r": 25
+            }
+          ]
+        },
+        "origin": {
+          "topology": "hex",
+          "size": "large",
+          "anchor": {
+            "q": 18,
+            "r": 25
+          },
+          "fields": [
+            {
+              "q": 18,
+              "r": 25
+            },
+            {
+              "q": 18,
+              "r": 26
+            },
+            {
+              "q": 19,
+              "r": 25
+            }
+          ]
+        },
+        "logical": {
+          "topology": "hex",
+          "size": "large",
+          "anchor": {
+            "q": 21,
+            "r": 25
+          },
+          "fields": [
+            {
+              "q": 21,
+              "r": 25
+            },
+            {
+              "q": 21,
+              "r": 26
+            },
+            {
+              "q": 22,
+              "r": 25
+            }
+          ]
+        },
+        "event": {
+          "id": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:2",
+          "type": "movement.transition-proposed",
+          "phase": "interrupt",
+          "data": {
+            "transitionIndex": 2,
+            "previous": {
+              "topology": "hex",
+              "size": "large",
+              "anchor": {
+                "q": 20,
+                "r": 25
+              },
+              "fields": [
+                {
+                  "q": 20,
+                  "r": 25
+                },
+                {
+                  "q": 20,
+                  "r": 26
+                },
+                {
+                  "q": 21,
+                  "r": 25
+                }
+              ]
+            },
+            "proposed": {
+              "topology": "hex",
+              "size": "large",
+              "anchor": {
+                "q": 21,
+                "r": 25
+              },
+              "fields": [
+                {
+                  "q": 21,
+                  "r": 25
+                },
+                {
+                  "q": 21,
+                  "r": 26
+                },
+                {
+                  "q": 22,
+                  "r": 25
+                }
+              ]
+            },
+            "cumulativeCost": 10,
+            "relations": {
+              "qaReactor": {
+                "before": 2,
+                "after": 3,
+                "reachFields": 1,
+                "withinBefore": false,
+                "withinAfter": false,
+                "leavesReach": false,
+                "entersReach": false,
+                "context": {
+                  "hostile": true
+                }
+              }
+            }
+          }
+        },
+        "window": {
+          "id": "reaction-window:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:before-transition:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:2",
+          "timing": "before-transition",
+          "offeredCandidateIds": []
+        },
+        "pendingChoice": false,
+        "child": null
+      },
+      {
+        "resolutionId": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l",
+        "status": "ready-to-commit",
+        "stage": "movement.ready-to-commit",
+        "cursor": {
+          "completedTransitionCount": 3,
+          "cumulativeCost": 15,
+          "stopped": false,
+          "reason": null
+        },
+        "renderedPosition": {
+          "x": 3300,
+          "y": 2165,
+          "elevation": 0,
+          "width": 2,
+          "height": 2,
+          "depth": 1,
+          "shape": 0
+        },
+        "renderedFootprint": {
+          "topology": "hex",
+          "size": "large",
+          "anchor": {
+            "q": 21,
+            "r": 25
+          },
+          "fields": [
+            {
+              "q": 21,
+              "r": 25
+            },
+            {
+              "q": 21,
+              "r": 26
+            },
+            {
+              "q": 22,
+              "r": 25
+            }
+          ]
+        },
+        "origin": {
+          "topology": "hex",
+          "size": "large",
+          "anchor": {
+            "q": 18,
+            "r": 25
+          },
+          "fields": [
+            {
+              "q": 18,
+              "r": 25
+            },
+            {
+              "q": 18,
+              "r": 26
+            },
+            {
+              "q": 19,
+              "r": 25
+            }
+          ]
+        },
+        "logical": {
+          "topology": "hex",
+          "size": "large",
+          "anchor": {
+            "q": 21,
+            "r": 25
+          },
+          "fields": [
+            {
+              "q": 21,
+              "r": 25
+            },
+            {
+              "q": 21,
+              "r": 26
+            },
+            {
+              "q": 22,
+              "r": 25
+            }
+          ]
+        },
+        "event": {
+          "id": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:2",
+          "type": "movement.transition-proposed",
+          "phase": "interrupt",
+          "data": {
+            "transitionIndex": 2,
+            "previous": {
+              "topology": "hex",
+              "size": "large",
+              "anchor": {
+                "q": 20,
+                "r": 25
+              },
+              "fields": [
+                {
+                  "q": 20,
+                  "r": 25
+                },
+                {
+                  "q": 20,
+                  "r": 26
+                },
+                {
+                  "q": 21,
+                  "r": 25
+                }
+              ]
+            },
+            "proposed": {
+              "topology": "hex",
+              "size": "large",
+              "anchor": {
+                "q": 21,
+                "r": 25
+              },
+              "fields": [
+                {
+                  "q": 21,
+                  "r": 25
+                },
+                {
+                  "q": 21,
+                  "r": 26
+                },
+                {
+                  "q": 22,
+                  "r": 25
+                }
+              ]
+            },
+            "cumulativeCost": 10,
+            "relations": {
+              "qaReactor": {
+                "before": 2,
+                "after": 3,
+                "reachFields": 1,
+                "withinBefore": false,
+                "withinAfter": false,
+                "leavesReach": false,
+                "entersReach": false,
+                "context": {
+                  "hostile": true
+                }
+              }
+            }
+          }
+        },
+        "window": {
+          "id": "reaction-window:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:before-transition:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:2",
+          "timing": "before-transition",
+          "offeredCandidateIds": []
+        },
+        "pendingChoice": false,
+        "child": null
+      },
+      {
+        "resolutionId": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l",
+        "status": "completed",
+        "stage": "movement.finalization",
+        "cursor": {
+          "completedTransitionCount": 3,
+          "cumulativeCost": 15,
+          "stopped": false,
+          "reason": null
+        },
+        "renderedPosition": {
+          "x": 3300,
+          "y": 2165,
+          "elevation": 0,
+          "width": 2,
+          "height": 2,
+          "depth": 1,
+          "shape": 0
+        },
+        "renderedFootprint": {
+          "topology": "hex",
+          "size": "large",
+          "anchor": {
+            "q": 21,
+            "r": 25
+          },
+          "fields": [
+            {
+              "q": 21,
+              "r": 25
+            },
+            {
+              "q": 21,
+              "r": 26
+            },
+            {
+              "q": 22,
+              "r": 25
+            }
+          ]
+        },
+        "origin": {
+          "topology": "hex",
+          "size": "large",
+          "anchor": {
+            "q": 18,
+            "r": 25
+          },
+          "fields": [
+            {
+              "q": 18,
+              "r": 25
+            },
+            {
+              "q": 18,
+              "r": 26
+            },
+            {
+              "q": 19,
+              "r": 25
+            }
+          ]
+        },
+        "logical": {
+          "topology": "hex",
+          "size": "large",
+          "anchor": {
+            "q": 21,
+            "r": 25
+          },
+          "fields": [
+            {
+              "q": 21,
+              "r": 25
+            },
+            {
+              "q": 21,
+              "r": 26
+            },
+            {
+              "q": 22,
+              "r": 25
+            }
+          ]
+        },
+        "event": {
+          "id": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:2",
+          "type": "movement.transition-proposed",
+          "phase": "interrupt",
+          "data": {
+            "transitionIndex": 2,
+            "previous": {
+              "topology": "hex",
+              "size": "large",
+              "anchor": {
+                "q": 20,
+                "r": 25
+              },
+              "fields": [
+                {
+                  "q": 20,
+                  "r": 25
+                },
+                {
+                  "q": 20,
+                  "r": 26
+                },
+                {
+                  "q": 21,
+                  "r": 25
+                }
+              ]
+            },
+            "proposed": {
+              "topology": "hex",
+              "size": "large",
+              "anchor": {
+                "q": 21,
+                "r": 25
+              },
+              "fields": [
+                {
+                  "q": 21,
+                  "r": 25
+                },
+                {
+                  "q": 21,
+                  "r": 26
+                },
+                {
+                  "q": 22,
+                  "r": 25
+                }
+              ]
+            },
+            "cumulativeCost": 10,
+            "relations": {
+              "qaReactor": {
+                "before": 2,
+                "after": 3,
+                "reachFields": 1,
+                "withinBefore": false,
+                "withinAfter": false,
+                "leavesReach": false,
+                "entersReach": false,
+                "context": {
+                  "hostile": true
+                }
+              }
+            }
+          }
+        },
+        "window": {
+          "id": "reaction-window:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:before-transition:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:2",
+          "timing": "before-transition",
+          "offeredCandidateIds": []
+        },
+        "pendingChoice": false,
+        "child": null
+      }
+    ],
+    "envelopes": [
+      {
+        "protocolVersion": 1,
+        "messageId": "resolution-message:action-intent:1789939458193:1",
+        "messageType": "ACTION_INTENT",
+        "senderUserId": "6JWzwo5Aln6gZUWH",
+        "recipientUserId": "hUdU40DWftTFyJzW",
+        "recipientUserIds": [],
+        "recipientPolicy": null,
+        "resolutionId": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l",
+        "requestId": null,
+        "payload": {
+          "resolutionId": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l",
+          "intentId": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l",
+          "movementId": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l",
+          "sceneRef": "Scene.ATdgY1RvViHWwNo8",
+          "tokenRef": "Scene.ATdgY1RvViHWwNo8.Token.gBSKwPOiNulNnh4G",
+          "origin": {
+            "x": 3000,
+            "y": 2165,
+            "elevation": 0,
+            "width": 2,
+            "height": 2,
+            "depth": 1,
+            "shape": 0
+          },
+          "waypoints": [
+            {
+              "x": 3100,
+              "y": 2165,
+              "elevation": 0
+            },
+            {
+              "x": 3200,
+              "y": 2165,
+              "elevation": 0
+            },
+            {
+              "x": 3300,
+              "y": 2165,
+              "elevation": 0
+            }
+          ],
+          "movementKind": "voluntary",
+          "movementMode": "walk",
+          "resolutionKind": "movement"
+        },
+        "metadata": {
+          "authority": {
+            "ok": true,
+            "code": "OK",
+            "reason": null,
+            "userId": "hUdU40DWftTFyJzW",
+            "mode": "active-gm",
+            "activeGMUserId": "hUdU40DWftTFyJzW"
+          },
+          "multiplayer": {
+            "intentOnly": true
+          }
+        }
+      },
+      {
+        "protocolVersion": 1,
+        "messageId": "resolution-message:resolution-result:1789939498735:2",
+        "messageType": "RESOLUTION_RESULT",
+        "senderUserId": "hUdU40DWftTFyJzW",
+        "recipientUserId": null,
+        "recipientUserIds": [],
+        "recipientPolicy": "all",
+        "resolutionId": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l",
+        "requestId": null,
+        "payload": {
+          "result": {
+            "resolutionId": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l",
+            "status": "completed",
+            "code": null,
+            "ok": true,
+            "authorityUserId": "hUdU40DWftTFyJzW",
+            "initiatorUserId": "6JWzwo5Aln6gZUWH",
+            "action": {
+              "id": null,
+              "name": null,
+              "type": "action",
+              "source": null
+            },
+            "source": {
+              "actorId": "hWhx31At2tbEkirJ",
+              "actorRef": "Scene.ATdgY1RvViHWwNo8.Token.gBSKwPOiNulNnh4G.Actor.hWhx31At2tbEkirJ",
+              "tokenId": "gBSKwPOiNulNnh4G",
+              "tokenRef": "Scene.ATdgY1RvViHWwNo8.Token.gBSKwPOiNulNnh4G"
+            },
+            "targets": [],
+            "configuration": null,
+            "preview": null,
+            "rolls": [],
+            "outcomes": {
+              "attack": null,
+              "save": null,
+              "damage": null,
+              "healing": null,
+              "effects": null,
+              "payment": {
+                "id": "payment-1",
+                "code": "AVAILABLE",
+                "mode": "direct",
+                "priority": 10,
+                "resources": [
+                  {
+                    "resourceId": "economy.movement",
+                    "amount": 15,
+                    "capability": "movement",
+                    "unit": "movement",
+                    "mode": "direct",
+                    "source": {
+                      "type": "actor",
+                      "slug": "movement"
+                    }
+                  }
+                ],
+                "selection": "deterministic-priority",
+                "trace": [
+                  {
+                    "resourceId": "economy.movement",
+                    "capability": "movement",
+                    "amount": 15,
+                    "mode": "direct",
+                    "policy": null
+                  }
+                ]
+              },
+              "movement": {
+                "completedTransitionCount": 3,
+                "intendedTransitionCount": 3,
+                "cumulativeCost": 15,
+                "stopped": false,
+                "reason": null,
+                "footprint": {
+                  "type": "TokenGridFootprint",
+                  "topology": "hex",
+                  "size": "large",
+                  "effectiveSize": "large",
+                  "anchor": {
+                    "q": 21,
+                    "r": 25
+                  },
+                  "definition": {
+                    "size": "large",
+                    "topology": "hex",
+                    "offsets": [
+                      "[depth limit]",
+                      "[depth limit]",
+                      "[depth limit]"
+                    ],
+                    "fieldCount": 3,
+                    "creaturesPerField": 1,
+                    "minimumFields": 3,
+                    "metadata": {
+                      "ruleset": "dnd5e"
+                    }
+                  },
+                  "fields": [
+                    {
+                      "q": 21,
+                      "r": 25
+                    },
+                    {
+                      "q": 21,
+                      "r": 26
+                    },
+                    {
+                      "q": 22,
+                      "r": 25
+                    }
+                  ],
+                  "fieldKeys": [
+                    "hex:21,25",
+                    "hex:21,26",
+                    "hex:22,25"
+                  ],
+                  "metadata": {},
+                  "boundaryFields": [
+                    {
+                      "q": 21,
+                      "r": 25
+                    },
+                    {
+                      "q": 21,
+                      "r": 26
+                    },
+                    {
+                      "q": 22,
+                      "r": 25
+                    }
+                  ],
+                  "boundaryEdges": [
+                    {
+                      "id": "hex:21,25>northeast",
+                      "topology": "hex",
+                      "field": "[depth limit]",
+                      "outsideField": "[depth limit]",
+                      "direction": "northeast"
+                    },
+                    {
+                      "id": "hex:21,25>northwest",
+                      "topology": "hex",
+                      "field": "[depth limit]",
+                      "outsideField": "[depth limit]",
+                      "direction": "northwest"
+                    },
+                    {
+                      "id": "hex:21,25>southwest",
+                      "topology": "hex",
+                      "field": "[depth limit]",
+                      "outsideField": "[depth limit]",
+                      "direction": "southwest"
+                    },
+                    {
+                      "id": "hex:21,25>west",
+                      "topology": "hex",
+                      "field": "[depth limit]",
+                      "outsideField": "[depth limit]",
+                      "direction": "west"
+                    },
+                    {
+                      "id": "hex:21,26>east",
+                      "topology": "hex",
+                      "field": "[depth limit]",
+                      "outsideField": "[depth limit]",
+                      "direction": "east"
+                    },
+                    {
+                      "id": "hex:21,26>southeast",
+                      "topology": "hex",
+                      "field": "[depth limit]",
+                      "outsideField": "[depth limit]",
+                      "direction": "southeast"
+                    },
+                    {
+                      "id": "hex:21,26>southwest",
+                      "topology": "hex",
+                      "field": "[depth limit]",
+                      "outsideField": "[depth limit]",
+                      "direction": "southwest"
+                    },
+                    {
+                      "id": "hex:21,26>west",
+                      "topology": "hex",
+                      "field": "[depth limit]",
+                      "outsideField": "[depth limit]",
+                      "direction": "west"
+                    },
+                    {
+                      "id": "hex:22,25>east",
+                      "topology": "hex",
+                      "field": "[depth limit]",
+                      "outsideField": "[depth limit]",
+                      "direction": "east"
+                    },
+                    {
+                      "id": "hex:22,25>northeast",
+                      "topology": "hex",
+                      "field": "[depth limit]",
+                      "outsideField": "[depth limit]",
+                      "direction": "northeast"
+                    },
+                    {
+                      "id": "hex:22,25>northwest",
+                      "topology": "hex",
+                      "field": "[depth limit]",
+                      "outsideField": "[depth limit]",
+                      "direction": "northwest"
+                    },
+                    {
+                      "id": "hex:22,25>southeast",
+                      "topology": "hex",
+                      "field": "[depth limit]",
+                      "outsideField": "[depth limit]",
+                      "direction": "southeast"
+                    }
+                  ],
+                  "boundaryVertices": [
+                    {
+                      "id": "hex-vertex:hex:20,25|hex:20,26|hex:21,25",
+                      "incidentFields": "[depth limit]",
+                      "topology": "hex",
+                      "occupiedIncidentFields": "[depth limit]",
+                      "external": true
+                    },
+                    {
+                      "id": "hex-vertex:hex:20,25|hex:21,24|hex:21,25",
+                      "incidentFields": "[depth limit]",
+                      "topology": "hex",
+                      "occupiedIncidentFields": "[depth limit]",
+                      "external": true
+                    },
+                    {
+                      "id": "hex-vertex:hex:20,26|hex:20,27|hex:21,26",
+                      "incidentFields": "[depth limit]",
+                      "topology": "hex",
+                      "occupiedIncidentFields": "[depth limit]",
+                      "external": true
+                    },
+                    {
+                      "id": "hex-vertex:hex:20,26|hex:21,25|hex:21,26",
+                      "incidentFields": "[depth limit]",
+                      "topology": "hex",
+                      "occupiedIncidentFields": "[depth limit]",
+                      "external": true
+                    },
+                    {
+                      "id": "hex-vertex:hex:20,27|hex:21,26|hex:21,27",
+                      "incidentFields": "[depth limit]",
+                      "topology": "hex",
+                      "occupiedIncidentFields": "[depth limit]",
+                      "external": true
+                    },
+                    {
+                      "id": "hex-vertex:hex:21,24|hex:21,25|hex:22,24",
+                      "incidentFields": "[depth limit]",
+                      "topology": "hex",
+                      "occupiedIncidentFields": "[depth limit]",
+                      "external": true
+                    },
+                    {
+                      "id": "hex-vertex:hex:21,25|hex:22,24|hex:22,25",
+                      "incidentFields": "[depth limit]",
+                      "topology": "hex",
+                      "occupiedIncidentFields": "[depth limit]",
+                      "external": true
+                    },
+                    {
+                      "id": "hex-vertex:hex:21,26|hex:21,27|hex:22,26",
+                      "incidentFields": "[depth limit]",
+                      "topology": "hex",
+                      "occupiedIncidentFields": "[depth limit]",
+                      "external": true
+                    },
+                    {
+                      "id": "hex-vertex:hex:21,26|hex:22,25|hex:22,26",
+                      "incidentFields": "[depth limit]",
+                      "topology": "hex",
+                      "occupiedIncidentFields": "[depth limit]",
+                      "external": true
+                    },
+                    {
+                      "id": "hex-vertex:hex:22,24|hex:22,25|hex:23,24",
+                      "incidentFields": "[depth limit]",
+                      "topology": "hex",
+                      "occupiedIncidentFields": "[depth limit]",
+                      "external": true
+                    },
+                    {
+                      "id": "hex-vertex:hex:22,25|hex:22,26|hex:23,25",
+                      "incidentFields": "[depth limit]",
+                      "topology": "hex",
+                      "occupiedIncidentFields": "[depth limit]",
+                      "external": true
+                    },
+                    {
+                      "id": "hex-vertex:hex:22,25|hex:23,24|hex:23,25",
+                      "incidentFields": "[depth limit]",
+                      "topology": "hex",
+                      "occupiedIncidentFields": "[depth limit]",
+                      "external": true
+                    }
+                  ],
+                  "internalVertices": [
+                    {
+                      "id": "hex-vertex:hex:21,25|hex:21,26|hex:22,25",
+                      "incidentFields": "[depth limit]",
+                      "topology": "hex",
+                      "occupiedIncidentFields": "[depth limit]",
+                      "external": false
+                    }
+                  ]
+                },
+                "committed": true
+              }
+            },
+            "committedMutations": [
+              {
+                "id": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:position",
+                "type": "documentUpdate",
+                "actorRef": null,
+                "documentRef": "Scene.ATdgY1RvViHWwNo8.Token.gBSKwPOiNulNnh4G",
+                "role": "movementPosition"
+              },
+              {
+                "id": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:payment",
+                "type": "actorUpdate",
+                "actorRef": "Scene.ATdgY1RvViHWwNo8.Token.gBSKwPOiNulNnh4G.Actor.hWhx31At2tbEkirJ",
+                "role": null
+              }
+            ],
+            "trace": [
+              {
+                "stageId": "movement.intention",
+                "status": "completed",
+                "result": "continue",
+                "code": "OK",
+                "requestIds": []
+              },
+              {
+                "stageId": "movement.route",
+                "status": "completed",
+                "result": "continue",
+                "code": "OK",
+                "requestIds": []
+              },
+              {
+                "stageId": "movement.validation",
+                "status": "completed",
+                "result": "continue",
+                "code": "OK",
+                "requestIds": []
+              },
+              {
+                "stageId": "movement.transition:0.propose",
+                "status": "completed",
+                "result": "continue",
+                "code": "OK",
+                "requestIds": []
+              },
+              {
+                "stageId": "movement.transition:0.reactions",
+                "status": "running",
+                "result": "continue",
+                "code": "NO_CANDIDATES",
+                "requestIds": []
+              },
+              {
+                "stageId": "movement.transition:0.reactions",
+                "status": "completed",
+                "result": "continue",
+                "code": "OK",
+                "requestIds": []
+              },
+              {
+                "stageId": "movement.transition:0.revalidation",
+                "status": "completed",
+                "result": "continue",
+                "code": "OK",
+                "requestIds": []
+              },
+              {
+                "stageId": "movement.transition:0.traverse",
+                "status": "completed",
+                "result": "continue",
+                "code": "OK",
+                "requestIds": []
+              },
+              {
+                "stageId": "movement.transition:1.propose",
+                "status": "completed",
+                "result": "continue",
+                "code": "OK",
+                "requestIds": []
+              },
+              {
+                "stageId": "movement.transition:1.reactions",
+                "status": "awaiting-choice",
+                "result": "wait",
+                "code": "WAITING",
+                "requestIds": [
+                  "request:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:reaction:reaction-window:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:before-transition:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1:offer:1"
+                ]
+              },
+              {
+                "stageId": "movement.transition:1.reactions",
+                "status": "waiting",
+                "result": "wait",
+                "code": "OK",
+                "requestIds": [
+                  "request:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:reaction:reaction-window:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:before-transition:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1:offer:1"
+                ]
+              },
+              {
+                "stageId": "movement.transition:1.reactions",
+                "status": "running",
+                "result": "continue",
+                "code": "OK",
+                "requestIds": [
+                  "request:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:reaction:reaction-window:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:before-transition:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1:offer:1"
+                ]
+              },
+              {
+                "stageId": "movement.transition:1.reactions",
+                "status": "running",
+                "result": "continue",
+                "code": "NO_CANDIDATES",
+                "requestIds": []
+              },
+              {
+                "stageId": "movement.transition:1.reactions",
+                "status": "completed",
+                "result": "continue",
+                "code": "OK",
+                "requestIds": []
+              },
+              {
+                "stageId": "movement.transition:1.revalidation",
+                "status": "completed",
+                "result": "continue",
+                "code": "OK",
+                "requestIds": []
+              },
+              {
+                "stageId": "movement.transition:1.traverse",
+                "status": "completed",
+                "result": "continue",
+                "code": "OK",
+                "requestIds": []
+              },
+              {
+                "stageId": "movement.transition:2.propose",
+                "status": "completed",
+                "result": "continue",
+                "code": "OK",
+                "requestIds": []
+              },
+              {
+                "stageId": "movement.transition:2.reactions",
+                "status": "running",
+                "result": "continue",
+                "code": "NO_CANDIDATES",
+                "requestIds": []
+              },
+              {
+                "stageId": "movement.transition:2.reactions",
+                "status": "completed",
+                "result": "continue",
+                "code": "OK",
+                "requestIds": []
+              },
+              {
+                "stageId": "movement.transition:2.revalidation",
+                "status": "completed",
+                "result": "continue",
+                "code": "OK",
+                "requestIds": []
+              },
+              "[5 more entries]"
+            ]
+          }
+        },
+        "metadata": {}
+      }
+    ],
+    "result": {
+      "resolutionId": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l",
+      "status": "completed",
+      "code": null,
+      "ok": true,
+      "authorityUserId": "hUdU40DWftTFyJzW",
+      "initiatorUserId": "6JWzwo5Aln6gZUWH",
+      "action": {
+        "id": null,
+        "name": null,
+        "type": "action",
+        "source": null
+      },
+      "source": {
+        "actorId": "hWhx31At2tbEkirJ",
+        "actorRef": "Scene.ATdgY1RvViHWwNo8.Token.gBSKwPOiNulNnh4G.Actor.hWhx31At2tbEkirJ",
+        "tokenId": "gBSKwPOiNulNnh4G",
+        "tokenRef": "Scene.ATdgY1RvViHWwNo8.Token.gBSKwPOiNulNnh4G"
+      },
+      "targets": [],
+      "configuration": null,
+      "preview": null,
+      "rolls": [],
+      "outcomes": {
+        "attack": null,
+        "save": null,
+        "damage": null,
+        "healing": null,
+        "effects": null,
+        "payment": {
+          "id": "payment-1",
+          "code": "AVAILABLE",
+          "mode": "direct",
+          "priority": 10,
+          "resources": [
+            {
+              "resourceId": "economy.movement",
+              "amount": 15,
+              "capability": "movement",
+              "unit": "movement",
+              "mode": "direct",
+              "source": {
+                "type": "actor",
+                "slug": "movement"
+              }
+            }
+          ],
+          "selection": "deterministic-priority",
+          "trace": [
+            {
+              "resourceId": "economy.movement",
+              "capability": "movement",
+              "amount": 15,
+              "mode": "direct",
+              "policy": null
+            }
+          ]
+        },
+        "movement": {
+          "completedTransitionCount": 3,
+          "intendedTransitionCount": 3,
+          "cumulativeCost": 15,
+          "stopped": false,
+          "reason": null,
+          "footprint": {
+            "type": "TokenGridFootprint",
+            "topology": "hex",
+            "size": "large",
+            "effectiveSize": "large",
+            "anchor": {
+              "q": 21,
+              "r": 25
+            },
+            "definition": {
+              "size": "large",
+              "topology": "hex",
+              "offsets": [
+                {
+                  "q": 0,
+                  "r": 0
+                },
+                {
+                  "q": 1,
+                  "r": 0
+                },
+                {
+                  "q": 0,
+                  "r": 1
+                }
+              ],
+              "fieldCount": 3,
+              "creaturesPerField": 1,
+              "minimumFields": 3,
+              "metadata": {
+                "ruleset": "dnd5e"
+              }
+            },
+            "fields": [
+              {
+                "q": 21,
+                "r": 25
+              },
+              {
+                "q": 21,
+                "r": 26
+              },
+              {
+                "q": 22,
+                "r": 25
+              }
+            ],
+            "fieldKeys": [
+              "hex:21,25",
+              "hex:21,26",
+              "hex:22,25"
+            ],
+            "metadata": {},
+            "boundaryFields": [
+              {
+                "q": 21,
+                "r": 25
+              },
+              {
+                "q": 21,
+                "r": 26
+              },
+              {
+                "q": 22,
+                "r": 25
+              }
+            ],
+            "boundaryEdges": [
+              {
+                "id": "hex:21,25>northeast",
+                "topology": "hex",
+                "field": {
+                  "q": 21,
+                  "r": 25
+                },
+                "outsideField": {
+                  "q": 22,
+                  "r": 24
+                },
+                "direction": "northeast"
+              },
+              {
+                "id": "hex:21,25>northwest",
+                "topology": "hex",
+                "field": {
+                  "q": 21,
+                  "r": 25
+                },
+                "outsideField": {
+                  "q": 21,
+                  "r": 24
+                },
+                "direction": "northwest"
+              },
+              {
+                "id": "hex:21,25>southwest",
+                "topology": "hex",
+                "field": {
+                  "q": 21,
+                  "r": 25
+                },
+                "outsideField": {
+                  "q": 20,
+                  "r": 26
+                },
+                "direction": "southwest"
+              },
+              {
+                "id": "hex:21,25>west",
+                "topology": "hex",
+                "field": {
+                  "q": 21,
+                  "r": 25
+                },
+                "outsideField": {
+                  "q": 20,
+                  "r": 25
+                },
+                "direction": "west"
+              },
+              {
+                "id": "hex:21,26>east",
+                "topology": "hex",
+                "field": {
+                  "q": 21,
+                  "r": 26
+                },
+                "outsideField": {
+                  "q": 22,
+                  "r": 26
+                },
+                "direction": "east"
+              },
+              {
+                "id": "hex:21,26>southeast",
+                "topology": "hex",
+                "field": {
+                  "q": 21,
+                  "r": 26
+                },
+                "outsideField": {
+                  "q": 21,
+                  "r": 27
+                },
+                "direction": "southeast"
+              },
+              {
+                "id": "hex:21,26>southwest",
+                "topology": "hex",
+                "field": {
+                  "q": 21,
+                  "r": 26
+                },
+                "outsideField": {
+                  "q": 20,
+                  "r": 27
+                },
+                "direction": "southwest"
+              },
+              {
+                "id": "hex:21,26>west",
+                "topology": "hex",
+                "field": {
+                  "q": 21,
+                  "r": 26
+                },
+                "outsideField": {
+                  "q": 20,
+                  "r": 26
+                },
+                "direction": "west"
+              },
+              {
+                "id": "hex:22,25>east",
+                "topology": "hex",
+                "field": {
+                  "q": 22,
+                  "r": 25
+                },
+                "outsideField": {
+                  "q": 23,
+                  "r": 25
+                },
+                "direction": "east"
+              },
+              {
+                "id": "hex:22,25>northeast",
+                "topology": "hex",
+                "field": {
+                  "q": 22,
+                  "r": 25
+                },
+                "outsideField": {
+                  "q": 23,
+                  "r": 24
+                },
+                "direction": "northeast"
+              },
+              {
+                "id": "hex:22,25>northwest",
+                "topology": "hex",
+                "field": {
+                  "q": 22,
+                  "r": 25
+                },
+                "outsideField": {
+                  "q": 22,
+                  "r": 24
+                },
+                "direction": "northwest"
+              },
+              {
+                "id": "hex:22,25>southeast",
+                "topology": "hex",
+                "field": {
+                  "q": 22,
+                  "r": 25
+                },
+                "outsideField": {
+                  "q": 22,
+                  "r": 26
+                },
+                "direction": "southeast"
+              }
+            ],
+            "boundaryVertices": [
+              {
+                "id": "hex-vertex:hex:20,25|hex:20,26|hex:21,25",
+                "incidentFields": [
+                  {
+                    "q": 21,
+                    "r": 25
+                  },
+                  {
+                    "q": 20,
+                    "r": 25
+                  },
+                  {
+                    "q": 20,
+                    "r": 26
+                  }
+                ],
+                "topology": "hex",
+                "occupiedIncidentFields": [
+                  {
+                    "q": 21,
+                    "r": 25
+                  }
+                ],
+                "external": true
+              },
+              {
+                "id": "hex-vertex:hex:20,25|hex:21,24|hex:21,25",
+                "incidentFields": [
+                  {
+                    "q": 21,
+                    "r": 25
+                  },
+                  {
+                    "q": 21,
+                    "r": 24
+                  },
+                  {
+                    "q": 20,
+                    "r": 25
+                  }
+                ],
+                "topology": "hex",
+                "occupiedIncidentFields": [
+                  {
+                    "q": 21,
+                    "r": 25
+                  }
+                ],
+                "external": true
+              },
+              {
+                "id": "hex-vertex:hex:20,26|hex:20,27|hex:21,26",
+                "incidentFields": [
+                  {
+                    "q": 21,
+                    "r": 26
+                  },
+                  {
+                    "q": 20,
+                    "r": 26
+                  },
+                  {
+                    "q": 20,
+                    "r": 27
+                  }
+                ],
+                "topology": "hex",
+                "occupiedIncidentFields": [
+                  {
+                    "q": 21,
+                    "r": 26
+                  }
+                ],
+                "external": true
+              },
+              {
+                "id": "hex-vertex:hex:20,26|hex:21,25|hex:21,26",
+                "incidentFields": [
+                  {
+                    "q": 21,
+                    "r": 25
+                  },
+                  {
+                    "q": 20,
+                    "r": 26
+                  },
+                  {
+                    "q": 21,
+                    "r": 26
+                  }
+                ],
+                "topology": "hex",
+                "occupiedIncidentFields": [
+                  {
+                    "q": 21,
+                    "r": 25
+                  },
+                  {
+                    "q": 21,
+                    "r": 26
+                  }
+                ],
+                "external": true
+              },
+              {
+                "id": "hex-vertex:hex:20,27|hex:21,26|hex:21,27",
+                "incidentFields": [
+                  {
+                    "q": 21,
+                    "r": 26
+                  },
+                  {
+                    "q": 20,
+                    "r": 27
+                  },
+                  {
+                    "q": 21,
+                    "r": 27
+                  }
+                ],
+                "topology": "hex",
+                "occupiedIncidentFields": [
+                  {
+                    "q": 21,
+                    "r": 26
+                  }
+                ],
+                "external": true
+              },
+              {
+                "id": "hex-vertex:hex:21,24|hex:21,25|hex:22,24",
+                "incidentFields": [
+                  {
+                    "q": 21,
+                    "r": 25
+                  },
+                  {
+                    "q": 22,
+                    "r": 24
+                  },
+                  {
+                    "q": 21,
+                    "r": 24
+                  }
+                ],
+                "topology": "hex",
+                "occupiedIncidentFields": [
+                  {
+                    "q": 21,
+                    "r": 25
+                  }
+                ],
+                "external": true
+              },
+              {
+                "id": "hex-vertex:hex:21,25|hex:22,24|hex:22,25",
+                "incidentFields": [
+                  {
+                    "q": 21,
+                    "r": 25
+                  },
+                  {
+                    "q": 22,
+                    "r": 25
+                  },
+                  {
+                    "q": 22,
+                    "r": 24
+                  }
+                ],
+                "topology": "hex",
+                "occupiedIncidentFields": [
+                  {
+                    "q": 21,
+                    "r": 25
+                  },
+                  {
+                    "q": 22,
+                    "r": 25
+                  }
+                ],
+                "external": true
+              },
+              {
+                "id": "hex-vertex:hex:21,26|hex:21,27|hex:22,26",
+                "incidentFields": [
+                  {
+                    "q": 21,
+                    "r": 26
+                  },
+                  {
+                    "q": 21,
+                    "r": 27
+                  },
+                  {
+                    "q": 22,
+                    "r": 26
+                  }
+                ],
+                "topology": "hex",
+                "occupiedIncidentFields": [
+                  {
+                    "q": 21,
+                    "r": 26
+                  }
+                ],
+                "external": true
+              },
+              {
+                "id": "hex-vertex:hex:21,26|hex:22,25|hex:22,26",
+                "incidentFields": [
+                  {
+                    "q": 21,
+                    "r": 26
+                  },
+                  {
+                    "q": 22,
+                    "r": 26
+                  },
+                  {
+                    "q": 22,
+                    "r": 25
+                  }
+                ],
+                "topology": "hex",
+                "occupiedIncidentFields": [
+                  {
+                    "q": 21,
+                    "r": 26
+                  },
+                  {
+                    "q": 22,
+                    "r": 25
+                  }
+                ],
+                "external": true
+              },
+              {
+                "id": "hex-vertex:hex:22,24|hex:22,25|hex:23,24",
+                "incidentFields": [
+                  {
+                    "q": 22,
+                    "r": 25
+                  },
+                  {
+                    "q": 23,
+                    "r": 24
+                  },
+                  {
+                    "q": 22,
+                    "r": 24
+                  }
+                ],
+                "topology": "hex",
+                "occupiedIncidentFields": [
+                  {
+                    "q": 22,
+                    "r": 25
+                  }
+                ],
+                "external": true
+              },
+              {
+                "id": "hex-vertex:hex:22,25|hex:22,26|hex:23,25",
+                "incidentFields": [
+                  {
+                    "q": 22,
+                    "r": 25
+                  },
+                  {
+                    "q": 22,
+                    "r": 26
+                  },
+                  {
+                    "q": 23,
+                    "r": 25
+                  }
+                ],
+                "topology": "hex",
+                "occupiedIncidentFields": [
+                  {
+                    "q": 22,
+                    "r": 25
+                  }
+                ],
+                "external": true
+              },
+              {
+                "id": "hex-vertex:hex:22,25|hex:23,24|hex:23,25",
+                "incidentFields": [
+                  {
+                    "q": 22,
+                    "r": 25
+                  },
+                  {
+                    "q": 23,
+                    "r": 25
+                  },
+                  {
+                    "q": 23,
+                    "r": 24
+                  }
+                ],
+                "topology": "hex",
+                "occupiedIncidentFields": [
+                  {
+                    "q": 22,
+                    "r": 25
+                  }
+                ],
+                "external": true
+              }
+            ],
+            "internalVertices": [
+              {
+                "id": "hex-vertex:hex:21,25|hex:21,26|hex:22,25",
+                "incidentFields": [
+                  {
+                    "q": 21,
+                    "r": 25
+                  },
+                  {
+                    "q": 21,
+                    "r": 26
+                  },
+                  {
+                    "q": 22,
+                    "r": 25
+                  }
+                ],
+                "topology": "hex",
+                "occupiedIncidentFields": [
+                  {
+                    "q": 21,
+                    "r": 25
+                  },
+                  {
+                    "q": 21,
+                    "r": 26
+                  },
+                  {
+                    "q": 22,
+                    "r": 25
+                  }
+                ],
+                "external": false
+              }
+            ]
+          },
+          "committed": true
+        }
+      },
+      "committedMutations": [
+        {
+          "id": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:position",
+          "type": "documentUpdate",
+          "actorRef": null,
+          "documentRef": "Scene.ATdgY1RvViHWwNo8.Token.gBSKwPOiNulNnh4G",
+          "role": "movementPosition"
+        },
+        {
+          "id": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:payment",
+          "type": "actorUpdate",
+          "actorRef": "Scene.ATdgY1RvViHWwNo8.Token.gBSKwPOiNulNnh4G.Actor.hWhx31At2tbEkirJ",
+          "role": null
+        }
+      ],
+      "trace": [
+        {
+          "stageId": "movement.intention",
+          "status": "completed",
+          "result": "continue",
+          "code": "OK",
+          "requestIds": []
+        },
+        {
+          "stageId": "movement.route",
+          "status": "completed",
+          "result": "continue",
+          "code": "OK",
+          "requestIds": []
+        },
+        {
+          "stageId": "movement.validation",
+          "status": "completed",
+          "result": "continue",
+          "code": "OK",
+          "requestIds": []
+        },
+        {
+          "stageId": "movement.transition:0.propose",
+          "status": "completed",
+          "result": "continue",
+          "code": "OK",
+          "requestIds": []
+        },
+        {
+          "stageId": "movement.transition:0.reactions",
+          "status": "running",
+          "result": "continue",
+          "code": "NO_CANDIDATES",
+          "requestIds": []
+        },
+        {
+          "stageId": "movement.transition:0.reactions",
+          "status": "completed",
+          "result": "continue",
+          "code": "OK",
+          "requestIds": []
+        },
+        {
+          "stageId": "movement.transition:0.revalidation",
+          "status": "completed",
+          "result": "continue",
+          "code": "OK",
+          "requestIds": []
+        },
+        {
+          "stageId": "movement.transition:0.traverse",
+          "status": "completed",
+          "result": "continue",
+          "code": "OK",
+          "requestIds": []
+        },
+        {
+          "stageId": "movement.transition:1.propose",
+          "status": "completed",
+          "result": "continue",
+          "code": "OK",
+          "requestIds": []
+        },
+        {
+          "stageId": "movement.transition:1.reactions",
+          "status": "awaiting-choice",
+          "result": "wait",
+          "code": "WAITING",
+          "requestIds": [
+            "request:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:reaction:reaction-window:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:before-transition:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1:offer:1"
+          ]
+        },
+        {
+          "stageId": "movement.transition:1.reactions",
+          "status": "waiting",
+          "result": "wait",
+          "code": "OK",
+          "requestIds": [
+            "request:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:reaction:reaction-window:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:before-transition:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1:offer:1"
+          ]
+        },
+        {
+          "stageId": "movement.transition:1.reactions",
+          "status": "running",
+          "result": "continue",
+          "code": "OK",
+          "requestIds": [
+            "request:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:reaction:reaction-window:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:before-transition:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1:offer:1"
+          ]
+        },
+        {
+          "stageId": "movement.transition:1.reactions",
+          "status": "running",
+          "result": "continue",
+          "code": "NO_CANDIDATES",
+          "requestIds": []
+        },
+        {
+          "stageId": "movement.transition:1.reactions",
+          "status": "completed",
+          "result": "continue",
+          "code": "OK",
+          "requestIds": []
+        },
+        {
+          "stageId": "movement.transition:1.revalidation",
+          "status": "completed",
+          "result": "continue",
+          "code": "OK",
+          "requestIds": []
+        },
+        {
+          "stageId": "movement.transition:1.traverse",
+          "status": "completed",
+          "result": "continue",
+          "code": "OK",
+          "requestIds": []
+        },
+        {
+          "stageId": "movement.transition:2.propose",
+          "status": "completed",
+          "result": "continue",
+          "code": "OK",
+          "requestIds": []
+        },
+        {
+          "stageId": "movement.transition:2.reactions",
+          "status": "running",
+          "result": "continue",
+          "code": "NO_CANDIDATES",
+          "requestIds": []
+        },
+        {
+          "stageId": "movement.transition:2.reactions",
+          "status": "completed",
+          "result": "continue",
+          "code": "OK",
+          "requestIds": []
+        },
+        {
+          "stageId": "movement.transition:2.revalidation",
+          "status": "completed",
+          "result": "continue",
+          "code": "OK",
+          "requestIds": []
+        },
+        "[5 more entries]"
+      ]
+    }
+  }
+}
