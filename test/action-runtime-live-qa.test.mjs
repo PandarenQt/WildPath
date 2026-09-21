@@ -146,13 +146,14 @@ async function playerEnvironment(t) {
   source.parent = target.parent = scene;
   const users = new Values([["g", {id: "g", active: true, isGM: true}], ["p", {id: "p", active: true, isGM: false}]]);
   users.activeGM = users.get("g");
-  const incoming = new Set(), outgoing = new Set();
-  const socket = {on: (name, fn) => incoming.add(fn), off: (name, fn) => incoming.delete(fn),
-    onAnyOutgoing: fn => outgoing.add(fn), offAnyOutgoing: fn => outgoing.delete(fn)};
+  // The QA helper observes the runtime transport, never raw sockets; the socket stub only satisfies
+  // the runtime precondition check. `incoming`/`outgoing` both alias the observer set.
+  const observers = new Set(), incoming = observers, outgoing = observers;
+  const socket = {on() {}, off() {}, onAnyOutgoing() {}, offAnyOutgoing() {}};
   const sent = [];
   const transport = {registered: true, namespace: "system.wildpath", async send(envelope) {
-    sent.push(envelope); for (const fn of outgoing) fn("system.wildpath", envelope); return {ok: true};
-  }};
+    sent.push(envelope); for (const fn of observers) fn({direction: "sending", transport: "broadcast", envelope}); return {ok: true};
+  }, observe(fn) { observers.add(fn); return () => observers.delete(fn); }};
   const coordinator = createMultiplayerActionCoordinator({userId: "p", users: () => users, activeGMUserId: "g", transport});
   const executeActionIntent = intent => coordinator.declareActionIntent(intent);
   const runtime = {transport, coordinator, executeActionIntent};
@@ -278,7 +279,7 @@ test("QA captures a routed provider error and rejects a second declaration in on
   t.mock.method(console, "error", () => {});
   const error = {messageId: "error", messageType: MESSAGE.RESOLUTION_ERROR, resolutionId: qa.resolutionId,
     senderUserId: "g", payload: {reason: "Provider failed"}};
-  for (const fn of env.incoming) fn(error, "g");
+  for (const fn of env.incoming) fn({direction: "incoming", transport: "targeted", envelope: error, attestedSenderUserId: "g"});
   assert.equal(qa.failed, true);
   assert.equal(qa.lastDump.envelopes.at(-1).envelope.payload.reason, "Provider failed");
   assert.match(qa.lastDump.reason, /Provider failed/);

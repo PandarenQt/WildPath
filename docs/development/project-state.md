@@ -1,6 +1,6 @@
 # WildPath — Current Project State
 
-Last verified: 2026-09-20.
+Last verified: 2026-09-21.
 
 - Branch: `milestone/action-runtime-live-proof`.
 - Starting HEAD for Quench Q1: `85344524f75e2620c3bc1990e5c75cca7c463602`.
@@ -11,7 +11,10 @@ Last verified: 2026-09-20.
 - Movement implementation commit: `87ed1fae93271b81b14432bb4312be9cd53285c5`.
 - Original milestone starting HEAD: `ea484fd8b503697ddf1c2b7b0f6984ea594378e2`.
 - Local main HEAD: `61d6268b838e286728c829924506c6c931174621`.
-- Portable full suite (`FOUNDRY_V14_APP_PATH` unset): **834 tests, 832 passed, 0 failed, 2 intentionally skipped**.
+- Portable full suite (`FOUNDRY_V14_APP_PATH` unset): **864 tests, 862 passed, 0 failed, 2 intentionally skipped**.
+- Confidentiality-hardening delta from 834/832/0/2: **30 new tests** (23 in `test/multiplayer-disclosure.test.mjs`,
+  5 schema-2 evidence tests, 1 reaction-choice disclosure test in `test/staged-movement.test.mjs`, 1 nested-child
+  disclosure test in `test/foundry-nested-reaction-commit.test.mjs`); batch inventory check extended to nine batches.
 - Level-5 evidence-export delta from 825/823/0/2: **9 new tests** in `test/staged-movement-evidence.test.mjs` (commit `a009d3f`).
 - Staged-movement position-verification repair delta from 821/819/0/2: **4 new tests** in `test/staged-movement.test.mjs` (commit `e30d752`; generated `.mjs` rebuilt).
 - Quench staged-movement batch delta from 811/809/0/2: **10 new portable tests** (two fixture, eight orchestration; commit `b22e287`).
@@ -37,6 +40,37 @@ turn configured reaction content into a second combat engine.
 
 ## Current milestone
 
+**Multiplayer confidentiality hardening — IN PROGRESS (Node green, Quench batch added but not yet
+live-run, Level-5 sentinel rerun pending).** The `system.wildpath` custom socket is a broadcast bus:
+the server relays every emission to every other client and never back to the sender, and
+`recipientUserId` only decided who processed an envelope. The audit found private data on that bus:
+pending requests (save DCs, reaction candidates, prompt options), answers (roll results, reaction
+decisions), error diagnostics carrying the pending request, movement approvals with the mover's
+budget and the armed `reactionBoundary`, movement results with resource plans, and the unprojected
+`RESOLUTION_RESULT` with target defenses, DCs, the initiator's payment and post-damage HP through
+committed mutations. It also found that a GM's self-addressed `ACTION_INTENT` was never processed
+in real Foundry (no echo), which the new local delivery corrects.
+
+**Production code changed: YES.** New `module/helpers/multiplayer-disclosure.mjs` (classifications,
+audited per-type policy, fail-closed codes, transport selection), `module/adapters/disclosure-routed-transport.mjs`
+(policy → broadcast | targeted | local), `module/adapters/foundry-v14-user-query-transport.mjs`
+(`User#query` over `CONFIG.queries["wildpath.resolutionEnvelope"]`, attested-sender and recipient
+checks, receipt acknowledgement, timeout and permission failure mapping). Changed:
+`multiplayer-authority.mjs` (envelope `disclosure` field, chooser payload minimization, two explicit
+result projections, scalar-only error data), `foundry-v14-resolution-socket-adapter.mjs` (refuses to
+emit or dispatch non-`BROADCAST_SAFE` envelopes; verifies the attested sender), both coordinators
+(explicit classifications at every emit site; the result is sent targeted to the initiator and
+broadcast as a public projection), the Foundry runtime wiring, and the test hub (mirrors the
+production topology). Authority, routing, idempotency, staged resolution, transactions, reactions
+and movement semantics are unchanged. See
+[multiplayer-confidentiality.md](../architecture/multiplayer-confidentiality.md).
+
+Evidence so far: Node **864/862/0/2**, typecheck PASS, `git diff --check` PASS. Quench:
+`wildpath.multiplayer-disclosure` (4 cases) registered, **not yet live-run**. Level 5: the three
+sentinels must be rerun with the schema-2 export (GM mover and player reactor controller for the
+reaction cases; see [staged-movement-qa.md](staged-movement-qa.md)); the milestone is **not closed**
+until those six files are committed.
+
 **The Quench staged-movement batch is live-confirmed; the six-case semantic movement gate is green
 in real Foundry.** `wildpath.staged-movement` — **WILDPATH: Staged Movement** — runs the six cases of
 [staged-movement-qa.md](staged-movement-qa.md) with the same proof assertions on a single active-GM
@@ -47,7 +81,8 @@ repairs `module/adapters/foundry-v14-staged-movement-commit.mts` (rebuilt `.mjs`
 tolerate only IEEE-754 noise at all four verification and authorization sites; the maintainer then
 reported **6/6 PASS**. **Production code changed: YES**, confined to that comparison boundary;
 movement, reaction, tactical-grid, transaction, and authority semantics are unchanged. Standing:
-**46 Quench cases live-confirmed** (Q1 17, Q2 17, Combat 6, staged movement 6) across eight batches.
+**46 Quench cases live-confirmed** (Q1 17, Q2 17, Combat 6, staged movement 6) across eight batches; a
+ninth batch (`wildpath.multiplayer-disclosure`, 4 cases) was added on 2026-09-21 and is not yet live-run.
 This is Level-3 evidence: it proves the staged architecture in real Foundry on one client, not
 GM/player socket delivery, remote prompts, or multiplayer timing.
 
@@ -68,7 +103,7 @@ the [testing strategy](foundry-testing-strategy.md).
 
 **Quench Q2 is live-confirmed.** Three batches in `module/tests/quench/` cover
 `wildpath.effects` (4), `wildpath.conditions` (5), and `wildpath.rule-elements` (8): **17 Q2 cases**.
-The optional `quenchReady` entry now registers eight batches (46 total cases), without changing
+The optional `quenchReady` entry now registers nine batches (50 total cases, 46 live-confirmed), without changing
 Q1's 17 or Q2's 17 cases. The maintainer ran the expanded suite against Foundry V14.367 and reported the 17 new
 cases passing **17/17**; combined with Q1, **all 34 WildPath Quench cases are live-confirmed**. This is
 maintainer-reported evidence without an exported Quench report, the same evidentiary standing as Q1.
@@ -182,8 +217,9 @@ Level 5 (two real browsers, staged-movement-qa.md; canonical exports committed 2
   square/Medium reaction decline   GM + player JSON PASS   evidence/{gm,player}-movement-decline.json    build d669a17
   Large-hex reaction decline       GM + player JSON PASS   evidence/{gm,player}-large-hex-decline.json   build d669a17
 
-staged movement milestone CLOSED
-confidentiality hardening NEXT
+staged movement milestone CLOSED (schema-1 evidence)
+confidentiality hardening IN PROGRESS: Node green, Quench 4 cases not yet live-run,
+  Level-5 schema-2 rerun of all three sentinels PENDING
 ```
 
 Each pair shares its `runId`, `resolutionId`, `gitSha`, and `foundryVersion` 14.367; every GM export
@@ -229,11 +265,11 @@ reproduces; not a WildPath failure). Whether the fixture orphan check returned e
 Combats, Scenes, and Actors after the live run was not reported; confirm it before the next run.
 
 **The staged movement milestone is closed** on the maintainer's two-browser run of 2026-09-20: the
-three paired Level-5 sentinel exports above exist, validate, and are committed (`f2c5223`, `a85fe80`). The next milestone is **confidentiality hardening** of the
-`system.wildpath` transport, which remains broadcast with routing-only `recipientUserId` semantics
-(see the atlas §17). Rerun the Level-5 sentinel only when socket transport, authority, request
-routing, prompt ownership, multiplayer orchestration, or disclosure behavior changes; purely
-mechanical movement changes are covered by Node plus the Quench six-case batch.
+three paired Level-5 sentinel exports above exist, validate, and are committed (`f2c5223`, `a85fe80`).
+**Confidentiality hardening** is the current milestone (see above); because it changes socket
+transport, request routing, prompt delivery and disclosure, the Level-5 sentinel is reopened and must
+be rerun with schema-2 evidence before that milestone closes. Purely mechanical movement changes
+remain covered by Node plus the Quench six-case batch.
 
 Current limits are explicit: active GM and voluntary translation at the Foundry entry point;
 no intermediate Token persistence/rendering; no durable host reconstruction after reload/handoff;

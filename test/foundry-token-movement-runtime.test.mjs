@@ -897,6 +897,8 @@ function createMovementRuntimeFixture({
   const hub = createTestResolutionTransportHub({users});
   const playerTransport = hub.createEndpoint({userId: PLAYER.id});
   const gmTransport = hub.createEndpoint({userId: GM.id});
+  // The forging "other player" is a connected client too: targeted rejections must be deliverable.
+  hub.createEndpoint({userId: OTHER_PLAYER.id});
   const persistence = createTestDocumentPersistenceAdapter({
     actors: {
       [actor.id]: actor,

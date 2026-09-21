@@ -7,6 +7,7 @@ import {registerConditionTests} from "./conditions.mjs";
 import {registerRuleElementTests} from "./rule-elements.mjs";
 import {registerCombatTests} from "./combat.mjs";
 import {registerStagedMovementTests} from "./staged-movement.mjs";
+import {registerMultiplayerDisclosureTests} from "./multiplayer-disclosure.mjs";
 
 Hooks.on("quenchReady", quench => {
   registerRuntimeSmokeTests(quench);
@@ -17,4 +18,5 @@ Hooks.on("quenchReady", quench => {
   registerRuleElementTests(quench);
   registerCombatTests(quench);
   registerStagedMovementTests(quench);
+  registerMultiplayerDisclosureTests(quench);
 });

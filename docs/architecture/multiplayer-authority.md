@@ -90,12 +90,19 @@ protocolVersion
 messageId
 messageType
 senderUserId
-recipientUserId / recipientUserIds / recipientPolicy
+recipientUserId / recipientUserIds / recipientPolicy   (routing only)
+disclosure                                             (BROADCAST_SAFE | PARTICIPANT_PRIVATE | GM_PRIVATE)
 resolutionId
 requestId
 payload
 metadata
 ```
+
+`recipientUserId` decides who processes an envelope; `disclosure` decides which transport may carry
+it. The custom socket is a broadcast bus that delivers to every other connected client and never
+echoes to the sender, so private envelopes travel by `User#query` and self-addressed envelopes are
+delivered locally. The classification model, the fail-closed codes, and the result projections are
+specified in [multiplayer-confidentiality.md](multiplayer-confidentiality.md).
 
 The current message set is intentionally small:
 
@@ -137,8 +144,10 @@ The authority then builds the real staged action options locally. Players never 
 
 ## Pending Requests
 
-When a stage pauses, the authority sends only the pending request payload. It does not broadcast the
-full `ResolutionState`, hidden mutation plans, or target/source document objects.
+When a stage pauses, the authority sends only the pending request payload, minimized for the chooser
+(roll requests lose target defenses, DC and roll data; authority state keys are stripped) and
+classified `PARTICIPANT_PRIVATE`, so it travels by targeted transport to the chooser alone. It does
+not broadcast the full `ResolutionState`, hidden mutation plans, or target/source document objects.
 
 Remote request handling uses existing ports:
 
@@ -356,7 +365,8 @@ Not implemented here:
 - chat rendering
 - movement undo/refund accounting
 - persistent area lifecycle networking
-- cross-client secret visibility policy beyond sanitized result/request payloads
+- cryptographic confidentiality or protection against the server operator: the disclosure model in
+  [multiplayer-confidentiality.md](multiplayer-confidentiality.md) is client-level, recipient-restricted transport
 
 Generic reaction-choice routing and nested child advancement are covered by deterministic transport
 tests. The live movement/reaction gate additionally proved active-GM authority, a real player prompt,

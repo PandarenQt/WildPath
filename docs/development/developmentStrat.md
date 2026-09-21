@@ -272,6 +272,14 @@ fallback, remote PromptPort/RollProvider responses resume the authoritative stat
 responses are rejected, no full ResolutionState is broadcast, and commits remain behind the
 transaction/persistence boundary. See `docs/architecture/multiplayer-authority.md`.
 
+Confidentiality hardening (in progress, 2026-09-21): every envelope now carries an explicit
+disclosure classification; `BROADCAST_SAFE` traffic (intents, movement commits, the public result
+projection) stays on `system.wildpath`, `PARTICIPANT_PRIVATE` traffic (pending requests, answers,
+errors, movement approvals/results/continuations, the initiator's result projection) travels by
+`User#query`, self-addressed envelopes are delivered locally, and unclassified or private payloads
+fail closed at the broadcast adapter. Node and the Quench batch are green; the Level-5 three-case
+sentinel rerun (schema-2 evidence) is pending. See `docs/architecture/multiplayer-confidentiality.md`.
+
 ## Stage G — ReactionEngine
 
 Build reactions over semantic events, existing pending requests, child resolutions, and pause/resume.

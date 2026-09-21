@@ -14,6 +14,7 @@ import {
 } from "../module/helpers/multiplayer-authority.mjs";
 import {isPlainSerializableData} from "../module/helpers/multiplayer-authority.mjs";
 import {createTestResolutionTransportHub} from "../module/adapters/test-resolution-transport.mjs";
+import {DISCLOSURE_CLASSIFICATIONS} from "../module/helpers/multiplayer-disclosure.mjs";
 import {createTestDocumentPersistenceAdapter} from "../module/adapters/test-persistence-adapter.mjs";
 import {createMultiplayerActionCoordinator} from "../module/resolvers/multiplayer-action-coordinator.mjs";
 import {createTestRollProvider} from "../module/resolvers/roll-provider-resolver.mjs";
@@ -687,6 +688,7 @@ test("resolution result/error envelopes are rejected unless they come from the e
     messageType: MULTIPLAYER_MESSAGE_TYPES.RESOLUTION_RESULT,
     senderUserId: "player-b",
     recipientPolicy: "all",
+    disclosure: DISCLOSURE_CLASSIFICATIONS.BROADCAST_SAFE,
     resolutionId: declared.resolutionId,
     payload: {result: {status: RESOLUTION_STATE_STATUS.COMPLETED, forged: true}}
   }));
@@ -698,6 +700,7 @@ test("resolution result/error envelopes are rejected unless they come from the e
     messageType: MULTIPLAYER_MESSAGE_TYPES.RESOLUTION_RESULT,
     senderUserId: "gm-a",
     recipientPolicy: "all",
+    disclosure: DISCLOSURE_CLASSIFICATIONS.BROADCAST_SAFE,
     resolutionId: declared.resolutionId,
     payload: {result: {status: RESOLUTION_STATE_STATUS.COMPLETED, forged: false}}
   }));

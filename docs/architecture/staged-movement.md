@@ -139,4 +139,7 @@ for intermediate logical positions remain deferred. The six-case semantic gate i
 V14.367 through the `wildpath.staged-movement` Quench batch on a single active-GM client, and the
 three paired GM/player Level-5 sentinel cases (ordinary, decline, Large-hex decline) passed in two
 real browser sessions on 2026-09-20 with canonical exports committed under `evidence/`; see
-[the QA runbook](../development/staged-movement-qa.md).
+[the QA runbook](../development/staged-movement-qa.md). The confidentiality hardening milestone
+reclassified the transport (reaction prompts and answers now travel by targeted `User#query`, see
+[multiplayer-confidentiality.md](multiplayer-confidentiality.md)) and reopens that sentinel until
+schema-2 evidence is committed.

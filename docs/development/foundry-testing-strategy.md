@@ -26,8 +26,11 @@ Level-5 multiplayer QA is a thin sentinel of exactly three paired GM/player case
 `ordinary` (square), `decline` (square), and `large-hex-decline` — exported only through the helper's
 canonical `exportEvidence`/`exportPlayerEvidence` wrapper (see [staged-movement-qa.md](staged-movement-qa.md)).
 **All three pairs passed on 2026-09-20** in two real browser sessions on Foundry V14.367 and are
-committed under `evidence/`; the staged movement milestone is closed on that evidence.
-Ongoing policy:
+committed under `evidence/`; the staged movement milestone is closed on that evidence. The
+confidentiality hardening milestone (2026-09-21) changes transport, request routing and prompt
+delivery, so the sentinel is **reopened**: it must be rerun with the schema-2 export (transport
+evidence, GM mover with a player reactor controller for the reaction cases) before that milestone
+closes. Ongoing policy:
 
 ```text
 Pure movement/mechanical changes:
@@ -87,8 +90,18 @@ failures. WildPath neither patches Quench nor suppresses compatibility warnings.
 ## Registration and fixtures
 
 `wildpath.mjs` imports only `module/tests/quench/index.mjs` for this layer. That file owns the single
-`quenchReady` subscription and registers exactly eight batches (46 cases, all live-confirmed). Batch
+`quenchReady` subscription and registers exactly nine batches (50 cases: 46 live-confirmed, plus the
+4-case `wildpath.multiplayer-disclosure` batch added on 2026-09-21 and not yet live-run). Batch
 modules do not add registration hooks.
+
+`wildpath.multiplayer-disclosure` — **WILDPATH: Multiplayer Disclosure** — proves on one GM client
+that the runtime wires the disclosure-routed transport over the real socket adapter and the
+`User#query` adapter, that `CONFIG.queries["wildpath.resolutionEnvelope"]` is registered, that the
+real broadcast adapter refuses private and unclassified envelopes without emitting on
+`system.wildpath`, that a real `User#query` relay through the server acknowledges with a receipt and
+never touches the bus, and that the handler rejects a forged sender and a misaddressed recipient. It
+uses no fixtures and mutates nothing. One client cannot prove cross-browser privacy; that is the
+Level-5 sentinel's job.
 No Quench globals, dependency, client setting writes, fixture creation, or test
 execution are required at normal startup. If Quench is absent, its hook simply never fires.
 The old smoke file and unfinished top-level test index/fixtures have been migrated into this directory.
@@ -547,7 +560,7 @@ are outside this helper's cleanup scope.
 
 Run `npm.cmd test`, `npm.cmd run typecheck`, `node --check` for the changed modules, and
 `git diff --check`. The thirteen tests in `test/quench-infrastructure.test.mjs` cover registration with
-Quench absent, eight-batch inventory and exact movement names/counts, unchanged fixture defaults,
+Quench absent, the batch inventory (now nine batches) and exact movement names/counts, unchanged fixture defaults,
 custom Scene grids and Token footprint fields, scoped fixture creation/deletion, ActiveEffect and
 Scene/Token/Combat parent guards, cleanup ordering across collections, the read-only orphan listing,
 GM guards, and cleanup failures. Eight tests in `test/quench-staged-movement.test.mjs` cover pending

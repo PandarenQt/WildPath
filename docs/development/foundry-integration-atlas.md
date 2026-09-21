@@ -830,18 +830,25 @@ The implication to keep in mind: **`recipientUserId` is addressing, not confiden
 receives every envelope and merely chooses to ignore the ones not addressed to it. Any client running
 a listener or debugger can read all envelope contents.
 
-This is not a flaw in WildPath's authority model, which is sound — senders are validated, wrong-user
-and stale/duplicate responses are rejected, and commits are GM-owned. It is a *confidentiality*
-property of the transport, and the open question it raises is narrow: does anything travel in an
-envelope that a player should not be able to read (a hidden DC, a blind roll result, GM-only
-resolution metadata)? `sanitizeResolutionResultForTransport` suggests this was considered; it is worth
-confirming deliberately rather than by assumption.
+**Resolved on 2026-09-21 (confidentiality hardening).** The audit of the actual payloads found that
+`PENDING_REQUEST`, `REQUEST_RESPONSE`, `RESOLUTION_ERROR`, `MOVEMENT_APPROVAL`, `MOVEMENT_RESULT`,
+`MOVEMENT_CONTINUATION` and the unprojected `RESOLUTION_RESULT` were not safe to broadcast (save DCs,
+reaction availability, roll results, target defenses and post-damage HP through committed mutations,
+the mover's budget and armed reaction boundary). WildPath now classifies every envelope
+(`BROADCAST_SAFE` / `PARTICIPANT_PRIVATE` / `GM_PRIVATE`), the socket adapter refuses to emit or
+dispatch anything but `BROADCAST_SAFE`, private envelopes travel by `User#query`
+(`CONFIG.queries["wildpath.resolutionEnvelope"]`), and `RESOLUTION_RESULT` is emitted as two explicit
+projections. See `docs/architecture/multiplayer-confidentiality.md`.
 
-Where confidentiality or a genuine reply channel is needed, `User#query` / `CONFIG.queries` targets a
-single user through the server, is permission-checked (`QUERY_USER`), supports timeouts, and
-propagates remote rejections as local throws — see §13H. Core also notes that custom socket payloads
-carry **zero** authority, so every trust decision must be made by the receiving client, which WildPath
-already does.
+Two further facts from the installed server relay (`registerCustomSocket` → `handleCustomSocket` in
+`dist/`): it uses `socket.broadcast.emit`, so **the sender never receives its own custom-socket
+message** (a self-addressed envelope must be delivered locally, which the disclosure-routed transport
+now does), and it appends the attested sender user id as the handler's second argument, which the
+socket adapter now verifies against `senderUserId`. It also honours an undocumented
+`{recipients: [ids]}` third emit argument; WildPath does not rely on it.
+
+Core also notes that custom socket payloads carry **zero** authority, so every trust decision must be
+made by the receiving client, which WildPath already does.
 
 ### Sources
 
@@ -1343,7 +1350,7 @@ declares no `scripts` block and no test-related dependencies.
 testing workflow for a V14 system. The absence is a fact about Foundry's documentation, not evidence
 that testing is discouraged.
 
-### 19F. Quench — V14.367 Q1 17/17, Q2 17/17, Combat 6/6, staged movement 6/6 (46 cases live-confirmed)
+### 19F. Quench — V14.367 Q1 17/17, Q2 17/17, Combat 6/6, staged movement 6/6 (46 cases live-confirmed; multiplayer disclosure 4 cases added, not yet live-run)
 
 Quench is the ecosystem's in-Foundry test runner (Mocha + Chai + fast-check, registering a native
 Foundry Application as a test runner UI). It is the only known candidate for **layer 3**.
@@ -1402,7 +1409,10 @@ state or the turn-event workflow. Recorded here so it is not mistaken for a syst
 
 The staged-movement batch (`wildpath.staged-movement`, 6 cases; **6/6 maintainer-reported**, total
 **46**) runs the six-case semantic movement gate on one active-GM client with the live QA's own proof
-assertions. Its first run found a real production defect at the persistence boundary: the commit
+assertions. The ninth batch (`wildpath.multiplayer-disclosure`, 4 cases, added 2026-09-21, **not yet
+live-run**) proves the targeted-transport mechanism itself in real Foundry: registration, the real
+socket adapter's refusal of private data, a `User#query` relay through the real server, and the
+handler's identity checks; it does not and cannot prove cross-browser privacy on one client. Its first run found a real production defect at the persistence boundary: the commit
 adapter's strict equality rejected Foundry's integer-cleaned `260` against a hex-derived planned
 `260.00000000000006`, failing an otherwise correct Large-hex resolution with `COMMIT_FAILED`.
 `e30d752` confines a tolerance to IEEE-754 noise on `x`/`y`/`elevation` at every verification and
@@ -1452,7 +1462,8 @@ gate. The live multiplayer cases remain the evidence of record for multiplayer b
 **[wildpath]** Levels 1 and 2 exist today; 4 and 5 exist as manual procedure. Level 3 is now supported
 by 34 maintainer-confirmed live cases (Q1 17/17 after the custom-pool persistence repair; Q2 17/17),
 plus the Combat slice's 6 cases (6/6 maintainer-reported) and the staged-movement batch's 6 cases (6/6
-after `e30d752`), for 46 live-confirmed cases in total.
+after `e30d752`), for 46 live-confirmed cases in total; the 4-case multiplayer-disclosure batch
+(2026-09-21) awaits its first live run.
 
 ```text
 Level 1 — Pure Node tests

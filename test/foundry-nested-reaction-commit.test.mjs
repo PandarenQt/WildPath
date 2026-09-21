@@ -85,6 +85,25 @@ test("production-shaped reaction payment commits the full resource schema on tok
   assert.equal(f.calls[0].actor, f.token.actor);
 });
 
+test("nested child resolution routes its reaction-choice request and answer on the targeted transport only", async () => {
+  const f = await fixture();
+  const {record, hub} = await nested(f);
+  assert.equal(record.knownResolutionIds.size, 2, "a real nested child was registered");
+  const busTypes = [...new Set(hub.broadcastMessages.map(message => message.messageType))];
+  assert.deepEqual(busTypes, ["RESOLUTION_RESULT"], "only the public result projection crossed the bus");
+  assert.equal(hub.broadcastMessages.every(message => message.disclosure === "BROADCAST_SAFE"), true);
+  const targeted = hub.targetedMessages.map(entry => [entry.envelope.messageType, entry.senderUserId, entry.recipientUserId, entry.envelope.disclosure]);
+  assert.deepEqual(targeted, [
+    ["PENDING_REQUEST", gm.id, player.id, "PARTICIPANT_PRIVATE"],
+    ["REQUEST_RESPONSE", player.id, gm.id, "PARTICIPANT_PRIVATE"]
+  ]);
+  const request = hub.targetedMessages[0].envelope.payload.request;
+  assert.equal(request.type, "reaction-choice");
+  assert.equal(request.metadata.multiplayer.expectedChooserUserId, player.id);
+  assert.equal(JSON.stringify(hub.broadcastMessages).includes("candidates"), false);
+  assert.equal(hub.messages.every(isPlainSerializableData), true);
+});
+
 test("production-shaped condition creation persists metadata and the target operation succeeds", async () => {
   const f = await fixture();
   const planned = plan(f.actor, {...actionDefinition, costs: {}});

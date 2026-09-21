@@ -9,6 +9,7 @@ import {
   selectResolutionAuthority,
   validateResolutionSocketEnvelope
 } from "../helpers/multiplayer-authority.mjs";
+import {DISCLOSURE_CLASSIFICATIONS} from "../helpers/multiplayer-disclosure.mjs";
 import {fieldKey} from "../helpers/grid-footprints.mjs";
 import {movementReactionBoundary, needsMovementReactionCheckpoints} from "../helpers/movement-reaction-boundaries.mjs";
 import {normalizeEntityRef, uuidRef} from "../helpers/entity-refs.mjs";
@@ -203,6 +204,7 @@ export function createMultiplayerMovementAuthority({
       messageType: MULTIPLAYER_MESSAGE_TYPES.MOVEMENT_INTENT,
       senderUserId: localUserId,
       recipientUserId: authority.userId,
+      disclosure: DISCLOSURE_CLASSIFICATIONS.BROADCAST_SAFE,
       resolutionId: sanitized.resolutionId,
       payload: {
         intent: sanitized
@@ -365,6 +367,7 @@ export function createMultiplayerMovementAuthority({
         messageType: MULTIPLAYER_MESSAGE_TYPES.MOVEMENT_COMMIT,
         senderUserId: localUserId,
         recipientUserId: expectedAuthorityUserId,
+        disclosure: DISCLOSURE_CLASSIFICATIONS.BROADCAST_SAFE,
         resolutionId: sanitized.resolutionId,
         payload: {
           completion: sanitized
@@ -403,6 +406,7 @@ export function createMultiplayerMovementAuthority({
       messageType: MULTIPLAYER_MESSAGE_TYPES.MOVEMENT_COMMIT,
       senderUserId: localUserId,
       recipientUserId: authority.userId,
+      disclosure: DISCLOSURE_CLASSIFICATIONS.BROADCAST_SAFE,
       resolutionId: sanitized.resolutionId,
       payload: {
         completion: sanitized
@@ -975,6 +979,7 @@ export function createMultiplayerMovementAuthority({
     return sendEnvelope(createResolutionSocketEnvelope({
       messageType: MULTIPLAYER_MESSAGE_TYPES.MOVEMENT_CONTINUATION,
       senderUserId: localUserId, recipientUserId: record.initiatorUserId,
+      disclosure: DISCLOSURE_CLASSIFICATIONS.PARTICIPANT_PRIVATE,
       resolutionId: movementResolutionId(boundary.operationId), payload: result.payload
     }));
   }
@@ -1087,6 +1092,7 @@ export function createMultiplayerMovementAuthority({
       messageType: MULTIPLAYER_MESSAGE_TYPES.MOVEMENT_APPROVAL,
       senderUserId: localUserId,
       recipientUserId,
+      disclosure: DISCLOSURE_CLASSIFICATIONS.PARTICIPANT_PRIVATE,
       resolutionId: approval.resolutionId ?? movementResolutionId(approval.movementId),
       payload: {
         approval
@@ -1106,6 +1112,7 @@ export function createMultiplayerMovementAuthority({
       messageType: MULTIPLAYER_MESSAGE_TYPES.MOVEMENT_RESULT,
       senderUserId: localUserId,
       recipientUserId,
+      disclosure: DISCLOSURE_CLASSIFICATIONS.PARTICIPANT_PRIVATE,
       resolutionId: result.resolutionId ?? movementResolutionId(result.movementId),
       payload: {
         result

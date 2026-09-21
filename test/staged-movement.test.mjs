@@ -587,3 +587,32 @@ test("restoration verification tolerates canonicalized coordinates when a write 
   assert.equal(f.movingToken.x,0);
   assert.equal(f.movingToken.y,260,"a canonicalized restoration must not be reported as a restoration failure");
 });
+
+test("reaction-choice prompts and answers travel only on the targeted transport; the broadcast bus never carries them", async () => {
+  const f = fixture(); await f.start();
+  assert.equal(f.record()?.state.status, "completed", diagnostic(f.record()?.state));
+  const bus = f.hub.broadcastMessages;
+  assert.deepEqual([...new Set(bus.map(m => m.messageType))].sort(), [MESSAGE.ACTION_INTENT, MESSAGE.RESOLUTION_RESULT]);
+  assert.equal(bus.every(m => m.disclosure === "BROADCAST_SAFE"), true);
+  const text = JSON.stringify(bus);
+  for (const marker of ["candidates", "reactionWindowId", "offerSequence", "\"options\"", "committedMutations", "paymentPlan"]) {
+    assert.equal(text.includes(marker), false, `broadcast traffic must not contain ${marker}`);
+  }
+  const requests = f.hub.targetedMessages.filter(m => m.envelope.messageType === MESSAGE.PENDING_REQUEST);
+  assert.equal(requests.length, 1);
+  assert.equal(requests[0].recipientUserId, "reactor-user");
+  assert.equal(requests[0].envelope.disclosure, "PARTICIPANT_PRIVATE");
+  assert.equal(requests[0].envelope.payload.request.type, "reaction-choice");
+  assert.equal(requests[0].envelope.payload.request.payload.candidates.length, 1);
+  const answers = f.hub.targetedMessages.filter(m => m.envelope.messageType === MESSAGE.REQUEST_RESPONSE);
+  assert.deepEqual(answers.map(m => [m.senderUserId, m.recipientUserId]), [["reactor-user", "gm"]]);
+  assert.equal(answers[0].envelope.payload.response.value.decision, "decline");
+  // The mover keeps the participant projection; the reactor's client only ever sees the public one.
+  const results = f.hub.messages.filter(m => m.messageType === MESSAGE.RESOLUTION_RESULT);
+  assert.deepEqual(results.map(m => m.disclosure), ["PARTICIPANT_PRIVATE", "BROADCAST_SAFE"]);
+  assert.equal(f.player.getResult(f.intent.resolutionId)?.disclosure, "PARTICIPANT_PRIVATE");
+  assert.equal(f.player.getResult(f.intent.resolutionId)?.outcomes.movement.committed, true);
+  assert.equal(f.reactorClient.getResult(f.intent.resolutionId)?.disclosure, "BROADCAST_SAFE");
+  assert.equal(f.reactorClient.getResult(f.intent.resolutionId)?.outcomes.movement.completedTransitionCount, 3);
+  assert.equal(f.reactorClient.getResult(f.intent.resolutionId)?.committedMutations, undefined);
+});

@@ -5,6 +5,18 @@ import {
   recipientMatchesEnvelope,
   validateResolutionSocketEnvelope
 } from "../helpers/multiplayer-authority.mjs";
+import {
+  DISCLOSURE_CODES,
+  assertBroadcastSafe
+} from "../helpers/multiplayer-disclosure.mjs";
+
+/**
+ * Broadcast adapter over the `system.wildpath` custom socket. Foundry relays every emission to every
+ * other connected client (never back to the sender), so this adapter refuses to emit, and refuses to
+ * dispatch, anything that is not classified BROADCAST_SAFE. `recipientUserId` is routing only.
+ * The server appends the attested sender user id as the handler's second argument; envelopes whose
+ * claimed senderUserId disagrees with it are dropped.
+ */
 
 export function createFoundryV14ResolutionSocketAdapter({
   id="foundry-v14-resolution-socket",
@@ -50,17 +62,36 @@ export function createFoundryV14ResolutionSocketAdapter({
       };
 
       handlers.add(handler);
-      socket.on(socketNamespace, async envelope => {
+      socket.on(socketNamespace, async (envelope, attestedSenderUserId=null) => {
         const validation = validateResolutionSocketEnvelope(envelope);
         if ( !validation.ok ) {
           logWarning(logger, "Wild Path | Rejected invalid resolution socket envelope", validation);
+          return;
+        }
+        const safe = assertBroadcastSafe(validation.envelope);
+        if ( !safe.ok ) {
+          logWarning(logger, "Wild Path | Refused a non-broadcast-safe envelope received on the broadcast bus", {
+            code: DISCLOSURE_CODES.PRIVATE_PAYLOAD_ON_BROADCAST_TRANSPORT,
+            classification: safe.classification ?? null,
+            messageType: validation.envelope.messageType,
+            messageId: validation.envelope.messageId
+          });
+          return;
+        }
+        const attested = attestedSenderUserId == null ? null : String(attestedSenderUserId);
+        if ( attested && validation.envelope.senderUserId !== attested ) {
+          logWarning(logger, "Wild Path | Dropped a socket envelope whose senderUserId does not match the attested sender", {
+            code: DISCLOSURE_CODES.DISCLOSURE_SENDER_MISMATCH,
+            messageType: validation.envelope.messageType,
+            messageId: validation.envelope.messageId
+          });
           return;
         }
         const currentUserId = foundryGame?.user?.id ?? foundryGame?.userId ?? null;
         if ( !recipientMatchesEnvelope(validation.envelope, currentUserId) ) return;
         for ( const handler of handlers ) {
           try {
-            await handler(validation.envelope, {transport: adapter});
+            await handler(validation.envelope, {transport: adapter, attestedSenderUserId: attested});
           } catch (error) {
             logWarning(logger, "Wild Path | Resolution socket handler failed", error);
           }
@@ -78,6 +109,9 @@ export function createFoundryV14ResolutionSocketAdapter({
     async send(envelope) {
       const validation = validateResolutionSocketEnvelope(envelope);
       if ( !validation.ok ) return validation;
+      // Fail closed: private or unclassified payloads never reach socket.emit, whatever their routing.
+      const safe = assertBroadcastSafe(validation.envelope);
+      if ( !safe.ok ) return {...safe, envelope: validation.envelope, namespace: socketNamespace};
       const foundryGame = resolveGame(game);
       const socket = foundryGame?.socket ?? null;
       if ( !socket || typeof socket.emit !== "function" ) return {

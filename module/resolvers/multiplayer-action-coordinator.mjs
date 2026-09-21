@@ -13,14 +13,17 @@ import {
   createBoundedIdCache,
   createResolutionSocketEnvelope,
   normalizeAuthorityUsers,
+  projectResolutionResultForDisclosure,
   recipientMatchesEnvelope,
   resolveRequestChooser,
   sanitizeActionIntentPayload,
   sanitizePendingRequestForTransport,
+  sanitizeResolutionErrorDataForTransport,
   sanitizeResolutionResultForTransport,
   selectResolutionAuthority,
   validateResolutionSocketEnvelope
 } from "../helpers/multiplayer-authority.mjs";
+import {DISCLOSURE_CLASSIFICATIONS, isPrivateDisclosure} from "../helpers/multiplayer-disclosure.mjs";
 import {ROLL_PROVIDER_OUTCOMES} from "../helpers/rolls.mjs";
 import {
   completeStagedReactionChildResolution,
@@ -116,6 +119,7 @@ export function createMultiplayerActionCoordinator({
         messageType: MULTIPLAYER_MESSAGE_TYPES.ACTION_INTENT,
         senderUserId: localUserId,
         recipientUserId: authority.userId,
+        disclosure: DISCLOSURE_CLASSIFICATIONS.BROADCAST_SAFE,
         resolutionId,
         payload: {
           ...sanitizedIntent,
@@ -418,6 +422,7 @@ export function createMultiplayerActionCoordinator({
           messageType: MULTIPLAYER_MESSAGE_TYPES.REQUEST_RESPONSE,
           senderUserId: localUserId,
           recipientUserId: localUserId,
+          disclosure: DISCLOSURE_CLASSIFICATIONS.PARTICIPANT_PRIVATE,
           resolutionId: state.id,
           requestId: request.id,
           payload: {response: answered.response}
@@ -429,6 +434,7 @@ export function createMultiplayerActionCoordinator({
         messageType: MULTIPLAYER_MESSAGE_TYPES.PENDING_REQUEST,
         senderUserId: localUserId,
         recipientUserId: chooser.userId,
+        disclosure: DISCLOSURE_CLASSIFICATIONS.PARTICIPANT_PRIVATE,
         resolutionId: state.id,
         requestId: request.id,
         payload: {
@@ -498,6 +504,7 @@ export function createMultiplayerActionCoordinator({
       messageType: MULTIPLAYER_MESSAGE_TYPES.REQUEST_RESPONSE,
       senderUserId: localUserId,
       recipientUserId: envelope.senderUserId,
+      disclosure: DISCLOSURE_CLASSIFICATIONS.PARTICIPANT_PRIVATE,
       resolutionId: envelope.resolutionId,
       requestId: request.id,
       payload: {
@@ -654,7 +661,12 @@ export function createMultiplayerActionCoordinator({
       resolutionId: envelope.resolutionId
     };
     const result = clonePlainData(envelope.payload?.result ?? envelope.payload, "resolutionResult");
-    completedResults.set(envelope.resolutionId, result);
+    // The initiator receives its PARTICIPANT_PRIVATE projection first and the BROADCAST_SAFE one
+    // afterwards; the local store keeps the richest projection it has been given.
+    const stored = completedResults.get(envelope.resolutionId);
+    if ( !(stored && isPrivateDisclosure(stored.disclosure) && !isPrivateDisclosure(result?.disclosure)) ) {
+      completedResults.set(envelope.resolutionId, result);
+    }
     const notification = {
       type: MULTIPLAYER_MESSAGE_TYPES.RESOLUTION_RESULT,
       envelope,
@@ -714,24 +726,44 @@ export function createMultiplayerActionCoordinator({
       authorityUserId: record.authorityUserId,
       initiatorUserId: record.initiatorUserId
     });
-    completedResults.set(record.resolutionId, sanitized);
-    if ( record.onComplete ) await record.onComplete({state: record.state, result: sanitized});
+    // Two explicit projections: the initiator's full sanitized result travels only on the targeted
+    // transport; every connected client gets the allow-listed public projection on the bus.
+    const participant = projectResolutionResultForDisclosure(sanitized, DISCLOSURE_CLASSIFICATIONS.PARTICIPANT_PRIVATE);
+    const publicResult = projectResolutionResultForDisclosure(sanitized, DISCLOSURE_CLASSIFICATIONS.BROADCAST_SAFE);
+    completedResults.set(record.resolutionId, participant);
+    if ( record.onComplete ) await record.onComplete({state: record.state, result: participant});
+    let participantSent = null;
+    if ( record.initiatorUserId && record.initiatorUserId !== localUserId ) {
+      participantSent = await sendEnvelope(createResolutionSocketEnvelope({
+        messageType: MULTIPLAYER_MESSAGE_TYPES.RESOLUTION_RESULT,
+        senderUserId: localUserId,
+        recipientUserId: record.initiatorUserId,
+        disclosure: DISCLOSURE_CLASSIFICATIONS.PARTICIPANT_PRIVATE,
+        resolutionId: record.resolutionId,
+        payload: {
+          result: participant
+        }
+      }));
+    }
     const envelope = createResolutionSocketEnvelope({
       messageType: MULTIPLAYER_MESSAGE_TYPES.RESOLUTION_RESULT,
       senderUserId: localUserId,
       recipientPolicy: "all",
+      disclosure: DISCLOSURE_CLASSIFICATIONS.BROADCAST_SAFE,
       resolutionId: record.resolutionId,
       payload: {
-        result: sanitized
+        result: publicResult
       }
     });
     const sent = await sendEnvelope(envelope);
+    const ok = sent.ok && participantSent?.ok !== false;
     return {
-      ok: sent.ok,
-      code: sent.ok ? MULTIPLAYER_AUTHORITY_CODES.COMPLETED : sent.code,
+      ok,
+      code: ok ? MULTIPLAYER_AUTHORITY_CODES.COMPLETED : (participantSent?.ok === false ? participantSent.code : sent.code),
       state: record.state,
-      result: sanitized,
-      sent
+      result: participant,
+      sent,
+      participantSent
     };
   }
 
@@ -780,9 +812,13 @@ export function createMultiplayerActionCoordinator({
       messageType: MULTIPLAYER_MESSAGE_TYPES.RESOLUTION_ERROR,
       senderUserId: localUserId,
       recipientUserId,
+      disclosure: DISCLOSURE_CLASSIFICATIONS.PARTICIPANT_PRIVATE,
       resolutionId,
       requestId,
-      payload
+      payload: {
+        ...payload,
+        data: sanitizeResolutionErrorDataForTransport(payload.data)
+      }
     });
     const sent = await sendEnvelope(envelope);
     return {

@@ -4,15 +4,23 @@ The six semantic staged-movement cases (`ordinary`, `decline`, `miss`, `hit`, `s
 `decline`) are **live-confirmed 6/6 in Foundry V14.367** by the `wildpath.staged-movement` Quench
 batch, which runs the proof assertions in `staged-movement-qa-proof.mjs` on a single active-GM
 client. Quench owns that regression coverage. This runbook is the remaining **Level-5 sentinel**:
-three paired GM/player cases in two real browser sessions proving real `ACTION_INTENT` transport,
-active-GM authority, remote request routing where applicable, and `RESOLUTION_RESULT` delivery on
-square and hex topology.
+three paired GM/player cases in two real browser sessions proving real intent transport, active-GM
+authority, **targeted (recipient-restricted) delivery of private requests, answers and results**,
+and `RESOLUTION_RESULT` delivery on square and hex topology.
 
-| Sentinel | Mode | Variant | GM file | Player file |
-| --- | --- | --- | --- | --- |
-| 1 — ordinary square/Medium | `ordinary` | `square` | `evidence/gm-movement-ordinary.json` | `evidence/player-movement-ordinary.json` |
-| 2 — square/Medium reaction decline | `decline` | `square` | `evidence/gm-movement-decline.json` | `evidence/player-movement-decline.json` |
-| 3 — Large-hex reaction decline | `decline` | `large-hex-decline` | `evidence/gm-large-hex-decline.json` | `evidence/player-large-hex-decline.json` |
+| Sentinel | Mode | Variant | Mover | Reactor controller | GM file | Player file |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 — ordinary square/Medium | `ordinary` | `square` | player | (none offered) | `evidence/gm-movement-ordinary.json` | `evidence/player-movement-ordinary.json` |
+| 2 — square/Medium reaction decline | `decline` | `square` | **GM** | **player** | `evidence/gm-movement-decline.json` | `evidence/player-movement-decline.json` |
+| 3 — Large-hex reaction decline | `decline` | `large-hex-decline` | **GM** | **player** | `evidence/gm-large-hex-decline.json` | `evidence/player-large-hex-decline.json` |
+
+Why the roles differ: with one GM and one player, a reaction prompt only crosses the network when
+the reactor is controlled by the *other* client. Sentinel 1 proves the player-initiated path (the
+`ACTION_INTENT` crosses the bus, the participant result comes back on the targeted transport).
+Sentinels 2 and 3 have the GM move and the player answer, so the reaction-choice `PENDING_REQUEST`
+and the `REQUEST_RESPONSE` really travel between two browsers on `User#query`, and the evidence can
+show that neither ever appeared on `system.wildpath`. The evidence builder refuses any other role
+assignment for these cases.
 
 `miss`, `hit`, and `stop` are **not** part of the canonical Level-5 set. Their mechanics are Quench-
 confirmed; the helper still supports them for diagnosis, but its canonical export refuses to label
@@ -24,10 +32,9 @@ the regression gate for dragging and checkpoint continuation; do not substitute 
 
 ## Preconditions (both clients)
 
-Two browser sessions: the **active GM** and **one active non-GM player** (the mover). With one GM
-and one player the reactor controller defaults to the GM, so the reaction prompt is answered on the
-GM client while the player submits movement. To have a second player control the reactor, pass that
-user's ID as the second `setupGM` argument; mover and reactor controllers must differ.
+Two browser sessions: the **active GM** and **one active non-GM player**. The player must hold the
+`QUERY_USER` permission (Foundry's default for the Player role); without it the player cannot send
+targeted answers and the runtime logs a warning at `ready`.
 
 The reused Action QA setup stops if any of these fail: Foundry build exactly **14.367**; the test
 Scene is the **active** Scene, viewed on both clients; Token Vision off; no started Combat;
@@ -41,38 +48,61 @@ Before starting, record the exact served commit: `git rev-parse HEAD` in the rep
 serving `/systems/wildpath`. Every export requires it; if the branch moves between sentinels, pass
 the new SHA.
 
-## Export contract
+## Export contract (schema 2)
 
 Exports are produced only by the helper, never by copying console transcripts. Each is a plain
 JSON object:
 
 ```text
-schemaVersion 1 · evidenceType "staged-movement-level5" · role gm|player
+schemaVersion 2 · evidenceType "staged-movement-level5" · role gm|player
 case ordinary|decline|large-hex-decline · mode · variant
 foundryVersion (game.version) · foundry {generation, build} · systemId · systemVersion
 gitSha (exact, required) · capturedAt (ISO-8601, export time) · runId · resolutionId
-evidenceFile (the canonical path above) · evidence (the bounded prove()/dumpPlayer() object)
+evidenceFile (the canonical path above) · evidence (the bounded dump, see below)
 ```
+
+`evidence` carries the movement proof as before plus the confidentiality evidence:
+
+- `authorityUserId` (GM export) and `result.authorityUserId` (player export);
+- `transport.broadcastMessageTypes`: every message type that crossed `system.wildpath` for this
+  resolution; the builder refuses any private type (`PENDING_REQUEST`, `REQUEST_RESPONSE`,
+  `RESOLUTION_ERROR`, movement approval/result/continuation) and requires `RESOLUTION_RESULT`;
+- `transport.targeted` / `transport.local`: direction, type, sender, recipient, classification and
+  ids of every envelope that travelled by `User#query` or was delivered locally, never their payload;
+- `envelopes` (GM export): captured envelopes with private payloads replaced by
+  `{omitted: true, keys: [...]}`.
+
+Per case the builder additionally requires: sentinel 1 — the participant `RESOLUTION_RESULT`
+projection sent to (GM) / received by (player) the mover on the targeted transport, and the player's
+stored result classified `PARTICIPANT_PRIVATE`; sentinels 2–3 — the reaction-choice
+`PENDING_REQUEST` sent to (GM) / received by (player) the reactor controller and the
+`REQUEST_RESPONSE` back, both targeted, with the GM's own `ACTION_INTENT` delivered locally.
 
 The helper refuses to export when the case is not one of the three sentinels, when the GM proof has
 not passed, when the resolution is not completed, when the player has not received a completed
-terminal result for the same `resolutionId`, when the SHA is missing, or when anything non-JSON
-would be serialized. A refusal means the case is not ready — do not work around it.
+terminal result for the same `resolutionId`, when the SHA is missing, when any private message type
+crossed the bus, when the required targeted envelopes are absent, or when anything non-JSON would be
+serialized. A refusal means the case is not ready — do not work around it.
 
 ## Setup
 
-GM:
+Both clients import the helper first; importing attaches the transport observer that the evidence
+needs, so do this **before** any intent is submitted:
 
 ```js
 const mq = await import("/systems/wildpath/docs/development/staged-movement-qa.mjs");
-const movementQA = await mq.setupGM("MOVER_PLAYER_ID");
-// Optional second controller: mq.setupGM("MOVER_PLAYER_ID", "REACTOR_PLAYER_ID")
 ```
 
-Player:
+GM, sentinel 1 (player mover):
 
 ```js
-const mq = await import("/systems/wildpath/docs/development/staged-movement-qa.mjs");
+const movementQA = await mq.setupGM("MOVER_PLAYER_ID");
+```
+
+GM, sentinels 2–3 (GM mover, player reactor controller):
+
+```js
+const movementQA = await mq.setupGM(game.user.id, "REACTOR_PLAYER_ID");
 ```
 
 ## Sentinel 1 — ordinary square/Medium
@@ -86,7 +116,7 @@ await movementQA.prepare("ordinary");
 
 ```js
 // Player, after the prepared position and resources have replicated
-await mq.submitPlayer();
+await mq.submitMover();
 ```
 
 ```js
@@ -96,39 +126,46 @@ copy(movementQA.exportEvidence({gitSha:"EXACT_SHA"}).json);   // → evidence/gm
 ```
 
 ```js
-// Player
+// Player — required
 copy(mq.exportPlayerEvidence({gitSha:"EXACT_SHA"}).json);     // → evidence/player-movement-ordinary.json
 ```
 
 Expected: no prompt anywhere; 3/3 transitions; movement 30 → 15; HP 30 unchanged; reaction 1
-unchanged; parent `completed`; player `result.status === "completed"` for the same `resolutionId`.
-No reaction source is configured for this mode, so the absence of a window is the expected result.
+unchanged; parent `completed`; player `result.status === "completed"` with
+`result.disclosure === "PARTICIPANT_PRIVATE"` for the same `resolutionId`; the bus carried only
+`ACTION_INTENT` and the public `RESOLUTION_RESULT` projection. No reaction source is configured for
+this mode, so the absence of a window is the expected result.
+
+After exporting both files:
+
+```js
+// GM
+await movementQA.cleanup();
+```
 
 ## Sentinel 2 — square/Medium reaction decline
+
+Re-run the GM setup with the GM as mover (`mq.setupGM(game.user.id, "REACTOR_PLAYER_ID")`), then:
 
 ```js
 // GM
 await movementQA.prepare("decline");
+await mq.submitMover();
 ```
 
-```js
-// Player
-await mq.submitPlayer();
-```
-
-The reaction dialog opens on the reactor controller (the GM by default) while the mover Token is
-still rendered at origin. **Before answering**, GM captures the pending proof:
+The reaction dialog opens on the **player** client while the mover Token is still rendered at
+origin. **Before answering**, GM captures the pending proof:
 
 ```js
-// GM — with the dialog still open
+// GM — with the player's dialog still open
 movementQA.provePending();
 ```
 
 It must show cursor `1`, transition index `1`, an `interrupt` `movement.transition-proposed` event,
 one offered candidate in a `before-transition` window, `leavesReach: true` (`1 -> 2` fields, reach
 `1`), and the logical footprint equal to the event's previous footprint and different from both the
-proposed footprint and the rendered origin. Answering first invalidates the case. Then select
-**Decline** on the reactor controller.
+proposed footprint and the rendered origin. Answering first invalidates the case. Then the player
+selects **Decline**.
 
 ```js
 // GM
@@ -137,13 +174,16 @@ copy(movementQA.exportEvidence({gitSha:"EXACT_SHA"}).json);   // → evidence/gm
 ```
 
 ```js
-// Player
+// Player — required
 copy(mq.exportPlayerEvidence({gitSha:"EXACT_SHA"}).json);     // → evidence/player-movement-decline.json
 ```
 
 Expected: reaction offered at transition index 1; one declined candidate recorded in one closed
 window; no child resolution; 3/3 transitions; movement 30 → 15; HP 30; reaction 1 (declining spends
-nothing); one choice request routed to the reactor controller.
+nothing); one choice request routed to the player; the GM's `ACTION_INTENT` delivered locally; the
+`PENDING_REQUEST` and `REQUEST_RESPONSE` recorded only under `transport.targeted`; the bus carried
+only the public `RESOLUTION_RESULT` projection; the player's stored result classified
+`BROADCAST_SAFE` (the player is the chooser, not the initiator).
 
 After exporting both files:
 
@@ -158,8 +198,9 @@ Activate the empty hex Scene on both clients, then:
 
 ```js
 // GM
-const hexMovementQA = await mq.setupGM("MOVER_PLAYER_ID", game.user.id, {variant:"large-hex-decline"});
+const hexMovementQA = await mq.setupGM(game.user.id, "REACTOR_PLAYER_ID", {variant:"large-hex-decline"});
 await hexMovementQA.prepare("decline");
+await mq.submitMover();
 ```
 
 Setup creates a marked synthetic **Large** mover (`2 x 2`, `ELLIPSE_1`) **at creation time** — a
@@ -168,16 +209,11 @@ exactly three occupied hex fields at origin and every waypoint, with full-footpr
 `1, 1, 2, 3` from the observer; occupancy diagnostics fail setup. This variant accepts only `decline`.
 
 ```js
-// Player
-await mq.submitPlayer();
-```
-
-```js
-// GM — with the dialog still open
+// GM — with the player's dialog still open
 hexMovementQA.provePending();
 ```
 
-Select **Decline** on the reactor controller, then:
+The player selects **Decline**, then:
 
 ```js
 // GM
@@ -186,16 +222,16 @@ copy(hexMovementQA.exportEvidence({gitSha:"EXACT_SHA"}).json); // → evidence/g
 ```
 
 ```js
-// Player
+// Player — required
 copy(mq.exportPlayerEvidence({gitSha:"EXACT_SHA"}).json);       // → evidence/player-large-hex-decline.json
 ```
 
 Expected: hex topology and Large three-field footprints at origin, logical, proposed, and final
-placements; reaction offered at the leave-reach transition; declined; no child; 3/3 transitions;
-movement 30 → 15; HP 30; reaction 1; the final Token position **commits** with the persisted
-footprint equal to the final logical footprint; player receives the completed terminal result.
-This sentinel matters because the Quench run of this case exposed the floating-point position-
-verification defect repaired in `e30d752`.
+placements; reaction offered at the leave-reach transition; declined by the player over the targeted
+transport; no child; 3/3 transitions; movement 30 → 15; HP 30; reaction 1; the final Token position
+**commits** with the persisted footprint equal to the final logical footprint; the same transport
+evidence as sentinel 2. This sentinel matters because the Quench run of this case exposed the
+floating-point position-verification defect repaired in `e30d752`.
 
 ```js
 // GM
@@ -213,9 +249,9 @@ run ID (`cleanupGM` from the Action QA helper).
 
 ## Closure
 
-**Closed on 2026-09-20.** All six canonical files exist, each pair passes the pairing checks, and
-they are committed. The ordinary pair was captured on build `a009d3f`, the decline and Large-hex
-pairs on `d669a17` (QA-tooling-only difference: the Large mover is created at its final size).
-Rerun this sentinel when socket transport, authority, request routing, prompt ownership,
-multiplayer orchestration, or disclosure behavior changes; mechanical movement changes are covered
-by Node and the Quench six-case batch. Confidentiality hardening is the next milestone.
+The staged movement milestone was closed on 2026-09-20 on schema-1 evidence. The **confidentiality
+hardening milestone** reopens this sentinel: it stays **OPEN** until all six canonical files exist as
+schema-2 exports from a build containing the disclosure transport, each pair passes the pairing
+checks, and the files are committed. Rerun this sentinel whenever socket transport, authority,
+request routing, prompt ownership, multiplayer orchestration, or disclosure behavior changes;
+mechanical movement changes are covered by Node and the Quench six-case batch.

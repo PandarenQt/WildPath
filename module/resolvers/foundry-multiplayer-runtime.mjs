@@ -7,6 +7,8 @@ import {
   foundryUserDirectory
 } from "../adapters/foundry-v14-resolution-socket-adapter.mjs";
 import {createFoundryV14TacticalGridAdapter} from "../adapters/foundry-v14-tactical-grid-adapter.mjs";
+import {createFoundryV14UserQueryTransport} from "../adapters/foundry-v14-user-query-transport.mjs";
+import {createDisclosureRoutedTransport} from "../adapters/disclosure-routed-transport.mjs";
 import {
   buildFoundryMovementCompletion,
   buildFoundryMovementProgressObservation,
@@ -45,7 +47,22 @@ export function registerFoundryV14MultiplayerResolution({
   };
 
   const persistencePort = createFoundryV14DocumentPersistenceAdapter();
-  const transport = createFoundryV14ResolutionSocketAdapter({game, systemId, logger});
+  const localUserId = game.user?.id ?? game.userId ?? null;
+  // Disclosure-routed transport: BROADCAST_SAFE envelopes use the system socket, private envelopes
+  // use User#query, self-addressed envelopes are delivered locally. Unclassified data fails closed.
+  const broadcast = createFoundryV14ResolutionSocketAdapter({game, systemId, logger});
+  const targeted = createFoundryV14UserQueryTransport({game, systemId, logger});
+  const transport = createDisclosureRoutedTransport({
+    userId: localUserId,
+    broadcast,
+    targeted,
+    users: () => foundryUserDirectory(game),
+    logger
+  });
+  if ( typeof game.user?.hasPermission === "function" && game.user.hasPermission("QUERY_USER") === false ) {
+    (logger ?? console).warn("Wild Path | This user lacks the QUERY_USER permission; private multiplayer replies "
+      + "(prompt answers, roll results) cannot be sent from this client and will fail closed.");
+  }
   const coordinator = createMultiplayerActionCoordinator({
     userId: game.user?.id ?? game.userId ?? null,
     users: () => foundryUserDirectory(game),

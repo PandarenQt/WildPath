@@ -73,7 +73,7 @@ function fixtureStore(t,{isGM=true}={}) {
   return {actors,scenes,combats,calls,add,addScene,addCombat,documentClass,sceneClass,combatClass};
 }
 
-test("Quench entry loads without Quench or Foundry globals and registers the eight batches on demand", async t => {
+test("Quench entry loads without Quench or Foundry globals and registers the nine batches on demand", async t => {
   const hooks = [], batches = [];
   globals(t,{Hooks:{on:(...args) => hooks.push(args)},game:undefined,foundry:undefined,quench:undefined});
   await import("../module/tests/quench/index.mjs");
@@ -81,7 +81,8 @@ test("Quench entry loads without Quench or Foundry globals and registers the eig
   assert.equal(hooks[0][0],"quenchReady");
   hooks[0][1]({registerBatch:(key,register,options) => batches.push({key,register,options})});
   assert.deepEqual(batches.map(b => b.key),["wildpath.runtime-smoke","wildpath.documents","wildpath.resources",
-    "wildpath.effects","wildpath.conditions","wildpath.rule-elements","wildpath.combat","wildpath.staged-movement"]);
+    "wildpath.effects","wildpath.conditions","wildpath.rule-elements","wildpath.combat","wildpath.staged-movement",
+    "wildpath.multiplayer-disclosure"]);
   const movementNames = [];
   const counts = batches.map(batch => {
     let count = 0;
@@ -92,9 +93,10 @@ test("Quench entry loads without Quench or Foundry globals and registers the eig
     assert.equal(batch.options.preSelected,false,"Registration must not opt developers into mutation tests");
     return count;
   });
-  assert.deepEqual(counts,[3,6,8,4,5,8,6,6]);
-  assert.equal(batches.at(-2).options.displayName,"WILDPATH: Real Foundry Combat");
-  assert.equal(batches.at(-1).options.displayName,"WILDPATH: Staged Movement");
+  assert.deepEqual(counts,[3,6,8,4,5,8,6,6,4]);
+  assert.equal(batches.at(-3).options.displayName,"WILDPATH: Real Foundry Combat");
+  assert.equal(batches.at(-2).options.displayName,"WILDPATH: Staged Movement");
+  assert.equal(batches.at(-1).options.displayName,"WILDPATH: Multiplayer Disclosure");
   assert.deepEqual(movementNames,["ordinary square/Medium movement","square/Medium reaction decline",
     "square/Medium reaction miss","square/Medium reaction hit","square/Medium reaction stop","Large-hex reaction decline"]);
   const startup = readFileSync(new URL("../wildpath.mjs",import.meta.url),"utf8");

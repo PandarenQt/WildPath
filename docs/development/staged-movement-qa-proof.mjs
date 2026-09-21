@@ -117,8 +117,48 @@ export function verifyMovementQA({state,prepared,after,pending,children=[]}) {
 /*  Level-5 evidence wrapper (development only)  */
 /* -------------------------------------------- */
 
-export const STAGED_MOVEMENT_EVIDENCE_SCHEMA = 1;
+/**
+ * Schema 2 adds the transport evidence of the confidentiality milestone: which message types crossed
+ * the broadcast bus, which envelopes travelled targeted or locally, and a projection of captured
+ * envelopes that never includes a private payload.
+ */
+export const STAGED_MOVEMENT_EVIDENCE_SCHEMA = 2;
 export const STAGED_MOVEMENT_EVIDENCE_TYPE = "staged-movement-level5";
+/** Message types whose contents must never appear on the broadcast bus (mirrors the disclosure policy). */
+export const PRIVATE_TRANSPORT_MESSAGE_TYPES = Object.freeze(["PENDING_REQUEST","REQUEST_RESPONSE","RESOLUTION_CANCEL",
+  "RESOLUTION_ERROR","MOVEMENT_APPROVAL","MOVEMENT_RESULT","MOVEMENT_CONTINUATION"]);
+const TRANSPORT_ENTRY_KEYS = ["direction","transport","messageType","messageId","senderUserId","recipientUserId",
+  "recipientPolicy","disclosure","resolutionId","requestId"];
+
+/** One plain evidence entry per transport observer event; never the payload. */
+export function transportEvidenceEntry(event) {
+  const envelope = event?.envelope ?? {};
+  const direction = event?.direction === "sending" ? "outgoing" : event?.direction ?? null;
+  return {direction, transport:event?.transport ?? null, messageType:envelope.messageType ?? null,
+    messageId:envelope.messageId ?? null, senderUserId:envelope.senderUserId ?? null,
+    recipientUserId:envelope.recipientUserId ?? event?.recipientUserId ?? null,
+    recipientPolicy:envelope.recipientPolicy ?? null, disclosure:envelope.disclosure ?? null,
+    resolutionId:envelope.resolutionId ?? null, requestId:envelope.requestId ?? null,
+    code:event?.code ?? null, attestedSenderUserId:event?.attestedSenderUserId ?? null};
+}
+
+/** Summarize transport entries into the evidence shape checked by the Level-5 builder. */
+export function summarizeTransportEvidence(entries) {
+  const list = (Array.isArray(entries) ? entries : []).filter(e => e && ["incoming","outgoing","refused"].includes(e.direction));
+  const pick = entry => Object.fromEntries(TRANSPORT_ENTRY_KEYS.map(key => [key,entry[key] ?? null]));
+  const by = transport => list.filter(e => e.transport === transport && e.direction !== "refused").map(pick);
+  return {broadcastMessageTypes:[...new Set(by("broadcast").map(e => e.messageType))].sort(),
+    broadcast:by("broadcast"), targeted:by("targeted"), local:by("local"),
+    refused:list.filter(e => e.direction === "refused").map(e => ({...pick(e),code:e.code ?? null}))};
+}
+
+/** Evidence keeps public envelopes verbatim and only the shape (never the contents) of private ones. */
+export function projectEnvelopeForEvidence(envelope) {
+  if (!envelope || typeof envelope !== "object") return envelope ?? null;
+  if (envelope.disclosure === "BROADCAST_SAFE") return envelope;
+  const payload = envelope.payload && typeof envelope.payload === "object" ? envelope.payload : {};
+  return {...envelope, payload:{omitted:true, disclosure:envelope.disclosure ?? null, keys:Object.keys(payload).sort()}};
+}
 /** The only cases the canonical two-browser sentinel may label. Everything else is Quench-owned. */
 export const STAGED_MOVEMENT_SENTINELS = Object.freeze({
   "ordinary":{mode:"ordinary",variant:"square"},
@@ -184,7 +224,10 @@ export function buildStagedMovementLevel5Evidence({role, evidence, gitSha, runti
     check(result.resolutionId === evidence.resolutionId,"Player terminal result belongs to a different resolution.");
     check(result.status === "completed" && result.ok !== false,
       `Player evidence requires a completed terminal result, found ${JSON.stringify(result.status)}.`);
+    check(["PARTICIPANT_PRIVATE","BROADCAST_SAFE"].includes(result.disclosure),
+      "Player terminal result must be a classified projection (PARTICIPANT_PRIVATE or BROADCAST_SAFE).");
   }
+  verifyTransportEvidence({role, label, evidence});
   check(typeof gitSha === "string" && /^[0-9a-f]{7,40}$/i.test(gitSha.trim()),
     "gitSha must be the exact Git commit SHA (7-40 hex characters) of the served build; canonical evidence is never exported without it.");
   check(runtime && typeof runtime === "object","Foundry runtime metadata is required.");
@@ -196,7 +239,9 @@ export function buildStagedMovementLevel5Evidence({role, evidence, gitSha, runti
   const stamp = capturedAt ?? new Date().toISOString();
   check(typeof stamp === "string" && Number.isFinite(Date.parse(stamp)) && new Date(stamp).toISOString() === stamp,
     "capturedAt must be an ISO-8601 UTC timestamp such as new Date().toISOString().");
-  assertPlainJSON(evidence,"evidence",new Set());
+  const projected = Array.isArray(evidence.envelopes)
+    ? {...evidence, envelopes:evidence.envelopes.map(projectEnvelopeForEvidence)} : evidence;
+  assertPlainJSON(projected,"evidence",new Set());
   return {
     schemaVersion:STAGED_MOVEMENT_EVIDENCE_SCHEMA, evidenceType:STAGED_MOVEMENT_EVIDENCE_TYPE,
     role, case:label, mode:evidence.mode, variant:evidence.variant,
@@ -206,6 +251,62 @@ export function buildStagedMovementLevel5Evidence({role, evidence, gitSha, runti
     gitSha:gitSha.trim().toLowerCase(), capturedAt:stamp,
     runId:evidence.runId, resolutionId:evidence.resolutionId,
     evidenceFile:STAGED_MOVEMENT_EVIDENCE_FILES[label][role],
-    evidence:JSON.parse(JSON.stringify(evidence))
+    evidence:JSON.parse(JSON.stringify(projected))
   };
+}
+
+/**
+ * Confidentiality evidence. The bus may only carry ACTION_INTENT and the public RESOLUTION_RESULT
+ * projection; every private message must be recorded on the targeted or local transport, and the
+ * reaction sentinels must exercise a remote chooser so the targeted request path is really proven.
+ */
+function verifyTransportEvidence({role, label, evidence}) {
+  const transport = evidence.transport;
+  check(transport && typeof transport === "object" && Array.isArray(transport.broadcastMessageTypes)
+    && Array.isArray(transport.targeted) && Array.isArray(transport.local),
+    "Evidence must include the transport summary captured for this resolution (transport observer).");
+  const leaked = transport.broadcastMessageTypes.filter(type => PRIVATE_TRANSPORT_MESSAGE_TYPES.includes(type));
+  check(!leaked.length,`Private message types crossed the broadcast bus: ${leaked.join(", ")}.`);
+  check((transport.broadcast ?? []).every(entry => entry.disclosure === "BROADCAST_SAFE"),
+    "Every envelope on the broadcast bus must be classified BROADCAST_SAFE.");
+  check(transport.broadcastMessageTypes.includes("RESOLUTION_RESULT"),
+    "The public RESOLUTION_RESULT projection must have crossed the broadcast bus.");
+  check(!(transport.refused ?? []).length,`The transport refused ${transport.refused.length} envelope(s); inspect transport.refused.`);
+  const authorityUserId = role === "gm" ? evidence.authorityUserId : evidence.result?.authorityUserId;
+  check(typeof authorityUserId === "string" && authorityUserId,"Evidence must identify the resolution authority user.");
+  const targeted = (type, direction, other) => transport.targeted.some(entry => entry.messageType === type
+    && entry.direction === direction && (direction === "outgoing" ? entry.recipientUserId : entry.senderUserId) === other);
+  // Sentinel roles first: the ordinary sentinel is a player-initiated intent resolved by the GM; the
+  // reaction sentinels are GM-initiated so that a player controls the reactor and answers remotely.
+  if (label === "ordinary") check(evidence.moverUserId !== authorityUserId,"The ordinary sentinel requires a player mover with the GM as authority.");
+  else check(evidence.reactorUserId !== authorityUserId,
+    "Reaction sentinels must route the reaction choice to a remote chooser: the reactor controller must not be the authority.");
+  if (role === "gm") {
+    const local = evidence.moverUserId === authorityUserId;
+    check(local ? transport.local.some(e => e.messageType === "ACTION_INTENT")
+      : transport.broadcastMessageTypes.includes("ACTION_INTENT"),
+      local ? "A GM-initiated intent must be delivered locally, never emitted to the bus."
+        : "The player's ACTION_INTENT must have crossed the broadcast bus to the authority.");
+  }
+  if (label === "ordinary") {
+    if (role === "gm") check(targeted("RESOLUTION_RESULT","outgoing",evidence.moverUserId),
+      "GM evidence must show the participant RESOLUTION_RESULT projection sent to the mover on the targeted transport.");
+    else {
+      check(targeted("RESOLUTION_RESULT","incoming",authorityUserId),
+        "Player evidence must show the participant RESOLUTION_RESULT projection arriving on the targeted transport.");
+      check(evidence.result.disclosure === "PARTICIPANT_PRIVATE","The mover must hold the PARTICIPANT_PRIVATE projection.");
+    }
+    return;
+  }
+  if (role === "gm") {
+    check(targeted("PENDING_REQUEST","outgoing",evidence.reactorUserId),
+      "GM evidence must show the reaction-choice PENDING_REQUEST sent to the reactor controller on the targeted transport.");
+    check(targeted("REQUEST_RESPONSE","incoming",evidence.reactorUserId),
+      "GM evidence must show the reactor controller's REQUEST_RESPONSE arriving on the targeted transport.");
+  } else {
+    check(targeted("PENDING_REQUEST","incoming",authorityUserId),
+      "Player evidence must show the reaction-choice PENDING_REQUEST arriving on the targeted transport.");
+    check(targeted("REQUEST_RESPONSE","outgoing",authorityUserId),
+      "Player evidence must show the REQUEST_RESPONSE sent to the authority on the targeted transport.");
+  }
 }

@@ -1,6 +1,12 @@
 import {RESOLUTION_REQUEST_TYPES} from "./resolution-state.mjs";
 import {ROLL_AUTHORITY} from "./rolls.mjs";
 
+import {
+  DISCLOSURE_CLASSIFICATIONS,
+  defaultDisclosureForMessageType,
+  normalizeDisclosure
+} from "./multiplayer-disclosure.mjs";
+
 export const MULTIPLAYER_PROTOCOL_VERSION = 1;
 
 export const MULTIPLAYER_MESSAGE_TYPES = Object.freeze({
@@ -59,6 +65,9 @@ let nextMessageSequence = 1;
 /* -------------------------------------------- */
 
 export function createResolutionSocketEnvelope(options={}) {
+  if ( options.disclosure != null && options.disclosure !== "" && !normalizeDisclosure(options.disclosure) ) {
+    throw new TypeError(`Unknown disclosure classification: ${String(options.disclosure)}.`);
+  }
   const envelope = normalizeResolutionSocketEnvelope({
     protocolVersion: options.protocolVersion ?? MULTIPLAYER_PROTOCOL_VERSION,
     messageId: options.messageId ?? createMessageId(options.messageType ?? options.type),
@@ -67,6 +76,9 @@ export function createResolutionSocketEnvelope(options={}) {
     recipientUserId: options.recipientUserId ?? options.recipientId ?? null,
     recipientUserIds: options.recipientUserIds ?? [],
     recipientPolicy: options.recipientPolicy ?? null,
+    // Disclosure is classified once, here. Unknown message types stay unclassified and fail closed
+    // at the transport boundary instead of being guessed.
+    disclosure: options.disclosure ?? defaultDisclosureForMessageType(options.messageType ?? options.type) ?? null,
     resolutionId: options.resolutionId ?? options.payload?.resolutionId ?? null,
     requestId: options.requestId ?? options.payload?.requestId ?? options.payload?.request?.id ?? null,
     payload: options.payload ?? {},
@@ -106,6 +118,11 @@ export function validateResolutionSocketEnvelope(value) {
       {envelope}
     );
   }
+  const rawDisclosure = value?.disclosure ?? null;
+  if ( rawDisclosure != null && rawDisclosure !== "" && !envelope.disclosure ) {
+    return failure(MULTIPLAYER_AUTHORITY_CODES.INVALID_ENVELOPE,
+      `Unknown disclosure classification: ${String(rawDisclosure)}.`, {envelope});
+  }
   if ( !envelope.messageId ) return failure(MULTIPLAYER_AUTHORITY_CODES.INVALID_ENVELOPE, "Socket envelope requires messageId.", {envelope});
   if ( !envelope.senderUserId ) return failure(MULTIPLAYER_AUTHORITY_CODES.INVALID_ENVELOPE, "Socket envelope requires senderUserId.", {envelope});
   if ( !envelope.resolutionId ) return failure(MULTIPLAYER_AUTHORITY_CODES.INVALID_ENVELOPE, "Socket envelope requires resolutionId.", {envelope});
@@ -133,6 +150,7 @@ export function normalizeResolutionSocketEnvelope(raw={}) {
     recipientUserId: stringOrNull(source.recipientUserId ?? source.recipientId),
     recipientUserIds: uniqueStrings(source.recipientUserIds ?? source.recipients),
     recipientPolicy: stringOrNull(source.recipientPolicy ?? source.recipientAuthority ?? source.recipient),
+    disclosure: normalizeDisclosure(source.disclosure),
     resolutionId: stringOrNull(source.resolutionId),
     requestId: stringOrNull(source.requestId),
     payload: clonePlainData(source.payload ?? {}, "envelope.payload") ?? {},
@@ -173,6 +191,47 @@ export function sanitizeActionIntentPayload(payload={}) {
 
 /* -------------------------------------------- */
 
+/**
+ * Keys never sent to a chooser at the top level of a pending request payload: they describe the
+ * authority's state, other actors, or hidden numbers the chooser does not need in order to answer.
+ */
+const CHOOSER_PAYLOAD_DENYLIST = Object.freeze([
+  "state", "resolutionState", "mutationPlans", "transaction", "rollResults", "results",
+  "targetSystems", "actorSystem", "actorSystems", "dc", "defense", "defenses"
+]);
+
+/** The only keys of a source/target entry that a remote chooser or an unrelated client may see. */
+const PUBLIC_REF_KEYS = Object.freeze([
+  "id", "actorId", "actorRef", "uuid", "tokenId", "tokenRef", "actionRef", "itemRef", "slug", "name", "label"
+]);
+
+export function projectEntityRefForDisclosure(value) {
+  if ( value == null || typeof value !== "object" || Array.isArray(value) ) return value == null ? null : clonePlainData(value, "ref");
+  return Object.fromEntries(PUBLIC_REF_KEYS.filter(key => value[key] !== undefined).map(key => [key, clonePlainData(value[key], `ref.${key}`)]));
+}
+
+/**
+ * A roller needs the request identity, the dice definition, modifiers, expectations, and stable refs.
+ * It never needs the target's defenses, the DC, or roll data resolved on the authority.
+ */
+export function projectRollRequestForChooser(rollRequest) {
+  const data = clonePlainData(rollRequest, "rollRequest");
+  if ( !data || typeof data !== "object" ) return data ?? null;
+  const {target, dc, data: rollData, source, ...rest} = data;
+  return {
+    ...rest,
+    source: projectEntityRefForDisclosure(source),
+    target: projectEntityRefForDisclosure(target)
+  };
+}
+
+export function projectPendingRequestPayloadForChooser(type, payload) {
+  const data = clonePlainData(payload ?? {}, "pendingRequest.payload") ?? {};
+  for ( const key of CHOOSER_PAYLOAD_DENYLIST ) delete data[key];
+  if ( type === "roll" && data.rollRequest !== undefined ) data.rollRequest = projectRollRequestForChooser(data.rollRequest);
+  return data;
+}
+
 export function sanitizePendingRequestForTransport(request, {expectedChooserUserId=null, authority=null}={}) {
   const data = clonePlainData(request, "pendingRequest") ?? {};
   return {
@@ -184,7 +243,7 @@ export function sanitizePendingRequestForTransport(request, {expectedChooserUser
     chooser: clonePlainData(data.chooser ?? null, "pendingRequest.chooser"),
     authority: clonePlainData(data.authority ?? null, "pendingRequest.authority"),
     validation: clonePlainData(data.validation ?? {}, "pendingRequest.validation") ?? {},
-    payload: clonePlainData(data.payload ?? {}, "pendingRequest.payload") ?? {},
+    payload: projectPendingRequestPayloadForChooser(stringOrNull(data.type), data.payload),
     metadata: {
       ...(clonePlainData(data.metadata ?? {}, "pendingRequest.metadata") ?? {}),
       multiplayer: {
@@ -220,11 +279,16 @@ export function sanitizeResolutionResultForTransport({state=null, result=null, a
       selectedPaymentOptionId: current.configuration.selectedPaymentOptionId ?? null
     } : null,
     preview: current.results?.preview ?? null,
-    rolls: (current.rollResults ?? []).map(entry => ({
-      requestId: entry.requestId ?? entry.rollRequest?.id ?? null,
-      type: entry.type ?? entry.semanticType ?? null,
-      rollResult: entry.rollResult ?? null
-    })),
+    rolls: (current.rollResults ?? []).map(entry => {
+      const requestId = entry.requestId ?? entry.rollRequest?.id ?? null;
+      const request = entry.rollRequest ?? (current.rollRequests ?? []).find(candidate => candidate?.id === requestId) ?? null;
+      return {
+        requestId,
+        type: entry.type ?? entry.semanticType ?? null,
+        visibility: request?.visibility ?? entry.rollResult?.visibility ?? null,
+        rollResult: entry.rollResult ?? null
+      };
+    }),
     outcomes: {
       attack: current.results?.attackResolution ?? null,
       save: current.results?.saveResolution ?? null,
@@ -246,6 +310,68 @@ export function sanitizeResolutionResultForTransport({state=null, result=null, a
 }
 
 /* -------------------------------------------- */
+
+/**
+ * Explicit result projections. The sanitized result is Document-free but not disclosure-safe: it
+ * carries target defenses, DCs, the initiator's payment, committed mutation values, and the effective
+ * action definition. The PARTICIPANT_PRIVATE projection is that full sanitized result, tagged. The
+ * BROADCAST_SAFE projection is an allow-list of what any connected client may learn: identity,
+ * status, per-target attack/save outcome, movement outcome, and public-visibility roll totals.
+ */
+export function projectResolutionResultForDisclosure(result, classification) {
+  const disclosure = normalizeDisclosure(classification);
+  if ( !disclosure ) throw new TypeError("Resolution result projection requires a disclosure classification.");
+  const data = clonePlainData(result ?? {}, "resolutionResult") ?? {};
+  if ( disclosure !== DISCLOSURE_CLASSIFICATIONS.BROADCAST_SAFE ) return {...data, disclosure};
+  return clonePlainData({
+    resolutionId: data.resolutionId ?? null,
+    status: data.status ?? null,
+    code: data.code ?? null,
+    ok: data.ok !== false,
+    authorityUserId: stringOrNull(data.authorityUserId),
+    initiatorUserId: stringOrNull(data.initiatorUserId),
+    action: projectEntityRefForDisclosure(data.action),
+    source: projectEntityRefForDisclosure(data.source),
+    targets: normalizeArray(data.targets).map(projectEntityRefForDisclosure),
+    outcomes: {
+      attack: projectContestOutcome(data.outcomes?.attack, ["hit", "critical", "outcome"]),
+      save: projectContestOutcome(data.outcomes?.save, ["success", "critical", "outcome"]),
+      movement: data.outcomes?.movement ?? null
+    },
+    rolls: normalizeArray(data.rolls)
+      .filter(entry => entry?.visibility === "public")
+      .map(entry => ({
+        requestId: entry.requestId ?? null,
+        type: entry.type ?? null,
+        visibility: entry.visibility,
+        natural: entry.rollResult?.natural ?? null,
+        total: entry.rollResult?.total ?? null
+      })),
+    disclosure
+  }, "resolutionResult.broadcast");
+}
+
+function projectContestOutcome(outcome, keys) {
+  if ( !outcome || typeof outcome !== "object" ) return null;
+  return {
+    ok: outcome.ok !== false,
+    results: normalizeArray(outcome.results).map(entry => ({
+      target: projectEntityRefForDisclosure(entry?.target ?? null),
+      ...Object.fromEntries(keys.map(key => [key, entry?.[key] ?? null]))
+    }))
+  };
+}
+
+/**
+ * Error diagnostics on the wire keep only scalar values. Nested failure objects can carry the
+ * request, the local ResolutionState, or provider input that must never leave the client.
+ */
+export function sanitizeResolutionErrorDataForTransport(data) {
+  if ( !data || typeof data !== "object" || Array.isArray(data) ) return {};
+  return Object.fromEntries(Object.entries(data)
+    .filter(([, value]) => value === null || ["string", "number", "boolean"].includes(typeof value))
+    .map(([key, value]) => [key, typeof value === "string" ? value.slice(0, 1024) : value]));
+}
 
 export function normalizeAuthorityUsers(users, {activeGMUserId=null}={}) {
   const collectionActiveGMId = stringOrNull(users?.activeGM?.id ?? users?.activeGM?.userId);

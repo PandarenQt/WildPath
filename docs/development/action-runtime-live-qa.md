@@ -145,9 +145,11 @@ WildPath adapter plus `footprintDistance()`. The actual GM record must independe
 footprints and a successful 5 ft range check. No intent receives manually supplied target refs,
 roll totals, or modifiers from QA.
 
-Read-only `game.socket.on("system.wildpath", ...)` and Socket.IO `onAnyOutgoing()` observers correlate
-the exact source/Item/player/authority tuple. Both directions matter: Foundry V14.367 custom socket
-broadcast excludes the sender. These APIs were inspected in the installed V14.367 source:
+A read-only observer on the runtime transport (`game.wildpath.multiplayer.transport.observe`) records
+incoming and outgoing envelopes and correlates the exact source/Item/player/authority tuple. Raw
+socket listeners are no longer sufficient: since the confidentiality milestone, pending requests and
+answers travel by `User#query` and self-addressed envelopes are delivered locally, so neither crosses
+`system.wildpath` (whose broadcast also excludes the sender). These APIs were inspected in the installed V14.367 source:
 `client/documents/actor.mjs` (`getTokenDocument`), `common/grid/square.mjs`, `dist/server/sockets.mjs`
 (`handleCustomSocket`), and `node_modules/socket.io-client/build/esm/socket.js`.
 

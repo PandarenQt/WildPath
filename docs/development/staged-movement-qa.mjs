@@ -6,8 +6,8 @@ import {createFoundryV14DocumentPersistenceAdapter} from "../../module/adapters/
 import {stagedMovementPersistence} from "../../module/adapters/foundry-v14-staged-movement-commit.mjs";
 import {createFoundryV14TacticalGridAdapter} from "../../module/adapters/foundry-v14-tactical-grid-adapter.mjs";
 import {footprintDistance} from "../../module/helpers/grid-footprints.mjs";
-import {buildStagedMovementLevel5Evidence, captureMovementQA, footprintSnapshot, verifyPendingMovementQA, verifyMovementQA}
-  from "./staged-movement-qa-proof.mjs";
+import {buildStagedMovementLevel5Evidence, captureMovementQA, footprintSnapshot, summarizeTransportEvidence,
+  transportEvidenceEntry, verifyPendingMovementQA, verifyMovementQA} from "./staged-movement-qa-proof.mjs";
 
 const FLAG = "stagedMovementQA";
 const check = (value, reason) => {if (!value) throw new Error(reason);};
@@ -22,6 +22,25 @@ export function foundryRuntimeMetadata() {
     systemId:game.system?.id ?? null, systemVersion:game.system?.version ?? null};
 }
 const packageEvidence = object => ({object, json:JSON.stringify(object,null,2), file:object.evidenceFile});
+
+// Transport evidence is read from the runtime transport's observer, never from raw sockets: targeted
+// envelopes (User#query) and locally delivered envelopes never touch system.wildpath. Attached once
+// per page load, on both roles, before any intent is submitted.
+const transportEvents = [];
+let unobserveTransport = null;
+export function observe() {
+  if (unobserveTransport) return unobserveTransport;
+  const transport = runtime()?.transport;
+  check(typeof transport?.observe === "function","The registered WildPath transport must support observe().");
+  unobserveTransport = transport.observe(event => {
+    if (!["incoming","sending","refused"].includes(event.direction) || !event.envelope?.messageType) return;
+    transportEvents.push({entry:transportEvidenceEntry(event), envelope:clone(event.envelope)});
+    if (transportEvents.length > 2000) transportEvents.shift();
+  });
+  return unobserveTransport;
+}
+const eventsFor = ids => transportEvents.filter(e => ids.has(e.entry.resolutionId));
+try { if (globalThis.game?.wildpath?.multiplayer?.transport) observe(); } catch (error) { console.warn("WildPath QA transport observer", error); }
 
 function snapshot(mover, reactor) {
   return {x:mover.x,y:mover.y,movement:mover.actor.system.resources.movement.value,
@@ -56,17 +75,28 @@ export function largeHexLayout(adapter, mover, reactor) {
   return {route,reactorPosition};
 }
 
+/**
+ * `moverUserId` may be the GM itself (reaction sentinels: GM moves, a player controls the reactor and
+ * answers the targeted reaction prompt) or a player (ordinary sentinel: player moves, GM is authority).
+ * Mover and reactor controllers must differ; the Action QA fixture needs the non-GM of the two.
+ */
 export async function setupGM(moverUserId, reactorUserId=game.user.id, {variant="square"}={}) {
   check(!globalThis.wpStagedMovementQA,"Detach the previous staged movement helper first.");
   check(["square","large-hex-decline"].includes(variant),"Unknown staged movement QA variant.");
+  observe();
   const hex = variant === "large-hex-decline";
+  const gmMover = moverUserId === game.user.id;
+  check(reactorUserId !== moverUserId,"Choose a reactor controller different from the mover.");
+  check(gmMover || !game.users.get(moverUserId)?.isGM,"The mover must be this GM or an active non-GM player.");
   // The Large hex mover is created at its final size: a later width/height update is a V14 movement
   // operation subject to WildPath's native approval, which is not what this sentinel tests.
-  const old = await setupActionGM(moverUserId,{topology:hex ? "hex" : "square",
+  const old = await setupActionGM(gmMover ? reactorUserId : moverUserId,{topology:hex ? "hex" : "square",
     source:hex ? {width:2,height:2,shape:CONST.TOKEN_SHAPES.ELLIPSE_1} : {}});
   old.detach();
   const fixture = old.fixture, scene = game.scenes.get(fixture.sceneId);
   const mover = scene.tokens.get(fixture.sourceTokenId), reactor = scene.tokens.get(fixture.targetTokenId);
+  // Ownership follows the sentinel roles: only the mover's controller owns the mover.
+  await game.actors.get(fixture.sourceActorId).update({ownership:gmMover ? {default:0} : {default:0,[moverUserId]:3}});
   const adapter = createFoundryV14TacticalGridAdapter({scene});
   const origin = position(mover), offset = canvas.grid.getOffset(origin);
   const {reactorPosition,route} = hex ? largeHexLayout(adapter,mover,reactor) : {
@@ -117,7 +147,7 @@ export async function setupGM(moverUserId, reactorUserId=game.user.id, {variant=
     qa.current = {runId:fixture.runId,role:"mover",mode,variant,resolutionId,moverUserId,reactorUserId,
       moverTokenId:mover.id,reactorTokenId:reactor.id,sceneId:scene.id,origin:position(mover),route,
       before:snapshot(mover,reactor)};
-    qa.envelopes = []; qa.history = []; qa.children = []; qa.pending = null; qa.captureErrors = [];
+    qa.history = []; qa.children = []; qa.pending = null; qa.captureErrors = [];
     await mover.setFlag("wildpath",FLAG,qa.current);
     return clone(qa.current);
   };
@@ -137,7 +167,7 @@ export async function setupGM(moverUserId, reactorUserId=game.user.id, {variant=
     const requests = [...record.requestExpectations.values()];
     check(requests.every(r => r.expectedUserId === reactorUserId),"Reaction request inherited the mover controller.");
     check(requests.length === (mode === "ordinary" ? 0 : used ? 2 : 1),"Unexpected choice/roll count.");
-    const rollResponses = qa.envelopes.filter(
+    const rollResponses = currentEvents().map(e => e.envelope).filter(
       e => e.messageType === "REQUEST_RESPONSE"
         && e.payload?.response?.type === "roll"
     );
@@ -161,10 +191,12 @@ export async function setupGM(moverUserId, reactorUserId=game.user.id, {variant=
     qa.passed.push(qa.current.resolutionId);
     return qa.dump();
   };
+  const knownIds = () => runtime().coordinator.getRecord(qa.current?.resolutionId)?.knownResolutionIds ?? new Set([qa.current?.resolutionId]);
+  const currentEvents = () => eventsFor(knownIds());
   qa.dump = () => {
     const record = runtime().coordinator.getRecord(qa.current?.resolutionId);
-    const ids = record?.knownResolutionIds ?? new Set([qa.current?.resolutionId]);
     return bounded({...qa.current,role:"gm",proofPassed:qa.passed.includes(qa.current?.resolutionId),
+      authorityUserId:record?.authorityUserId ?? null,
       after:snapshot(mover,reactor),footprintProof:{pending:qa.pending,children:qa.children,captureErrors:qa.captureErrors,
         route:record?.state?.input?.movement?.evaluation?.footprints?.map(footprintSnapshot),
         final:footprintSnapshot(adapter.tokenToFootprint(mover).footprint)},
@@ -173,17 +205,14 @@ export async function setupGM(moverUserId, reactorUserId=game.user.id, {variant=
         windows:record?.state?.metadata?.reactionWindows?.map(w => ({id:w.id,status:w.status,
           offeredCandidateIds:w.offeredCandidateIds,declinedCandidateIds:w.declinedCandidateIds,childResolutionIds:w.childResolutionIds})),
         transaction:record?.state?.results?.transaction},routing:[...(record?.requestExpectations?.values() ?? [])],
-      history:qa.history,envelopes:qa.envelopes.filter(e => ids.has(e.resolutionId)),
+      history:qa.history,envelopes:currentEvents().map(e => e.envelope),
+      transport:summarizeTransportEvidence(currentEvents().map(e => e.entry)),
       result:runtime().coordinator.getResult(qa.current?.resolutionId)});
   };
   // Canonical Level-5 GM export: wraps the same bounded dump that prove() returns, refusing pre-proof
   // state, non-sentinel cases, or a missing served-build SHA. Use copy(movementQA.exportEvidence({gitSha}).json).
   qa.exportEvidence = ({gitSha, sentinel=null}={}) => packageEvidence(buildStagedMovementLevel5Evidence({
     role:"gm", evidence:qa.dump(), gitSha, sentinel, runtime:foundryRuntimeMetadata()}));
-  const receive = envelope => {if (qa.current && envelope?.messageType) qa.envelopes.push(clone(envelope));};
-  qa.incoming = envelope => receive(envelope);
-  qa.outgoing = (channel,envelope) => {if (channel === "system.wildpath") receive(envelope);};
-  game.socket.on("system.wildpath",qa.incoming); game.socket.onAnyOutgoing(qa.outgoing);
   qa.capture = () => {
     const state = runtime().coordinator.getRecord(qa.current?.resolutionId)?.state;
     if (!state?.results?.movement) return null;
@@ -197,9 +226,8 @@ export async function setupGM(moverUserId, reactorUserId=game.user.id, {variant=
   const observe = () => {try {qa.capture();} catch (error) {qa.captureErrors.push(error.message);}};
   qa.actorHook = Hooks.on("preUpdateActor",observe);
   qa.timer = setInterval(observe,100);
-  qa.detach = () => {clearInterval(qa.timer); game.socket.off("system.wildpath",qa.incoming);
-    Hooks.off("preUpdateActor",qa.actorHook);
-    game.socket.offAnyOutgoing(qa.outgoing); game.wildpath.reactionServices = previous;};
+  qa.detach = () => {clearInterval(qa.timer); Hooks.off("preUpdateActor",qa.actorHook);
+    game.wildpath.reactionServices = previous;};
   qa.cleanup = async () => {
     if (qa.current) check(["completed","failed","cancelled"].includes(runtime().coordinator.getRecord(qa.current.resolutionId)?.state?.status),
       "Export evidence and finish the pending resolution before cleanup.");
@@ -208,7 +236,9 @@ export async function setupGM(moverUserId, reactorUserId=game.user.id, {variant=
   return qa;
 }
 
-export async function submitPlayer() {
+/** Submit the prepared intent from the mover's own client (a player, or the GM in the reaction sentinels). */
+export async function submitMover() {
+  observe();
   const mover = markedMover(), prepared = mover?.getFlag("wildpath",FLAG);
   check(prepared?.moverUserId === game.user.id,"Use the prepared mover's controller.");
   const origin = position(mover);
@@ -219,12 +249,17 @@ export async function submitPlayer() {
   return game.wildpath.executeMovementIntent(intent);
 }
 
+export const submitPlayer = submitMover;
+
 export function dumpPlayer() {
   const mover = markedMover(), prepared = mover?.getFlag("wildpath",FLAG);
   check(prepared,"No prepared staged movement case.");
+  check(!game.user.isGM,"dumpPlayer() belongs on the player client.");
   const reactor = canvas.scene.tokens.get(prepared.reactorTokenId);
+  const ids = new Set([prepared.resolutionId]);
   return bounded({...prepared,role:"player",after:snapshot(mover,reactor),
     result:runtime().coordinator.getResult(prepared.resolutionId),
+    transport:summarizeTransportEvidence(eventsFor(ids).map(e => e.entry)),
     notifications:runtime().coordinator.notifications.filter(n => n.envelope?.resolutionId === prepared.resolutionId)});
 }
 

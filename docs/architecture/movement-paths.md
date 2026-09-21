@@ -186,7 +186,7 @@ The runtime flow is:
 ```text
 TokenDocument#_preUpdateMovement
 -> build plain MovementIntent
--> active-GM authority over the existing system.wildpath transport
+-> active-GM authority over the disclosure-routed transport (intent on the bus, approval targeted)
 -> authoritative Scene/Token/Actor reconstruction
 -> TokenDocument#toObject(true) source state and full origin footprint validation
 -> prepend the authoritative Token origin to the requested Foundry waypoints

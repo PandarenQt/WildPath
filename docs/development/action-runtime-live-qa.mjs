@@ -161,8 +161,9 @@ function verifyPersistence(before, after, mode) {
   check(after.sourceEffects.length === 0 && after.targetEffects.length === 0, "Unexpected ActiveEffects");
 }
 
-// Both inbound and outbound observation are necessary: Foundry custom sockets exclude the sender.
-// These listeners neither modify envelopes nor answer requests nor replace any runtime method.
+// Traffic is observed through the runtime transport, not raw sockets: private envelopes travel by
+// User#query and self-addressed envelopes are delivered locally, so neither crosses system.wildpath.
+// The observer neither modifies envelopes nor answers requests nor replaces any runtime method.
 function observe(fixture, role) {
   const runtime = requireRuntime(role);
   check(!globalThis.wpActionRuntimeQA, "Clean up the previous QA observer first");
@@ -209,10 +210,10 @@ function observe(fixture, role) {
       if (envelope.messageType === MESSAGE.RESOLUTION_ERROR) throw new Error(envelope.payload?.reason ?? "Resolution error envelope");
     } catch (error) { qa.fail(error); }
   };
-  qa.incoming = (envelope, sender) => receive("incoming", envelope, sender);
-  qa.outgoing = (namespace, envelope) => { if (namespace === "system.wildpath") receive("outgoing", envelope); };
-  game.socket.on("system.wildpath", qa.incoming);
-  game.socket.onAnyOutgoing(qa.outgoing);
+  qa.unobserve = runtime.transport.observe(event => {
+    if (event.direction === "incoming") receive("incoming", event.envelope, event.attestedSenderUserId ?? null);
+    else if (event.direction === "sending") receive("outgoing", event.envelope);
+  });
   qa.timer = setInterval(() => {
     if (!qa.startedAt || qa.failed || qa.passed[qa.mode]) return;
     try {
@@ -233,8 +234,7 @@ function observe(fixture, role) {
   }, 100);
   qa.detach = () => {
     clearInterval(qa.timer);
-    game.socket.off("system.wildpath", qa.incoming);
-    game.socket.offAnyOutgoing(qa.outgoing);
+    qa.unobserve();
   };
   qa.arm = (mode, before) => {
     check(game.users.activeGM?.id === fixture.gmId && canvas.scene?.id === fixture.sceneId,
