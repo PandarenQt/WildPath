@@ -25,7 +25,10 @@ import {
   validateResolutionSocketEnvelope
 } from "../helpers/multiplayer-authority.mjs";
 import {DISCLOSURE_CLASSIFICATIONS, isPrivateDisclosure} from "../helpers/multiplayer-disclosure.mjs";
-import {ROLL_PROVIDER_OUTCOMES} from "../helpers/rolls.mjs";
+import {ROLL_CODES, ROLL_PROVIDER_OUTCOMES} from "../helpers/rolls.mjs";
+
+const MAX_PROMPT_ATTEMPTS = 3;
+const REPROMPT_CODES = new Set([ROLL_CODES.INVALID_MANUAL_RESULT, ROLL_CODES.INVALID_ROLL_RESULT]);
 import {
   completeStagedReactionChildResolution,
   executeStagedActionResolution,
@@ -478,18 +481,25 @@ export function createMultiplayerActionCoordinator({
       reason: "Pending request was routed to a different chooser."
     };
 
-    const answered = await answerPendingRequestLocally({
-      request,
-      promptPorts,
-      rollProviders,
-      context: {
-        ...promptContext,
-        ...rollContext,
-        currentUserId: localUserId,
-        users: userDirectory(),
-        expectedChooserUserId
-      }
-    });
+    let answered;
+    for ( let attempt = 1; attempt <= MAX_PROMPT_ATTEMPTS; attempt++ ) {
+      answered = await answerPendingRequestLocally({
+        request,
+        promptPorts,
+        rollProviders,
+        context: {
+          ...promptContext,
+          ...rollContext,
+          currentUserId: localUserId,
+          users: userDirectory(),
+          expectedChooserUserId
+        }
+      });
+      // A prompted answer the rules reject (a mistyped physical roll) is asked again; cancelling is final.
+      if ( answered.ok || !REPROMPT_CODES.has(answered.code) || (attempt === MAX_PROMPT_ATTEMPTS) ) break;
+      notify?.({type: "answer-rejected", error: {code: answered.code, reason: answered.reason,
+        resolutionId: envelope.resolutionId, requestId: envelope.requestId}});
+    }
     if ( !answered.ok ) return sendError({
       resolutionId: envelope.resolutionId,
       requestId: envelope.requestId,

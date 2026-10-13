@@ -43,3 +43,35 @@ test("under the physical policy the roller is asked for the dice and the digital
     context: {...dicePolicyRollContext(gameWithPolicy("digital"))}});
   assert.equal(digitalAnswer.response.value.natural, 20, "the default policy keeps the digital provider");
 });
+
+test("a chooser whose typed roll the rules reject is told and asked again", async () => {
+  const {createTestResolutionTransportHub} = await import("../module/adapters/test-resolution-transport.mjs");
+  const {createMultiplayerActionCoordinator} = await import("../module/resolvers/multiplayer-action-coordinator.mjs");
+  const {MULTIPLAYER_MESSAGE_TYPES, createResolutionSocketEnvelope} = await import("../module/helpers/multiplayer-authority.mjs");
+  const {createDamageRollRequest} = await import("../module/helpers/rolls.mjs");
+  const hub = createTestResolutionTransportHub({users: [
+    {id: "gm-a", active: true, isGM: true, isActiveGM: true},
+    {id: "player-a", active: true, isGM: false}
+  ]});
+  const received = [];
+  const gm = hub.createEndpoint({userId: "gm-a"});
+  gm.register(envelope => { received.push(envelope); return {ok: true}; });
+  const notified = [];
+  const player = createMultiplayerActionCoordinator({userId: "player-a", users: () => hub.userDirectory(),
+    activeGMUserId: "gm-a", transport: hub.createEndpoint({userId: "player-a"}),
+    promptPorts: [createTestPromptAdapter({queue: [{total: 9}, {total: 4}]})],
+    rollProviders: [createPhysicalDiceProvider()], notify: event => notified.push(event)});
+  player.register();
+  const rollRequest = createDamageRollRequest({id: "request:typo", resolutionId: "resolution:typo",
+    components: [{id: "blade", expression: {type: "dice", number: 1, faces: 8}}]});
+  await gm.send(createResolutionSocketEnvelope({messageType: MULTIPLAYER_MESSAGE_TYPES.PENDING_REQUEST,
+    senderUserId: "gm-a", recipientUserId: "player-a", resolutionId: "resolution:typo", requestId: "request:typo",
+    payload: {request: {id: "request:typo", resolutionId: "resolution:typo", type: "roll", payload: {rollRequest},
+      metadata: {multiplayer: {expectedChooserUserId: "player-a"}}}}}));
+  const answer = () => received.find(envelope => envelope.messageType === MULTIPLAYER_MESSAGE_TYPES.REQUEST_RESPONSE);
+  for ( let i = 0; i < 50 && !answer(); i++ ) await new Promise(resolve => setTimeout(resolve, 10));
+  assert.equal(answer()?.payload.response.value.total, 4, "the second, valid total is sent");
+  assert.equal(notified.length, 1);
+  assert.equal(notified[0].error.code, "INVALID_MANUAL_RESULT");
+  assert.equal(received.some(envelope => envelope.messageType === MULTIPLAYER_MESSAGE_TYPES.RESOLUTION_ERROR), false);
+});
