@@ -93,14 +93,15 @@ test("Quench entry loads without Quench or Foundry globals and registers the ele
     assert.equal(batch.options.preSelected,false,"Registration must not opt developers into mutation tests");
     return count;
   });
-  assert.deepEqual(counts,[3,6,8,4,5,8,6,6,4,3,8]);
+  assert.deepEqual(counts,[3,6,8,4,5,8,6,7,4,3,8]);
   assert.equal(batches.at(-5).options.displayName,"WILDPATH: Real Foundry Combat");
   assert.equal(batches.at(-4).options.displayName,"WILDPATH: Staged Movement");
   assert.equal(batches.at(-3).options.displayName,"WILDPATH: Multiplayer Disclosure");
   assert.equal(batches.at(-2).options.displayName,"WILDPATH: Action Results");
   assert.equal(batches.at(-1).options.displayName,"WILDPATH: Representative Actions");
   assert.deepEqual(movementNames,["ordinary square/Medium movement","square/Medium reaction decline",
-    "square/Medium reaction miss","square/Medium reaction hit","square/Medium reaction stop","Large-hex reaction decline"]);
+    "square/Medium reaction miss","square/Medium reaction hit","square/Medium reaction stop","Large-hex reaction decline",
+    "a hostile guard's Trigger RuleElement makes an opportunity attack through the production provider"]);
   const startup = readFileSync(new URL("../wildpath.mjs",import.meta.url),"utf8");
   assert.deepEqual(startup.match(/import\s+"\.\/module\/tests\/[^"\n]+";/g),['import "./module/tests/quench/index.mjs";']);
 });

@@ -10,6 +10,7 @@ import {createFoundryV14TacticalGridAdapter} from "../adapters/foundry-v14-tacti
 import {createFoundryV14UserQueryTransport} from "../adapters/foundry-v14-user-query-transport.mjs";
 import {createDisclosureRoutedTransport} from "../adapters/disclosure-routed-transport.mjs";
 import {createFoundryV14ChatCardAdapter} from "../adapters/foundry-v14-chat-card-adapter.mjs";
+import {createFoundryReactionProvider} from "../adapters/foundry-v14-reaction-provider.mjs";
 import {
   buildFoundryMovementCompletion,
   buildFoundryMovementProgressObservation,
@@ -133,6 +134,8 @@ export function registerFoundryV14MultiplayerResolution({
   };
   game.wildpath = {
     ...(game.wildpath ?? {}),
+    // Production reactions come from the world's Trigger RuleElements; a supplied provider still wins.
+    reactionServices: game.wildpath?.reactionServices ?? createFoundryReactionProvider(),
     multiplayer: runtime,
     movement,
     resolutionTransport: transport,

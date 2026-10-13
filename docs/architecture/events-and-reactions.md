@@ -150,8 +150,11 @@ source data, validates it, and detaches it. Pass `token.actor` for synthetic Act
 it with the base world Actor. Keep live documents in `targetActors` or
 `reactions.actorDocumentsByActor`, separately from the plain system map. The staged domain does
 not serialize Foundry documents or DataModels; its plain-data validator continues to reject them.
-See [ResolutionState](resolution-state.md#foundry-actor-system-snapshots). The default provider is empty.
-No authored gameplay feature or new configuration UI is supplied by this milestone.
+See [ResolutionState](resolution-state.md#foundry-actor-system-snapshots). The default provider
+(`createFoundryReactionProvider`) derives staged-movement triggers and observers from the Scene's Tokens'
+`Trigger` RuleElements (see [rule-elements.md](rule-elements.md#current-integration)). A provider already set
+on `game.wildpath.reactionServices` (QA, a module) still wins. Ordinary Actions do not yet receive
+`services.reactions` from Foundry, and native drag does not yet use the staged path.
 
 An approved operation snapshots its trigger definitions. Predicates, resource availability, and
 child state are evaluated against the canonical verified event. Registration changes are adopted

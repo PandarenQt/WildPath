@@ -172,6 +172,31 @@ condition effect has no `ruleElements`, `ConditionTriggerResolver` translates le
 into synthetic Trigger RuleElements. If persisted RuleElements exist, they are authoritative and
 legacy dot data is ignored to avoid double application.
 
+**Reaction triggers.** The Foundry reaction provider
+(`module/adapters/foundry-v14-reaction-provider.mts`, installed as `game.wildpath.reactionServices`)
+turns `Trigger` RuleElements of `kind: "reaction"` on active Items into reaction triggers for staged
+movement (`event: "movement.transition-proposed"`, phase `interrupt`):
+
+- The reaction's Action is the Item itself (an Action Item) or the Action named by `data.reaction.actionId`.
+- Each such Token also becomes a movement observer: reach in fields comes from that Action's reach range,
+  hostility from opposed Token dispositions.
+- Put the event predicate in `data.triggerPredicate`; `predicate` (or `data.predicate`) is the RuleElement's
+  own activation predicate and is evaluated without the event.
+- `{self}` in a predicate `path` is bound to this reactor's observer id.
+
+An opportunity attack is authored as:
+
+```js
+{type: "Trigger", data: {kind: "reaction", event: "movement.transition-proposed", match: {phase: "interrupt"},
+  triggerPredicate: {all: [
+    {equals: {path: "event.data.movementKind", value: "voluntary"}},
+    {equals: {path: "event.data.relations.{self}.leavesReach", value: true}},
+    {equals: {path: "event.data.relations.{self}.context.hostile", value: true}}]}}}
+```
+
+Live (Quench, 14.369): a hostile guard with this Trigger on its melee Action attacked a friendly mover
+leaving its reach (6 damage, reaction spent, movement finished), with no injected services.
+
 Other contribution types are available as pure collected data but are not globally wired into
 Foundry document preparation yet. Future resolvers should request the relevant RuleElement bundle
 and interpret it inside their own domain boundary instead of adding item-, spell-, class-, or

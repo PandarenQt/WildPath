@@ -11,7 +11,7 @@ Last verified: 2026-10-13.
 - Movement implementation commit: `87ed1fae93271b81b14432bb4312be9cd53285c5`.
 - Original milestone starting HEAD: `ea484fd8b503697ddf1c2b7b0f6984ea594378e2`.
 - Local main HEAD: `61d6268b838e286728c829924506c6c931174621`.
-- Portable full suite (`FOUNDRY_V14_APP_PATH` unset): **910 tests, 908 passed, 0 failed, 2 intentionally skipped**.
+- Portable full suite (`FOUNDRY_V14_APP_PATH` unset): **913 tests, 911 passed, 0 failed, 2 intentionally skipped**.
 - M2 delta from 893/891/0/2: **6 new tests** (dice policy context and provider choice, re-prompt on a
   rejected answer, total bounds, prompt bounds, entered rolls on the card).
 - Representative-gate delta from 889/887/0/2: **4 new tests** (save routed to the target's Player,
@@ -112,6 +112,14 @@ browsers unless marked Quench.
 - **Failure feedback:** a failed Action is reported by private notification, never a public card.
 - **UI copy:** prompts, buttons, notifications and the dice setting have WildPath copy ("Enter your roll",
   "Die result (1d20 + 4)", "Confirm").
+
+**M3 — Stage I: persistent spatial mechanics (IN PROGRESS).** Slice 1 done: a production reaction
+provider (`createFoundryReactionProvider`, installed as `game.wildpath.reactionServices`) derives
+staged-movement reactors from the world. It reads `Trigger` RuleElements of kind `reaction` on active
+Items, takes reach from the reaction Action's range and hostility from Token dispositions, and binds `{self}`
+in predicate paths. Live in Quench: a hostile guard's authored opportunity attack hit a friendly mover
+leaving reach, with no injected services. Next: native drag through the staged path, so it happens on an
+ordinary drag; `services.reactions` for ordinary Actions; then areas, auras and hazards.
 
 **Authority and disclosure hardening (M0) — CLOSED on 2026-10-13.** A review found that the
 authority trusted more than it could verify: any player could act through an Actor or Item they did

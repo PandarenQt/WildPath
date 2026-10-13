@@ -267,6 +267,56 @@ export function registerStagedMovementTests(quench) {
       it("square/Medium reaction hit", () => runCase("hit"));
       it("square/Medium reaction stop", () => runCase("stop"));
       it("Large-hex reaction decline", () => runCase("decline",{hex:true}));
+
+      it("a hostile guard's Trigger RuleElement makes an opportunity attack through the production provider", async function () {
+        assert.equal(game.users.activeGM?.id,game.user.id,"Run as the active GM");
+        const baseMover = await fixtures.createActor({name:"provider mover",system:{traits:{size:"medium"},
+          defenses:{ac:{value:1}},resources:{health:{base:30,value:30},movement:{base:30,value:30}}}});
+        const baseGuard = await fixtures.createActor({name:"provider guard",system:{traits:{size:"medium"},
+          resources:{reaction:{base:1,value:1}}}});
+        for (const base of [baseMover,baseGuard]) await base.update({ownership:{default:0,[game.user.id]:3}});
+        const scene = await fixtures.createScene({name:"provider opportunity attack"});
+        scene.initializeEdges();
+        const mover = await fixtures.createToken(scene,baseMover,{name:"mover",...scene.grid.getTopLeftPoint({i:3,j:3}),
+          elevation:0,level:scene.initialLevel.id});
+        const guard = await fixtures.createToken(scene,baseGuard,{name:"guard",...scene.grid.getTopLeftPoint({i:2,j:3}),
+          elevation:0,level:scene.initialLevel.id});
+        await mover.update({disposition:CONST.TOKEN_DISPOSITIONS.FRIENDLY});
+        await guard.update({disposition:CONST.TOKEN_DISPOSITIONS.HOSTILE});
+        const runId = mover.getFlag("wildpath","quenchRunId");
+        const data = qaActionData(runId);
+        data.system.definition.costs = {allOf:[{capability:"reaction",amount:1}]};
+        // Authored content only: the provider binds {self} to this guard's observer id.
+        data.system.ruleElements = [{schemaVersion:1,id:"opportunity",type:"Trigger",data:{kind:"reaction",
+          event:"movement.transition-proposed",match:{phase:"interrupt"},triggerPredicate:{all:[
+            {equals:{path:"event.data.movementKind",value:"voluntary"}},
+            {equals:{path:"event.data.relations.{self}.leavesReach",value:true}},
+            {equals:{path:"event.data.relations.{self}.context.hostile",value:true}}]}}}];
+        await fixtures.createItem(guard.actor,{name:"opportunity attack",type:"action",system:data.system});
+        const persistencePort = createFoundryV14DocumentPersistenceAdapter();
+        const resolutionId = `quench-provider:${runId}`;
+        let coordinator;
+        // No services are injected: game.wildpath.reactionServices (the production provider) supplies them.
+        coordinator = createMultiplayerActionCoordinator({userId:game.user.id,
+          users:() => foundryUserDirectory(game),activeGMUserId:() => game.users.activeGM?.id,
+          transport:createQuenchLocalTransport({userId:game.user.id,receive:envelope => coordinator.handleEnvelope(envelope)}),
+          promptPorts:[createScriptedMovementPrompt({mode:"hit",provePending:() => {}})],
+          rollProviders:[createFoundryDigitalRollProvider()],
+          actionIntentResolver:({intent,envelope}) => foundryMovementIntentToStagedOptions({intent,
+            resolutionId:envelope.resolutionId,senderUserId:envelope.senderUserId,game,persistencePort})});
+        const route = [1,2,3].map(n => scene.grid.getTopLeftPoint({i:3,j:3 + n}));
+        const submitted = await coordinator.declareActionIntent({resolutionKind:"movement",resolutionId,intentId:resolutionId,
+          movementId:resolutionId,sceneRef:scene.uuid,tokenRef:mover.uuid,origin:position(mover),
+          waypoints:route.map(point => ({...point,elevation:0})),movementKind:"voluntary",movementMode:"walk"});
+        assert.isTrue(submitted.ok,JSON.stringify(submitted));
+        const record = coordinator.getRecord(resolutionId);
+        assert.isTrue(coordinator.getResult(resolutionId)?.ok,JSON.stringify({errors:coordinator.errors,state:record?.state?.errors}));
+        assert.deepEqual([...record.requestExpectations.values()].map(entry => entry.request.type),["reaction-choice","roll"],
+          "the guard was offered its reaction and rolled the attack");
+        assert.equal(mover.actor.system.resources.health.value,24,"the opportunity attack hit for 6");
+        assert.equal(guard.actor.system.resources.reaction.value,0,"the guard spent its reaction");
+        assert.deepEqual([mover.x,mover.y],[route.at(-1).x,route.at(-1).y],"the movement still finished");
+      });
     });
   }, {displayName:"WILDPATH: Staged Movement",preSelected:false});
 }
