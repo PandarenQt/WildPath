@@ -310,10 +310,17 @@ export const DICE_POLICY_PROVIDERS = Object.freeze({digital: "foundry-digital", 
  * The physical provider asks for the dice through the roll prompt.
  */
 export function dicePolicyRollContext(game=globalThis.game) {
+  const setting = (namespace, key) => {
+    try { return game?.settings?.get?.(namespace, key) ?? null; }
+    catch { return null; } // unregistered (before init, or a test game)
+  };
   return {
     get providerId() {
-      try { return DICE_POLICY_PROVIDERS[game?.settings?.get?.("wildpath", "dicePolicy")] ?? null; }
-      catch { return null; } // unregistered (before init, or a test game)
+      return DICE_POLICY_PROVIDERS[setting("wildpath", "dicePolicy")] ?? null;
+    },
+    /** The roller's own message mode, for rolls whose request leaves visibility to the roller (saves). */
+    get messageMode() {
+      return setting("core", "messageMode");
     }
   };
 }

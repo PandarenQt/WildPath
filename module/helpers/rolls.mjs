@@ -748,7 +748,7 @@ function normalizeRollMode(value) {
   }
 }
 
-function normalizeRollVisibility(value) {
+export function normalizeRollVisibility(value) {
   const token = String(value ?? "").trim().toLowerCase().replace(/[_\s]/g, "-");
   switch ( token ) {
     case "public":

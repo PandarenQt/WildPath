@@ -37,6 +37,7 @@ test("under the physical policy the roller is asked for the dice and the digital
   assert.equal(answered.ok, true, JSON.stringify(answered));
   assert.deepEqual(prompted, ["request:physical"], "the physical provider defers to the roll prompt");
   assert.equal(answered.response.value.natural, 7);
+  assert.equal(answered.response.value.provenance.type, "physical", "typed physical dice keep their provenance");
 
   const digitalAnswer = await answerPendingRequestLocally({request, promptPorts: [prompt],
     rollProviders: [digital, createPhysicalDiceProvider()],
@@ -74,4 +75,29 @@ test("a chooser whose typed roll the rules reject is told and asked again", asyn
   assert.equal(notified.length, 1);
   assert.equal(notified[0].error.code, "INVALID_MANUAL_RESULT");
   assert.equal(received.some(envelope => envelope.messageType === MULTIPLAYER_MESSAGE_TYPES.RESOLUTION_ERROR), false);
+});
+
+test("a roller's own message mode decides the visibility of rolls the rules leave to them (saves)", async () => {
+  const {sanitizeResolutionResultForTransport, projectResolutionResultForDisclosure} =
+    await import("../module/helpers/multiplayer-authority.mjs");
+  const {DISCLOSURE_CLASSIFICATIONS} = await import("../module/helpers/multiplayer-disclosure.mjs");
+  const save = createD20RollRequest({id: "request:save", resolutionId: "resolution:save", type: "saving-throw", modifier: 2});
+  const request = {id: "request:save", resolutionId: "resolution:save", type: "roll", payload: {rollRequest: save}};
+  const digital = createTestRollProvider({id: "foundry-digital", result: {natural: 11, total: 13}});
+  const answered = await answerPendingRequestLocally({request, rollProviders: [digital], context: {messageMode: "public"}});
+  assert.equal(answered.response.value.metadata.visibility, "public");
+  const unset = await answerPendingRequestLocally({request, rollProviders: [digital], context: {}});
+  assert.equal(unset.response.value.metadata?.visibility, undefined);
+
+  const resultWith = (rollRequest, rollResult) => projectResolutionResultForDisclosure(sanitizeResolutionResultForTransport({
+    state: {id: "resolution:save", status: "completed", rollRequests: [rollRequest],
+      rollResults: [{requestId: rollRequest.id, type: "save-roll", rollResult}]}
+  }), DISCLOSURE_CLASSIFICATIONS.BROADCAST_SAFE).rolls;
+  assert.deepEqual(resultWith(save, answered.response.value).map(roll => roll.visibility), ["public"],
+    "a save the target's Player rolled in public mode is public");
+  assert.deepEqual(resultWith(save, {...answered.response.value, metadata: {visibility: "everyone"}}), [],
+    "an unknown mode stays system (not public)");
+  const gmAttack = {...save, id: "request:attack", visibility: "gm-only"};
+  assert.deepEqual(resultWith(gmAttack, {...answered.response.value, requestId: "request:attack"}), [],
+    "a request's own visibility wins over the roller's");
 });

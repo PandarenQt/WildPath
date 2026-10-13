@@ -25,7 +25,7 @@ import {
   validateResolutionSocketEnvelope
 } from "../helpers/multiplayer-authority.mjs";
 import {DISCLOSURE_CLASSIFICATIONS, isPrivateDisclosure} from "../helpers/multiplayer-disclosure.mjs";
-import {ROLL_CODES, ROLL_PROVIDER_OUTCOMES} from "../helpers/rolls.mjs";
+import {ROLL_CODES, ROLL_PROVIDER_OUTCOMES, ROLL_VISIBILITY, normalizeRollVisibility} from "../helpers/rolls.mjs";
 
 const MAX_PROMPT_ATTEMPTS = 3;
 const REPROMPT_CODES = new Set([ROLL_CODES.INVALID_MANUAL_RESULT, ROLL_CODES.INVALID_ROLL_RESULT]);
@@ -920,11 +920,12 @@ export function createMultiplayerActionCoordinator({
 /* -------------------------------------------- */
 
 export async function answerPendingRequestLocally({
-  request,
+  request: pendingRequest,
   promptPorts=[],
   rollProviders=[],
   context={}
 }={}) {
+  let request = pendingRequest;
   if ( request?.type === RESOLUTION_REQUEST_TYPES.ROLL && rollProviders.length ) {
     const rollRequest = request.payload?.rollRequest ?? null;
     const provided = await executeRollRequest({
@@ -939,7 +940,7 @@ export async function answerPendingRequestLocally({
         resolutionId: request.resolutionId,
         requestId: request.id,
         type: request.type,
-        value: provided.result,
+        value: withRollerVisibility(provided.result, context),
         metadata: {
           rollProvider: provided.provider
         }
@@ -953,6 +954,8 @@ export async function answerPendingRequestLocally({
         provided
       };
     }
+    // The prompt collects what the deferring provider asked for: physical dice stay "physical".
+    request = {...request, metadata: {...(request.metadata ?? {}), rollProvenanceType: provided.provider?.type ?? null}};
   }
 
   const localState = createResolutionState({
@@ -985,8 +988,21 @@ export async function answerPendingRequestLocally({
   return {
     ok: true,
     code: MULTIPLAYER_AUTHORITY_CODES.OK,
-    response: coordinated.response
+    response: request?.type === RESOLUTION_REQUEST_TYPES.ROLL
+      ? {...coordinated.response, value: withRollerVisibility(coordinated.response?.value, context)}
+      : coordinated.response
   };
+}
+
+/**
+ * The roller's own message mode (V14 `core.messageMode`, from the roll context) travels with their roll;
+ * the authority uses it only where the request left visibility to the roller (`system`, e.g. saves).
+ */
+function withRollerVisibility(value, context) {
+  if ( !value || (typeof value !== "object") || (typeof context.messageMode !== "string") ) return value;
+  const visibility = normalizeRollVisibility(context.messageMode);
+  if ( visibility === ROLL_VISIBILITY.SYSTEM ) return value;
+  return {...value, metadata: {...(value.metadata ?? {}), visibility}};
 }
 
 function responseFromEnvelope(envelope) {

@@ -1,5 +1,5 @@
 import {RESOLUTION_REQUEST_TYPES} from "./resolution-state.mjs";
-import {ROLL_AUTHORITY, rollFormulaForRequest} from "./rolls.mjs";
+import {ROLL_AUTHORITY, ROLL_VISIBILITY, normalizeRollVisibility, rollFormulaForRequest} from "./rolls.mjs";
 
 import {
   DISCLOSURE_CLASSIFICATIONS,
@@ -308,6 +308,14 @@ export function sanitizePendingRequestForTransport(request, {expectedChooserUser
 
 /* -------------------------------------------- */
 
+/** A request's own visibility wins; where it leaves the choice to the roller (`system`), the roller's mode applies. */
+function rollVisibility(request, rollResult) {
+  const requested = request?.visibility ?? null;
+  if ( requested && (requested !== ROLL_VISIBILITY.SYSTEM) ) return requested;
+  const chosen = rollResult?.metadata?.visibility ? normalizeRollVisibility(rollResult.metadata.visibility) : null;
+  return (chosen && (chosen !== ROLL_VISIBILITY.SYSTEM)) ? chosen : (requested ?? rollResult?.visibility ?? null);
+}
+
 export function sanitizeResolutionResultForTransport({state=null, result=null, authorityUserId=null, initiatorUserId=null}={}) {
   const current = clonePlainData(state ?? result?.state ?? {}, "resolutionResult.state") ?? {};
   const actionResult = current.results?.actionResult ?? null;
@@ -337,7 +345,7 @@ export function sanitizeResolutionResultForTransport({state=null, result=null, a
       return {
         requestId,
         type: entry.type ?? entry.semanticType ?? null,
-        visibility: request?.visibility ?? entry.rollResult?.visibility ?? null,
+        visibility: rollVisibility(request, entry.rollResult),
         // Who rolls and what was rolled, from the authority's own request; the roller's copies are not trusted.
         rollerKind: request?.authority?.kind ?? null,
         formula: request ? (rollFormulaForRequest(request).formula ?? null) : null,

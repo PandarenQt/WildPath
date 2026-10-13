@@ -140,5 +140,13 @@ Manual/physical roll input routes through the generic ChoiceCoordinator/PromptPo
 through the multiplayer authority coordinator when the expected roller is remote. Live on 14.369
 (2026-10-13): under the physical policy a Player typed natural 12 (→ 16) and 1d8 = 4 through the real
 prompts; a mistyped 9 was refused, the Player was re-asked, and the chat card showed the authority's
-formulas with the validated totals. Open: the prompt stamps provenance `manual` even under the physical
-policy.
+formulas with the validated totals. Typed dice keep the deferring provider's provenance (`physical`).
+
+**Who decides a roll's visibility.** A request's own visibility wins (attack and damage take the
+initiator's message mode). Where the rules leave it to the roller (`system`, as for saves), the roller's
+client stamps its own `core.messageMode` into `rollResult.metadata.visibility`, and the authority
+normalizes it to the allowed set. Live: a Player's public save appears on the card next to the GM's
+damage roll.
+
+**Failure feedback.** A failed or rejected Action is reported to the initiator as a private notification,
+never a public card, because a failure reason can name things the table should not see.

@@ -473,6 +473,7 @@ function prepareRollResponseValue({request, value, promptResult, port}) {
       ?? input.mode
       ?? promptResult.metadata?.provenanceType
       ?? promptResult.metadata?.rollProvenanceType
+      ?? request.metadata?.rollProvenanceType
       ?? port.type
   );
   const provider = {

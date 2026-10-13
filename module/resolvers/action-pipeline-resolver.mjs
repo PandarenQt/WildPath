@@ -2312,7 +2312,7 @@ function saveRollRequestForState(state, input) {
     modifier: modifier.value,
     formula: save.formula ?? save.rollFormula ?? null,
     rollMode: save.rollMode ?? save.advantageState ?? save.roll?.mode,
-    // shortcut: saves keep the default `system` visibility; per-roller message modes come with the request/roll milestone.
+    // Saves keep `system` visibility: the roller's own message mode decides (see withRollerVisibility).
     dc: save.dc ?? null,
     source: firstRollTarget(input) ?? state.source ?? input.source ?? null,
     target: state.source ?? input.source ?? null,
