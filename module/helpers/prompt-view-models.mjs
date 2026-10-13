@@ -1,6 +1,6 @@
 import {ACTION_CHOICE_TYPES} from "./action-configuration.mjs";
 import {RESOLUTION_REQUEST_TYPES} from "./resolution-state.mjs";
-import {ROLL_INPUT_MODES, rollFormulaForRequest} from "./rolls.mjs";
+import {ROLL_INPUT_MODES, rollFormulaForRequest, simpleFormulaBounds} from "./rolls.mjs";
 
 export const PROMPT_VIEW_SCHEMA_VERSION = 1;
 
@@ -131,6 +131,8 @@ function rollControl(rollRequest) {
   const faces = finiteNumber(expected.primaryDieFaces ?? expected.faces);
   const formula = formulaForRollRequest(request);
   const natural = inputMode === ROLL_INPUT_MODES.NATURAL || expected.requireNatural === true;
+  // The same bounds the authority enforces, so a mistyped physical total is refused in the dialog.
+  const bounds = natural ? null : simpleFormulaBounds(formula);
   return {
     id: "roll",
     type: natural ? PROMPT_CONTROL_TYPES.ROLL_NATURAL : PROMPT_CONTROL_TYPES.ROLL_TOTAL,
@@ -138,8 +140,8 @@ function rollControl(rollRequest) {
     description: null,
     required: true,
     inputMode,
-    min: natural && faces ? 1 : null,
-    max: natural && faces ? faces : null,
+    min: natural && faces ? 1 : (bounds?.min ?? null),
+    max: natural && faces ? faces : (bounds?.max ?? null),
     expectedFaces: faces ?? null,
     requireNatural: expected.requireNatural === true,
     formula,

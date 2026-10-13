@@ -25,8 +25,9 @@ export function createResolutionCardViewModel(result) {
                 save: saveEntry ? saveOutcome(saveEntry) : null
             };
         }),
-        // shortcut: rolls without Foundry Roll JSON (manual/physical) are not shown; add a total row with the dice policy work.
-        rolls: (result.rolls ?? []).flatMap(roll => (roll.foundryRoll ? [roll.foundryRoll] : []))
+        rolls: (result.rolls ?? []).flatMap(roll => (roll.foundryRoll ? [roll.foundryRoll] : [])),
+        enteredRolls: (result.rolls ?? []).flatMap(roll => (!roll.foundryRoll && Number.isFinite(roll.total)
+            ? [{ formula: textOrNull(roll.formula), total: roll.total }] : []))
     };
 }
 /**

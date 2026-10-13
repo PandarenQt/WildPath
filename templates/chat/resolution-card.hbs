@@ -6,6 +6,14 @@
   </header>
   {{/if}}
   {{{rollHtml}}}
+  {{#each enteredRolls}}
+  <div class="dice-roll">
+    <div class="dice-result">
+      {{#if formula}}<div class="dice-formula">{{formula}}</div>{{/if}}
+      <h4 class="dice-total">{{total}}</h4>
+    </div>
+  </div>
+  {{/each}}
   {{#if targets.length}}
   <ul class="card-targets">
     {{#each targets}}

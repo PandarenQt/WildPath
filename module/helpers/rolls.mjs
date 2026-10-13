@@ -324,6 +324,17 @@ export function validateRollResult(result, {
     }
   }
 
+  // A total the requested dice cannot produce is never accepted, whoever rolled it (digital, physical or forged).
+  // A total-mode request (damage, healing) is fully described by its formula; a d20 request only when its
+  // modifier is known (validateTotalFromNatural), since the roller may add one the authority cannot see.
+  const formulaComplete = requestData && ((requestData.expected?.manualInputMode === ROLL_INPUT_MODES.TOTAL)
+    || (requestData.expected?.validateTotalFromNatural !== false));
+  const bounds = formulaComplete ? simpleFormulaBounds(rollFormulaForRequest(requestData).formula) : null;
+  if ( bounds && ((data.total < bounds.min) || (data.total > bounds.max)) ) {
+    return validationFailure(ROLL_CODES.INVALID_ROLL_RESULT,
+      `RollResult total must be between ${bounds.min} and ${bounds.max} for ${bounds.formula}.`, "total");
+  }
+
   if ( requestData?.expected?.validateTotalFromNatural !== false
     && requestData?.expected?.manualInputMode === ROLL_INPUT_MODES.NATURAL
     && data.natural != null
@@ -428,6 +439,25 @@ export function createRollResultFromManualInput({request, input, provider=null, 
 }
 
 /* -------------------------------------------- */
+
+/**
+ * Min/max of a formula made only of `NdF` and integer terms joined by + or -. Anything else (keep, explode,
+ * roll data) returns null, so the caller skips the check rather than reject a valid roll.
+ */
+export function simpleFormulaBounds(formula) {
+  const text = String(formula ?? "").replace(/\s+/gu, "");
+  if ( !text || !/^[+-]?(\d+d\d+|\d+)([+-](\d+d\d+|\d+))*$/iu.test(text) ) return null;
+  let min = 0;
+  let max = 0;
+  for ( const [, sign, number, faces, constant] of text.matchAll(/([+-]?)(?:(\d+)d(\d+)|(\d+))/giu) ) {
+    const direction = sign === "-" ? -1 : 1;
+    const low = constant != null ? Number(constant) : Number(number);
+    const high = constant != null ? Number(constant) : Number(number) * Number(faces);
+    min += direction > 0 ? low : -high;
+    max += direction > 0 ? high : -low;
+  }
+  return {formula, min, max};
+}
 
 export function rollFormulaForRequest(request) {
   const data = normalizeRollRequest(request);

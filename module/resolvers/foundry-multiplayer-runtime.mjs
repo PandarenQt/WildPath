@@ -27,6 +27,7 @@ import {
   resolveActorDefense
 } from "../helpers/combat-statistics.mjs";
 import {createMultiplayerActionCoordinator} from "./multiplayer-action-coordinator.mjs";
+import {createPhysicalDiceProvider} from "./roll-provider-resolver.mjs";
 import {createMultiplayerMovementAuthority} from "./multiplayer-movement-authority.mjs";
 import {createFoundryV14ReactionPauseAdapter} from "../adapters/foundry-v14-reaction-pause-adapter.mjs";
 import {foundryMovementIntentToStagedOptions} from "../adapters/foundry-v14-staged-movement-adapter.mjs";
@@ -71,7 +72,8 @@ export function registerFoundryV14MultiplayerResolution({
     activeGMUserId: () => game.users?.activeGM?.id ?? null,
     transport,
     promptPorts: [createFoundryV14PromptAdapter()],
-    rollProviders: [createFoundryDigitalRollProvider()],
+    rollProviders: [createFoundryDigitalRollProvider(), createPhysicalDiceProvider()],
+    rollContext: dicePolicyRollContext(game),
     actionIntentResolver: ({intent, envelope}) => intent.resolutionKind === "movement"
       ? foundryMovementIntentToStagedOptions({intent, resolutionId: envelope.resolutionId,
         senderUserId: envelope.senderUserId, game, persistencePort})
@@ -299,6 +301,22 @@ function notifyMovementHookFailure(result={}, {logger=globalThis.console}={}) {
 }
 
 /* -------------------------------------------- */
+
+export const DICE_POLICY_PROVIDERS = Object.freeze({digital: "foundry-digital", physical: "physical-dice"});
+
+/**
+ * The GM's `wildpath.dicePolicy` picks the RollProvider on the rolling client. A getter, because the
+ * coordinator spreads this context per roll: a changed policy applies to the next roll without a reload.
+ * The physical provider asks for the dice through the roll prompt.
+ */
+export function dicePolicyRollContext(game=globalThis.game) {
+  return {
+    get providerId() {
+      try { return DICE_POLICY_PROVIDERS[game?.settings?.get?.("wildpath", "dicePolicy")] ?? null; }
+      catch { return null; } // unregistered (before init, or a test game)
+    }
+  };
+}
 
 /**
  * Build the non-authoritative Action intent a Foundry client sends when a player uses an

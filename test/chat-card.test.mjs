@@ -52,9 +52,20 @@ test("the card view model reads only names, outcomes and public Roll JSON from t
       {name: "Orc", attack: {label: CHAT_OUTCOME_KEYS.miss, tone: "failure"},
         save: {label: CHAT_OUTCOME_KEYS.saveFailure, tone: "failure"}}
     ],
-    rolls: [foundryRoll]
+    rolls: [foundryRoll],
+    enteredRolls: []
   });
   assert.equal(JSON.stringify(view).includes(SECRET), false);
+});
+
+test("rolls entered by hand show the authority's formula and the validated total", () => {
+  const view = createResolutionCardViewModel(projectResolutionResultForDisclosure({
+    resolutionId: "resolution:physical", status: "completed", initiatorUserId: "player-a",
+    rolls: [{requestId: "a", type: "attack-roll", visibility: "public", formula: "1d20 + 4",
+      rollResult: {natural: 15, total: 19, formula: "1d20 + 4 (natural 20!)"}}]
+  }, DISCLOSURE_CLASSIFICATIONS.BROADCAST_SAFE));
+  assert.deepEqual(view.rolls, []);
+  assert.deepEqual(view.enteredRolls, [{formula: "1d20 + 4", total: 19}], "never the roller's own formula text");
 });
 
 test("chat visibility follows the initiator's message mode, never the authority's", () => {

@@ -20,6 +20,8 @@ interface ContestEntry {
 
 interface PublicRoll {
   readonly foundryRoll?: Readonly<Record<string, unknown>> | null;
+  readonly formula?: string | null;
+  readonly total?: number | null;
 }
 
 export interface PublicResolutionResult {
@@ -59,6 +61,8 @@ export interface ResolutionCardView {
   readonly actionName: string | null;
   readonly targets: readonly ResolutionCardTarget[];
   readonly rolls: readonly Readonly<Record<string, unknown>>[];
+  /** Public rolls entered by hand (physical or manual dice): no Foundry Roll exists to render. */
+  readonly enteredRolls: readonly {readonly formula: string | null; readonly total: number}[];
 }
 
 export function createResolutionCardViewModel(result: PublicResolutionResult): ResolutionCardView {
@@ -76,8 +80,9 @@ export function createResolutionCardViewModel(result: PublicResolutionResult): R
         save: saveEntry ? saveOutcome(saveEntry) : null
       };
     }),
-    // shortcut: rolls without Foundry Roll JSON (manual/physical) are not shown; add a total row with the dice policy work.
-    rolls: (result.rolls ?? []).flatMap(roll => (roll.foundryRoll ? [roll.foundryRoll] : []))
+    rolls: (result.rolls ?? []).flatMap(roll => (roll.foundryRoll ? [roll.foundryRoll] : [])),
+    enteredRolls: (result.rolls ?? []).flatMap(roll => (!roll.foundryRoll && Number.isFinite(roll.total)
+      ? [{formula: textOrNull(roll.formula), total: roll.total as number}] : []))
   };
 }
 

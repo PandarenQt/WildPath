@@ -14,6 +14,8 @@ import {
   rollFormulaForRequest,
   rollResultToResolverRoll,
   validateRollRequest,
+  normalizeRollResponseValue,
+  simpleFormulaBounds,
   validateRollResult
 } from "../module/helpers/rolls.mjs";
 import {
@@ -387,4 +389,28 @@ test("FoundryDigitalRollProvider isolates Foundry Roll objects behind a normaliz
   assert.equal(calls[0].formula, "1d20 + 4");
   assert.equal(calls[1].evaluate.allowInteractive, false);
   assert.equal(result.result.raw.foundryRoll instanceof FakeRoll, false);
+});
+
+test("a roll total outside what the requested dice can produce is rejected, however it was rolled", () => {
+  assert.deepEqual(simpleFormulaBounds("2d6 + 3"), {formula: "2d6 + 3", min: 5, max: 15});
+  assert.deepEqual(simpleFormulaBounds("1d20 - 2"), {formula: "1d20 - 2", min: -1, max: 18});
+  assert.equal(simpleFormulaBounds("2d20kh + 4"), null, "keep/explode/roll-data formulas are not bounded");
+  assert.equal(simpleFormulaBounds("1d8 + @mod"), null);
+  const damage = createDamageRollRequest({id: "d", resolutionId: "r",
+    components: [{id: "blade", expression: {type: "dice", number: 1, faces: 8}}]});
+  const answer = total => normalizeRollResponseValue({requestId: "d", resolutionId: "r", total}, {request: damage});
+  assert.equal(answer(5).ok, true);
+  for ( const total of [0, 9, 999, -3] ) assert.equal(answer(total).code, ROLL_CODES.INVALID_ROLL_RESULT, `1d8 = ${total}`);
+  const unknownModifier = createD20RollRequest({id: "a", resolutionId: "r", expected: {validateTotalFromNatural: false}});
+  assert.equal(normalizeRollResponseValue({requestId: "a", resolutionId: "r", natural: 18, total: 22},
+    {request: unknownModifier}).ok, true, "a request with an unknown modifier has no complete formula to bound");
+});
+
+test("a total-mode roll prompt carries the same bounds the authority enforces", async () => {
+  const {createPromptViewModel} = await import("../module/helpers/prompt-view-models.mjs");
+  const damage = createDamageRollRequest({id: "d", resolutionId: "r",
+    components: [{id: "blade", expression: {type: "dice", number: 2, faces: 6}}]});
+  const control = createPromptViewModel({id: "d", resolutionId: "r", type: "roll", payload: {rollRequest: damage}}).controls[0];
+  assert.equal(control.type, "roll-total");
+  assert.deepEqual([control.min, control.max], [2, 12]);
 });

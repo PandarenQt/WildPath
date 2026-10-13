@@ -98,6 +98,20 @@ Hooks.once("init", () => {
     default: WILDPATH.DEFAULT_MOVEMENT_MEASUREMENT_MODE
   });
 
+  // GM-controlled dice policy (AGENTS §9). Placeholder copy: Foundry core's own dice fulfillment strings.
+  game.settings.register("wildpath", "dicePolicy", {
+    name: "DICE.CONFIG.Label",
+    hint: "DICE.CONFIG.Hint",
+    scope: "world",
+    config: true,
+    type: String,
+    choices: {
+      digital: "DICE.FULFILLMENT.Default",
+      physical: "DICE.FULFILLMENT.Manual"
+    },
+    default: "digital"
+  });
+
   // Sheet registration
   const {DocumentSheetConfig} = foundry.applications.apps;
   DocumentSheetConfig.registerSheet(WildPathActor, "wildpath", WildPathActorSheet, {

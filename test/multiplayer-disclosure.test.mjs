@@ -758,7 +758,7 @@ test("result projection: both BROADCAST_SAFE and PARTICIPANT_PRIVATE are allow-l
       save: {ok: true, results: [{target: {id: "enemy", actorRef: "Actor.e"}, success: false, critical: false, outcome: "failure"}]},
       movement: {completedTransitionCount: 3, intendedTransitionCount: 3, committed: true}
     },
-    rolls: [{requestId: "r1", type: "attack", visibility: "public", natural: 18, total: 22, foundryRoll: null}],
+    rolls: [{requestId: "r1", type: "attack", visibility: "public", natural: 18, total: 22, formula: null, foundryRoll: null}],
     disclosure: D.BROADCAST_SAFE
   });
   const participant = projectResolutionResultForDisclosure(sample, D.PARTICIPANT_PRIVATE);

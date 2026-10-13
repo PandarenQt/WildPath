@@ -1,5 +1,5 @@
 import {RESOLUTION_REQUEST_TYPES} from "./resolution-state.mjs";
-import {ROLL_AUTHORITY} from "./rolls.mjs";
+import {ROLL_AUTHORITY, rollFormulaForRequest} from "./rolls.mjs";
 
 import {
   DISCLOSURE_CLASSIFICATIONS,
@@ -338,8 +338,9 @@ export function sanitizeResolutionResultForTransport({state=null, result=null, a
         requestId,
         type: entry.type ?? entry.semanticType ?? null,
         visibility: request?.visibility ?? entry.rollResult?.visibility ?? null,
-        // Who rolls, from the authority's own request (the roller's provenance is not trusted for this).
+        // Who rolls and what was rolled, from the authority's own request; the roller's copies are not trusted.
         rollerKind: request?.authority?.kind ?? null,
+        formula: request ? (rollFormulaForRequest(request).formula ?? null) : null,
         rollResult: entry.rollResult ?? null
       };
     }),
@@ -440,6 +441,7 @@ function projectPublicResolutionResult(data) {
         visibility: entry.visibility,
         natural: entry.rollResult?.natural ?? null,
         total: entry.rollResult?.total ?? null,
+        formula: entry.formula ?? null,
         foundryRoll: publicFoundryRoll(entry.rollResult)
       }))
   }, "resolutionResult.broadcast");
