@@ -200,7 +200,7 @@ test("ActionPipeline pauses for required configuration and resumes with the reso
   assert.equal(resumed.state.configuration.choices[0].id, "stance");
 });
 
-test("ActionPipeline requests target selection before resolver planning", () => {
+test("ActionPipeline requests target selection but never accepts targets the authority did not offer", () => {
   const waiting = planStagedActionResolution({
     id: "resolution:targets",
     actorSystem: actorSystem(1),
@@ -214,14 +214,48 @@ test("ActionPipeline requests target selection before resolver planning", () => 
       requestId: "request:resolution:targets:targets",
       type: RESOLUTION_REQUEST_TYPES.TARGET_SELECTION,
       value: {
-        targets: [target("orc")]
+        targets: [target("orc", {defenses: {ac: {value: 1}}})],
+        decisions: [{operation: "select", targetId: "orc"}]
       }
     }
   });
 
   assert.equal(waiting.state.status, RESOLUTION_STATE_STATUS.AWAITING_TARGETS);
   assert.equal(waiting.state.pendingRequests[0].type, RESOLUTION_REQUEST_TYPES.TARGET_SELECTION);
-  assert.equal(resumed.ok, true);
+  // A chooser-supplied target (and its defense) is never trusted: nothing was offered, so nothing resolves.
+  assert.equal(resumed.ok, false);
+  assert.equal(resumed.state.status, RESOLUTION_STATE_STATUS.FAILED);
+  assert.equal(JSON.stringify(resumed.state.results.actionResult?.context?.targets ?? []).includes("orc"), false);
+});
+
+test("ActionPipeline target refinement accepts only decisions about the authority's own candidates", () => {
+  const plan = id => planStagedActionResolution({
+    id,
+    actorSystem: actorSystem(1),
+    action: definitionAction(targetedDefinition()),
+    source: {actorId: "actor-source"},
+    targeting: {
+      required: true,
+      refinementPolicy: {maxSelections: 1},
+      candidates: ["orc", "goblin"].map(name => ({id: name, target: target(name), actor: {id: `actor-${name}`},
+        disposition: "enemy", kind: "creature"}))
+    }
+  });
+  const answer = (waiting, value) => resumeStagedActionResolution({
+    state: waiting.state,
+    response: {resolutionId: waiting.state.id, requestId: `request:${waiting.state.id}:target-refinement`,
+      type: RESOLUTION_REQUEST_TYPES.TARGET_REFINEMENT, value}
+  });
+
+  const waiting = plan("resolution:refine");
+  assert.equal(waiting.state.pendingRequests[0].type, RESOLUTION_REQUEST_TYPES.TARGET_REFINEMENT);
+  // Overriding the authority's policy does not lift the one-target limit.
+  assert.equal(answer(plan("resolution:policy"), {targeting: {refinementPolicy: {}}}).ok, false);
+  // A target that was never offered is rejected.
+  assert.equal(answer(plan("resolution:ghost"), {decisions: [{operation: "select", targetId: "ghost"}]}).ok, false);
+  // A valid decision about an offered candidate resolves to exactly that selection.
+  const resumed = answer(waiting, {decisions: [{operation: "deselect", targetId: "goblin"}]});
+  assert.equal(resumed.ok, true, JSON.stringify(resumed.state.errors));
   assert.equal(resumed.state.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT);
   assert.deepEqual(resumed.state.results.actionResult.context.targets.map(entry => entry.id), ["orc"]);
 });

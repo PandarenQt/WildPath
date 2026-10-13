@@ -577,19 +577,13 @@ function createTargetingStage() {
         type: RESOLUTION_REQUEST_TYPES.TARGET_REFINEMENT
       });
       if ( accepted ) {
-        const value = targetResponseValue(accepted.response.value);
-        const nextTargeting = mergeTargetingInput(input.targeting, value);
-        input = {
-          ...input,
-          targets: value.targets ?? input.targets ?? [],
-          targeting: nextTargeting
-        };
-        state = updateResolutionState(state, {
-          targets: input.targets ?? [],
-          targetSet: value.targetSet ?? state.targetSet,
-          targetRefinement: value.targetRefinement ?? state.targetRefinement,
-          input
-        });
+        // The chooser contributes refinement decisions only. Candidates, targets, and policy remain the
+        // authority's own, so refineTargetSet rejects unknown ids, ineligible targets, and bad counts.
+        const value = accepted.response.value;
+        const decisions = normalizeArray(value?.decisions ?? value?.targeting?.decisions)
+          .map(decision => ({operation: decision?.operation ?? null, targetId: decision?.targetId ?? null}));
+        input = {...input, targeting: {...(input.targeting ?? {}), decisions}};
+        state = updateResolutionState(state, {input});
       }
 
       const targeting = input.targeting;
@@ -2240,30 +2234,6 @@ function hasTargetInputs({targeting, targets}) {
     || !!targeting?.candidates?.length
     || !!targeting?.targetSet?.candidates?.length
     || !!targeting?.targetSet;
-}
-
-function mergeTargetingInput(current, value) {
-  const merged = {
-    ...(current ?? {}),
-    ...(value.targeting ?? {})
-  };
-  if ( value.targets ) merged.targets = value.targets;
-  if ( value.candidates ) merged.candidates = value.candidates;
-  if ( value.targetSet ) merged.targetSet = value.targetSet;
-  if ( value.decisions ) merged.decisions = value.decisions;
-  return Object.keys(merged).length ? merged : null;
-}
-
-function targetResponseValue(value) {
-  if ( Array.isArray(value) ) return {targets: value};
-  return {
-    targets: value?.targets ?? null,
-    candidates: value?.candidates ?? null,
-    targetSet: value?.targetSet ?? null,
-    decisions: value?.decisions ?? value?.targeting?.decisions ?? null,
-    targetRefinement: value?.targetRefinement ?? value?.refinement ?? null,
-    targeting: value?.targeting ?? null
-  };
 }
 
 function hasRollTotal(roll) {
