@@ -1,0 +1,228 @@
+import {
+  MULTIPLAYER_AUTHORITY_CODES,
+  clonePlainData
+} from "../helpers/multiplayer-authority.mjs";
+import {
+  DISCLOSURE_TRANSPORTS,
+  selectDisclosureTransport,
+  type DisclosureTransport
+} from "../helpers/multiplayer-disclosure.mjs";
+import {validateEnvelope, type ResolutionEnvelope} from "./foundry-v14-user-query-transport.mjs";
+
+/** Context passed to a registered envelope handler. */
+export interface DeliveryContext {
+  readonly deliveredBy?: DisclosureTransport;
+  readonly attestedSenderUserId?: string | null;
+  readonly transport?: unknown;
+  readonly [key: string]: unknown;
+}
+
+type Handler = (envelope: ResolutionEnvelope, context: DeliveryContext) => unknown;
+
+interface PortResult {
+  readonly ok?: boolean;
+  readonly code?: string;
+  readonly reason?: string | null;
+  readonly [key: string]: unknown;
+}
+
+/** A broadcast or targeted port: anything with `register(handler)` and `send(envelope)`. */
+export interface TransportPort {
+  readonly userId?: string | null;
+  readonly namespace?: string;
+  register?(handler: (envelope: ResolutionEnvelope, context?: DeliveryContext) => unknown): PortResult;
+  send?(envelope: ResolutionEnvelope): Promise<PortResult | undefined> | PortResult | undefined;
+  currentUser?(): {readonly id?: string | null} | null;
+}
+
+/** Transport traffic seen by observers (QA evidence and the test hub); never the authority's state. */
+export interface TransportObserverEvent {
+  readonly direction: "sending" | "incoming" | "refused";
+  readonly transport: DisclosureTransport | null;
+  readonly envelope: ResolutionEnvelope;
+  readonly recipientUserId?: string | null;
+  readonly senderUserId?: string | null;
+  readonly attestedSenderUserId?: string | null;
+  readonly code?: string;
+  readonly reason?: string | null;
+}
+
+interface Logger {
+  warn?(...args: unknown[]): void;
+}
+
+/**
+ * A ResolutionTransportPort that applies the disclosure policy before any adapter sees an envelope.
+ *
+ *   coordinator (transport intent: envelope + classification)
+ *     -> selectDisclosureTransport (policy)
+ *     -> broadcast port | targeted port | local dispatch (adapters)
+ *
+ * The coordinators keep every authority, routing, and idempotency responsibility; this port only
+ * decides which delivery mechanism an envelope may use and fails closed when none is allowed.
+ * Envelopes addressed to the local user are dispatched locally because the Foundry custom-socket
+ * relay never echoes a message to its sender.
+ *
+ * `localDelivery` is "detached" in production (parity with fire-and-forget socket emission) and
+ * "await" in deterministic tests, where callers rely on the local handler finishing before `send`
+ * resolves.
+ */
+export function createDisclosureRoutedTransport({
+  id="disclosure-routed-transport",
+  userId=null,
+  broadcast=null,
+  targeted=null,
+  users=[],
+  localDelivery="detached",
+  logger=null
+}: {
+  id?: string;
+  userId?: string | null;
+  broadcast?: TransportPort | null;
+  targeted?: TransportPort | null;
+  users?: readonly {id?: unknown; userId?: unknown; isGM?: unknown}[]
+    | (() => readonly {id?: unknown; userId?: unknown; isGM?: unknown}[]);
+  localDelivery?: "detached" | "await";
+  logger?: Logger | null;
+}={}) {
+  const handlers = new Set<Handler>();
+  const observers = new Set<(event: TransportObserverEvent) => void>();
+  let registered = false;
+  let registration: {broadcast: PortResult; targeted: PortResult} | null = null;
+  const localUserId = stringOrNull(userId ?? broadcast?.userId ?? broadcast?.currentUser?.()?.id ?? null);
+
+  const api = {
+    id,
+    type: "disclosure-routed-transport",
+    userId: localUserId,
+    broadcast,
+    targeted,
+    register(nextHandler: unknown) {
+      const handler = typeof nextHandler === "function" ? nextHandler as Handler : null;
+      if ( !handler ) return {
+        ok: false,
+        code: MULTIPLAYER_AUTHORITY_CODES.INVALID_PAYLOAD,
+        reason: "Disclosure-routed transport requires a message handler."
+      };
+      handlers.add(handler);
+      if ( registered ) return {ok: true, code: MULTIPLAYER_AUTHORITY_CODES.OK, registered: false, handlerCount: handlers.size,
+        ports: registration};
+      const ports = {
+        broadcast: typeof broadcast?.register === "function"
+          ? broadcast.register((envelope, context={}) => dispatch(envelope, {...context, deliveredBy: DISCLOSURE_TRANSPORTS.BROADCAST}))
+          : {ok: false, code: MULTIPLAYER_AUTHORITY_CODES.TRANSPORT_UNAVAILABLE, reason: "No broadcast transport port is available."},
+        targeted: typeof targeted?.register === "function"
+          ? targeted.register((envelope, context={}) => dispatch(envelope, {...context, deliveredBy: DISCLOSURE_TRANSPORTS.TARGETED}))
+          : {ok: false, code: MULTIPLAYER_AUTHORITY_CODES.TRANSPORT_UNAVAILABLE, reason: "No targeted transport port is available."}
+      };
+      registered = ports.broadcast.ok !== false;
+      registration = ports;
+      if ( ports.targeted.ok === false ) logWarning(logger,
+        "Wild Path | Targeted transport registration failed; private envelopes will fail closed", ports.targeted);
+      return {
+        ok: registered,
+        code: registered ? MULTIPLAYER_AUTHORITY_CODES.OK : ports.broadcast.code,
+        reason: registered ? null : ports.broadcast.reason,
+        registered,
+        handlerCount: handlers.size,
+        ports
+      };
+    },
+    async send(envelope: unknown) {
+      const validation = validateEnvelope(envelope);
+      if ( !validation.ok ) return validation;
+      const data = validation.envelope;
+      const route = selectDisclosureTransport(data, {
+        localUserId,
+        users,
+        targetedAvailable: typeof targeted?.send === "function"
+      });
+      if ( !route.ok ) {
+        notifyObservers({direction: "refused", transport: null, envelope: data, code: route.code, reason: route.reason});
+        return {...route, envelope: data};
+      }
+      notifyObservers({direction: "sending", transport: route.transport, envelope: data, recipientUserId: route.recipientUserId});
+      let sent: PortResult | undefined;
+      try {
+        if ( route.transport === DISCLOSURE_TRANSPORTS.LOCAL ) sent = await deliverLocally(data);
+        else if ( route.transport === DISCLOSURE_TRANSPORTS.TARGETED ) sent = await targeted?.send?.(data);
+        else sent = await broadcast?.send?.(data);
+      } catch (error) {
+        sent = {ok: false, code: MULTIPLAYER_AUTHORITY_CODES.TRANSPORT_SEND_FAILED,
+          reason: error instanceof Error ? error.message : String(error)};
+      }
+      return {
+        ...(sent ?? {ok: true, code: MULTIPLAYER_AUTHORITY_CODES.OK}),
+        envelope: data,
+        transport: route.transport,
+        classification: route.classification,
+        recipientUserId: route.recipientUserId
+      };
+    },
+    /** Observe traffic for QA/evidence without touching sockets. Returns an unsubscribe function. */
+    observe(listener: unknown) {
+      if ( typeof listener !== "function" ) return () => false;
+      const observer = listener as (event: TransportObserverEvent) => void;
+      observers.add(observer);
+      return () => observers.delete(observer);
+    },
+    /** The broadcast namespace, for callers that identify the runtime transport by it. */
+    get namespace() {
+      return broadcast?.namespace ?? null;
+    },
+    currentUser() {
+      return broadcast?.currentUser?.() ?? (localUserId ? {id: localUserId} : null);
+    },
+    users() {
+      return typeof users === "function" ? users() : users;
+    },
+    get registered() {
+      return registered;
+    },
+    get handlerCount() {
+      return handlers.size;
+    }
+  };
+  return api;
+
+  async function dispatch(envelope: ResolutionEnvelope, context: DeliveryContext={}) {
+    notifyObservers({direction: "incoming", transport: context.deliveredBy ?? null, envelope,
+      senderUserId: envelope.senderUserId ?? null, attestedSenderUserId: context.attestedSenderUserId ?? null});
+    const results: unknown[] = [];
+    for ( const handler of handlers ) {
+      results.push(await handler(envelope, {...context, transport: api}));
+    }
+    return results.length === 1 ? results[0] : {ok: true, code: MULTIPLAYER_AUTHORITY_CODES.OK, results};
+  }
+
+  async function deliverLocally(envelope: ResolutionEnvelope): Promise<PortResult> {
+    const delivered = clonePlainData(envelope, "envelope") as ResolutionEnvelope;
+    const context = {deliveredBy: DISCLOSURE_TRANSPORTS.LOCAL, attestedSenderUserId: localUserId};
+    if ( localDelivery === "await" ) {
+      const result = await dispatch(delivered, context);
+      return {ok: true, code: MULTIPLAYER_AUTHORITY_CODES.OK, local: true, result};
+    }
+    Promise.resolve()
+      .then(() => dispatch(delivered, context))
+      .catch(error => logWarning(logger, "Wild Path | Local envelope delivery failed", error));
+    return {ok: true, code: MULTIPLAYER_AUTHORITY_CODES.OK, local: true};
+  }
+
+  function notifyObservers(event: TransportObserverEvent): void {
+    for ( const observer of observers ) {
+      try { observer(event); }
+      catch (error) { logWarning(logger, "Wild Path | Transport observer failed", error); }
+    }
+  }
+}
+
+function logWarning(logger: Logger | null, ...args: unknown[]): void {
+  const target: Logger = logger ?? globalThis.console;
+  if ( typeof target?.warn === "function" ) target.warn(...args);
+}
+
+function stringOrNull(value: unknown): string | null {
+  if ( value == null ) return null;
+  const string = String(value).trim();
+  return string ? string : null;
+}
