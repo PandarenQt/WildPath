@@ -284,6 +284,40 @@ test("ActionPipeline target refinement accepts only decisions about the authorit
   assert.deepEqual(resumed.state.results.actionResult.context.targets.map(entry => entry.id), ["orc"]);
 });
 
+test("a refinement prompt starts from the authority's default selection, so keeping one of three resolves to it", async () => {
+  const {createFoundryV14PromptAdapter} = await import("../module/adapters/foundry-v14-prompt-adapter.mjs");
+  const waiting = planStagedActionResolution({
+    id: "resolution:keep-one",
+    actorSystem: actorSystem(1),
+    action: definitionAction(targetedDefinition()),
+    source: {actorId: "actor-source"},
+    targeting: {
+      required: true,
+      refinementPolicy: {maxSelections: 1},
+      candidates: ["orc", "goblin", "kobold"].map(name => ({id: name, target: target(name), actor: {id: `actor-${name}`},
+        disposition: "enemy", kind: "creature"}))
+    }
+  });
+  const request = waiting.state.pendingRequests[0];
+  assert.deepEqual(request.payload.candidates.map(candidate => candidate.selected), [true, true, true],
+    "the default selection (all eligible) is shown");
+  let rendered = "";
+  const prompt = createFoundryV14PromptAdapter({DialogV2: {input: async ({content}) => {
+    rendered = content;
+    return {targetIds: ["goblin"]}; // the Player unticks Orc and Kobold
+  }}});
+  const answer = await prompt.request(request, {isGM: true});
+  assert.equal((rendered.match(/ checked/g) ?? []).length, 3);
+  assert.deepEqual(answer.value.decisions, [
+    {operation: "deselect", targetId: "orc"},
+    {operation: "deselect", targetId: "kobold"}
+  ]);
+  const resumed = resumeStagedActionResolution({state: waiting.state, response: {resolutionId: waiting.state.id,
+    requestId: request.id, type: RESOLUTION_REQUEST_TYPES.TARGET_REFINEMENT, value: answer.value}});
+  assert.equal(resumed.ok, true, JSON.stringify(resumed.state.errors));
+  assert.deepEqual(resumed.state.results.actionResult.context.targets.map(entry => entry.id), ["goblin"]);
+});
+
 test("ActionPipeline requests an attack RollResult and resumes without rerunning prior stages", () => {
   const waiting = planStagedActionResolution({
     id: "resolution:roll",

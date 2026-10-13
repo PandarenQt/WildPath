@@ -589,6 +589,7 @@ function createTargetingStage() {
       const targeting = input.targeting;
       if ( !accepted && needsTargetInput({targeting, targets: input.targets ?? []}) ) {
         const refinement = needsTargetRefinement(targeting);
+        const offered = refinement ? targetingWithDefaultSelection(state, input, targeting) : targeting;
         return waitResolutionStage({
           state,
           request: createResolutionRequest({
@@ -599,10 +600,10 @@ function createTargetingStage() {
             expectedResponseType: refinement ? "target-refinement" : "target-selection",
             payload: {
               actionDefinitionId: state.actionDefinition?.id ?? null,
-              targeting,
+              targeting: offered,
               targets: input.targets ?? [],
-              candidates: targeting?.candidates ?? [],
-              targetSet: targeting?.targetSet ?? null
+              candidates: offered?.candidates ?? [],
+              targetSet: offered?.targetSet ?? null
             },
             validation: {
               required: targeting?.required === true,
@@ -2215,6 +2216,30 @@ function needsTargetInput({targeting, targets}) {
   if ( !targeting?.required && !needsTargetRefinement(targeting) ) return false;
   if ( needsTargetRefinement(targeting) ) return true;
   return !hasTargetInputs({targeting, targets});
+}
+
+/**
+ * A refinement prompt shows the authority's default selection (all eligible, by default), so the chooser's
+ * changes become real select/deselect decisions. Without it, ticking one of three counted as all three.
+ */
+function targetingWithDefaultSelection(state, input, targeting) {
+  const preview = resolveActionTargets({
+    source: state.source ?? input.source ?? null,
+    targetSet: targeting.targetSet ?? null,
+    candidates: targeting.candidates ?? [],
+    targets: targeting.targets ?? [],
+    eligibilityPolicy: targeting.eligibilityPolicy ?? {},
+    refinementPolicy: targeting.refinementPolicy ?? {},
+    context: {...(targeting.context ?? {})},
+    metadata: targeting.metadata ?? {}
+  });
+  const selected = new Set((preview.selectionRequest?.currentlySelected ?? []).map(String));
+  const mark = candidate => ({...candidate, selected: selected.has(String(candidate.id ?? candidate.targetId))});
+  return {
+    ...targeting,
+    ...(targeting.candidates ? {candidates: targeting.candidates.map(mark)} : {}),
+    ...(targeting.targetSet ? {targetSet: {...targeting.targetSet, candidates: (targeting.targetSet.candidates ?? []).map(mark)}} : {})
+  };
 }
 
 function needsTargetRefinement(targeting) {
