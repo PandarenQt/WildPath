@@ -10,6 +10,7 @@ import {
   isPlainSerializableData,
   projectResolutionResultForDisclosure,
   projectRollRequestForChooser,
+  pushBounded,
   sanitizeActionIntentPayload,
   sanitizePendingRequestForTransport,
   sanitizeResolutionErrorDataForTransport,
@@ -680,6 +681,34 @@ test("self-addressed envelopes are delivered locally: Foundry never echoes a cus
   await awaited.send(envelope({senderUserId: "u", recipientUserId: "u"}));
   awaitedOrder.push("returned");
   assert.deepEqual(awaitedOrder, ["handled", "returned"]);
+});
+
+test("finished resolutions and their records are released once they fall out of the bounded result cache", async () => {
+  const hub = createTestResolutionTransportHub({users: users()});
+  const gmTransport = hub.createEndpoint({userId: "gm-a"});
+  hub.createEndpoint({userId: "player-a"}).register(() => ({ok: true}));
+  const fixtures = {};
+  const gm = createMultiplayerActionCoordinator({userId: "gm-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
+    transport: gmTransport, duplicateCacheLimit: 2, actionIntentResolver: ({intent}) => fixtureResolver(fixtures[intent.resolutionId])(),
+    rollProviders: [createTestRollProvider({result: {natural: 18, total: 22}})]});
+  gm.register();
+  for ( const id of ["resolution:bounded-1", "resolution:bounded-2", "resolution:bounded-3"] ) {
+    const fixture = fixtures[id] = attackFixture();
+    const declared = await gm.declareActionIntent({intentId: `intent:${id}`, resolutionId: id, actorRef: fixture.actor.uuid,
+      actionRef: fixture.action.uuid, targetRefs: [fixture.target.actorRef]});
+    assert.equal(declared.ok, true, JSON.stringify(declared));
+    assert.equal(gm.getRecord(id)?.state.status, RESOLUTION_STATE_STATUS.COMPLETED);
+  }
+  assert.equal(gm.records.size, 2);
+  assert.equal(gm.getRecord("resolution:bounded-1"), null);
+  assert.equal(gm.getResult("resolution:bounded-1"), null);
+  assert.equal(gm.getResult("resolution:bounded-3")?.status, RESOLUTION_STATE_STATUS.COMPLETED);
+});
+
+test("bounded diagnostic logs keep only the newest entries", () => {
+  const log = [];
+  for ( let index = 0; index < 5; index++ ) pushBounded(log, index, 2);
+  assert.deepEqual(log, [3, 4]);
 });
 
 /* -------------------------------------------- */

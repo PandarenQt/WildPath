@@ -593,7 +593,11 @@ export function commitAuthorityForUser({userId=null, users=[], activeGMUserId=nu
 
 /* -------------------------------------------- */
 
-export function createBoundedIdCache({limit=200}={}) {
+/**
+ * Insertion-ordered cache that keeps the newest `limit` entries. `onEvict(key, value)` lets an owner
+ * release state tied to an evicted entry (for example a finished resolution's record).
+ */
+export function createBoundedIdCache({limit=200, onEvict=null}={}) {
   const entries = new Map();
   const max = Math.max(finiteInteger(limit) ?? 200, 1);
   return {
@@ -604,7 +608,11 @@ export function createBoundedIdCache({limit=200}={}) {
       const key = String(id);
       if ( entries.has(key) ) entries.delete(key);
       entries.set(key, value);
-      while ( entries.size > max ) entries.delete(entries.keys().next().value);
+      while ( entries.size > max ) {
+        const [oldest, evicted] = entries.entries().next().value;
+        entries.delete(oldest);
+        onEvict?.(oldest, evicted);
+      }
       return value;
     },
     get(id) {
@@ -614,6 +622,14 @@ export function createBoundedIdCache({limit=200}={}) {
       return entries.size;
     }
   };
+}
+
+/** Append to a diagnostic log, dropping the oldest entries beyond `limit`. */
+export function pushBounded(list, entry, limit=200) {
+  list.push(entry);
+  const max = Math.max(finiteInteger(limit) ?? 200, 1);
+  if ( list.length > max ) list.splice(0, list.length - max);
+  return entry;
 }
 
 /* -------------------------------------------- */

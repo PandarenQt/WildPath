@@ -50,7 +50,7 @@ import {createFoundryV14ReactionPauseAdapter} from "../module/adapters/foundry-v
 import {prepareFoundryReactionCheckpoints} from "../module/adapters/foundry-v14-reaction-checkpoint-adapter.mjs";
 
 function movementReactionFixture({count=1, cancel=false, match=true, grid, size="medium", kind=null, largeHex=false,
-  foundrySystems=false, reactorActors=null, moverActor=null}={}) {
+  foundrySystems=false, reactorActors=null, moverActor=null, duplicateCacheLimit=undefined}={}) {
   const reactors = reactorActors ?? Array.from({length: count}, (_, i) => fakeActor(`reactor-${i}`));
   if ( foundrySystems ) reactors.forEach(withFoundryActorSystem);
   const action = {schemaVersion: 1, id: "action:test-event", label: "Test event action",
@@ -73,7 +73,7 @@ function movementReactionFixture({count=1, cancel=false, match=true, grid, size=
     createActionReactionChildState({...context, services: {reactions: {actorSystemsByActor}}}),
     {results: {parentDirective: {type: "cancel-parent"}}});
   const fixture = largeHex ? footprintTranslationFixture({reactionServices: () => services})
-    : createMovementRuntimeFixture({...(grid ? {grid} : {}),
+    : createMovementRuntimeFixture({...(grid ? {grid} : {}), duplicateCacheLimit,
       actor: moverActor ?? fakeActor("mover", {size}), reactionServices: () => services});
   let resumeCount = 0;
   let stopCount = 0;
@@ -573,6 +573,21 @@ test("movement reaction waits for failed prefix payment and opens once after ver
   await finishMovementReactionRoute(fixture, root);
 });
 
+test("committed movement approvals are released once they fall out of the bounded cache", async () => {
+  const fixture = movementReactionFixture({count: 0, duplicateCacheLimit: 1});
+  for ( const [id, offset] of [["bounded-a", {i: 1, j: 0}], ["bounded-b", {i: 2, j: 0}]] ) {
+    const operation = checkpointOperation(fixture.token, {id, passedCount: 1, offsets: [offset]});
+    await approveCheckpoint(fixture, operation);
+    fixture.token.setOffset(offset);
+    fixture.token.movement = {...operation, state: "completed", user: PLAYER};
+    await onFoundryV14MoveToken(fixture.token, operation, {}, PLAYER, {game: fixture.playerGame});
+    assert.equal((await onFoundryV14MoveToken(fixture.token, operation, {}, PLAYER, {game: fixture.gmGame})).ok, true);
+  }
+  assert.deepEqual([...fixture.gmAuthority.approvedMovements.values()].map(record => record.movementId), ["bounded-b"],
+    "the older committed root is evicted with the bounded cache");
+  assert.equal(fixture.actor.system.resources.movement.value, 20, "both movements were paid exactly once");
+});
+
 test("movement with an empty reaction provider retains the uninterrupted no-trigger path", async () => {
   const fixture = movementReactionFixture({count: 0});
   const operation = checkpointOperation(fixture.token, {passedCount: 2, offsets: [{i: 1, j: 0}, {i: 2, j: 0}]});
@@ -889,7 +904,8 @@ function createMovementRuntimeFixture({
   measurementMode=MOVEMENT_MEASUREMENT_MODES.DISTANCE,
   persistenceOptions={},
   onAutomationEvent=null,
-  reactionServices=null
+  reactionServices=null,
+  duplicateCacheLimit=undefined
 }={}) {
   const scene = fakeScene(grid);
   const token = fakeTokenDocument({actor, scene, ...tokenOptions});
@@ -913,7 +929,8 @@ function createMovementRuntimeFixture({
     activeGMUserId: () => gmGame.users.activeGM?.id ?? null,
     persistencePort: persistence,
     measurementMode,
-    approvalTimeoutMs: 50
+    approvalTimeoutMs: 50,
+    ...(duplicateCacheLimit ? {duplicateCacheLimit} : {})
   };
   const semanticEvents = {player: [], gm: []};
   const pauseAdapter = createFoundryV14ReactionPauseAdapter();

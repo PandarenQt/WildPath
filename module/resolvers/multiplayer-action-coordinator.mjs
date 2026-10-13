@@ -11,6 +11,7 @@ import {
   clonePlainData,
   commitAuthorityForUser,
   createBoundedIdCache,
+  pushBounded,
   createResolutionSocketEnvelope,
   normalizeAuthorityUsers,
   projectResolutionResultForDisclosure,
@@ -57,12 +58,14 @@ export function createMultiplayerActionCoordinator({
   notify=null
 }={}) {
   const localUserId = stringOrNull(userId ?? transport?.userId);
+  // Unfinished resolutions stay in `records`; a finished one is kept until it falls out of the bounded
+  // result cache, which then releases its record (and the live Documents the record holds).
   const records = new Map();
-  const reservedResolutionIds = new Set();
-  const completedResults = new Map();
+  const reservedResolutionIds = createBoundedIdCache({limit: duplicateCacheLimit});
+  const completedResults = createBoundedIdCache({limit: duplicateCacheLimit, onEvict: id => records.delete(id)});
   const notifications = [];
   const errors = [];
-  const initiatedAuthorities = new Map();
+  const initiatedAuthorities = createBoundedIdCache({limit: duplicateCacheLimit});
   const seenMessages = createBoundedIdCache({limit: duplicateCacheLimit});
   const seenIntents = createBoundedIdCache({limit: duplicateCacheLimit});
 
@@ -134,7 +137,7 @@ export function createMultiplayerActionCoordinator({
       });
       const sent = await sendEnvelope(envelope);
       if ( !sent.ok ) return sent;
-      initiatedAuthorities.set(resolutionId, authority.userId);
+      initiatedAuthorities.add(resolutionId, authority.userId);
       return {
         ok: true,
         code: MULTIPLAYER_AUTHORITY_CODES.OK,
@@ -634,14 +637,14 @@ export function createMultiplayerActionCoordinator({
     // afterwards; the local store keeps the richest projection it has been given.
     const stored = completedResults.get(envelope.resolutionId);
     if ( !(stored && isPrivateDisclosure(stored.disclosure) && !isPrivateDisclosure(result?.disclosure)) ) {
-      completedResults.set(envelope.resolutionId, result);
+      completedResults.add(envelope.resolutionId, result);
     }
     const notification = {
       type: MULTIPLAYER_MESSAGE_TYPES.RESOLUTION_RESULT,
       envelope,
       result
     };
-    notifications.push(notification);
+    pushBounded(notifications, notification, duplicateCacheLimit);
     notify?.(notification);
     return {
       ok: true,
@@ -663,7 +666,7 @@ export function createMultiplayerActionCoordinator({
       envelope,
       error
     };
-    errors.push(notification);
+    pushBounded(errors, notification, duplicateCacheLimit);
     notify?.(notification);
     return {
       ok: false,
@@ -699,7 +702,7 @@ export function createMultiplayerActionCoordinator({
     // transport; every connected client gets the allow-listed public projection on the bus.
     const participant = projectResolutionResultForDisclosure(sanitized, DISCLOSURE_CLASSIFICATIONS.PARTICIPANT_PRIVATE);
     const publicResult = projectResolutionResultForDisclosure(sanitized, DISCLOSURE_CLASSIFICATIONS.BROADCAST_SAFE);
-    completedResults.set(record.resolutionId, participant);
+    completedResults.add(record.resolutionId, participant);
     if ( record.onComplete ) await record.onComplete({state: record.state, result: participant});
     let participantSent = null;
     if ( record.initiatorUserId && record.initiatorUserId !== localUserId ) {
@@ -773,10 +776,10 @@ export function createMultiplayerActionCoordinator({
       requestId,
       data: clonePlainData(data, "resolutionError.data") ?? {}
     };
-    errors.push({
+    pushBounded(errors, {
       type: MULTIPLAYER_MESSAGE_TYPES.RESOLUTION_ERROR,
       error: payload
-    });
+    }, duplicateCacheLimit);
     const envelope = createResolutionSocketEnvelope({
       messageType: MULTIPLAYER_MESSAGE_TYPES.RESOLUTION_ERROR,
       senderUserId: localUserId,

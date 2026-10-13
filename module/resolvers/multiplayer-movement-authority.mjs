@@ -3,6 +3,7 @@ import {
   MULTIPLAYER_MESSAGE_TYPES,
   clonePlainData,
   createBoundedIdCache,
+  pushBounded,
   createResolutionSocketEnvelope,
   normalizeAuthorityUsers,
   recipientMatchesEnvelope,
@@ -64,10 +65,14 @@ export function createMultiplayerMovementAuthority({
   const localUserId = stringOrNull(userId ?? transport?.userId ?? game?.user?.id ?? game?.userId);
   const approvedMovements = new Map();
   const operationRoots = new Map();
-  const committedMovements = createBoundedIdCache({limit: duplicateCacheLimit});
+  // A committed root keeps its approval record until it falls out of this bounded cache.
+  const committedMovements = createBoundedIdCache({limit: duplicateCacheLimit, onEvict: key => {
+    for ( const operation of approvedMovements.get(key)?.operations ?? [] ) operationRoots.delete(movementKey(operation.intent));
+    approvedMovements.delete(key);
+  }});
   const inFlightMovementCommits = new Map();
   const pendingApprovals = new Map();
-  const initiatedAuthorities = new Map();
+  const initiatedAuthorities = createBoundedIdCache({limit: duplicateCacheLimit});
   const seenMessages = createBoundedIdCache({limit: duplicateCacheLimit});
   const notifications = [];
   const errors = [];
@@ -184,7 +189,7 @@ export function createMultiplayerMovementAuthority({
     });
     if ( !authority.ok ) return failAndNotify(authority);
 
-    initiatedAuthorities.set(sanitized.resolutionId, authority.userId);
+    initiatedAuthorities.add(sanitized.resolutionId, authority.userId);
     if ( authority.userId === localUserId ) {
       const approval = await authorizeAndRecord(sanitized, {
         initiatorUserId: sanitized.sourceUserId ?? localUserId,
@@ -472,9 +477,9 @@ export function createMultiplayerMovementAuthority({
       envelope,
       result
     };
-    notifications.push(notification);
+    pushBounded(notifications, notification, duplicateCacheLimit);
     if ( result?.ok === false ) {
-      errors.push(notification);
+      pushBounded(errors, notification, duplicateCacheLimit);
       notify?.(notification);
     }
     return {
@@ -799,7 +804,7 @@ export function createMultiplayerMovementAuthority({
         const deliveryError = failure(FOUNDRY_MOVEMENT_CODES.MOVEMENT_EVENT_DELIVERY_FAILED,
           error?.message ?? String(error), {movementId: completion.movementId, eventId: event.id});
         record.eventDeliveryErrors.push(deliveryError);
-        errors.push(deliveryError);
+        pushBounded(errors, deliveryError, duplicateCacheLimit);
         logger?.error?.("Wild Path | Movement event consumer failed", deliveryError);
       }
     }
@@ -1192,7 +1197,7 @@ export function createMultiplayerMovementAuthority({
 
   function failAndNotify(result) {
     const failureResult = clonePlainData(result, "movementFailure");
-    errors.push({type: "movementFailure", error: failureResult});
+    pushBounded(errors, {type: "movementFailure", error: failureResult}, duplicateCacheLimit);
     notify?.({type: "movementFailure", error: failureResult});
     return failureResult;
   }
@@ -1208,7 +1213,7 @@ export function createMultiplayerMovementAuthority({
       },
       approval
     };
-    errors.push(notification);
+    pushBounded(errors, notification, duplicateCacheLimit);
     notify?.(notification);
   }
 }
