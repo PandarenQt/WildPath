@@ -53,9 +53,12 @@ posted one card authored by Player1 with the `1d20 + 4` roll attached and render
 posted one card whispered to the GM with no rolls, visible to its author; both proofs passed on both
 clients. That run found that the participant result dropped the player's own `gm-only` attack roll
 (the player's proof failed); the participant now keeps `gm-only` rolls whose request names the source
-controller as roller. Open: the `WILDPATH.CHAT.Outcome.*` English strings (maintainer, AGENTS §22;
-cards show the keys until then), the `wildpath.action-results` Quench batch, and the representative
-live gate.
+controller as roller. The card layout (Action icon and name header, one row per target with an outcome
+badge, hidden Tokens unnamed) takes its structure from Crucible's action card; no Crucible markup or
+CSS is used (its licence grants no reuse). The `WILDPATH.CHAT.Outcome.*` strings are **placeholders**
+taken from pf2e 8.5.1 (`PF2E.Check.Result.Degree.*`, the same words as Crucible's result types), at
+the maintainer's request, until WildPath's own copy is written (AGENTS §22). Open: the
+`wildpath.action-results` Quench batch and the representative live gate.
 
 **Authority and disclosure hardening (M0) — CLOSED on 2026-10-13.** A review found that the
 authority trusted more than it could verify: any player could act through an Actor or Item they did

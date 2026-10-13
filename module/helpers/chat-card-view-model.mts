@@ -42,10 +42,16 @@ export const CHAT_OUTCOME_KEYS = Object.freeze({
   saveFailure: "WILDPATH.CHAT.Outcome.SaveFailure"
 });
 
+/** A lang key plus a tone: whether the roll behind the outcome succeeded. */
+export interface CardOutcome {
+  readonly label: string;
+  readonly tone: "success" | "failure";
+}
+
 export interface ResolutionCardTarget {
   readonly name: string | null;
-  readonly attack: string | null;
-  readonly save: string | null;
+  readonly attack: CardOutcome | null;
+  readonly save: CardOutcome | null;
 }
 
 export interface ResolutionCardView {
@@ -66,8 +72,8 @@ export function createResolutionCardViewModel(result: PublicResolutionResult): R
       const saveEntry = save.find(entry => sameTarget(entry.target, target));
       return {
         name: textOrNull(target.name),
-        attack: attackEntry ? attackOutcomeKey(attackEntry) : null,
-        save: saveEntry ? (saveEntry.success ? CHAT_OUTCOME_KEYS.saveSuccess : CHAT_OUTCOME_KEYS.saveFailure) : null
+        attack: attackEntry ? attackOutcome(attackEntry) : null,
+        save: saveEntry ? saveOutcome(saveEntry) : null
       };
     }),
     // shortcut: rolls without Foundry Roll JSON (manual/physical) are not shown; add a total row with the dice policy work.
@@ -97,9 +103,15 @@ export function chatVisibilityForMode(mode: unknown,
   }
 }
 
-function attackOutcomeKey(entry: ContestEntry): string {
-  if ( !entry.hit ) return CHAT_OUTCOME_KEYS.miss;
-  return entry.critical ? CHAT_OUTCOME_KEYS.critical : CHAT_OUTCOME_KEYS.hit;
+function attackOutcome(entry: ContestEntry): CardOutcome {
+  if ( !entry.hit ) return {label: CHAT_OUTCOME_KEYS.miss, tone: "failure"};
+  return {label: entry.critical ? CHAT_OUTCOME_KEYS.critical : CHAT_OUTCOME_KEYS.hit, tone: "success"};
+}
+
+function saveOutcome(entry: ContestEntry): CardOutcome {
+  return entry.success
+    ? {label: CHAT_OUTCOME_KEYS.saveSuccess, tone: "success"}
+    : {label: CHAT_OUTCOME_KEYS.saveFailure, tone: "failure"};
 }
 
 function sameTarget(left: PublicRef | null | undefined, right: PublicRef): boolean {

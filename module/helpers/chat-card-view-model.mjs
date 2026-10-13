@@ -21,8 +21,8 @@ export function createResolutionCardViewModel(result) {
             const saveEntry = save.find(entry => sameTarget(entry.target, target));
             return {
                 name: textOrNull(target.name),
-                attack: attackEntry ? attackOutcomeKey(attackEntry) : null,
-                save: saveEntry ? (saveEntry.success ? CHAT_OUTCOME_KEYS.saveSuccess : CHAT_OUTCOME_KEYS.saveFailure) : null
+                attack: attackEntry ? attackOutcome(attackEntry) : null,
+                save: saveEntry ? saveOutcome(saveEntry) : null
             };
         }),
         // shortcut: rolls without Foundry Roll JSON (manual/physical) are not shown; add a total row with the dice policy work.
@@ -42,10 +42,15 @@ export function chatVisibilityForMode(mode, { initiatorUserId = null, gmUserIds 
         default: return { whisper: [], blind: false };
     }
 }
-function attackOutcomeKey(entry) {
+function attackOutcome(entry) {
     if (!entry.hit)
-        return CHAT_OUTCOME_KEYS.miss;
-    return entry.critical ? CHAT_OUTCOME_KEYS.critical : CHAT_OUTCOME_KEYS.hit;
+        return { label: CHAT_OUTCOME_KEYS.miss, tone: "failure" };
+    return { label: entry.critical ? CHAT_OUTCOME_KEYS.critical : CHAT_OUTCOME_KEYS.hit, tone: "success" };
+}
+function saveOutcome(entry) {
+    return entry.success
+        ? { label: CHAT_OUTCOME_KEYS.saveSuccess, tone: "success" }
+        : { label: CHAT_OUTCOME_KEYS.saveFailure, tone: "failure" };
 }
 function sameTarget(left, right) {
     if (!left)

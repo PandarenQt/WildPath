@@ -48,8 +48,9 @@ test("the card view model reads only names, outcomes and public Roll JSON from t
     resolutionId: "resolution:card",
     actionName: "Strike",
     targets: [
-      {name: "Goblin", attack: CHAT_OUTCOME_KEYS.critical, save: null},
-      {name: "Orc", attack: CHAT_OUTCOME_KEYS.miss, save: CHAT_OUTCOME_KEYS.saveFailure}
+      {name: "Goblin", attack: {label: CHAT_OUTCOME_KEYS.critical, tone: "success"}, save: null},
+      {name: "Orc", attack: {label: CHAT_OUTCOME_KEYS.miss, tone: "failure"},
+        save: {label: CHAT_OUTCOME_KEYS.saveFailure, tone: "failure"}}
     ],
     rolls: [foundryRoll]
   });
@@ -90,7 +91,7 @@ test("the chat card adapter posts one public card authored by the initiator, wit
   const foundry = fakeFoundry();
   const publish = createFoundryV14ChatCardAdapter(foundry);
   const posted = await publish({resolutionId: "resolution:card", initiatorUserId: "player-a", messageMode: "public",
-    actor: {id: "hero", name: "Hero"}, action: {id: "strike"}, result: publicResult()});
+    actor: {id: "hero", name: "Hero"}, action: {id: "strike", img: "icons/strike.webp"}, result: publicResult()});
   assert.equal(posted.posted, true);
   assert.equal(foundry.created.length, 1);
   const [message] = foundry.created;
@@ -103,6 +104,7 @@ test("the chat card adapter posts one public card authored by the initiator, wit
   const rendered = JSON.parse(message.content);
   assert.equal(rendered.path, RESOLUTION_CARD_TEMPLATE);
   assert.equal(rendered.data.rollHtml, "<roll total=\"22\">");
+  assert.equal(rendered.data.actionImg, "icons/strike.webp");
   assert.equal(message.content.includes(SECRET), false);
 });
 

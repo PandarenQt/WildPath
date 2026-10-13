@@ -14,7 +14,8 @@ export function createFoundryV14ChatCardAdapter({ ChatMessage = null, Roll = nul
         const view = createResolutionCardViewModel(result);
         const rolls = view.rolls.map(data => foundry.Roll.fromData(data));
         const rollHtml = (await Promise.all(rolls.map(roll => roll.render()))).join("");
-        const content = await foundry.renderTemplate(RESOLUTION_CARD_TEMPLATE, { ...view, rollHtml });
+        const actionImg = typeof action.img === "string" ? action.img : null;
+        const content = await foundry.renderTemplate(RESOLUTION_CARD_TEMPLATE, { ...view, actionImg, rollHtml });
         const gmUserIds = [...(foundry.game?.users ?? [])].flatMap(user => (user.isGM && user.id ? [user.id] : []));
         const visibility = chatVisibilityForMode(messageMode, { initiatorUserId, gmUserIds });
         const message = await foundry.ChatMessage.create({

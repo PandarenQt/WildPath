@@ -1,13 +1,20 @@
 <div class="wildpath chat-card resolution-card" data-resolution-id="{{resolutionId}}">
-  {{#if actionName}}<h3 class="card-title">{{actionName}}</h3>{{/if}}
+  {{#if actionName}}
+  <header class="card-header">
+    {{#if actionImg}}<img class="card-icon" src="{{actionImg}}" alt="">{{/if}}
+    <h4 class="card-title">{{actionName}}</h4>
+  </header>
+  {{/if}}
   {{{rollHtml}}}
   {{#if targets.length}}
   <ul class="card-targets">
     {{#each targets}}
     <li class="card-target">
-      {{#if name}}<span class="target-name">{{name}}</span>{{/if}}
-      {{#if attack}}<span class="target-outcome">{{localize attack}}</span>{{/if}}
-      {{#if save}}<span class="target-outcome">{{localize save}}</span>{{/if}}
+      <span class="target-name">{{name}}</span>
+      <span class="target-outcomes">
+        {{#if attack}}<span class="outcome {{attack.tone}}">{{localize attack.label}}</span>{{/if}}
+        {{#if save}}<span class="outcome {{save.tone}}">{{localize save.label}}</span>{{/if}}
+      </span>
     </li>
     {{/each}}
   </ul>

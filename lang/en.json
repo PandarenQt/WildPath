@@ -35,6 +35,15 @@
       "Status": "Status",
       "Proficiency": "Proficiency"
     },
+    "CHAT": {
+      "Outcome": {
+        "Hit": "Hit",
+        "Critical": "Critical Hit",
+        "Miss": "Miss",
+        "SaveSuccess": "Success",
+        "SaveFailure": "Failure"
+      }
+    },
     "CONDITIONS": {
       "Prone": "Prone",
       "Blinded": "Blinded",
