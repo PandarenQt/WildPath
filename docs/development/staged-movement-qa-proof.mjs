@@ -1,5 +1,6 @@
 // Development-only assertions shared by the live helper and its regression tests.
 import {fieldKey} from "../../module/helpers/grid-footprints.mjs";
+import {PRIVATE_MESSAGE_TYPES} from "../../module/helpers/multiplayer-disclosure.mjs";
 
 const check = (value, reason) => {if (!value) throw new Error(reason);};
 const clone = value => value == null ? null : JSON.parse(JSON.stringify(value));
@@ -124,9 +125,6 @@ export function verifyMovementQA({state,prepared,after,pending,children=[]}) {
  */
 export const STAGED_MOVEMENT_EVIDENCE_SCHEMA = 2;
 export const STAGED_MOVEMENT_EVIDENCE_TYPE = "staged-movement-level5";
-/** Message types whose contents must never appear on the broadcast bus (mirrors the disclosure policy). */
-export const PRIVATE_TRANSPORT_MESSAGE_TYPES = Object.freeze(["PENDING_REQUEST","REQUEST_RESPONSE","RESOLUTION_CANCEL",
-  "RESOLUTION_ERROR","MOVEMENT_APPROVAL","MOVEMENT_RESULT","MOVEMENT_CONTINUATION"]);
 const TRANSPORT_ENTRY_KEYS = ["direction","transport","messageType","messageId","senderUserId","recipientUserId",
   "recipientPolicy","disclosure","resolutionId","requestId"];
 
@@ -265,7 +263,7 @@ function verifyTransportEvidence({role, label, evidence}) {
   check(transport && typeof transport === "object" && Array.isArray(transport.broadcastMessageTypes)
     && Array.isArray(transport.targeted) && Array.isArray(transport.local),
     "Evidence must include the transport summary captured for this resolution (transport observer).");
-  const leaked = transport.broadcastMessageTypes.filter(type => PRIVATE_TRANSPORT_MESSAGE_TYPES.includes(type));
+  const leaked = transport.broadcastMessageTypes.filter(type => PRIVATE_MESSAGE_TYPES.includes(type));
   check(!leaked.length,`Private message types crossed the broadcast bus: ${leaked.join(", ")}.`);
   check((transport.broadcast ?? []).every(entry => entry.disclosure === "BROADCAST_SAFE"),
     "Every envelope on the broadcast bus must be classified BROADCAST_SAFE.");

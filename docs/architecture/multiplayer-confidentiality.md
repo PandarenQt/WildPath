@@ -142,6 +142,9 @@ definition, modifiers, expectations, roll mode, visibility and stable source/tar
 receives `dc`, `data`, or target defenses. (The RollRequest normalizer already reduced targets to
 identity; the projection makes that a contract rather than a coincidence.)
 
+Reaction-choice requests drop the triggering `event` snapshot: it carries every observer's relation
+and configured context, and the prompt renders only the offered options.
+
 **Error diagnostics** (`sanitizeResolutionErrorDataForTransport`): only scalar values cross the
 transport; the full failure object stays in the sender's local `errors` log.
 

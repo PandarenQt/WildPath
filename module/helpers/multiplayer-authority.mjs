@@ -229,6 +229,8 @@ export function projectPendingRequestPayloadForChooser(type, payload) {
   const data = clonePlainData(payload ?? {}, "pendingRequest.payload") ?? {};
   for ( const key of CHOOSER_PAYLOAD_DENYLIST ) delete data[key];
   if ( type === "roll" && data.rollRequest !== undefined ) data.rollRequest = projectRollRequestForChooser(data.rollRequest);
+  // The event snapshot carries every observer's relation and context; the prompt renders only options.
+  if ( type === "reaction-choice" ) delete data.event;
   return data;
 }
 

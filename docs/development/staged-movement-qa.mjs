@@ -96,7 +96,7 @@ export async function setupGM(moverUserId, reactorUserId=game.user.id, {variant=
   const fixture = old.fixture, scene = game.scenes.get(fixture.sceneId);
   const mover = scene.tokens.get(fixture.sourceTokenId), reactor = scene.tokens.get(fixture.targetTokenId);
   // Ownership follows the sentinel roles: only the mover's controller owns the mover.
-  await game.actors.get(fixture.sourceActorId).update({ownership:gmMover ? {default:0} : {default:0,[moverUserId]:3}});
+  await game.actors.get(fixture.sourceActorId).update({ownership:gmMover ? {default:0,[reactorUserId]:0} : {default:0,[moverUserId]:3}});
   const adapter = createFoundryV14TacticalGridAdapter({scene});
   const origin = position(mover), offset = canvas.grid.getOffset(origin);
   const {reactorPosition,route} = hex ? largeHexLayout(adapter,mover,reactor) : {

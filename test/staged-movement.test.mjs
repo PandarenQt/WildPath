@@ -604,6 +604,7 @@ test("reaction-choice prompts and answers travel only on the targeted transport;
   assert.equal(requests[0].envelope.disclosure, "PARTICIPANT_PRIVATE");
   assert.equal(requests[0].envelope.payload.request.type, "reaction-choice");
   assert.equal(requests[0].envelope.payload.request.payload.candidates.length, 1);
+  assert.equal(requests[0].envelope.payload.request.payload.event, undefined, "the chooser never receives the event snapshot");
   const answers = f.hub.targetedMessages.filter(m => m.envelope.messageType === MESSAGE.REQUEST_RESPONSE);
   assert.deepEqual(answers.map(m => [m.senderUserId, m.recipientUserId]), [["reactor-user", "gm"]]);
   assert.equal(answers[0].envelope.payload.response.value.decision, "decline");

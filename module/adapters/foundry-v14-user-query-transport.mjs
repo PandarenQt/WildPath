@@ -104,11 +104,6 @@ export function createFoundryV14UserQueryTransport({
         reason: `Recipient user ${data.recipientUserId} does not exist.`,
         envelope: data
       };
-      if ( data.recipientUserId === localUserId ) {
-        // Mirror DialogV2.query: a query to oneself never touches the socket.
-        const local = await receiveQuery(clonePlainData(data, "envelope"), {user: foundryGame.user ?? {id: localUserId}, local: true});
-        return {ok: true, code: MULTIPLAYER_AUTHORITY_CODES.OK, envelope: data, receipt: local, local: true};
-      }
       if ( user.active !== true ) return {
         ok: false,
         code: DISCLOSURE_CODES.TARGETED_RECIPIENT_UNAVAILABLE,
@@ -161,10 +156,9 @@ export function createFoundryV14UserQueryTransport({
       throw new Error(`${DISCLOSURE_CODES.DISCLOSURE_RECIPIENT_MISMATCH}: envelope is not addressed to this user.`);
     }
     if ( !handlers.size ) throw new Error(`${MULTIPLAYER_AUTHORITY_CODES.TRANSPORT_UNAVAILABLE}: no envelope handler is registered.`);
-    const dispatch = Promise.all([...handlers].map(handler => Promise.resolve()
-      .then(() => handler(envelope, {transport: adapter, attestedSenderUserId, local: context.local === true}))
-      .catch(error => logWarning(logger, "Wild Path | Targeted envelope handler failed", error))));
-    if ( context.local === true ) await dispatch;
+    for ( const handler of handlers ) Promise.resolve()
+      .then(() => handler(envelope, {transport: adapter, attestedSenderUserId}))
+      .catch(error => logWarning(logger, "Wild Path | Targeted envelope handler failed", error));
     return {
       ok: true,
       code: MULTIPLAYER_AUTHORITY_CODES.OK,

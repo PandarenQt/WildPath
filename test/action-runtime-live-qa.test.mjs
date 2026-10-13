@@ -146,10 +146,8 @@ async function playerEnvironment(t) {
   source.parent = target.parent = scene;
   const users = new Values([["g", {id: "g", active: true, isGM: true}], ["p", {id: "p", active: true, isGM: false}]]);
   users.activeGM = users.get("g");
-  // The QA helper observes the runtime transport, never raw sockets; the socket stub only satisfies
-  // the runtime precondition check. `incoming`/`outgoing` both alias the observer set.
+  // The QA helper observes the runtime transport, never raw sockets. `incoming`/`outgoing` alias the observer set.
   const observers = new Set(), incoming = observers, outgoing = observers;
-  const socket = {on() {}, off() {}, onAnyOutgoing() {}, offAnyOutgoing() {}};
   const sent = [];
   const transport = {registered: true, namespace: "system.wildpath", async send(envelope) {
     sent.push(envelope); for (const fn of observers) fn({direction: "sending", transport: "broadcast", envelope}); return {ok: true};
@@ -160,7 +158,7 @@ async function playerEnvironment(t) {
   const scenes = new Values([["s", scene]]); scenes.active = scene;
   const actors = new Values([["a", actor("a", "Actor.a")], ["b", actor("b", "Actor.b")]]);
   const game = {release: {generation: 14, build: 367}, system: {id: "wildpath"}, users, user: users.get("p"),
-    scenes, actors, modules: new Values(), socket, wildpath: {multiplayer: runtime, executeActionIntent}};
+    scenes, actors, modules: new Values(), wildpath: {multiplayer: runtime, executeActionIntent}};
   game.user.targets = new Set([{document: target}]);
   f.prepared = {mode: "hit", before: {action: 1, hp: 30}};
   Object.assign(globalThis, {game, canvas: {ready: true, scene}, CONFIG: {Item: {documentClass: WildPathItem}}});

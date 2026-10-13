@@ -2,7 +2,7 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
 import {
-  PRIVATE_TRANSPORT_MESSAGE_TYPES, STAGED_MOVEMENT_EVIDENCE_FILES, STAGED_MOVEMENT_SENTINELS, buildStagedMovementLevel5Evidence,
+  STAGED_MOVEMENT_EVIDENCE_FILES, STAGED_MOVEMENT_SENTINELS, buildStagedMovementLevel5Evidence,
   projectEnvelopeForEvidence, sentinelForCase, summarizeTransportEvidence, transportEvidenceEntry
 } from "../docs/development/staged-movement-qa-proof.mjs";
 
@@ -230,8 +230,6 @@ test("transport entries and summaries never carry payloads and classify by trans
   assert.deepEqual(summary.local, []);
   assert.deepEqual(summary.refused.map(e => e.code), ["UNCLASSIFIED_DISCLOSURE"]);
   assert.equal(JSON.stringify(summary).includes("secret"), false);
-  assert.deepEqual(PRIVATE_TRANSPORT_MESSAGE_TYPES, ["PENDING_REQUEST","REQUEST_RESPONSE","RESOLUTION_CANCEL","RESOLUTION_ERROR",
-    "MOVEMENT_APPROVAL","MOVEMENT_RESULT","MOVEMENT_CONTINUATION"]);
 });
 
 test("exported envelopes keep public payloads and omit private ones", () => {

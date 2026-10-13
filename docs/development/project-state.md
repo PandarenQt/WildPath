@@ -11,7 +11,8 @@ Last verified: 2026-09-21.
 - Movement implementation commit: `87ed1fae93271b81b14432bb4312be9cd53285c5`.
 - Original milestone starting HEAD: `ea484fd8b503697ddf1c2b7b0f6984ea594378e2`.
 - Local main HEAD: `61d6268b838e286728c829924506c6c931174621`.
-- Portable full suite (`FOUNDRY_V14_APP_PATH` unset): **864 tests, 862 passed, 0 failed, 2 intentionally skipped**.
+- Portable full suite (`FOUNDRY_V14_APP_PATH` unset): **863 tests, 861 passed, 0 failed, 2 intentionally skipped**.
+- Review-fix delta from 864/862/0/2: **-1 test** (the User#query self-send path was unreachable behind the routed transport and was removed with its test).
 - Confidentiality-hardening delta from 834/832/0/2: **30 new tests** (23 in `test/multiplayer-disclosure.test.mjs`,
   5 schema-2 evidence tests, 1 reaction-choice disclosure test in `test/staged-movement.test.mjs`, 1 nested-child
   disclosure test in `test/foundry-nested-reaction-commit.test.mjs`); batch inventory check extended to nine batches.
@@ -65,7 +66,7 @@ production topology). Authority, routing, idempotency, staged resolution, transa
 and movement semantics are unchanged. See
 [multiplayer-confidentiality.md](../architecture/multiplayer-confidentiality.md).
 
-Evidence so far: Node **864/862/0/2**, typecheck PASS, `git diff --check` PASS. Quench:
+Evidence so far: Node **863/861/0/2**, typecheck PASS, `git diff --check` PASS. Quench:
 `wildpath.multiplayer-disclosure` (4 cases) registered, **not yet live-run**. Level 5: the three
 sentinels must be rerun with the schema-2 export (GM mover and player reactor controller for the
 reaction cases; see [staged-movement-qa.md](staged-movement-qa.md)); the milestone is **not closed**

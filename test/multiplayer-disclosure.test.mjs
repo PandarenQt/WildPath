@@ -369,12 +369,8 @@ test("9. active-GM authority checks are unchanged; GM_PRIVATE additionally requi
     recipientUserId: "gm-a", resolutionId: "resolution:gm-note", payload: {request: {id: "request:1"}}}));
   assert.equal(toGM.ok, true, JSON.stringify(toGM));
   assert.equal(toGM.transport, DISCLOSURE_TRANSPORTS.TARGETED);
-  assert.equal(hubTypes(f.hub.broadcastMessages).includes("GM_PRIVATE"), false);
+  assert.equal(f.hub.broadcastMessages.some(m => m.disclosure === D.GM_PRIVATE), false);
 });
-
-function hubTypes(messages) {
-  return messages.map(m => `${m.messageType}:${m.disclosure}`);
-}
 
 /* -------------------------------------------- */
 /*  11, 13-15: private contents, projections, serialization, routing vs disclosure */
@@ -589,7 +585,7 @@ test("User#query transport registers a prefixed CONFIG.queries handler and deliv
   assert.equal(sent.ok, true, JSON.stringify(sent));
   assert.deepEqual(world.queryCalls, [{from: "gm-a", to: "player-a", name: "wildpath.resolutionEnvelope", timeout: 50}]);
   assert.equal(sent.receipt.receivedByUserId, "player-a");
-  assert.equal(sent.receipt.messageId, envelope().messageId === sent.envelope.messageId ? sent.envelope.messageId : sent.envelope.messageId);
+  assert.equal(sent.receipt.messageId, sent.envelope.messageId);
   await Promise.resolve();
   assert.equal(received["player-a"].length, 1);
   assert.equal(received["player-a"][0].context.attestedSenderUserId, "gm-a");
@@ -632,17 +628,6 @@ test("User#query transport validates the attested sender and the addressed recip
   const slow = queryWorld({timeoutFor: "player-a"});
   for ( const adapter of Object.values(slow.adapters) ) adapter.register(() => ({ok: true}));
   assert.equal((await slow.adapters["gm-a"].send(envelope())).code, C.TARGETED_TRANSPORT_TIMEOUT);
-});
-
-test("User#query transport short-circuits self-addressed envelopes without touching the socket", async () => {
-  const world = queryWorld();
-  const received = [];
-  world.adapters["gm-a"].register(e => { received.push(e); return {ok: true}; });
-  const sent = await world.adapters["gm-a"].send(envelope({recipientUserId: "gm-a"}));
-  assert.equal(sent.ok, true);
-  assert.equal(sent.local, true);
-  assert.equal(world.queryCalls.length, 0);
-  assert.equal(received.length, 1);
 });
 
 test("self-addressed envelopes are delivered locally: Foundry never echoes a custom socket message to its sender", async () => {
@@ -768,7 +753,8 @@ test("chooser minimization: roll requests lose target defenses, DC and roll data
   assert.equal(sanitized.metadata.multiplayer.expectedChooserUserId, "player-a");
 
   const choice = sanitizePendingRequestForTransport({id: "c", resolutionId: "res", type: "reaction-choice",
-    payload: {candidates: [{id: "cand"}], options: [{id: "use"}], state: {secret: true}}});
+    payload: {candidates: [{id: "cand"}], options: [{id: "use"}], state: {secret: true},
+      event: {id: "e", data: {relations: {otherObserver: {leavesReach: true, context: {hostile: true}}}}}}});
   assert.deepEqual(Object.keys(choice.payload).sort(), ["candidates", "options"]);
 });
 

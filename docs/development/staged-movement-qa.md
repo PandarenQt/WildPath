@@ -96,13 +96,13 @@ const mq = await import("/systems/wildpath/docs/development/staged-movement-qa.m
 GM, sentinel 1 (player mover):
 
 ```js
-const movementQA = await mq.setupGM("MOVER_PLAYER_ID");
+var movementQA = await mq.setupGM("MOVER_PLAYER_ID");
 ```
 
 GM, sentinels 2–3 (GM mover, player reactor controller):
 
 ```js
-const movementQA = await mq.setupGM(game.user.id, "REACTOR_PLAYER_ID");
+var movementQA = await mq.setupGM(game.user.id, "REACTOR_PLAYER_ID");
 ```
 
 ## Sentinel 1 — ordinary square/Medium

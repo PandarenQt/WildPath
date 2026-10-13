@@ -102,8 +102,6 @@ export function createDisclosureRoutedTransport({
         classification: route.classification,
         recipientUserId: route.recipientUserId ?? null
       };
-      notifyObservers({direction: "outgoing", transport: route.transport, envelope: data,
-        recipientUserId: route.recipientUserId ?? null, ok: result.ok !== false, code: result.code});
       return result;
     },
     /** Observe traffic for QA/evidence without touching sockets. Returns an unsubscribe function. */

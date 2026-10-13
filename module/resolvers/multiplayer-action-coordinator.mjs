@@ -119,7 +119,6 @@ export function createMultiplayerActionCoordinator({
         messageType: MULTIPLAYER_MESSAGE_TYPES.ACTION_INTENT,
         senderUserId: localUserId,
         recipientUserId: authority.userId,
-        disclosure: DISCLOSURE_CLASSIFICATIONS.BROADCAST_SAFE,
         resolutionId,
         payload: {
           ...sanitizedIntent,
@@ -422,7 +421,6 @@ export function createMultiplayerActionCoordinator({
           messageType: MULTIPLAYER_MESSAGE_TYPES.REQUEST_RESPONSE,
           senderUserId: localUserId,
           recipientUserId: localUserId,
-          disclosure: DISCLOSURE_CLASSIFICATIONS.PARTICIPANT_PRIVATE,
           resolutionId: state.id,
           requestId: request.id,
           payload: {response: answered.response}
@@ -434,7 +432,6 @@ export function createMultiplayerActionCoordinator({
         messageType: MULTIPLAYER_MESSAGE_TYPES.PENDING_REQUEST,
         senderUserId: localUserId,
         recipientUserId: chooser.userId,
-        disclosure: DISCLOSURE_CLASSIFICATIONS.PARTICIPANT_PRIVATE,
         resolutionId: state.id,
         requestId: request.id,
         payload: {
@@ -504,7 +501,6 @@ export function createMultiplayerActionCoordinator({
       messageType: MULTIPLAYER_MESSAGE_TYPES.REQUEST_RESPONSE,
       senderUserId: localUserId,
       recipientUserId: envelope.senderUserId,
-      disclosure: DISCLOSURE_CLASSIFICATIONS.PARTICIPANT_PRIVATE,
       resolutionId: envelope.resolutionId,
       requestId: request.id,
       payload: {
@@ -812,7 +808,6 @@ export function createMultiplayerActionCoordinator({
       messageType: MULTIPLAYER_MESSAGE_TYPES.RESOLUTION_ERROR,
       senderUserId: localUserId,
       recipientUserId,
-      disclosure: DISCLOSURE_CLASSIFICATIONS.PARTICIPANT_PRIVATE,
       resolutionId,
       requestId,
       payload: {

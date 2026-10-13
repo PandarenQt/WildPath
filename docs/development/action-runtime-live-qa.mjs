@@ -127,8 +127,6 @@ function requireRuntime(role) {
   check(runtime?.transport?.registered && runtime.transport.namespace === "system.wildpath"
     && runtime.coordinator?.getRecord && runtime.coordinator?.getResult
     && game.wildpath.executeActionIntent === runtime.executeActionIntent, "Expected the normal registered runtime");
-  check(typeof game.socket.onAnyOutgoing === "function" && typeof game.socket.offAnyOutgoing === "function",
-    "Socket.IO outgoing observation API is unavailable; do not patch transport.send");
   return runtime;
 }
 
