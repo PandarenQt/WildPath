@@ -5,6 +5,11 @@ export function needsMovementReactionCheckpoints(triggers) {
         && (!trigger.event.type || trigger.event.type === "movement.transition")
         && (!trigger.event.phase || trigger.event.phase === "information"));
 }
+/** Reactions to a proposed step resolve before Foundry plays that step (inside its segment approval). */
+export function needsBeforeStepReactions(triggers) {
+    return triggers.some(trigger => trigger.enabled && trigger.kind === "reaction"
+        && trigger.event.type === "movement.transition-proposed");
+}
 export function movementReactionBoundary(progress, operationId, transitionIndex) {
     if (!Number.isInteger(transitionIndex) || transitionIndex < 0 || transitionIndex >= progress.approvedTransitions.length) {
         throw new Error("Reaction boundary is outside the approved movement route.");

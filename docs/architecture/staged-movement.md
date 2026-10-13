@@ -7,8 +7,10 @@ ownership; client-supplied resources, rules, outcomes, and mutations are not aut
 
 This entry point currently accepts voluntary translation with an active GM. Walking is the default
 mode; a trusted provider can configure other mode names, cost policies, and payment capabilities.
-Native drag/checkpoint movement retains its existing completed-event workflow. It does not silently
-gain before-transition reactions from this milestone. No persistent schema or migration is added.
+Native drags resolve the same `movement.transition-proposed` reactions before each step, inside that
+step's checkpoint approval
+([movement-paths.md](movement-paths.md#before-step-reactions-in-native-drags)). Both paths share
+`foundryMovementReactionServices`. No persistent schema or migration is added.
 
 ## State and lifecycle
 

@@ -10,15 +10,12 @@ const definitionFor = actionDefinitionFromAction;
  * the Item itself (an Action Item) or the Action named by `data.reaction.actionId`. Reactors to movement
  * also become observers: reach in fields from that Action's reach range, hostility from Token dispositions.
  * Trigger predicates may write `{self}` in a path for this reactor's observer id, e.g.
- * `event.data.relations.{self}.leavesReach`.
+ * `event.data.relations.{self}.leavesReach`. Serves the staged movement host and native drags alike.
  */
 export function createFoundryReactionProvider({ resolve = defaultResolve } = {}) {
     return function reactionServices(context = {}) {
-        // Only the staged movement path reads these triggers; the native checkpoint path keeps its own events.
-        if (context.resolutionKind !== "movement")
-            return {};
-        const scene = resolve(context.intent?.sceneRef);
-        const mover = resolve(context.intent?.tokenRef);
+        const scene = context.scene ?? resolve(context.intent?.sceneRef);
+        const mover = context.token ?? resolve(context.intent?.tokenRef);
         if (!scene?.tokens || !mover)
             return {};
         const triggers = [];
@@ -94,5 +91,5 @@ export function bindSelf(predicate, observerId) {
 }
 function defaultResolve(uuid) {
     const fromUuidSync = globalThis.fromUuidSync;
-    return uuid && fromUuidSync ? fromUuidSync(uuid) : null;
+    return (typeof uuid === "string") && uuid && fromUuidSync ? fromUuidSync(uuid) : null;
 }

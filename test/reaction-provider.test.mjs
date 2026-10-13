@@ -42,10 +42,15 @@ test("the production reaction provider derives movement reactors from the world'
   ], "reach comes from the reaction's range; hostility from opposed dispositions");
 });
 
-test("the provider supplies nothing outside staged movement or without a mover", () => {
-  const provider = world();
-  assert.deepEqual(provider({intent: {sceneRef: "Scene.s", tokenRef: "Scene.s.Token.mover"}}), {});
-  assert.deepEqual(provider({resolutionKind: "movement", intent: {sceneRef: "Scene.s"}}), {});
+test("the provider serves native drags from resolved documents and supplies nothing without a mover", () => {
+  const provider = createFoundryReactionProvider({resolve: () => null});
+  const mover = token("mover", 1);
+  const scene = {grid: {distance: 5}, tokens: [mover, token("guard", -1, [strike()])]};
+  // Native intents carry entity refs ("token:<scene>.<id>"), not UUIDs: the authority passes the documents.
+  const native = provider({intent: {sceneRef: "uuid:Scene.s", tokenRef: "token:s.mover"}, scene, token: mover});
+  assert.deepEqual(native.movement.observers.map(observer => observer.id), ["guard"]);
+  assert.deepEqual(provider({intent: {sceneRef: "uuid:Scene.s", tokenRef: "token:s.mover"}}), {});
+  assert.deepEqual(world()({resolutionKind: "movement", intent: {sceneRef: "Scene.s"}}), {});
   assert.deepEqual(bindSelf({not: {equals: {path: "a.{self}.b", value: "{self}"}}}, "x"),
     {not: {equals: {path: "a.x.b", value: "{self}"}}}, "only paths are bound");
 });

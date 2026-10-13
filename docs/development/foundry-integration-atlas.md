@@ -399,6 +399,15 @@ WildPath transitions — by emitting a checkpoint per transition — is an open 
 answered before native execution could carry reaction windows. Until it is, this remains presentation
 infrastructure, not interrupt infrastructure.
 
+**Answered live (14.369, 2026-10-14).** A three-step `TokenDocument#move` with one `checkpoint` per
+grid step re-enters `_preUpdateMovement` once per segment, before that segment executes. The first
+step is included. The gate for step `k` sees the document at checkpoint `k-1` and `passed` = the next
+step. Awaiting 3 s inside the gate for step 2 held the Token at checkpoint 1 (`moveToken` timestamps
+6 ms → 3145 ms → 3270 ms); Foundry then finished the movement (`state: "completed"`, destination
+reached). A segment's approval is therefore a before-the-step hold point with native animation between
+steps, which is the seam for native before-transition reactions. WildPath now uses it: see
+[before-step reactions in native drags](../architecture/movement-paths.md#before-step-reactions-in-native-drags).
+
 **Pause/resume is genuinely asynchronous, unlike hook cancellation.** `pauseMovement()` returns a
 resume callback; `pauseMovement(key)` returns a promise resolving `true` when resumed with that same
 key. Core's documented rule is *"Only after all callbacks and keys have been called the movement of

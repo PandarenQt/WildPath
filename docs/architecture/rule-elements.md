@@ -174,8 +174,8 @@ legacy dot data is ignored to avoid double application.
 
 **Reaction triggers.** The Foundry reaction provider
 (`module/adapters/foundry-v14-reaction-provider.mts`, installed as `game.wildpath.reactionServices`)
-turns `Trigger` RuleElements of `kind: "reaction"` on active Items into reaction triggers for staged
-movement (`event: "movement.transition-proposed"`, phase `interrupt`):
+turns `Trigger` RuleElements of `kind: "reaction"` on active Items into reaction triggers for movement,
+both staged and native drags (`event: "movement.transition-proposed"`, phase `interrupt`):
 
 - The reaction's Action is the Item itself (an Action Item) or the Action named by `data.reaction.actionId`.
 - Each such Token also becomes a movement observer: reach in fields comes from that Action's reach range,
@@ -195,7 +195,9 @@ An opportunity attack is authored as:
 ```
 
 Live (Quench, 14.369): a hostile guard with this Trigger on its melee Action attacked a friendly mover
-leaving its reach (6 damage, reaction spent, movement finished), with no injected services.
+leaving its reach (6 damage, reaction spent, movement finished), with no injected services. Live in two
+browsers: the same guard attacked a player's native move before its first step
+([movement-paths.md](movement-paths.md#before-step-reactions-in-native-drags)).
 
 Other contribution types are available as pure collected data but are not globally wired into
 Foundry document preparation yet. Future resolvers should request the relevant RuleElement bundle

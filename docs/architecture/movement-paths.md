@@ -26,11 +26,13 @@ Implemented:
   logical footprints for nested attacks, suffix revalidation, and final position/payment transaction.
   This entry point is live-confirmed (the six-case Quench gate and the Level-5 sentinels; see
   [staged-movement.md](staged-movement.md)).
+- [before-step reactions in native drags](#before-step-reactions-in-native-drags): each step's
+  `movement.transition-proposed` reactions resolve inside that step's checkpoint approval, with Foundry's
+  own ruler and per-step animation. Live-verified on 14.369 in two browsers.
 
 Deferred:
 
-- production opportunity-reaction content, native drag integration with proposed-transition timing,
-  auras, hazards, and Regions.
+- auras, hazards, and Regions.
 - terrain, squeezing, ally/enemy occupancy, and mode-specific collision rules beyond supplied
   policy functions.
 - movement undo/refund, new-subpath continuation, and durable handoff/reload recovery.
@@ -578,6 +580,44 @@ The provider must enumerate registrations independently of the event; registrati
 during an operation take effect at its next approval, not retroactively. Full-footprint geometry
 remains mechanically authoritative. No named reaction, reach predicate, terrain, or Region policy
 is part of this milestone.
+
+## Before-step reactions in native drags
+
+An opportunity attack happens *before* the step that leaves reach. On a native drag this uses the
+segment approval as the hold point. Foundry 14.369 calls `_preUpdateMovement` once per checkpoint
+segment, before that segment plays, and holds the Token while the call is pending
+([atlas](../development/foundry-integration-atlas.md)).
+
+1. Preparation also checkpoints every step when any reaction trigger subscribes to
+   `movement.transition-proposed` (`needsBeforeStepReactions`). Its reply tells the initiator that this
+   root waits on reactions. The initiator then allows a step approval up to 10 minutes instead of 15 s.
+2. In each segment's approval the authority builds the step's `movement.transition-proposed` event.
+   The event carries the approved `previous`/`proposed` footprints and the relations to every
+   observer's reach (`foundryBeforeStepReaction`). The authority hosts the event through the Action
+   coordinator (`resolveTriggeredEvent`) and awaits the whole window. Prompts and the reaction's own
+   Actions commit as usual. Reactions target the mover where the step starts
+   (`foundryMovementReactionServices`, shared with the staged host).
+3. The step is approved only after the window closes. A window that does not complete, or a reaction
+   that displaced the mover, refuses the step (`MOVEMENT_REACTION_STOPPED`). The movement stops
+   before that step, and a continuing record is marked interrupted.
+4. Used triggers are recorded on the movement record, so a used reaction is not offered again in
+   the same movement. Before-step operations take no part in the after-step pause path.
+
+The reaction services read the Scene and the moving Token as documents. Native intents carry entity
+refs (`token:<scene>.<id>`), not UUIDs, so the authority resolves the documents and passes them to the
+provider.
+
+shortcut: after a reaction only the mover's position is rechecked; re-authorize the remaining route
+once reactions can change speed or movement budgets.
+
+Live (two browsers, 14.369, 2026-10-14): Player1 moved a mover three steps away from a hostile guard,
+using `TokenDocument#move`, the call a drag ends in. The GM's prompt appeared before step 0. The
+Token stayed at its start for 17 s, past the old 15 s timeout, until the GM confirmed. The attack then
+hit for 6, the guard's reaction was spent, and the three steps played (15 ft paid, movement
+completed). Steps 1 and 2 hosted empty windows with no prompt. A Decline let the move finish without
+damage. The GM moving the Token itself (local authority, no socket) and accepting also worked. Foundry
+started one movement animation per step. The test browsers render at about 1 fps, so the animation
+could not be judged visually.
 
 Public references: [TokenDocument lifecycle and movement methods](https://foundryvtt.com/api/v14/classes/foundry.documents.TokenDocument.html),
 [checkpoint waypoint contract](https://foundryvtt.com/api/v14/interfaces/foundry.documents.types.TokenMovementWaypoint.html),

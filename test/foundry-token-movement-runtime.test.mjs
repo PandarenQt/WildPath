@@ -40,7 +40,7 @@ import {
 import {createMultiplayerMovementAuthority} from "../module/resolvers/multiplayer-movement-authority.mjs";
 import {onFoundryV14MoveToken, onFoundryV14PauseToken, onFoundryV14StopToken, registerFoundryV14MultiplayerResolution} from "../module/resolvers/foundry-multiplayer-runtime.mjs";
 import WildPathTokenDocument from "../module/documents/token.mjs";
-import {createReactionTrigger} from "../module/helpers/automation-events.mjs";
+import {createAutomationEvent, createReactionTrigger} from "../module/helpers/automation-events.mjs";
 import {createBuiltinEconomyResource} from "../module/helpers/action-economy.mjs";
 import {createMultiplayerActionCoordinator, answerPendingRequestLocally} from "../module/resolvers/multiplayer-action-coordinator.mjs";
 import {createPhysicalDiceProvider} from "../module/resolvers/roll-provider-resolver.mjs";
@@ -50,14 +50,15 @@ import {createFoundryV14ReactionPauseAdapter} from "../module/adapters/foundry-v
 import {prepareFoundryReactionCheckpoints} from "../module/adapters/foundry-v14-reaction-checkpoint-adapter.mjs";
 
 function movementReactionFixture({count=1, cancel=false, match=true, grid, size="medium", kind=null, largeHex=false,
-  foundrySystems=false, reactorActors=null, moverActor=null, duplicateCacheLimit=undefined}={}) {
+  foundrySystems=false, reactorActors=null, moverActor=null, duplicateCacheLimit=undefined,
+  event="movement.transition", beforeStepReaction=undefined}={}) {
   const reactors = reactorActors ?? Array.from({length: count}, (_, i) => fakeActor(`reactor-${i}`));
   if ( foundrySystems ) reactors.forEach(withFoundryActorSystem);
   const action = {schemaVersion: 1, id: "action:test-event", label: "Test event action",
     costs: {allOf: [{capability: "reaction", amount: 1}]}, targeting: {type: "self", required: true},
     effects: [{id: "test-effect", type: "condition", conditionId: "prone", metadata: {source: "movement-reaction-test"}}]};
   const triggers = reactors.map((actor, i) => createReactionTrigger({id: `trigger:event-${i}`,
-    event: "movement.transition", actorId: actor.id, action, actionId: action.id,
+    event, actorId: actor.id, action, actionId: action.id,
     chooser: {kind: "specific", userId: PLAYER.id}, priority: 10 + i,
     predicate: {equals: {path: "event.data.transitionIndex", value: match ? 0 : 99}}}));
   const actorMap = Object.fromEntries(reactors.flatMap(actor => [[actor.id, actor], [actor.uuid, actor]]));
@@ -73,7 +74,7 @@ function movementReactionFixture({count=1, cancel=false, match=true, grid, size=
     createActionReactionChildState({...context, services: {reactions: {actorSystemsByActor}}}),
     {results: {parentDirective: {type: "cancel-parent"}}});
   const fixture = largeHex ? footprintTranslationFixture({reactionServices: () => services})
-    : createMovementRuntimeFixture({...(grid ? {grid} : {}), duplicateCacheLimit,
+    : createMovementRuntimeFixture({...(grid ? {grid} : {}), duplicateCacheLimit, beforeStepReaction,
       actor: moverActor ?? fakeActor("mover", {size}), reactionServices: () => services});
   let resumeCount = 0;
   let stopCount = 0;
@@ -588,6 +589,55 @@ test("committed movement approvals are released once they fall out of the bounde
   assert.equal(fixture.actor.system.resources.movement.value, 20, "both movements were paid exactly once");
 });
 
+// The Foundry geometry of the step event is proven live; this builder keeps the authority flow under test.
+function proposedStepReaction({eventId, token, supplied, movement, step}) {
+  return {services: supplied, event: createAutomationEvent({id: eventId, type: "movement.transition-proposed",
+    phase: "interrupt", source: {actorId: token.actor.id, tokenId: token.id}, data: {...movement, ...step}})};
+}
+
+async function until(condition) {
+  for ( let i = 0; (i < 100) && !condition(); i++ ) await new Promise(resolve => setImmediate(resolve));
+  assert.ok(condition(), "condition never held");
+}
+
+for ( const cancel of [false, true] ) test(`a before-step reaction resolves inside the step's approval, then ${cancel ? "stops the movement" : "lets the step play"}`, async () => {
+  const fixture = movementReactionFixture({cancel, event: "movement.transition-proposed", beforeStepReaction: proposedStepReaction});
+  const prepared = {movement: {[fixture.token.id]: {waypoints: [pointForOffset(fixture.scene, {i: 2, j: 0})]}}};
+  await prepareFoundryReactionCheckpoints(fixture.token, {}, prepared, PLAYER, fixture.playerAuthority, "checkpoint-root");
+  assert.equal(prepared.movement[fixture.token.id].waypoints.length, 2, "before-step triggers still checkpoint every step");
+  const operation = checkpointOperation(fixture.token, {passedCount: 1, offsets: [{i: 1, j: 0}, {i: 2, j: 0}]});
+  let settled = false;
+  const approval = withFoundryGlobals(fixture, () => fixture.token._preUpdateMovement(operation, {}))
+    .then(result => { settled = true; return result; });
+  await until(() => latestReactionRequest(fixture));
+  // Longer than the fixture's 50 ms approval timeout: the prepared root waits on its reactions.
+  await new Promise(resolve => setTimeout(resolve, 80));
+  assert.equal(settled, false, "Foundry holds the step while its reaction is open");
+  await fixture.playerTransport.send(reactionResponse(latestReactionRequest(fixture), "use"));
+  const result = await approval;
+  assert.equal(fixture.reactors[0].effects.length, 1, "the reaction committed before the step was approved");
+  assert.equal(fixture.token.x, 0);
+  if ( cancel ) {
+    assert.equal(result, false);
+    assert.match(fixture.playerAuthority.errors.at(-1).error.reason, /A reaction stopped the movement/);
+    assert.deepEqual(fixture.warnings, [], "the authority's notification is the only one");
+    assert.equal(fixture.gmAuthority.approvedMovements.size, 0, "the stopped step is never approved");
+    return;
+  }
+  assert.notEqual(result, false, fixture.warnings.at(-1));
+  const [record] = fixture.gmAuthority.approvedMovements.values();
+  assert.deepEqual(record.usedReactionTriggerIds, ["trigger:event-0"], "a used reaction is not offered again this movement");
+  assert.equal(record.operations[0].afterStepReactions, false);
+  assert.equal(record.approval.reactionBoundary, undefined, "no after-step pause is expected");
+  // Committing the step neither pauses nor re-hosts it: before-step reactions already resolved.
+  fixture.token.setOffset({i: 1, j: 0});
+  fixture.token.movement = {...operation, user: PLAYER, state: "pending"};
+  await onFoundryV14MoveToken(fixture.token, operation, {}, PLAYER, {game: fixture.playerGame});
+  assert.equal((await onFoundryV14MoveToken(fixture.token, operation, {}, PLAYER, {game: fixture.gmGame})).ok, true);
+  assert.equal(record.reactionPending, null);
+  assert.equal(fixture.coordinator.records.size, 1);
+});
+
 test("movement with an empty reaction provider retains the uninterrupted no-trigger path", async () => {
   const fixture = movementReactionFixture({count: 0});
   const operation = checkpointOperation(fixture.token, {passedCount: 2, offsets: [{i: 1, j: 0}, {i: 2, j: 0}]});
@@ -905,7 +955,8 @@ function createMovementRuntimeFixture({
   persistenceOptions={},
   onAutomationEvent=null,
   reactionServices=null,
-  duplicateCacheLimit=undefined
+  duplicateCacheLimit=undefined,
+  beforeStepReaction=null
 }={}) {
   const scene = fakeScene(grid);
   const token = fakeTokenDocument({actor, scene, ...tokenOptions});
@@ -951,6 +1002,7 @@ function createMovementRuntimeFixture({
     transport: gmTransport,
     game: gmGame,
     ...(reactionServices ? {reactionServices, actionCoordinator: coordinator} : {}),
+    ...(beforeStepReaction ? {beforeStepReaction} : {}),
     onAutomationEvent: event => {
       semanticEvents.gm.push(structuredClone(event));
       onAutomationEvent?.(event);

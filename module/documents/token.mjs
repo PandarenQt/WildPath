@@ -11,8 +11,9 @@ export default class WildPathTokenDocument extends BaseTokenDocument {
     const runtime = movementRuntime();
     if ( runtime?.prepareReactionCheckpoints && !isStagedMovementWrite(this, operation, changed) ) {
       try {
-        await prepareFoundryReactionCheckpoints(this, changed, operation, user, runtime,
-          operation.movement?.[this.id]?.id ?? globalThis.foundry.utils.randomID());
+        // A refused preparation was already notified by the movement authority.
+        if ( await prepareFoundryReactionCheckpoints(this, changed, operation, user, runtime,
+          operation.movement?.[this.id]?.id ?? globalThis.foundry.utils.randomID()) === false ) return false;
       } catch (error) {
         notifyMovementFailure(error.message);
         return false;
@@ -51,11 +52,9 @@ export default class WildPathTokenDocument extends BaseTokenDocument {
       return false;
     }
 
+    // The movement authority notifies every refusal it returns.
     const approval = await runtime.requestMovementApproval(intent.intent);
-    if ( approval?.approved !== true ) {
-      notifyMovementFailure(approval?.reason ?? approval?.code ?? "Movement was rejected by WildPath.");
-      return false;
-    }
+    if ( approval?.approved !== true ) return false;
     if ( approval.reactionBoundary ) runtime.expectReactionPause(approval.reactionBoundary);
     return parentResult;
   }

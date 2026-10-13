@@ -153,8 +153,9 @@ not serialize Foundry documents or DataModels; its plain-data validator continue
 See [ResolutionState](resolution-state.md#foundry-actor-system-snapshots). The default provider
 (`createFoundryReactionProvider`) derives staged-movement triggers and observers from the Scene's Tokens'
 `Trigger` RuleElements (see [rule-elements.md](rule-elements.md#current-integration)). A provider already set
-on `game.wildpath.reactionServices` (QA, a module) still wins. Ordinary Actions do not yet receive
-`services.reactions` from Foundry, and native drag does not yet use the staged path.
+on `game.wildpath.reactionServices` (QA, a module) still wins. Native drags reach the same triggers
+before each step ([movement-paths.md](movement-paths.md#before-step-reactions-in-native-drags)).
+Ordinary Actions do not yet receive `services.reactions` from Foundry.
 
 An approved operation snapshots its trigger definitions. Predicates, resource availability, and
 child state are evaluated against the canonical verified event. Registration changes are adopted

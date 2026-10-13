@@ -11,7 +11,9 @@ Last verified: 2026-10-13.
 - Movement implementation commit: `87ed1fae93271b81b14432bb4312be9cd53285c5`.
 - Original milestone starting HEAD: `ea484fd8b503697ddf1c2b7b0f6984ea594378e2`.
 - Local main HEAD: `61d6268b838e286728c829924506c6c931174621`.
-- Portable full suite (`FOUNDRY_V14_APP_PATH` unset): **913 tests, 911 passed, 0 failed, 2 intentionally skipped**.
+- Portable full suite (`FOUNDRY_V14_APP_PATH` unset): **915 tests, 913 passed, 0 failed, 2 intentionally skipped**.
+- M3 slice 2 delta from 913/911/0/2: **2 new tests** (a before-step reaction resolves inside the step's
+  approval, then lets the step play or stops the movement). Quench **62/62** live on 14.369.
 - M2 delta from 893/891/0/2: **6 new tests** (dice policy context and provider choice, re-prompt on a
   rejected answer, total bounds, prompt bounds, entered rolls on the card).
 - Representative-gate delta from 889/887/0/2: **4 new tests** (save routed to the target's Player,
@@ -118,8 +120,12 @@ provider (`createFoundryReactionProvider`, installed as `game.wildpath.reactionS
 staged-movement reactors from the world. It reads `Trigger` RuleElements of kind `reaction` on active
 Items, takes reach from the reaction Action's range and hostility from Token dispositions, and binds `{self}`
 in predicate paths. Live in Quench: a hostile guard's authored opportunity attack hit a friendly mover
-leaving reach, with no injected services. Next: native drag through the staged path, so it happens on an
-ordinary drag; `services.reactions` for ordinary Actions; then areas, auras and hazards.
+leaving reach, with no injected services. Slice 2 done: native drags resolve before-step reactions inside
+each step's checkpoint approval. The step is held, the reaction resolves, then the step plays with
+Foundry's ruler and animation. This was verified live in two browsers: accept (player move), decline,
+and accept on the GM's own move ([movement-paths.md](../architecture/movement-paths.md#before-step-reactions-in-native-drags)).
+A refused movement now shows one notification instead of two. Next: `services.reactions` for ordinary
+Actions; then areas, auras and hazards.
 
 **Authority and disclosure hardening (M0) — CLOSED on 2026-10-13.** A review found that the
 authority trusted more than it could verify: any player could act through an Actor or Item they did

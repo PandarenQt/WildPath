@@ -29,8 +29,10 @@ interface SceneLike {
 }
 
 interface ProviderContext {
-  readonly intent?: {sceneRef?: string; tokenRef?: string} | null;
-  readonly resolutionKind?: string;
+  readonly intent?: {sceneRef?: unknown; tokenRef?: unknown} | null;
+  /** Resolved documents win over the intent's refs (the native path's refs are not plain UUIDs). */
+  readonly scene?: SceneLike | null;
+  readonly token?: TokenLike | null;
 }
 
 const MOVEMENT_EVENT = "movement.transition-proposed";
@@ -44,14 +46,12 @@ const definitionFor = actionDefinitionFromAction as (item: ItemLike) => {ok: boo
  * the Item itself (an Action Item) or the Action named by `data.reaction.actionId`. Reactors to movement
  * also become observers: reach in fields from that Action's reach range, hostility from Token dispositions.
  * Trigger predicates may write `{self}` in a path for this reactor's observer id, e.g.
- * `event.data.relations.{self}.leavesReach`.
+ * `event.data.relations.{self}.leavesReach`. Serves the staged movement host and native drags alike.
  */
 export function createFoundryReactionProvider({resolve = defaultResolve} = {}) {
   return function reactionServices(context: ProviderContext = {}) {
-    // Only the staged movement path reads these triggers; the native checkpoint path keeps its own events.
-    if ( context.resolutionKind !== "movement" ) return {};
-    const scene = resolve(context.intent?.sceneRef) as SceneLike | null;
-    const mover = resolve(context.intent?.tokenRef) as TokenLike | null;
+    const scene = context.scene ?? resolve(context.intent?.sceneRef) as SceneLike | null;
+    const mover = context.token ?? resolve(context.intent?.tokenRef) as TokenLike | null;
     if ( !scene?.tokens || !mover ) return {};
     const triggers: Data[] = [];
     const observers: Data[] = [];
@@ -121,7 +121,7 @@ export function bindSelf(predicate: unknown, observerId: string): unknown {
     (key === "path") && (typeof value === "string") ? value.replaceAll("{self}", observerId) : bindSelf(value, observerId)]));
 }
 
-function defaultResolve(uuid: string | undefined): unknown {
+function defaultResolve(uuid: unknown): unknown {
   const fromUuidSync = (globalThis as {fromUuidSync?: (uuid: string) => unknown}).fromUuidSync;
-  return uuid && fromUuidSync ? fromUuidSync(uuid) : null;
+  return (typeof uuid === "string") && uuid && fromUuidSync ? fromUuidSync(uuid) : null;
 }

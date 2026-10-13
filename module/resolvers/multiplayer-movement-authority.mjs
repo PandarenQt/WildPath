@@ -11,11 +11,15 @@ import {
   validateResolutionSocketEnvelope
 } from "../helpers/multiplayer-authority.mjs";
 import {fieldKey} from "../helpers/grid-footprints.mjs";
-import {movementReactionBoundary, needsMovementReactionCheckpoints} from "../helpers/movement-reaction-boundaries.mjs";
+import {
+  movementReactionBoundary, needsBeforeStepReactions, needsMovementReactionCheckpoints
+} from "../helpers/movement-reaction-boundaries.mjs";
 import {normalizeEntityRef, uuidRef} from "../helpers/entity-refs.mjs";
 import {
-  advanceMovementProgress, completedMovementPrefix, createMovementProgress, movementPaymentDelta, sameMovementFootprint
+  advanceMovementProgress, completedMovementPrefix, createMovementProgress, movementEventId, movementPaymentDelta,
+  sameMovementFootprint
 } from "../helpers/movement-events.mjs";
+import {foundryBeforeStepReaction} from "../adapters/foundry-v14-movement-reaction-services.mjs";
 import {
   RESOURCE_RESOLUTION_CODES,
   commitActorResourceMutationPlan,
@@ -39,6 +43,8 @@ import {
 } from "../adapters/foundry-v14-movement-adapter.mjs";
 
 const DEFAULT_APPROVAL_TIMEOUT_MS = 15000;
+// shortcut: a fixed bound while a step's reactions resolve (prompts included); abandoned prompts are not timed out yet.
+const REACTION_APPROVAL_TIMEOUT_MS = 10 * 60 * 1000;
 
 /* -------------------------------------------- */
 
@@ -60,7 +66,8 @@ export function createMultiplayerMovementAuthority({
   onAutomationEvent=null,
   reactionServices=() => ({}),
   actionCoordinator=null,
-  reactionPauseAdapter=null
+  reactionPauseAdapter=null,
+  beforeStepReaction=foundryBeforeStepReaction
 }={}) {
   const localUserId = stringOrNull(userId ?? transport?.userId ?? game?.user?.id ?? game?.userId);
   const approvedMovements = new Map();
@@ -73,6 +80,8 @@ export function createMultiplayerMovementAuthority({
   const inFlightMovementCommits = new Map();
   const pendingApprovals = new Map();
   const initiatedAuthorities = createBoundedIdCache({limit: duplicateCacheLimit});
+  // Root movements whose step approvals wait on before-step reactions (initiator side).
+  const reactiveMovements = createBoundedIdCache({limit: duplicateCacheLimit});
   const seenMessages = createBoundedIdCache({limit: duplicateCacheLimit});
   const notifications = [];
   const errors = [];
@@ -172,7 +181,9 @@ export function createMultiplayerMovementAuthority({
 
   async function requestMovementApproval(intent={}) {
     const sanitized = withLocalSourceUser(sanitizeMovementIntent(intent));
-    if ( !sanitized.movementId ) return failure(FOUNDRY_MOVEMENT_CODES.MISSING_MOVEMENT_ID, "MovementIntent requires movementId.");
+    // Every refusal returned here is notified once, here; the Token document does not warn again.
+    if ( !sanitized.movementId ) return failAndNotify(failure(FOUNDRY_MOVEMENT_CODES.MISSING_MOVEMENT_ID,
+      "MovementIntent requires movementId."));
 
     const canUseLocalAuthority = await evaluateLocalCommitPermission(canCommitLocally, {
       intent: sanitized,
@@ -201,7 +212,9 @@ export function createMultiplayerMovementAuthority({
 
     const pending = createPendingApproval({
       intent: sanitized,
-      authorityUserId: authority.userId
+      authorityUserId: authority.userId,
+      timeoutMs: reactiveMovements.has(sanitized.foundry?.chain?.[0] ?? sanitized.movementId)
+        ? REACTION_APPROVAL_TIMEOUT_MS : approvalTimeoutMs
     });
     pendingApprovals.set(sanitized.resolutionId, pending);
     const envelope = createResolutionSocketEnvelope({
@@ -222,7 +235,11 @@ export function createMultiplayerMovementAuthority({
       pendingApprovals.delete(sanitized.resolutionId);
       return failAndNotify(sent);
     }
-    return pending.promise;
+    const approval = await pending.promise;
+    if ( sanitized.metadata?.reactionPreparation === true && approval?.beforeStepReactions ) {
+      reactiveMovements.add(sanitized.movementId);
+    }
+    return approval;
   }
 
   async function receiveMovementIntent(envelope) {
@@ -493,13 +510,14 @@ export function createMultiplayerMovementAuthority({
     if ( intent.metadata?.reactionPreparation === true ) {
       const authority = verifyCurrentAuthority({initiatorUserId, localCommitAllowed}, intent);
       if ( !authority.ok ) return {...authority, approved: false, resolutionId: intent.resolutionId};
-      const services = reactionServices({intent});
+      const {services} = await movementReactionServices(intent);
       const triggers = typeof services.reactions?.triggers === "function"
         ? services.reactions.triggers({intent}) : services.reactions?.triggers ?? [];
+      const beforeStepReactions = needsBeforeStepReactions(triggers);
       // Foundry has not constrained/split this route yet. This is only a preparation
       // capability, never approval of its speculative geometry, budget, or eligibility.
       return {approved: true, ok: true, movementId: intent.movementId, resolutionId: intent.resolutionId,
-        reactionCheckpoints: needsMovementReactionCheckpoints(triggers)};
+        reactionCheckpoints: needsMovementReactionCheckpoints(triggers) || beforeStepReactions, beforeStepReactions};
     }
     const chain = intent.foundry?.chain === undefined ? [] : intent.foundry.chain;
     if ( !Array.isArray(chain) || chain.some(id => typeof id !== "string" || !id) ) {
@@ -531,6 +549,8 @@ export function createMultiplayerMovementAuthority({
     let approval;
     let progress = null;
     let reactionTriggers = [];
+    let afterStepReactions = false;
+    let stepReactions = null;
     try {
       approval = await authorizeMovement({
         intent: chain.length ? {...intent, movementKind: record.approval.path.movementKind,
@@ -562,23 +582,29 @@ export function createMultiplayerMovementAuthority({
         evaluation: approval.evaluation
       });
       if ( approval.approved && approval.path ) {
-        const services = reactionServices({intent});
+        const {documents, services} = await movementReactionServices(intent);
         const triggers = typeof services.reactions?.triggers === "function"
           ? services.reactions.triggers({intent}) : services.reactions?.triggers ?? [];
-        const checkpointed = needsMovementReactionCheckpoints(triggers);
+        afterStepReactions = needsMovementReactionCheckpoints(triggers);
+        const beforeStep = needsBeforeStepReactions(triggers);
+        const checkpointed = afterStepReactions || beforeStep;
         reactionTriggers = clonePlainData(triggers, "movementReactionTriggers");
         approval.reactionCheckpoints = checkpointed;
         if ( checkpointed && approval.evaluation.transitions.length ) {
           if ( !actionCoordinator ) throw new Error("Movement reactions require an Action coordinator.");
-          const documents = await resolveMovementCompletionDocuments({completion: intent, game});
+          if ( !documents.ok ) throw new Error(documents.reason ?? "Movement documents could not be resolved.");
           const passed = foundryMovementCompletionToMovementPath({
             completion: {...intent, waypoints: intent.foundry.passedWaypoints ?? []},
             approval, originState: approval.foundryOriginState, tokenDocument: documents.token, scene: documents.scene
           });
           if ( !passed.ok || passed.path.anchors.length !== 2 ) throw new Error(
             "Reaction-capable movement must commit exactly one approved transition per Foundry checkpoint.");
-          if ( approval.evaluation.transitions.length > 1 ) approval.reactionBoundary = movementReactionBoundary(
-            record?.progress ?? progress, intent.movementId, baseTransitionCount);
+          if ( afterStepReactions && (approval.evaluation.transitions.length > 1) ) {
+            approval.reactionBoundary = movementReactionBoundary(record?.progress ?? progress, intent.movementId, baseTransitionCount);
+          }
+          if ( beforeStep ) stepReactions = await resolveBeforeStepReactions({approval, documents, supplied: services, triggers,
+            progress: record?.progress ?? progress, transitionIndex: baseTransitionCount,
+            usedTriggerIds: record?.usedReactionTriggerIds ?? []});
         }
       }
     } catch (error) {
@@ -591,11 +617,21 @@ export function createMultiplayerMovementAuthority({
         resolutionId: intent.resolutionId
       };
     }
+    for ( const id of stepReactions?.usedTriggerIds ?? [] ) {
+      if ( record && !record.usedReactionTriggerIds.includes(id) ) record.usedReactionTriggerIds.push(id);
+    }
+    if ( stepReactions && !stepReactions.ok ) {
+      if ( record?.progress && !["completed", "interrupted"].includes(record.progress.status) ) {
+        interruptMovement(record, {reason: "reaction-stopped", eventId: stepReactions.eventId});
+      }
+      approval = {ok: true, approved: false, code: "MOVEMENT_REACTION_STOPPED", reason: stepReactions.reason,
+        movementId: intent.movementId, resolutionId: intent.resolutionId};
+    }
     if ( approval?.approved === true ) {
       const currentAuthority = verifyCurrentAuthority(authorityContext, intent);
       if ( !currentAuthority.ok ) return {...currentAuthority, approved: false, resolutionId: intent.resolutionId};
       const operation = {id: intent.movementId, chain, subpathId: intent.foundry?.subpathId ?? null,
-        reactionTriggers,
+        reactionTriggers, afterStepReactions,
         baseTransitionCount, observedTransitionCount: null,
         intent: clonePlainData(intent), approval: clonePlainData(approval)};
       if ( chain.length ) record.operations.push(operation);
@@ -616,7 +652,7 @@ export function createMultiplayerMovementAuthority({
         semanticEvents: [],
         eventDeliveryErrors: [],
         handledReactionEventIds: [],
-        usedReactionTriggerIds: [],
+        usedReactionTriggerIds: [...(stepReactions?.usedTriggerIds ?? [])],
         reactionPending: null,
         committed: false
       });
@@ -909,8 +945,8 @@ export function createMultiplayerMovementAuthority({
     for ( const event of record.semanticEvents ) {
       if ( event.type !== "movement.transition" || record.handledReactionEventIds.includes(event.id) ) continue;
       const operation = record.operations.find(entry => entry.baseTransitionCount === event.data.transitionIndex);
-      // An uncheckpointed operation has no reaction subscription. Approval is the planning boundary.
-      if ( !operation?.approval.reactionCheckpoints ) { record.handledReactionEventIds.push(event.id); continue; }
+      // Only after-step subscriptions pause here; before-step reactions resolved inside the step's approval.
+      if ( !operation?.afterStepReactions ) { record.handledReactionEventIds.push(event.id); continue; }
       record.handledReactionEventIds.push(event.id);
       const boundary = movementReactionBoundary(record.progress, operation.id, event.data.transitionIndex);
       const terminal = ["completed", "interrupted"].includes(record.progress.status);
@@ -957,21 +993,7 @@ export function createMultiplayerMovementAuthority({
       // Recheck after asynchronous reconstruction; an old GM cannot release locomotion.
       const currentAuthority = verifyCurrentAuthority(record, {movementId: record.movementId});
       if ( !currentAuthority.ok ) return currentAuthority;
-      if ( cancelled ) {
-        const stopped = advanceMovementProgress(record.progress, {
-          completedTransitionCount: record.progress.completedTransitionCount,
-          actualFootprint: record.progress.actualFootprint, status: "interrupted",
-          provenance: {source: "reaction-resolution", eventId: boundary.eventId},
-          interruption: {reason, source: "reaction-resolution", resumable: false}
-        });
-        record.progress = stopped.progress;
-        record.semanticEvents.push(...clonePlainData(stopped.events));
-        for ( const event of stopped.events ) {
-          try { onAutomationEvent?.(clonePlainData(event)); }
-          catch (error) { record.eventDeliveryErrors.push({eventId: event.id, reason: error.message}); }
-        }
-        record.committed = true;
-      }
+      if ( cancelled ) interruptMovement(record, {reason, eventId: boundary.eventId});
       record.reactionPending = null;
       return {ok: true, payload: {boundary, directive: cancelled ? "cancel-parent" : "continue"}};
     });
@@ -982,6 +1004,70 @@ export function createMultiplayerMovementAuthority({
       senderUserId: localUserId, recipientUserId: record.initiatorUserId,
       resolutionId: movementResolutionId(boundary.operationId), payload: result.payload
     }));
+  }
+
+  function interruptMovement(record, {reason, eventId}) {
+    const stopped = advanceMovementProgress(record.progress, {
+      completedTransitionCount: record.progress.completedTransitionCount,
+      actualFootprint: record.progress.actualFootprint, status: "interrupted",
+      provenance: {source: "reaction-resolution", eventId},
+      interruption: {reason, source: "reaction-resolution", resumable: false}
+    });
+    record.progress = stopped.progress;
+    record.semanticEvents.push(...clonePlainData(stopped.events));
+    for ( const event of stopped.events ) {
+      try { onAutomationEvent?.(clonePlainData(event)); }
+      catch (error) { record.eventDeliveryErrors.push({eventId: event.id, reason: error.message}); }
+    }
+    record.committed = true;
+  }
+
+  /** The provider reads the Scene and the moving Token; native intents carry entity refs, so resolve them here. */
+  async function movementReactionServices(intent) {
+    let documents;
+    try { documents = await resolveMovementCompletionDocuments({completion: intent, game}); }
+    catch (error) { documents = failure(FOUNDRY_MOVEMENT_CODES.TOKEN_NOT_FOUND, error?.message ?? String(error)); }
+    return {documents, services: reactionServices({intent,
+      ...(documents.ok ? {scene: documents.scene, token: documents.token} : {})}) ?? {}};
+  }
+
+  /**
+   * Before-step reactions (`movement.transition-proposed`). Foundry 14.369 re-enters `_preUpdateMovement` once
+   * per checkpoint segment, before that segment plays, and holds the Token while its approval is pending; so
+   * this step's reactions resolve here and the step is approved only after them. A reaction that does not
+   * complete, or one that displaces the mover, stops the movement before the step.
+   */
+  async function resolveBeforeStepReactions({approval, documents, supplied, triggers, progress, transitionIndex, usedTriggerIds}) {
+    const eventId = movementEventId(progress, `transition-proposed:${transitionIndex}`);
+    const [previous, proposed] = approval.evaluation.footprints;
+    const prepared = beforeStepReaction({game, scene: documents.scene, token: documents.token, supplied, eventId,
+      movement: {movementId: progress.movementId, movementKind: approval.path.movementKind, movementMode: approval.path.movementMode},
+      step: {transitionIndex, previous, proposed, transition: approval.evaluation.transitions[0],
+        cumulativeCost: progress.cumulativeCost ?? 0}});
+    const services = {...prepared.services, reactions: {...prepared.services.reactions, triggers,
+      usedTriggerIds: [...(supplied.reactions?.usedTriggerIds ?? []), ...usedTriggerIds]}};
+    let finish;
+    let timer = null;
+    const finished = new Promise(resolve => { finish = resolve; });
+    const hosted = await actionCoordinator.resolveTriggeredEvent({event: prepared.event, services,
+      options: {persistencePort, targetActors: services.targetActors}, onComplete: ({state}) => finish(state)});
+    // A terminal host has already called onComplete; a failure short of terminal never will.
+    const terminal = ["completed", "failed", "cancelled"].includes(hosted.state?.status);
+    const state = (hosted.duplicate || (!hosted.ok && !terminal)) ? (hosted.state ?? {status: "failed"})
+      : await Promise.race([finished, new Promise(resolve => {
+        timer = globalThis.setTimeout(() => resolve({status: "failed"}), REACTION_APPROVAL_TIMEOUT_MS);
+      })]);
+    if ( timer ) globalThis.clearTimeout(timer);
+    const used = (state.metadata?.reactionWindows ?? []).flatMap(window => window.candidates
+      .filter(candidate => window.resolvedCandidateIds.includes(candidate.id)).map(candidate => candidate.triggerId));
+    if ( state.status !== "completed" ) return {ok: false, eventId, usedTriggerIds: used,
+      reason: "A reaction stopped the movement."};
+    // shortcut: only the mover's position is rechecked; re-authorize the remaining route once reactions can change speed or budgets.
+    const current = currentTokenAnchor({tokenDocument: documents.token, scene: documents.scene,
+      position: documents.token.toObject(true)});
+    if ( !current.ok || !sameMovementFootprint(current.footprint, previous) ) return {ok: false, eventId, usedTriggerIds: used,
+      reason: "The moving Token was displaced during a reaction."};
+    return {ok: true, eventId, usedTriggerIds: used};
   }
 
   async function revalidateRemainingMovement(record) {
@@ -1053,7 +1139,7 @@ export function createMultiplayerMovementAuthority({
     });
   }
 
-  function createPendingApproval({intent, authorityUserId}) {
+  function createPendingApproval({intent, authorityUserId, timeoutMs=approvalTimeoutMs}) {
     let timer = null;
     let settled = false;
     let resolve;
@@ -1064,15 +1150,15 @@ export function createMultiplayerMovementAuthority({
         if ( timer ) globalThis.clearTimeout(timer);
         done(approval);
       };
-      if ( Number(approvalTimeoutMs) > 0 ) {
+      if ( Number(timeoutMs) > 0 ) {
         timer = globalThis.setTimeout(() => {
           pendingApprovals.delete(intent.resolutionId);
-          resolve(failure(
+          resolve(failAndNotify(failure(
             MULTIPLAYER_AUTHORITY_CODES.AUTHORITY_UNAVAILABLE,
             "Timed out waiting for active-GM movement approval.",
             {movementId: intent.movementId}
-          ));
-        }, Number(approvalTimeoutMs));
+          )));
+        }, Number(timeoutMs));
       }
     });
     return {

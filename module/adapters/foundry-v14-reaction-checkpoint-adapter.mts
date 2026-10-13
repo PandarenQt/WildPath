@@ -29,7 +29,8 @@ export async function prepareFoundryReactionCheckpoints(token: CheckpointToken, 
   if ( !built.ok || !built.intent ) throw new Error(built.reason);
   const approval = await runtime.requestMovementApproval({...built.intent,
     metadata: {reactionPreparation: true}});
-  if ( !approval.approved ) throw new Error(approval.reason ?? "Movement preparation was rejected.");
+  // The movement authority has notified the refusal; the caller only cancels the update.
+  if ( !approval.approved ) return false;
   if ( !approval.reactionCheckpoints ) return;
   const teleport = "movementKind" in built.intent && built.intent.movementKind === "teleport";
   const full = teleport ? [origin, ...waypoints] : token.getCompleteMovementPath([origin, ...waypoints]);
