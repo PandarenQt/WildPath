@@ -141,5 +141,5 @@ three paired GM/player Level-5 sentinel cases (ordinary, decline, Large-hex decl
 real browser sessions on 2026-09-20 with canonical exports committed under `evidence/`; see
 [the QA runbook](../development/staged-movement-qa.md). The confidentiality hardening milestone
 reclassified the transport (reaction prompts and answers now travel by targeted `User#query`, see
-[multiplayer-confidentiality.md](multiplayer-confidentiality.md)) and reopens that sentinel until
-schema-2 evidence is committed.
+[multiplayer-confidentiality.md](multiplayer-confidentiality.md)); the sentinel was rerun and passed
+with schema-2 evidence on Foundry 14.369 on 2026-10-13.

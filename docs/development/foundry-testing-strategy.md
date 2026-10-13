@@ -28,9 +28,9 @@ canonical `exportEvidence`/`exportPlayerEvidence` wrapper (see [staged-movement-
 **All three pairs passed on 2026-09-20** in two real browser sessions on Foundry V14.367 and are
 committed under `evidence/`; the staged movement milestone is closed on that evidence. The
 confidentiality hardening milestone (2026-09-21) changes transport, request routing and prompt
-delivery, so the sentinel is **reopened**: it must be rerun with the schema-2 export (transport
-evidence, GM mover with a player reactor controller for the reaction cases) before that milestone
-closes. Ongoing policy:
+delivery, so the sentinel was reopened and rerun with the schema-2 export (transport evidence, GM
+mover with a player reactor controller for the reaction cases). **All three pairs passed again**
+on 2026-10-13, Foundry **14.369**, served build `c1f0079`, run by the agent in two isolated Chrome profiles (GM and Player1) through the real Foundry server; the maintainer accepted automated two-browser runs as closure evidence. Ongoing policy:
 
 ```text
 Pure movement/mechanical changes:
@@ -90,9 +90,11 @@ failures. WildPath neither patches Quench nor suppresses compatibility warnings.
 ## Registration and fixtures
 
 `wildpath.mjs` imports only `module/tests/quench/index.mjs` for this layer. That file owns the single
-`quenchReady` subscription and registers exactly nine batches (50 cases: 46 live-confirmed, plus the
-4-case `wildpath.multiplayer-disclosure` batch added on 2026-09-21 and not yet live-run). Batch
-modules do not add registration hooks.
+`quenchReady` subscription and registers exactly nine batches (50 cases, **50/50 live** on Foundry
+14.369 on 2026-10-13, including the 4-case `wildpath.multiplayer-disclosure` batch). Batch modules do
+not add registration hooks. When batches are started programmatically (`quench.runBatches`), render
+the Quench results window first (`quench.app.render({force: true})`); otherwise Quench's reporter
+throws on the missing window and the run stalls before any test executes.
 
 `wildpath.multiplayer-disclosure` — **WILDPATH: Multiplayer Disclosure** — proves on one GM client
 that the runtime wires the disclosure-routed transport over the real socket adapter and the

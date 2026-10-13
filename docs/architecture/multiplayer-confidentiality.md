@@ -177,12 +177,16 @@ overwrite it.
 - **Quench** (`wildpath.multiplayer-disclosure`, 4 cases): wiring and `CONFIG.queries` registration,
   the real socket adapter's refusal with no `system.wildpath` emission, a real `User#query` relay
   through the server with receipt, and the handler's identity checks. One GM client cannot prove
-  cross-browser privacy and this batch does not claim to.
+  cross-browser privacy and this batch does not claim to. **4/4 live** on Foundry 14.369
+  (2026-10-13).
 - **Level 5** (`docs/development/staged-movement-qa.md`, evidence schema 2): the three sentinels
   record which message types crossed the bus, the targeted envelopes with sender/recipient, and the
   captured envelopes with private payloads omitted. The reaction sentinels use the GM as mover and a
   player as reactor controller so the reaction prompt and answer really cross the targeted transport
-  between two browsers.
+  between two browsers. **All three pairs passed** on 2026-10-13 (Foundry 14.369, build `c1f0079`,
+  two isolated Chrome profiles driven by the agent): no private message type crossed the bus, the
+  reaction request and answer appear only as targeted envelopes, and the stored GM envelopes omit
+  every private payload.
 
 ## Open questions and limits
 

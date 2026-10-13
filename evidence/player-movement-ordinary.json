@@ -1,32 +1,32 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "evidenceType": "staged-movement-level5",
   "role": "player",
   "case": "ordinary",
   "mode": "ordinary",
   "variant": "square",
-  "foundryVersion": "14.367",
+  "foundryVersion": "14.369",
   "foundry": {
     "generation": 14,
-    "build": 367
+    "build": 369
   },
   "systemId": "wildpath",
   "systemVersion": "0.0.1",
-  "gitSha": "a009d3fc588ab86c0f34d8af88d6484936c37367",
-  "capturedAt": "2026-09-20T20:53:03.736Z",
-  "runId": "gSBEb1j8zwImv9KD",
-  "resolutionId": "qa-movement:gSBEb1j8zwImv9KD:v4tfHGU5pJX6jD0D",
+  "gitSha": "c1f0079e3c1b56188799cfcc2536e166a392b027",
+  "capturedAt": "2026-10-13T18:29:38.703Z",
+  "runId": "O1W5fcGQxAt1mQao",
+  "resolutionId": "qa-movement:O1W5fcGQxAt1mQao:ADfWLurxb2a1rWil",
   "evidenceFile": "evidence/player-movement-ordinary.json",
   "evidence": {
-    "runId": "gSBEb1j8zwImv9KD",
+    "runId": "O1W5fcGQxAt1mQao",
     "role": "player",
     "mode": "ordinary",
     "variant": "square",
-    "resolutionId": "qa-movement:gSBEb1j8zwImv9KD:v4tfHGU5pJX6jD0D",
+    "resolutionId": "qa-movement:O1W5fcGQxAt1mQao:ADfWLurxb2a1rWil",
     "moverUserId": "6JWzwo5Aln6gZUWH",
     "reactorUserId": "hUdU40DWftTFyJzW",
-    "moverTokenId": "bI9gy9newyMzi4jj",
-    "reactorTokenId": "MZattKbaoq3VzBxP",
+    "moverTokenId": "2tp3m64scTWLnfWN",
+    "reactorTokenId": "WCnrLyhX3P8PAVST",
     "sceneId": "q2HthP7tg8690hK6",
     "origin": {
       "x": 3000,
@@ -68,7 +68,7 @@
       "effects": []
     },
     "result": {
-      "resolutionId": "qa-movement:gSBEb1j8zwImv9KD:v4tfHGU5pJX6jD0D",
+      "resolutionId": "qa-movement:O1W5fcGQxAt1mQao:ADfWLurxb2a1rWil",
       "status": "completed",
       "code": null,
       "ok": true,
@@ -81,10 +81,10 @@
         "source": null
       },
       "source": {
-        "actorId": "1ObfyPcL6xauUdf0",
-        "actorRef": "Scene.q2HthP7tg8690hK6.Token.bI9gy9newyMzi4jj.Actor.1ObfyPcL6xauUdf0",
-        "tokenId": "bI9gy9newyMzi4jj",
-        "tokenRef": "Scene.q2HthP7tg8690hK6.Token.bI9gy9newyMzi4jj"
+        "actorId": "nq0V2b55czsNCZzT",
+        "actorRef": "Scene.q2HthP7tg8690hK6.Token.2tp3m64scTWLnfWN.Actor.nq0V2b55czsNCZzT",
+        "tokenId": "2tp3m64scTWLnfWN",
+        "tokenRef": "Scene.q2HthP7tg8690hK6.Token.2tp3m64scTWLnfWN"
       },
       "targets": [],
       "configuration": null,
@@ -360,16 +360,16 @@
       },
       "committedMutations": [
         {
-          "id": "qa-movement:gSBEb1j8zwImv9KD:v4tfHGU5pJX6jD0D:position",
+          "id": "qa-movement:O1W5fcGQxAt1mQao:ADfWLurxb2a1rWil:position",
           "type": "documentUpdate",
           "actorRef": null,
-          "documentRef": "Scene.q2HthP7tg8690hK6.Token.bI9gy9newyMzi4jj",
+          "documentRef": "Scene.q2HthP7tg8690hK6.Token.2tp3m64scTWLnfWN",
           "role": "movementPosition"
         },
         {
-          "id": "qa-movement:gSBEb1j8zwImv9KD:v4tfHGU5pJX6jD0D:payment",
+          "id": "qa-movement:O1W5fcGQxAt1mQao:ADfWLurxb2a1rWil:payment",
           "type": "actorUpdate",
-          "actorRef": "Scene.q2HthP7tg8690hK6.Token.bI9gy9newyMzi4jj.Actor.1ObfyPcL6xauUdf0",
+          "actorRef": "Scene.q2HthP7tg8690hK6.Token.2tp3m64scTWLnfWN.Actor.nq0V2b55czsNCZzT",
           "role": null
         }
       ],
@@ -515,24 +515,74 @@
           "requestIds": []
         },
         "[2 more entries]"
-      ]
+      ],
+      "disclosure": "PARTICIPANT_PRIVATE"
+    },
+    "transport": {
+      "broadcastMessageTypes": [
+        "ACTION_INTENT",
+        "RESOLUTION_RESULT"
+      ],
+      "broadcast": [
+        {
+          "direction": "outgoing",
+          "transport": "broadcast",
+          "messageType": "ACTION_INTENT",
+          "messageId": "resolution-message:action-intent:1791916164217:1",
+          "senderUserId": "6JWzwo5Aln6gZUWH",
+          "recipientUserId": "hUdU40DWftTFyJzW",
+          "recipientPolicy": null,
+          "disclosure": "BROADCAST_SAFE",
+          "resolutionId": "qa-movement:O1W5fcGQxAt1mQao:ADfWLurxb2a1rWil",
+          "requestId": null
+        },
+        {
+          "direction": "incoming",
+          "transport": "broadcast",
+          "messageType": "RESOLUTION_RESULT",
+          "messageId": "resolution-message:resolution-result:1791916164322:2",
+          "senderUserId": "hUdU40DWftTFyJzW",
+          "recipientUserId": null,
+          "recipientPolicy": "all",
+          "disclosure": "BROADCAST_SAFE",
+          "resolutionId": "qa-movement:O1W5fcGQxAt1mQao:ADfWLurxb2a1rWil",
+          "requestId": null
+        }
+      ],
+      "targeted": [
+        {
+          "direction": "incoming",
+          "transport": "targeted",
+          "messageType": "RESOLUTION_RESULT",
+          "messageId": "resolution-message:resolution-result:1791916164317:1",
+          "senderUserId": "hUdU40DWftTFyJzW",
+          "recipientUserId": "6JWzwo5Aln6gZUWH",
+          "recipientPolicy": null,
+          "disclosure": "PARTICIPANT_PRIVATE",
+          "resolutionId": "qa-movement:O1W5fcGQxAt1mQao:ADfWLurxb2a1rWil",
+          "requestId": null
+        }
+      ],
+      "local": [],
+      "refused": []
     },
     "notifications": [
       {
         "type": "RESOLUTION_RESULT",
         "envelope": {
           "protocolVersion": 1,
-          "messageId": "resolution-message:resolution-result:1789937454783:1",
+          "messageId": "resolution-message:resolution-result:1791916164317:1",
           "messageType": "RESOLUTION_RESULT",
           "senderUserId": "hUdU40DWftTFyJzW",
-          "recipientUserId": null,
+          "recipientUserId": "6JWzwo5Aln6gZUWH",
           "recipientUserIds": [],
-          "recipientPolicy": "all",
-          "resolutionId": "qa-movement:gSBEb1j8zwImv9KD:v4tfHGU5pJX6jD0D",
+          "recipientPolicy": null,
+          "disclosure": "PARTICIPANT_PRIVATE",
+          "resolutionId": "qa-movement:O1W5fcGQxAt1mQao:ADfWLurxb2a1rWil",
           "requestId": null,
           "payload": {
             "result": {
-              "resolutionId": "qa-movement:gSBEb1j8zwImv9KD:v4tfHGU5pJX6jD0D",
+              "resolutionId": "qa-movement:O1W5fcGQxAt1mQao:ADfWLurxb2a1rWil",
               "status": "completed",
               "code": null,
               "ok": true,
@@ -545,10 +595,10 @@
                 "source": null
               },
               "source": {
-                "actorId": "1ObfyPcL6xauUdf0",
-                "actorRef": "Scene.q2HthP7tg8690hK6.Token.bI9gy9newyMzi4jj.Actor.1ObfyPcL6xauUdf0",
-                "tokenId": "bI9gy9newyMzi4jj",
-                "tokenRef": "Scene.q2HthP7tg8690hK6.Token.bI9gy9newyMzi4jj"
+                "actorId": "nq0V2b55czsNCZzT",
+                "actorRef": "Scene.q2HthP7tg8690hK6.Token.2tp3m64scTWLnfWN.Actor.nq0V2b55czsNCZzT",
+                "tokenId": "2tp3m64scTWLnfWN",
+                "tokenRef": "Scene.q2HthP7tg8690hK6.Token.2tp3m64scTWLnfWN"
               },
               "targets": [],
               "configuration": null,
@@ -639,16 +689,16 @@
               },
               "committedMutations": [
                 {
-                  "id": "qa-movement:gSBEb1j8zwImv9KD:v4tfHGU5pJX6jD0D:position",
+                  "id": "qa-movement:O1W5fcGQxAt1mQao:ADfWLurxb2a1rWil:position",
                   "type": "documentUpdate",
                   "actorRef": null,
-                  "documentRef": "Scene.q2HthP7tg8690hK6.Token.bI9gy9newyMzi4jj",
+                  "documentRef": "Scene.q2HthP7tg8690hK6.Token.2tp3m64scTWLnfWN",
                   "role": "movementPosition"
                 },
                 {
-                  "id": "qa-movement:gSBEb1j8zwImv9KD:v4tfHGU5pJX6jD0D:payment",
+                  "id": "qa-movement:O1W5fcGQxAt1mQao:ADfWLurxb2a1rWil:payment",
                   "type": "actorUpdate",
-                  "actorRef": "Scene.q2HthP7tg8690hK6.Token.bI9gy9newyMzi4jj.Actor.1ObfyPcL6xauUdf0",
+                  "actorRef": "Scene.q2HthP7tg8690hK6.Token.2tp3m64scTWLnfWN.Actor.nq0V2b55czsNCZzT",
                   "role": null
                 }
               ],
@@ -794,13 +844,14 @@
                   "requestIds": []
                 },
                 "[2 more entries]"
-              ]
+              ],
+              "disclosure": "PARTICIPANT_PRIVATE"
             }
           },
           "metadata": {}
         },
         "result": {
-          "resolutionId": "qa-movement:gSBEb1j8zwImv9KD:v4tfHGU5pJX6jD0D",
+          "resolutionId": "qa-movement:O1W5fcGQxAt1mQao:ADfWLurxb2a1rWil",
           "status": "completed",
           "code": null,
           "ok": true,
@@ -813,10 +864,10 @@
             "source": null
           },
           "source": {
-            "actorId": "1ObfyPcL6xauUdf0",
-            "actorRef": "Scene.q2HthP7tg8690hK6.Token.bI9gy9newyMzi4jj.Actor.1ObfyPcL6xauUdf0",
-            "tokenId": "bI9gy9newyMzi4jj",
-            "tokenRef": "Scene.q2HthP7tg8690hK6.Token.bI9gy9newyMzi4jj"
+            "actorId": "nq0V2b55czsNCZzT",
+            "actorRef": "Scene.q2HthP7tg8690hK6.Token.2tp3m64scTWLnfWN.Actor.nq0V2b55czsNCZzT",
+            "tokenId": "2tp3m64scTWLnfWN",
+            "tokenRef": "Scene.q2HthP7tg8690hK6.Token.2tp3m64scTWLnfWN"
           },
           "targets": [],
           "configuration": null,
@@ -1032,16 +1083,16 @@
           },
           "committedMutations": [
             {
-              "id": "qa-movement:gSBEb1j8zwImv9KD:v4tfHGU5pJX6jD0D:position",
+              "id": "qa-movement:O1W5fcGQxAt1mQao:ADfWLurxb2a1rWil:position",
               "type": "documentUpdate",
               "actorRef": null,
-              "documentRef": "Scene.q2HthP7tg8690hK6.Token.bI9gy9newyMzi4jj",
+              "documentRef": "Scene.q2HthP7tg8690hK6.Token.2tp3m64scTWLnfWN",
               "role": "movementPosition"
             },
             {
-              "id": "qa-movement:gSBEb1j8zwImv9KD:v4tfHGU5pJX6jD0D:payment",
+              "id": "qa-movement:O1W5fcGQxAt1mQao:ADfWLurxb2a1rWil:payment",
               "type": "actorUpdate",
-              "actorRef": "Scene.q2HthP7tg8690hK6.Token.bI9gy9newyMzi4jj.Actor.1ObfyPcL6xauUdf0",
+              "actorRef": "Scene.q2HthP7tg8690hK6.Token.2tp3m64scTWLnfWN.Actor.nq0V2b55czsNCZzT",
               "role": null
             }
           ],
@@ -1187,7 +1238,298 @@
               "requestIds": []
             },
             "[2 more entries]"
-          ]
+          ],
+          "disclosure": "PARTICIPANT_PRIVATE"
+        }
+      },
+      {
+        "type": "RESOLUTION_RESULT",
+        "envelope": {
+          "protocolVersion": 1,
+          "messageId": "resolution-message:resolution-result:1791916164322:2",
+          "messageType": "RESOLUTION_RESULT",
+          "senderUserId": "hUdU40DWftTFyJzW",
+          "recipientUserId": null,
+          "recipientUserIds": [],
+          "recipientPolicy": "all",
+          "disclosure": "BROADCAST_SAFE",
+          "resolutionId": "qa-movement:O1W5fcGQxAt1mQao:ADfWLurxb2a1rWil",
+          "requestId": null,
+          "payload": {
+            "result": {
+              "resolutionId": "qa-movement:O1W5fcGQxAt1mQao:ADfWLurxb2a1rWil",
+              "status": "completed",
+              "code": null,
+              "ok": true,
+              "authorityUserId": "hUdU40DWftTFyJzW",
+              "initiatorUserId": "6JWzwo5Aln6gZUWH",
+              "action": {
+                "id": null,
+                "name": null
+              },
+              "source": {
+                "actorId": "nq0V2b55czsNCZzT",
+                "actorRef": "Scene.q2HthP7tg8690hK6.Token.2tp3m64scTWLnfWN.Actor.nq0V2b55czsNCZzT",
+                "tokenId": "2tp3m64scTWLnfWN",
+                "tokenRef": "Scene.q2HthP7tg8690hK6.Token.2tp3m64scTWLnfWN"
+              },
+              "targets": [],
+              "outcomes": {
+                "attack": null,
+                "save": null,
+                "movement": {
+                  "completedTransitionCount": 3,
+                  "intendedTransitionCount": 3,
+                  "cumulativeCost": 15,
+                  "stopped": false,
+                  "reason": null,
+                  "footprint": {
+                    "type": "TokenGridFootprint",
+                    "topology": "square",
+                    "size": "medium",
+                    "effectiveSize": "medium",
+                    "anchor": {
+                      "x": 23,
+                      "y": 33
+                    },
+                    "definition": {
+                      "size": "medium",
+                      "topology": "square",
+                      "offsets": "[depth limit]",
+                      "fieldCount": 1,
+                      "creaturesPerField": 1,
+                      "minimumFields": 1,
+                      "metadata": "[depth limit]"
+                    },
+                    "fields": [
+                      "[depth limit]"
+                    ],
+                    "fieldKeys": [
+                      "square:23,33"
+                    ],
+                    "metadata": {},
+                    "boundaryFields": [
+                      "[depth limit]"
+                    ],
+                    "boundaryEdges": [
+                      "[depth limit]",
+                      "[depth limit]",
+                      "[depth limit]",
+                      "[depth limit]"
+                    ],
+                    "boundaryVertices": [
+                      "[depth limit]",
+                      "[depth limit]",
+                      "[depth limit]",
+                      "[depth limit]"
+                    ],
+                    "internalVertices": []
+                  },
+                  "committed": true
+                }
+              },
+              "rolls": [],
+              "disclosure": "BROADCAST_SAFE"
+            }
+          },
+          "metadata": {}
+        },
+        "result": {
+          "resolutionId": "qa-movement:O1W5fcGQxAt1mQao:ADfWLurxb2a1rWil",
+          "status": "completed",
+          "code": null,
+          "ok": true,
+          "authorityUserId": "hUdU40DWftTFyJzW",
+          "initiatorUserId": "6JWzwo5Aln6gZUWH",
+          "action": {
+            "id": null,
+            "name": null
+          },
+          "source": {
+            "actorId": "nq0V2b55czsNCZzT",
+            "actorRef": "Scene.q2HthP7tg8690hK6.Token.2tp3m64scTWLnfWN.Actor.nq0V2b55czsNCZzT",
+            "tokenId": "2tp3m64scTWLnfWN",
+            "tokenRef": "Scene.q2HthP7tg8690hK6.Token.2tp3m64scTWLnfWN"
+          },
+          "targets": [],
+          "outcomes": {
+            "attack": null,
+            "save": null,
+            "movement": {
+              "completedTransitionCount": 3,
+              "intendedTransitionCount": 3,
+              "cumulativeCost": 15,
+              "stopped": false,
+              "reason": null,
+              "footprint": {
+                "type": "TokenGridFootprint",
+                "topology": "square",
+                "size": "medium",
+                "effectiveSize": "medium",
+                "anchor": {
+                  "x": 23,
+                  "y": 33
+                },
+                "definition": {
+                  "size": "medium",
+                  "topology": "square",
+                  "offsets": [
+                    {
+                      "x": 0,
+                      "y": 0
+                    }
+                  ],
+                  "fieldCount": 1,
+                  "creaturesPerField": 1,
+                  "minimumFields": 1,
+                  "metadata": {
+                    "ruleset": "dnd5e",
+                    "squareWidth": 1
+                  }
+                },
+                "fields": [
+                  {
+                    "x": 23,
+                    "y": 33
+                  }
+                ],
+                "fieldKeys": [
+                  "square:23,33"
+                ],
+                "metadata": {},
+                "boundaryFields": [
+                  {
+                    "x": 23,
+                    "y": 33
+                  }
+                ],
+                "boundaryEdges": [
+                  {
+                    "id": "square:23,33>east",
+                    "topology": "square",
+                    "field": {
+                      "x": 23,
+                      "y": 33
+                    },
+                    "outsideField": {
+                      "x": 24,
+                      "y": 33
+                    },
+                    "direction": "east"
+                  },
+                  {
+                    "id": "square:23,33>north",
+                    "topology": "square",
+                    "field": {
+                      "x": 23,
+                      "y": 33
+                    },
+                    "outsideField": {
+                      "x": 23,
+                      "y": 32
+                    },
+                    "direction": "north"
+                  },
+                  {
+                    "id": "square:23,33>south",
+                    "topology": "square",
+                    "field": {
+                      "x": 23,
+                      "y": 33
+                    },
+                    "outsideField": {
+                      "x": 23,
+                      "y": 34
+                    },
+                    "direction": "south"
+                  },
+                  {
+                    "id": "square:23,33>west",
+                    "topology": "square",
+                    "field": {
+                      "x": 23,
+                      "y": 33
+                    },
+                    "outsideField": {
+                      "x": 22,
+                      "y": 33
+                    },
+                    "direction": "west"
+                  }
+                ],
+                "boundaryVertices": [
+                  {
+                    "id": "square-vertex:23,33",
+                    "x": 23,
+                    "y": 33,
+                    "incidentFields": [
+                      "[depth limit]",
+                      "[depth limit]",
+                      "[depth limit]",
+                      "[depth limit]"
+                    ],
+                    "topology": "square",
+                    "occupiedIncidentFields": [
+                      "[depth limit]"
+                    ],
+                    "external": true
+                  },
+                  {
+                    "id": "square-vertex:23,34",
+                    "x": 23,
+                    "y": 34,
+                    "incidentFields": [
+                      "[depth limit]",
+                      "[depth limit]",
+                      "[depth limit]",
+                      "[depth limit]"
+                    ],
+                    "topology": "square",
+                    "occupiedIncidentFields": [
+                      "[depth limit]"
+                    ],
+                    "external": true
+                  },
+                  {
+                    "id": "square-vertex:24,33",
+                    "x": 24,
+                    "y": 33,
+                    "incidentFields": [
+                      "[depth limit]",
+                      "[depth limit]",
+                      "[depth limit]",
+                      "[depth limit]"
+                    ],
+                    "topology": "square",
+                    "occupiedIncidentFields": [
+                      "[depth limit]"
+                    ],
+                    "external": true
+                  },
+                  {
+                    "id": "square-vertex:24,34",
+                    "x": 24,
+                    "y": 34,
+                    "incidentFields": [
+                      "[depth limit]",
+                      "[depth limit]",
+                      "[depth limit]",
+                      "[depth limit]"
+                    ],
+                    "topology": "square",
+                    "occupiedIncidentFields": [
+                      "[depth limit]"
+                    ],
+                    "external": true
+                  }
+                ],
+                "internalVertices": []
+              },
+              "committed": true
+            }
+          },
+          "rolls": [],
+          "disclosure": "BROADCAST_SAFE"
         }
       }
     ]

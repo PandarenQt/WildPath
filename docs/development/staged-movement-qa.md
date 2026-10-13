@@ -249,9 +249,10 @@ run ID (`cleanupGM` from the Action QA helper).
 
 ## Closure
 
-The staged movement milestone was closed on 2026-09-20 on schema-1 evidence. The **confidentiality
-hardening milestone** reopens this sentinel: it stays **OPEN** until all six canonical files exist as
-schema-2 exports from a build containing the disclosure transport, each pair passes the pairing
-checks, and the files are committed. Rerun this sentinel whenever socket transport, authority,
+The staged movement milestone was closed on 2026-09-20 on schema-1 evidence (Foundry 14.367). The
+**confidentiality hardening milestone** reopened this sentinel and **closed it** on 2026-10-13, Foundry **14.369**, served build `c1f0079`, run by the agent in two isolated Chrome profiles (GM and Player1) through the real Foundry server; the maintainer accepted automated two-browser runs as closure evidence. All six
+canonical files are schema-2 exports from build `c1f0079`, each pair passes the pairing checks, and
+the files are committed; they replaced the schema-1 files at the same paths (git history keeps
+those). Rerun this sentinel whenever socket transport, authority,
 request routing, prompt ownership, multiplayer orchestration, or disclosure behavior changes;
 mechanical movement changes are covered by Node and the Quench six-case batch.

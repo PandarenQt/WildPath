@@ -1350,7 +1350,7 @@ declares no `scripts` block and no test-related dependencies.
 testing workflow for a V14 system. The absence is a fact about Foundry's documentation, not evidence
 that testing is discouraged.
 
-### 19F. Quench — V14.367 Q1 17/17, Q2 17/17, Combat 6/6, staged movement 6/6 (46 cases live-confirmed; multiplayer disclosure 4 cases added, not yet live-run)
+### 19F. Quench — V14.367 Q1 17/17, Q2 17/17, Combat 6/6, staged movement 6/6 (46 live-confirmed); 50/50 on V14.369 with multiplayer disclosure 4/4
 
 Quench is the ecosystem's in-Foundry test runner (Mocha + Chai + fast-check, registering a native
 Foundry Application as a test runner UI). It is the only known candidate for **layer 3**.
@@ -1409,8 +1409,8 @@ state or the turn-event workflow. Recorded here so it is not mistaken for a syst
 
 The staged-movement batch (`wildpath.staged-movement`, 6 cases; **6/6 maintainer-reported**, total
 **46**) runs the six-case semantic movement gate on one active-GM client with the live QA's own proof
-assertions. The ninth batch (`wildpath.multiplayer-disclosure`, 4 cases, added 2026-09-21, **not yet
-live-run**) proves the targeted-transport mechanism itself in real Foundry: registration, the real
+assertions. The ninth batch (`wildpath.multiplayer-disclosure`, 4 cases, added 2026-09-21, **4/4 live** on
+V14.369 on 2026-10-13, when the full suite ran 50/50) proves the targeted-transport mechanism itself in real Foundry: registration, the real
 socket adapter's refusal of private data, a `User#query` relay through the real server, and the
 handler's identity checks; it does not and cannot prove cross-browser privacy on one client. Its first run found a real production defect at the persistence boundary: the commit
 adapter's strict equality rejected Foundry's integer-cleaned `260` against a hex-derived planned
@@ -1462,8 +1462,8 @@ gate. The live multiplayer cases remain the evidence of record for multiplayer b
 **[wildpath]** Levels 1 and 2 exist today; 4 and 5 exist as manual procedure. Level 3 is now supported
 by 34 maintainer-confirmed live cases (Q1 17/17 after the custom-pool persistence repair; Q2 17/17),
 plus the Combat slice's 6 cases (6/6 maintainer-reported) and the staged-movement batch's 6 cases (6/6
-after `e30d752`), for 46 live-confirmed cases in total; the 4-case multiplayer-disclosure batch
-(2026-09-21) awaits its first live run.
+after `e30d752`), for 46 live-confirmed cases in total; on 2026-10-13 the full nine-batch suite,
+including the 4-case multiplayer-disclosure batch, ran **50/50** on V14.369.
 
 ```text
 Level 1 — Pure Node tests

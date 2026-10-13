@@ -1,32 +1,32 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "evidenceType": "staged-movement-level5",
   "role": "gm",
   "case": "large-hex-decline",
   "mode": "decline",
   "variant": "large-hex-decline",
-  "foundryVersion": "14.367",
+  "foundryVersion": "14.369",
   "foundry": {
     "generation": 14,
-    "build": 367
+    "build": 369
   },
   "systemId": "wildpath",
   "systemVersion": "0.0.1",
-  "gitSha": "d669a17cf38e2a5ab5192e0e325a50154c963f49",
-  "capturedAt": "2026-09-20T21:25:07.327Z",
-  "runId": "PHqxUvNV6iKzCIbR",
-  "resolutionId": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l",
+  "gitSha": "c1f0079e3c1b56188799cfcc2536e166a392b027",
+  "capturedAt": "2026-10-13T18:30:55.452Z",
+  "runId": "K8JgbvVxHdjIzwvS",
+  "resolutionId": "qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP",
   "evidenceFile": "evidence/gm-large-hex-decline.json",
   "evidence": {
-    "runId": "PHqxUvNV6iKzCIbR",
+    "runId": "K8JgbvVxHdjIzwvS",
     "role": "gm",
     "mode": "decline",
     "variant": "large-hex-decline",
-    "resolutionId": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l",
-    "moverUserId": "6JWzwo5Aln6gZUWH",
-    "reactorUserId": "hUdU40DWftTFyJzW",
-    "moverTokenId": "gBSKwPOiNulNnh4G",
-    "reactorTokenId": "n5IXP0Lly2WbJC0p",
+    "resolutionId": "qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP",
+    "moverUserId": "hUdU40DWftTFyJzW",
+    "reactorUserId": "6JWzwo5Aln6gZUWH",
+    "moverTokenId": "gFQK6RNAHbzZ6gkf",
+    "reactorTokenId": "OCHYxPVk1Gv0oMG7",
     "sceneId": "ATdgY1RvViHWwNo8",
     "origin": {
       "x": 3000,
@@ -60,6 +60,7 @@
       "effects": []
     },
     "proofPassed": true,
+    "authorityUserId": "hUdU40DWftTFyJzW",
     "after": {
       "x": 3300,
       "y": 2165,
@@ -70,7 +71,7 @@
     },
     "footprintProof": {
       "pending": {
-        "resolutionId": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l",
+        "resolutionId": "qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP",
         "status": "awaiting-choice",
         "stage": "movement.transition:1.reactions",
         "cursor": {
@@ -155,7 +156,7 @@
           ]
         },
         "event": {
-          "id": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1",
+          "id": "qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:transition:1",
           "type": "movement.transition-proposed",
           "phase": "interrupt",
           "data": {
@@ -222,10 +223,10 @@
           }
         },
         "window": {
-          "id": "reaction-window:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:before-transition:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1",
+          "id": "reaction-window:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:before-transition:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:transition:1",
           "timing": "before-transition",
           "offeredCandidateIds": [
-            "reaction-candidate:qa-leave:PHqxUvNV6iKzCIbR:Scene.ATdgY1RvViHWwNo8.Token.n5IXP0Lly2WbJC0p.Actor.6dMk9fAcJH9aLSIS:action:qa-movement-reaction:PHqxUvNV6iKzCIbR:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1"
+            "reaction-candidate:qa-leave:K8JgbvVxHdjIzwvS:Scene.ATdgY1RvViHWwNo8.Token.OCHYxPVk1Gv0oMG7.Actor.2VON3zPnPzl4NwBj:action:qa-movement-reaction:K8JgbvVxHdjIzwvS:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:transition:1"
           ]
         },
         "pendingChoice": true,
@@ -935,25 +936,25 @@
       "reactions": null,
       "windows": [
         {
-          "id": "reaction-window:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:before-transition:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:0",
+          "id": "reaction-window:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:before-transition:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:transition:0",
           "status": "closed",
           "offeredCandidateIds": [],
           "declinedCandidateIds": [],
           "childResolutionIds": []
         },
         {
-          "id": "reaction-window:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:before-transition:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1",
+          "id": "reaction-window:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:before-transition:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:transition:1",
           "status": "closed",
           "offeredCandidateIds": [
-            "reaction-candidate:qa-leave:PHqxUvNV6iKzCIbR:Scene.ATdgY1RvViHWwNo8.Token.n5IXP0Lly2WbJC0p.Actor.6dMk9fAcJH9aLSIS:action:qa-movement-reaction:PHqxUvNV6iKzCIbR:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1"
+            "reaction-candidate:qa-leave:K8JgbvVxHdjIzwvS:Scene.ATdgY1RvViHWwNo8.Token.OCHYxPVk1Gv0oMG7.Actor.2VON3zPnPzl4NwBj:action:qa-movement-reaction:K8JgbvVxHdjIzwvS:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:transition:1"
           ],
           "declinedCandidateIds": [
-            "reaction-candidate:qa-leave:PHqxUvNV6iKzCIbR:Scene.ATdgY1RvViHWwNo8.Token.n5IXP0Lly2WbJC0p.Actor.6dMk9fAcJH9aLSIS:action:qa-movement-reaction:PHqxUvNV6iKzCIbR:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1"
+            "reaction-candidate:qa-leave:K8JgbvVxHdjIzwvS:Scene.ATdgY1RvViHWwNo8.Token.OCHYxPVk1Gv0oMG7.Actor.2VON3zPnPzl4NwBj:action:qa-movement-reaction:K8JgbvVxHdjIzwvS:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:transition:1"
           ],
           "childResolutionIds": []
         },
         {
-          "id": "reaction-window:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:before-transition:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:2",
+          "id": "reaction-window:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:before-transition:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:transition:2",
           "status": "closed",
           "offeredCandidateIds": [],
           "declinedCandidateIds": [],
@@ -965,10 +966,10 @@
         "code": "OK",
         "committed": [
           {
-            "id": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:position",
+            "id": "qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:position",
             "type": "documentUpdate",
             "actorRef": null,
-            "documentRef": "Scene.ATdgY1RvViHWwNo8.Token.gBSKwPOiNulNnh4G",
+            "documentRef": "Scene.ATdgY1RvViHWwNo8.Token.gFQK6RNAHbzZ6gkf",
             "updates": {
               "x": 3300,
               "y": 2165
@@ -983,9 +984,9 @@
             "status": "committed"
           },
           {
-            "id": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:payment",
+            "id": "qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:payment",
             "type": "actorUpdate",
-            "actorRef": "Scene.ATdgY1RvViHWwNo8.Token.gBSKwPOiNulNnh4G.Actor.hWhx31At2tbEkirJ",
+            "actorRef": "Scene.ATdgY1RvViHWwNo8.Token.gFQK6RNAHbzZ6gkf.Actor.EAkrIvo9JDZvkdm3",
             "updates": {
               "system.resources.movement.value": 15
             },
@@ -1000,47 +1001,47 @@
         "failures": [],
         "rolledBack": false,
         "metadata": {
-          "resolutionId": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l"
+          "resolutionId": "qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP"
         }
       }
     },
     "routing": [
       {
         "request": {
-          "id": "request:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:reaction:reaction-window:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:before-transition:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1:offer:1",
-          "resolutionId": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l",
+          "id": "request:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:reaction:reaction-window:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:before-transition:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:transition:1:offer:1",
+          "resolutionId": "qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP",
           "stageId": "movement.transition:1.reactions",
           "type": "reaction-choice",
           "expectedResponseType": "reaction-choice",
           "validation": {
             "required": false,
-            "reactionWindowId": "reaction-window:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:before-transition:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1",
+            "reactionWindowId": "reaction-window:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:before-transition:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:transition:1",
             "offerSequence": 1,
             "candidateIds": [
-              "reaction-candidate:qa-leave:PHqxUvNV6iKzCIbR:Scene.ATdgY1RvViHWwNo8.Token.n5IXP0Lly2WbJC0p.Actor.6dMk9fAcJH9aLSIS:action:qa-movement-reaction:PHqxUvNV6iKzCIbR:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1"
+              "reaction-candidate:qa-leave:K8JgbvVxHdjIzwvS:Scene.ATdgY1RvViHWwNo8.Token.OCHYxPVk1Gv0oMG7.Actor.2VON3zPnPzl4NwBj:action:qa-movement-reaction:K8JgbvVxHdjIzwvS:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:transition:1"
             ]
           },
           "chooser": {
             "kind": "specific",
-            "userId": "hUdU40DWftTFyJzW"
+            "userId": "6JWzwo5Aln6gZUWH"
           },
           "authority": {
             "kind": "specific",
-            "userId": "hUdU40DWftTFyJzW"
+            "userId": "6JWzwo5Aln6gZUWH"
           },
           "payload": {
-            "reactionWindowId": "reaction-window:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:before-transition:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1",
+            "reactionWindowId": "reaction-window:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:before-transition:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:transition:1",
             "offerSequence": 1,
             "timing": "before-transition",
             "event": {
-              "id": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1",
+              "id": "qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:transition:1",
               "type": "movement.transition-proposed",
               "phase": "interrupt",
               "source": {
-                "ref": "token:gBSKwPOiNulNnh4G",
-                "id": "gBSKwPOiNulNnh4G",
-                "actorId": "hWhx31At2tbEkirJ",
-                "tokenId": "gBSKwPOiNulNnh4G",
+                "ref": "token:gFQK6RNAHbzZ6gkf",
+                "id": "gFQK6RNAHbzZ6gkf",
+                "actorId": "EAkrIvo9JDZvkdm3",
+                "tokenId": "gFQK6RNAHbzZ6gkf",
                 "type": null,
                 "disposition": null,
                 "tags": []
@@ -1048,7 +1049,7 @@
               "targets": [],
               "tags": [],
               "data": {
-                "movementId": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l",
+                "movementId": "qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP",
                 "transitionIndex": 1,
                 "previous": {
                   "type": "TokenGridFootprint",
@@ -1576,34 +1577,34 @@
             },
             "candidates": [
               {
-                "id": "reaction-candidate:qa-leave:PHqxUvNV6iKzCIbR:Scene.ATdgY1RvViHWwNo8.Token.n5IXP0Lly2WbJC0p.Actor.6dMk9fAcJH9aLSIS:action:qa-movement-reaction:PHqxUvNV6iKzCIbR:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1",
+                "id": "reaction-candidate:qa-leave:K8JgbvVxHdjIzwvS:Scene.ATdgY1RvViHWwNo8.Token.OCHYxPVk1Gv0oMG7.Actor.2VON3zPnPzl4NwBj:action:qa-movement-reaction:K8JgbvVxHdjIzwvS:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:transition:1",
                 "timing": "before-transition",
-                "triggerId": "qa-leave:PHqxUvNV6iKzCIbR",
-                "eventId": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1",
+                "triggerId": "qa-leave:K8JgbvVxHdjIzwvS",
+                "eventId": "qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:transition:1",
                 "reactor": {
-                  "actorId": "Scene.ATdgY1RvViHWwNo8.Token.n5IXP0Lly2WbJC0p.Actor.6dMk9fAcJH9aLSIS",
-                  "tokenId": "n5IXP0Lly2WbJC0p",
-                  "ref": "actor:Scene.ATdgY1RvViHWwNo8.Token.n5IXP0Lly2WbJC0p.Actor.6dMk9fAcJH9aLSIS"
+                  "actorId": "Scene.ATdgY1RvViHWwNo8.Token.OCHYxPVk1Gv0oMG7.Actor.2VON3zPnPzl4NwBj",
+                  "tokenId": "OCHYxPVk1Gv0oMG7",
+                  "ref": "actor:Scene.ATdgY1RvViHWwNo8.Token.OCHYxPVk1Gv0oMG7.Actor.2VON3zPnPzl4NwBj"
                 },
-                "actionId": "action:qa-movement-reaction:PHqxUvNV6iKzCIbR",
-                "actionRef": "action:qa-movement-reaction:PHqxUvNV6iKzCIbR",
+                "actionId": "action:qa-movement-reaction:K8JgbvVxHdjIzwvS",
+                "actionRef": "action:qa-movement-reaction:K8JgbvVxHdjIzwvS",
                 "action": {
-                  "id": "action:qa-movement-reaction:PHqxUvNV6iKzCIbR",
+                  "id": "action:qa-movement-reaction:K8JgbvVxHdjIzwvS",
                   "label": "QA ordinary melee",
                   "slug": null,
                   "category": "action",
                   "source": {
                     "type": "item",
-                    "ref": "uuid:Scene.ATdgY1RvViHWwNo8.Token.n5IXP0Lly2WbJC0p.Actor.6dMk9fAcJH9aLSIS.Item.JaeXgARCW8lyofoh",
-                    "uuid": "Scene.ATdgY1RvViHWwNo8.Token.n5IXP0Lly2WbJC0p.Actor.6dMk9fAcJH9aLSIS.Item.JaeXgARCW8lyofoh",
-                    "id": "JaeXgARCW8lyofoh",
+                    "ref": "uuid:Scene.ATdgY1RvViHWwNo8.Token.OCHYxPVk1Gv0oMG7.Actor.2VON3zPnPzl4NwBj.Item.zBaXBaA73noUsfGR",
+                    "uuid": "Scene.ATdgY1RvViHWwNo8.Token.OCHYxPVk1Gv0oMG7.Actor.2VON3zPnPzl4NwBj.Item.zBaXBaA73noUsfGR",
+                    "id": "zBaXBaA73noUsfGR",
                     "itemType": "action",
                     "name": "QA ordinary melee"
                   }
                 },
                 "chooser": {
                   "kind": "specific",
-                  "userId": "hUdU40DWftTFyJzW"
+                  "userId": "6JWzwo5Aln6gZUWH"
                 },
                 "payment": {
                   "selectedPaymentOption": {
@@ -1632,14 +1633,14 @@
                   ]
                 },
                 "provenance": {
-                  "triggerId": "qa-leave:PHqxUvNV6iKzCIbR",
-                  "eventId": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1",
+                  "triggerId": "qa-leave:K8JgbvVxHdjIzwvS",
+                  "eventId": "qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:transition:1",
                   "source": {},
                   "owner": {
-                    "ref": "token:n5IXP0Lly2WbJC0p",
-                    "id": "n5IXP0Lly2WbJC0p",
-                    "actorId": "Scene.ATdgY1RvViHWwNo8.Token.n5IXP0Lly2WbJC0p.Actor.6dMk9fAcJH9aLSIS",
-                    "tokenId": "n5IXP0Lly2WbJC0p",
+                    "ref": "token:OCHYxPVk1Gv0oMG7",
+                    "id": "OCHYxPVk1Gv0oMG7",
+                    "actorId": "Scene.ATdgY1RvViHWwNo8.Token.OCHYxPVk1Gv0oMG7.Actor.2VON3zPnPzl4NwBj",
+                    "tokenId": "OCHYxPVk1Gv0oMG7",
                     "type": null,
                     "disposition": null,
                     "tags": []
@@ -1650,11 +1651,11 @@
             ],
             "options": [
               {
-                "id": "reaction-candidate:qa-leave:PHqxUvNV6iKzCIbR:Scene.ATdgY1RvViHWwNo8.Token.n5IXP0Lly2WbJC0p.Actor.6dMk9fAcJH9aLSIS:action:qa-movement-reaction:PHqxUvNV6iKzCIbR:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1",
+                "id": "reaction-candidate:qa-leave:K8JgbvVxHdjIzwvS:Scene.ATdgY1RvViHWwNo8.Token.OCHYxPVk1Gv0oMG7.Actor.2VON3zPnPzl4NwBj:action:qa-movement-reaction:K8JgbvVxHdjIzwvS:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:transition:1",
                 "label": "QA ordinary melee",
                 "value": {
                   "decision": "use",
-                  "candidateId": "reaction-candidate:qa-leave:PHqxUvNV6iKzCIbR:Scene.ATdgY1RvViHWwNo8.Token.n5IXP0Lly2WbJC0p.Actor.6dMk9fAcJH9aLSIS:action:qa-movement-reaction:PHqxUvNV6iKzCIbR:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1"
+                  "candidateId": "reaction-candidate:qa-leave:K8JgbvVxHdjIzwvS:Scene.ATdgY1RvViHWwNo8.Token.OCHYxPVk1Gv0oMG7.Actor.2VON3zPnPzl4NwBj:action:qa-movement-reaction:K8JgbvVxHdjIzwvS:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:transition:1"
                 },
                 "resources": [
                   {
@@ -1697,11 +1698,11 @@
                 },
                 "source": {},
                 "metadata": {
-                  "triggerId": "qa-leave:PHqxUvNV6iKzCIbR",
+                  "triggerId": "qa-leave:K8JgbvVxHdjIzwvS",
                   "reactor": {
-                    "actorId": "Scene.ATdgY1RvViHWwNo8.Token.n5IXP0Lly2WbJC0p.Actor.6dMk9fAcJH9aLSIS",
-                    "tokenId": "n5IXP0Lly2WbJC0p",
-                    "ref": "actor:Scene.ATdgY1RvViHWwNo8.Token.n5IXP0Lly2WbJC0p.Actor.6dMk9fAcJH9aLSIS"
+                    "actorId": "Scene.ATdgY1RvViHWwNo8.Token.OCHYxPVk1Gv0oMG7.Actor.2VON3zPnPzl4NwBj",
+                    "tokenId": "OCHYxPVk1Gv0oMG7",
+                    "ref": "actor:Scene.ATdgY1RvViHWwNo8.Token.OCHYxPVk1Gv0oMG7.Actor.2VON3zPnPzl4NwBj"
                   }
                 }
               },
@@ -1712,7 +1713,7 @@
                   "decision": "decline"
                 },
                 "metadata": {
-                  "reactionWindowId": "reaction-window:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:before-transition:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1"
+                  "reactionWindowId": "reaction-window:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:before-transition:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:transition:1"
                 }
               }
             ]
@@ -1720,28 +1721,28 @@
           "metadata": {
             "required": false,
             "title": "Reaction Available",
-            "reactionWindowId": "reaction-window:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:before-transition:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1",
+            "reactionWindowId": "reaction-window:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:before-transition:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:transition:1",
             "offerSequence": 1
           }
         },
-        "resolutionId": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l",
-        "expectedUserId": "hUdU40DWftTFyJzW",
+        "resolutionId": "qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP",
+        "expectedUserId": "6JWzwo5Aln6gZUWH",
         "chooser": {
           "ok": true,
           "code": "OK",
           "reason": null,
-          "userId": "hUdU40DWftTFyJzW",
+          "userId": "6JWzwo5Aln6gZUWH",
           "kind": "specific",
           "policy": {
             "kind": "specific",
-            "userId": "hUdU40DWftTFyJzW"
+            "userId": "6JWzwo5Aln6gZUWH"
           }
         }
       }
     ],
     "history": [
       {
-        "resolutionId": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l",
+        "resolutionId": "qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP",
         "status": "awaiting-choice",
         "stage": "movement.transition:1.reactions",
         "cursor": {
@@ -1826,7 +1827,7 @@
           ]
         },
         "event": {
-          "id": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1",
+          "id": "qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:transition:1",
           "type": "movement.transition-proposed",
           "phase": "interrupt",
           "data": {
@@ -1893,17 +1894,17 @@
           }
         },
         "window": {
-          "id": "reaction-window:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:before-transition:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1",
+          "id": "reaction-window:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:before-transition:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:transition:1",
           "timing": "before-transition",
           "offeredCandidateIds": [
-            "reaction-candidate:qa-leave:PHqxUvNV6iKzCIbR:Scene.ATdgY1RvViHWwNo8.Token.n5IXP0Lly2WbJC0p.Actor.6dMk9fAcJH9aLSIS:action:qa-movement-reaction:PHqxUvNV6iKzCIbR:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1"
+            "reaction-candidate:qa-leave:K8JgbvVxHdjIzwvS:Scene.ATdgY1RvViHWwNo8.Token.OCHYxPVk1Gv0oMG7.Actor.2VON3zPnPzl4NwBj:action:qa-movement-reaction:K8JgbvVxHdjIzwvS:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:transition:1"
           ]
         },
         "pendingChoice": true,
         "child": null
       },
       {
-        "resolutionId": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l",
+        "resolutionId": "qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP",
         "status": "ready-to-commit",
         "stage": "movement.ready-to-commit",
         "cursor": {
@@ -1988,7 +1989,7 @@
           ]
         },
         "event": {
-          "id": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:2",
+          "id": "qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:transition:2",
           "type": "movement.transition-proposed",
           "phase": "interrupt",
           "data": {
@@ -2055,7 +2056,7 @@
           }
         },
         "window": {
-          "id": "reaction-window:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:before-transition:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:2",
+          "id": "reaction-window:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:before-transition:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:transition:2",
           "timing": "before-transition",
           "offeredCandidateIds": []
         },
@@ -2063,7 +2064,7 @@
         "child": null
       },
       {
-        "resolutionId": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l",
+        "resolutionId": "qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP",
         "status": "ready-to-commit",
         "stage": "movement.ready-to-commit",
         "cursor": {
@@ -2148,7 +2149,7 @@
           ]
         },
         "event": {
-          "id": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:2",
+          "id": "qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:transition:2",
           "type": "movement.transition-proposed",
           "phase": "interrupt",
           "data": {
@@ -2215,7 +2216,7 @@
           }
         },
         "window": {
-          "id": "reaction-window:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:before-transition:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:2",
+          "id": "reaction-window:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:before-transition:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:transition:2",
           "timing": "before-transition",
           "offeredCandidateIds": []
         },
@@ -2223,7 +2224,7 @@
         "child": null
       },
       {
-        "resolutionId": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l",
+        "resolutionId": "qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP",
         "status": "completed",
         "stage": "movement.finalization",
         "cursor": {
@@ -2308,7 +2309,7 @@
           ]
         },
         "event": {
-          "id": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:2",
+          "id": "qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:transition:2",
           "type": "movement.transition-proposed",
           "phase": "interrupt",
           "data": {
@@ -2375,7 +2376,7 @@
           }
         },
         "window": {
-          "id": "reaction-window:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:before-transition:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:2",
+          "id": "reaction-window:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:before-transition:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:transition:2",
           "timing": "before-transition",
           "offeredCandidateIds": []
         },
@@ -2386,20 +2387,21 @@
     "envelopes": [
       {
         "protocolVersion": 1,
-        "messageId": "resolution-message:action-intent:1789939458193:1",
+        "messageId": "resolution-message:action-intent:1791916232489:6",
         "messageType": "ACTION_INTENT",
-        "senderUserId": "6JWzwo5Aln6gZUWH",
+        "senderUserId": "hUdU40DWftTFyJzW",
         "recipientUserId": "hUdU40DWftTFyJzW",
         "recipientUserIds": [],
         "recipientPolicy": null,
-        "resolutionId": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l",
+        "disclosure": "BROADCAST_SAFE",
+        "resolutionId": "qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP",
         "requestId": null,
         "payload": {
-          "resolutionId": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l",
-          "intentId": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l",
-          "movementId": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l",
+          "resolutionId": "qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP",
+          "intentId": "qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP",
+          "movementId": "qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP",
           "sceneRef": "Scene.ATdgY1RvViHWwNo8",
-          "tokenRef": "Scene.ATdgY1RvViHWwNo8.Token.gBSKwPOiNulNnh4G",
+          "tokenRef": "Scene.ATdgY1RvViHWwNo8.Token.gFQK6RNAHbzZ6gkf",
           "origin": {
             "x": 3000,
             "y": 2165,
@@ -2436,7 +2438,7 @@
             "code": "OK",
             "reason": null,
             "userId": "hUdU40DWftTFyJzW",
-            "mode": "active-gm",
+            "mode": "initiating-gm",
             "activeGMUserId": "hUdU40DWftTFyJzW"
           },
           "multiplayer": {
@@ -2446,73 +2448,154 @@
       },
       {
         "protocolVersion": 1,
-        "messageId": "resolution-message:resolution-result:1789939498735:2",
+        "messageId": "resolution-message:action-intent:1791916232489:6",
+        "messageType": "ACTION_INTENT",
+        "senderUserId": "hUdU40DWftTFyJzW",
+        "recipientUserId": "hUdU40DWftTFyJzW",
+        "recipientUserIds": [],
+        "recipientPolicy": null,
+        "disclosure": "BROADCAST_SAFE",
+        "resolutionId": "qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP",
+        "requestId": null,
+        "payload": {
+          "resolutionId": "qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP",
+          "intentId": "qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP",
+          "movementId": "qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP",
+          "sceneRef": "Scene.ATdgY1RvViHWwNo8",
+          "tokenRef": "Scene.ATdgY1RvViHWwNo8.Token.gFQK6RNAHbzZ6gkf",
+          "origin": {
+            "x": 3000,
+            "y": 2165,
+            "elevation": 0,
+            "width": 2,
+            "height": 2,
+            "depth": 1,
+            "shape": 0
+          },
+          "waypoints": [
+            {
+              "x": 3100,
+              "y": 2165,
+              "elevation": 0
+            },
+            {
+              "x": 3200,
+              "y": 2165,
+              "elevation": 0
+            },
+            {
+              "x": 3300,
+              "y": 2165,
+              "elevation": 0
+            }
+          ],
+          "movementKind": "voluntary",
+          "movementMode": "walk",
+          "resolutionKind": "movement"
+        },
+        "metadata": {
+          "authority": {
+            "ok": true,
+            "code": "OK",
+            "reason": null,
+            "userId": "hUdU40DWftTFyJzW",
+            "mode": "initiating-gm",
+            "activeGMUserId": "hUdU40DWftTFyJzW"
+          },
+          "multiplayer": {
+            "intentOnly": true
+          }
+        }
+      },
+      {
+        "protocolVersion": 1,
+        "messageId": "resolution-message:pending-request:1791916232575:7",
+        "messageType": "PENDING_REQUEST",
+        "senderUserId": "hUdU40DWftTFyJzW",
+        "recipientUserId": "6JWzwo5Aln6gZUWH",
+        "recipientUserIds": [],
+        "recipientPolicy": null,
+        "disclosure": "PARTICIPANT_PRIVATE",
+        "resolutionId": "qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP",
+        "requestId": "request:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:reaction:reaction-window:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:before-transition:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:transition:1:offer:1",
+        "payload": {
+          "omitted": true,
+          "disclosure": "PARTICIPANT_PRIVATE",
+          "keys": [
+            "request"
+          ]
+        },
+        "metadata": {
+          "chooser": {
+            "ok": true,
+            "code": "OK",
+            "reason": null,
+            "userId": "6JWzwo5Aln6gZUWH",
+            "kind": "specific",
+            "policy": {
+              "kind": "specific",
+              "userId": "6JWzwo5Aln6gZUWH"
+            }
+          },
+          "stateStatus": "awaiting-choice",
+          "parentResolutionId": null
+        }
+      },
+      {
+        "protocolVersion": 1,
+        "messageId": "resolution-message:request-response:1791916243736:3",
+        "messageType": "REQUEST_RESPONSE",
+        "senderUserId": "6JWzwo5Aln6gZUWH",
+        "recipientUserId": "hUdU40DWftTFyJzW",
+        "recipientUserIds": [],
+        "recipientPolicy": null,
+        "disclosure": "PARTICIPANT_PRIVATE",
+        "resolutionId": "qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP",
+        "requestId": "request:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:reaction:reaction-window:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:before-transition:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:transition:1:offer:1",
+        "payload": {
+          "omitted": true,
+          "disclosure": "PARTICIPANT_PRIVATE",
+          "keys": [
+            "response"
+          ]
+        },
+        "metadata": {
+          "answeredByUserId": "6JWzwo5Aln6gZUWH"
+        }
+      },
+      {
+        "protocolVersion": 1,
+        "messageId": "resolution-message:resolution-result:1791916243931:8",
         "messageType": "RESOLUTION_RESULT",
         "senderUserId": "hUdU40DWftTFyJzW",
         "recipientUserId": null,
         "recipientUserIds": [],
         "recipientPolicy": "all",
-        "resolutionId": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l",
+        "disclosure": "BROADCAST_SAFE",
+        "resolutionId": "qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP",
         "requestId": null,
         "payload": {
           "result": {
-            "resolutionId": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l",
+            "resolutionId": "qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP",
             "status": "completed",
             "code": null,
             "ok": true,
             "authorityUserId": "hUdU40DWftTFyJzW",
-            "initiatorUserId": "6JWzwo5Aln6gZUWH",
+            "initiatorUserId": "hUdU40DWftTFyJzW",
             "action": {
               "id": null,
-              "name": null,
-              "type": "action",
-              "source": null
+              "name": null
             },
             "source": {
-              "actorId": "hWhx31At2tbEkirJ",
-              "actorRef": "Scene.ATdgY1RvViHWwNo8.Token.gBSKwPOiNulNnh4G.Actor.hWhx31At2tbEkirJ",
-              "tokenId": "gBSKwPOiNulNnh4G",
-              "tokenRef": "Scene.ATdgY1RvViHWwNo8.Token.gBSKwPOiNulNnh4G"
+              "actorId": "EAkrIvo9JDZvkdm3",
+              "actorRef": "Scene.ATdgY1RvViHWwNo8.Token.gFQK6RNAHbzZ6gkf.Actor.EAkrIvo9JDZvkdm3",
+              "tokenId": "gFQK6RNAHbzZ6gkf",
+              "tokenRef": "Scene.ATdgY1RvViHWwNo8.Token.gFQK6RNAHbzZ6gkf"
             },
             "targets": [],
-            "configuration": null,
-            "preview": null,
-            "rolls": [],
             "outcomes": {
               "attack": null,
               "save": null,
-              "damage": null,
-              "healing": null,
-              "effects": null,
-              "payment": {
-                "id": "payment-1",
-                "code": "AVAILABLE",
-                "mode": "direct",
-                "priority": 10,
-                "resources": [
-                  {
-                    "resourceId": "economy.movement",
-                    "amount": 15,
-                    "capability": "movement",
-                    "unit": "movement",
-                    "mode": "direct",
-                    "source": {
-                      "type": "actor",
-                      "slug": "movement"
-                    }
-                  }
-                ],
-                "selection": "deterministic-priority",
-                "trace": [
-                  {
-                    "resourceId": "economy.movement",
-                    "capability": "movement",
-                    "amount": 15,
-                    "mode": "direct",
-                    "policy": null
-                  }
-                ]
-              },
               "movement": {
                 "completedTransitionCount": 3,
                 "intendedTransitionCount": 3,
@@ -2762,182 +2845,92 @@
                 "committed": true
               }
             },
-            "committedMutations": [
-              {
-                "id": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:position",
-                "type": "documentUpdate",
-                "actorRef": null,
-                "documentRef": "Scene.ATdgY1RvViHWwNo8.Token.gBSKwPOiNulNnh4G",
-                "role": "movementPosition"
-              },
-              {
-                "id": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:payment",
-                "type": "actorUpdate",
-                "actorRef": "Scene.ATdgY1RvViHWwNo8.Token.gBSKwPOiNulNnh4G.Actor.hWhx31At2tbEkirJ",
-                "role": null
-              }
-            ],
-            "trace": [
-              {
-                "stageId": "movement.intention",
-                "status": "completed",
-                "result": "continue",
-                "code": "OK",
-                "requestIds": []
-              },
-              {
-                "stageId": "movement.route",
-                "status": "completed",
-                "result": "continue",
-                "code": "OK",
-                "requestIds": []
-              },
-              {
-                "stageId": "movement.validation",
-                "status": "completed",
-                "result": "continue",
-                "code": "OK",
-                "requestIds": []
-              },
-              {
-                "stageId": "movement.transition:0.propose",
-                "status": "completed",
-                "result": "continue",
-                "code": "OK",
-                "requestIds": []
-              },
-              {
-                "stageId": "movement.transition:0.reactions",
-                "status": "running",
-                "result": "continue",
-                "code": "NO_CANDIDATES",
-                "requestIds": []
-              },
-              {
-                "stageId": "movement.transition:0.reactions",
-                "status": "completed",
-                "result": "continue",
-                "code": "OK",
-                "requestIds": []
-              },
-              {
-                "stageId": "movement.transition:0.revalidation",
-                "status": "completed",
-                "result": "continue",
-                "code": "OK",
-                "requestIds": []
-              },
-              {
-                "stageId": "movement.transition:0.traverse",
-                "status": "completed",
-                "result": "continue",
-                "code": "OK",
-                "requestIds": []
-              },
-              {
-                "stageId": "movement.transition:1.propose",
-                "status": "completed",
-                "result": "continue",
-                "code": "OK",
-                "requestIds": []
-              },
-              {
-                "stageId": "movement.transition:1.reactions",
-                "status": "awaiting-choice",
-                "result": "wait",
-                "code": "WAITING",
-                "requestIds": [
-                  "request:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:reaction:reaction-window:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:before-transition:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1:offer:1"
-                ]
-              },
-              {
-                "stageId": "movement.transition:1.reactions",
-                "status": "waiting",
-                "result": "wait",
-                "code": "OK",
-                "requestIds": [
-                  "request:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:reaction:reaction-window:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:before-transition:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1:offer:1"
-                ]
-              },
-              {
-                "stageId": "movement.transition:1.reactions",
-                "status": "running",
-                "result": "continue",
-                "code": "OK",
-                "requestIds": [
-                  "request:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:reaction:reaction-window:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:before-transition:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1:offer:1"
-                ]
-              },
-              {
-                "stageId": "movement.transition:1.reactions",
-                "status": "running",
-                "result": "continue",
-                "code": "NO_CANDIDATES",
-                "requestIds": []
-              },
-              {
-                "stageId": "movement.transition:1.reactions",
-                "status": "completed",
-                "result": "continue",
-                "code": "OK",
-                "requestIds": []
-              },
-              {
-                "stageId": "movement.transition:1.revalidation",
-                "status": "completed",
-                "result": "continue",
-                "code": "OK",
-                "requestIds": []
-              },
-              {
-                "stageId": "movement.transition:1.traverse",
-                "status": "completed",
-                "result": "continue",
-                "code": "OK",
-                "requestIds": []
-              },
-              {
-                "stageId": "movement.transition:2.propose",
-                "status": "completed",
-                "result": "continue",
-                "code": "OK",
-                "requestIds": []
-              },
-              {
-                "stageId": "movement.transition:2.reactions",
-                "status": "running",
-                "result": "continue",
-                "code": "NO_CANDIDATES",
-                "requestIds": []
-              },
-              {
-                "stageId": "movement.transition:2.reactions",
-                "status": "completed",
-                "result": "continue",
-                "code": "OK",
-                "requestIds": []
-              },
-              {
-                "stageId": "movement.transition:2.revalidation",
-                "status": "completed",
-                "result": "continue",
-                "code": "OK",
-                "requestIds": []
-              },
-              "[5 more entries]"
-            ]
+            "rolls": [],
+            "disclosure": "BROADCAST_SAFE"
           }
         },
         "metadata": {}
       }
     ],
+    "transport": {
+      "broadcastMessageTypes": [
+        "RESOLUTION_RESULT"
+      ],
+      "broadcast": [
+        {
+          "direction": "outgoing",
+          "transport": "broadcast",
+          "messageType": "RESOLUTION_RESULT",
+          "messageId": "resolution-message:resolution-result:1791916243931:8",
+          "senderUserId": "hUdU40DWftTFyJzW",
+          "recipientUserId": null,
+          "recipientPolicy": "all",
+          "disclosure": "BROADCAST_SAFE",
+          "resolutionId": "qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP",
+          "requestId": null
+        }
+      ],
+      "targeted": [
+        {
+          "direction": "outgoing",
+          "transport": "targeted",
+          "messageType": "PENDING_REQUEST",
+          "messageId": "resolution-message:pending-request:1791916232575:7",
+          "senderUserId": "hUdU40DWftTFyJzW",
+          "recipientUserId": "6JWzwo5Aln6gZUWH",
+          "recipientPolicy": null,
+          "disclosure": "PARTICIPANT_PRIVATE",
+          "resolutionId": "qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP",
+          "requestId": "request:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:reaction:reaction-window:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:before-transition:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:transition:1:offer:1"
+        },
+        {
+          "direction": "incoming",
+          "transport": "targeted",
+          "messageType": "REQUEST_RESPONSE",
+          "messageId": "resolution-message:request-response:1791916243736:3",
+          "senderUserId": "6JWzwo5Aln6gZUWH",
+          "recipientUserId": "hUdU40DWftTFyJzW",
+          "recipientPolicy": null,
+          "disclosure": "PARTICIPANT_PRIVATE",
+          "resolutionId": "qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP",
+          "requestId": "request:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:reaction:reaction-window:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:before-transition:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:transition:1:offer:1"
+        }
+      ],
+      "local": [
+        {
+          "direction": "outgoing",
+          "transport": "local",
+          "messageType": "ACTION_INTENT",
+          "messageId": "resolution-message:action-intent:1791916232489:6",
+          "senderUserId": "hUdU40DWftTFyJzW",
+          "recipientUserId": "hUdU40DWftTFyJzW",
+          "recipientPolicy": null,
+          "disclosure": "BROADCAST_SAFE",
+          "resolutionId": "qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP",
+          "requestId": null
+        },
+        {
+          "direction": "incoming",
+          "transport": "local",
+          "messageType": "ACTION_INTENT",
+          "messageId": "resolution-message:action-intent:1791916232489:6",
+          "senderUserId": "hUdU40DWftTFyJzW",
+          "recipientUserId": "hUdU40DWftTFyJzW",
+          "recipientPolicy": null,
+          "disclosure": "BROADCAST_SAFE",
+          "resolutionId": "qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP",
+          "requestId": null
+        }
+      ],
+      "refused": []
+    },
     "result": {
-      "resolutionId": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l",
+      "resolutionId": "qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP",
       "status": "completed",
       "code": null,
       "ok": true,
       "authorityUserId": "hUdU40DWftTFyJzW",
-      "initiatorUserId": "6JWzwo5Aln6gZUWH",
+      "initiatorUserId": "hUdU40DWftTFyJzW",
       "action": {
         "id": null,
         "name": null,
@@ -2945,10 +2938,10 @@
         "source": null
       },
       "source": {
-        "actorId": "hWhx31At2tbEkirJ",
-        "actorRef": "Scene.ATdgY1RvViHWwNo8.Token.gBSKwPOiNulNnh4G.Actor.hWhx31At2tbEkirJ",
-        "tokenId": "gBSKwPOiNulNnh4G",
-        "tokenRef": "Scene.ATdgY1RvViHWwNo8.Token.gBSKwPOiNulNnh4G"
+        "actorId": "EAkrIvo9JDZvkdm3",
+        "actorRef": "Scene.ATdgY1RvViHWwNo8.Token.gFQK6RNAHbzZ6gkf.Actor.EAkrIvo9JDZvkdm3",
+        "tokenId": "gFQK6RNAHbzZ6gkf",
+        "tokenRef": "Scene.ATdgY1RvViHWwNo8.Token.gFQK6RNAHbzZ6gkf"
       },
       "targets": [],
       "configuration": null,
@@ -3575,16 +3568,16 @@
       },
       "committedMutations": [
         {
-          "id": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:position",
+          "id": "qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:position",
           "type": "documentUpdate",
           "actorRef": null,
-          "documentRef": "Scene.ATdgY1RvViHWwNo8.Token.gBSKwPOiNulNnh4G",
+          "documentRef": "Scene.ATdgY1RvViHWwNo8.Token.gFQK6RNAHbzZ6gkf",
           "role": "movementPosition"
         },
         {
-          "id": "qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:payment",
+          "id": "qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:payment",
           "type": "actorUpdate",
-          "actorRef": "Scene.ATdgY1RvViHWwNo8.Token.gBSKwPOiNulNnh4G.Actor.hWhx31At2tbEkirJ",
+          "actorRef": "Scene.ATdgY1RvViHWwNo8.Token.gFQK6RNAHbzZ6gkf.Actor.EAkrIvo9JDZvkdm3",
           "role": null
         }
       ],
@@ -3658,7 +3651,7 @@
           "result": "wait",
           "code": "WAITING",
           "requestIds": [
-            "request:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:reaction:reaction-window:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:before-transition:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1:offer:1"
+            "request:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:reaction:reaction-window:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:before-transition:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:transition:1:offer:1"
           ]
         },
         {
@@ -3667,7 +3660,7 @@
           "result": "wait",
           "code": "OK",
           "requestIds": [
-            "request:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:reaction:reaction-window:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:before-transition:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1:offer:1"
+            "request:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:reaction:reaction-window:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:before-transition:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:transition:1:offer:1"
           ]
         },
         {
@@ -3676,7 +3669,7 @@
           "result": "continue",
           "code": "OK",
           "requestIds": [
-            "request:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:reaction:reaction-window:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:before-transition:qa-movement:PHqxUvNV6iKzCIbR:wxFmBmKHIHhqk03l:transition:1:offer:1"
+            "request:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:reaction:reaction-window:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:before-transition:qa-movement:K8JgbvVxHdjIzwvS:0KJnP3NJmGcCcISP:transition:1:offer:1"
           ]
         },
         {
@@ -3736,7 +3729,8 @@
           "requestIds": []
         },
         "[5 more entries]"
-      ]
+      ],
+      "disclosure": "PARTICIPANT_PRIVATE"
     }
   }
 }
