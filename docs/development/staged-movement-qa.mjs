@@ -223,9 +223,9 @@ export async function setupGM(moverUserId, reactorUserId=game.user.id, {variant=
   };
   // Read-only observation at the normal child commit catches fast local-GM rolls.
   // Never throw from a Foundry hook or return false: evidence errors only fail the QA proof.
-  const observe = () => {try {qa.capture();} catch (error) {qa.captureErrors.push(error.message);}};
-  qa.actorHook = Hooks.on("preUpdateActor",observe);
-  qa.timer = setInterval(observe,100);
+  const observeState = () => {try {qa.capture();} catch (error) {qa.captureErrors.push(error.message);}};
+  qa.actorHook = Hooks.on("preUpdateActor",observeState);
+  qa.timer = setInterval(observeState,100);
   qa.detach = () => {clearInterval(qa.timer); Hooks.off("preUpdateActor",qa.actorHook);
     game.wildpath.reactionServices = previous;};
   qa.cleanup = async () => {
