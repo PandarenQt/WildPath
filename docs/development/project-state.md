@@ -11,7 +11,9 @@ Last verified: 2026-10-13.
 - Movement implementation commit: `87ed1fae93271b81b14432bb4312be9cd53285c5`.
 - Original milestone starting HEAD: `ea484fd8b503697ddf1c2b7b0f6984ea594378e2`.
 - Local main HEAD: `61d6268b838e286728c829924506c6c931174621`.
-- Portable full suite (`FOUNDRY_V14_APP_PATH` unset): **915 tests, 913 passed, 0 failed, 2 intentionally skipped**.
+- Portable full suite (`FOUNDRY_V14_APP_PATH` unset): **918 tests, 916 passed, 0 failed, 2 intentionally skipped**.
+- M3 slice 3 delta from 915/913/0/2: **3 new tests** (a counterattack offered after a hit, used and
+  declined, and a bystander's `{self}` that does not match an attack on someone else). Quench **62/62**.
 - M3 slice 2 delta from 913/911/0/2: **2 new tests** (a before-step reaction resolves inside the step's
   approval, then lets the step play or stops the movement). Quench **62/62** live on 14.369.
 - M2 delta from 893/891/0/2: **6 new tests** (dice policy context and provider choice, re-prompt on a
@@ -124,8 +126,14 @@ leaving reach, with no injected services. Slice 2 done: native drags resolve bef
 each step's checkpoint approval. The step is held, the reaction resolves, then the step plays with
 Foundry's ruler and animation. This was verified live in two browsers: accept (player move), decline,
 and accept on the GM's own move ([movement-paths.md](../architecture/movement-paths.md#before-step-reactions-in-native-drags)).
-A refused movement now shows one notification instead of two. Next: `services.reactions` for ordinary
-Actions; then areas, auras and hazards.
+A refused movement now shows one notification instead of two. Slice 3 done: ordinary Actions get
+production reactions. Triggers on `action.declared`, `attack.hit` and `attack.miss` come from the world.
+`match: {targetTokenId: "{self}"}` reads "an attack on me" per Token, and a reaction Action targets the
+triggering creature (or itself). A completed reaction posts its own public card. Verified live: a
+player's Strike was answered by a GM guard's Counterattack, with two cards
+([rule-elements.md](../architecture/rule-elements.md#current-integration)). A reaction that cancels the
+triggering Action (Counterspell-like) still needs an ActionDefinition field for the parent directive. That
+is a data-format decision. Next: area targeting, then persistent areas, auras and hazards.
 
 **Authority and disclosure hardening (M0) — CLOSED on 2026-10-13.** A review found that the
 authority trusted more than it could verify: any player could act through an Actor or Item they did

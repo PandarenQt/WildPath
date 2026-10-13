@@ -37,6 +37,9 @@ A trigger definition declares:
 
 Matching is deterministic. It checks event type, phase, source, target, and tags, then evaluates
 the shared structured predicate helper. It returns dispatch plans; it does not execute effects.
+Target matching is by Actor id (`targetActorId`, `targetActorIdsAny`, `targetActorIdsAll`) or by Token
+(`targetTokenId`). Unlinked Tokens of one base Actor share its id, so "an attack on me" matches the
+Token.
 
 RuleElements can contribute these trigger definitions. `ConditionTriggerResolver` currently consumes
 condition-provided Trigger RuleElements for a narrow durability-change payload on semantic
@@ -155,7 +158,15 @@ See [ResolutionState](resolution-state.md#foundry-actor-system-snapshots). The d
 `Trigger` RuleElements (see [rule-elements.md](rule-elements.md#current-integration)). A provider already set
 on `game.wildpath.reactionServices` (QA, a module) still wins. Native drags reach the same triggers
 before each step ([movement-paths.md](movement-paths.md#before-step-reactions-in-native-drags)).
-Ordinary Actions do not yet receive `services.reactions` from Foundry.
+
+Ordinary Actions receive `services.reactions` from the same provider when some other Token on the
+acting Token's Scene subscribes to an Action event (`foundryActionReactionServices`). The pipeline's
+two windows open as before: after the Action is declared, and after the attack outcome (with
+re-evaluation). A reaction Action that targets `self` acts on its own Token. Any other reaction Action
+acts on the creature whose Action triggered it, where that creature stands. Its attack uses the reacting
+Item's own modifiers. Its choice and rolls route to the reactor's active controller, or to the GM when
+none is connected. The acting and reacting Actors join the commit's `targetActors`. A Scene without such
+Tokens keeps the plain path.
 
 An approved operation snapshots its trigger definitions. Predicates, resource availability, and
 child state are evaluated against the canonical verified event. Registration changes are adopted

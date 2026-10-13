@@ -5,12 +5,13 @@ const MOVEMENT_EVENT = "movement.transition-proposed";
 const reactionTrigger = createReactionTrigger;
 const definitionFor = actionDefinitionFromAction;
 /**
- * Production reaction services, derived from the world: every Token on the movement's Scene whose Actor has
- * an active Item with a `Trigger` RuleElement of kind `reaction` becomes a reactor. The trigger's Action is
- * the Item itself (an Action Item) or the Action named by `data.reaction.actionId`. Reactors to movement
- * also become observers: reach in fields from that Action's reach range, hostility from Token dispositions.
- * Trigger predicates may write `{self}` in a path for this reactor's observer id, e.g.
- * `event.data.relations.{self}.leavesReach`. Serves the staged movement host and native drags alike.
+ * Production reaction services, derived from the world: every other Token on the acting Token's Scene whose
+ * Actor has an active Item with a `Trigger` RuleElement of kind `reaction` becomes a reactor, for any event
+ * (movement steps, `action.declared`, `attack.hit`, ...). The trigger's Action is the Item itself (an Action
+ * Item) or the Action named by `data.reaction.actionId`. Reactors to movement also become observers: reach
+ * in fields from that Action's reach range, hostility from Token dispositions. `{self}` stands for this
+ * reactor's Token id in predicate paths (`event.data.relations.{self}.leavesReach`) and in `match` values
+ * (`match: {targetTokenId: "{self}"}`: "an attack on me").
  */
 export function createFoundryReactionProvider({ resolve = defaultResolve } = {}) {
     return function reactionServices(context = {}) {
@@ -23,21 +24,21 @@ export function createFoundryReactionProvider({ resolve = defaultResolve } = {})
         for (const token of scene.tokens) {
             if ((token.id === mover.id) || !token.actor)
                 continue;
-            const reactions = movementReactions(token);
-            if (!reactions.length)
-                continue;
+            const reactions = tokenReactions(token);
             triggers.push(...reactions.map(entry => entry.trigger));
-            observers.push({
-                id: token.id,
-                token,
-                reachFields: Math.max(...reactions.map(entry => reachFields(entry.definition, scene))),
-                context: { hostile: isHostile(token, mover) }
-            });
+            const watching = reactions.filter(entry => entry.event === MOVEMENT_EVENT);
+            if (watching.length)
+                observers.push({
+                    id: token.id,
+                    token,
+                    reachFields: Math.max(...watching.map(entry => reachFields(entry.definition, scene))),
+                    context: { hostile: isHostile(token, mover) }
+                });
         }
-        return triggers.length ? { reactions: { triggers }, movement: { observers } } : {};
+        return triggers.length ? { reactions: { triggers }, ...(observers.length ? { movement: { observers } } : {}) } : {};
     };
 }
-function movementReactions(token) {
+function tokenReactions(token) {
     const actor = token.actor;
     const items = [...(actor.items ?? [])];
     return items.flatMap(item => {
@@ -47,7 +48,8 @@ function movementReactions(token) {
             const data = (element.data ?? {});
             if ((element.type !== "Trigger") || (element.enabled === false))
                 return [];
-            if (((data.kind ?? data.triggerKind) !== "reaction") || ((data.event ?? data.eventType) !== MOVEMENT_EVENT))
+            const event = String(data.event ?? data.eventType ?? "");
+            if (((data.kind ?? data.triggerKind) !== "reaction") || !event)
                 return [];
             const actionItem = item.type === "action" ? item
                 : items.find(entry => (entry.type === "action")
@@ -57,15 +59,15 @@ function movementReactions(token) {
                 return [];
             const trigger = reactionTrigger({
                 id: `reaction:${token.id}:${item.id}:${String(element.id ?? "trigger")}`,
-                event: MOVEMENT_EVENT,
-                match: data.match ?? { phase: "interrupt" },
+                event,
+                match: bindSelfValues(data.match ?? { phase: "interrupt" }, token.id),
                 actorId: actor.uuid,
                 tokenId: token.id,
                 action: definition.definition,
                 actionId: definition.definition.id ?? null,
                 predicate: bindSelf(data.triggerPredicate ?? data.eventPredicate ?? null, token.id)
             });
-            return [{ trigger, definition: definition.definition }];
+            return [{ trigger, event, definition: definition.definition }];
         });
     });
 }
@@ -88,6 +90,10 @@ export function bindSelf(predicate, observerId) {
         return predicate;
     return Object.fromEntries(Object.entries(predicate).map(([key, value]) => [key,
         (key === "path") && (typeof value === "string") ? value.replaceAll("{self}", observerId) : bindSelf(value, observerId)]));
+}
+/** Replace a `match` value of exactly `{self}` with this reactor's Token id. */
+function bindSelfValues(match, tokenId) {
+    return Object.fromEntries(Object.entries(match).map(([key, value]) => [key, value === "{self}" ? tokenId : value]));
 }
 function defaultResolve(uuid) {
     const fromUuidSync = globalThis.fromUuidSync;

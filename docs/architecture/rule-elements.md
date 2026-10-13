@@ -174,15 +174,16 @@ legacy dot data is ignored to avoid double application.
 
 **Reaction triggers.** The Foundry reaction provider
 (`module/adapters/foundry-v14-reaction-provider.mts`, installed as `game.wildpath.reactionServices`)
-turns `Trigger` RuleElements of `kind: "reaction"` on active Items into reaction triggers for movement,
-both staged and native drags (`event: "movement.transition-proposed"`, phase `interrupt`):
+turns `Trigger` RuleElements of `kind: "reaction"` on active Items into reaction triggers for any event:
+movement steps, staged and native (`event: "movement.transition-proposed"`, phase `interrupt`), and
+ordinary Actions (`action.declared`, `attack.hit`, `attack.miss`):
 
 - The reaction's Action is the Item itself (an Action Item) or the Action named by `data.reaction.actionId`.
 - Each such Token also becomes a movement observer: reach in fields comes from that Action's reach range,
   hostility from opposed Token dispositions.
 - Put the event predicate in `data.triggerPredicate`; `predicate` (or `data.predicate`) is the RuleElement's
   own activation predicate and is evaluated without the event.
-- `{self}` in a predicate `path` is bound to this reactor's observer id.
+- `{self}` in a predicate `path`, or as a whole `match` value, is bound to this reactor's Token id.
 
 An opportunity attack is authored as:
 
@@ -193,6 +194,18 @@ An opportunity attack is authored as:
     {equals: {path: "event.data.relations.{self}.leavesReach", value: true}},
     {equals: {path: "event.data.relations.{self}.context.hostile", value: true}}]}}}
 ```
+
+A counterattack ("when a creature hits you, strike back") is authored as:
+
+```js
+{type: "Trigger", data: {kind: "reaction", event: "attack.hit",
+  match: {phase: "interrupt", targetTokenId: "{self}"}}}
+```
+
+Live (two browsers, 14.369): Player1's Strike hit a GM-controlled guard. The GM was offered the guard's
+Counterattack before the Strike's damage was committed. The counterattack hit Player1's attacker for 3,
+the guard spent its reaction, and the Strike's 6 damage still landed. The player saw two public cards,
+the guard's Counterattack, then the Strike.
 
 Live (Quench, 14.369): a hostile guard with this Trigger on its melee Action attacked a friendly mover
 leaving its reach (6 damage, reaction spent, movement finished), with no injected services. Live in two

@@ -317,6 +317,10 @@ export function matchAutomationEvent(match, event) {
   if ( match.targetActorIdsAll?.length && !match.targetActorIdsAll.every(id => targetActorIds(event).has(id)) ) {
     return fail(AUTOMATION_CODES.TARGET_MISMATCH);
   }
+  // Token identity: unlinked Tokens of one base Actor share its id, so "an attack on me" matches the Token.
+  if ( match.targetTokenId && !(event.targets ?? []).some(target => target?.tokenId === match.targetTokenId) ) {
+    return fail(AUTOMATION_CODES.TARGET_MISMATCH);
+  }
 
   const tags = new Set(event.tags ?? []);
   if ( match.tagsAny?.length && !match.tagsAny.some(tag => tags.has(tag)) ) {

@@ -11,6 +11,7 @@ import {createFoundryV14UserQueryTransport} from "../adapters/foundry-v14-user-q
 import {createDisclosureRoutedTransport} from "../adapters/disclosure-routed-transport.mjs";
 import {createFoundryV14ChatCardAdapter} from "../adapters/foundry-v14-chat-card-adapter.mjs";
 import {createFoundryReactionProvider} from "../adapters/foundry-v14-reaction-provider.mjs";
+import {foundryActionReactionServices} from "../adapters/foundry-v14-reaction-services.mjs";
 import {
   buildFoundryMovementCompletion,
   buildFoundryMovementProgressObservation,
@@ -475,6 +476,8 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       actorId: targetActor.id ?? null,
       actorRef: targetActor.uuid ?? targetRef,
       uuid: targetActor.uuid ?? null,
+      // Reaction triggers match "an attack on me" by Token (unlinked Tokens share a base Actor id).
+      tokenId: targetTokenFor(targetActor, hint, game)?.id ?? hint.tokenId,
       name: publicTargetName(targetActor, hint, game)
     }, targetActor, defenseKey);
     targets.push(target);
@@ -525,6 +528,14 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       else targetActors[key] = holder;
     }
   }
+  // Reactors on the Scene (Trigger RuleElements on Action events) and the acting creature they may answer.
+  const scene = sourceToken?.parent ?? null;
+  const reactions = scene ? foundryActionReactionServices({game, scene, token: sourceToken,
+    supplied: game?.wildpath?.reactionServices?.({intent, scene, token: sourceToken, resolutionKind: "action"}) ?? {}}) : null;
+  for ( const [key, document] of Object.entries(reactions?.actorDocuments ?? {}) ) {
+    if ( targetActors[key] && (targetActors[key] !== document) ) delete targetActors[key];
+    else targetActors[key] = document;
+  }
 
   return {
     ok: true,
@@ -553,7 +564,8 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
         const owners = ownerUserIdsForDocument(targetActor, {game});
         return targetControllerKeys(targetActor, hint, game).map(key => [key, owners]);
       }))
-    }
+    },
+    ...(reactions ? {services: {...reactions.services, targetActors}} : {})
   };
 }
 

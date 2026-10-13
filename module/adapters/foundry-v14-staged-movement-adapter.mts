@@ -6,7 +6,7 @@ import {foundryActorSystemSnapshot} from "./foundry-v14-actor-system-adapter.mjs
 import {stagedMovementPersistence} from "./foundry-v14-staged-movement-commit.mjs";
 import {clonePlainData} from "../helpers/multiplayer-authority.mjs";
 import {foundryMovementReactionServices, footprintPositionUpdates,
-  type Actor, type MovementReactionGame, type Observer, type Scene, type Token} from "./foundry-v14-movement-reaction-services.mjs";
+  type Actor, type MovementReactionGame, type Observer, type Scene, type Token} from "./foundry-v14-reaction-services.mjs";
 
 type Data = Record<string, unknown>;
 export interface StagedMovementRuleServices {
@@ -57,7 +57,7 @@ export async function foundryMovementIntentToStagedOptions({intent, resolutionId
   const grid = translated.sceneContext.grid;
   const measurementMode = game.settings?.get("wildpath", "movementMeasurementMode") === "fields" ? "fields" : "distance";
   const source = {actorId: actor.id, actorRef: actor.uuid, tokenId: token.id, tokenRef: token.uuid};
-  const {services, actorDocuments, controllers} = foundryMovementReactionServices({game, actor, token, supplied, adapter,
+  const {services, actorDocuments, controllers} = foundryMovementReactionServices({game, token, supplied, adapter,
     sceneContext: translated.sceneContext, targetPosition: footprint => ({...original, ...positionUpdates(footprint)})});
   const ownerIds = controllers[actor.uuid] ?? [];
   const host = createMovementResolutionHost({id: resolutionId, path: translated.path, source,

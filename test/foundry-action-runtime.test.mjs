@@ -18,6 +18,8 @@ import {DISCLOSURE_CLASSIFICATIONS} from "../module/helpers/multiplayer-disclosu
 import {createTestDocumentPersistenceAdapter} from "../module/adapters/test-persistence-adapter.mjs";
 import {createMultiplayerActionCoordinator} from "../module/resolvers/multiplayer-action-coordinator.mjs";
 import {createTestRollProvider} from "../module/resolvers/roll-provider-resolver.mjs";
+import {createTestPromptAdapter} from "../module/adapters/test-prompt-adapter.mjs";
+import {createFoundryReactionProvider} from "../module/adapters/foundry-v14-reaction-provider.mjs";
 import {
   buildFoundryActionUseIntent,
   foundryActionIntentToStagedOptions
@@ -684,6 +686,98 @@ test("two unlinked Tokens of one base Actor each take their own hit, never each 
     "each Token is attacked against its own defense");
   assert.equal(targetActor.system.resources.health.value, 24, "the first goblin takes its own 6");
   assert.equal(second.system.resources.health.value, 24, "the second goblin takes its own 6, not both hits");
+});
+
+/** A GM-controlled target whose Token answers "a hit on me" by striking back (authored Trigger RuleElement). */
+function counterattackFixture(t, {decision="use", reactor="target"}={}) {
+  const fixture = syntheticRuntimeFixture(t, undefined, {targetHealth: 30});
+  const {scene, sourceActor, targetActor, targetSource, game} = fixture;
+  scene.tokens.get = id => scene.tokens.find(token => token.id === id);
+  sourceActor.system.defenses = {ac: {value: 10}};
+  sourceActor.system.resources.health = {value: 20, max: 20};
+  for ( const system of [targetSource, targetActor.system] ) system.resources.reaction = {value: 1, max: 1};
+  targetActor.testUserPermission = user => user?.isGM === true;
+  let holder = targetActor;
+  if ( reactor === "bystander" ) {
+    holder = withFoundryActorSystem(fakeActor("bystander", {system: {...targetActorSystem(), resources: {
+      health: {value: 20, max: 20}, reaction: {value: 1, max: 1}}}, owners: []}));
+    const token = fakeTokenDocument({id: "bystander-token", actor: holder, scene, offset: {i: 0, j: 1}});
+    Object.assign(holder, {uuid: `${token.uuid}.Actor.bystander`, isToken: true, token, tokens: [token]});
+    scene.tokens.push(token);
+  }
+  holder.items = [{id: "counter", type: "action", name: "Counterattack", system: {active: true,
+    definition: {schemaVersion: 1, id: "action:counterattack", label: "Counterattack",
+      costs: {allOf: [{capability: ECONOMY_CAPABILITIES.REACTION, amount: 1}]},
+      range: {type: "reach", distance: {value: 5, unit: "ft"}}, targeting: {type: "single", required: true, count: 1},
+      attack: {type: "melee", statistic: "weapon", defenseKey: "ac"},
+      damage: [{id: "riposte", expression: {type: "constant", value: 3}, damageType: "slashing", provenance: "weapon-base"}]},
+    ruleElements: [{schemaVersion: 1, id: "riposte", type: "Trigger", data: {kind: "reaction", event: "attack.hit",
+      match: {phase: "interrupt", targetTokenId: "{self}"}}}]}}];
+  // Reactions route to active controllers (the GM when none is connected), as Foundry's Users report them.
+  for ( const user of game.users.values() ) user.active = user.id !== "player-b";
+  game.user = game.users.get("gm-a");
+  game.wildpath = {reactionServices: createFoundryReactionProvider()};
+  const persistencePort = createTestDocumentPersistenceAdapter();
+  const hub = createTestResolutionTransportHub({users: [
+    {id: "gm-a", active: true, isGM: true, isActiveGM: true},
+    {id: "player-a", active: true, isGM: false}
+  ]});
+  const offers = [];
+  const posts = [];
+  const gm = createMultiplayerActionCoordinator({userId: "gm-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
+    transport: hub.createEndpoint({userId: "gm-a"}), publishResult: post => { posts.push(post); },
+    promptPorts: [createTestPromptAdapter({id: "counterattack-choice", queue: [request => {
+      offers.push(request);
+      return decision === "use" ? {decision, candidateId: request.payload.candidates[0].id} : {decision};
+    }]})],
+    rollProviders: [createTestRollProvider({result: {natural: 15, total: 15}})],
+    actionIntentResolver: ({intent, envelope}) => foundryActionIntentToStagedOptions({intent,
+      senderUserId: envelope.senderUserId, game, persistencePort})});
+  const player = createMultiplayerActionCoordinator({userId: "player-a", users: () => hub.userDirectory(),
+    activeGMUserId: "gm-a", transport: hub.createEndpoint({userId: "player-a"}),
+    rollProviders: [createTestRollProvider({result: {natural: 18, total: 22}})]});
+  gm.register();
+  player.register();
+  return {...fixture, gm, player, offers, holder, posts};
+}
+
+for ( const decision of ["use", "decline"] ) test(`a counterattack Trigger on the target's Token is offered after the hit and ${decision === "use" ? "strikes the attacker" : "can be declined"}`, async t => {
+  const {sourceActor, targetActor, gm, player, offers, posts, intent} = counterattackFixture(t, {decision});
+  const declared = await player.declareActionIntent(intent);
+  assert.equal(declared.ok, true, JSON.stringify(declared));
+  const record = gm.getRecord(declared.resolutionId);
+  assert.ok(record, JSON.stringify({gm: gm.errors, player: player.errors}).slice(0, 2000));
+  const active = record.state.metadata?.activeChildResolution;
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify({errors: record.state.errors,
+    pending: record.state.pendingRequests.map(r => [r.id, r.type, r.chooser]), child: active && {status: active.status,
+      pending: active.pendingRequests?.map(r => [r.id, r.type, r.chooser, r.authority]), errors: active.errors},
+    expectations: [...record.requestExpectations.values()].map(e => [e.request?.id, e.recipientUserIds ?? e.userIds]),
+    gmErrors: gm.errors, playerErrors: player.errors}).slice(0, 3000));
+  assert.equal(offers.length, 1, "the GM, who controls the target, was offered the reaction once");
+  assert.equal(offers[0].payload.candidates.length, 1);
+  assert.equal(targetActor.system.resources.health.value, 24, "the attack's own damage still lands");
+  if ( decision === "use" ) {
+    assert.equal(sourceActor.system.resources.health.value, 17, "the counterattack hit the attacker for 3");
+    assert.equal(targetActor.system.resources.reaction.value, 0, "the target spent its reaction");
+    assert.deepEqual(posts.map(post => [post.result.action?.name, post.initiatorUserId, post.messageMode]),
+      [["Counterattack", "gm-a", null], ["Runtime Melee Strike", "player-a", null]],
+      "the reaction posts its own public card, authored by its controller, before the Action's card");
+    assert.equal(JSON.stringify(posts[0].result).includes('"defense"'), false, "the card sees only the public projection");
+  } else {
+    assert.equal(sourceActor.system.resources.health.value, 20);
+    assert.equal(targetActor.system.resources.reaction.value, 1);
+  }
+});
+
+test("a counterattack Trigger on a bystander's Token ignores an attack on someone else", async t => {
+  const {targetActor, holder, gm, player, offers, intent} = counterattackFixture(t, {reactor: "bystander"});
+  const declared = await player.declareActionIntent(intent);
+  const record = gm.getRecord(declared.resolutionId);
+  assert.ok(record, JSON.stringify(gm.errors).slice(0, 2000));
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors));
+  assert.equal(offers.length, 0, "{self} is the bystander's own Token, not the target's");
+  assert.equal(holder.system.resources.reaction.value, 1);
+  assert.equal(targetActor.system.resources.health.value, 24);
 });
 
 test("Action targets carry the Token's public name, never a hidden Token's or the base Actor's", async t => {

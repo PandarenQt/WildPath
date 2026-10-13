@@ -12,7 +12,7 @@ type GridAdapter = ReturnType<typeof createFoundryV14TacticalGridAdapter>;
 export interface User {id: string; isGM?: boolean; active?: boolean}
 export interface Actor {id: string; uuid: string; system: Data; toObject(source: boolean): Data; testUserPermission(user: User, level: string): boolean;
   items?: Iterable<{id?: string; type?: string; system?: {definition?: {id?: string}}}>}
-export interface Token {id: string; uuid: string; actor: Actor; parent: object; toObject(source: boolean): Data;
+export interface Token {id: string; uuid: string; actor: Actor; parent: object; disposition?: number; toObject(source: boolean): Data;
   testUserPermission(user: User, level: string): boolean}
 export interface Scene {tokens: {get(id: string): Token | undefined}}
 export interface Observer {id: string; token: Token; reachFields: number; context?: Data}
@@ -23,83 +23,146 @@ export interface MovementReactionGame {
 interface ChildContext {
   parentState: ResolutionState; baseChildState: ResolutionState;
   candidate: {reactor: {actorId: string; tokenId?: string}; actionDefinition?: ActionDefinition; action?: ActionDefinition;
-    selectedPaymentOption?: {id: string}};
+    selectedPaymentOption?: {id: string}; event?: {source?: {tokenId?: string | null} | null}};
 }
 interface SuppliedServices {reactions?: Data; movement?: {observers?: readonly Observer[]}; [key: string]: unknown}
+interface Trigger {event?: {type?: string}; owner?: {tokenId?: string | null}}
 
 const PROPOSED_EVENT = "movement.transition-proposed";
+const DISPOSITIONS: Record<string, string> = {"-1": "hostile", "0": "neutral", "1": "friendly", "-2": "secret"};
 
 /**
- * Reaction services for movement: Actor documents and controllers for the mover and every observer, live
- * resource snapshots, and a child-state factory that makes a reaction to a proposed step target the mover
- * where that step starts. Serves both the staged movement host and the native checkpoint path.
+ * Actor documents and controllers for every creature a reaction may involve, and live resource snapshots.
+ * Each Actor is keyed by uuid and by its Tokens' refs; a base Actor id shared by several unlinked Tokens is
+ * ambiguous and omitted, so reaction definitions name synthetic Actors by uuid.
  */
-export function foundryMovementReactionServices({game, actor, token, supplied, adapter, sceneContext, targetPosition}: {
-  game: MovementReactionGame; actor: Actor; token: Token; supplied: SuppliedServices; adapter: GridAdapter;
-  sceneContext: {grid: {distance: number}}; targetPosition: (footprint: TokenGridFootprint) => Data;
-}) {
-  const observers = supplied.movement?.observers ?? [];
-  const actors = [...new Set([actor, ...observers.map(o => o.token.actor)])];
+function reactionParticipants(game: MovementReactionGame, tokens: readonly Token[]) {
+  const actors = [...new Set(tokens.map(t => t.actor))];
   const actorDocuments = Object.fromEntries(actors.flatMap(a => {
     const aliases: Array<[string, Actor]> = [[a.uuid, a]];
     if (actors.filter(other => other.id === a.id).length === 1) aliases.push([a.id,a],[`actor:${a.id}`,a]);
     return aliases;
   }));
-  for (const t of [token, ...observers.map(o => o.token)]) {
+  for (const t of tokens) {
     for (const ref of [t.uuid, `uuid:${t.uuid}`, `token:${t.id}`]) actorDocuments[ref] = t.actor;
   }
-  // Ambiguous base Actor IDs are omitted. Distinct synthetic Actors must use UUIDs in reaction definitions.
   const controllers = Object.fromEntries(Object.entries(actorDocuments).map(([key, value]) =>
     [key, [...game.users.values()].filter(user => user.active && !user.isGM && value.testUserPermission(user, "OWNER")).map(user => user.id)]));
   for (const ids of Object.values(controllers)) if (!ids.length) ids.push(game.user.id);
-  const snapshotResources = () => {
+  const resourcesByActor = () => {
     const snapshots = new Map(actors.map(value => [value, economyResourcesFromActorResources(foundryActorSystemSnapshot(value))]));
     return Object.fromEntries(Object.entries(actorDocuments).map(([key, value]) => [key, snapshots.get(value)]));
   };
-  const grid = sceneContext.grid;
+  return {actorDocuments, controllers, resourcesByActor};
+}
+
+function reactorFor(candidate: ChildContext["candidate"], tokens: readonly Token[]) {
+  const matches = tokens.filter(t => candidate.reactor.tokenId ? t.id === candidate.reactor.tokenId
+    : [t.actor.id, t.actor.uuid].includes(candidate.reactor.actorId));
+  if (matches.length !== 1) throw new Error("Reaction must resolve to exactly one reacting Token.");
+  return matches[0]!;
+}
+
+/**
+ * The reaction Action's child state: `reactor` acts on one target creature, standing on `targetFootprint`.
+ * The reacting Action's own modifiers count for its attack (its Item is found on the reactor by definition id).
+ */
+function reactionChildState({args, reactor, target, targetFootprint, sourceFootprint, sceneContext}: {
+  args: ChildContext; reactor: Token; target: Token; targetFootprint: Data; sourceFootprint: unknown;
+  sceneContext: {grid: {distance: number}};
+}) {
+  const definition = args.candidate.actionDefinition ?? args.candidate.action;
+  if (!definition) throw new Error("A reaction requires an ActionDefinition.");
+  const actor = target.actor;
+  const defenseKey = definition.attack?.defenseKey ?? "ac";
+  const defense = resolveActorDefense(actor, defenseKey);
+  const targetEntry = {...targetFootprint, defense, defenses: {[defenseKey]: defense}};
+  const reactionItem = [...(reactor.actor.items ?? [])].find(entry => entry.type === "action"
+    && entry.system?.definition?.id === definition.id) ?? null;
+  const statistic = definition.attack
+    ? resolveActorAttackStatistic(reactor.actor, definition.attack, {item: reactionItem, tags: [...(definition.tags ?? [])]})
+    : null;
+  const targetSystem = foundryActorSystemSnapshot(actor);
+  const base = args.baseChildState;
+  return createActionResolutionState({id: base.id, parentId: base.parentId, relationship: base.relationship,
+    sourceEvent: base.sourceEvent, depth: base.depth, maxDepth: base.maxDepth, ancestry: base.ancestry,
+    triggerIdentities: base.triggerIdentities, metadata: base.metadata,
+    actorSystem: foundryActorSystemSnapshot(reactor.actor),
+    action: {id: definition.id, type: "action", name: definition.label, system: {definition}},
+    source: {actorId: reactor.actor.id, actorRef: reactor.actor.uuid, tokenId: reactor.id, tokenRef: reactor.uuid},
+    targets: [{id: actor.id, actorId: actor.id, actorRef: actor.uuid, tokenId: target.id, defense}],
+    targeting: {candidates: [targetEntry]},
+    context: {spatial: {sceneContext, gridDistance: sceneContext.grid.distance, sourceFootprint, targetFootprints: [targetEntry]}},
+    attack: statistic ? {statistic, modifierTotal: statistic.totalModifier} : null,
+    selectedPaymentOptionId: args.candidate.selectedPaymentOption?.id ?? null,
+    durability: {targetSystems: Object.fromEntries([actor.id, actor.uuid, `actor:${actor.id}`]
+      .map(key => [key, targetSystem]))}});
+}
+
+/**
+ * Reaction services for movement: the mover and every observer as participants, and a child-state factory
+ * that makes a reaction to a proposed step target the mover where that step starts. Serves both the staged
+ * movement host and the native checkpoint path.
+ */
+export function foundryMovementReactionServices({game, token, supplied, adapter, sceneContext, targetPosition}: {
+  game: MovementReactionGame; token: Token; supplied: SuppliedServices; adapter: GridAdapter;
+  sceneContext: {grid: {distance: number}}; targetPosition: (footprint: TokenGridFootprint) => Data;
+}) {
+  const observers = (supplied.movement?.observers ?? []).map(o => o.token);
+  const {actorDocuments, controllers, resourcesByActor} = reactionParticipants(game, [token, ...observers]);
   const services = {...supplied, targetActors: {...actorDocuments}, reactions: {...supplied.reactions,
-    resourcesByActor: snapshotResources, actorDocumentsByActor: actorDocuments, controllerUserIdsByActor: controllers,
+    resourcesByActor, actorDocumentsByActor: actorDocuments, controllerUserIdsByActor: controllers,
     createChildState: (args: ChildContext) => {
       // Nested reactions to the child use the normal configured factory; only a proposed step supplies a logical target.
       const previous = proposedStepStart(args.parentState);
       if (!previous) return createActionReactionChildState({...args,
         services: {...supplied, reactions: supplied.reactions ?? {}}});
-      const candidate = args.candidate;
-      const matches = observers.filter(o => candidate.reactor.tokenId ? o.token.id === candidate.reactor.tokenId
-        : [o.token.actor.id, o.token.actor.uuid].includes(candidate.reactor.actorId));
-      if (matches.length !== 1) throw new Error("Reaction must resolve to exactly one configured observer Token.");
-      const reactor = matches[0]!.token;
-      const definition = candidate.actionDefinition ?? candidate.action;
-      if (!definition) throw new Error("Movement reaction requires an ActionDefinition.");
+      const reactor = reactorFor(args.candidate, observers);
       const targetResult = adapter.tokenToTargetFootprint(token, {position: targetPosition(previous)});
       if (!targetResult.ok || !("tokenFootprint" in targetResult) || !targetResult.tokenFootprint) throw new Error("Logical movement target footprint is invalid.");
       const sourceResult = adapter.tokenToFootprint(reactor, {position: reactor.toObject(true)});
       if (!sourceResult.ok || !("footprint" in sourceResult) || !sourceResult.footprint) throw new Error("Reaction source footprint is invalid.");
-      const defenseKey = definition.attack?.defenseKey ?? "ac";
-      const defense = resolveActorDefense(actor, defenseKey);
-      const target = {...targetResult.tokenFootprint, defense, defenses: {[defenseKey]: defense}};
-      // The reacting Action's own modifiers count for its attack: find it on the reactor by definition id.
-      const reactionItem = [...(reactor.actor.items ?? [])].find(entry => entry.type === "action"
-        && entry.system?.definition?.id === definition.id) ?? null;
-      const statistic = definition.attack
-        ? resolveActorAttackStatistic(reactor.actor, definition.attack, {item: reactionItem, tags: [...(definition.tags ?? [])]})
-        : null;
-      const targetSystem = foundryActorSystemSnapshot(actor);
-      const base = args.baseChildState;
-      return createActionResolutionState({id: base.id, parentId: base.parentId, relationship: base.relationship,
-        sourceEvent: base.sourceEvent, depth: base.depth, maxDepth: base.maxDepth, ancestry: base.ancestry,
-        triggerIdentities: base.triggerIdentities, metadata: base.metadata,
-        actorSystem: foundryActorSystemSnapshot(reactor.actor),
-        action: {id: definition.id, type: "action", name: definition.label, system: {definition}},
-        source: {actorId: reactor.actor.id, actorRef: reactor.actor.uuid, tokenId: reactor.id, tokenRef: reactor.uuid},
-        targets: [{id: actor.id, actorId: actor.id, actorRef: actor.uuid, tokenId: token.id, defense}],
-        targeting: {candidates: [target]},
-        context: {spatial: {sceneContext, gridDistance: grid.distance,
-          sourceFootprint: sourceResult.footprint, targetFootprints: [target]}},
-        attack: statistic ? {statistic, modifierTotal: statistic.totalModifier} : null,
-        selectedPaymentOptionId: candidate.selectedPaymentOption?.id ?? null,
-        durability: {targetSystems: Object.fromEntries([actor.id, actor.uuid, `actor:${actor.id}`]
-          .map(key => [key, targetSystem]))}});
+      return reactionChildState({args, reactor, target: token,
+        targetFootprint: targetResult.tokenFootprint as Data, sourceFootprint: sourceResult.footprint, sceneContext});
+    }}};
+  return {services, actorDocuments, controllers};
+}
+
+/**
+ * Reaction services for an ordinary Action: the acting creature and every Token whose triggers subscribe to
+ * Action events (`action.declared`, `attack.hit`, `attack.miss`). A reaction Action that targets `self`
+ * acts on its own Token; any other acts on the creature whose Action triggered it, where it stands.
+ * Returns null when no such trigger is on the Scene, so Actions without reactors keep their plain path.
+ */
+export function foundryActionReactionServices({game, scene, token, supplied}: {
+  game: MovementReactionGame; scene: Scene; token: Token; supplied: SuppliedServices;
+}) {
+  const triggers = ((supplied.reactions?.triggers ?? []) as Trigger[])
+    .filter(trigger => !String(trigger.event?.type ?? "").startsWith("movement."));
+  const reactors = [...new Set(triggers.map(trigger => trigger.owner?.tokenId ? scene.tokens.get(trigger.owner.tokenId) : null))]
+    .filter((reactor): reactor is Token => !!reactor && (reactor.id !== token.id));
+  if (!reactors.length) return null;
+  const adapter = createFoundryV14TacticalGridAdapter({scene});
+  const sceneContext = adapter.getSceneContext();
+  if (!sceneContext.ok || !("context" in sceneContext)) return null;
+  const grid = sceneContext.context as {grid: {distance: number}};
+  const participants = [token, ...reactors];
+  const {actorDocuments, controllers, resourcesByActor} = reactionParticipants(game, participants);
+  const services = {...supplied, targetActors: {...actorDocuments}, reactions: {...supplied.reactions, triggers,
+    resourcesByActor, actorDocumentsByActor: actorDocuments, controllerUserIdsByActor: controllers,
+    createChildState: (args: ChildContext) => {
+      const reactor = reactorFor(args.candidate, reactors);
+      const definition = args.candidate.actionDefinition ?? args.candidate.action;
+      const event = (args.baseChildState.sourceEvent ?? args.candidate.event) as {source?: {tokenId?: string | null}} | null;
+      const target = definition?.targeting?.type === "self" ? reactor
+        : participants.find(t => t.id === event?.source?.tokenId) ?? null;
+      if (!target) throw new Error("A reaction's target must be a Token on this Scene.");
+      const targetResult = adapter.tokenToTargetFootprint(target, {disposition: DISPOSITIONS[String(target.disposition ?? 0)]});
+      if (!targetResult.ok || !("tokenFootprint" in targetResult) || !targetResult.tokenFootprint) throw new Error("Reaction target footprint is invalid.");
+      const sourceResult = adapter.tokenToFootprint(reactor);
+      if (!sourceResult.ok || !("footprint" in sourceResult) || !sourceResult.footprint) throw new Error("Reaction source footprint is invalid.");
+      return reactionChildState({args, reactor, target, targetFootprint: targetResult.tokenFootprint as Data,
+        sourceFootprint: sourceResult.footprint, sceneContext: grid});
     }}};
   return {services, actorDocuments, controllers};
 }
@@ -155,7 +218,7 @@ export function foundryBeforeStepReaction({game, scene, token, supplied, eventId
   const source = {actorId: actor.id, actorRef: actor.uuid, tokenId: token.id, tokenRef: token.uuid};
   const event = createAutomationEvent({id: eventId, type: PROPOSED_EVENT, phase: "interrupt", source,
     data: {...movement, ...step, relations: movementTransitionRelations(step.previous, step.proposed, observers)}});
-  const {services} = foundryMovementReactionServices({game, actor, token, supplied, adapter,
+  const {services} = foundryMovementReactionServices({game, token, supplied, adapter,
     sceneContext: sceneContext.context as {grid: {distance: number}},
     targetPosition: footprint => ({...origin, ...footprintPositionUpdates({adapter, token, origin, originAnchor, footprint})})});
   return {event, services};

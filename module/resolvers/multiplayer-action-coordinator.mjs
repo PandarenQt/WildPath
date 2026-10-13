@@ -342,6 +342,7 @@ export function createMultiplayerActionCoordinator({
 
       if ( isTerminalState(execution.state) ) {
         if ( execution.nested ) {
+          await publishChildResult(record, execution.state);
           const completed = completeActiveChildResolution(record, execution);
           record.state = completed.state;
           rememberResolutionState(record, record.state);
@@ -693,6 +694,29 @@ export function createMultiplayerActionCoordinator({
     const record = findRecordForResolutionId(id);
     if ( record ) return record.authorityUserId;
     return initiatedAuthorities.get(id) ?? null;
+  }
+
+  /**
+   * A reaction is an Action too: its completed child posts its own public card, once, authored by the
+   * reactor's controller. shortcut: the card is public (the chooser's message mode does not travel with a
+   * reaction choice yet); carry it on the choice response when per-chooser modes are needed.
+   */
+  async function publishChildResult(record, state) {
+    if ( (typeof publishResult !== "function") || (state.status !== RESOLUTION_STATE_STATUS.COMPLETED) ) return;
+    record.publishedChildIds ??= new Set();
+    if ( record.publishedChildIds.has(state.id) ) return;
+    record.publishedChildIds.add(state.id);
+    const initiatorUserId = lookupControllerUserIds(record.services?.reactions?.controllerUserIdsByActor,
+      stateSourceRefs(state))[0] ?? null;
+    try {
+      const sanitized = sanitizeResolutionResultForTransport({state, result: {ok: true},
+        authorityUserId: record.authorityUserId, initiatorUserId});
+      await publishResult({resolutionId: state.id, initiatorUserId, messageMode: null,
+        actor: actorForResolutionState(record, state), action: actionForResolutionState(record, state),
+        result: projectResolutionResultForDisclosure(sanitized, DISCLOSURE_CLASSIFICATIONS.BROADCAST_SAFE)});
+    } catch (error) {
+      (logger ?? console).warn("Wild Path | Result publication failed", error);
+    }
   }
 
   async function sendResolutionResult(record, result={}) {

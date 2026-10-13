@@ -19,7 +19,7 @@ import {
   advanceMovementProgress, completedMovementPrefix, createMovementProgress, movementEventId, movementPaymentDelta,
   sameMovementFootprint
 } from "../helpers/movement-events.mjs";
-import {foundryBeforeStepReaction} from "../adapters/foundry-v14-movement-reaction-services.mjs";
+import {foundryBeforeStepReaction} from "../adapters/foundry-v14-reaction-services.mjs";
 import {
   RESOURCE_RESOLUTION_CODES,
   commitActorResourceMutationPlan,

@@ -198,6 +198,11 @@ authored by the initiator and whispered per the initiator's `core.messageMode`, 
 initiator rather than with `ChatMessage.applyMode` (which, run on the authority, would whisper `self`
 to the GM). Target names come from the Token, not the Actor, and hidden Tokens get none.
 
+A reaction is an Action too. When its child resolution completes, it posts its own card from that
+child's `BROADCAST_SAFE` projection. The card is posted once and authored by the reactor's controller.
+That card is public for now, because the chooser's message mode does not yet travel with a reaction
+choice.
+
 ## What remains intentionally broadcast
 
 `ACTION_INTENT`, `MOVEMENT_INTENT`, `MOVEMENT_COMMIT` (refs and coordinates) and the public

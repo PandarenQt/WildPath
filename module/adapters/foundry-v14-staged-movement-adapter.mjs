@@ -4,7 +4,7 @@ import { createFoundryV14TacticalGridAdapter } from "./foundry-v14-tactical-grid
 import { foundryActorSystemSnapshot } from "./foundry-v14-actor-system-adapter.mjs";
 import { stagedMovementPersistence } from "./foundry-v14-staged-movement-commit.mjs";
 import { clonePlainData } from "../helpers/multiplayer-authority.mjs";
-import { foundryMovementReactionServices, footprintPositionUpdates } from "./foundry-v14-movement-reaction-services.mjs";
+import { foundryMovementReactionServices, footprintPositionUpdates } from "./foundry-v14-reaction-services.mjs";
 /** The socket carries route intent only. Documents, rules, resources and spatial facts come from authority. */
 export async function foundryMovementIntentToStagedOptions({ intent, resolutionId, senderUserId, game, persistencePort }) {
     const canCommit = () => game.user.isGM === true && game.users.activeGM?.id === game.user.id;
@@ -35,7 +35,7 @@ export async function foundryMovementIntentToStagedOptions({ intent, resolutionI
     const grid = translated.sceneContext.grid;
     const measurementMode = game.settings?.get("wildpath", "movementMeasurementMode") === "fields" ? "fields" : "distance";
     const source = { actorId: actor.id, actorRef: actor.uuid, tokenId: token.id, tokenRef: token.uuid };
-    const { services, actorDocuments, controllers } = foundryMovementReactionServices({ game, actor, token, supplied, adapter,
+    const { services, actorDocuments, controllers } = foundryMovementReactionServices({ game, token, supplied, adapter,
         sceneContext: translated.sceneContext, targetPosition: footprint => ({ ...original, ...positionUpdates(footprint) }) });
     const ownerIds = controllers[actor.uuid] ?? [];
     const host = createMovementResolutionHost({ id: resolutionId, path: translated.path, source,
