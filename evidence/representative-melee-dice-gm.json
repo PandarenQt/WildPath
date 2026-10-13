@@ -1,0 +1,95 @@
+{
+  "schema": 1,
+  "role": "gm",
+  "caseId": "melee-dice",
+  "runId": "pVxqGNlZj1VgYs8N",
+  "gitSha": "efe50de82fb3a61fcf92802e41d46ef6c4d62dce",
+  "capturedAt": "2026-10-13T21:18:38.170Z",
+  "runtime": {
+    "foundryVersion": "14.369",
+    "build": 369,
+    "systemId": "wildpath",
+    "systemVersion": "0.0.1"
+  },
+  "users": {
+    "gmId": "hUdU40DWftTFyJzW",
+    "playerId": "6JWzwo5Aln6gZUWH",
+    "initiatorUserId": "6JWzwo5Aln6gZUWH",
+    "authorityUserId": "hUdU40DWftTFyJzW"
+  },
+  "resolutionId": "resolution:multiplayer:4q3gyetj",
+  "status": "completed",
+  "routing": [
+    {
+      "type": "roll",
+      "rollType": "attack",
+      "expectedUserId": "6JWzwo5Aln6gZUWH"
+    },
+    {
+      "type": "roll",
+      "rollType": "damage",
+      "expectedUserId": "6JWzwo5Aln6gZUWH"
+    }
+  ],
+  "rolls": [
+    {
+      "type": "attack-roll",
+      "provider": "foundry-digital",
+      "method": "digital",
+      "natural": 14,
+      "total": 18,
+      "dice": 1
+    },
+    {
+      "type": "damage-roll",
+      "provider": "foundry-digital",
+      "method": "digital",
+      "natural": 6,
+      "total": 6,
+      "dice": 1
+    }
+  ],
+  "outcomes": {
+    "attack": [
+      {
+        "hit": true,
+        "defense": 1
+      }
+    ],
+    "save": null
+  },
+  "configuration": null,
+  "before": {
+    "source": {
+      "action": 1,
+      "bonus": 1,
+      "pools": {}
+    },
+    "target": {
+      "hp": 30,
+      "conditions": []
+    }
+  },
+  "after": {
+    "source": {
+      "action": 0,
+      "bonus": 1,
+      "pools": {}
+    },
+    "target": {
+      "hp": 24,
+      "conditions": []
+    }
+  },
+  "card": {
+    "author": "6JWzwo5Aln6gZUWH",
+    "whisper": [],
+    "blind": false,
+    "rolls": 2,
+    "outcomeKeys": 1
+  },
+  "proof": {
+    "passed": true,
+    "failures": []
+  }
+}

@@ -156,6 +156,11 @@ allow-list for the chooser (see [multiplayer-confidentiality.md](multiplayer-con
 classified `PARTICIPANT_PRIVATE`, so it travels by targeted transport to the chooser alone. It does
 not send the full `ResolutionState`, hidden mutation plans, target defenses, DCs, or document objects.
 
+**Target controllers are keyed by Token.** A canvas target (and the save it rolls) is identified by
+its Token, so the runtime keys each target's controlling Players by the synthetic Actor uuid, the Token
+uuid and the `token:<scene>.<token>` ref, never by the base Actor id that unlinked Tokens share. A save
+is therefore rolled by the target's Player; the GM is only the fallback when no controller is active.
+
 **Target answers are decisions only.** A target-selection or target-refinement answer contributes
 `{operation, targetId}` decisions; the candidates, targets and selection policy remain the
 authority's own, so `refineTargetSet` rejects unknown ids, ineligible targets, and bad counts.

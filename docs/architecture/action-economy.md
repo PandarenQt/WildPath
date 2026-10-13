@@ -34,6 +34,10 @@ ActivationCost
 Payment discovery does not mutate resources. Only `commitPaymentPlan()` returns a new state with
 the selected resources consumed. This prepares the system for a future `ResolutionTransaction`.
 
+Option ids are what a prompt answer names. A single-branch cost numbers its combinations
+`payment-1`, `payment-2`, …; an `anyOf` cost qualifies them by branch (`payment-2-1` is the first
+combination of the second alternative), so alternatives never share an id.
+
 ## Normal, Alternative, and Restricted Payments
 
 Normal payment is direct capability matching: a resource with `paymentCapabilities: ["action"]`

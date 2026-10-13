@@ -1,0 +1,84 @@
+{
+  "schema": 1,
+  "role": "gm",
+  "caseId": "trip",
+  "runId": "4b0YjZSmYeMIZwSA",
+  "gitSha": "efe50de82fb3a61fcf92802e41d46ef6c4d62dce",
+  "capturedAt": "2026-10-13T21:18:52.698Z",
+  "runtime": {
+    "foundryVersion": "14.369",
+    "build": 369,
+    "systemId": "wildpath",
+    "systemVersion": "0.0.1"
+  },
+  "users": {
+    "gmId": "hUdU40DWftTFyJzW",
+    "playerId": "6JWzwo5Aln6gZUWH",
+    "initiatorUserId": "6JWzwo5Aln6gZUWH",
+    "authorityUserId": "hUdU40DWftTFyJzW"
+  },
+  "resolutionId": "resolution:multiplayer:sdr1rdme",
+  "status": "completed",
+  "routing": [
+    {
+      "type": "roll",
+      "rollType": "attack",
+      "expectedUserId": "6JWzwo5Aln6gZUWH"
+    }
+  ],
+  "rolls": [
+    {
+      "type": "attack-roll",
+      "provider": "foundry-digital",
+      "method": "digital",
+      "natural": 14,
+      "total": 18,
+      "dice": 1
+    }
+  ],
+  "outcomes": {
+    "attack": [
+      {
+        "hit": true,
+        "defense": 1
+      }
+    ],
+    "save": null
+  },
+  "configuration": null,
+  "before": {
+    "source": {
+      "action": 1,
+      "bonus": 1,
+      "pools": {}
+    },
+    "target": {
+      "hp": 30,
+      "conditions": []
+    }
+  },
+  "after": {
+    "source": {
+      "action": 0,
+      "bonus": 1,
+      "pools": {}
+    },
+    "target": {
+      "hp": 30,
+      "conditions": [
+        "prone"
+      ]
+    }
+  },
+  "card": {
+    "author": "6JWzwo5Aln6gZUWH",
+    "whisper": [],
+    "blind": false,
+    "rolls": 1,
+    "outcomeKeys": 1
+  },
+  "proof": {
+    "passed": true,
+    "failures": []
+  }
+}

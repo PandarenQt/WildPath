@@ -1,0 +1,62 @@
+{
+  "schema": 1,
+  "role": "gm",
+  "caseId": "healing",
+  "runId": "QvCYDYabRAO1HANn",
+  "gitSha": "efe50de82fb3a61fcf92802e41d46ef6c4d62dce",
+  "capturedAt": "2026-10-13T21:19:06.478Z",
+  "runtime": {
+    "foundryVersion": "14.369",
+    "build": 369,
+    "systemId": "wildpath",
+    "systemVersion": "0.0.1"
+  },
+  "users": {
+    "gmId": "hUdU40DWftTFyJzW",
+    "playerId": "6JWzwo5Aln6gZUWH",
+    "initiatorUserId": "6JWzwo5Aln6gZUWH",
+    "authorityUserId": "hUdU40DWftTFyJzW"
+  },
+  "resolutionId": "resolution:multiplayer:bbjmeral",
+  "status": "completed",
+  "routing": [],
+  "rolls": [],
+  "outcomes": {
+    "attack": null,
+    "save": null
+  },
+  "configuration": null,
+  "before": {
+    "source": {
+      "action": 1,
+      "bonus": 1,
+      "pools": {}
+    },
+    "target": {
+      "hp": 10,
+      "conditions": []
+    }
+  },
+  "after": {
+    "source": {
+      "action": 0,
+      "bonus": 1,
+      "pools": {}
+    },
+    "target": {
+      "hp": 18,
+      "conditions": []
+    }
+  },
+  "card": {
+    "author": "6JWzwo5Aln6gZUWH",
+    "whisper": [],
+    "blind": false,
+    "rolls": 0,
+    "outcomeKeys": 0
+  },
+  "proof": {
+    "passed": true,
+    "failures": []
+  }
+}

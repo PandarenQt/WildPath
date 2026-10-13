@@ -11,7 +11,9 @@ Last verified: 2026-10-13.
 - Movement implementation commit: `87ed1fae93271b81b14432bb4312be9cd53285c5`.
 - Original milestone starting HEAD: `ea484fd8b503697ddf1c2b7b0f6984ea594378e2`.
 - Local main HEAD: `61d6268b838e286728c829924506c6c931174621`.
-- Portable full suite (`FOUNDRY_V14_APP_PATH` unset): **889 tests, 887 passed, 0 failed, 2 intentionally skipped**.
+- Portable full suite (`FOUNDRY_V14_APP_PATH` unset): **893 tests, 891 passed, 0 failed, 2 intentionally skipped**.
+- Representative-gate delta from 889/887/0/2: **4 new tests** (save routed to the target's Player,
+  distinct `anyOf` payment ids, two evidence-validation tests).
 - M1 fixes delta from 886/884/0/2: **3 new tests** (configuration answer reads choices only, dotted
   resource keys in Foundry's persisted shape, ArrayField element-path folding).
 - Visible-results delta from 879/877/0/2: **7 new tests** (Roll JSON guard, publish port, Token names,
@@ -48,7 +50,7 @@ turn configured reaction content into a second combat engine.
 
 ## Current milestone
 
-**M1 — Stage D close: visible results and the representative gate (IN PROGRESS).** Done: every
+**M1 — Stage D close: visible results and the representative gate (CLOSED 2026-10-13).** Every
 completed Action posts one chat card from the public projection (`4d96df0` plus the `gm-only`
 participant repair). Live smoke run on 14.369 through the real `Item.use()`: Hit in `public` mode
 posted one card authored by Player1 with the `1d20 + 4` roll attached and rendered; Miss in `gm` mode
@@ -79,8 +81,19 @@ attack domain that exists, and an empty `attack.weapon` statistic counts (total 
 (`attack.melee`). Options: skip empty domains (first non-empty wins), or stack every matching domain.
 Unchanged until decided.
 
-Open: the two-browser representative gate (player-routed rolls, target-controller save, configuration
-prompt answered by the player).
+The two-browser gate (`representative-live-qa.md`) passed 5/5 on 14.369 with committed evidence:
+Player-routed attack and damage rolls, a trip, a GM's save routed to the target's Player, healing, and a
+configuration prompt answered by the Player in the real dialog. It found and fixed two more defects:
+the save fell back to the GM because target controllers were keyed only by the synthetic Actor uuid
+(`efe50de`), and `anyOf` payment alternatives all had the id `payment-1`, so the Player could not choose
+Slot 2 (`765259f`).
+
+Limits carried forward: the attack-statistic decision above; the configuration dialog title shows the
+raw type `action-configuration` (needs maintainer copy); no third client.
+
+**Immediate next step (M2):** request and roll gaps: the dice policy setting (digital, manual,
+physical), per-roller message modes, the target-refinement default selection, live concentration,
+per-target remote save fan-out, and failure feedback.
 
 **Authority and disclosure hardening (M0) — CLOSED on 2026-10-13.** A review found that the
 authority trusted more than it could verify: any player could act through an Actor or Item they did
@@ -368,10 +381,6 @@ no intermediate Token persistence/rendering; no durable host reconstruction afte
 footprint/source changes invalidate rather than replace a route. Independent child commits are
 not rolled back with a later parent failure. Transactions compensate completed operations and do
 not provide database atomicity against arbitrary concurrent writes from other systems.
-
-**Immediate next step (M1):** close Stage D with visible results (one public chat card per completed
-Action, message mode, Dice So Nice roll JSON) and the representative live gate (ranged, bonus-action
-cost, condition on hit, save for half, healing, configuration).
 
 Movement: connect native route submission to the proposed-transition host while preserving
 checkpoint accounting. Later work can add Region/Area consumers, route replacement for changed

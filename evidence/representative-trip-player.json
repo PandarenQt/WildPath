@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "role": "player",
+  "caseId": "trip",
+  "runId": "4b0YjZSmYeMIZwSA",
+  "gitSha": "efe50de82fb3a61fcf92802e41d46ef6c4d62dce",
+  "capturedAt": "2026-10-13T21:18:53.231Z",
+  "userId": "6JWzwo5Aln6gZUWH",
+  "resolutionId": "resolution:multiplayer:sdr1rdme",
+  "result": {
+    "status": "completed",
+    "keys": [
+      "action",
+      "authorityUserId",
+      "code",
+      "disclosure",
+      "initiatorUserId",
+      "ok",
+      "outcomes",
+      "resolutionId",
+      "rolls",
+      "source",
+      "status",
+      "targets"
+    ],
+    "disclosure": "PARTICIPANT_PRIVATE",
+    "rolls": [
+      {
+        "type": "attack-roll",
+        "visibility": "public",
+        "total": 18
+      }
+    ]
+  },
+  "card": {
+    "visible": true,
+    "isContentVisible": true,
+    "rolls": 1
+  }
+}

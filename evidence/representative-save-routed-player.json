@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "role": "player",
+  "caseId": "save-routed",
+  "runId": "JIIUIFzooVy7yXaK",
+  "gitSha": "efe50de82fb3a61fcf92802e41d46ef6c4d62dce",
+  "capturedAt": "2026-10-13T21:18:20.397Z",
+  "userId": "6JWzwo5Aln6gZUWH",
+  "resolutionId": "resolution:multiplayer:5p1g435y",
+  "result": {
+    "status": "completed",
+    "keys": [
+      "action",
+      "authorityUserId",
+      "code",
+      "disclosure",
+      "initiatorUserId",
+      "ok",
+      "outcomes",
+      "resolutionId",
+      "rolls",
+      "source",
+      "status",
+      "targets"
+    ],
+    "disclosure": "BROADCAST_SAFE",
+    "rolls": [
+      {
+        "type": "damage-roll",
+        "visibility": "public",
+        "total": 7
+      }
+    ]
+  },
+  "card": {
+    "visible": true,
+    "isContentVisible": true,
+    "rolls": 1
+  }
+}

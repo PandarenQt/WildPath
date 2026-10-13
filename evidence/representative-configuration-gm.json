@@ -1,0 +1,104 @@
+{
+  "schema": 1,
+  "role": "gm",
+  "caseId": "configuration",
+  "runId": "Od46VGR80J98NR7O",
+  "gitSha": "765259f742328853cf80b49befe178b7b78eeb18",
+  "capturedAt": "2026-10-13T21:21:39.069Z",
+  "runtime": {
+    "foundryVersion": "14.369",
+    "build": 369,
+    "systemId": "wildpath",
+    "systemVersion": "0.0.1"
+  },
+  "users": {
+    "gmId": "hUdU40DWftTFyJzW",
+    "playerId": "6JWzwo5Aln6gZUWH",
+    "initiatorUserId": "6JWzwo5Aln6gZUWH",
+    "authorityUserId": "hUdU40DWftTFyJzW"
+  },
+  "resolutionId": "resolution:multiplayer:tarxm1w0",
+  "status": "completed",
+  "routing": [
+    {
+      "type": "action-configuration",
+      "rollType": null,
+      "expectedUserId": "6JWzwo5Aln6gZUWH"
+    },
+    {
+      "type": "roll",
+      "rollType": "damage",
+      "expectedUserId": "6JWzwo5Aln6gZUWH"
+    }
+  ],
+  "rolls": [
+    {
+      "type": "damage-roll",
+      "provider": "foundry-digital",
+      "method": "digital",
+      "natural": 2,
+      "total": 7,
+      "dice": 3
+    }
+  ],
+  "outcomes": {
+    "attack": null,
+    "save": null
+  },
+  "configuration": {
+    "choices": [
+      {
+        "id": "casting-resource",
+        "type": "resource",
+        "value": "payment-2-1",
+        "values": null,
+        "optionId": "payment-2-1",
+        "label": "Slot 2",
+        "source": null,
+        "metadata": {
+          "castingLevel": 2
+        }
+      }
+    ],
+    "selectedPaymentOptionId": "payment-1"
+  },
+  "before": {
+    "source": {
+      "action": 1,
+      "bonus": 1,
+      "pools": {
+        "spell-slot.1": 1,
+        "spell-slot.2": 1
+      }
+    },
+    "target": {
+      "hp": 30,
+      "conditions": []
+    }
+  },
+  "after": {
+    "source": {
+      "action": 1,
+      "bonus": 1,
+      "pools": {
+        "spell-slot.1": 1,
+        "spell-slot.2": 0
+      }
+    },
+    "target": {
+      "hp": 23,
+      "conditions": []
+    }
+  },
+  "card": {
+    "author": "6JWzwo5Aln6gZUWH",
+    "whisper": [],
+    "blind": false,
+    "rolls": 1,
+    "outcomeKeys": 0
+  },
+  "proof": {
+    "passed": true,
+    "failures": []
+  }
+}

@@ -1,0 +1,97 @@
+{
+  "schema": 1,
+  "role": "gm",
+  "caseId": "save-routed",
+  "runId": "JIIUIFzooVy7yXaK",
+  "gitSha": "efe50de82fb3a61fcf92802e41d46ef6c4d62dce",
+  "capturedAt": "2026-10-13T21:18:19.868Z",
+  "runtime": {
+    "foundryVersion": "14.369",
+    "build": 369,
+    "systemId": "wildpath",
+    "systemVersion": "0.0.1"
+  },
+  "users": {
+    "gmId": "hUdU40DWftTFyJzW",
+    "playerId": "6JWzwo5Aln6gZUWH",
+    "initiatorUserId": "hUdU40DWftTFyJzW",
+    "authorityUserId": "hUdU40DWftTFyJzW"
+  },
+  "resolutionId": "resolution:multiplayer:5p1g435y",
+  "status": "completed",
+  "routing": [
+    {
+      "type": "roll",
+      "rollType": "saving-throw",
+      "expectedUserId": "6JWzwo5Aln6gZUWH"
+    },
+    {
+      "type": "roll",
+      "rollType": "damage",
+      "expectedUserId": "hUdU40DWftTFyJzW"
+    }
+  ],
+  "rolls": [
+    {
+      "type": "save-roll",
+      "provider": "foundry-digital",
+      "method": "digital",
+      "natural": 9,
+      "total": 9,
+      "dice": 1
+    },
+    {
+      "type": "damage-roll",
+      "provider": "foundry-digital",
+      "method": "digital",
+      "natural": 3,
+      "total": 7,
+      "dice": 2
+    }
+  ],
+  "outcomes": {
+    "attack": null,
+    "save": [
+      {
+        "success": false,
+        "outcome": "failure"
+      }
+    ]
+  },
+  "configuration": null,
+  "before": {
+    "source": {
+      "action": 1,
+      "bonus": 1,
+      "pools": {}
+    },
+    "target": {
+      "hp": 30,
+      "conditions": []
+    }
+  },
+  "after": {
+    "source": {
+      "action": 0,
+      "bonus": 1,
+      "pools": {}
+    },
+    "target": {
+      "hp": 23,
+      "conditions": [
+        "poisoned"
+      ]
+    }
+  },
+  "card": {
+    "author": "hUdU40DWftTFyJzW",
+    "whisper": [],
+    "blind": false,
+    "rolls": 1,
+    "outcomeKeys": 1
+  },
+  "proof": {
+    "passed": true,
+    "failures": []
+  }
+}

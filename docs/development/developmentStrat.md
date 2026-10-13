@@ -18,8 +18,8 @@ The current strategy is **integration proof**:
 Current status: the staged action, persistence-port, vertical-slice, multiplayer authority/socket,
 and reaction-window foundations have broad Node integration coverage. Movement semantics and the
 generic movement-event reaction composition are live-verified in Foundry V14.367. The ordinary
-player-facing Action runtime is live-accepted for melee Hit/Miss (14.367 and 14.369); its
-representative vertical-slice gate is still open.
+player-facing Action runtime is live-accepted for melee Hit/Miss (14.367 and 14.369) and for the
+representative set (14.369); Stage D is closed.
 
 ---
 
@@ -235,7 +235,12 @@ Use representative mechanics, not broad content.
 Status: representative persisted melee, ranged, save-based area, healing, condition-effect, and
 configured/scaling actions now execute through staged resolution, RollProvider results, TacticalGrid
 adapter footprints, mutation plans, transaction, and persistence ports in Node integration tests.
-Live Foundry V14 QA covers melee Hit/Miss only; the other representative cases still need it.
+Live Foundry V14 QA (closed 2026-10-13): the `wildpath.representative-actions` Quench batch runs
+melee with dice damage, ranged bands, a bonus-action cost, a trip, a save for half with a save-gated
+condition, healing and configuration scaling on one GM client; the two-browser gate
+(`docs/development/representative-live-qa.md`) proves Player-routed attack/damage rolls, a save routed
+to the target's Player, and a configuration prompt answered by the Player. Area Actions remain
+Stage I.
 
 Production-wiring status (previously the largest open gap): `WildPathItem#use()` now declares an
 Action intent (`buildFoundryActionUseIntent()`) through `game.wildpath.executeActionIntent()` -
