@@ -442,3 +442,12 @@
   border-color: var(--color-level-error-border, #8f1b1b);
   background: color-mix(in srgb, var(--color-level-error-border, #8f1b1b) 18%, transparent);
 }
+
+.wildpath.resolution-card .card-target[data-target-uuid] {
+  cursor: pointer;
+}
+
+.wildpath.resolution-card .card-target[data-target-uuid]:hover .target-name,
+.wildpath.resolution-card .card-target[data-target-uuid]:focus-visible .target-name {
+  text-decoration: underline;
+}

@@ -1,5 +1,6 @@
 import {WILDPATH} from "./module/config.mjs";
 import {registerFoundryV14ConditionStatuses} from "./module/adapters/foundry-v14-status-effects-adapter.mjs";
+import {registerChatCardInteractions} from "./module/adapters/foundry-v14-chat-card-interactions.mjs";
 
 import "./module/tests/quench/index.mjs";
 
@@ -196,6 +197,7 @@ function collectionContents(collection) {
 }
 
 Hooks.on("deleteCombat", combat => onCombatEnd(combat));
+registerChatCardInteractions();
 Hooks.on("moveToken", (document, movement, operation, user) => onFoundryV14MoveToken(document, movement, operation, user));
 Hooks.on("pauseToken", document => onFoundryV14PauseToken(document));
 Hooks.on("stopToken", document => onFoundryV14StopToken(document));

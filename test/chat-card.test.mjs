@@ -48,8 +48,8 @@ test("the card view model reads only names, outcomes and public Roll JSON from t
     resolutionId: "resolution:card",
     actionName: "Strike",
     targets: [
-      {name: "Goblin", attack: {label: CHAT_OUTCOME_KEYS.critical, tone: "success"}, save: null},
-      {name: "Orc", attack: {label: CHAT_OUTCOME_KEYS.miss, tone: "failure"},
+      {name: "Goblin", uuid: "Actor.goblin", attack: {label: CHAT_OUTCOME_KEYS.critical, tone: "success"}, save: null},
+      {name: "Orc", uuid: "Actor.orc", attack: {label: CHAT_OUTCOME_KEYS.miss, tone: "failure"},
         save: {label: CHAT_OUTCOME_KEYS.saveFailure, tone: "failure"}}
     ],
     rolls: [foundryRoll],
@@ -131,4 +131,20 @@ test("the chat card adapter whispers a gm-mode card to the GMs and skips non-Act
     "movement and other non-Action resolutions post nothing");
   assert.equal((await publish({...base, messageMode: "public", result: {...publicResult(), status: "failed"}})).posted, false);
   assert.equal(foundry.created.length, 1);
+});
+
+test("a card's target link resolves only a Token this client can see", async t => {
+  const {visibleTokenFor} = await import("../module/adapters/foundry-v14-chat-card-interactions.mjs");
+  const tokens = {"Actor.seen": {token: {object: {visible: true, center: {x: 1, y: 2}}}},
+    "Actor.unseen": {token: {object: {visible: false}}}, "Actor.linked": {token: null, getActiveTokens: () => [{visible: true}]},
+    "Scene.s.Token.t": {object: {visible: true, center: {x: 5, y: 6}}}};
+  const previous = globalThis.fromUuidSync;
+  globalThis.fromUuidSync = uuid => tokens[uuid] ?? null;
+  t.after(() => { globalThis.fromUuidSync = previous; });
+  assert.deepEqual(visibleTokenFor("Actor.seen")?.center, {x: 1, y: 2});
+  assert.equal(visibleTokenFor("Actor.unseen"), null);
+  assert.equal(visibleTokenFor("Actor.linked")?.visible, true);
+  assert.deepEqual(visibleTokenFor("Scene.s.Token.t")?.center, {x: 5, y: 6}, "a Token uuid resolves its placeable");
+  assert.equal(visibleTokenFor("Actor.missing"), null);
+  assert.equal(visibleTokenFor(undefined), null);
 });

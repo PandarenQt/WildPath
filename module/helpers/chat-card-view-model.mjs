@@ -19,8 +19,10 @@ export function createResolutionCardViewModel(result) {
         targets: (result.targets ?? []).map(target => {
             const attackEntry = attack.find(entry => sameTarget(entry.target, target));
             const saveEntry = save.find(entry => sameTarget(entry.target, target));
+            const name = textOrNull(target.name);
             return {
-                name: textOrNull(target.name),
+                name,
+                uuid: name ? textOrNull(target.uuid ?? target.actorRef) : null,
                 attack: attackEntry ? attackOutcome(attackEntry) : null,
                 save: saveEntry ? saveOutcome(saveEntry) : null
             };

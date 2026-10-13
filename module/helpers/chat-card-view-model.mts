@@ -6,6 +6,7 @@
 
 interface PublicRef {
   readonly id?: string | null;
+  readonly uuid?: string | null;
   readonly actorRef?: string | null;
   readonly name?: string | null;
   readonly label?: string | null;
@@ -52,6 +53,8 @@ export interface CardOutcome {
 
 export interface ResolutionCardTarget {
   readonly name: string | null;
+  /** For hover/click to the Token; only named (not hidden) targets are linked. */
+  readonly uuid: string | null;
   readonly attack: CardOutcome | null;
   readonly save: CardOutcome | null;
 }
@@ -74,8 +77,10 @@ export function createResolutionCardViewModel(result: PublicResolutionResult): R
     targets: (result.targets ?? []).map(target => {
       const attackEntry = attack.find(entry => sameTarget(entry.target, target));
       const saveEntry = save.find(entry => sameTarget(entry.target, target));
+      const name = textOrNull(target.name);
       return {
-        name: textOrNull(target.name),
+        name,
+        uuid: name ? textOrNull(target.uuid ?? target.actorRef) : null,
         attack: attackEntry ? attackOutcome(attackEntry) : null,
         save: saveEntry ? saveOutcome(saveEntry) : null
       };

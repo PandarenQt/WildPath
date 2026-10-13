@@ -17,7 +17,7 @@
   {{#if targets.length}}
   <ul class="card-targets">
     {{#each targets}}
-    <li class="card-target">
+    <li class="card-target"{{#if uuid}} data-target-uuid="{{uuid}}" role="button" tabindex="0"{{/if}}>
       <span class="target-name">{{name}}</span>
       <span class="target-outcomes">
         {{#if attack}}<span class="outcome {{attack.tone}}">{{localize attack.label}}</span>{{/if}}
