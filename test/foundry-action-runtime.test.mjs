@@ -552,6 +552,70 @@ test("a player's Action use reaches the staged pipeline through the production m
   assert.equal(result.status, RESOLUTION_STATE_STATUS.COMPLETED);
 });
 
+test("a completed Action is published once with the initiator's message mode; a failing publisher changes nothing", async t => {
+  const {sourceActor, targetActor, targetToken, action, game} = syntheticRuntimeFixture(t, undefined, {targetHealth: 30});
+  const persistencePort = createTestDocumentPersistenceAdapter();
+  const hub = createTestResolutionTransportHub({users: [
+    {id: "gm-a", active: true, isGM: true, isActiveGM: true},
+    {id: "player-a", active: true, isGM: false}
+  ]});
+  const published = [];
+  const gm = createMultiplayerActionCoordinator({
+    userId: "gm-a",
+    users: () => hub.userDirectory(),
+    activeGMUserId: "gm-a",
+    transport: hub.createEndpoint({userId: "gm-a"}),
+    actionIntentResolver: ({intent, envelope}) => foundryActionIntentToStagedOptions({intent, senderUserId: envelope.senderUserId, game, persistencePort}),
+    publishResult: entry => {
+      published.push(entry);
+      throw new Error("chat is unavailable");
+    },
+    logger: {warn: () => {}}
+  });
+  const player = createMultiplayerActionCoordinator({
+    userId: "player-a",
+    users: () => hub.userDirectory(),
+    activeGMUserId: "gm-a",
+    transport: hub.createEndpoint({userId: "player-a"}),
+    rollProviders: [createTestRollProvider({result: {natural: 18, total: 22}})]
+  });
+  gm.register();
+  player.register();
+
+  const built = buildFoundryActionUseIntent({actor: sourceActor, action, game: {
+    user: {targets: new Set([{document: targetToken}])},
+    settings: {get: (namespace, key) => (namespace === "core" && key === "messageMode" ? "ic" : undefined)}
+  }});
+  assert.equal(built.intent.messageMode, "ic");
+  const declared = await player.declareActionIntent(built.intent);
+  assert.equal(declared.ok, true);
+  assert.equal(gm.getRecord(declared.resolutionId).state.status, RESOLUTION_STATE_STATUS.COMPLETED);
+  assert.equal(player.getResult(declared.resolutionId).status, RESOLUTION_STATE_STATUS.COMPLETED);
+  assert.equal(targetActor.system.resources.health.value, 24, "a failing publisher neither blocks nor undoes the commit");
+
+  assert.equal(published.length, 1);
+  const [entry] = published;
+  assert.equal(entry.resolutionId, declared.resolutionId);
+  assert.equal(entry.initiatorUserId, "player-a");
+  assert.equal(entry.messageMode, "ic");
+  assert.equal(entry.action?.id, action.id);
+  assert.equal(entry.result.disclosure, "BROADCAST_SAFE");
+  const attackRoll = entry.result.rolls.find(roll => roll.type === "attack-roll");
+  assert.deepEqual([attackRoll?.visibility, attackRoll?.total], ["public", 22], "an in-character mode publishes the attack roll");
+  assert.equal(entry.result.committedMutations, undefined, "the publisher sees only the public projection");
+});
+
+test("Action targets carry the Token's public name, never a hidden Token's or the base Actor's", async t => {
+  const {targetActor, targetToken, game, intent} = syntheticRuntimeFixture(t, undefined, {targetHealth: 30});
+  targetActor.name = "Vampire Lord";
+  targetToken.name = "Masked Figure";
+  const named = await foundryActionIntentToStagedOptions({intent, senderUserId: "player-a", game});
+  assert.equal(named.options.targets[0].name, "Masked Figure");
+  targetToken.hidden = true;
+  const hidden = await foundryActionIntentToStagedOptions({intent, senderUserId: "player-a", game});
+  assert.equal(hidden.options.targets[0].name, null);
+});
+
 test("target snapshots retain all live-document aliases, serialize once, and detach synthetic source data", async t => {
   const f = syntheticRuntimeFixture(t);
   const resolved = await foundryActionIntentToStagedOptions({senderUserId: "player-a", intent: {...f.intent,

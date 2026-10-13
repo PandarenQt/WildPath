@@ -178,7 +178,7 @@ const ACTION_INTENT_KEYS = Object.freeze([
   "intentId", "resolutionId", "resolutionKind",
   "actorRef", "actorUuid", "actionRef", "actionUuid", "itemRef", "itemId", "tokenId", "tokenRef", "configuration",
   "schemaVersion", "movementId", "sceneRef", "sourceUserId", "origin", "destination", "waypoints", "movementKind",
-  "movementMode", "tokenOperationType", "foundry"
+  "movementMode", "tokenOperationType", "foundry", "messageMode"
 ]);
 const INTENT_SOURCE_KEYS = Object.freeze(["actorRef", "uuid", "tokenId", "tokenRef", "sceneId"]);
 const INTENT_TARGET_KEYS = Object.freeze(["actorRef", "uuid", "actorUuid", "actorId", "id", "tokenId", "sceneId"]);
@@ -424,9 +424,23 @@ function projectPublicResolutionResult(data) {
         type: entry.type ?? null,
         visibility: entry.visibility,
         natural: entry.rollResult?.natural ?? null,
-        total: entry.rollResult?.total ?? null
+        total: entry.rollResult?.total ?? null,
+        foundryRoll: publicFoundryRoll(entry.rollResult)
       }))
   }, "resolutionResult.broadcast");
+}
+
+/**
+ * The roller's Foundry Roll JSON, for chat dice display. It comes from the roller's client, so it is
+ * published only when evaluated and matching the authority-validated total.
+ * shortcut: individual die faces are not cross-checked against the validated dice; check them if a
+ * consumer ever reads faces from this JSON for rules.
+ */
+function publicFoundryRoll(rollResult) {
+  const roll = rollResult?.raw?.foundryRoll;
+  if ( !roll || typeof roll !== "object" || roll.evaluated !== true ) return null;
+  if ( !Number.isFinite(rollResult.total) || roll.total !== rollResult.total ) return null;
+  return roll;
 }
 
 function projectContestOutcome(outcome, keys) {

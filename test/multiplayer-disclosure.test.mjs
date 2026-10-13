@@ -756,7 +756,7 @@ test("result projection: both BROADCAST_SAFE and PARTICIPANT_PRIVATE are allow-l
       save: {ok: true, results: [{target: {id: "enemy", actorRef: "Actor.e"}, success: false, critical: false, outcome: "failure"}]},
       movement: {completedTransitionCount: 3, intendedTransitionCount: 3, committed: true}
     },
-    rolls: [{requestId: "r1", type: "attack", visibility: "public", natural: 18, total: 22}],
+    rolls: [{requestId: "r1", type: "attack", visibility: "public", natural: 18, total: 22, foundryRoll: null}],
     disclosure: D.BROADCAST_SAFE
   });
   const participant = projectResolutionResultForDisclosure(sample, D.PARTICIPANT_PRIVATE);
@@ -775,6 +775,19 @@ test("result projection: both BROADCAST_SAFE and PARTICIPANT_PRIVATE are allow-l
   assert.throws(() => projectResolutionResultForDisclosure(sample, null), /requires a disclosure classification/);
   assert.throws(() => projectResolutionResultForDisclosure(sample, "everyone"), /requires a disclosure classification/);
   assert.equal(isPlainSerializableData(publicResult), true);
+});
+
+test("public rolls carry the roller's Foundry Roll JSON only when evaluated and matching the validated total", () => {
+  const foundryRoll = {class: "Roll", formula: "1d20 + 4", evaluated: true, total: 22, terms: [], options: {}};
+  const publicRoll = rollResult => projectResolutionResultForDisclosure({...sampleResult(),
+    rolls: [{requestId: "r1", type: "attack", visibility: "public", rollResult}]}, D.BROADCAST_SAFE).rolls[0].foundryRoll;
+  assert.deepEqual(publicRoll({natural: 18, total: 22, raw: {foundryRoll}}), foundryRoll);
+  assert.equal(publicRoll({natural: 18, total: 22, raw: {foundryRoll: {...foundryRoll, total: 40}}}), null, "forged total");
+  assert.equal(publicRoll({natural: 18, total: 22, raw: {foundryRoll: {...foundryRoll, evaluated: false}}}), null, "unevaluated");
+  assert.equal(publicRoll({natural: 18, total: 22}), null, "manual or physical result without Roll JSON");
+  const gmOnly = projectResolutionResultForDisclosure({...sampleResult(),
+    rolls: [{requestId: "r1", type: "attack", visibility: "gm-only", rollResult: {total: 22, raw: {foundryRoll}}}]}, D.BROADCAST_SAFE);
+  assert.deepEqual(gmOnly.rolls, [], "non-public rolls never reach the public projection");
 });
 
 test("chooser minimization: per-request-type allow-lists send only what the chooser reads", () => {

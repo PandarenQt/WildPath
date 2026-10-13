@@ -1,0 +1,15 @@
+<div class="wildpath chat-card resolution-card" data-resolution-id="{{resolutionId}}">
+  {{#if actionName}}<h3 class="card-title">{{actionName}}</h3>{{/if}}
+  {{{rollHtml}}}
+  {{#if targets.length}}
+  <ul class="card-targets">
+    {{#each targets}}
+    <li class="card-target">
+      {{#if name}}<span class="target-name">{{name}}</span>{{/if}}
+      {{#if attack}}<span class="target-outcome">{{localize attack}}</span>{{/if}}
+      {{#if save}}<span class="target-outcome">{{localize save}}</span>{{/if}}
+    </li>
+    {{/each}}
+  </ul>
+  {{/if}}
+</div>

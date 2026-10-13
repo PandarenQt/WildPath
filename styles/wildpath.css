@@ -378,3 +378,19 @@
     grid-template-columns: 1fr;
   }
 }
+
+.wildpath.resolution-card .card-title {
+  margin: 0 0 0.25rem;
+}
+
+.wildpath.resolution-card .card-targets {
+  list-style: none;
+  margin: 0.25rem 0 0;
+  padding: 0;
+}
+
+.wildpath.resolution-card .card-target {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}

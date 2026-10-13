@@ -9,6 +9,7 @@ import {
 import {createFoundryV14TacticalGridAdapter} from "../adapters/foundry-v14-tactical-grid-adapter.mjs";
 import {createFoundryV14UserQueryTransport} from "../adapters/foundry-v14-user-query-transport.mjs";
 import {createDisclosureRoutedTransport} from "../adapters/disclosure-routed-transport.mjs";
+import {createFoundryV14ChatCardAdapter} from "../adapters/foundry-v14-chat-card-adapter.mjs";
 import {
   buildFoundryMovementCompletion,
   buildFoundryMovementProgressObservation,
@@ -85,7 +86,9 @@ export function registerFoundryV14MultiplayerResolution({
       userId,
       game
     }),
-    notify: event => notifyMultiplayerFailure(event, {logger})
+    notify: event => notifyMultiplayerFailure(event, {logger}),
+    publishResult: createFoundryV14ChatCardAdapter({game}),
+    logger
   });
   const registration = coordinator.register();
   const movement = createMultiplayerMovementAuthority({
@@ -323,7 +326,9 @@ export function buildFoundryActionUseIntent({actor=null, action=null, game=globa
         tokenRef: sourceToken?.uuid ?? null,
         sceneId: sourceToken?.parent?.id ?? null
       },
-      targetRefs: foundryUserTargetRefs(game)
+      targetRefs: foundryUserTargetRefs(game),
+      // The initiator's chat visibility (V14 `core.messageMode`; `core.rollMode` is a deprecated shim).
+      messageMode: game?.settings?.get?.("core", "messageMode") ?? null
     }
   };
 }
@@ -424,24 +429,23 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       return {ok: false, code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
         reason: `Action intent target ${targetRef} could not be snapshotted: ${error.message}`};
     }
+    const hint = {
+      tokenId: stringOrNull(typeof ref === "object" ? ref.tokenId : null),
+      sceneId: stringOrNull(typeof ref === "object" ? ref.sceneId : null)
+    };
     const target = withActorDefense({
       id: targetActor.id ?? targetRef,
       actorId: targetActor.id ?? null,
       actorRef: targetActor.uuid ?? targetRef,
-      uuid: targetActor.uuid ?? null
+      uuid: targetActor.uuid ?? null,
+      name: publicTargetName(targetActor, hint, game)
     }, targetActor, defenseKey);
     targets.push(target);
     for ( const key of uniqueStrings([targetActor.uuid, targetActor.id, `actor:${targetActor.id}`, targetRef]) ) {
       targetActors[key] = targetActor;
       targetSystems[key] = systemSnapshots.get(targetActor);
     }
-    targetEntries.push({
-      actor: targetActor,
-      hint: {
-        tokenId: stringOrNull(typeof ref === "object" ? ref.tokenId : null),
-        sceneId: stringOrNull(typeof ref === "object" ? ref.sceneId : null)
-      }
-    });
+    targetEntries.push({actor: targetActor, hint});
   }
 
   const sourceTokenResolution = resolveFoundrySourceToken({actor, source: intent.source ?? {}, game});
@@ -477,7 +481,10 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       targets,
       targetActors,
       targeting: spatial?.targetFootprints.length ? {candidates: spatial.targetFootprints} : null,
-      context: spatial ? {spatial: spatial.context} : {},
+      context: {
+        ...(spatial ? {spatial: spatial.context} : {}),
+        ...(typeof intent.messageMode === "string" ? {messageMode: intent.messageMode} : {})
+      },
       ...(combatStatistics.attack ? {attack: combatStatistics.attack} : {}),
       // Rules consume plain effective snapshots; commit retains the exact live (possibly synthetic) Actors.
       durability: {targetSystems},
@@ -492,6 +499,15 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       ]))
     }
   };
+}
+
+/**
+ * The Token's name is the one players see; a synthetic Actor carries the base Actor's name, which a
+ * renamed Token may deliberately conceal. Hidden Tokens get no name, since results are public.
+ */
+function publicTargetName(actor, hint, game) {
+  const token = actor?.token ?? game?.scenes?.get?.(hint.sceneId)?.tokens?.get?.(hint.tokenId) ?? null;
+  return token && token.hidden !== true ? stringOrNull(token.name) : null;
 }
 
 /**

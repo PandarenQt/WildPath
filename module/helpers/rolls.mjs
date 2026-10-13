@@ -723,6 +723,7 @@ function normalizeRollVisibility(value) {
   switch ( token ) {
     case "public":
     case "publicroll":
+    case "ic":
       return ROLL_VISIBILITY.PUBLIC;
     case "private":
     case "privateroll":

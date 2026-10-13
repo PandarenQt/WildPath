@@ -1757,6 +1757,7 @@ function damageRollRequestForState(state, input) {
     type: ROLL_TYPES.DAMAGE,
     components: damage.components ?? [],
     formula: damage.formula ?? damage.rollFormula ?? null,
+    visibility: damage.visibility ?? input.context?.messageMode,
     source: state.source ?? input.source ?? null,
     target: firstRollTarget(input),
     chooser: damage.chooser ?? ROLL_AUTHORITY.SOURCE_CONTROLLER,
@@ -2256,6 +2257,7 @@ function attackRollRequestForState(state, input) {
     modifier: modifier.value,
     formula: attack.formula ?? attack.rollFormula ?? null,
     rollMode: attack.rollMode ?? attack.advantageState ?? attack.roll?.mode,
+    visibility: attack.visibility ?? input.context?.messageMode,
     source: state.source ?? input.source ?? null,
     target: firstRollTarget(input),
     chooser: attack.chooser ?? ROLL_AUTHORITY.SOURCE_CONTROLLER,
@@ -2285,6 +2287,7 @@ function saveRollRequestForState(state, input) {
     modifier: modifier.value,
     formula: save.formula ?? save.rollFormula ?? null,
     rollMode: save.rollMode ?? save.advantageState ?? save.roll?.mode,
+    // shortcut: saves keep the default `system` visibility; per-roller message modes come with the request/roll milestone.
     dc: save.dc ?? null,
     source: firstRollTarget(input) ?? state.source ?? input.source ?? null,
     target: state.source ?? input.source ?? null,

@@ -55,7 +55,8 @@ export function createMultiplayerActionCoordinator({
   activeGMUserId=null,
   duplicateCacheLimit=200,
   logger=null,
-  notify=null
+  notify=null,
+  publishResult=null
 }={}) {
   const localUserId = stringOrNull(userId ?? transport?.userId);
   // Unfinished resolutions stay in `records`; a finished one is kept until it falls out of the bounded
@@ -728,6 +729,21 @@ export function createMultiplayerActionCoordinator({
       }
     });
     const sent = await sendEnvelope(envelope);
+    // Presentation (e.g. a chat card) sees only the public projection and never changes the outcome.
+    if ( typeof publishResult === "function" ) {
+      try {
+        await publishResult({
+          resolutionId: record.resolutionId,
+          initiatorUserId: record.initiatorUserId,
+          messageMode: record.options?.context?.messageMode ?? null,
+          actor: record.options?.actor ?? null,
+          action: record.options?.action ?? null,
+          result: publicResult
+        });
+      } catch (error) {
+        (logger ?? console).warn("Wild Path | Result publication failed", error);
+      }
+    }
     const ok = sent.ok && participantSent?.ok !== false;
     return {
       ok,
