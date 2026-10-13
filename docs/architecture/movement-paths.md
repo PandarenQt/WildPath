@@ -24,7 +24,8 @@ Implemented:
   correlation, and live-verified movement/reaction synchronization.
 - an explicit [staged movement intent](staged-movement.md) with before-transition reaction windows,
   logical footprints for nested attacks, suffix revalidation, and final position/payment transaction.
-  This new entry point has automated coverage; live verification remains pending.
+  This entry point is live-confirmed (the six-case Quench gate and the Level-5 sentinels; see
+  [staged-movement.md](staged-movement.md)).
 
 Deferred:
 

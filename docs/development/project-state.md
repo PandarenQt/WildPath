@@ -1,6 +1,6 @@
 # WildPath — Current Project State
 
-Last verified: 2026-09-21.
+Last verified: 2026-10-13.
 
 - Branch: `milestone/action-runtime-live-proof`.
 - Starting HEAD for Quench Q1: `85344524f75e2620c3bc1990e5c75cca7c463602`.
@@ -11,7 +11,10 @@ Last verified: 2026-09-21.
 - Movement implementation commit: `87ed1fae93271b81b14432bb4312be9cd53285c5`.
 - Original milestone starting HEAD: `ea484fd8b503697ddf1c2b7b0f6984ea594378e2`.
 - Local main HEAD: `61d6268b838e286728c829924506c6c931174621`.
-- Portable full suite (`FOUNDRY_V14_APP_PATH` unset): **863 tests, 861 passed, 0 failed, 2 intentionally skipped**.
+- Portable full suite (`FOUNDRY_V14_APP_PATH` unset): **879 tests, 877 passed, 0 failed, 2 intentionally skipped**.
+- Authority-hardening delta from 863/861/0/2: **16 new tests** (including payment overflow, Action ownership,
+  decisions-only refinement, the parameterized secret-sentinel suite, error allow-list, bounded
+  coordinator/movement records, `pushBounded`).
 - Review-fix delta from 864/862/0/2: **-1 test** (the User#query self-send path was unreachable behind the routed transport and was removed with its test).
 - Confidentiality-hardening delta from 834/832/0/2: **30 new tests** (23 in `test/multiplayer-disclosure.test.mjs`,
   5 schema-2 evidence tests, 1 reaction-choice disclosure test in `test/staged-movement.test.mjs`, 1 nested-child
@@ -40,6 +43,39 @@ Callbacks and Foundry Documents remain outside serialized rules state. Code defa
 turn configured reaction content into a second combat engine.
 
 ## Current milestone
+
+**Authority and disclosure hardening (M0) — CLOSED on 2026-10-13.** A review found that the
+authority trusted more than it could verify: any player could act through an Actor or Item they did
+not own; a target answer replaced the candidates and selection policy; the chooser's roll request
+still carried `attack`/`save`/`targets`/`targeting` (defenses and DCs) because the minimization was
+a top-level denylist; the participant result was a full clone; `RESOLUTION_CANCEL` accepted any
+sender; the broadcast adapter accepted an envelope with no attested sender; coordinator and movement
+records grew without bound; and resource payment clamped to the maximum, so an over-maximum pool lost
+more than the cost.
+
+**Production code changed: YES.** `multiplayer-authority.mjs` (allow-list projections for intents,
+chooser payloads, participant/public results and error data; bounded caches with `onEvict`;
+`pushBounded`), `foundry-multiplayer-runtime.mjs` (sender must own Actor and source Token; Item must
+belong to the Actor; no world-Item fallback), `action-pipeline-resolver.mjs` (target answers add
+decisions only), `foundry-v14-resolution-socket-adapter.mjs` (fails closed without an attested
+sender), `resource-resolver.mjs` (pays exactly the cost), both coordinators (bounded retention;
+`RESOLUTION_CANCEL` removed), and the three disclosure modules converted to `.mts`. See
+[multiplayer-authority.md](../architecture/multiplayer-authority.md) and
+[multiplayer-confidentiality.md](../architecture/multiplayer-confidentiality.md).
+
+Evidence on build `f41b077`, Foundry 14.369, agent-driven in two browsers: Node **879/877/0/2**,
+typecheck PASS; Quench **50/50**, orphan check empty; Level-5 ordinary, decline and Large-hex decline
+passed (schema-2 exports overwritten under `evidence/`); the Action Hit/Miss gate passed through the
+real `Item.use()` with each player `PENDING_REQUEST` reduced to `{rollRequest}` and no
+defense/DC keys; a non-owner probe failed with `WRONG_USER` and changed nothing. See the
+[Action acceptance record](action-runtime-live-qa.md#acceptance-record).
+
+Known and deferred: configuration answers may carry an `effectiveDefinition` (owner-only after M0);
+the refinement prompt's default selection makes count-limited refinement fail; unfinished abandoned
+requests are not timed out; `resolveActorAttackStatistic` may stop at the first empty domain (verify
+in M1).
+
+### Previous: multiplayer confidentiality
 
 **Multiplayer confidentiality hardening — CLOSED on 2026-10-13** (Node green, Quench 50/50 live,
 Level-5 schema-2 sentinel 3/3 pairs). The `system.wildpath` custom socket is a broadcast bus:
@@ -296,6 +332,10 @@ footprint/source changes invalidate rather than replace a route. Independent chi
 not rolled back with a later parent failure. Transactions compensate completed operations and do
 not provide database atomicity against arbitrary concurrent writes from other systems.
 
-After live proof, connect native route submission to the proposed-transition host while preserving
+**Immediate next step (M1):** close Stage D with visible results (one public chat card per completed
+Action, message mode, Dice So Nice roll JSON) and the representative live gate (ranged, bonus-action
+cost, condition on hit, save for half, healing, configuration).
+
+Movement: connect native route submission to the proposed-transition host while preserving
 checkpoint accounting. Later work can add Region/Area consumers, route replacement for changed
 footprints, and representative reaction content through the established provider seams.

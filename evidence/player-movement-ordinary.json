@@ -12,21 +12,21 @@
   },
   "systemId": "wildpath",
   "systemVersion": "0.0.1",
-  "gitSha": "c1f0079e3c1b56188799cfcc2536e166a392b027",
-  "capturedAt": "2026-10-13T18:29:38.703Z",
-  "runId": "O1W5fcGQxAt1mQao",
-  "resolutionId": "qa-movement:O1W5fcGQxAt1mQao:ADfWLurxb2a1rWil",
+  "gitSha": "f41b077c91acf05a22b72f6a691cb26eb6f1d06d",
+  "capturedAt": "2026-10-13T20:02:18.570Z",
+  "runId": "THjvGIVo7uU1LuTH",
+  "resolutionId": "qa-movement:THjvGIVo7uU1LuTH:JnOMChq3PQfP0m2d",
   "evidenceFile": "evidence/player-movement-ordinary.json",
   "evidence": {
-    "runId": "O1W5fcGQxAt1mQao",
+    "runId": "THjvGIVo7uU1LuTH",
     "role": "player",
     "mode": "ordinary",
     "variant": "square",
-    "resolutionId": "qa-movement:O1W5fcGQxAt1mQao:ADfWLurxb2a1rWil",
+    "resolutionId": "qa-movement:THjvGIVo7uU1LuTH:JnOMChq3PQfP0m2d",
     "moverUserId": "6JWzwo5Aln6gZUWH",
     "reactorUserId": "hUdU40DWftTFyJzW",
-    "moverTokenId": "2tp3m64scTWLnfWN",
-    "reactorTokenId": "WCnrLyhX3P8PAVST",
+    "moverTokenId": "6Sr2sDtbsf1q0BVE",
+    "reactorTokenId": "AlUxDh1V7Mh6Z4gv",
     "sceneId": "q2HthP7tg8690hK6",
     "origin": {
       "x": 3000,
@@ -68,7 +68,7 @@
       "effects": []
     },
     "result": {
-      "resolutionId": "qa-movement:O1W5fcGQxAt1mQao:ADfWLurxb2a1rWil",
+      "resolutionId": "qa-movement:THjvGIVo7uU1LuTH:JnOMChq3PQfP0m2d",
       "status": "completed",
       "code": null,
       "ok": true,
@@ -76,86 +76,32 @@
       "initiatorUserId": "6JWzwo5Aln6gZUWH",
       "action": {
         "id": null,
-        "name": null,
-        "type": "action",
-        "source": null
+        "name": null
       },
       "source": {
-        "actorId": "nq0V2b55czsNCZzT",
-        "actorRef": "Scene.q2HthP7tg8690hK6.Token.2tp3m64scTWLnfWN.Actor.nq0V2b55czsNCZzT",
-        "tokenId": "2tp3m64scTWLnfWN",
-        "tokenRef": "Scene.q2HthP7tg8690hK6.Token.2tp3m64scTWLnfWN"
+        "actorId": "ZrfFus74wTNB8fAM",
+        "actorRef": "Scene.q2HthP7tg8690hK6.Token.6Sr2sDtbsf1q0BVE.Actor.ZrfFus74wTNB8fAM",
+        "tokenId": "6Sr2sDtbsf1q0BVE",
+        "tokenRef": "Scene.q2HthP7tg8690hK6.Token.6Sr2sDtbsf1q0BVE"
       },
       "targets": [],
-      "configuration": null,
-      "preview": null,
-      "rolls": [],
       "outcomes": {
         "attack": null,
         "save": null,
-        "damage": null,
-        "healing": null,
-        "effects": null,
-        "payment": {
-          "id": "payment-1",
-          "code": "AVAILABLE",
-          "mode": "direct",
-          "priority": 10,
-          "resources": [
-            {
-              "resourceId": "economy.movement",
-              "amount": 15,
-              "capability": "movement",
-              "unit": "movement",
-              "mode": "direct",
-              "source": {
-                "type": "actor",
-                "slug": "movement"
-              }
-            }
-          ],
-          "selection": "deterministic-priority",
-          "trace": [
-            {
-              "resourceId": "economy.movement",
-              "capability": "movement",
-              "amount": 15,
-              "mode": "direct",
-              "policy": null
-            }
-          ]
-        },
         "movement": {
           "completedTransitionCount": 3,
           "intendedTransitionCount": 3,
           "cumulativeCost": 15,
           "stopped": false,
           "reason": null,
+          "committed": true,
           "footprint": {
             "type": "TokenGridFootprint",
             "topology": "square",
             "size": "medium",
-            "effectiveSize": "medium",
             "anchor": {
               "x": 23,
               "y": 33
-            },
-            "definition": {
-              "size": "medium",
-              "topology": "square",
-              "offsets": [
-                {
-                  "x": 0,
-                  "y": 0
-                }
-              ],
-              "fieldCount": 1,
-              "creaturesPerField": 1,
-              "minimumFields": 1,
-              "metadata": {
-                "ruleset": "dnd5e",
-                "squareWidth": 1
-              }
             },
             "fields": [
               {
@@ -165,357 +111,11 @@
             ],
             "fieldKeys": [
               "square:23,33"
-            ],
-            "metadata": {},
-            "boundaryFields": [
-              {
-                "x": 23,
-                "y": 33
-              }
-            ],
-            "boundaryEdges": [
-              {
-                "id": "square:23,33>east",
-                "topology": "square",
-                "field": {
-                  "x": 23,
-                  "y": 33
-                },
-                "outsideField": {
-                  "x": 24,
-                  "y": 33
-                },
-                "direction": "east"
-              },
-              {
-                "id": "square:23,33>north",
-                "topology": "square",
-                "field": {
-                  "x": 23,
-                  "y": 33
-                },
-                "outsideField": {
-                  "x": 23,
-                  "y": 32
-                },
-                "direction": "north"
-              },
-              {
-                "id": "square:23,33>south",
-                "topology": "square",
-                "field": {
-                  "x": 23,
-                  "y": 33
-                },
-                "outsideField": {
-                  "x": 23,
-                  "y": 34
-                },
-                "direction": "south"
-              },
-              {
-                "id": "square:23,33>west",
-                "topology": "square",
-                "field": {
-                  "x": 23,
-                  "y": 33
-                },
-                "outsideField": {
-                  "x": 22,
-                  "y": 33
-                },
-                "direction": "west"
-              }
-            ],
-            "boundaryVertices": [
-              {
-                "id": "square-vertex:23,33",
-                "x": 23,
-                "y": 33,
-                "incidentFields": [
-                  {
-                    "x": 22,
-                    "y": 32
-                  },
-                  {
-                    "x": 23,
-                    "y": 32
-                  },
-                  {
-                    "x": 22,
-                    "y": 33
-                  },
-                  {
-                    "x": 23,
-                    "y": 33
-                  }
-                ],
-                "topology": "square",
-                "occupiedIncidentFields": [
-                  {
-                    "x": 23,
-                    "y": 33
-                  }
-                ],
-                "external": true
-              },
-              {
-                "id": "square-vertex:23,34",
-                "x": 23,
-                "y": 34,
-                "incidentFields": [
-                  {
-                    "x": 22,
-                    "y": 33
-                  },
-                  {
-                    "x": 23,
-                    "y": 33
-                  },
-                  {
-                    "x": 22,
-                    "y": 34
-                  },
-                  {
-                    "x": 23,
-                    "y": 34
-                  }
-                ],
-                "topology": "square",
-                "occupiedIncidentFields": [
-                  {
-                    "x": 23,
-                    "y": 33
-                  }
-                ],
-                "external": true
-              },
-              {
-                "id": "square-vertex:24,33",
-                "x": 24,
-                "y": 33,
-                "incidentFields": [
-                  {
-                    "x": 23,
-                    "y": 32
-                  },
-                  {
-                    "x": 24,
-                    "y": 32
-                  },
-                  {
-                    "x": 23,
-                    "y": 33
-                  },
-                  {
-                    "x": 24,
-                    "y": 33
-                  }
-                ],
-                "topology": "square",
-                "occupiedIncidentFields": [
-                  {
-                    "x": 23,
-                    "y": 33
-                  }
-                ],
-                "external": true
-              },
-              {
-                "id": "square-vertex:24,34",
-                "x": 24,
-                "y": 34,
-                "incidentFields": [
-                  {
-                    "x": 23,
-                    "y": 33
-                  },
-                  {
-                    "x": 24,
-                    "y": 33
-                  },
-                  {
-                    "x": 23,
-                    "y": 34
-                  },
-                  {
-                    "x": 24,
-                    "y": 34
-                  }
-                ],
-                "topology": "square",
-                "occupiedIncidentFields": [
-                  {
-                    "x": 23,
-                    "y": 33
-                  }
-                ],
-                "external": true
-              }
-            ],
-            "internalVertices": []
-          },
-          "committed": true
+            ]
+          }
         }
       },
-      "committedMutations": [
-        {
-          "id": "qa-movement:O1W5fcGQxAt1mQao:ADfWLurxb2a1rWil:position",
-          "type": "documentUpdate",
-          "actorRef": null,
-          "documentRef": "Scene.q2HthP7tg8690hK6.Token.2tp3m64scTWLnfWN",
-          "role": "movementPosition"
-        },
-        {
-          "id": "qa-movement:O1W5fcGQxAt1mQao:ADfWLurxb2a1rWil:payment",
-          "type": "actorUpdate",
-          "actorRef": "Scene.q2HthP7tg8690hK6.Token.2tp3m64scTWLnfWN.Actor.nq0V2b55czsNCZzT",
-          "role": null
-        }
-      ],
-      "trace": [
-        {
-          "stageId": "movement.intention",
-          "status": "completed",
-          "result": "continue",
-          "code": "OK",
-          "requestIds": []
-        },
-        {
-          "stageId": "movement.route",
-          "status": "completed",
-          "result": "continue",
-          "code": "OK",
-          "requestIds": []
-        },
-        {
-          "stageId": "movement.validation",
-          "status": "completed",
-          "result": "continue",
-          "code": "OK",
-          "requestIds": []
-        },
-        {
-          "stageId": "movement.transition:0.propose",
-          "status": "completed",
-          "result": "continue",
-          "code": "OK",
-          "requestIds": []
-        },
-        {
-          "stageId": "movement.transition:0.reactions",
-          "status": "running",
-          "result": "continue",
-          "code": "NO_CANDIDATES",
-          "requestIds": []
-        },
-        {
-          "stageId": "movement.transition:0.reactions",
-          "status": "completed",
-          "result": "continue",
-          "code": "OK",
-          "requestIds": []
-        },
-        {
-          "stageId": "movement.transition:0.revalidation",
-          "status": "completed",
-          "result": "continue",
-          "code": "OK",
-          "requestIds": []
-        },
-        {
-          "stageId": "movement.transition:0.traverse",
-          "status": "completed",
-          "result": "continue",
-          "code": "OK",
-          "requestIds": []
-        },
-        {
-          "stageId": "movement.transition:1.propose",
-          "status": "completed",
-          "result": "continue",
-          "code": "OK",
-          "requestIds": []
-        },
-        {
-          "stageId": "movement.transition:1.reactions",
-          "status": "running",
-          "result": "continue",
-          "code": "NO_CANDIDATES",
-          "requestIds": []
-        },
-        {
-          "stageId": "movement.transition:1.reactions",
-          "status": "completed",
-          "result": "continue",
-          "code": "OK",
-          "requestIds": []
-        },
-        {
-          "stageId": "movement.transition:1.revalidation",
-          "status": "completed",
-          "result": "continue",
-          "code": "OK",
-          "requestIds": []
-        },
-        {
-          "stageId": "movement.transition:1.traverse",
-          "status": "completed",
-          "result": "continue",
-          "code": "OK",
-          "requestIds": []
-        },
-        {
-          "stageId": "movement.transition:2.propose",
-          "status": "completed",
-          "result": "continue",
-          "code": "OK",
-          "requestIds": []
-        },
-        {
-          "stageId": "movement.transition:2.reactions",
-          "status": "running",
-          "result": "continue",
-          "code": "NO_CANDIDATES",
-          "requestIds": []
-        },
-        {
-          "stageId": "movement.transition:2.reactions",
-          "status": "completed",
-          "result": "continue",
-          "code": "OK",
-          "requestIds": []
-        },
-        {
-          "stageId": "movement.transition:2.revalidation",
-          "status": "completed",
-          "result": "continue",
-          "code": "OK",
-          "requestIds": []
-        },
-        {
-          "stageId": "movement.transition:2.traverse",
-          "status": "completed",
-          "result": "continue",
-          "code": "OK",
-          "requestIds": []
-        },
-        {
-          "stageId": "movement.payment",
-          "status": "completed",
-          "result": "continue",
-          "code": "OK",
-          "requestIds": []
-        },
-        {
-          "stageId": "movement.ready-to-commit",
-          "status": "completed",
-          "result": "complete",
-          "code": "COMPLETED",
-          "requestIds": []
-        },
-        "[2 more entries]"
-      ],
+      "rolls": [],
       "disclosure": "PARTICIPANT_PRIVATE"
     },
     "transport": {
@@ -528,24 +128,24 @@
           "direction": "outgoing",
           "transport": "broadcast",
           "messageType": "ACTION_INTENT",
-          "messageId": "resolution-message:action-intent:1791916164217:1",
+          "messageId": "resolution-message:action-intent:1791921729467:1",
           "senderUserId": "6JWzwo5Aln6gZUWH",
           "recipientUserId": "hUdU40DWftTFyJzW",
           "recipientPolicy": null,
           "disclosure": "BROADCAST_SAFE",
-          "resolutionId": "qa-movement:O1W5fcGQxAt1mQao:ADfWLurxb2a1rWil",
+          "resolutionId": "qa-movement:THjvGIVo7uU1LuTH:JnOMChq3PQfP0m2d",
           "requestId": null
         },
         {
           "direction": "incoming",
           "transport": "broadcast",
           "messageType": "RESOLUTION_RESULT",
-          "messageId": "resolution-message:resolution-result:1791916164322:2",
+          "messageId": "resolution-message:resolution-result:1791921729573:2",
           "senderUserId": "hUdU40DWftTFyJzW",
           "recipientUserId": null,
           "recipientPolicy": "all",
           "disclosure": "BROADCAST_SAFE",
-          "resolutionId": "qa-movement:O1W5fcGQxAt1mQao:ADfWLurxb2a1rWil",
+          "resolutionId": "qa-movement:THjvGIVo7uU1LuTH:JnOMChq3PQfP0m2d",
           "requestId": null
         }
       ],
@@ -554,12 +154,12 @@
           "direction": "incoming",
           "transport": "targeted",
           "messageType": "RESOLUTION_RESULT",
-          "messageId": "resolution-message:resolution-result:1791916164317:1",
+          "messageId": "resolution-message:resolution-result:1791921729570:1",
           "senderUserId": "hUdU40DWftTFyJzW",
           "recipientUserId": "6JWzwo5Aln6gZUWH",
           "recipientPolicy": null,
           "disclosure": "PARTICIPANT_PRIVATE",
-          "resolutionId": "qa-movement:O1W5fcGQxAt1mQao:ADfWLurxb2a1rWil",
+          "resolutionId": "qa-movement:THjvGIVo7uU1LuTH:JnOMChq3PQfP0m2d",
           "requestId": null
         }
       ],
@@ -571,693 +171,18 @@
         "type": "RESOLUTION_RESULT",
         "envelope": {
           "protocolVersion": 1,
-          "messageId": "resolution-message:resolution-result:1791916164317:1",
+          "messageId": "resolution-message:resolution-result:1791921729570:1",
           "messageType": "RESOLUTION_RESULT",
           "senderUserId": "hUdU40DWftTFyJzW",
           "recipientUserId": "6JWzwo5Aln6gZUWH",
           "recipientUserIds": [],
           "recipientPolicy": null,
           "disclosure": "PARTICIPANT_PRIVATE",
-          "resolutionId": "qa-movement:O1W5fcGQxAt1mQao:ADfWLurxb2a1rWil",
+          "resolutionId": "qa-movement:THjvGIVo7uU1LuTH:JnOMChq3PQfP0m2d",
           "requestId": null,
           "payload": {
             "result": {
-              "resolutionId": "qa-movement:O1W5fcGQxAt1mQao:ADfWLurxb2a1rWil",
-              "status": "completed",
-              "code": null,
-              "ok": true,
-              "authorityUserId": "hUdU40DWftTFyJzW",
-              "initiatorUserId": "6JWzwo5Aln6gZUWH",
-              "action": {
-                "id": null,
-                "name": null,
-                "type": "action",
-                "source": null
-              },
-              "source": {
-                "actorId": "nq0V2b55czsNCZzT",
-                "actorRef": "Scene.q2HthP7tg8690hK6.Token.2tp3m64scTWLnfWN.Actor.nq0V2b55czsNCZzT",
-                "tokenId": "2tp3m64scTWLnfWN",
-                "tokenRef": "Scene.q2HthP7tg8690hK6.Token.2tp3m64scTWLnfWN"
-              },
-              "targets": [],
-              "configuration": null,
-              "preview": null,
-              "rolls": [],
-              "outcomes": {
-                "attack": null,
-                "save": null,
-                "damage": null,
-                "healing": null,
-                "effects": null,
-                "payment": {
-                  "id": "payment-1",
-                  "code": "AVAILABLE",
-                  "mode": "direct",
-                  "priority": 10,
-                  "resources": [
-                    {
-                      "resourceId": "economy.movement",
-                      "amount": 15,
-                      "capability": "movement",
-                      "unit": "movement",
-                      "mode": "direct",
-                      "source": "[depth limit]"
-                    }
-                  ],
-                  "selection": "deterministic-priority",
-                  "trace": [
-                    {
-                      "resourceId": "economy.movement",
-                      "capability": "movement",
-                      "amount": 15,
-                      "mode": "direct",
-                      "policy": null
-                    }
-                  ]
-                },
-                "movement": {
-                  "completedTransitionCount": 3,
-                  "intendedTransitionCount": 3,
-                  "cumulativeCost": 15,
-                  "stopped": false,
-                  "reason": null,
-                  "footprint": {
-                    "type": "TokenGridFootprint",
-                    "topology": "square",
-                    "size": "medium",
-                    "effectiveSize": "medium",
-                    "anchor": {
-                      "x": 23,
-                      "y": 33
-                    },
-                    "definition": {
-                      "size": "medium",
-                      "topology": "square",
-                      "offsets": "[depth limit]",
-                      "fieldCount": 1,
-                      "creaturesPerField": 1,
-                      "minimumFields": 1,
-                      "metadata": "[depth limit]"
-                    },
-                    "fields": [
-                      "[depth limit]"
-                    ],
-                    "fieldKeys": [
-                      "square:23,33"
-                    ],
-                    "metadata": {},
-                    "boundaryFields": [
-                      "[depth limit]"
-                    ],
-                    "boundaryEdges": [
-                      "[depth limit]",
-                      "[depth limit]",
-                      "[depth limit]",
-                      "[depth limit]"
-                    ],
-                    "boundaryVertices": [
-                      "[depth limit]",
-                      "[depth limit]",
-                      "[depth limit]",
-                      "[depth limit]"
-                    ],
-                    "internalVertices": []
-                  },
-                  "committed": true
-                }
-              },
-              "committedMutations": [
-                {
-                  "id": "qa-movement:O1W5fcGQxAt1mQao:ADfWLurxb2a1rWil:position",
-                  "type": "documentUpdate",
-                  "actorRef": null,
-                  "documentRef": "Scene.q2HthP7tg8690hK6.Token.2tp3m64scTWLnfWN",
-                  "role": "movementPosition"
-                },
-                {
-                  "id": "qa-movement:O1W5fcGQxAt1mQao:ADfWLurxb2a1rWil:payment",
-                  "type": "actorUpdate",
-                  "actorRef": "Scene.q2HthP7tg8690hK6.Token.2tp3m64scTWLnfWN.Actor.nq0V2b55czsNCZzT",
-                  "role": null
-                }
-              ],
-              "trace": [
-                {
-                  "stageId": "movement.intention",
-                  "status": "completed",
-                  "result": "continue",
-                  "code": "OK",
-                  "requestIds": []
-                },
-                {
-                  "stageId": "movement.route",
-                  "status": "completed",
-                  "result": "continue",
-                  "code": "OK",
-                  "requestIds": []
-                },
-                {
-                  "stageId": "movement.validation",
-                  "status": "completed",
-                  "result": "continue",
-                  "code": "OK",
-                  "requestIds": []
-                },
-                {
-                  "stageId": "movement.transition:0.propose",
-                  "status": "completed",
-                  "result": "continue",
-                  "code": "OK",
-                  "requestIds": []
-                },
-                {
-                  "stageId": "movement.transition:0.reactions",
-                  "status": "running",
-                  "result": "continue",
-                  "code": "NO_CANDIDATES",
-                  "requestIds": []
-                },
-                {
-                  "stageId": "movement.transition:0.reactions",
-                  "status": "completed",
-                  "result": "continue",
-                  "code": "OK",
-                  "requestIds": []
-                },
-                {
-                  "stageId": "movement.transition:0.revalidation",
-                  "status": "completed",
-                  "result": "continue",
-                  "code": "OK",
-                  "requestIds": []
-                },
-                {
-                  "stageId": "movement.transition:0.traverse",
-                  "status": "completed",
-                  "result": "continue",
-                  "code": "OK",
-                  "requestIds": []
-                },
-                {
-                  "stageId": "movement.transition:1.propose",
-                  "status": "completed",
-                  "result": "continue",
-                  "code": "OK",
-                  "requestIds": []
-                },
-                {
-                  "stageId": "movement.transition:1.reactions",
-                  "status": "running",
-                  "result": "continue",
-                  "code": "NO_CANDIDATES",
-                  "requestIds": []
-                },
-                {
-                  "stageId": "movement.transition:1.reactions",
-                  "status": "completed",
-                  "result": "continue",
-                  "code": "OK",
-                  "requestIds": []
-                },
-                {
-                  "stageId": "movement.transition:1.revalidation",
-                  "status": "completed",
-                  "result": "continue",
-                  "code": "OK",
-                  "requestIds": []
-                },
-                {
-                  "stageId": "movement.transition:1.traverse",
-                  "status": "completed",
-                  "result": "continue",
-                  "code": "OK",
-                  "requestIds": []
-                },
-                {
-                  "stageId": "movement.transition:2.propose",
-                  "status": "completed",
-                  "result": "continue",
-                  "code": "OK",
-                  "requestIds": []
-                },
-                {
-                  "stageId": "movement.transition:2.reactions",
-                  "status": "running",
-                  "result": "continue",
-                  "code": "NO_CANDIDATES",
-                  "requestIds": []
-                },
-                {
-                  "stageId": "movement.transition:2.reactions",
-                  "status": "completed",
-                  "result": "continue",
-                  "code": "OK",
-                  "requestIds": []
-                },
-                {
-                  "stageId": "movement.transition:2.revalidation",
-                  "status": "completed",
-                  "result": "continue",
-                  "code": "OK",
-                  "requestIds": []
-                },
-                {
-                  "stageId": "movement.transition:2.traverse",
-                  "status": "completed",
-                  "result": "continue",
-                  "code": "OK",
-                  "requestIds": []
-                },
-                {
-                  "stageId": "movement.payment",
-                  "status": "completed",
-                  "result": "continue",
-                  "code": "OK",
-                  "requestIds": []
-                },
-                {
-                  "stageId": "movement.ready-to-commit",
-                  "status": "completed",
-                  "result": "complete",
-                  "code": "COMPLETED",
-                  "requestIds": []
-                },
-                "[2 more entries]"
-              ],
-              "disclosure": "PARTICIPANT_PRIVATE"
-            }
-          },
-          "metadata": {}
-        },
-        "result": {
-          "resolutionId": "qa-movement:O1W5fcGQxAt1mQao:ADfWLurxb2a1rWil",
-          "status": "completed",
-          "code": null,
-          "ok": true,
-          "authorityUserId": "hUdU40DWftTFyJzW",
-          "initiatorUserId": "6JWzwo5Aln6gZUWH",
-          "action": {
-            "id": null,
-            "name": null,
-            "type": "action",
-            "source": null
-          },
-          "source": {
-            "actorId": "nq0V2b55czsNCZzT",
-            "actorRef": "Scene.q2HthP7tg8690hK6.Token.2tp3m64scTWLnfWN.Actor.nq0V2b55czsNCZzT",
-            "tokenId": "2tp3m64scTWLnfWN",
-            "tokenRef": "Scene.q2HthP7tg8690hK6.Token.2tp3m64scTWLnfWN"
-          },
-          "targets": [],
-          "configuration": null,
-          "preview": null,
-          "rolls": [],
-          "outcomes": {
-            "attack": null,
-            "save": null,
-            "damage": null,
-            "healing": null,
-            "effects": null,
-            "payment": {
-              "id": "payment-1",
-              "code": "AVAILABLE",
-              "mode": "direct",
-              "priority": 10,
-              "resources": [
-                {
-                  "resourceId": "economy.movement",
-                  "amount": 15,
-                  "capability": "movement",
-                  "unit": "movement",
-                  "mode": "direct",
-                  "source": {
-                    "type": "actor",
-                    "slug": "movement"
-                  }
-                }
-              ],
-              "selection": "deterministic-priority",
-              "trace": [
-                {
-                  "resourceId": "economy.movement",
-                  "capability": "movement",
-                  "amount": 15,
-                  "mode": "direct",
-                  "policy": null
-                }
-              ]
-            },
-            "movement": {
-              "completedTransitionCount": 3,
-              "intendedTransitionCount": 3,
-              "cumulativeCost": 15,
-              "stopped": false,
-              "reason": null,
-              "footprint": {
-                "type": "TokenGridFootprint",
-                "topology": "square",
-                "size": "medium",
-                "effectiveSize": "medium",
-                "anchor": {
-                  "x": 23,
-                  "y": 33
-                },
-                "definition": {
-                  "size": "medium",
-                  "topology": "square",
-                  "offsets": [
-                    {
-                      "x": 0,
-                      "y": 0
-                    }
-                  ],
-                  "fieldCount": 1,
-                  "creaturesPerField": 1,
-                  "minimumFields": 1,
-                  "metadata": {
-                    "ruleset": "dnd5e",
-                    "squareWidth": 1
-                  }
-                },
-                "fields": [
-                  {
-                    "x": 23,
-                    "y": 33
-                  }
-                ],
-                "fieldKeys": [
-                  "square:23,33"
-                ],
-                "metadata": {},
-                "boundaryFields": [
-                  {
-                    "x": 23,
-                    "y": 33
-                  }
-                ],
-                "boundaryEdges": [
-                  {
-                    "id": "square:23,33>east",
-                    "topology": "square",
-                    "field": {
-                      "x": 23,
-                      "y": 33
-                    },
-                    "outsideField": {
-                      "x": 24,
-                      "y": 33
-                    },
-                    "direction": "east"
-                  },
-                  {
-                    "id": "square:23,33>north",
-                    "topology": "square",
-                    "field": {
-                      "x": 23,
-                      "y": 33
-                    },
-                    "outsideField": {
-                      "x": 23,
-                      "y": 32
-                    },
-                    "direction": "north"
-                  },
-                  {
-                    "id": "square:23,33>south",
-                    "topology": "square",
-                    "field": {
-                      "x": 23,
-                      "y": 33
-                    },
-                    "outsideField": {
-                      "x": 23,
-                      "y": 34
-                    },
-                    "direction": "south"
-                  },
-                  {
-                    "id": "square:23,33>west",
-                    "topology": "square",
-                    "field": {
-                      "x": 23,
-                      "y": 33
-                    },
-                    "outsideField": {
-                      "x": 22,
-                      "y": 33
-                    },
-                    "direction": "west"
-                  }
-                ],
-                "boundaryVertices": [
-                  {
-                    "id": "square-vertex:23,33",
-                    "x": 23,
-                    "y": 33,
-                    "incidentFields": [
-                      "[depth limit]",
-                      "[depth limit]",
-                      "[depth limit]",
-                      "[depth limit]"
-                    ],
-                    "topology": "square",
-                    "occupiedIncidentFields": [
-                      "[depth limit]"
-                    ],
-                    "external": true
-                  },
-                  {
-                    "id": "square-vertex:23,34",
-                    "x": 23,
-                    "y": 34,
-                    "incidentFields": [
-                      "[depth limit]",
-                      "[depth limit]",
-                      "[depth limit]",
-                      "[depth limit]"
-                    ],
-                    "topology": "square",
-                    "occupiedIncidentFields": [
-                      "[depth limit]"
-                    ],
-                    "external": true
-                  },
-                  {
-                    "id": "square-vertex:24,33",
-                    "x": 24,
-                    "y": 33,
-                    "incidentFields": [
-                      "[depth limit]",
-                      "[depth limit]",
-                      "[depth limit]",
-                      "[depth limit]"
-                    ],
-                    "topology": "square",
-                    "occupiedIncidentFields": [
-                      "[depth limit]"
-                    ],
-                    "external": true
-                  },
-                  {
-                    "id": "square-vertex:24,34",
-                    "x": 24,
-                    "y": 34,
-                    "incidentFields": [
-                      "[depth limit]",
-                      "[depth limit]",
-                      "[depth limit]",
-                      "[depth limit]"
-                    ],
-                    "topology": "square",
-                    "occupiedIncidentFields": [
-                      "[depth limit]"
-                    ],
-                    "external": true
-                  }
-                ],
-                "internalVertices": []
-              },
-              "committed": true
-            }
-          },
-          "committedMutations": [
-            {
-              "id": "qa-movement:O1W5fcGQxAt1mQao:ADfWLurxb2a1rWil:position",
-              "type": "documentUpdate",
-              "actorRef": null,
-              "documentRef": "Scene.q2HthP7tg8690hK6.Token.2tp3m64scTWLnfWN",
-              "role": "movementPosition"
-            },
-            {
-              "id": "qa-movement:O1W5fcGQxAt1mQao:ADfWLurxb2a1rWil:payment",
-              "type": "actorUpdate",
-              "actorRef": "Scene.q2HthP7tg8690hK6.Token.2tp3m64scTWLnfWN.Actor.nq0V2b55czsNCZzT",
-              "role": null
-            }
-          ],
-          "trace": [
-            {
-              "stageId": "movement.intention",
-              "status": "completed",
-              "result": "continue",
-              "code": "OK",
-              "requestIds": []
-            },
-            {
-              "stageId": "movement.route",
-              "status": "completed",
-              "result": "continue",
-              "code": "OK",
-              "requestIds": []
-            },
-            {
-              "stageId": "movement.validation",
-              "status": "completed",
-              "result": "continue",
-              "code": "OK",
-              "requestIds": []
-            },
-            {
-              "stageId": "movement.transition:0.propose",
-              "status": "completed",
-              "result": "continue",
-              "code": "OK",
-              "requestIds": []
-            },
-            {
-              "stageId": "movement.transition:0.reactions",
-              "status": "running",
-              "result": "continue",
-              "code": "NO_CANDIDATES",
-              "requestIds": []
-            },
-            {
-              "stageId": "movement.transition:0.reactions",
-              "status": "completed",
-              "result": "continue",
-              "code": "OK",
-              "requestIds": []
-            },
-            {
-              "stageId": "movement.transition:0.revalidation",
-              "status": "completed",
-              "result": "continue",
-              "code": "OK",
-              "requestIds": []
-            },
-            {
-              "stageId": "movement.transition:0.traverse",
-              "status": "completed",
-              "result": "continue",
-              "code": "OK",
-              "requestIds": []
-            },
-            {
-              "stageId": "movement.transition:1.propose",
-              "status": "completed",
-              "result": "continue",
-              "code": "OK",
-              "requestIds": []
-            },
-            {
-              "stageId": "movement.transition:1.reactions",
-              "status": "running",
-              "result": "continue",
-              "code": "NO_CANDIDATES",
-              "requestIds": []
-            },
-            {
-              "stageId": "movement.transition:1.reactions",
-              "status": "completed",
-              "result": "continue",
-              "code": "OK",
-              "requestIds": []
-            },
-            {
-              "stageId": "movement.transition:1.revalidation",
-              "status": "completed",
-              "result": "continue",
-              "code": "OK",
-              "requestIds": []
-            },
-            {
-              "stageId": "movement.transition:1.traverse",
-              "status": "completed",
-              "result": "continue",
-              "code": "OK",
-              "requestIds": []
-            },
-            {
-              "stageId": "movement.transition:2.propose",
-              "status": "completed",
-              "result": "continue",
-              "code": "OK",
-              "requestIds": []
-            },
-            {
-              "stageId": "movement.transition:2.reactions",
-              "status": "running",
-              "result": "continue",
-              "code": "NO_CANDIDATES",
-              "requestIds": []
-            },
-            {
-              "stageId": "movement.transition:2.reactions",
-              "status": "completed",
-              "result": "continue",
-              "code": "OK",
-              "requestIds": []
-            },
-            {
-              "stageId": "movement.transition:2.revalidation",
-              "status": "completed",
-              "result": "continue",
-              "code": "OK",
-              "requestIds": []
-            },
-            {
-              "stageId": "movement.transition:2.traverse",
-              "status": "completed",
-              "result": "continue",
-              "code": "OK",
-              "requestIds": []
-            },
-            {
-              "stageId": "movement.payment",
-              "status": "completed",
-              "result": "continue",
-              "code": "OK",
-              "requestIds": []
-            },
-            {
-              "stageId": "movement.ready-to-commit",
-              "status": "completed",
-              "result": "complete",
-              "code": "COMPLETED",
-              "requestIds": []
-            },
-            "[2 more entries]"
-          ],
-          "disclosure": "PARTICIPANT_PRIVATE"
-        }
-      },
-      {
-        "type": "RESOLUTION_RESULT",
-        "envelope": {
-          "protocolVersion": 1,
-          "messageId": "resolution-message:resolution-result:1791916164322:2",
-          "messageType": "RESOLUTION_RESULT",
-          "senderUserId": "hUdU40DWftTFyJzW",
-          "recipientUserId": null,
-          "recipientUserIds": [],
-          "recipientPolicy": "all",
-          "disclosure": "BROADCAST_SAFE",
-          "resolutionId": "qa-movement:O1W5fcGQxAt1mQao:ADfWLurxb2a1rWil",
-          "requestId": null,
-          "payload": {
-            "result": {
-              "resolutionId": "qa-movement:O1W5fcGQxAt1mQao:ADfWLurxb2a1rWil",
+              "resolutionId": "qa-movement:THjvGIVo7uU1LuTH:JnOMChq3PQfP0m2d",
               "status": "completed",
               "code": null,
               "ok": true,
@@ -1268,10 +193,10 @@
                 "name": null
               },
               "source": {
-                "actorId": "nq0V2b55czsNCZzT",
-                "actorRef": "Scene.q2HthP7tg8690hK6.Token.2tp3m64scTWLnfWN.Actor.nq0V2b55czsNCZzT",
-                "tokenId": "2tp3m64scTWLnfWN",
-                "tokenRef": "Scene.q2HthP7tg8690hK6.Token.2tp3m64scTWLnfWN"
+                "actorId": "ZrfFus74wTNB8fAM",
+                "actorRef": "Scene.q2HthP7tg8690hK6.Token.6Sr2sDtbsf1q0BVE.Actor.ZrfFus74wTNB8fAM",
+                "tokenId": "6Sr2sDtbsf1q0BVE",
+                "tokenRef": "Scene.q2HthP7tg8690hK6.Token.6Sr2sDtbsf1q0BVE"
               },
               "targets": [],
               "outcomes": {
@@ -1283,59 +208,32 @@
                   "cumulativeCost": 15,
                   "stopped": false,
                   "reason": null,
+                  "committed": true,
                   "footprint": {
                     "type": "TokenGridFootprint",
                     "topology": "square",
                     "size": "medium",
-                    "effectiveSize": "medium",
                     "anchor": {
                       "x": 23,
                       "y": 33
-                    },
-                    "definition": {
-                      "size": "medium",
-                      "topology": "square",
-                      "offsets": "[depth limit]",
-                      "fieldCount": 1,
-                      "creaturesPerField": 1,
-                      "minimumFields": 1,
-                      "metadata": "[depth limit]"
                     },
                     "fields": [
                       "[depth limit]"
                     ],
                     "fieldKeys": [
                       "square:23,33"
-                    ],
-                    "metadata": {},
-                    "boundaryFields": [
-                      "[depth limit]"
-                    ],
-                    "boundaryEdges": [
-                      "[depth limit]",
-                      "[depth limit]",
-                      "[depth limit]",
-                      "[depth limit]"
-                    ],
-                    "boundaryVertices": [
-                      "[depth limit]",
-                      "[depth limit]",
-                      "[depth limit]",
-                      "[depth limit]"
-                    ],
-                    "internalVertices": []
-                  },
-                  "committed": true
+                    ]
+                  }
                 }
               },
               "rolls": [],
-              "disclosure": "BROADCAST_SAFE"
+              "disclosure": "PARTICIPANT_PRIVATE"
             }
           },
           "metadata": {}
         },
         "result": {
-          "resolutionId": "qa-movement:O1W5fcGQxAt1mQao:ADfWLurxb2a1rWil",
+          "resolutionId": "qa-movement:THjvGIVo7uU1LuTH:JnOMChq3PQfP0m2d",
           "status": "completed",
           "code": null,
           "ok": true,
@@ -1346,10 +244,10 @@
             "name": null
           },
           "source": {
-            "actorId": "nq0V2b55czsNCZzT",
-            "actorRef": "Scene.q2HthP7tg8690hK6.Token.2tp3m64scTWLnfWN.Actor.nq0V2b55czsNCZzT",
-            "tokenId": "2tp3m64scTWLnfWN",
-            "tokenRef": "Scene.q2HthP7tg8690hK6.Token.2tp3m64scTWLnfWN"
+            "actorId": "ZrfFus74wTNB8fAM",
+            "actorRef": "Scene.q2HthP7tg8690hK6.Token.6Sr2sDtbsf1q0BVE.Actor.ZrfFus74wTNB8fAM",
+            "tokenId": "6Sr2sDtbsf1q0BVE",
+            "tokenRef": "Scene.q2HthP7tg8690hK6.Token.6Sr2sDtbsf1q0BVE"
           },
           "targets": [],
           "outcomes": {
@@ -1361,31 +259,14 @@
               "cumulativeCost": 15,
               "stopped": false,
               "reason": null,
+              "committed": true,
               "footprint": {
                 "type": "TokenGridFootprint",
                 "topology": "square",
                 "size": "medium",
-                "effectiveSize": "medium",
                 "anchor": {
                   "x": 23,
                   "y": 33
-                },
-                "definition": {
-                  "size": "medium",
-                  "topology": "square",
-                  "offsets": [
-                    {
-                      "x": 0,
-                      "y": 0
-                    }
-                  ],
-                  "fieldCount": 1,
-                  "creaturesPerField": 1,
-                  "minimumFields": 1,
-                  "metadata": {
-                    "ruleset": "dnd5e",
-                    "squareWidth": 1
-                  }
                 },
                 "fields": [
                   {
@@ -1395,137 +276,125 @@
                 ],
                 "fieldKeys": [
                   "square:23,33"
-                ],
-                "metadata": {},
-                "boundaryFields": [
+                ]
+              }
+            }
+          },
+          "rolls": [],
+          "disclosure": "PARTICIPANT_PRIVATE"
+        }
+      },
+      {
+        "type": "RESOLUTION_RESULT",
+        "envelope": {
+          "protocolVersion": 1,
+          "messageId": "resolution-message:resolution-result:1791921729573:2",
+          "messageType": "RESOLUTION_RESULT",
+          "senderUserId": "hUdU40DWftTFyJzW",
+          "recipientUserId": null,
+          "recipientUserIds": [],
+          "recipientPolicy": "all",
+          "disclosure": "BROADCAST_SAFE",
+          "resolutionId": "qa-movement:THjvGIVo7uU1LuTH:JnOMChq3PQfP0m2d",
+          "requestId": null,
+          "payload": {
+            "result": {
+              "resolutionId": "qa-movement:THjvGIVo7uU1LuTH:JnOMChq3PQfP0m2d",
+              "status": "completed",
+              "code": null,
+              "ok": true,
+              "authorityUserId": "hUdU40DWftTFyJzW",
+              "initiatorUserId": "6JWzwo5Aln6gZUWH",
+              "action": {
+                "id": null,
+                "name": null
+              },
+              "source": {
+                "actorId": "ZrfFus74wTNB8fAM",
+                "actorRef": "Scene.q2HthP7tg8690hK6.Token.6Sr2sDtbsf1q0BVE.Actor.ZrfFus74wTNB8fAM",
+                "tokenId": "6Sr2sDtbsf1q0BVE",
+                "tokenRef": "Scene.q2HthP7tg8690hK6.Token.6Sr2sDtbsf1q0BVE"
+              },
+              "targets": [],
+              "outcomes": {
+                "attack": null,
+                "save": null,
+                "movement": {
+                  "completedTransitionCount": 3,
+                  "intendedTransitionCount": 3,
+                  "cumulativeCost": 15,
+                  "stopped": false,
+                  "reason": null,
+                  "committed": true,
+                  "footprint": {
+                    "type": "TokenGridFootprint",
+                    "topology": "square",
+                    "size": "medium",
+                    "anchor": {
+                      "x": 23,
+                      "y": 33
+                    },
+                    "fields": [
+                      "[depth limit]"
+                    ],
+                    "fieldKeys": [
+                      "square:23,33"
+                    ]
+                  }
+                }
+              },
+              "rolls": [],
+              "disclosure": "BROADCAST_SAFE"
+            }
+          },
+          "metadata": {}
+        },
+        "result": {
+          "resolutionId": "qa-movement:THjvGIVo7uU1LuTH:JnOMChq3PQfP0m2d",
+          "status": "completed",
+          "code": null,
+          "ok": true,
+          "authorityUserId": "hUdU40DWftTFyJzW",
+          "initiatorUserId": "6JWzwo5Aln6gZUWH",
+          "action": {
+            "id": null,
+            "name": null
+          },
+          "source": {
+            "actorId": "ZrfFus74wTNB8fAM",
+            "actorRef": "Scene.q2HthP7tg8690hK6.Token.6Sr2sDtbsf1q0BVE.Actor.ZrfFus74wTNB8fAM",
+            "tokenId": "6Sr2sDtbsf1q0BVE",
+            "tokenRef": "Scene.q2HthP7tg8690hK6.Token.6Sr2sDtbsf1q0BVE"
+          },
+          "targets": [],
+          "outcomes": {
+            "attack": null,
+            "save": null,
+            "movement": {
+              "completedTransitionCount": 3,
+              "intendedTransitionCount": 3,
+              "cumulativeCost": 15,
+              "stopped": false,
+              "reason": null,
+              "committed": true,
+              "footprint": {
+                "type": "TokenGridFootprint",
+                "topology": "square",
+                "size": "medium",
+                "anchor": {
+                  "x": 23,
+                  "y": 33
+                },
+                "fields": [
                   {
                     "x": 23,
                     "y": 33
                   }
                 ],
-                "boundaryEdges": [
-                  {
-                    "id": "square:23,33>east",
-                    "topology": "square",
-                    "field": {
-                      "x": 23,
-                      "y": 33
-                    },
-                    "outsideField": {
-                      "x": 24,
-                      "y": 33
-                    },
-                    "direction": "east"
-                  },
-                  {
-                    "id": "square:23,33>north",
-                    "topology": "square",
-                    "field": {
-                      "x": 23,
-                      "y": 33
-                    },
-                    "outsideField": {
-                      "x": 23,
-                      "y": 32
-                    },
-                    "direction": "north"
-                  },
-                  {
-                    "id": "square:23,33>south",
-                    "topology": "square",
-                    "field": {
-                      "x": 23,
-                      "y": 33
-                    },
-                    "outsideField": {
-                      "x": 23,
-                      "y": 34
-                    },
-                    "direction": "south"
-                  },
-                  {
-                    "id": "square:23,33>west",
-                    "topology": "square",
-                    "field": {
-                      "x": 23,
-                      "y": 33
-                    },
-                    "outsideField": {
-                      "x": 22,
-                      "y": 33
-                    },
-                    "direction": "west"
-                  }
-                ],
-                "boundaryVertices": [
-                  {
-                    "id": "square-vertex:23,33",
-                    "x": 23,
-                    "y": 33,
-                    "incidentFields": [
-                      "[depth limit]",
-                      "[depth limit]",
-                      "[depth limit]",
-                      "[depth limit]"
-                    ],
-                    "topology": "square",
-                    "occupiedIncidentFields": [
-                      "[depth limit]"
-                    ],
-                    "external": true
-                  },
-                  {
-                    "id": "square-vertex:23,34",
-                    "x": 23,
-                    "y": 34,
-                    "incidentFields": [
-                      "[depth limit]",
-                      "[depth limit]",
-                      "[depth limit]",
-                      "[depth limit]"
-                    ],
-                    "topology": "square",
-                    "occupiedIncidentFields": [
-                      "[depth limit]"
-                    ],
-                    "external": true
-                  },
-                  {
-                    "id": "square-vertex:24,33",
-                    "x": 24,
-                    "y": 33,
-                    "incidentFields": [
-                      "[depth limit]",
-                      "[depth limit]",
-                      "[depth limit]",
-                      "[depth limit]"
-                    ],
-                    "topology": "square",
-                    "occupiedIncidentFields": [
-                      "[depth limit]"
-                    ],
-                    "external": true
-                  },
-                  {
-                    "id": "square-vertex:24,34",
-                    "x": 24,
-                    "y": 34,
-                    "incidentFields": [
-                      "[depth limit]",
-                      "[depth limit]",
-                      "[depth limit]",
-                      "[depth limit]"
-                    ],
-                    "topology": "square",
-                    "occupiedIncidentFields": [
-                      "[depth limit]"
-                    ],
-                    "external": true
-                  }
-                ],
-                "internalVertices": []
-              },
-              "committed": true
+                "fieldKeys": [
+                  "square:23,33"
+                ]
+              }
             }
           },
           "rolls": [],

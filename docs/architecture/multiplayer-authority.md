@@ -113,7 +113,6 @@ The current message set is intentionally small:
 - `MOVEMENT_RESULT`
 - `PENDING_REQUEST`
 - `REQUEST_RESPONSE`
-- `RESOLUTION_CANCEL`
 - `RESOLUTION_RESULT`
 - `RESOLUTION_ERROR`
 
@@ -128,9 +127,14 @@ assertion of legality/cost/affordability.
 
 ## Action Intent
 
-`ACTION_INTENT` is not trusted as a mechanical plan. The coordinator sanitizes the payload and strips
-client-supplied state, mutation plans, roll results, resolved previews, payment plans, damage,
-healing, and effects before handing it to the authoritative resolver.
+`ACTION_INTENT` is not trusted as a mechanical plan. The coordinator projects the payload to an
+allow-list of stable refs and ids before handing it to the authoritative resolver, so client-supplied
+state, mutation plans, roll results, previews, payment plans, and outcomes never arrive.
+
+**Ownership.** The authority resolves an Action only when the server-attested sender owns the acting
+Actor and the source Token (a GM passes), and the Action Item belongs to that Actor (compared by uuid,
+so synthetic Token Actors work). Otherwise the intent fails with `WRONG_USER` or
+`ACTION_INTENT_REJECTED` before any rules input is built.
 
 The Foundry runtime resolver in `module/resolvers/foundry-multiplayer-runtime.mjs` reconstructs the
 action from stable refs:
@@ -144,10 +148,14 @@ The authority then builds the real staged action options locally. Players never 
 
 ## Pending Requests
 
-When a stage pauses, the authority sends only the pending request payload, minimized for the chooser
-(roll requests lose target defenses, DC and roll data; authority state keys are stripped) and
+When a stage pauses, the authority sends only the pending request payload, projected by a per-type
+allow-list for the chooser (see [multiplayer-confidentiality.md](multiplayer-confidentiality.md)) and
 classified `PARTICIPANT_PRIVATE`, so it travels by targeted transport to the chooser alone. It does
-not broadcast the full `ResolutionState`, hidden mutation plans, or target/source document objects.
+not send the full `ResolutionState`, hidden mutation plans, target defenses, DCs, or document objects.
+
+**Target answers are decisions only.** A target-selection or target-refinement answer contributes
+`{operation, targetId}` decisions; the candidates, targets and selection policy remain the
+authority's own, so `refineTargetSet` rejects unknown ids, ineligible targets, and bad counts.
 
 Remote request handling uses existing ports:
 
@@ -367,6 +375,10 @@ Not implemented here:
 - persistent area lifecycle networking
 - cryptographic confidentiality or protection against the server operator: the disclosure model in
   [multiplayer-confidentiality.md](multiplayer-confidentiality.md) is client-level, recipient-restricted transport
+- resolution cancel: `RESOLUTION_CANCEL` was removed (nothing sent it and it had no sender check);
+  re-add it with an initiator/GM check when a cancel UI exists
+- time-outs for abandoned requests: finished resolutions and committed movements are retained only up
+  to `duplicateCacheLimit` (200) and then released, but unfinished ones stay until answered
 
 Generic reaction-choice routing and nested child advancement are covered by deterministic transport
 tests. The live movement/reaction gate additionally proved active-GM authority, a real player prompt,

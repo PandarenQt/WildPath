@@ -18,7 +18,8 @@ The current strategy is **integration proof**:
 Current status: the staged action, persistence-port, vertical-slice, multiplayer authority/socket,
 and reaction-window foundations have broad Node integration coverage. Movement semantics and the
 generic movement-event reaction composition are live-verified in Foundry V14.367. The ordinary
-player-facing Action runtime still requires its own representative live Foundry vertical-slice gate.
+player-facing Action runtime is live-accepted for melee Hit/Miss (14.367 and 14.369); its
+representative vertical-slice gate is still open.
 
 ---
 
@@ -234,7 +235,7 @@ Use representative mechanics, not broad content.
 Status: representative persisted melee, ranged, save-based area, healing, condition-effect, and
 configured/scaling actions now execute through staged resolution, RollProvider results, TacticalGrid
 adapter footprints, mutation plans, transaction, and persistence ports in Node integration tests.
-Live Foundry V14 runtime QA is still required.
+Live Foundry V14 QA covers melee Hit/Miss only; the other representative cases still need it.
 
 Production-wiring status (previously the largest open gap): `WildPathItem#use()` now declares an
 Action intent (`buildFoundryActionUseIntent()`) through `game.wildpath.executeActionIntent()` -
@@ -245,7 +246,8 @@ acting Actor's canvas Token(s) and the player's native `game.user.targets` selec
 canonical Actor combat statistics (`system.defenses.ac.value`,
 `getStatistic("defense.ac")`, and `getStatistic("attack.<statistic>")`) into plain staged inputs,
 and proves production-entry melee hit/miss behavior with transactional damage/payment in Node.
-Live Foundry V14 runtime QA is still required; see `test/foundry-action-runtime.test.mjs` for the
+Melee Hit/Miss through this path is live-accepted on 14.367 and 14.369
+(`docs/development/action-runtime-live-qa.md`); see `test/foundry-action-runtime.test.mjs` for the
 Node-level production-entry proof.
 
 ## Stage E — Legacy Resolution Extraction
@@ -279,6 +281,11 @@ errors, movement approvals/results/continuations, the initiator's result project
 `User#query`, self-addressed envelopes are delivered locally, and unclassified or private payloads
 fail closed at the broadcast adapter. Node is green, Quench ran 50/50 live on Foundry 14.369, and the
 Level-5 three-case sentinel passed with schema-2 evidence in two agent-driven browsers. See `docs/architecture/multiplayer-confidentiality.md`.
+
+Authority hardening (closed 2026-10-13): every network projection is an allow-list (secret-sentinel
+tested); the authority requires the attested sender to own the acting Actor and source Token; target
+answers add refinement decisions only; the broadcast adapter fails closed without an attested
+sender; finished records are bounded. See `docs/architecture/multiplayer-authority.md`.
 
 ## Stage G — ReactionEngine
 

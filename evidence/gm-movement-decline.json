@@ -12,21 +12,21 @@
   },
   "systemId": "wildpath",
   "systemVersion": "0.0.1",
-  "gitSha": "c1f0079e3c1b56188799cfcc2536e166a392b027",
-  "capturedAt": "2026-10-13T18:30:19.825Z",
-  "runId": "tWxNuvZ5llUh3hpI",
-  "resolutionId": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx",
+  "gitSha": "f41b077c91acf05a22b72f6a691cb26eb6f1d06d",
+  "capturedAt": "2026-10-13T20:02:44.890Z",
+  "runId": "U5bZ8i2JXA8At4sP",
+  "resolutionId": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O",
   "evidenceFile": "evidence/gm-movement-decline.json",
   "evidence": {
-    "runId": "tWxNuvZ5llUh3hpI",
+    "runId": "U5bZ8i2JXA8At4sP",
     "role": "gm",
     "mode": "decline",
     "variant": "square",
-    "resolutionId": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx",
+    "resolutionId": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O",
     "moverUserId": "hUdU40DWftTFyJzW",
     "reactorUserId": "6JWzwo5Aln6gZUWH",
-    "moverTokenId": "LeF42F0jcY9vyGpB",
-    "reactorTokenId": "b7WQXdpZVizTTpDv",
+    "moverTokenId": "jH42W5jSfTTrpBkM",
+    "reactorTokenId": "gA8UfSY5fqShUnKt",
     "sceneId": "q2HthP7tg8690hK6",
     "origin": {
       "x": 3000,
@@ -71,7 +71,7 @@
     },
     "footprintProof": {
       "pending": {
-        "resolutionId": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx",
+        "resolutionId": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O",
         "status": "awaiting-choice",
         "stage": "movement.transition:1.reactions",
         "cursor": {
@@ -132,7 +132,7 @@
           ]
         },
         "event": {
-          "id": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:transition:1",
+          "id": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:transition:1",
           "type": "movement.transition-proposed",
           "phase": "interrupt",
           "data": {
@@ -183,10 +183,10 @@
           }
         },
         "window": {
-          "id": "reaction-window:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:before-transition:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:transition:1",
+          "id": "reaction-window:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:before-transition:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:transition:1",
           "timing": "before-transition",
           "offeredCandidateIds": [
-            "reaction-candidate:qa-leave:tWxNuvZ5llUh3hpI:Scene.q2HthP7tg8690hK6.Token.b7WQXdpZVizTTpDv.Actor.CXB6DrMv8TN60h4i:action:qa-movement-reaction:tWxNuvZ5llUh3hpI:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:transition:1"
+            "reaction-candidate:qa-leave:U5bZ8i2JXA8At4sP:Scene.q2HthP7tg8690hK6.Token.gA8UfSY5fqShUnKt.Actor.v2VdkRjNUgcF0WN7:action:qa-movement-reaction:U5bZ8i2JXA8At4sP:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:transition:1"
           ]
         },
         "pendingChoice": true,
@@ -505,25 +505,25 @@
       "reactions": null,
       "windows": [
         {
-          "id": "reaction-window:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:before-transition:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:transition:0",
+          "id": "reaction-window:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:before-transition:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:transition:0",
           "status": "closed",
           "offeredCandidateIds": [],
           "declinedCandidateIds": [],
           "childResolutionIds": []
         },
         {
-          "id": "reaction-window:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:before-transition:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:transition:1",
+          "id": "reaction-window:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:before-transition:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:transition:1",
           "status": "closed",
           "offeredCandidateIds": [
-            "reaction-candidate:qa-leave:tWxNuvZ5llUh3hpI:Scene.q2HthP7tg8690hK6.Token.b7WQXdpZVizTTpDv.Actor.CXB6DrMv8TN60h4i:action:qa-movement-reaction:tWxNuvZ5llUh3hpI:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:transition:1"
+            "reaction-candidate:qa-leave:U5bZ8i2JXA8At4sP:Scene.q2HthP7tg8690hK6.Token.gA8UfSY5fqShUnKt.Actor.v2VdkRjNUgcF0WN7:action:qa-movement-reaction:U5bZ8i2JXA8At4sP:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:transition:1"
           ],
           "declinedCandidateIds": [
-            "reaction-candidate:qa-leave:tWxNuvZ5llUh3hpI:Scene.q2HthP7tg8690hK6.Token.b7WQXdpZVizTTpDv.Actor.CXB6DrMv8TN60h4i:action:qa-movement-reaction:tWxNuvZ5llUh3hpI:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:transition:1"
+            "reaction-candidate:qa-leave:U5bZ8i2JXA8At4sP:Scene.q2HthP7tg8690hK6.Token.gA8UfSY5fqShUnKt.Actor.v2VdkRjNUgcF0WN7:action:qa-movement-reaction:U5bZ8i2JXA8At4sP:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:transition:1"
           ],
           "childResolutionIds": []
         },
         {
-          "id": "reaction-window:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:before-transition:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:transition:2",
+          "id": "reaction-window:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:before-transition:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:transition:2",
           "status": "closed",
           "offeredCandidateIds": [],
           "declinedCandidateIds": [],
@@ -535,10 +535,10 @@
         "code": "OK",
         "committed": [
           {
-            "id": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:position",
+            "id": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:position",
             "type": "documentUpdate",
             "actorRef": null,
-            "documentRef": "Scene.q2HthP7tg8690hK6.Token.LeF42F0jcY9vyGpB",
+            "documentRef": "Scene.q2HthP7tg8690hK6.Token.jH42W5jSfTTrpBkM",
             "updates": {
               "x": 3300,
               "y": 2300
@@ -553,9 +553,9 @@
             "status": "committed"
           },
           {
-            "id": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:payment",
+            "id": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:payment",
             "type": "actorUpdate",
-            "actorRef": "Scene.q2HthP7tg8690hK6.Token.LeF42F0jcY9vyGpB.Actor.tMMJ3yREIVI4rLFI",
+            "actorRef": "Scene.q2HthP7tg8690hK6.Token.jH42W5jSfTTrpBkM.Actor.K9SnqF0C8LBHuVOw",
             "updates": {
               "system.resources.movement.value": 15
             },
@@ -570,24 +570,24 @@
         "failures": [],
         "rolledBack": false,
         "metadata": {
-          "resolutionId": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx"
+          "resolutionId": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O"
         }
       }
     },
     "routing": [
       {
         "request": {
-          "id": "request:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:reaction:reaction-window:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:before-transition:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:transition:1:offer:1",
-          "resolutionId": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx",
+          "id": "request:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:reaction:reaction-window:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:before-transition:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:transition:1:offer:1",
+          "resolutionId": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O",
           "stageId": "movement.transition:1.reactions",
           "type": "reaction-choice",
           "expectedResponseType": "reaction-choice",
           "validation": {
             "required": false,
-            "reactionWindowId": "reaction-window:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:before-transition:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:transition:1",
+            "reactionWindowId": "reaction-window:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:before-transition:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:transition:1",
             "offerSequence": 1,
             "candidateIds": [
-              "reaction-candidate:qa-leave:tWxNuvZ5llUh3hpI:Scene.q2HthP7tg8690hK6.Token.b7WQXdpZVizTTpDv.Actor.CXB6DrMv8TN60h4i:action:qa-movement-reaction:tWxNuvZ5llUh3hpI:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:transition:1"
+              "reaction-candidate:qa-leave:U5bZ8i2JXA8At4sP:Scene.q2HthP7tg8690hK6.Token.gA8UfSY5fqShUnKt.Actor.v2VdkRjNUgcF0WN7:action:qa-movement-reaction:U5bZ8i2JXA8At4sP:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:transition:1"
             ]
           },
           "chooser": {
@@ -599,18 +599,18 @@
             "userId": "6JWzwo5Aln6gZUWH"
           },
           "payload": {
-            "reactionWindowId": "reaction-window:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:before-transition:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:transition:1",
+            "reactionWindowId": "reaction-window:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:before-transition:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:transition:1",
             "offerSequence": 1,
             "timing": "before-transition",
             "event": {
-              "id": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:transition:1",
+              "id": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:transition:1",
               "type": "movement.transition-proposed",
               "phase": "interrupt",
               "source": {
-                "ref": "token:LeF42F0jcY9vyGpB",
-                "id": "LeF42F0jcY9vyGpB",
-                "actorId": "tMMJ3yREIVI4rLFI",
-                "tokenId": "LeF42F0jcY9vyGpB",
+                "ref": "token:jH42W5jSfTTrpBkM",
+                "id": "jH42W5jSfTTrpBkM",
+                "actorId": "K9SnqF0C8LBHuVOw",
+                "tokenId": "jH42W5jSfTTrpBkM",
                 "type": null,
                 "disposition": null,
                 "tags": []
@@ -618,7 +618,7 @@
               "targets": [],
               "tags": [],
               "data": {
-                "movementId": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx",
+                "movementId": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O",
                 "transitionIndex": 1,
                 "previous": {
                   "type": "TokenGridFootprint",
@@ -884,27 +884,27 @@
             },
             "candidates": [
               {
-                "id": "reaction-candidate:qa-leave:tWxNuvZ5llUh3hpI:Scene.q2HthP7tg8690hK6.Token.b7WQXdpZVizTTpDv.Actor.CXB6DrMv8TN60h4i:action:qa-movement-reaction:tWxNuvZ5llUh3hpI:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:transition:1",
+                "id": "reaction-candidate:qa-leave:U5bZ8i2JXA8At4sP:Scene.q2HthP7tg8690hK6.Token.gA8UfSY5fqShUnKt.Actor.v2VdkRjNUgcF0WN7:action:qa-movement-reaction:U5bZ8i2JXA8At4sP:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:transition:1",
                 "timing": "before-transition",
-                "triggerId": "qa-leave:tWxNuvZ5llUh3hpI",
-                "eventId": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:transition:1",
+                "triggerId": "qa-leave:U5bZ8i2JXA8At4sP",
+                "eventId": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:transition:1",
                 "reactor": {
-                  "actorId": "Scene.q2HthP7tg8690hK6.Token.b7WQXdpZVizTTpDv.Actor.CXB6DrMv8TN60h4i",
-                  "tokenId": "b7WQXdpZVizTTpDv",
-                  "ref": "actor:Scene.q2HthP7tg8690hK6.Token.b7WQXdpZVizTTpDv.Actor.CXB6DrMv8TN60h4i"
+                  "actorId": "Scene.q2HthP7tg8690hK6.Token.gA8UfSY5fqShUnKt.Actor.v2VdkRjNUgcF0WN7",
+                  "tokenId": "gA8UfSY5fqShUnKt",
+                  "ref": "actor:Scene.q2HthP7tg8690hK6.Token.gA8UfSY5fqShUnKt.Actor.v2VdkRjNUgcF0WN7"
                 },
-                "actionId": "action:qa-movement-reaction:tWxNuvZ5llUh3hpI",
-                "actionRef": "action:qa-movement-reaction:tWxNuvZ5llUh3hpI",
+                "actionId": "action:qa-movement-reaction:U5bZ8i2JXA8At4sP",
+                "actionRef": "action:qa-movement-reaction:U5bZ8i2JXA8At4sP",
                 "action": {
-                  "id": "action:qa-movement-reaction:tWxNuvZ5llUh3hpI",
+                  "id": "action:qa-movement-reaction:U5bZ8i2JXA8At4sP",
                   "label": "QA ordinary melee",
                   "slug": null,
                   "category": "action",
                   "source": {
                     "type": "item",
-                    "ref": "uuid:Scene.q2HthP7tg8690hK6.Token.b7WQXdpZVizTTpDv.Actor.CXB6DrMv8TN60h4i.Item.XM5Iw2n0C4Dege9p",
-                    "uuid": "Scene.q2HthP7tg8690hK6.Token.b7WQXdpZVizTTpDv.Actor.CXB6DrMv8TN60h4i.Item.XM5Iw2n0C4Dege9p",
-                    "id": "XM5Iw2n0C4Dege9p",
+                    "ref": "uuid:Scene.q2HthP7tg8690hK6.Token.gA8UfSY5fqShUnKt.Actor.v2VdkRjNUgcF0WN7.Item.nlJLiN18XpGULOAn",
+                    "uuid": "Scene.q2HthP7tg8690hK6.Token.gA8UfSY5fqShUnKt.Actor.v2VdkRjNUgcF0WN7.Item.nlJLiN18XpGULOAn",
+                    "id": "nlJLiN18XpGULOAn",
                     "itemType": "action",
                     "name": "QA ordinary melee"
                   }
@@ -940,14 +940,14 @@
                   ]
                 },
                 "provenance": {
-                  "triggerId": "qa-leave:tWxNuvZ5llUh3hpI",
-                  "eventId": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:transition:1",
+                  "triggerId": "qa-leave:U5bZ8i2JXA8At4sP",
+                  "eventId": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:transition:1",
                   "source": {},
                   "owner": {
-                    "ref": "token:b7WQXdpZVizTTpDv",
-                    "id": "b7WQXdpZVizTTpDv",
-                    "actorId": "Scene.q2HthP7tg8690hK6.Token.b7WQXdpZVizTTpDv.Actor.CXB6DrMv8TN60h4i",
-                    "tokenId": "b7WQXdpZVizTTpDv",
+                    "ref": "token:gA8UfSY5fqShUnKt",
+                    "id": "gA8UfSY5fqShUnKt",
+                    "actorId": "Scene.q2HthP7tg8690hK6.Token.gA8UfSY5fqShUnKt.Actor.v2VdkRjNUgcF0WN7",
+                    "tokenId": "gA8UfSY5fqShUnKt",
                     "type": null,
                     "disposition": null,
                     "tags": []
@@ -958,11 +958,11 @@
             ],
             "options": [
               {
-                "id": "reaction-candidate:qa-leave:tWxNuvZ5llUh3hpI:Scene.q2HthP7tg8690hK6.Token.b7WQXdpZVizTTpDv.Actor.CXB6DrMv8TN60h4i:action:qa-movement-reaction:tWxNuvZ5llUh3hpI:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:transition:1",
+                "id": "reaction-candidate:qa-leave:U5bZ8i2JXA8At4sP:Scene.q2HthP7tg8690hK6.Token.gA8UfSY5fqShUnKt.Actor.v2VdkRjNUgcF0WN7:action:qa-movement-reaction:U5bZ8i2JXA8At4sP:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:transition:1",
                 "label": "QA ordinary melee",
                 "value": {
                   "decision": "use",
-                  "candidateId": "reaction-candidate:qa-leave:tWxNuvZ5llUh3hpI:Scene.q2HthP7tg8690hK6.Token.b7WQXdpZVizTTpDv.Actor.CXB6DrMv8TN60h4i:action:qa-movement-reaction:tWxNuvZ5llUh3hpI:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:transition:1"
+                  "candidateId": "reaction-candidate:qa-leave:U5bZ8i2JXA8At4sP:Scene.q2HthP7tg8690hK6.Token.gA8UfSY5fqShUnKt.Actor.v2VdkRjNUgcF0WN7:action:qa-movement-reaction:U5bZ8i2JXA8At4sP:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:transition:1"
                 },
                 "resources": [
                   {
@@ -1005,11 +1005,11 @@
                 },
                 "source": {},
                 "metadata": {
-                  "triggerId": "qa-leave:tWxNuvZ5llUh3hpI",
+                  "triggerId": "qa-leave:U5bZ8i2JXA8At4sP",
                   "reactor": {
-                    "actorId": "Scene.q2HthP7tg8690hK6.Token.b7WQXdpZVizTTpDv.Actor.CXB6DrMv8TN60h4i",
-                    "tokenId": "b7WQXdpZVizTTpDv",
-                    "ref": "actor:Scene.q2HthP7tg8690hK6.Token.b7WQXdpZVizTTpDv.Actor.CXB6DrMv8TN60h4i"
+                    "actorId": "Scene.q2HthP7tg8690hK6.Token.gA8UfSY5fqShUnKt.Actor.v2VdkRjNUgcF0WN7",
+                    "tokenId": "gA8UfSY5fqShUnKt",
+                    "ref": "actor:Scene.q2HthP7tg8690hK6.Token.gA8UfSY5fqShUnKt.Actor.v2VdkRjNUgcF0WN7"
                   }
                 }
               },
@@ -1020,7 +1020,7 @@
                   "decision": "decline"
                 },
                 "metadata": {
-                  "reactionWindowId": "reaction-window:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:before-transition:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:transition:1"
+                  "reactionWindowId": "reaction-window:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:before-transition:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:transition:1"
                 }
               }
             ]
@@ -1028,11 +1028,11 @@
           "metadata": {
             "required": false,
             "title": "Reaction Available",
-            "reactionWindowId": "reaction-window:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:before-transition:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:transition:1",
+            "reactionWindowId": "reaction-window:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:before-transition:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:transition:1",
             "offerSequence": 1
           }
         },
-        "resolutionId": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx",
+        "resolutionId": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O",
         "expectedUserId": "6JWzwo5Aln6gZUWH",
         "chooser": {
           "ok": true,
@@ -1049,7 +1049,7 @@
     ],
     "history": [
       {
-        "resolutionId": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx",
+        "resolutionId": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O",
         "status": "awaiting-choice",
         "stage": "movement.transition:1.reactions",
         "cursor": {
@@ -1110,7 +1110,7 @@
           ]
         },
         "event": {
-          "id": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:transition:1",
+          "id": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:transition:1",
           "type": "movement.transition-proposed",
           "phase": "interrupt",
           "data": {
@@ -1161,17 +1161,17 @@
           }
         },
         "window": {
-          "id": "reaction-window:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:before-transition:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:transition:1",
+          "id": "reaction-window:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:before-transition:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:transition:1",
           "timing": "before-transition",
           "offeredCandidateIds": [
-            "reaction-candidate:qa-leave:tWxNuvZ5llUh3hpI:Scene.q2HthP7tg8690hK6.Token.b7WQXdpZVizTTpDv.Actor.CXB6DrMv8TN60h4i:action:qa-movement-reaction:tWxNuvZ5llUh3hpI:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:transition:1"
+            "reaction-candidate:qa-leave:U5bZ8i2JXA8At4sP:Scene.q2HthP7tg8690hK6.Token.gA8UfSY5fqShUnKt.Actor.v2VdkRjNUgcF0WN7:action:qa-movement-reaction:U5bZ8i2JXA8At4sP:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:transition:1"
           ]
         },
         "pendingChoice": true,
         "child": null
       },
       {
-        "resolutionId": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx",
+        "resolutionId": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O",
         "status": "ready-to-commit",
         "stage": "movement.ready-to-commit",
         "cursor": {
@@ -1232,7 +1232,7 @@
           ]
         },
         "event": {
-          "id": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:transition:2",
+          "id": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:transition:2",
           "type": "movement.transition-proposed",
           "phase": "interrupt",
           "data": {
@@ -1283,7 +1283,7 @@
           }
         },
         "window": {
-          "id": "reaction-window:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:before-transition:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:transition:2",
+          "id": "reaction-window:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:before-transition:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:transition:2",
           "timing": "before-transition",
           "offeredCandidateIds": []
         },
@@ -1291,7 +1291,7 @@
         "child": null
       },
       {
-        "resolutionId": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx",
+        "resolutionId": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O",
         "status": "ready-to-commit",
         "stage": "movement.ready-to-commit",
         "cursor": {
@@ -1352,7 +1352,7 @@
           ]
         },
         "event": {
-          "id": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:transition:2",
+          "id": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:transition:2",
           "type": "movement.transition-proposed",
           "phase": "interrupt",
           "data": {
@@ -1403,7 +1403,7 @@
           }
         },
         "window": {
-          "id": "reaction-window:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:before-transition:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:transition:2",
+          "id": "reaction-window:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:before-transition:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:transition:2",
           "timing": "before-transition",
           "offeredCandidateIds": []
         },
@@ -1411,7 +1411,7 @@
         "child": null
       },
       {
-        "resolutionId": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx",
+        "resolutionId": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O",
         "status": "completed",
         "stage": "movement.finalization",
         "cursor": {
@@ -1472,7 +1472,7 @@
           ]
         },
         "event": {
-          "id": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:transition:2",
+          "id": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:transition:2",
           "type": "movement.transition-proposed",
           "phase": "interrupt",
           "data": {
@@ -1523,7 +1523,7 @@
           }
         },
         "window": {
-          "id": "reaction-window:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:before-transition:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:transition:2",
+          "id": "reaction-window:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:before-transition:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:transition:2",
           "timing": "before-transition",
           "offeredCandidateIds": []
         },
@@ -1534,21 +1534,22 @@
     "envelopes": [
       {
         "protocolVersion": 1,
-        "messageId": "resolution-message:action-intent:1791916194308:3",
+        "messageId": "resolution-message:action-intent:1791921744338:3",
         "messageType": "ACTION_INTENT",
         "senderUserId": "hUdU40DWftTFyJzW",
         "recipientUserId": "hUdU40DWftTFyJzW",
         "recipientUserIds": [],
         "recipientPolicy": null,
         "disclosure": "BROADCAST_SAFE",
-        "resolutionId": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx",
+        "resolutionId": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O",
         "requestId": null,
         "payload": {
-          "resolutionId": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx",
-          "intentId": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx",
-          "movementId": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx",
+          "intentId": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O",
+          "resolutionId": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O",
+          "resolutionKind": "movement",
+          "tokenRef": "Scene.q2HthP7tg8690hK6.Token.jH42W5jSfTTrpBkM",
+          "movementId": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O",
           "sceneRef": "Scene.q2HthP7tg8690hK6",
-          "tokenRef": "Scene.q2HthP7tg8690hK6.Token.LeF42F0jcY9vyGpB",
           "origin": {
             "x": 3000,
             "y": 2300,
@@ -1576,8 +1577,7 @@
             }
           ],
           "movementKind": "voluntary",
-          "movementMode": "walk",
-          "resolutionKind": "movement"
+          "movementMode": "walk"
         },
         "metadata": {
           "authority": {
@@ -1595,21 +1595,22 @@
       },
       {
         "protocolVersion": 1,
-        "messageId": "resolution-message:action-intent:1791916194308:3",
+        "messageId": "resolution-message:action-intent:1791921744338:3",
         "messageType": "ACTION_INTENT",
         "senderUserId": "hUdU40DWftTFyJzW",
         "recipientUserId": "hUdU40DWftTFyJzW",
         "recipientUserIds": [],
         "recipientPolicy": null,
         "disclosure": "BROADCAST_SAFE",
-        "resolutionId": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx",
+        "resolutionId": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O",
         "requestId": null,
         "payload": {
-          "resolutionId": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx",
-          "intentId": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx",
-          "movementId": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx",
+          "intentId": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O",
+          "resolutionId": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O",
+          "resolutionKind": "movement",
+          "tokenRef": "Scene.q2HthP7tg8690hK6.Token.jH42W5jSfTTrpBkM",
+          "movementId": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O",
           "sceneRef": "Scene.q2HthP7tg8690hK6",
-          "tokenRef": "Scene.q2HthP7tg8690hK6.Token.LeF42F0jcY9vyGpB",
           "origin": {
             "x": 3000,
             "y": 2300,
@@ -1637,8 +1638,7 @@
             }
           ],
           "movementKind": "voluntary",
-          "movementMode": "walk",
-          "resolutionKind": "movement"
+          "movementMode": "walk"
         },
         "metadata": {
           "authority": {
@@ -1656,15 +1656,15 @@
       },
       {
         "protocolVersion": 1,
-        "messageId": "resolution-message:pending-request:1791916194340:4",
+        "messageId": "resolution-message:pending-request:1791921744372:4",
         "messageType": "PENDING_REQUEST",
         "senderUserId": "hUdU40DWftTFyJzW",
         "recipientUserId": "6JWzwo5Aln6gZUWH",
         "recipientUserIds": [],
         "recipientPolicy": null,
         "disclosure": "PARTICIPANT_PRIVATE",
-        "resolutionId": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx",
-        "requestId": "request:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:reaction:reaction-window:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:before-transition:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:transition:1:offer:1",
+        "resolutionId": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O",
+        "requestId": "request:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:reaction:reaction-window:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:before-transition:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:transition:1:offer:1",
         "payload": {
           "omitted": true,
           "disclosure": "PARTICIPANT_PRIVATE",
@@ -1690,15 +1690,15 @@
       },
       {
         "protocolVersion": 1,
-        "messageId": "resolution-message:request-response:1791916205764:2",
+        "messageId": "resolution-message:request-response:1791921759862:2",
         "messageType": "REQUEST_RESPONSE",
         "senderUserId": "6JWzwo5Aln6gZUWH",
         "recipientUserId": "hUdU40DWftTFyJzW",
         "recipientUserIds": [],
         "recipientPolicy": null,
         "disclosure": "PARTICIPANT_PRIVATE",
-        "resolutionId": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx",
-        "requestId": "request:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:reaction:reaction-window:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:before-transition:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:transition:1:offer:1",
+        "resolutionId": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O",
+        "requestId": "request:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:reaction:reaction-window:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:before-transition:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:transition:1:offer:1",
         "payload": {
           "omitted": true,
           "disclosure": "PARTICIPANT_PRIVATE",
@@ -1712,18 +1712,18 @@
       },
       {
         "protocolVersion": 1,
-        "messageId": "resolution-message:resolution-result:1791916205874:5",
+        "messageId": "resolution-message:resolution-result:1791921759974:5",
         "messageType": "RESOLUTION_RESULT",
         "senderUserId": "hUdU40DWftTFyJzW",
         "recipientUserId": null,
         "recipientUserIds": [],
         "recipientPolicy": "all",
         "disclosure": "BROADCAST_SAFE",
-        "resolutionId": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx",
+        "resolutionId": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O",
         "requestId": null,
         "payload": {
           "result": {
-            "resolutionId": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx",
+            "resolutionId": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O",
             "status": "completed",
             "code": null,
             "ok": true,
@@ -1734,10 +1734,10 @@
               "name": null
             },
             "source": {
-              "actorId": "tMMJ3yREIVI4rLFI",
-              "actorRef": "Scene.q2HthP7tg8690hK6.Token.LeF42F0jcY9vyGpB.Actor.tMMJ3yREIVI4rLFI",
-              "tokenId": "LeF42F0jcY9vyGpB",
-              "tokenRef": "Scene.q2HthP7tg8690hK6.Token.LeF42F0jcY9vyGpB"
+              "actorId": "K9SnqF0C8LBHuVOw",
+              "actorRef": "Scene.q2HthP7tg8690hK6.Token.jH42W5jSfTTrpBkM.Actor.K9SnqF0C8LBHuVOw",
+              "tokenId": "jH42W5jSfTTrpBkM",
+              "tokenRef": "Scene.q2HthP7tg8690hK6.Token.jH42W5jSfTTrpBkM"
             },
             "targets": [],
             "outcomes": {
@@ -1749,28 +1749,14 @@
                 "cumulativeCost": 15,
                 "stopped": false,
                 "reason": null,
+                "committed": true,
                 "footprint": {
                   "type": "TokenGridFootprint",
                   "topology": "square",
                   "size": "medium",
-                  "effectiveSize": "medium",
                   "anchor": {
                     "x": 23,
                     "y": 33
-                  },
-                  "definition": {
-                    "size": "medium",
-                    "topology": "square",
-                    "offsets": [
-                      "[depth limit]"
-                    ],
-                    "fieldCount": 1,
-                    "creaturesPerField": 1,
-                    "minimumFields": 1,
-                    "metadata": {
-                      "ruleset": "dnd5e",
-                      "squareWidth": 1
-                    }
                   },
                   "fields": [
                     {
@@ -1780,85 +1766,8 @@
                   ],
                   "fieldKeys": [
                     "square:23,33"
-                  ],
-                  "metadata": {},
-                  "boundaryFields": [
-                    {
-                      "x": 23,
-                      "y": 33
-                    }
-                  ],
-                  "boundaryEdges": [
-                    {
-                      "id": "square:23,33>east",
-                      "topology": "square",
-                      "field": "[depth limit]",
-                      "outsideField": "[depth limit]",
-                      "direction": "east"
-                    },
-                    {
-                      "id": "square:23,33>north",
-                      "topology": "square",
-                      "field": "[depth limit]",
-                      "outsideField": "[depth limit]",
-                      "direction": "north"
-                    },
-                    {
-                      "id": "square:23,33>south",
-                      "topology": "square",
-                      "field": "[depth limit]",
-                      "outsideField": "[depth limit]",
-                      "direction": "south"
-                    },
-                    {
-                      "id": "square:23,33>west",
-                      "topology": "square",
-                      "field": "[depth limit]",
-                      "outsideField": "[depth limit]",
-                      "direction": "west"
-                    }
-                  ],
-                  "boundaryVertices": [
-                    {
-                      "id": "square-vertex:23,33",
-                      "x": 23,
-                      "y": 33,
-                      "incidentFields": "[depth limit]",
-                      "topology": "square",
-                      "occupiedIncidentFields": "[depth limit]",
-                      "external": true
-                    },
-                    {
-                      "id": "square-vertex:23,34",
-                      "x": 23,
-                      "y": 34,
-                      "incidentFields": "[depth limit]",
-                      "topology": "square",
-                      "occupiedIncidentFields": "[depth limit]",
-                      "external": true
-                    },
-                    {
-                      "id": "square-vertex:24,33",
-                      "x": 24,
-                      "y": 33,
-                      "incidentFields": "[depth limit]",
-                      "topology": "square",
-                      "occupiedIncidentFields": "[depth limit]",
-                      "external": true
-                    },
-                    {
-                      "id": "square-vertex:24,34",
-                      "x": 24,
-                      "y": 34,
-                      "incidentFields": "[depth limit]",
-                      "topology": "square",
-                      "occupiedIncidentFields": "[depth limit]",
-                      "external": true
-                    }
-                  ],
-                  "internalVertices": []
-                },
-                "committed": true
+                  ]
+                }
               }
             },
             "rolls": [],
@@ -1877,12 +1786,12 @@
           "direction": "outgoing",
           "transport": "broadcast",
           "messageType": "RESOLUTION_RESULT",
-          "messageId": "resolution-message:resolution-result:1791916205874:5",
+          "messageId": "resolution-message:resolution-result:1791921759974:5",
           "senderUserId": "hUdU40DWftTFyJzW",
           "recipientUserId": null,
           "recipientPolicy": "all",
           "disclosure": "BROADCAST_SAFE",
-          "resolutionId": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx",
+          "resolutionId": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O",
           "requestId": null
         }
       ],
@@ -1891,25 +1800,25 @@
           "direction": "outgoing",
           "transport": "targeted",
           "messageType": "PENDING_REQUEST",
-          "messageId": "resolution-message:pending-request:1791916194340:4",
+          "messageId": "resolution-message:pending-request:1791921744372:4",
           "senderUserId": "hUdU40DWftTFyJzW",
           "recipientUserId": "6JWzwo5Aln6gZUWH",
           "recipientPolicy": null,
           "disclosure": "PARTICIPANT_PRIVATE",
-          "resolutionId": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx",
-          "requestId": "request:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:reaction:reaction-window:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:before-transition:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:transition:1:offer:1"
+          "resolutionId": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O",
+          "requestId": "request:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:reaction:reaction-window:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:before-transition:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:transition:1:offer:1"
         },
         {
           "direction": "incoming",
           "transport": "targeted",
           "messageType": "REQUEST_RESPONSE",
-          "messageId": "resolution-message:request-response:1791916205764:2",
+          "messageId": "resolution-message:request-response:1791921759862:2",
           "senderUserId": "6JWzwo5Aln6gZUWH",
           "recipientUserId": "hUdU40DWftTFyJzW",
           "recipientPolicy": null,
           "disclosure": "PARTICIPANT_PRIVATE",
-          "resolutionId": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx",
-          "requestId": "request:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:reaction:reaction-window:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:before-transition:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:transition:1:offer:1"
+          "resolutionId": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O",
+          "requestId": "request:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:reaction:reaction-window:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:before-transition:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:transition:1:offer:1"
         }
       ],
       "local": [
@@ -1917,31 +1826,31 @@
           "direction": "outgoing",
           "transport": "local",
           "messageType": "ACTION_INTENT",
-          "messageId": "resolution-message:action-intent:1791916194308:3",
+          "messageId": "resolution-message:action-intent:1791921744338:3",
           "senderUserId": "hUdU40DWftTFyJzW",
           "recipientUserId": "hUdU40DWftTFyJzW",
           "recipientPolicy": null,
           "disclosure": "BROADCAST_SAFE",
-          "resolutionId": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx",
+          "resolutionId": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O",
           "requestId": null
         },
         {
           "direction": "incoming",
           "transport": "local",
           "messageType": "ACTION_INTENT",
-          "messageId": "resolution-message:action-intent:1791916194308:3",
+          "messageId": "resolution-message:action-intent:1791921744338:3",
           "senderUserId": "hUdU40DWftTFyJzW",
           "recipientUserId": "hUdU40DWftTFyJzW",
           "recipientPolicy": null,
           "disclosure": "BROADCAST_SAFE",
-          "resolutionId": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx",
+          "resolutionId": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O",
           "requestId": null
         }
       ],
       "refused": []
     },
     "result": {
-      "resolutionId": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx",
+      "resolutionId": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O",
       "status": "completed",
       "code": null,
       "ok": true,
@@ -1949,86 +1858,32 @@
       "initiatorUserId": "hUdU40DWftTFyJzW",
       "action": {
         "id": null,
-        "name": null,
-        "type": "action",
-        "source": null
+        "name": null
       },
       "source": {
-        "actorId": "tMMJ3yREIVI4rLFI",
-        "actorRef": "Scene.q2HthP7tg8690hK6.Token.LeF42F0jcY9vyGpB.Actor.tMMJ3yREIVI4rLFI",
-        "tokenId": "LeF42F0jcY9vyGpB",
-        "tokenRef": "Scene.q2HthP7tg8690hK6.Token.LeF42F0jcY9vyGpB"
+        "actorId": "K9SnqF0C8LBHuVOw",
+        "actorRef": "Scene.q2HthP7tg8690hK6.Token.jH42W5jSfTTrpBkM.Actor.K9SnqF0C8LBHuVOw",
+        "tokenId": "jH42W5jSfTTrpBkM",
+        "tokenRef": "Scene.q2HthP7tg8690hK6.Token.jH42W5jSfTTrpBkM"
       },
       "targets": [],
-      "configuration": null,
-      "preview": null,
-      "rolls": [],
       "outcomes": {
         "attack": null,
         "save": null,
-        "damage": null,
-        "healing": null,
-        "effects": null,
-        "payment": {
-          "id": "payment-1",
-          "code": "AVAILABLE",
-          "mode": "direct",
-          "priority": 10,
-          "resources": [
-            {
-              "resourceId": "economy.movement",
-              "amount": 15,
-              "capability": "movement",
-              "unit": "movement",
-              "mode": "direct",
-              "source": {
-                "type": "actor",
-                "slug": "movement"
-              }
-            }
-          ],
-          "selection": "deterministic-priority",
-          "trace": [
-            {
-              "resourceId": "economy.movement",
-              "capability": "movement",
-              "amount": 15,
-              "mode": "direct",
-              "policy": null
-            }
-          ]
-        },
         "movement": {
           "completedTransitionCount": 3,
           "intendedTransitionCount": 3,
           "cumulativeCost": 15,
           "stopped": false,
           "reason": null,
+          "committed": true,
           "footprint": {
             "type": "TokenGridFootprint",
             "topology": "square",
             "size": "medium",
-            "effectiveSize": "medium",
             "anchor": {
               "x": 23,
               "y": 33
-            },
-            "definition": {
-              "size": "medium",
-              "topology": "square",
-              "offsets": [
-                {
-                  "x": 0,
-                  "y": 0
-                }
-              ],
-              "fieldCount": 1,
-              "creaturesPerField": 1,
-              "minimumFields": 1,
-              "metadata": {
-                "ruleset": "dnd5e",
-                "squareWidth": 1
-              }
             },
             "fields": [
               {
@@ -2038,363 +1893,11 @@
             ],
             "fieldKeys": [
               "square:23,33"
-            ],
-            "metadata": {},
-            "boundaryFields": [
-              {
-                "x": 23,
-                "y": 33
-              }
-            ],
-            "boundaryEdges": [
-              {
-                "id": "square:23,33>east",
-                "topology": "square",
-                "field": {
-                  "x": 23,
-                  "y": 33
-                },
-                "outsideField": {
-                  "x": 24,
-                  "y": 33
-                },
-                "direction": "east"
-              },
-              {
-                "id": "square:23,33>north",
-                "topology": "square",
-                "field": {
-                  "x": 23,
-                  "y": 33
-                },
-                "outsideField": {
-                  "x": 23,
-                  "y": 32
-                },
-                "direction": "north"
-              },
-              {
-                "id": "square:23,33>south",
-                "topology": "square",
-                "field": {
-                  "x": 23,
-                  "y": 33
-                },
-                "outsideField": {
-                  "x": 23,
-                  "y": 34
-                },
-                "direction": "south"
-              },
-              {
-                "id": "square:23,33>west",
-                "topology": "square",
-                "field": {
-                  "x": 23,
-                  "y": 33
-                },
-                "outsideField": {
-                  "x": 22,
-                  "y": 33
-                },
-                "direction": "west"
-              }
-            ],
-            "boundaryVertices": [
-              {
-                "id": "square-vertex:23,33",
-                "x": 23,
-                "y": 33,
-                "incidentFields": [
-                  {
-                    "x": 22,
-                    "y": 32
-                  },
-                  {
-                    "x": 23,
-                    "y": 32
-                  },
-                  {
-                    "x": 22,
-                    "y": 33
-                  },
-                  {
-                    "x": 23,
-                    "y": 33
-                  }
-                ],
-                "topology": "square",
-                "occupiedIncidentFields": [
-                  {
-                    "x": 23,
-                    "y": 33
-                  }
-                ],
-                "external": true
-              },
-              {
-                "id": "square-vertex:23,34",
-                "x": 23,
-                "y": 34,
-                "incidentFields": [
-                  {
-                    "x": 22,
-                    "y": 33
-                  },
-                  {
-                    "x": 23,
-                    "y": 33
-                  },
-                  {
-                    "x": 22,
-                    "y": 34
-                  },
-                  {
-                    "x": 23,
-                    "y": 34
-                  }
-                ],
-                "topology": "square",
-                "occupiedIncidentFields": [
-                  {
-                    "x": 23,
-                    "y": 33
-                  }
-                ],
-                "external": true
-              },
-              {
-                "id": "square-vertex:24,33",
-                "x": 24,
-                "y": 33,
-                "incidentFields": [
-                  {
-                    "x": 23,
-                    "y": 32
-                  },
-                  {
-                    "x": 24,
-                    "y": 32
-                  },
-                  {
-                    "x": 23,
-                    "y": 33
-                  },
-                  {
-                    "x": 24,
-                    "y": 33
-                  }
-                ],
-                "topology": "square",
-                "occupiedIncidentFields": [
-                  {
-                    "x": 23,
-                    "y": 33
-                  }
-                ],
-                "external": true
-              },
-              {
-                "id": "square-vertex:24,34",
-                "x": 24,
-                "y": 34,
-                "incidentFields": [
-                  {
-                    "x": 23,
-                    "y": 33
-                  },
-                  {
-                    "x": 24,
-                    "y": 33
-                  },
-                  {
-                    "x": 23,
-                    "y": 34
-                  },
-                  {
-                    "x": 24,
-                    "y": 34
-                  }
-                ],
-                "topology": "square",
-                "occupiedIncidentFields": [
-                  {
-                    "x": 23,
-                    "y": 33
-                  }
-                ],
-                "external": true
-              }
-            ],
-            "internalVertices": []
-          },
-          "committed": true
+            ]
+          }
         }
       },
-      "committedMutations": [
-        {
-          "id": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:position",
-          "type": "documentUpdate",
-          "actorRef": null,
-          "documentRef": "Scene.q2HthP7tg8690hK6.Token.LeF42F0jcY9vyGpB",
-          "role": "movementPosition"
-        },
-        {
-          "id": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:payment",
-          "type": "actorUpdate",
-          "actorRef": "Scene.q2HthP7tg8690hK6.Token.LeF42F0jcY9vyGpB.Actor.tMMJ3yREIVI4rLFI",
-          "role": null
-        }
-      ],
-      "trace": [
-        {
-          "stageId": "movement.intention",
-          "status": "completed",
-          "result": "continue",
-          "code": "OK",
-          "requestIds": []
-        },
-        {
-          "stageId": "movement.route",
-          "status": "completed",
-          "result": "continue",
-          "code": "OK",
-          "requestIds": []
-        },
-        {
-          "stageId": "movement.validation",
-          "status": "completed",
-          "result": "continue",
-          "code": "OK",
-          "requestIds": []
-        },
-        {
-          "stageId": "movement.transition:0.propose",
-          "status": "completed",
-          "result": "continue",
-          "code": "OK",
-          "requestIds": []
-        },
-        {
-          "stageId": "movement.transition:0.reactions",
-          "status": "running",
-          "result": "continue",
-          "code": "NO_CANDIDATES",
-          "requestIds": []
-        },
-        {
-          "stageId": "movement.transition:0.reactions",
-          "status": "completed",
-          "result": "continue",
-          "code": "OK",
-          "requestIds": []
-        },
-        {
-          "stageId": "movement.transition:0.revalidation",
-          "status": "completed",
-          "result": "continue",
-          "code": "OK",
-          "requestIds": []
-        },
-        {
-          "stageId": "movement.transition:0.traverse",
-          "status": "completed",
-          "result": "continue",
-          "code": "OK",
-          "requestIds": []
-        },
-        {
-          "stageId": "movement.transition:1.propose",
-          "status": "completed",
-          "result": "continue",
-          "code": "OK",
-          "requestIds": []
-        },
-        {
-          "stageId": "movement.transition:1.reactions",
-          "status": "awaiting-choice",
-          "result": "wait",
-          "code": "WAITING",
-          "requestIds": [
-            "request:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:reaction:reaction-window:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:before-transition:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:transition:1:offer:1"
-          ]
-        },
-        {
-          "stageId": "movement.transition:1.reactions",
-          "status": "waiting",
-          "result": "wait",
-          "code": "OK",
-          "requestIds": [
-            "request:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:reaction:reaction-window:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:before-transition:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:transition:1:offer:1"
-          ]
-        },
-        {
-          "stageId": "movement.transition:1.reactions",
-          "status": "running",
-          "result": "continue",
-          "code": "OK",
-          "requestIds": [
-            "request:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:reaction:reaction-window:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:before-transition:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:transition:1:offer:1"
-          ]
-        },
-        {
-          "stageId": "movement.transition:1.reactions",
-          "status": "running",
-          "result": "continue",
-          "code": "NO_CANDIDATES",
-          "requestIds": []
-        },
-        {
-          "stageId": "movement.transition:1.reactions",
-          "status": "completed",
-          "result": "continue",
-          "code": "OK",
-          "requestIds": []
-        },
-        {
-          "stageId": "movement.transition:1.revalidation",
-          "status": "completed",
-          "result": "continue",
-          "code": "OK",
-          "requestIds": []
-        },
-        {
-          "stageId": "movement.transition:1.traverse",
-          "status": "completed",
-          "result": "continue",
-          "code": "OK",
-          "requestIds": []
-        },
-        {
-          "stageId": "movement.transition:2.propose",
-          "status": "completed",
-          "result": "continue",
-          "code": "OK",
-          "requestIds": []
-        },
-        {
-          "stageId": "movement.transition:2.reactions",
-          "status": "running",
-          "result": "continue",
-          "code": "NO_CANDIDATES",
-          "requestIds": []
-        },
-        {
-          "stageId": "movement.transition:2.reactions",
-          "status": "completed",
-          "result": "continue",
-          "code": "OK",
-          "requestIds": []
-        },
-        {
-          "stageId": "movement.transition:2.revalidation",
-          "status": "completed",
-          "result": "continue",
-          "code": "OK",
-          "requestIds": []
-        },
-        "[5 more entries]"
-      ],
+      "rolls": [],
       "disclosure": "PARTICIPANT_PRIVATE"
     }
   }

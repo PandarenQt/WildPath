@@ -201,8 +201,8 @@ must remain in the resolver/domain layer.
 The staged `ResolutionState` pipeline is the resume point for reaction windows.
 `createReactionWindowStage()` can be inserted around meaningful semantic events, such as after
 action declaration, after hit determination, and before damage commit. The default action pipeline
-still needs those production timing insertions; the generic wait/choice/child-resolution contract
-is now implemented and covered by Node tests.
+inserts windows after action declaration and after the attack outcome; staged movement adds
+before-transition windows. Other timings are added when a gameplay consumer needs them.
 
 ## Future Consumers
 

@@ -6,7 +6,8 @@ failed/cancelled state, or timeout. A native-target precheck before `qa.begin()`
 Save the retained dumps from both clients. Do not retry the Action, reset resources during resolution,
 substitute a linked source, answer a roll manually, or weaken an assertion to obtain a pass.
 
-Stop if the running system is not this milestone build, Foundry is not V14.367, either client lacks
+Stop if the running system is not this milestone build, Foundry is not the build pinned by
+`QA_FOUNDRY_BUILD` (14.369), either client lacks
 the normal registered runtime, the intended Player/active GM changes, or an unexpected prompt opens.
 No QA block may replace Item use, authority coordination, the registered digital RollProvider, or
 the persistence adapter. An unresolved failure requires diagnosis before a repair or another run.
@@ -25,11 +26,11 @@ from the ordinary staged transaction. Preparation is allowed only before declari
 
 # Production Action runtime live QA: persisted melee Hit/Miss
 
-**LIVE QA PENDING.** Starting code baseline: `61d6268b838e286728c829924506c6c931174621`.
-Initial milestone baseline: 729/729 automated tests; pre-repair commit `46ae14d`: 740/740.
-Automated tests and console-block parsing do not establish
-live acceptance. Record the actual tested milestone commit and both client dumps when the maintainer
-runs this gate. Movement/reaction live acceptance does not close this ordinary Action gate.
+**Accepted** on Foundry 14.367 (code `ea484fd`) and again on 14.369 (code `f41b077`); see the
+[Acceptance record](#acceptance-record). Starting code baseline: `61d6268b838e286728c829924506c6c931174621`.
+Automated tests and console-block parsing do not establish live acceptance; rerun this gate when
+transport, authority, routing, prompts or disclosure change. Movement/reaction live acceptance does
+not close this ordinary Action gate.
 
 This is limited to melee Hit and Miss. Ranged attacks, saves, healing, conditions, areas, physical/manual
 dice, reactions, movement, configuration choices, HUD/chat presentation, and content expansion remain
@@ -52,8 +53,8 @@ input.durability.targetSystems.Scene.q2HthP7tg8690hK6.Token.VHqbArHuAS68kTgR.Act
 
 `mutationPlans = []`, `transaction = null`, source Action remained 1, and target HP remained 30.
 No mutation or transaction occurred. The repair supplies detached target snapshots at the Foundry
-boundary while retaining live target Documents for commit. Both Hit and Miss must be rerun on the
-repair commit. **LIVE QA PENDING.**
+boundary while retaining live target Documents for commit. Both Hit and Miss had to be rerun on the
+repair commit (accepted later; see the Acceptance record).
 
 ## Second failed historical live run — Foundry V14.367
 
@@ -92,8 +93,8 @@ This is historical failure evidence, **not acceptance**.
 
 The repair projects effective resource `value`/`max` into detached source snapshots and independently
 makes damage clamp only at zero and healing never lower current values. The fixture still authors
-base/value without persisting maximum. Both Hit and Miss need fresh maintainer-run evidence on the
-new repair commit. **LIVE QA PENDING.**
+base/value without persisting maximum. Both Hit and Miss needed fresh evidence on the new repair
+commit (accepted on `ea484fd`; see the Acceptance record).
 
 ## Confirmed production path
 
@@ -471,8 +472,26 @@ Documents. The maintainer may delete the empty test Scene through normal Foundry
 
 ## Acceptance record
 
-Until the maintainer has run and supplied both Hit and Miss evidence, status remains
-**LIVE QA PENDING**. Record Foundry build, tested milestone SHA, GM/Player IDs, both resolution IDs,
+Each run records Foundry build, tested milestone SHA, GM/Player IDs, both resolution IDs,
 provider/method/source, natural/total/modifier/AC/outcome, HP/resource deltas, base-Actor isolation,
 and both clients' separate dumps. Do not infer acceptance from Node tests, a successful declaration, or only
-one completed case.
+one completed case. Both runs used GM `hUdU40DWftTFyJzW` (authority) and Player `6JWzwo5Aln6gZUWH`,
+the `foundry-digital` provider, a +4 attack modifier and 6 constant damage; every proof passed and the
+base Actors were unchanged.
+
+| Run | Foundry, code | Case | Resolution | d20 → total vs AC | Outcome | Target HP | Source Action |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `XXdiPYvlBrRkHghl` | 14.367, `ea484fd` | Hit | `resolution:multiplayer:88w1e5r1` | 16 → 20 vs 1 | hit | 30 → 24 | 1 → 0 |
+| `XXdiPYvlBrRkHghl` | 14.367, `ea484fd` | Miss | `resolution:multiplayer:i5pvkgax` | 3 → 7 vs 100 | miss | 30 → 30 | 1 → 0 |
+| `jijcWQLjrTG6ofmm` | 14.369, `f41b077` | Hit | `resolution:multiplayer:spjjz0ck` | 3 → 7 vs 1 | hit | 30 → 24 | 1 → 0 |
+| `jijcWQLjrTG6ofmm` | 14.369, `f41b077` | Miss | `resolution:multiplayer:wiehee01` | 3 → 7 vs 100 | miss | 30 → 30 | 1 → 0 |
+
+The 14.367 dumps are in commit `d8eb144`; the current files in `evidence/{gm,player}-{hit,miss}.json`
+are the 14.369 run, which was driven by the agent in two isolated browser profiles (the maintainer
+accepts automated two-browser runs as evidence). That run also checked the hardening milestone:
+
+- each player `PENDING_REQUEST` payload had only the key `rollRequest`, with no `"defense":`,
+  `"defenses":` or `"dc":` anywhere in it, and the player's result kept only the allow-listed keys;
+- a probe Action declared by the Player through an Actor they do not own failed with `WRONG_USER`
+  ("The Action sender must own the acting Actor.") and left the target's HP unchanged;
+- cleanup left no QA Tokens or Actors.

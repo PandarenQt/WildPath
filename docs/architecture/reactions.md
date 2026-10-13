@@ -192,14 +192,15 @@ candidate/event/action identities are rejected structurally instead of recursing
 
 Not yet implemented:
 
-- reaction windows beyond action-declared and after-attack-outcome timings
+- Action reaction windows beyond action-declared and after-attack-outcome timings (staged movement
+  adds before-transition windows with `leavesReach`/`entersReach` relations; see
+  [staged-movement.md](staged-movement.md))
 - production defensive/disruptive reaction content
-- opportunity attacks
-- Movement-driven leave-reach events
+- opportunity attacks as production content
 - full simultaneous reaction ordering
 - final HUD presentation
 
-Automated verification is 729/729 at repair commit
+Automated verification was 729/729 at repair commit
 `ddb26f6591c95db9b5dc21a856d3bfa5f15f90e4`. The generic movement-event path also passed the full
 real Foundry V14.367 multiplayer Decline/Accept/Terminate gate. See the
 [accepted live result and regression runbook](../development/movement-reaction-qa.md). Broader

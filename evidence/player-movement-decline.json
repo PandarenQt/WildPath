@@ -12,21 +12,21 @@
   },
   "systemId": "wildpath",
   "systemVersion": "0.0.1",
-  "gitSha": "c1f0079e3c1b56188799cfcc2536e166a392b027",
-  "capturedAt": "2026-10-13T18:30:20.362Z",
-  "runId": "tWxNuvZ5llUh3hpI",
-  "resolutionId": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx",
+  "gitSha": "f41b077c91acf05a22b72f6a691cb26eb6f1d06d",
+  "capturedAt": "2026-10-13T20:02:45.440Z",
+  "runId": "U5bZ8i2JXA8At4sP",
+  "resolutionId": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O",
   "evidenceFile": "evidence/player-movement-decline.json",
   "evidence": {
-    "runId": "tWxNuvZ5llUh3hpI",
+    "runId": "U5bZ8i2JXA8At4sP",
     "role": "player",
     "mode": "decline",
     "variant": "square",
-    "resolutionId": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx",
+    "resolutionId": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O",
     "moverUserId": "hUdU40DWftTFyJzW",
     "reactorUserId": "6JWzwo5Aln6gZUWH",
-    "moverTokenId": "LeF42F0jcY9vyGpB",
-    "reactorTokenId": "b7WQXdpZVizTTpDv",
+    "moverTokenId": "jH42W5jSfTTrpBkM",
+    "reactorTokenId": "gA8UfSY5fqShUnKt",
     "sceneId": "q2HthP7tg8690hK6",
     "origin": {
       "x": 3000,
@@ -68,7 +68,7 @@
       "effects": []
     },
     "result": {
-      "resolutionId": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx",
+      "resolutionId": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O",
       "status": "completed",
       "code": null,
       "ok": true,
@@ -79,10 +79,10 @@
         "name": null
       },
       "source": {
-        "actorId": "tMMJ3yREIVI4rLFI",
-        "actorRef": "Scene.q2HthP7tg8690hK6.Token.LeF42F0jcY9vyGpB.Actor.tMMJ3yREIVI4rLFI",
-        "tokenId": "LeF42F0jcY9vyGpB",
-        "tokenRef": "Scene.q2HthP7tg8690hK6.Token.LeF42F0jcY9vyGpB"
+        "actorId": "K9SnqF0C8LBHuVOw",
+        "actorRef": "Scene.q2HthP7tg8690hK6.Token.jH42W5jSfTTrpBkM.Actor.K9SnqF0C8LBHuVOw",
+        "tokenId": "jH42W5jSfTTrpBkM",
+        "tokenRef": "Scene.q2HthP7tg8690hK6.Token.jH42W5jSfTTrpBkM"
       },
       "targets": [],
       "outcomes": {
@@ -94,31 +94,14 @@
           "cumulativeCost": 15,
           "stopped": false,
           "reason": null,
+          "committed": true,
           "footprint": {
             "type": "TokenGridFootprint",
             "topology": "square",
             "size": "medium",
-            "effectiveSize": "medium",
             "anchor": {
               "x": 23,
               "y": 33
-            },
-            "definition": {
-              "size": "medium",
-              "topology": "square",
-              "offsets": [
-                {
-                  "x": 0,
-                  "y": 0
-                }
-              ],
-              "fieldCount": 1,
-              "creaturesPerField": 1,
-              "minimumFields": 1,
-              "metadata": {
-                "ruleset": "dnd5e",
-                "squareWidth": 1
-              }
             },
             "fields": [
               {
@@ -128,197 +111,8 @@
             ],
             "fieldKeys": [
               "square:23,33"
-            ],
-            "metadata": {},
-            "boundaryFields": [
-              {
-                "x": 23,
-                "y": 33
-              }
-            ],
-            "boundaryEdges": [
-              {
-                "id": "square:23,33>east",
-                "topology": "square",
-                "field": {
-                  "x": 23,
-                  "y": 33
-                },
-                "outsideField": {
-                  "x": 24,
-                  "y": 33
-                },
-                "direction": "east"
-              },
-              {
-                "id": "square:23,33>north",
-                "topology": "square",
-                "field": {
-                  "x": 23,
-                  "y": 33
-                },
-                "outsideField": {
-                  "x": 23,
-                  "y": 32
-                },
-                "direction": "north"
-              },
-              {
-                "id": "square:23,33>south",
-                "topology": "square",
-                "field": {
-                  "x": 23,
-                  "y": 33
-                },
-                "outsideField": {
-                  "x": 23,
-                  "y": 34
-                },
-                "direction": "south"
-              },
-              {
-                "id": "square:23,33>west",
-                "topology": "square",
-                "field": {
-                  "x": 23,
-                  "y": 33
-                },
-                "outsideField": {
-                  "x": 22,
-                  "y": 33
-                },
-                "direction": "west"
-              }
-            ],
-            "boundaryVertices": [
-              {
-                "id": "square-vertex:23,33",
-                "x": 23,
-                "y": 33,
-                "incidentFields": [
-                  {
-                    "x": 22,
-                    "y": 32
-                  },
-                  {
-                    "x": 23,
-                    "y": 32
-                  },
-                  {
-                    "x": 22,
-                    "y": 33
-                  },
-                  {
-                    "x": 23,
-                    "y": 33
-                  }
-                ],
-                "topology": "square",
-                "occupiedIncidentFields": [
-                  {
-                    "x": 23,
-                    "y": 33
-                  }
-                ],
-                "external": true
-              },
-              {
-                "id": "square-vertex:23,34",
-                "x": 23,
-                "y": 34,
-                "incidentFields": [
-                  {
-                    "x": 22,
-                    "y": 33
-                  },
-                  {
-                    "x": 23,
-                    "y": 33
-                  },
-                  {
-                    "x": 22,
-                    "y": 34
-                  },
-                  {
-                    "x": 23,
-                    "y": 34
-                  }
-                ],
-                "topology": "square",
-                "occupiedIncidentFields": [
-                  {
-                    "x": 23,
-                    "y": 33
-                  }
-                ],
-                "external": true
-              },
-              {
-                "id": "square-vertex:24,33",
-                "x": 24,
-                "y": 33,
-                "incidentFields": [
-                  {
-                    "x": 23,
-                    "y": 32
-                  },
-                  {
-                    "x": 24,
-                    "y": 32
-                  },
-                  {
-                    "x": 23,
-                    "y": 33
-                  },
-                  {
-                    "x": 24,
-                    "y": 33
-                  }
-                ],
-                "topology": "square",
-                "occupiedIncidentFields": [
-                  {
-                    "x": 23,
-                    "y": 33
-                  }
-                ],
-                "external": true
-              },
-              {
-                "id": "square-vertex:24,34",
-                "x": 24,
-                "y": 34,
-                "incidentFields": [
-                  {
-                    "x": 23,
-                    "y": 33
-                  },
-                  {
-                    "x": 24,
-                    "y": 33
-                  },
-                  {
-                    "x": 23,
-                    "y": 34
-                  },
-                  {
-                    "x": 24,
-                    "y": 34
-                  }
-                ],
-                "topology": "square",
-                "occupiedIncidentFields": [
-                  {
-                    "x": 23,
-                    "y": 33
-                  }
-                ],
-                "external": true
-              }
-            ],
-            "internalVertices": []
-          },
-          "committed": true
+            ]
+          }
         }
       },
       "rolls": [],
@@ -333,12 +127,12 @@
           "direction": "incoming",
           "transport": "broadcast",
           "messageType": "RESOLUTION_RESULT",
-          "messageId": "resolution-message:resolution-result:1791916205874:5",
+          "messageId": "resolution-message:resolution-result:1791921759974:5",
           "senderUserId": "hUdU40DWftTFyJzW",
           "recipientUserId": null,
           "recipientPolicy": "all",
           "disclosure": "BROADCAST_SAFE",
-          "resolutionId": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx",
+          "resolutionId": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O",
           "requestId": null
         }
       ],
@@ -347,25 +141,25 @@
           "direction": "incoming",
           "transport": "targeted",
           "messageType": "PENDING_REQUEST",
-          "messageId": "resolution-message:pending-request:1791916194340:4",
+          "messageId": "resolution-message:pending-request:1791921744372:4",
           "senderUserId": "hUdU40DWftTFyJzW",
           "recipientUserId": "6JWzwo5Aln6gZUWH",
           "recipientPolicy": null,
           "disclosure": "PARTICIPANT_PRIVATE",
-          "resolutionId": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx",
-          "requestId": "request:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:reaction:reaction-window:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:before-transition:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:transition:1:offer:1"
+          "resolutionId": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O",
+          "requestId": "request:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:reaction:reaction-window:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:before-transition:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:transition:1:offer:1"
         },
         {
           "direction": "outgoing",
           "transport": "targeted",
           "messageType": "REQUEST_RESPONSE",
-          "messageId": "resolution-message:request-response:1791916205764:2",
+          "messageId": "resolution-message:request-response:1791921759862:2",
           "senderUserId": "6JWzwo5Aln6gZUWH",
           "recipientUserId": "hUdU40DWftTFyJzW",
           "recipientPolicy": null,
           "disclosure": "PARTICIPANT_PRIVATE",
-          "resolutionId": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx",
-          "requestId": "request:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:reaction:reaction-window:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:before-transition:qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx:transition:1:offer:1"
+          "resolutionId": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O",
+          "requestId": "request:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:reaction:reaction-window:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:before-transition:qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O:transition:1:offer:1"
         }
       ],
       "local": [],
@@ -376,18 +170,18 @@
         "type": "RESOLUTION_RESULT",
         "envelope": {
           "protocolVersion": 1,
-          "messageId": "resolution-message:resolution-result:1791916205874:5",
+          "messageId": "resolution-message:resolution-result:1791921759974:5",
           "messageType": "RESOLUTION_RESULT",
           "senderUserId": "hUdU40DWftTFyJzW",
           "recipientUserId": null,
           "recipientUserIds": [],
           "recipientPolicy": "all",
           "disclosure": "BROADCAST_SAFE",
-          "resolutionId": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx",
+          "resolutionId": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O",
           "requestId": null,
           "payload": {
             "result": {
-              "resolutionId": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx",
+              "resolutionId": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O",
               "status": "completed",
               "code": null,
               "ok": true,
@@ -398,10 +192,10 @@
                 "name": null
               },
               "source": {
-                "actorId": "tMMJ3yREIVI4rLFI",
-                "actorRef": "Scene.q2HthP7tg8690hK6.Token.LeF42F0jcY9vyGpB.Actor.tMMJ3yREIVI4rLFI",
-                "tokenId": "LeF42F0jcY9vyGpB",
-                "tokenRef": "Scene.q2HthP7tg8690hK6.Token.LeF42F0jcY9vyGpB"
+                "actorId": "K9SnqF0C8LBHuVOw",
+                "actorRef": "Scene.q2HthP7tg8690hK6.Token.jH42W5jSfTTrpBkM.Actor.K9SnqF0C8LBHuVOw",
+                "tokenId": "jH42W5jSfTTrpBkM",
+                "tokenRef": "Scene.q2HthP7tg8690hK6.Token.jH42W5jSfTTrpBkM"
               },
               "targets": [],
               "outcomes": {
@@ -413,49 +207,22 @@
                   "cumulativeCost": 15,
                   "stopped": false,
                   "reason": null,
+                  "committed": true,
                   "footprint": {
                     "type": "TokenGridFootprint",
                     "topology": "square",
                     "size": "medium",
-                    "effectiveSize": "medium",
                     "anchor": {
                       "x": 23,
                       "y": 33
-                    },
-                    "definition": {
-                      "size": "medium",
-                      "topology": "square",
-                      "offsets": "[depth limit]",
-                      "fieldCount": 1,
-                      "creaturesPerField": 1,
-                      "minimumFields": 1,
-                      "metadata": "[depth limit]"
                     },
                     "fields": [
                       "[depth limit]"
                     ],
                     "fieldKeys": [
                       "square:23,33"
-                    ],
-                    "metadata": {},
-                    "boundaryFields": [
-                      "[depth limit]"
-                    ],
-                    "boundaryEdges": [
-                      "[depth limit]",
-                      "[depth limit]",
-                      "[depth limit]",
-                      "[depth limit]"
-                    ],
-                    "boundaryVertices": [
-                      "[depth limit]",
-                      "[depth limit]",
-                      "[depth limit]",
-                      "[depth limit]"
-                    ],
-                    "internalVertices": []
-                  },
-                  "committed": true
+                    ]
+                  }
                 }
               },
               "rolls": [],
@@ -465,7 +232,7 @@
           "metadata": {}
         },
         "result": {
-          "resolutionId": "qa-movement:tWxNuvZ5llUh3hpI:9MB1A8aJZGojn0Yx",
+          "resolutionId": "qa-movement:U5bZ8i2JXA8At4sP:D9kWZOqLzVJ9bu8O",
           "status": "completed",
           "code": null,
           "ok": true,
@@ -476,10 +243,10 @@
             "name": null
           },
           "source": {
-            "actorId": "tMMJ3yREIVI4rLFI",
-            "actorRef": "Scene.q2HthP7tg8690hK6.Token.LeF42F0jcY9vyGpB.Actor.tMMJ3yREIVI4rLFI",
-            "tokenId": "LeF42F0jcY9vyGpB",
-            "tokenRef": "Scene.q2HthP7tg8690hK6.Token.LeF42F0jcY9vyGpB"
+            "actorId": "K9SnqF0C8LBHuVOw",
+            "actorRef": "Scene.q2HthP7tg8690hK6.Token.jH42W5jSfTTrpBkM.Actor.K9SnqF0C8LBHuVOw",
+            "tokenId": "jH42W5jSfTTrpBkM",
+            "tokenRef": "Scene.q2HthP7tg8690hK6.Token.jH42W5jSfTTrpBkM"
           },
           "targets": [],
           "outcomes": {
@@ -491,31 +258,14 @@
               "cumulativeCost": 15,
               "stopped": false,
               "reason": null,
+              "committed": true,
               "footprint": {
                 "type": "TokenGridFootprint",
                 "topology": "square",
                 "size": "medium",
-                "effectiveSize": "medium",
                 "anchor": {
                   "x": 23,
                   "y": 33
-                },
-                "definition": {
-                  "size": "medium",
-                  "topology": "square",
-                  "offsets": [
-                    {
-                      "x": 0,
-                      "y": 0
-                    }
-                  ],
-                  "fieldCount": 1,
-                  "creaturesPerField": 1,
-                  "minimumFields": 1,
-                  "metadata": {
-                    "ruleset": "dnd5e",
-                    "squareWidth": 1
-                  }
                 },
                 "fields": [
                   {
@@ -525,137 +275,8 @@
                 ],
                 "fieldKeys": [
                   "square:23,33"
-                ],
-                "metadata": {},
-                "boundaryFields": [
-                  {
-                    "x": 23,
-                    "y": 33
-                  }
-                ],
-                "boundaryEdges": [
-                  {
-                    "id": "square:23,33>east",
-                    "topology": "square",
-                    "field": {
-                      "x": 23,
-                      "y": 33
-                    },
-                    "outsideField": {
-                      "x": 24,
-                      "y": 33
-                    },
-                    "direction": "east"
-                  },
-                  {
-                    "id": "square:23,33>north",
-                    "topology": "square",
-                    "field": {
-                      "x": 23,
-                      "y": 33
-                    },
-                    "outsideField": {
-                      "x": 23,
-                      "y": 32
-                    },
-                    "direction": "north"
-                  },
-                  {
-                    "id": "square:23,33>south",
-                    "topology": "square",
-                    "field": {
-                      "x": 23,
-                      "y": 33
-                    },
-                    "outsideField": {
-                      "x": 23,
-                      "y": 34
-                    },
-                    "direction": "south"
-                  },
-                  {
-                    "id": "square:23,33>west",
-                    "topology": "square",
-                    "field": {
-                      "x": 23,
-                      "y": 33
-                    },
-                    "outsideField": {
-                      "x": 22,
-                      "y": 33
-                    },
-                    "direction": "west"
-                  }
-                ],
-                "boundaryVertices": [
-                  {
-                    "id": "square-vertex:23,33",
-                    "x": 23,
-                    "y": 33,
-                    "incidentFields": [
-                      "[depth limit]",
-                      "[depth limit]",
-                      "[depth limit]",
-                      "[depth limit]"
-                    ],
-                    "topology": "square",
-                    "occupiedIncidentFields": [
-                      "[depth limit]"
-                    ],
-                    "external": true
-                  },
-                  {
-                    "id": "square-vertex:23,34",
-                    "x": 23,
-                    "y": 34,
-                    "incidentFields": [
-                      "[depth limit]",
-                      "[depth limit]",
-                      "[depth limit]",
-                      "[depth limit]"
-                    ],
-                    "topology": "square",
-                    "occupiedIncidentFields": [
-                      "[depth limit]"
-                    ],
-                    "external": true
-                  },
-                  {
-                    "id": "square-vertex:24,33",
-                    "x": 24,
-                    "y": 33,
-                    "incidentFields": [
-                      "[depth limit]",
-                      "[depth limit]",
-                      "[depth limit]",
-                      "[depth limit]"
-                    ],
-                    "topology": "square",
-                    "occupiedIncidentFields": [
-                      "[depth limit]"
-                    ],
-                    "external": true
-                  },
-                  {
-                    "id": "square-vertex:24,34",
-                    "x": 24,
-                    "y": 34,
-                    "incidentFields": [
-                      "[depth limit]",
-                      "[depth limit]",
-                      "[depth limit]",
-                      "[depth limit]"
-                    ],
-                    "topology": "square",
-                    "occupiedIncidentFields": [
-                      "[depth limit]"
-                    ],
-                    "external": true
-                  }
-                ],
-                "internalVertices": []
-              },
-              "committed": true
+                ]
+              }
             }
           },
           "rolls": [],

@@ -65,7 +65,7 @@ an explicit option or from the audited per-message-type policy:
 | `MOVEMENT_INTENT`, `MOVEMENT_COMMIT` | `BROADCAST_SAFE` | refs and coordinates core already replicates |
 | `PENDING_REQUEST` | `PARTICIPANT_PRIVATE` | roll requests (DC, target identity), reaction candidates, prompt options |
 | `REQUEST_RESPONSE` | `PARTICIPANT_PRIVATE` | roll results, reaction decisions, configuration choices |
-| `RESOLUTION_ERROR`, `RESOLUTION_CANCEL` | `PARTICIPANT_PRIVATE` | failure reasons and diagnostics |
+| `RESOLUTION_ERROR` | `PARTICIPANT_PRIVATE` | failure code and reason; `data` keeps only the resolution status |
 | `MOVEMENT_APPROVAL` | `PARTICIPANT_PRIVATE` | movement budget/spend and the armed `reactionBoundary` |
 | `MOVEMENT_RESULT`, `MOVEMENT_CONTINUATION` | `PARTICIPANT_PRIVATE` | payment plans, resource values on failure, reaction window identity |
 | `RESOLUTION_RESULT` | **explicit per projection** | see below |
@@ -123,7 +123,9 @@ Verified against the installed 14.367 source and re-checked unchanged in 14.369,
 - Payloads are JSON; the same plain-data envelope validator applies to both transports.
 
 The broadcast adapter additionally verifies the attested sender that the custom-socket relay appends
-to every delivery and drops envelopes whose claimed `senderUserId` disagrees.
+to every delivery. It drops an envelope whose claimed `senderUserId` disagrees, and it fails closed
+when no attested sender arrives at all, because the authority's ownership and chooser checks trust
+`senderUserId`.
 
 Practical requirements this creates:
 
@@ -132,26 +134,47 @@ Practical requirements this creates:
 - the query handler is registered at `ready`; a query that reaches a client before that times out
   on the sender (15 s) with `TARGETED_TRANSPORT_TIMEOUT`.
 
-## Data minimization
+## Data minimization: default-deny projections
 
-**Chooser payloads** (`sanitizePendingRequestForTransport`): the payload top level drops
-`state`, `resolutionState`, `mutationPlans`, `transaction`, `rollResults`, `results`,
-`targetSystems`, `actorSystem`, `actorSystems`, `dc`, `defense`, `defenses`. Roll requests are
-projected by `projectRollRequestForChooser`: the roller keeps the request identity, dice
-definition, modifiers, expectations, roll mode, visibility and stable source/target refs, and never
-receives `dc`, `data`, or target defenses. (The RollRequest normalizer already reduced targets to
-identity; the projection makes that a contract rather than a coincidence.)
+Every network projection is an **allow-list**: adding a field to an intent, ResolutionState, request,
+result or error never publishes it. A parameterized secret-sentinel suite
+(`test/multiplayer-disclosure.test.mjs`) plants `SECRET_*` values in extensible locations of every
+projection, plus an end-to-end run with sentinels in authoritative state, and asserts none reach the
+bus, a chooser payload, or the participant result.
 
-Reaction-choice requests drop the triggering `event` snapshot: it carries every observer's relation
-and configured context, and the prompt renders only the offered options.
+**Correction (2026-10-13).** The first version of this milestone stripped known keys from the chooser
+payload's top level only. Roll requests still carried the `attack`, `save` (with its DC), `targets`
+(with each target's defense) and `targeting` objects to the chooser, and the participant result was
+the full sanitized result. Neither reached the broadcast bus, but both contradicted this section. The
+allow-lists below replace that denylist; the live run below proves the corrected payloads.
 
-**Error diagnostics** (`sanitizeResolutionErrorDataForTransport`): only scalar values cross the
-transport; the full failure object stays in the sender's local `errors` log.
+**`ACTION_INTENT`** (`sanitizeActionIntentPayload`): only the refs, ids and movement facts the
+authority's resolvers read (`actorRef`, `actionRef`, `targetRefs`, `source` refs, configuration,
+movement origin/waypoints/kind/mode, …).
+
+**Chooser payloads** (`sanitizePendingRequestForTransport`), per request type:
+
+- `roll`: `{rollRequest}` projected by `projectRollRequestForChooser`: identity, dice definition,
+  modifiers, expectations, roll mode, visibility, chooser/authority, stable source/target refs, and
+  metadata limited to `rollKind`/`d20`/`providerId`. Never `dc`, `data`, target defenses, or a
+  concentration check request (which carries its DC).
+- `target-selection` / `target-refinement`: candidates projected to ids, names, refs and
+  selectable/eligible flags, plus `targeting.required`, decisions, and the min/max selection limits.
+- `reaction-choice`: `{candidates, options}`; the triggering event snapshot is not sent.
+- `action-configuration`: `{requests}`.
+- any other type: nothing.
+
+Request `metadata` keeps only `title`, `required` and `promptPortId` plus the routing block.
+
+**Error diagnostics** (`sanitizeResolutionErrorDataForTransport`): the envelope carries the code and
+reason; `data` keeps only the resolution `status`. The full failure object stays in the sender's local
+`errors` log.
 
 **Result projections** (`projectResolutionResultForDisclosure`):
 
-- `PARTICIPANT_PRIVATE`: the full sanitized result, tagged; sent targeted to the initiator and kept
-  locally by the authority.
+- `PARTICIPANT_PRIVATE`: the public projection plus the full `rollResult` of every roll that is not
+  `gm-only` or `blind`. Target defenses, DCs, mutations, payment, preview, configuration and trace stay
+  on the authority.
 - `BROADCAST_SAFE`: an allow-list — ids, status, `authorityUserId`/`initiatorUserId`, action and
   source/target refs, per-target attack `hit/critical/outcome`, per-target save
   `success/critical/outcome`, the movement outcome, and roll `natural/total` only for rolls whose
@@ -179,6 +202,10 @@ overwrite it.
   through the server with receipt, and the handler's identity checks. One GM client cannot prove
   cross-browser privacy and this batch does not claim to. **4/4 live** on Foundry 14.369
   (2026-10-13).
+- **Hardening rerun** (2026-10-13, Foundry 14.369, build `f41b077`, two isolated Chrome profiles driven by the agent (GM and Player1)): Quench 50/50; the three Level-5 sentinels passed again; the Action
+  Hit/Miss QA passed through the real `Item.use()` with each player `PENDING_REQUEST` payload reduced
+  to `{rollRequest}` and no `"defense":`/`"defenses":`/`"dc":` anywhere in it; a player acting
+  through an Actor they do not own was refused with `WRONG_USER` and nothing changed.
 - **Level 5** (`docs/development/staged-movement-qa.md`, evidence schema 2): the three sentinels
   record which message types crossed the bus, the targeted envelopes with sender/recipient, and the
   captured envelopes with private payloads omitted. The reaction sentinels use the GM as mover and a

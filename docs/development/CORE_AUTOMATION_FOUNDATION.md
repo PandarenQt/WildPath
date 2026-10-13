@@ -20,8 +20,9 @@ finished game system name is **WildPath**.
   modifiers, and conditions.
 - `WildPathItem#use()` now builds a plain Action intent and routes it through
   `game.wildpath.executeActionIntent()` to the active-GM staged pipeline. Node integration covers
-  representative targeting, rolls, outcomes, mutation plans, and authoritative commit, while the
-  ordinary player-facing Action path still requires a dedicated representative live Foundry gate.
+  representative targeting, rolls, outcomes, mutation plans, and authoritative commit. The melee
+  Hit/Miss slice of the player-facing path is live-[accepted on 14.367 and 14.369](docs/development/action-runtime-live-qa.md); the
+  representative gate (ranged, save, healing, condition, configuration) is still open.
 - `WildPathActor#getStatistic(domain)` and `WildPathStatistic` are the current calculation engine.
   New mechanics should build on that domain/modifier model rather than creating one-off math.
 - `module/helpers/rule-elements.mjs` provides the first pure RuleElement registry/collector for
@@ -255,7 +256,8 @@ healing, condition-effect, and configured/scaling actions flowing through the st
 RollProvider results, TacticalGrid adapter output, mutation plans, transaction, and persistence
 ports. The production Foundry Action-use entry path is also covered in Node with Actor-derived
 attack/defense statistics, real TacticalGrid adapter footprints, hit/miss outcomes, transactional
-damage, and resource payment. Live Foundry runtime QA remains outstanding.
+damage, and resource payment. Live Foundry QA covers melee Hit/Miss through the real `Item.use()`;
+the rest of the representative set still needs its live gate.
 
 See `module/resolvers/README.md` for the concrete file-path map.
 
@@ -274,7 +276,8 @@ Live-proven Foundry integration currently includes:
 - synchronized movement/reaction pause, resume, stop, and terminal interruption.
 
 Representative live proof is still required for radial areas, lines, cones, walls,
-source-border AoE placement, and normal player-facing Action target/area execution. Opportunity
+source-border AoE placement, and player-facing Action area execution (single-target melee is
+live-accepted). Opportunity
 reactions, observer-relative predicates, auras, emanations, persistent hazards, terrain cost, and
 movement undo/refund remain later slices. See `docs/architecture/tactical-grid.md`,
 `docs/architecture/areas.md`, and `docs/architecture/foundry-tactical-grid-adapter.md`.
