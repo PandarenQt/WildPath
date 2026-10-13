@@ -142,7 +142,8 @@ export function createActorResourceMutationPlan(actorSystem, paymentPlan) {
         payments: []
       };
     }
-    const value = clamp(entry.current - entry.amount, 0, entry.max);
+    // The insufficient-resource check above guarantees this stays >= 0; spend exactly the cost.
+    const value = entry.current - entry.amount;
     updates[entry.path] = value;
     plannedPayments.push({
       resourceId: entry.resourceId,
@@ -219,8 +220,7 @@ function resolveActorResourceRef(actorSystem, economyResourceId) {
       resourceId: economyResourceId,
       actorResourceId,
       path: `system.resources.${actorResourceId}.value`,
-      current: Number(resource.value ?? 0) || 0,
-      max: Number(resource.max ?? resource.value ?? 0) || 0
+      current: Number(resource.value ?? 0) || 0
     };
   }
 
@@ -231,13 +231,8 @@ function resolveActorResourceRef(actorSystem, economyResourceId) {
     resourceId: economyResourceId,
     actorResourceId: economyResourceId,
     path: `system.pools.${index}.value`,
-    current: Number(pool.value ?? 0) || 0,
-    max: Number(pool.max ?? pool.value ?? 0) || 0
+    current: Number(pool.value ?? 0) || 0
   };
-}
-
-function clamp(value, min, max) {
-  return Math.min(Math.max(value, min), max);
 }
 
 function clonePlain(value) {

@@ -180,8 +180,6 @@ export function createMultiplayerActionCoordinator({
         return receivePendingRequest(data);
       case MULTIPLAYER_MESSAGE_TYPES.REQUEST_RESPONSE:
         return receiveRequestResponse(data);
-      case MULTIPLAYER_MESSAGE_TYPES.RESOLUTION_CANCEL:
-        return receiveResolutionCancel(data);
       case MULTIPLAYER_MESSAGE_TYPES.RESOLUTION_RESULT:
         return receiveResolutionResult(data);
       case MULTIPLAYER_MESSAGE_TYPES.RESOLUTION_ERROR:
@@ -621,31 +619,6 @@ export function createMultiplayerActionCoordinator({
       request: pending,
       expectation
     };
-  }
-
-  async function receiveResolutionCancel(envelope) {
-    const record = findRecordForResolutionId(envelope.resolutionId);
-    if ( !record ) return {
-      ok: false,
-      code: MULTIPLAYER_AUTHORITY_CODES.RESOLUTION_NOT_FOUND,
-      reason: `No authoritative resolution is registered for ${envelope.resolutionId}.`
-    };
-    if ( record.authorityUserId !== localUserId ) return {
-      ok: false,
-      code: MULTIPLAYER_AUTHORITY_CODES.WRONG_AUTHORITY,
-      reason: "Only the authoritative client may cancel this resolution."
-    };
-    const execution = activeResolutionExecution(record.state, envelope.resolutionId);
-    const state = execution?.state ?? record.state ?? createResolutionState({id: record.resolutionId});
-    const cancelled = cancelResolutionState(state, {
-      code: MULTIPLAYER_AUTHORITY_CODES.CANCELLED,
-      reason: envelope.payload?.reason ?? "Resolution cancelled by socket request.",
-      data: {senderUserId: envelope.senderUserId}
-    });
-    record.state = replaceResolutionInTree(record.state ?? cancelled, execution?.path ?? [state.id], cancelled);
-    rememberResolutionState(record, cancelled);
-    if ( execution?.nested ) return advanceRecord(record);
-    return sendResolutionResult(record, {ok: false, code: MULTIPLAYER_AUTHORITY_CODES.CANCELLED});
   }
 
   function receiveResolutionResult(envelope) {

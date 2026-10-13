@@ -110,6 +110,9 @@ function fakeTokenDocument({id, actor, scene, offset, disposition=-1}) {
     disposition,
     getOccupiedGridSpaceOffsets() {
       return [offset];
+    },
+    testUserPermission(user, level) {
+      return actor?.testUserPermission?.(user, level) === true;
     }
   };
 }
@@ -121,7 +124,7 @@ function runtimeStatistic(domain, totalModifier) {
   };
 }
 
-function fakeActor(id, {system, size=CREATURE_SIZES.MEDIUM, statistics={}}={}) {
+function fakeActor(id, {system, size=CREATURE_SIZES.MEDIUM, statistics={}, owners=["player-a"]}={}) {
   const actor = {
     id,
     uuid: `Actor.${id}`,
@@ -129,8 +132,13 @@ function fakeActor(id, {system, size=CREATURE_SIZES.MEDIUM, statistics={}}={}) {
     type: "character",
     system: {...(system ?? {}), traits: {...(system?.traits ?? {}), size}},
     effects: [],
+    items: new Map(),
     token: null,
     tokens: [],
+    testUserPermission(user, level) {
+      assert.equal(level, "OWNER");
+      return user?.isGM === true || owners.includes(user?.id);
+    },
     getStatistic(domain) {
       return typeof statistics === "function" ? statistics(domain) : statistics[domain] ?? null;
     },
@@ -145,12 +153,17 @@ function fakeActor(id, {system, size=CREATURE_SIZES.MEDIUM, statistics={}}={}) {
   return actor;
 }
 
-function fakeGame({actors=[], items=[], scenes=[]}={}) {
+function fakeGame({actors=[], scenes=[]}={}) {
+  const users = new Map([
+    ["gm-a", {id: "gm-a", isGM: true}],
+    ["player-a", {id: "player-a", isGM: false}],
+    ["player-b", {id: "player-b", isGM: false}]
+  ]);
+  users.activeGM = null;
   return {
     actors: new Map(actors.map(actor => [actor.id, actor])),
-    items: new Map(items.map(item => [item.id, item])),
     scenes: new Map(scenes.map(scene => [scene.id, scene])),
-    users: {activeGM: null}
+    users
   };
 }
 
@@ -174,8 +187,14 @@ function targetActorSystem(value=20, max=20, {ac=12}={}) {
   };
 }
 
-function actionItem(definition) {
-  return {id: definition.id, uuid: `Item.${definition.id}`, type: "action", name: definition.label, system: {definition}};
+/** Action Items are embedded on their Actor; the runtime rejects Items owned by another Actor. */
+function actionItem(definition, actor=null) {
+  const item = {id: definition.id, uuid: `Item.${definition.id}`, type: "action", name: definition.label, system: {definition}};
+  if ( actor ) {
+    item.actor = actor;
+    actor.items.set(item.id, item);
+  }
+  return item;
 }
 
 function meleeStrikeDefinition() {
@@ -289,10 +308,10 @@ test("production Action intent conversion builds TacticalGrid spatial context fr
   targetActor.tokens = [targetToken];
   scene.tokens = [sourceToken, targetToken];
 
-  const action = actionItem(meleeStrikeDefinition());
-  const game = fakeGame({actors: [sourceActor, targetActor], items: [action], scenes: [scene]});
+  const action = actionItem(meleeStrikeDefinition(), sourceActor);
+  const game = fakeGame({actors: [sourceActor, targetActor], scenes: [scene]});
 
-  const resolved = await foundryActionIntentToStagedOptions({
+  const resolved = await foundryActionIntentToStagedOptions({senderUserId: "player-a", 
     intent: {
       actorRef: sourceActor.uuid,
       actionRef: action.uuid,
@@ -322,9 +341,9 @@ test("production Action intent conversion builds TacticalGrid spatial context fr
 test("ordinary Foundry Action planning snapshots a live Actor DataModel before ResolutionState", async () => {
   const actor = withFoundryActorSystem(fakeActor("model-actor", {system: actorSystem()}));
   const action = actionItem({schemaVersion: 1, id: "action:model", label: "Model action",
-    targeting: {type: "self", required: true}, costs: {allOf: [{capability: "action", amount: 1}]}});
-  const resolved = await foundryActionIntentToStagedOptions({
-    intent: {actorRef: actor.uuid, actionRef: action.uuid}, game: fakeGame({actors: [actor], items: [action]})
+    targeting: {type: "self", required: true}, costs: {allOf: [{capability: "action", amount: 1}]}}, actor);
+  const resolved = await foundryActionIntentToStagedOptions({senderUserId: "player-a", 
+    intent: {actorRef: actor.uuid, actionRef: action.uuid}, game: fakeGame({actors: [actor]})
   });
   assert.equal(resolved.ok, true, JSON.stringify(resolved.reason));
   assert.equal(resolved.options.actor, actor, "Commit keeps the live document handle.");
@@ -341,9 +360,9 @@ test("ordinary Foundry Action planning snapshots a live Actor DataModel before R
 test("ordinary Foundry Action rejects invalid serialized system data at the Foundry boundary", async () => {
   const actor = withFoundryActorSystem(fakeActor("invalid-model", {system: actorSystem()}));
   actor.toObject = () => ({system: actor.system});
-  const action = actionItem({schemaVersion: 1, id: "action:invalid-model", label: "Model action"});
-  const resolved = await foundryActionIntentToStagedOptions({
-    intent: {actorRef: actor.uuid, actionRef: action.uuid}, game: fakeGame({actors: [actor], items: [action]})
+  const action = actionItem({schemaVersion: 1, id: "action:invalid-model", label: "Model action"}, actor);
+  const resolved = await foundryActionIntentToStagedOptions({senderUserId: "player-a", 
+    intent: {actorRef: actor.uuid, actionRef: action.uuid}, game: fakeGame({actors: [actor]})
   });
   assert.equal(resolved.ok, false);
   assert.equal(resolved.code, MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED);
@@ -369,10 +388,10 @@ test("production Action intent conversion snapshots Actor combat statistics into
   targetActor.tokens = [targetToken];
   scene.tokens = [sourceToken, targetToken];
 
-  const action = actionItem(meleeStrikeDefinition());
-  const game = fakeGame({actors: [sourceActor, targetActor], items: [action], scenes: [scene]});
+  const action = actionItem(meleeStrikeDefinition(), sourceActor);
+  const game = fakeGame({actors: [sourceActor, targetActor], scenes: [scene]});
 
-  const resolved = await foundryActionIntentToStagedOptions({
+  const resolved = await foundryActionIntentToStagedOptions({senderUserId: "player-a", 
     intent: {
       actorRef: sourceActor.uuid,
       actionRef: action.uuid,
@@ -398,10 +417,10 @@ test("production Action intent conversion snapshots Actor combat statistics into
 
 test("production Action intent conversion executes without spatial context when the Actor has no canvas Token", async () => {
   const sourceActor = fakeActor("actor-no-token", {system: actorSystem()});
-  const action = actionItem(meleeStrikeDefinition());
-  const game = fakeGame({actors: [sourceActor], items: [action]});
+  const action = actionItem(meleeStrikeDefinition(), sourceActor);
+  const game = fakeGame({actors: [sourceActor]});
 
-  const resolved = await foundryActionIntentToStagedOptions({
+  const resolved = await foundryActionIntentToStagedOptions({senderUserId: "player-a", 
     intent: {actorRef: sourceActor.uuid, actionRef: action.uuid},
     game,
     persistencePort: createTestDocumentPersistenceAdapter()
@@ -419,10 +438,10 @@ test("production Action intent conversion rejects ambiguous source Actors with m
   const tokenA = fakeTokenDocument({id: "a", actor: sourceActor, scene, offset: {i: 0, j: 0}});
   const tokenB = fakeTokenDocument({id: "b", actor: sourceActor, scene, offset: {i: 5, j: 5}});
   sourceActor.tokens = [tokenA, tokenB];
-  const action = actionItem(meleeStrikeDefinition());
-  const game = fakeGame({actors: [sourceActor], items: [action], scenes: [scene]});
+  const action = actionItem(meleeStrikeDefinition(), sourceActor);
+  const game = fakeGame({actors: [sourceActor], scenes: [scene]});
 
-  const resolved = await foundryActionIntentToStagedOptions({
+  const resolved = await foundryActionIntentToStagedOptions({senderUserId: "player-a", 
     intent: {actorRef: sourceActor.uuid, actionRef: action.uuid},
     game,
     persistencePort: createTestDocumentPersistenceAdapter()
@@ -457,7 +476,7 @@ test("a player's Action use reaches the staged pipeline through the production m
     transport: gmTransport,
     // The GM's authoritative resolver is the REAL production intent translator - no hand-built
     // spatial, targeting, attack, or defense options.
-    actionIntentResolver: ({intent}) => foundryActionIntentToStagedOptions({intent, game, persistencePort})
+    actionIntentResolver: ({intent, envelope}) => foundryActionIntentToStagedOptions({intent, senderUserId: envelope.senderUserId, game, persistencePort})
   });
   const player = createMultiplayerActionCoordinator({
     userId: "player-a",
@@ -535,7 +554,7 @@ test("a player's Action use reaches the staged pipeline through the production m
 
 test("target snapshots retain all live-document aliases, serialize once, and detach synthetic source data", async t => {
   const f = syntheticRuntimeFixture(t);
-  const resolved = await foundryActionIntentToStagedOptions({intent: {...f.intent,
+  const resolved = await foundryActionIntentToStagedOptions({senderUserId: "player-a", intent: {...f.intent,
     targetRefs: [...f.intent.targetRefs, {actorRef: "Actor.target-alias"}]}, game: f.game});
   assert.equal(resolved.ok, true, resolved.reason);
   const systems = resolved.options.durability.targetSystems;
@@ -558,10 +577,39 @@ test("target snapshots retain all live-document aliases, serialize once, and det
   assert.equal(f.targetBase.system.resources.health.value, 99);
 });
 
+test("the authority only resolves Actions sent by an owner of the acting Actor, using that Actor's own Item", async t => {
+  const f = syntheticRuntimeFixture(t);
+  // A player who does not own the acting Actor is refused before any rules input is built.
+  const stranger = await foundryActionIntentToStagedOptions({intent: f.intent, senderUserId: "player-b", game: f.game});
+  assert.equal(stranger.ok, false);
+  assert.equal(stranger.code, MULTIPLAYER_AUTHORITY_CODES.WRONG_USER);
+  assert.equal(stranger.options, undefined);
+  // An unattested or missing sender is never treated as an owner.
+  const anonymous = await foundryActionIntentToStagedOptions({intent: f.intent, game: f.game});
+  assert.equal(anonymous.code, MULTIPLAYER_AUTHORITY_CODES.WRONG_USER);
+
+  // An Item that belongs to a different Actor is refused even when the sender owns the acting Actor.
+  const otherActor = fakeActor("other-actor", {system: actorSystem()});
+  const foreign = actionItem({...meleeStrikeDefinition(), id: "action:foreign"}, otherActor);
+  foreign.uuid = `${otherActor.uuid}.Item.${foreign.id}`;
+  const previous = globalThis.fromUuid;
+  globalThis.fromUuid = async ref => ref === foreign.uuid ? foreign : previous(ref);
+  const borrowed = await foundryActionIntentToStagedOptions({intent: {...f.intent, actionRef: foreign.uuid},
+    senderUserId: "player-a", game: f.game});
+  globalThis.fromUuid = previous;
+  assert.equal(borrowed.ok, false);
+  assert.equal(borrowed.code, MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED);
+  assert.match(borrowed.reason, /does not belong to the acting Actor/);
+
+  // The GM may act through any Actor.
+  const gm = await foundryActionIntentToStagedOptions({intent: f.intent, senderUserId: "gm-a", game: f.game});
+  assert.equal(gm.ok, true, JSON.stringify(gm.reason));
+});
+
 test("invalid target source serialization rejects the Action intent with the synthetic target identity", async t => {
   const f = syntheticRuntimeFixture(t);
   f.targetActor.toObject = () => ({system: f.targetActor.system});
-  const resolved = await foundryActionIntentToStagedOptions({intent: f.intent, game: f.game});
+  const resolved = await foundryActionIntentToStagedOptions({senderUserId: "player-a", intent: f.intent, game: f.game});
   assert.equal(resolved.ok, false);
   assert.equal(resolved.code, MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED);
   assert.ok(resolved.reason.includes(f.targetActor.uuid));
@@ -575,7 +623,7 @@ test("production Healing uses the same plain synthetic target durability snapsho
   const f = syntheticRuntimeFixture(t, {schemaVersion: 1, id: "healing:model", label: "Healing model",
     targeting: {type: "single", required: true, count: 1},
     healing: [{id: "fixed", expression: {type: "constant", value: 6}}]});
-  const resolved = await foundryActionIntentToStagedOptions({intent: f.intent, game: f.game});
+  const resolved = await foundryActionIntentToStagedOptions({senderUserId: "player-a", intent: f.intent, game: f.game});
   assert.equal(resolved.ok, true, resolved.reason);
   const planned = await planStagedActionResolution(resolved.options);
   assert.equal(planned.ok, true, JSON.stringify(planned.state.errors));
@@ -611,8 +659,8 @@ test("production multiplayer entry point resolves Actor-derived defense misses w
   sourceActor.tokens = [sourceToken];
   targetActor.tokens = [targetToken];
   scene.tokens = [sourceToken, targetToken];
-  const action = actionItem(meleeStrikeDefinition());
-  const game = fakeGame({actors: [sourceActor, targetActor], items: [action], scenes: [scene]});
+  const action = actionItem(meleeStrikeDefinition(), sourceActor);
+  const game = fakeGame({actors: [sourceActor, targetActor], scenes: [scene]});
   const persistencePort = createTestDocumentPersistenceAdapter();
 
   const hub = createTestResolutionTransportHub({users: [
@@ -624,7 +672,7 @@ test("production multiplayer entry point resolves Actor-derived defense misses w
     users: () => hub.userDirectory(),
     activeGMUserId: "gm-a",
     transport: hub.createEndpoint({userId: "gm-a"}),
-    actionIntentResolver: ({intent}) => foundryActionIntentToStagedOptions({intent, game, persistencePort})
+    actionIntentResolver: ({intent, envelope}) => foundryActionIntentToStagedOptions({intent, senderUserId: envelope.senderUserId, game, persistencePort})
   });
   const player = createMultiplayerActionCoordinator({
     userId: "player-a",

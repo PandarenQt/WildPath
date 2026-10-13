@@ -14,8 +14,8 @@ import {
  * Broadcast adapter over the `system.wildpath` custom socket. Foundry relays every emission to every
  * other connected client (never back to the sender), so this adapter refuses to emit, and refuses to
  * dispatch, anything that is not classified BROADCAST_SAFE. `recipientUserId` is routing only.
- * The server appends the attested sender user id as the handler's second argument; envelopes whose
- * claimed senderUserId disagrees with it are dropped.
+ * The server appends the attested sender user id as the handler's second argument; envelopes with no
+ * attested sender, or whose claimed senderUserId disagrees with it, are dropped.
  */
 
 export function createFoundryV14ResolutionSocketAdapter({
@@ -79,7 +79,8 @@ export function createFoundryV14ResolutionSocketAdapter({
           return;
         }
         const attested = attestedSenderUserId == null ? null : String(attestedSenderUserId);
-        if ( attested && validation.envelope.senderUserId !== attested ) {
+        // Fail closed: authority checks trust senderUserId, so it must match the server's attestation.
+        if ( !attested || validation.envelope.senderUserId !== attested ) {
           logWarning(logger, "Wild Path | Dropped a socket envelope whose senderUserId does not match the attested sender", {
             code: DISCLOSURE_CODES.DISCLOSURE_SENDER_MISMATCH,
             messageType: validation.envelope.messageType,

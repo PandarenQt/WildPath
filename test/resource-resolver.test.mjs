@@ -90,6 +90,17 @@ test("custom Actor pools map to indexed Actor update paths", () => {
   assert.equal(result.mutationPlan.payments[0].actorResourceId, "ki");
 });
 
+test("payment spends exactly the cost even when a stored value exceeds its maximum", () => {
+  // A stale snapshot with value above max must not lose the excess on payment.
+  const plan = createActorResourceMutationPlan(actorSystem({pools: [{id: "focus", value: 5, max: 3}]}), {
+    resources: [{resourceId: "focus", amount: 1}]
+  });
+
+  assert.equal(plan.ok, true);
+  assert.deepEqual(plan.updates, {"system.pools.0.value": 4});
+  assert.equal(plan.payments[0].from - plan.payments[0].to, 1);
+});
+
 test("payment planning rejects insufficient resources before mutation planning", () => {
   const result = resolveActorResourcePayment({
     actorSystem: actorSystem({resources: {action: {value: 0, max: 1}}}),

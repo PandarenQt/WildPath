@@ -75,6 +75,7 @@ export function registerFoundryV14MultiplayerResolution({
         senderUserId: envelope.senderUserId, game, persistencePort})
       : foundryActionIntentToStagedOptions({
       intent,
+      senderUserId: envelope.senderUserId,
       game,
       persistencePort
     }),
@@ -372,7 +373,7 @@ function notifyMultiplayerMovementFailure(event={}, {logger=globalThis.console}=
 
 /* -------------------------------------------- */
 
-export async function foundryActionIntentToStagedOptions({intent={}, game=globalThis.game, persistencePort=null}={}) {
+export async function foundryActionIntentToStagedOptions({intent={}, senderUserId=null, game=globalThis.game, persistencePort=null}={}) {
   const actorRef = intent.actorRef ?? intent.actorUuid ?? intent.source?.actorRef ?? intent.source?.uuid ?? null;
   const actor = await resolveFoundryDocumentRef(actorRef, {game, kind: "actor"});
   if ( !actor ) return {
@@ -380,12 +381,25 @@ export async function foundryActionIntentToStagedOptions({intent={}, game=global
     code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
     reason: "Action intent actorRef could not be resolved."
   };
+  // The envelope sender is server-attested; a player may only act through Actors they own.
+  const sender = userById(game?.users, senderUserId);
+  if ( !documentOwnedByUser(actor, sender) ) return {
+    ok: false,
+    code: MULTIPLAYER_AUTHORITY_CODES.WRONG_USER,
+    reason: "The Action sender must own the acting Actor."
+  };
 
   const action = await resolveFoundryAction(intent.actionRef ?? intent.actionUuid ?? intent.itemRef ?? intent.itemId, actor, {game});
   if ( !action ) return {
     ok: false,
     code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
     reason: "Action intent actionRef could not be resolved."
+  };
+  // Compare by uuid: synthetic Token Actors may resolve to different instances of the same Actor.
+  if ( !action.actor?.uuid || action.actor.uuid !== actor.uuid ) return {
+    ok: false,
+    code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
+    reason: "The Action Item does not belong to the acting Actor."
   };
 
   let actorSystem;
@@ -437,6 +451,11 @@ export async function foundryActionIntentToStagedOptions({intent={}, game=global
     reason: sourceTokenResolution.reason
   };
   const sourceToken = sourceTokenResolution.token;
+  if ( sourceToken && !documentOwnedByUser(sourceToken, sender) ) return {
+    ok: false,
+    code: MULTIPLAYER_AUTHORITY_CODES.WRONG_USER,
+    reason: "The Action sender must own the source Token."
+  };
 
   const source = {
     actorId: actor.id ?? null,
@@ -676,9 +695,7 @@ async function resolveFoundryDocumentRef(ref, {game=globalThis.game, kind="docum
   if ( kind === "actor" ) return game?.actors?.get?.(id)
     ?? collectionContents(game?.actors).find(actor => actor?.id === id || actor?.uuid === value)
     ?? null;
-  if ( kind === "item" ) return game?.items?.get?.(id)
-    ?? collectionContents(game?.items).find(item => item?.id === id || item?.uuid === value)
-    ?? null;
+  // Items resolve through their Actor (resolveFoundryAction); a world Item has no acting Actor.
   return null;
 }
 

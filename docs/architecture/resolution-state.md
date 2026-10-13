@@ -101,8 +101,9 @@ Foundry movement budget projection, Actor spend/refresh helpers, and sheet view 
 read prepared `actor.system` resources directly at their own boundaries; they do not reconstruct
 resource maxima from raw source. The live QA base-Actor source snapshots deliberately remain source
 snapshots because they audit persisted isolation, not rules inputs. Direct plain-data payment callers
-can still supply inconsistent over-max state: `ResourceResolver` retains its existing upper clamp
-on payment plans. That separate payment invariant is not changed by the durability repair.
+can still supply inconsistent over-max state; `ResourceResolver` payment plans now subtract exactly
+the paid amount (`to = from - amount`) instead of clamping to the snapshot maximum, so such input can
+no longer remove more than the cost. The insufficient-resource check keeps the result non-negative.
 
 ## Lifecycle
 

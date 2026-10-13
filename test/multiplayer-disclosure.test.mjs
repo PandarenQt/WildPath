@@ -265,12 +265,12 @@ test("4. an unclassified envelope fails closed everywhere; RESOLUTION_RESULT has
   }
   assert.deepEqual(DEFAULT_DISCLOSURE_BY_MESSAGE_TYPE, {
     ACTION_INTENT: D.BROADCAST_SAFE, MOVEMENT_INTENT: D.BROADCAST_SAFE, MOVEMENT_COMMIT: D.BROADCAST_SAFE,
-    PENDING_REQUEST: D.PARTICIPANT_PRIVATE, REQUEST_RESPONSE: D.PARTICIPANT_PRIVATE, RESOLUTION_CANCEL: D.PARTICIPANT_PRIVATE,
+    PENDING_REQUEST: D.PARTICIPANT_PRIVATE, REQUEST_RESPONSE: D.PARTICIPANT_PRIVATE,
     RESOLUTION_ERROR: D.PARTICIPANT_PRIVATE, MOVEMENT_APPROVAL: D.PARTICIPANT_PRIVATE, MOVEMENT_RESULT: D.PARTICIPANT_PRIVATE,
     MOVEMENT_CONTINUATION: D.PARTICIPANT_PRIVATE
   });
   assert.deepEqual([...PRIVATE_MESSAGE_TYPES].sort(), ["MOVEMENT_APPROVAL", "MOVEMENT_CONTINUATION", "MOVEMENT_RESULT",
-    "PENDING_REQUEST", "REQUEST_RESPONSE", "RESOLUTION_CANCEL", "RESOLUTION_ERROR"]);
+    "PENDING_REQUEST", "REQUEST_RESPONSE", "RESOLUTION_ERROR"]);
 });
 
 /* -------------------------------------------- */
@@ -537,8 +537,9 @@ test("broadcast receipt drops envelopes whose claimed sender differs from the se
   await game.socket.receive("system.wildpath", intent, "player-a");
   assert.equal(received.length, 1);
   assert.equal(received[0].context.attestedSenderUserId, "player-a");
-  await game.socket.receive("system.wildpath", {...intent, messageId: "legacy-relay"});
-  assert.equal(received.length, 2, "a relay that supplies no attested sender still delivers");
+  await game.socket.receive("system.wildpath", {...intent, messageId: "unattested-relay"});
+  assert.equal(received.length, 1, "an envelope without a server-attested sender is dropped (fail closed)");
+  assert.equal(warnings.at(-1)?.[1]?.code, C.DISCLOSURE_SENDER_MISMATCH);
 });
 
 /** Two clients with their own CONFIG.queries registries and a simulated server relay for User#query. */
