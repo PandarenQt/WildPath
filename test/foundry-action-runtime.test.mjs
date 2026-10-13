@@ -311,7 +311,7 @@ test("production Action intent conversion builds TacticalGrid spatial context fr
   const action = actionItem(meleeStrikeDefinition(), sourceActor);
   const game = fakeGame({actors: [sourceActor, targetActor], scenes: [scene]});
 
-  const resolved = await foundryActionIntentToStagedOptions({senderUserId: "player-a", 
+  const resolved = await foundryActionIntentToStagedOptions({senderUserId: "player-a",
     intent: {
       actorRef: sourceActor.uuid,
       actionRef: action.uuid,
@@ -342,7 +342,7 @@ test("ordinary Foundry Action planning snapshots a live Actor DataModel before R
   const actor = withFoundryActorSystem(fakeActor("model-actor", {system: actorSystem()}));
   const action = actionItem({schemaVersion: 1, id: "action:model", label: "Model action",
     targeting: {type: "self", required: true}, costs: {allOf: [{capability: "action", amount: 1}]}}, actor);
-  const resolved = await foundryActionIntentToStagedOptions({senderUserId: "player-a", 
+  const resolved = await foundryActionIntentToStagedOptions({senderUserId: "player-a",
     intent: {actorRef: actor.uuid, actionRef: action.uuid}, game: fakeGame({actors: [actor]})
   });
   assert.equal(resolved.ok, true, JSON.stringify(resolved.reason));
@@ -361,7 +361,7 @@ test("ordinary Foundry Action rejects invalid serialized system data at the Foun
   const actor = withFoundryActorSystem(fakeActor("invalid-model", {system: actorSystem()}));
   actor.toObject = () => ({system: actor.system});
   const action = actionItem({schemaVersion: 1, id: "action:invalid-model", label: "Model action"}, actor);
-  const resolved = await foundryActionIntentToStagedOptions({senderUserId: "player-a", 
+  const resolved = await foundryActionIntentToStagedOptions({senderUserId: "player-a",
     intent: {actorRef: actor.uuid, actionRef: action.uuid}, game: fakeGame({actors: [actor]})
   });
   assert.equal(resolved.ok, false);
@@ -391,7 +391,7 @@ test("production Action intent conversion snapshots Actor combat statistics into
   const action = actionItem(meleeStrikeDefinition(), sourceActor);
   const game = fakeGame({actors: [sourceActor, targetActor], scenes: [scene]});
 
-  const resolved = await foundryActionIntentToStagedOptions({senderUserId: "player-a", 
+  const resolved = await foundryActionIntentToStagedOptions({senderUserId: "player-a",
     intent: {
       actorRef: sourceActor.uuid,
       actionRef: action.uuid,
@@ -420,7 +420,7 @@ test("production Action intent conversion executes without spatial context when 
   const action = actionItem(meleeStrikeDefinition(), sourceActor);
   const game = fakeGame({actors: [sourceActor]});
 
-  const resolved = await foundryActionIntentToStagedOptions({senderUserId: "player-a", 
+  const resolved = await foundryActionIntentToStagedOptions({senderUserId: "player-a",
     intent: {actorRef: sourceActor.uuid, actionRef: action.uuid},
     game,
     persistencePort: createTestDocumentPersistenceAdapter()
@@ -441,7 +441,7 @@ test("production Action intent conversion rejects ambiguous source Actors with m
   const action = actionItem(meleeStrikeDefinition(), sourceActor);
   const game = fakeGame({actors: [sourceActor], scenes: [scene]});
 
-  const resolved = await foundryActionIntentToStagedOptions({senderUserId: "player-a", 
+  const resolved = await foundryActionIntentToStagedOptions({senderUserId: "player-a",
     intent: {actorRef: sourceActor.uuid, actionRef: action.uuid},
     game,
     persistencePort: createTestDocumentPersistenceAdapter()
