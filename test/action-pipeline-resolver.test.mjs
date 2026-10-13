@@ -574,6 +574,38 @@ test("ActionPipeline executes target save, damage, and transactional commit thro
   assert.equal(result.state.stageStatuses[ACTION_PIPELINE_STAGE_IDS.COMMIT], "completed");
 });
 
+test("each target rolls its own save, routed one after another, and gets its own outcome", () => {
+  const plan = planStagedActionResolution({
+    id: "resolution:fan-out",
+    actorSystem: actorSystem(1),
+    action: legacyAction(),
+    source: {actorId: "actor-source"},
+    targets: [target("orc"), target("goblin")],
+    save: {saveKey: "dex", dc: {value: 10}},
+    damage: {saveOutcomePolicy: {success: "half", failure: "full"}, components: [{id: "burst", amount: 10, damageType: "fire"}]}
+  });
+  const answer = (state, natural) => {
+    const request = state.pendingRequests[0];
+    return resumeStagedActionResolution({state, response: {resolutionId: state.id, requestId: request.id,
+      type: RESOLUTION_REQUEST_TYPES.ROLL, value: {requestId: request.payload.rollRequest.id, resolutionId: state.id,
+        type: request.payload.rollRequest.type, natural, total: natural}}});
+  };
+  const first = plan.state.pendingRequests[0];
+  assert.equal(first.id, "request:resolution:fan-out:save-roll", "the first save keeps the single-target id");
+  assert.equal(first.payload.rollRequest.source.id, "orc", "the orc's controller rolls the orc's save");
+  const afterOrc = answer(plan.state, 15);
+  const second = afterOrc.state.pendingRequests[0];
+  assert.equal(second.id, "request:resolution:fan-out:save-roll:2");
+  assert.equal(second.payload.rollRequest.source.id, "goblin");
+  const done = answer(afterOrc.state, 3);
+  assert.equal(done.ok, true, JSON.stringify(done.state.errors));
+  const outcomes = Object.fromEntries(done.state.results.saveResolution.results.map(entry => [entry.target.id, entry.success]));
+  assert.deepEqual(outcomes, {orc: true, goblin: false});
+  const damage = Object.fromEntries(done.state.results.damageResolution.results.map(entry => [entry.target.id, entry.total]));
+  assert.deepEqual(damage, {orc: 5, goblin: 10}, "half for the orc's success, full for the goblin's failure");
+  assert.equal(done.state.rollResults.filter(entry => entry.type === "save-roll").length, 2);
+});
+
 test("ActionPipeline preserves transaction rollback when commit fails after target mutation", async () => {
   const sourceCalls = [];
   const targetCalls = [];

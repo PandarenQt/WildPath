@@ -959,6 +959,10 @@ function createSaveRollStage() {
     id: ACTION_PIPELINE_STAGE_IDS.SAVE_ROLL,
     run(state) {
       const input = preparedResolverInput(state);
+      const saveTargets = input.save ? selectedSaveTargets(state, input) : [];
+      if ( (saveTargets.length > 1) && !hasSaveRollInput(input.save, input) ) {
+        return requestPerTargetSaves(state, input, saveTargets);
+      }
       const requestId = requestIdFor(state, "save-roll");
       const accepted = getResolutionResponse(state, {
         requestId,
@@ -1055,6 +1059,96 @@ function createSaveRollStage() {
   });
 }
 
+/**
+ * Each selected target rolls its own save, routed to its own controller, one request after another. The
+ * first keeps the single-target id (`save-roll`); each roll is recorded under the target's id and handed to
+ * that target's context by the outcome stage.
+ */
+function requestPerTargetSaves(state, input, targets) {
+  let current = state;
+  let save = {...input.save, rollsByTarget: {...(input.save.rollsByTarget ?? {})}};
+  for ( const [index, target] of targets.entries() ) {
+    const key = saveTargetKey(target);
+    if ( save.rollsByTarget[key] ) continue;
+    const suffix = index === 0 ? "save-roll" : `save-roll:${index + 1}`;
+    const requestId = requestIdFor(current, suffix);
+    const accepted = getResolutionResponse(current, {requestId, type: RESOLUTION_REQUEST_TYPES.ROLL});
+    const rollRequest = accepted
+      ? rollRequestFromAcceptedResponse(accepted, () => saveRollRequestForState(current, input, {target, suffix}))
+      : saveRollRequestForState(current, input, {target, suffix});
+    if ( !accepted ) return waitResolutionStage({
+      state: updateResolutionState(current, {
+        input: {...input, save},
+        rollRequests: appendRollRequest(current.rollRequests, rollRequest)
+      }),
+      request: createResolutionRequest({
+        id: rollRequest.id,
+        resolutionId: current.id,
+        stageId: ACTION_PIPELINE_STAGE_IDS.SAVE_ROLL,
+        type: RESOLUTION_REQUEST_TYPES.ROLL,
+        expectedResponseType: "roll-result",
+        chooser: rollRequest.chooser,
+        authority: rollRequest.authority,
+        validation: {
+          rollRequestId: rollRequest.id,
+          semanticType: rollRequest.type,
+          requireNatural: rollRequest.expected.requireNatural,
+          formula: rollFormulaForRequest(rollRequest).formula ?? null
+        },
+        payload: {
+          actionDefinitionId: current.actionDefinition?.id ?? null,
+          rollKind: "save",
+          rollRequest,
+          save: input.save,
+          targets: [target],
+          targeting: input.targeting ?? null
+        }
+      }),
+      reason: "Saving throw result is required before action resolution can continue."
+    });
+    const normalized = normalizeRollResponseValue(accepted.response.value, {
+      request: rollRequest,
+      completedRequestIds: completedRollRequestIds(current)
+    });
+    if ( !normalized.ok ) return failResolutionStage({
+      state: current,
+      code: normalized.code,
+      reason: normalized.reason,
+      errors: [{code: normalized.code, reason: normalized.reason, requestId, validation: normalized.validation}],
+      data: {requestId, rollRequest, validation: normalized.validation}
+    });
+    const roll = rollResultToResolverRoll(normalized.result);
+    save = {...save, rollsByTarget: {...save.rollsByTarget, [key]: roll}};
+    current = updateResolutionState(current, {
+      input: {...input, save},
+      rollRequests: appendRollRequest(current.rollRequests, rollRequest),
+      rollResults: [...current.rollResults, {requestId: accepted.request.id, type: "save-roll",
+        semanticType: normalized.result.type, rollRequest, rollResult: normalized.result, roll, targetKey: key}]
+    });
+  }
+  return continueResolutionStage({state: current, data: {saveRollCount: targets.length}});
+}
+
+function selectedSaveTargets(state, input) {
+  const contexts = state.results?.targetResolution?.targetContexts;
+  if ( contexts?.length ) return contexts.filter(context => (context.selected !== false) && !context.excluded)
+    .map(context => context.target ?? context);
+  return normalizeArray(input.targets);
+}
+
+function saveTargetKey(target) {
+  return String(target?.id ?? target?.actorRef ?? target?.uuid ?? "");
+}
+
+/** Hand each target the save it rolled itself (per-target fan-out); others keep the shared roll. */
+function withTargetSaveRolls(entries, rollsByTarget) {
+  if ( !rollsByTarget ) return entries;
+  return normalizeArray(entries).map(entry => {
+    const roll = rollsByTarget[saveTargetKey(entry?.target ?? entry)];
+    return roll ? {...entry, roll} : entry;
+  });
+}
+
 function createSaveOutcomeStage() {
   return createResolutionPipelineStage({
     id: ACTION_PIPELINE_STAGE_IDS.SAVE_OUTCOME,
@@ -1070,8 +1164,10 @@ function createSaveOutcomeStage() {
 
       const saveResolution = resolveSaveTargets({
         roll: input.save.roll,
-        targetContexts: input.save.targetContexts ?? state.results?.targetResolution?.targetContexts ?? [],
-        targets: input.save.targets ?? (state.results?.targetResolution ? [] : actionContext.targets),
+        targetContexts: withTargetSaveRolls(input.save.targetContexts ?? state.results?.targetResolution?.targetContexts ?? [],
+          input.save.rollsByTarget),
+        targets: withTargetSaveRolls(input.save.targets ?? (state.results?.targetResolution ? [] : actionContext.targets),
+          input.save.rollsByTarget),
         dc: input.save.dc ?? null,
         dcKey: input.save.dcKey ?? "save",
         saveKey: input.save.saveKey ?? input.save.ability ?? null,
@@ -2302,11 +2398,11 @@ function attackRollRequestForState(state, input) {
   });
 }
 
-function saveRollRequestForState(state, input) {
+function saveRollRequestForState(state, input, {target=null, suffix="save-roll"}={}) {
   const save = input.save ?? {};
   const modifier = rollModifierInfo(save, ["saveBonus", "modifierTotal", "totalModifier", "modifier", "bonus"]);
   return createD20RollRequest({
-    id: requestIdFor(state, "save-roll"),
+    id: requestIdFor(state, suffix),
     resolutionId: state.id,
     type: ROLL_TYPES.SAVING_THROW,
     modifier: modifier.value,
@@ -2314,7 +2410,7 @@ function saveRollRequestForState(state, input) {
     rollMode: save.rollMode ?? save.advantageState ?? save.roll?.mode,
     // Saves keep `system` visibility: the roller's own message mode decides (see withRollerVisibility).
     dc: save.dc ?? null,
-    source: firstRollTarget(input) ?? state.source ?? input.source ?? null,
+    source: target ?? firstRollTarget(input) ?? state.source ?? input.source ?? null,
     target: state.source ?? input.source ?? null,
     chooser: save.chooser ?? ROLL_AUTHORITY.TARGET_CONTROLLER,
     authority: save.authority ?? {kind: ROLL_AUTHORITY.TARGET_CONTROLLER},
