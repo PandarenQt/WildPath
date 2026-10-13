@@ -438,6 +438,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const systemSnapshots = new Map([[actor, actorSystem]]);
   const targets = [];
   const targetEntries = [];
+  const ambiguousKeys = new Set();
   for ( const ref of normalizeArray(intent.targetRefs ?? intent.targets) ) {
     const targetRef = targetActorRefFromIntent(ref);
     const targetActor = await resolveFoundryDocumentRef(targetRef, {game, kind: "actor"});
@@ -460,11 +461,20 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       name: publicTargetName(targetActor, hint, game)
     }, targetActor, defenseKey);
     targets.push(target);
-    for ( const key of uniqueStrings([targetActor.uuid, targetActor.id, `actor:${targetActor.id}`, targetRef]) ) {
+    const keys = uniqueStrings([targetActor.uuid, targetActor.id, `actor:${targetActor.id}`, targetRef,
+      ...targetControllerKeys(targetActor, hint, game)]);
+    for ( const key of keys ) {
+      if ( targetActors[key] && (targetActors[key] !== targetActor) ) ambiguousKeys.add(key);
       targetActors[key] = targetActor;
       targetSystems[key] = systemSnapshots.get(targetActor);
     }
     targetEntries.push({actor: targetActor, hint});
+  }
+  // Unlinked Tokens of one base Actor share its id (and `actor:<id>`); such a key would resolve every one of
+  // them to whichever was registered last. Drop it so lookups fall through to the Token-specific keys.
+  for ( const key of ambiguousKeys ) {
+    delete targetActors[key];
+    delete targetSystems[key];
   }
 
   const sourceTokenResolution = resolveFoundrySourceToken({actor, source: intent.source ?? {}, game});

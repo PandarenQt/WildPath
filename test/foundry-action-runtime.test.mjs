@@ -645,6 +645,46 @@ test("a save is routed to the Player who owns the target Token, not to the GM fa
   assert.equal(targetActor.system.resources.health.value, 26);
 });
 
+test("two unlinked Tokens of one base Actor each take their own hit, never each other's", async t => {
+  const definition = {...meleeStrikeDefinition(), targeting: {type: "multiple", required: true, count: 2}};
+  const {scene, sourceActor, targetActor, targetToken, action, game} = syntheticRuntimeFixture(t, definition, {targetHealth: 30});
+  // A second goblin: the same base Actor id ("target-model"), its own Token, synthetic Actor and AC.
+  const secondSource = targetActorSystem(30, 10, {ac: 14});
+  Object.assign(secondSource.resources.health, {base: 30, bonus: 0});
+  const second = withFoundryActorSystem(fakeActor(targetActor.id, {system: secondSource}));
+  second.system.resources.health.max = 30;
+  second.toObject = () => ({system: structuredClone(secondSource)});
+  const secondToken = fakeTokenDocument({id: "second-token", actor: second, scene, offset: {i: 0, j: 1}});
+  Object.assign(second, {uuid: `${secondToken.uuid}.Actor.${second.id}`, isToken: true, token: secondToken, tokens: [secondToken]});
+  scene.tokens.push(secondToken);
+  const resolveFirst = globalThis.fromUuid;
+  globalThis.fromUuid = async ref => (ref === second.uuid ? second : resolveFirst(ref));
+  const persistencePort = createTestDocumentPersistenceAdapter();
+  const hub = createTestResolutionTransportHub({users: [
+    {id: "gm-a", active: true, isGM: true, isActiveGM: true},
+    {id: "player-a", active: true, isGM: false}
+  ]});
+  const gm = createMultiplayerActionCoordinator({userId: "gm-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
+    transport: hub.createEndpoint({userId: "gm-a"}),
+    actionIntentResolver: ({intent, envelope}) => foundryActionIntentToStagedOptions({intent,
+      senderUserId: envelope.senderUserId, game, persistencePort})});
+  const player = createMultiplayerActionCoordinator({userId: "player-a", users: () => hub.userDirectory(),
+    activeGMUserId: "gm-a", transport: hub.createEndpoint({userId: "player-a"}),
+    rollProviders: [createTestRollProvider({result: {natural: 18, total: 22}})]});
+  gm.register();
+  player.register();
+  const built = buildFoundryActionUseIntent({actor: sourceActor, action,
+    game: {user: {targets: new Set([{document: targetToken}, {document: secondToken}])}}});
+  const declared = await player.declareActionIntent(built.intent);
+  assert.equal(declared.ok, true, JSON.stringify(declared));
+  const record = gm.getRecord(declared.resolutionId);
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors));
+  assert.deepEqual(record.state.results.attackResolution.results.map(entry => entry.defense?.value).sort(), [14, 14],
+    "each Token is attacked against its own defense");
+  assert.equal(targetActor.system.resources.health.value, 24, "the first goblin takes its own 6");
+  assert.equal(second.system.resources.health.value, 24, "the second goblin takes its own 6, not both hits");
+});
+
 test("Action targets carry the Token's public name, never a hidden Token's or the base Actor's", async t => {
   const {targetActor, targetToken, game, intent} = syntheticRuntimeFixture(t, undefined, {targetHealth: 30});
   targetActor.name = "Vampire Lord";
