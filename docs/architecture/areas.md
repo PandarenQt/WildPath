@@ -89,6 +89,44 @@ This bridge preserves:
 
 Invalid source-boundary clicks reject before targeting runs.
 
+## Using an Area Action in Foundry
+
+An Action with `targeting: {type: "area"}` and an `area: {shape, size}` is placed on the canvas by
+WildPath's own clicks, before its intent is declared (`module/applications/area-placement.mts`, called
+from `Item.use()`):
+
+- **Radial:** one click on a field. The field must be within the Action's `range` of the caster.
+- **Cone and line:** one click on a corner of the caster's Token edge, then one click for the direction.
+
+While the cursor moves, Foundry's grid highlight shows the fields the area would cover. A click that does
+not advance the placement (off the Token's edge, out of range) only warns. Escape or right-click cancels,
+and the Action is not used. Clicks go to the placement only, never to Foundry's Token selection.
+
+The intent carries only the click points (`area.points`, at most two finite canvas points). The authority
+recomputes the footprint from those points and the caster's own Token. It uses the same function as the
+preview, `foundryAreaFootprint` (`module/adapters/foundry-v14-area-placement.mts`). Every Token whose
+footprint touches a covered field is a target, the caster included. The client's targets are not
+consulted. The pipeline then resolves those targets as usual. With several targets, each rolls its own
+save.
+
+Foundry 14.369 offset conventions matter here. Square offsets are `{i: row, j: column}`, and a square
+vertex `(x, y)` is the top-left corner of offset `{i: x, j: y}`. A hex vertex is the one corner its
+incident hexes share. Both are asked of the grid rather than assumed from a corner order (see
+[foundry-tactical-grid-adapter.md](foundry-tactical-grid-adapter.md#field-and-vertex-identity)).
+
+Live (two browsers, 14.369, 2026-10-14): Player1 placed each shape with real mouse clicks on a square
+Scene and on a hex (odd-r) Scene. The layout was a caster, two goblins and a bystander.
+
+- On both grids a 5-ft burst hit both goblins, and a 15-ft cone and a 30-ft line from the caster's edge
+  hit only the goblin in their path.
+- The preview showed exactly the fields that resolved: 9 squares or 7 hexes for the burst, 9 for the
+  cone, and 6 for the line.
+- An off-edge click only warned, and Escape cancelled without a card.
+- The `wildpath.areas` Quench batch pins the same layout on Foundry's own grids.
+
+Not yet: self-centered emanations, walls, `area.placement` policies other than these clicks, Regions
+that stay on the canvas, and gridless Scenes (refused: "Areas need a square or hex grid").
+
 ## Persistent Areas
 
 Persistent areas should store or deterministically reconstruct the same `GridFootprint` produced

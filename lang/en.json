@@ -82,6 +82,20 @@
         "ReactionChoice": "Reaction"
       }
     },
+    "AREA": {
+      "PlaceRadial": "Click where the area is centered. Press Esc to cancel.",
+      "PlaceFromEdge": "Click a corner on your Token's edge, then click the direction. Press Esc to cancel.",
+      "NoToken": "Place your Token on the scene to use this area.",
+      "NoGrid": "Areas need a square or hex grid.",
+      "NoFootprint": "Your Token's position could not be read.",
+      "NeedOrigin": "Choose where the area starts.",
+      "OffGrid": "That point is not on the grid.",
+      "OutOfRange": "That point is out of range.",
+      "UnsupportedShape": "This area shape is not supported yet.",
+      "NotOnEdge": "Start the area at a corner on your Token's edge.",
+      "NeedDirection": "Choose the area's direction.",
+      "BadDirection": "That direction is not allowed."
+    },
     "NOTIFY": {
       "RollRejected": "That result is not possible for these dice. Check the roll and enter it again.",
       "ActionFailed": "The action could not be completed: {reason}",

@@ -192,6 +192,10 @@ export function sanitizeActionIntentPayload(payload={}) {
   if ( intent.configuration && typeof intent.configuration === "object" ) {
     projected.configuration = pick(intent.configuration, INTENT_CONFIGURATION_KEYS);
   }
+  // An area's placement is at most two canvas points; the authority derives its fields and targets from them.
+  if ( Array.isArray(intent.area?.points) ) projected.area = {points: intent.area.points.slice(0, 2)
+    .map(point => ({x: Number(point?.x), y: Number(point?.y)}))
+    .filter(point => Number.isFinite(point.x) && Number.isFinite(point.y))};
   for ( const key of ["targetRefs", "targets"] ) {
     if ( intent[key] === undefined ) continue;
     projected[key] = normalizeArray(intent[key])

@@ -1,0 +1,68 @@
+import { createFoundryV14TacticalGridAdapter } from "./foundry-v14-tactical-grid-adapter.mjs";
+import { AREA_SHAPES, createRadialFootprint, previewSourceBoundaryArea, selectSourceBoundaryOrigin } from "../helpers/tactical-areas.mjs";
+import { footprintDistance } from "../helpers/grid-footprints.mjs";
+// The JS area helpers infer narrow default types; these are the only places their shapes are asserted.
+const radialFootprint = createRadialFootprint;
+const selectOrigin = selectSourceBoundaryOrigin;
+const boundaryArea = previewSourceBoundaryArea;
+/** How many clicks place this area: one field for a radial area, a Token-edge corner and a direction for cones and lines. */
+export function areaClickCount(definition) {
+    return definition.area?.shape === AREA_SHAPES.RADIAL ? 1 : 2;
+}
+/**
+ * The grid fields an area Action covers, from the canvas points that placed it. The client's preview and the
+ * authority's resolution both call this, so the highlighted fields are exactly the ones that resolve.
+ * Radial: `points[0]` picks the center field, within the Action's range of the caster. Cone and line:
+ * `points[0]` picks a corner on the caster's Token edge and `points[1]` the direction.
+ */
+export function foundryAreaFootprint({ definition, sourceToken, points }) {
+    const adapter = createFoundryV14TacticalGridAdapter({ scene: sourceToken.parent });
+    const scene = adapter.getSceneContext();
+    if (!scene.ok || !("context" in scene))
+        return { ok: false, code: "NoGrid", reason: "Areas need a square or hex grid." };
+    const { topology, distance: gridDistance } = scene.context.grid;
+    const sourceResult = adapter.tokenToFootprint(sourceToken);
+    if (!sourceResult.ok || !("footprint" in sourceResult) || !sourceResult.footprint)
+        return { ok: false, code: "NoFootprint", reason: "The caster's Token has no footprint." };
+    const source = sourceResult.footprint;
+    const shape = definition.area?.shape;
+    const size = Number(definition.area?.size?.value) || 0;
+    const [first, second] = points;
+    if (!first)
+        return { ok: false, code: "NeedOrigin", reason: "Choose where the area starts.", needs: "origin" };
+    if (shape === AREA_SHAPES.RADIAL) {
+        const fieldResult = adapter.pointToField(first);
+        if (!fieldResult.ok || !fieldResult.field)
+            return { ok: false, code: "OffGrid", reason: "That point is not on the grid.", needs: "origin" };
+        const range = Number(definition.range?.normal?.value ?? definition.range?.distance?.value);
+        if (Number.isFinite(range) && (footprintDistance(source, { topology, fields: [fieldResult.field] }) * gridDistance > range)) {
+            return { ok: false, code: "OutOfRange", reason: "That point is out of range.", needs: "origin" };
+        }
+        return { ok: true, footprint: radialFootprint({ topology, origin: fieldResult.field, radiusDistance: size, gridDistance }) };
+    }
+    if ((shape !== AREA_SHAPES.CONE) && (shape !== AREA_SHAPES.LINE))
+        return { ok: false, code: "UnsupportedShape", reason: `Unsupported area shape: ${shape}.` };
+    const vertexResult = adapter.pointToVertex(first);
+    const placement = vertexResult.ok && vertexResult.vertex
+        ? selectOrigin({ sources: [{ id: sourceToken.id, footprint: source, token: { id: sourceToken.id } }], vertexId: vertexResult.vertex.id })
+        : { ok: false };
+    if (!placement.ok)
+        return { ok: false, code: "NotOnEdge", reason: "Start the area at a corner on your Token's edge.", needs: "origin" };
+    if (!second)
+        return { ok: false, code: "NeedDirection", reason: "Choose the area's direction.", needs: "direction" };
+    const directionResult = adapter.pointToVertex(second);
+    if (!directionResult.ok || !directionResult.vertex)
+        return { ok: false, code: "BadDirection", reason: "That direction is not on the grid.", needs: "direction" };
+    const preview = boundaryArea({ shape, placement, directionVertex: directionResult.vertex,
+        rangeDistance: size, gridDistance, topology });
+    if (!preview.ok || !preview.resolved)
+        return { ok: false, code: "BadDirection", reason: preview.reason ?? "That direction is not allowed.", needs: "direction" };
+    return { ok: true, footprint: preview.resolved };
+}
+/** Every Token on the caster's Scene and Level that any covered field touches, the caster included. */
+export function foundryAreaTargetTokens({ sourceToken, footprint }) {
+    const scene = sourceToken.parent;
+    const adapter = createFoundryV14TacticalGridAdapter({ scene });
+    const candidates = adapter.resolveAreaTargetCandidates({ footprint, sourceToken });
+    return candidates.candidates.map(candidate => scene.tokens.get(String(candidate.metadata?.foundry?.tokenId))).filter(Boolean);
+}

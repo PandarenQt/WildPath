@@ -12,7 +12,7 @@ import {
   MULTIPLAYER_MESSAGE_TYPES,
   createResolutionSocketEnvelope
 } from "../module/helpers/multiplayer-authority.mjs";
-import {isPlainSerializableData} from "../module/helpers/multiplayer-authority.mjs";
+import {isPlainSerializableData, sanitizeActionIntentPayload} from "../module/helpers/multiplayer-authority.mjs";
 import {createTestResolutionTransportHub} from "../module/adapters/test-resolution-transport.mjs";
 import {DISCLOSURE_CLASSIFICATIONS} from "../module/helpers/multiplayer-disclosure.mjs";
 import {createTestDocumentPersistenceAdapter} from "../module/adapters/test-persistence-adapter.mjs";
@@ -778,6 +778,67 @@ test("a counterattack Trigger on a bystander's Token ignores an attack on someon
   assert.equal(offers.length, 0, "{self} is the bystander's own Token, not the target's");
   assert.equal(holder.system.resources.reaction.value, 1);
   assert.equal(targetActor.system.resources.health.value, 24);
+});
+
+/** A 5-ft radial burst, 6 damage, cast from (0,0) at range 30 ft. A bystander stands at (5,0). */
+function areaFixture(t, {range=30}={}) {
+  const definition = {schemaVersion: 1, id: "action:runtime-burst", label: "Runtime Burst",
+    costs: {allOf: [{capability: ECONOMY_CAPABILITIES.ACTION, amount: 1}]},
+    range: {type: "ranged", normal: {value: range, unit: "ft"}}, targeting: {type: "area"},
+    area: {shape: "radial", size: {value: 5, unit: "ft"}},
+    damage: [{id: "burst", expression: {type: "constant", value: 6}, damageType: "fire", provenance: "spell-base"}]};
+  const fixture = syntheticRuntimeFixture(t, definition, {targetHealth: 30});
+  const {scene} = fixture;
+  const far = withFoundryActorSystem(fakeActor("far-model", {system: targetActorSystem(30, 30)}));
+  const farToken = fakeTokenDocument({id: "far-token", actor: far, scene, offset: {i: 5, j: 0}});
+  Object.assign(far, {uuid: `${farToken.uuid}.Actor.far-model`, isToken: true, token: farToken, tokens: [farToken]});
+  scene.tokens.push(farToken);
+  scene.tokens.get = id => scene.tokens.find(token => token.id === id);
+  const resolveFirst = globalThis.fromUuid;
+  globalThis.fromUuid = async ref => (ref === far.uuid ? far : resolveFirst(ref));
+  return {...fixture, far, farToken};
+}
+
+test("an area Action hits the creatures in its fields, recomputed by the authority from the placement clicks", async t => {
+  const {sourceActor, targetActor, far, farToken, game, intent} = areaFixture(t);
+  // The click lands in field (2,0): the burst covers (1..3, -1..1) - the target at (1,0), not the caster at
+  // (0,0) or the bystander at (5,0). The forged client target list is ignored.
+  const placed = {...intent, area: {points: [{x: 125, y: 25}]},
+    targetRefs: [{actorRef: far.uuid, tokenId: farToken.id, sceneId: "scene-models"}]};
+  const persistencePort = createTestDocumentPersistenceAdapter();
+  const hub = createTestResolutionTransportHub({users: [
+    {id: "gm-a", active: true, isGM: true, isActiveGM: true},
+    {id: "player-a", active: true, isGM: false}
+  ]});
+  const gm = createMultiplayerActionCoordinator({userId: "gm-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
+    transport: hub.createEndpoint({userId: "gm-a"}),
+    actionIntentResolver: ({intent: sent, envelope}) => foundryActionIntentToStagedOptions({intent: sent,
+      senderUserId: envelope.senderUserId, game, persistencePort})});
+  const player = createMultiplayerActionCoordinator({userId: "player-a", users: () => hub.userDirectory(),
+    activeGMUserId: "gm-a", transport: hub.createEndpoint({userId: "player-a"})});
+  gm.register();
+  player.register();
+  const declared = await player.declareActionIntent(placed);
+  assert.equal(declared.ok, true, JSON.stringify(declared));
+  const record = gm.getRecord(declared.resolutionId);
+  assert.ok(record, JSON.stringify(gm.errors).slice(0, 1500));
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors));
+  assert.deepEqual(record.options.targets.map(target => target.tokenId), ["target-token"]);
+  assert.equal(targetActor.system.resources.health.value, 24);
+  assert.equal(far.system.resources.health.value, 30, "the bystander outside the burst is untouched");
+  assert.equal(sourceActor.system.resources.action.value, 0);
+});
+
+test("an area placed out of range, or not placed at all, is refused by the authority", async t => {
+  const {game, intent} = areaFixture(t, {range: 5});
+  const far = await foundryActionIntentToStagedOptions({intent: {...intent, area: {points: [{x: 125, y: 25}]}},
+    senderUserId: "player-a", game});
+  assert.deepEqual([far.ok, far.reason], [false, "That point is out of range."]);
+  const unplaced = await foundryActionIntentToStagedOptions({intent, senderUserId: "player-a", game});
+  assert.deepEqual([unplaced.ok, unplaced.reason], [false, "Choose where the area starts."]);
+  assert.deepEqual(sanitizeActionIntentPayload({area: {points: [{x: 1, y: 2}, {x: "3", y: 4}, {x: 5, y: 6}],
+    footprint: "forged"}}).area, {points: [{x: 1, y: 2}, {x: 3, y: 4}]}, "at most two finite points travel");
+  assert.deepEqual(sanitizeActionIntentPayload({area: {points: [{x: "SECRET", y: 1}]}}).area, {points: []});
 });
 
 test("Action targets carry the Token's public name, never a hidden Token's or the base Actor's", async t => {

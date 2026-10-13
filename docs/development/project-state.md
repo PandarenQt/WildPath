@@ -11,7 +11,10 @@ Last verified: 2026-10-13.
 - Movement implementation commit: `87ed1fae93271b81b14432bb4312be9cd53285c5`.
 - Original milestone starting HEAD: `ea484fd8b503697ddf1c2b7b0f6984ea594378e2`.
 - Local main HEAD: `61d6268b838e286728c829924506c6c931174621`.
-- Portable full suite (`FOUNDRY_V14_APP_PATH` unset): **918 tests, 916 passed, 0 failed, 2 intentionally skipped**.
+- Portable full suite (`FOUNDRY_V14_APP_PATH` unset): **921 tests, 919 passed, 0 failed, 2 intentionally skipped**.
+- M3 slice 4 delta from 918/916/0/2: **3 new tests** (an area recomputed by the authority from its clicks,
+  an out-of-range or unplaced area refused with at most two points travelling, and square corners on a
+  Foundry-convention grid). Quench **65/65** (new `wildpath.areas` batch, 3 cases).
 - M3 slice 3 delta from 915/913/0/2: **3 new tests** (a counterattack offered after a hit, used and
   declined, and a bystander's `{self}` that does not match an attack on someone else). Quench **62/62**.
 - M3 slice 2 delta from 913/911/0/2: **2 new tests** (a before-step reaction resolves inside the step's
@@ -133,7 +136,12 @@ triggering creature (or itself). A completed reaction posts its own public card.
 player's Strike was answered by a GM guard's Counterattack, with two cards
 ([rule-elements.md](../architecture/rule-elements.md#current-integration)). A reaction that cancels the
 triggering Action (Counterspell-like) still needs an ActionDefinition field for the parent directive. That
-is a data-format decision. Next: area targeting, then persistent areas, auras and hazards.
+is a data-format decision. Slice 4 done: area targeting. A player places a radial area with one click,
+or a cone or line from a corner of their Token's edge plus a direction. The highlight shows exactly the
+fields that resolve, and the authority recomputes the area and its targets from the clicks. Verified live
+on square and hex grids for all three shapes
+([areas.md](../architecture/areas.md#using-an-area-action-in-foundry)). This also fixed vertex mapping on
+real Foundry grids. Next: persistent areas, auras and hazards over Regions.
 
 **Authority and disclosure hardening (M0) — CLOSED on 2026-10-13.** A review found that the
 authority trusted more than it could verify: any player could act through an Actor or Item they did

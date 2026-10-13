@@ -12,6 +12,7 @@ import {createDisclosureRoutedTransport} from "../adapters/disclosure-routed-tra
 import {createFoundryV14ChatCardAdapter} from "../adapters/foundry-v14-chat-card-adapter.mjs";
 import {createFoundryReactionProvider} from "../adapters/foundry-v14-reaction-provider.mjs";
 import {foundryActionReactionServices} from "../adapters/foundry-v14-reaction-services.mjs";
+import {foundryAreaFootprint, foundryAreaTargetTokens} from "../adapters/foundry-v14-area-placement.mjs";
 import {
   buildFoundryMovementCompletion,
   buildFoundryMovementProgressObservation,
@@ -451,13 +452,27 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   }
   const combatStatistics = combatStatisticsForAction({actor, action});
   const defenseKey = combatStatistics.defenseKey;
+  const sourceTokenResolution = resolveFoundrySourceToken({actor, source: intent.source ?? {}, game});
+  if ( !sourceTokenResolution.ok ) return {
+    ok: false,
+    code: sourceTokenResolution.code,
+    reason: sourceTokenResolution.reason
+  };
+  const sourceToken = sourceTokenResolution.token;
+  if ( sourceToken && !documentOwnedByUser(sourceToken, sender) ) return {
+    ok: false,
+    code: MULTIPLAYER_AUTHORITY_CODES.WRONG_USER,
+    reason: "The Action sender must own the source Token."
+  };
+  const area = foundryActionArea({action, actor, intent, sourceToken});
+  if ( !area.ok ) return {ok: false, code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED, reason: area.reason};
   const targetActors = {};
   const targetSystems = {};
   const systemSnapshots = new Map([[actor, actorSystem]]);
   const targets = [];
   const targetEntries = [];
   const ambiguousKeys = new Set();
-  for ( const ref of normalizeArray(intent.targetRefs ?? intent.targets) ) {
+  for ( const ref of area.targetRefs ?? normalizeArray(intent.targetRefs ?? intent.targets) ) {
     const targetRef = targetActorRefFromIntent(ref);
     const targetActor = await resolveFoundryDocumentRef(targetRef, {game, kind: "actor"});
     if ( !targetActor ) continue;
@@ -496,19 +511,6 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     delete targetActors[key];
     delete targetSystems[key];
   }
-
-  const sourceTokenResolution = resolveFoundrySourceToken({actor, source: intent.source ?? {}, game});
-  if ( !sourceTokenResolution.ok ) return {
-    ok: false,
-    code: sourceTokenResolution.code,
-    reason: sourceTokenResolution.reason
-  };
-  const sourceToken = sourceTokenResolution.token;
-  if ( sourceToken && !documentOwnedByUser(sourceToken, sender) ) return {
-    ok: false,
-    code: MULTIPLAYER_AUTHORITY_CODES.WRONG_USER,
-    reason: "The Action sender must own the source Token."
-  };
 
   const source = {
     actorId: actor.id ?? null,
@@ -567,6 +569,24 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     },
     ...(reactions ? {services: {...reactions.services, targetActors}} : {})
   };
+}
+
+/**
+ * An area Action's targets are every creature its covered fields touch, recomputed here from the placement
+ * clicks (`intent.area.points`) and the caster's own Token; the client's targets are not consulted.
+ * Returns `{ok: true}` without `targetRefs` for an Action that does not target an area.
+ */
+function foundryActionArea({action, actor, intent, sourceToken}) {
+  const result = actionDefinitionFromAction(action, {actorSystem: actor?.system ?? null});
+  const definition = result.ok ? result.definition : null;
+  if ( definition?.targeting?.type !== "area" ) return {ok: true};
+  if ( !sourceToken?.parent ) return {ok: false, reason: "An area Action needs its caster's Token on a Scene."};
+  const placed = foundryAreaFootprint({definition, sourceToken, points: intent.area?.points ?? []});
+  if ( !placed.ok ) return placed;
+  const targetRefs = foundryAreaTargetTokens({sourceToken, footprint: placed.footprint})
+    .map(token => ({actorRef: token.actor?.uuid ?? null, tokenId: token.id, sceneId: token.parent?.id ?? null}))
+    .filter(ref => ref.actorRef);
+  return {ok: true, footprint: placed.footprint, targetRefs};
 }
 
 /**

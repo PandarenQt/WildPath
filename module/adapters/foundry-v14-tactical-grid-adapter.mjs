@@ -556,7 +556,7 @@ export function gridFieldToGridVertices(field, {scene=null, grid=null}={}) {
     ...clonePlain(vertex),
     metadata: {
       foundry: {
-        point: clonePlain(foundryPointForVertex(vertex, offsetResult.offset, gridInfo, foundryVertices, index))
+        point: clonePlain(foundryPointForVertex(vertex, gridInfo, foundryVertices, index, grid))
       }
     }
   }));
@@ -1203,16 +1203,22 @@ function foundryVerticesForOffset(offset, grid) {
   }
 }
 
-function foundryPointForVertex(vertex, offset, gridInfo, foundryVertices, fallbackIndex) {
-  if ( gridInfo.topology === GRID_TOPOLOGIES.SQUARE && foundryVertices.length >= 4 ) {
-    const x = Number(vertex.x);
-    const y = Number(vertex.y);
-    const i = Number(offset.i);
-    const j = Number(offset.j);
-    if ( x === i && y === j ) return foundryVertices[0];
-    if ( x === i + 1 && y === j ) return foundryVertices[1];
-    if ( x === i + 1 && y === j + 1 ) return foundryVertices[2];
-    if ( x === i && y === j + 1 ) return foundryVertices[3];
+function foundryPointForVertex(vertex, gridInfo, foundryVertices, fallbackIndex, grid) {
+  if ( gridInfo.topology === GRID_TOPOLOGIES.SQUARE ) {
+    // A square vertex (x, y) is the top-left corner of offset {i: x, j: y}, whichever canvas axis `i` runs
+    // along (Foundry V14: `i` is the row). Asking the grid avoids assuming a corner order.
+    const corner = foundryVerticesForOffset({i: Number(vertex.x), j: Number(vertex.y)}, grid)[0];
+    if ( corner ) return corner;
+  }
+  if ( gridInfo.topology === GRID_TOPOLOGIES.HEX ) {
+    // A hex vertex is the one corner all of its incident hexes share; Foundry's corner order is not WildPath's.
+    const corners = (vertex.incidentFields ?? []).map(field => {
+      const offset = gridFieldToFoundryOffset(field, {grid});
+      return offset.ok ? foundryVerticesForOffset(offset.offset, grid) : [];
+    });
+    const shared = corners[0]?.find(point => corners.every(list => list.some(other =>
+      Math.hypot(Number(other.x) - Number(point.x), Number(other.y) - Number(point.y)) < 0.5)));
+    if ( shared ) return shared;
   }
   return foundryVertices[fallbackIndex] ?? null;
 }
@@ -1222,7 +1228,10 @@ function snapPointToVertex(point, grid) {
   if ( !normalizedPoint ) return {x: 0, y: 0};
   if ( typeof grid?.getSnappedPoint !== "function" ) return normalizedPoint;
   try {
-    const snapped = grid.getSnappedPoint(normalizedPoint, {mode: "vertex"});
+    // V14 snapping modes are bit flags (`CONST.GRID_SNAPPING_MODES`); a string mode is not understood.
+    const mode = globalThis.CONST?.GRID_SNAPPING_MODES?.VERTEX;
+    if ( mode === undefined ) return normalizedPoint;
+    const snapped = grid.getSnappedPoint(normalizedPoint, {mode});
     return normalizePoint(snapped) ?? normalizedPoint;
   } catch {
     return normalizedPoint;

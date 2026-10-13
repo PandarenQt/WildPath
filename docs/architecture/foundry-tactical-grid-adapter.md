@@ -113,6 +113,13 @@ the same logical id.
 Clicked/snapped points can be translated to fields or vertices for battlefield presentation, but the
 returned vertex id remains topology-derived. Pixel points are kept under `metadata.foundry.point`.
 
+A vertex's pixel point is asked of the grid, never inferred from Foundry's corner order. A square
+vertex `(x, y)` is the top-left corner of offset `{i: x, j: y}`. A hex vertex is the corner all of its
+incident hexes share. Snapping uses `CONST.GRID_SNAPPING_MODES.VERTEX`, because V14 modes are bit flags.
+Before 2026-10-14 two of a square's corners, and the hex corners, were swapped on real Foundry grids (V14
+offsets are `{i: row, j: column}`; the Node fakes had `i` as the column). The Quench `wildpath.areas`
+batch and a Foundry-convention Node fake now pin it.
+
 ## Token Footprints
 
 Token footprint authority remains:

@@ -89,6 +89,23 @@ class FakeSquareGrid {
   }
 }
 
+/** Foundry V14's own square convention: offset `i` is the row, `j` the column; vertices clockwise from top-left. */
+class FoundryOrderSquareGrid extends FakeSquareGrid {
+  getOffset(point) {
+    return {i: Math.floor(Number(point.y) / this.sizeY), j: Math.floor(Number(point.x) / this.sizeX)};
+  }
+
+  getCenterPoint(offset) {
+    return {x: (Number(offset.j) + 0.5) * this.sizeX, y: (Number(offset.i) + 0.5) * this.sizeY};
+  }
+
+  getVertices(offset) {
+    const x = Number(offset.j) * this.sizeX;
+    const y = Number(offset.i) * this.sizeY;
+    return [{x, y}, {x: x + this.sizeX, y}, {x: x + this.sizeX, y: y + this.sizeY}, {x, y: y + this.sizeY}];
+  }
+}
+
 class FakeHexGrid {
   constructor(type, {distance=5, units="ft", size=50, useCubeMethods=false}={}) {
     this.type = type;
@@ -775,3 +792,18 @@ function squaredDistance(a, b) {
   return ((Number(a.x) || 0) - (Number(b.x) || 0)) ** 2
     + (((Number(a.y) || 0) - (Number(b.y) || 0)) ** 2);
 }
+
+test("square vertices map to their own canvas corners when Foundry's offset i is the row (V14)", () => {
+  const adapter = createFoundryV14TacticalGridAdapter({scene: fakeScene(new FoundryOrderSquareGrid({size: 100}))});
+  const field = adapter.pointToField({x: 250, y: 450}).field;
+  const corners = Object.fromEntries(adapter.fieldToVertices(field).vertices
+    .map(vertex => [vertex.id, vertex.metadata.foundry.point]));
+  assert.deepEqual(corners, {
+    [`square-vertex:${field.x},${field.y}`]: {x: 200, y: 400},
+    [`square-vertex:${field.x},${field.y + 1}`]: {x: 300, y: 400},
+    [`square-vertex:${field.x + 1},${field.y}`]: {x: 200, y: 500},
+    [`square-vertex:${field.x + 1},${field.y + 1}`]: {x: 300, y: 500}
+  });
+  // A click near the bottom-right corner picks that corner, not a neighbour that once shared its point.
+  assert.equal(adapter.pointToVertex({x: 296, y: 507}).vertex.id, `square-vertex:${field.x + 1},${field.y + 1}`);
+});

@@ -1,4 +1,6 @@
 import {buildFoundryActionUseIntent} from "../resolvers/foundry-multiplayer-runtime.mjs";
+import {actionDefinitionFromAction} from "../helpers/action-definitions.mjs";
+import {placeFoundryArea} from "../applications/area-placement.mjs";
 
 /**
  * The Item document subclass for the WildPath system.
@@ -23,6 +25,19 @@ export default class WildPathItem extends Item {
     if ( !built.ok ) {
       globalThis.ui?.notifications?.warn?.(built.reason ?? `Unable to use ${this.name}.`);
       return false;
+    }
+    // An area is placed on the canvas first; the authority derives its fields and targets from these clicks.
+    const definition = actionDefinitionFromAction(this, {actorSystem: this.actor.system});
+    if ( definition.ok && (definition.definition?.targeting?.type === "area") ) {
+      const sourceToken = this.actor.token ?? this.actor.getActiveTokens?.(false, true)?.[0] ?? null;
+      if ( !sourceToken || !globalThis.canvas?.ready ) {
+        globalThis.ui?.notifications?.warn?.(globalThis.game.i18n.localize("WILDPATH.AREA.NoToken"));
+        return false;
+      }
+      const area = await placeFoundryArea({definition: definition.definition, sourceToken});
+      if ( !area ) return false;
+      built.intent.area = area;
+      built.intent.source = {tokenId: sourceToken.id, tokenRef: sourceToken.uuid, sceneId: sourceToken.parent?.id ?? null};
     }
     const declared = await runtime.executeActionIntent(built.intent);
     if ( !declared.ok ) {
