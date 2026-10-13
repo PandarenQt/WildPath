@@ -11,7 +11,9 @@ Last verified: 2026-10-13.
 - Movement implementation commit: `87ed1fae93271b81b14432bb4312be9cd53285c5`.
 - Original milestone starting HEAD: `ea484fd8b503697ddf1c2b7b0f6984ea594378e2`.
 - Local main HEAD: `61d6268b838e286728c829924506c6c931174621`.
-- Portable full suite (`FOUNDRY_V14_APP_PATH` unset): **893 tests, 891 passed, 0 failed, 2 intentionally skipped**.
+- Portable full suite (`FOUNDRY_V14_APP_PATH` unset): **899 tests, 897 passed, 0 failed, 2 intentionally skipped**.
+- M2 delta from 893/891/0/2: **6 new tests** (dice policy context and provider choice, re-prompt on a
+  rejected answer, total bounds, prompt bounds, entered rolls on the card).
 - Representative-gate delta from 889/887/0/2: **4 new tests** (save routed to the target's Player,
   distinct `anyOf` payment ids, two evidence-validation tests).
 - M1 fixes delta from 886/884/0/2: **3 new tests** (configuration answer reads choices only, dotted
@@ -91,9 +93,13 @@ Slot 2 (`765259f`).
 Limits carried forward: the attack-statistic decision above; the configuration dialog title shows the
 raw type `action-configuration` (needs maintainer copy); no third client.
 
-**Immediate next step (M2):** request and roll gaps: the dice policy setting (digital, manual,
-physical), per-roller message modes, the target-refinement default selection, live concentration,
-per-target remote save fan-out, and failure feedback.
+**M2 — request and roll gaps (IN PROGRESS).** Done: the GM dice policy (`wildpath.dicePolicy`,
+digital or physical; physical dice go through the roll prompt), total bounds on every roll whose
+formula is complete (any damage total was accepted before, including 999 or negative), entered rolls
+on the chat card, and a re-prompt when the rules reject a typed answer (a typo used to strand the
+Action at `awaiting-roll`). Live-verified in two browsers on 14.369. Open: per-roller message modes, the
+target-refinement default selection, live concentration, per-target remote save fan-out, failure
+feedback, physical provenance, and prompt titles/messages (maintainer copy).
 
 **Authority and disclosure hardening (M0) — CLOSED on 2026-10-13.** A review found that the
 authority trusted more than it could verify: any player could act through an Actor or Item they did

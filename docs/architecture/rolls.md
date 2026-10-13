@@ -61,6 +61,18 @@ It currently supports provider registration/selection and includes factories for
 Provider selection may consider request metadata, policy, authority, and available providers. Rules
 domains do not choose providers directly.
 
+**Dice policy.** The world setting `wildpath.dicePolicy` (GM-controlled; `digital` or `physical`)
+names the provider on the rolling client: the Foundry runtime registers the digital and physical
+providers and passes `dicePolicyRollContext(game)`, whose `providerId` getter is read per roll. Under
+`physical` the roller types the dice into the roll prompt (natural d20, or the total for damage and
+healing).
+
+**Total bounds.** `validateRollResult` rejects a total the requested dice cannot produce
+(`simpleFormulaBounds` over the authority's own request formula: `NdF` and integer terms only) for
+total-mode requests and for d20 requests with a known modifier, whoever rolled it. The roll prompt
+carries the same min/max. Foundry's `DialogV2.input` does not enforce them, so a rejected answer
+makes the chooser's client notify the user and prompt again, up to three times.
+
 ## Foundry Digital Adapter
 
 `module/adapters/foundry-digital-roll-provider.mjs` translates a WildPath `RollRequest` into the
@@ -124,7 +136,9 @@ Do not implement these in the provider unless the owning mechanic requires them.
 
 ## Near-Term Integration
 
-Manual/physical roll input now routes through the generic ChoiceCoordinator/PromptPort bridge and
-through the multiplayer authority coordinator when the expected roller is remote. The next
-roll-related integration work is richer Foundry/HUD rendering and live runtime QA over the same
-`roll` pending request.
+Manual/physical roll input routes through the generic ChoiceCoordinator/PromptPort bridge and
+through the multiplayer authority coordinator when the expected roller is remote. Live on 14.369
+(2026-10-13): under the physical policy a Player typed natural 12 (→ 16) and 1d8 = 4 through the real
+prompts; a mistyped 9 was refused, the Player was re-asked, and the chat card showed the authority's
+formulas with the validated totals. Open: the prompt stamps provenance `manual` even under the physical
+policy; prompt titles and validation messages are raw developer text (maintainer copy).
