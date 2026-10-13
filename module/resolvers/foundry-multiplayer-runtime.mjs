@@ -21,6 +21,7 @@ import {
   clonePlainData
 } from "../helpers/multiplayer-authority.mjs";
 import {actionDefinitionFromAction} from "../helpers/action-definitions.mjs";
+import {tokenRef} from "../helpers/entity-refs.mjs";
 import {
   resolveActorAttackStatistic,
   resolveActorDefense
@@ -493,10 +494,10 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     },
     requestContext: {
       sourceControllerUserIds: ownerUserIdsForDocument(actor, {game}),
-      targetControllerUserIdsByTargetRef: Object.fromEntries(targets.map(target => [
-        target.actorRef ?? target.actorId,
-        ownerUserIdsForDocument(targetActors[target.actorRef] ?? targetActors[target.actorId], {game})
-      ]))
+      targetControllerUserIdsByTargetRef: Object.fromEntries(targetEntries.flatMap(({actor: targetActor, hint}) => {
+        const owners = ownerUserIdsForDocument(targetActor, {game});
+        return targetControllerKeys(targetActor, hint, game).map(key => [key, owners]);
+      }))
     }
   };
 }
@@ -506,8 +507,22 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
  * renamed Token may deliberately conceal. Hidden Tokens get no name, since results are public.
  */
 function publicTargetName(actor, hint, game) {
-  const token = actor?.token ?? game?.scenes?.get?.(hint.sceneId)?.tokens?.get?.(hint.tokenId) ?? null;
+  const token = targetTokenFor(actor, hint, game);
   return token && token.hidden !== true ? stringOrNull(token.name) : null;
+}
+
+/**
+ * Spatial targets (and the saves they roll) are identified by their Token, so controllers are keyed by every
+ * Token-specific alias, never by the base Actor id that unlinked Tokens of one Actor share.
+ */
+function targetControllerKeys(actor, hint, game) {
+  const token = targetTokenFor(actor, hint, game);
+  const sceneId = token?.parent?.id ?? hint.sceneId;
+  return uniqueStrings([actor?.uuid, token?.uuid, token?.id ? tokenRef(token.id, {sceneId}) : null]);
+}
+
+function targetTokenFor(actor, hint, game) {
+  return actor?.token ?? game?.scenes?.get?.(hint.sceneId)?.tokens?.get?.(hint.tokenId) ?? null;
 }
 
 /**

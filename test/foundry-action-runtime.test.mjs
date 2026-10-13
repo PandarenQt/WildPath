@@ -605,6 +605,46 @@ test("a completed Action is published once with the initiator's message mode; a 
   assert.equal(entry.result.committedMutations, undefined, "the publisher sees only the public projection");
 });
 
+test("a save is routed to the Player who owns the target Token, not to the GM fallback", async t => {
+  const saveDefinition = {schemaVersion: 1, id: "action:routed-save", label: "Routed save",
+    costs: {allOf: [{capability: "action", amount: 1}]}, targeting: {type: "single", required: true, count: 1},
+    range: {type: "reach", distance: {value: 5, unit: "ft"}}, save: {ability: "fortitude", dc: {value: 100}},
+    damage: [{id: "venom", expression: {type: "constant", value: 4}, damageType: "poison",
+      saveOutcomePolicy: {success: "half", failure: "full"}}]};
+  const {sourceActor, targetActor, targetToken, action, game} = syntheticRuntimeFixture(t, saveDefinition, {targetHealth: 30});
+  const hub = createTestResolutionTransportHub({users: [
+    {id: "gm-a", active: true, isGM: true, isActiveGM: true},
+    {id: "player-a", active: true, isGM: false}
+  ]});
+  const gm = createMultiplayerActionCoordinator({
+    userId: "gm-a",
+    users: () => hub.userDirectory(),
+    activeGMUserId: "gm-a",
+    transport: hub.createEndpoint({userId: "gm-a"}),
+    actionIntentResolver: ({intent, envelope}) => foundryActionIntentToStagedOptions({intent,
+      senderUserId: envelope.senderUserId, game, persistencePort: createTestDocumentPersistenceAdapter()})
+  });
+  const player = createMultiplayerActionCoordinator({
+    userId: "player-a",
+    users: () => hub.userDirectory(),
+    activeGMUserId: "gm-a",
+    transport: hub.createEndpoint({userId: "player-a"}),
+    rollProviders: [createTestRollProvider({result: {natural: 3, total: 3}})]
+  });
+  gm.register();
+  player.register();
+  // The GM acts; the target is a synthetic Token Actor owned by player-a, identified by its Token in the save.
+  const built = buildFoundryActionUseIntent({actor: sourceActor, action, game: {user: {targets: new Set([{document: targetToken}])}}});
+  const declared = await gm.declareActionIntent(built.intent);
+  assert.equal(declared.ok, true, JSON.stringify(declared));
+  const record = gm.getRecord(declared.resolutionId);
+  const save = [...record.requestExpectations.values()].find(entry => entry.request?.payload?.rollRequest?.type === "saving-throw");
+  assert.equal(save?.expectedUserId, "player-a", "the target's owner rolls the save");
+  assert.equal(save?.chooser?.fallback, undefined, "no GM fallback");
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors));
+  assert.equal(targetActor.system.resources.health.value, 26);
+});
+
 test("Action targets carry the Token's public name, never a hidden Token's or the base Actor's", async t => {
   const {targetActor, targetToken, game, intent} = syntheticRuntimeFixture(t, undefined, {targetHealth: 30});
   targetActor.name = "Vampire Lord";
