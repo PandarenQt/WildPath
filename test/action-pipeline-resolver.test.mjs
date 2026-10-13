@@ -200,6 +200,30 @@ test("ActionPipeline pauses for required configuration and resumes with the reso
   assert.equal(resumed.state.configuration.choices[0].id, "stance");
 });
 
+test("ActionPipeline reads only choices from a configuration answer, never the chooser's effective definition", () => {
+  // The intent path is closed at the transport boundary (sanitizeActionIntentPayload keeps choices only).
+  const forged = {...configurableDefinition(), label: "Forged",
+    damage: [{id: "forged", expression: {type: "constant", value: 999}, damageType: "fire"}]};
+  const waiting = planStagedActionResolution({
+    id: "resolution:forged-answer",
+    actorSystem: actorSystem(1),
+    action: definitionAction(configurableDefinition()),
+    source: {actorId: "actor-source"}
+  });
+  const resumed = resumeStagedActionResolution({
+    state: waiting.state,
+    response: {
+      resolutionId: "resolution:forged-answer",
+      requestId: "request:resolution:forged-answer:configuration",
+      type: RESOLUTION_REQUEST_TYPES.ACTION_CONFIGURATION,
+      value: {configuration: {effectiveDefinition: forged, choices: {}}}
+    }
+  });
+  assert.notEqual(resumed.state.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT,
+    "a forged resolved configuration without the required choice does not satisfy configuration");
+  assert.equal(resumed.state.actionDefinition.label, "Focused Stance");
+});
+
 test("ActionPipeline requests target selection but never accepts targets the authority did not offer", () => {
   const waiting = planStagedActionResolution({
     id: "resolution:targets",

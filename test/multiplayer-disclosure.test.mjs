@@ -893,7 +893,8 @@ const SENTINEL_PROJECTIONS = {
   "ACTION_INTENT": secret => sanitizeActionIntentPayload(withSecret({
     intentId: "i", resolutionId: "r", actorRef: "Actor.a", actionRef: "Item.x",
     source: withSecret({tokenId: "t"}, secret), targetRefs: ["Actor.e", withSecret({actorRef: "Actor.f"}, secret)],
-    waypoints: [{x: 1, y: 2}]
+    waypoints: [{x: 1, y: 2}],
+    configuration: withSecret({choices: {level: 2}, effectiveDefinition: {label: secret}}, secret)
   }, secret)),
   "roll request": secret => sanitizePendingRequestForTransport(withSecret({id: "q", resolutionId: "r", type: "roll",
     metadata: withSecret({title: "Roll"}, secret),

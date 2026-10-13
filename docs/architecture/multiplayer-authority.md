@@ -129,7 +129,10 @@ assertion of legality/cost/affordability.
 
 `ACTION_INTENT` is not trusted as a mechanical plan. The coordinator projects the payload to an
 allow-list of stable refs and ids before handing it to the authoritative resolver, so client-supplied
-state, mutation plans, roll results, previews, payment plans, and outcomes never arrive.
+state, mutation plans, roll results, previews, payment plans, and outcomes never arrive. A
+`configuration` keeps only its `choices`/`responses` and `selectedPaymentOptionId`; the authority derives
+the effective definition from the Actor's own Item. An `action-configuration` answer is read the same
+way: its choices only, never a chooser-supplied effective definition.
 
 **Ownership.** The authority resolves an Action only when the server-attested sender owns the acting
 Actor and the source Token (a GM passes), and the Action Item belongs to that Actor (compared by uuid,

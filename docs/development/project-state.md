@@ -87,8 +87,7 @@ real `Item.use()` with each player `PENDING_REQUEST` reduced to `{rollRequest}` 
 defense/DC keys; a non-owner probe failed with `WRONG_USER` and changed nothing. See the
 [Action acceptance record](action-runtime-live-qa.md#acceptance-record).
 
-Known and deferred: configuration answers may carry an `effectiveDefinition` (owner-only after M0);
-the refinement prompt's default selection makes count-limited refinement fail; unfinished abandoned
+Known and deferred: the refinement prompt's default selection makes count-limited refinement fail; unfinished abandoned
 requests are not timed out; `resolveActorAttackStatistic` may stop at the first empty domain (verify
 in M1).
 

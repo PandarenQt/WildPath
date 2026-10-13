@@ -426,11 +426,11 @@ function createConfigurationStage() {
         requestId: requestIdFor(state, "configuration"),
         type: RESOLUTION_REQUEST_TYPES.ACTION_CONFIGURATION
       });
-      const suppliedConfiguration = state.configuration?.effectiveDefinition
-        ? state.configuration
-        : configurationFromInput(input.configuration ?? accepted?.response?.value);
+      // A configuration from the intent or the chooser's answer is untrusted: only its choices are read and the
+      // authority derives the effective definition. Only the authority's own resumed state skips that.
+      const suppliedConfiguration = state.configuration?.effectiveDefinition ? state.configuration : null;
 
-      if ( suppliedConfiguration?.effectiveDefinition ) {
+      if ( suppliedConfiguration ) {
         const validation = validateResolvedActionConfiguration({
           configuration: suppliedConfiguration,
           actorSystem: input.actorSystem,
@@ -462,7 +462,7 @@ function createConfigurationStage() {
         });
       }
 
-      const choices = choiceResponsesFrom(suppliedConfiguration);
+      const choices = choiceResponsesFrom(configurationFromInput(input.configuration ?? accepted?.response?.value));
       const discovery = discoverActionConfigurationChoices({
         definition,
         actorSystem: input.actorSystem,
@@ -2201,8 +2201,8 @@ function configurationWithValidatedPayment(configuration, validation) {
 }
 
 function choiceResponsesFrom(configuration) {
-  if ( !configuration || configuration.effectiveDefinition ) return {};
-  return configuration.choices ?? configuration.responses ?? configuration;
+  if ( !configuration ) return {};
+  return configuration.choices ?? configuration.responses ?? (configuration.effectiveDefinition ? {} : configuration);
 }
 
 function hasChoiceResponse(responses, choiceId) {

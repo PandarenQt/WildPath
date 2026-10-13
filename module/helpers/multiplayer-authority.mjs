@@ -181,12 +181,17 @@ const ACTION_INTENT_KEYS = Object.freeze([
   "movementMode", "tokenOperationType", "foundry", "messageMode"
 ]);
 const INTENT_SOURCE_KEYS = Object.freeze(["actorRef", "uuid", "tokenId", "tokenRef", "sceneId"]);
+const INTENT_CONFIGURATION_KEYS = Object.freeze(["choices", "responses", "selectedPaymentOptionId"]);
 const INTENT_TARGET_KEYS = Object.freeze(["actorRef", "uuid", "actorUuid", "actorId", "id", "tokenId", "sceneId"]);
 
 export function sanitizeActionIntentPayload(payload={}) {
   const intent = clonePlainData(payload.intent ?? payload, "actionIntent") ?? {};
   const projected = pick(intent, ACTION_INTENT_KEYS);
   if ( intent.source && typeof intent.source === "object" ) projected.source = pick(intent.source, INTENT_SOURCE_KEYS);
+  // Choices only: the authority derives the effective definition from the Actor's own Item.
+  if ( intent.configuration && typeof intent.configuration === "object" ) {
+    projected.configuration = pick(intent.configuration, INTENT_CONFIGURATION_KEYS);
+  }
   for ( const key of ["targetRefs", "targets"] ) {
     if ( intent[key] === undefined ) continue;
     projected[key] = normalizeArray(intent[key])
