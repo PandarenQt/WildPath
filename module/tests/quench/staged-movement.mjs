@@ -1,5 +1,5 @@
 import {useQuenchFixtures} from "./fixtures.mjs";
-import {qaActionData, verifyDigitalRoll} from "../../../docs/development/action-runtime-live-qa.mjs";
+import {QA_FOUNDRY_BUILD, qaActionData, verifyDigitalRoll} from "../../../docs/development/action-runtime-live-qa.mjs";
 import {largeHexLayout} from "../../../docs/development/staged-movement-qa.mjs";
 import {captureMovementQA, verifyPendingMovementQA, verifyMovementQA, footprintSnapshot}
   from "../../../docs/development/staged-movement-qa-proof.mjs";
@@ -77,8 +77,8 @@ export function registerStagedMovementTests(quench) {
       const fixtures = useQuenchFixtures(context);
 
       async function runCase(mode, {hex=false}={}) {
-        assert.equal(game.release.generation,14,"Run the integration gate in Foundry V14.367");
-        assert.equal(Number(game.release.build),367,"Run the integration gate in Foundry V14.367");
+        assert.equal(game.release.generation,14,`Run the integration gate in Foundry V14.${QA_FOUNDRY_BUILD}`);
+        assert.equal(Number(game.release.build),QA_FOUNDRY_BUILD,`Run the integration gate in Foundry V14.${QA_FOUNDRY_BUILD}`);
         assert.equal(game.users.activeGM?.id,game.user.id,"Run as the active GM");
         assert.exists(game.wildpath?.multiplayer,"WildPath must finish runtime initialization");
         const viewedScene = game.scenes.viewed?.id;

@@ -1,7 +1,7 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {qaActionData, bounded, summarizeRecord, matchesQAIntent, verifyDigitalRoll,
+import {QA_FOUNDRY_BUILD, qaActionData, bounded, summarizeRecord, matchesQAIntent, verifyDigitalRoll,
   combineClientDumps, setupGM, setupPlayer, cleanupGM, QA_FLAG} from "../docs/development/action-runtime-live-qa.mjs";
 import {actionDefinitionFromAction, actionDefinitionToResolverInput} from "../module/helpers/action-definitions.mjs";
 import {createD20RollRequest} from "../module/helpers/rolls.mjs";
@@ -157,7 +157,7 @@ async function playerEnvironment(t) {
   const runtime = {transport, coordinator, executeActionIntent};
   const scenes = new Values([["s", scene]]); scenes.active = scene;
   const actors = new Values([["a", actor("a", "Actor.a")], ["b", actor("b", "Actor.b")]]);
-  const game = {release: {generation: 14, build: 367}, system: {id: "wildpath"}, users, user: users.get("p"),
+  const game = {release: {generation: 14, build: QA_FOUNDRY_BUILD}, system: {id: "wildpath"}, users, user: users.get("p"),
     scenes, actors, modules: new Values(), wildpath: {multiplayer: runtime, executeActionIntent}};
   game.user.targets = new Set([{document: target}]);
   f.prepared = {mode: "hit", before: {action: 1, hp: 30}};

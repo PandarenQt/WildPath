@@ -32,7 +32,7 @@ and must not be described as such.
 
 ## Why the broadcast bus cannot carry private data
 
-The `system.wildpath` namespace is a Foundry custom socket. The installed 14.367 server relay
+The `system.wildpath` namespace is a Foundry custom socket. The installed 14.367 server relay (re-checked unchanged in 14.369)
 (`dist/components/*`: `registerCustomSocket` → `handleCustomSocket`) does `socket.broadcast.emit`,
 which delivers every emission to **every other** connected client and **never back to the sender**.
 Receipt filtering by `recipientUserId` only decides which client processes an envelope; every client
@@ -105,7 +105,7 @@ carried a message.
 
 ## The targeted mechanism: `User#query`
 
-Verified against the installed 14.367 source, not assumed:
+Verified against the installed 14.367 source and re-checked unchanged in 14.369, not assumed:
 
 - `User#query(name, data, {timeout})` (`client/documents/user.mjs`) requires the name to be registered
   in `CONFIG.queries` (system names are prefixed: WildPath uses `wildpath.resolutionEnvelope`),

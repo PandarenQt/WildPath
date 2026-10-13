@@ -13,7 +13,7 @@ const DEFAULT_TIMEOUT_MS = 15000;
 /**
  * Targeted (recipient-restricted) transport over Foundry V14 `User#query` / `CONFIG.queries`.
  *
- * Verified against the installed 14.367 source: `User#query` requires the query name to be registered
+ * Verified against the installed 14.367 source and re-checked unchanged in 14.369: `User#query` requires the query name to be registered
  * in `CONFIG.queries`, requires the sender to hold the `QUERY_USER` permission (default role PLAYER),
  * refuses inactive recipients, and emits `userQuery` to the server. The server re-checks the sender
  * permission, then emits only to the recipient user's own sockets with an acknowledgement callback,

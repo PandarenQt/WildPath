@@ -6,7 +6,7 @@ const QUERY_NAME = "wildpath.resolutionEnvelope";
 /**
  * Real-Foundry proof of the targeted transport mechanism on a single GM client. This batch proves that
  * the registration, the real `system.wildpath` refusal, and the real `User#query` server relay work in
- * V14.367. It cannot prove cross-browser privacy: a single client is both sender and recipient. That
+ * Foundry V14. It cannot prove cross-browser privacy: a single client is both sender and recipient. That
  * proof is the Level-5 three-case sentinel in docs/development/staged-movement-qa.md.
  */
 export function registerMultiplayerDisclosureTests(quench) {

@@ -7,6 +7,8 @@ import {MULTIPLAYER_MESSAGE_TYPES as MESSAGE} from "../../module/helpers/multipl
 
 export const QA_FLAG = "actionRuntimeLiveQA";
 export const QA_BASELINE = "61d6268b838e286728c829924506c6c931174621";
+/** The one Foundry build the live gates run on; moved from 367 to 369 on 2026-10-13 after a source re-check. */
+export const QA_FOUNDRY_BUILD = 369;
 const DEADLINE_MS = 20000;
 const clone = value => value == null ? value : JSON.parse(JSON.stringify(value));
 const check = (condition, message) => { if (!condition) throw new Error(message); };
@@ -115,7 +117,7 @@ function actorSnapshot(actor) {
 
 function requireRuntime(role) {
   const {game, canvas} = globalThis;
-  check(game?.release?.generation === 14 && Number(game.release.build) === 367, "Use Foundry V14.367");
+  check(game?.release?.generation === 14 && Number(game.release.build) === QA_FOUNDRY_BUILD, `Use Foundry V14.${QA_FOUNDRY_BUILD}`);
   check(game.system.id === "wildpath" && canvas?.ready, "Load WildPath and a ready Scene");
   check(canvas.scene.id === game.scenes.active?.id, "View the active Scene on both clients");
   check(game.users.activeGM?.active, "An active GM is required");

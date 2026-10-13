@@ -36,7 +36,7 @@ Two browser sessions: the **active GM** and **one active non-GM player**. The pl
 `QUERY_USER` permission (Foundry's default for the Player role); without it the player cannot send
 targeted answers and the runtime logs a warning at `ready`.
 
-The reused Action QA setup stops if any of these fail: Foundry build exactly **14.367**; the test
+The reused Action QA setup stops if any of these fail: Foundry build exactly **14.369** (`QA_FOUNDRY_BUILD`; the schema-1 evidence of 2026-09-20 was captured on 14.367); the test
 Scene is the **active** Scene, viewed on both clients; Token Vision off; no started Combat;
 **no active modules at all** (disable Quench and every other module, then reload both clients);
 the normal registered WildPath runtime. Keep both DevTools consoles open (`copy()` is used for
@@ -241,7 +241,7 @@ await hexMovementQA.cleanup();
 ## Pairing and failure
 
 Pair each GM and player file by `runId` and `resolutionId`; both must carry the same `gitSha` and a
-`foundryVersion` of `14.367`. If a proof fails, retain `movementQA.dump()` (GM) and `mq.dumpPlayer()`
+`foundryVersion` of `14.369`. If a proof fails, retain `movementQA.dump()` (GM) and `mq.dumpPlayer()`
 (player) as diagnostics — they are not canonical evidence — and do not resubmit or prepare the next
 case to hide the failure. A pending resolution blocks cleanup so it cannot later commit against
 deleted Documents; for a stuck case, export diagnostics, reload both clients, then clean up with the
