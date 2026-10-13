@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "role": "player",
+  "caseId": "save-fan-out",
+  "runId": "Mg4dcPf1v636Itiq",
+  "gitSha": "702e8d8a2e378f52d02ff9685fa2119c37a21e5c",
+  "capturedAt": "2026-10-13T22:08:08.815Z",
+  "userId": "6JWzwo5Aln6gZUWH",
+  "resolutionId": "resolution:multiplayer:ywum9zz3",
+  "result": {
+    "status": "completed",
+    "keys": [
+      "action",
+      "authorityUserId",
+      "code",
+      "disclosure",
+      "initiatorUserId",
+      "ok",
+      "outcomes",
+      "resolutionId",
+      "rolls",
+      "source",
+      "status",
+      "targets"
+    ],
+    "disclosure": "BROADCAST_SAFE",
+    "rolls": [
+      {
+        "type": "save-roll",
+        "visibility": "public",
+        "total": 1
+      },
+      {
+        "type": "save-roll",
+        "visibility": "public",
+        "total": 16
+      },
+      {
+        "type": "damage-roll",
+        "visibility": "public",
+        "total": 5
+      }
+    ]
+  },
+  "card": {
+    "visible": true,
+    "isContentVisible": true,
+    "rolls": 3
+  }
+}

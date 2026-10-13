@@ -59,7 +59,10 @@ export const REPRESENTATIVE_CASES = Object.freeze({
   healing: {initiator:"player",targetOwner:"player",targetHealth:10,definition:REPRESENTATIVE_DEFINITIONS.healing},
   configuration: {initiator:"player",targetOwner:"gm",pools:SPELL_SLOT_POOLS,definition:REPRESENTATIVE_DEFINITIONS.scaling},
   // Two Tokens targeted for a single-target attack: the Player keeps the first in the refinement prompt.
-  refinement: {initiator:"player",targetOwner:"gm",ac:1,secondTarget:true,definition:REPRESENTATIVE_DEFINITIONS.meleeDice}
+  refinement: {initiator:"player",targetOwner:"gm",ac:1,secondTarget:true,definition:REPRESENTATIVE_DEFINITIONS.meleeDice},
+  // A GM's save against two creatures with different controllers: each rolls its own save.
+  "save-fan-out": {initiator:"gm",targetOwner:"player",secondTarget:true,secondTargetOwner:"gm",
+    definition:() => ({...REPRESENTATIVE_DEFINITIONS.saveForHalf(100), targeting:{type:"multiple",required:true,count:2}})}
 });
 
 const check = (condition, message) => { if (!condition) throw new Error(`REPRESENTATIVE QA: ${message}`); };
@@ -73,7 +76,8 @@ function snapshot(fixture) {
   const target = tokens.get(fixture.targetTokenId)?.actor;
   const second = fixture.secondTargetTokenId ? tokens.get(fixture.secondTargetTokenId)?.actor : null;
   return {
-    ...(second ? {secondTarget:{hp:second.system.resources.health.value}} : {}),
+    ...(second ? {secondTarget:{hp:second.system.resources.health.value,
+      conditions:second.effects.filter(effect => effect.type === "condition").map(effect => effect.system.type)}} : {}),
     source:{action:source?.system.resources.action.value, bonus:source?.system.resources.bonus.value,
       pools:Object.fromEntries((source?.system.pools ?? []).map(pool => [pool.id, pool.value]))},
     target:{hp:target?.system.resources.health.value,
@@ -96,14 +100,15 @@ export async function setupRepresentativeCase(caseId, playerId) {
   for (const [role, owner, system] of [
     ["source", spec.initiator, {resources:{action:{base:1,value:1},bonus:{base:1,value:1}},
       ...(spec.pools ? {pools:structuredClone(spec.pools)} : {})}],
-    ["target", spec.targetOwner, {resources:{health:{base:30,value:spec.targetHealth ?? 30}}}]
+    ["target", spec.targetOwner, {resources:{health:{base:30,value:spec.targetHealth ?? 30}}}],
+    ...(spec.secondTargetOwner ? [["secondTarget", spec.secondTargetOwner, {resources:{health:{base:30,value:30}}}]] : [])
   ]) {
     actors[role] = await CONFIG.Actor.documentClass.create({name:`Rep ${caseId} ${role}`, type:"character",
       ownership:owned(owner), flags:flags({...fixture, role}), system}, {renderSheet:false});
   }
   const size = canvas.scene.grid.size;
   const placements = [["source", "source", 2, 2], ["target", "target", 3, 2],
-    ...(spec.secondTarget ? [["secondTarget", "target", 2, 3]] : [])];
+    ...(spec.secondTarget ? [["secondTarget", spec.secondTargetOwner ? "secondTarget" : "target", 2, 3]] : [])];
   for (const [role, actorRole, column, row] of placements) {
     const token = await actors[actorRole].getTokenDocument({x:column * size, y:row * size, actorLink:false,
       name:`Rep ${role}`, flags:flags({...fixture, role})});
@@ -233,6 +238,16 @@ function proveRepresentativeCase(evidence) {
       expect(after.target.hp === before.target.hp - (roll("damage")?.total ?? NaN), "the kept target takes the damage");
       expect(after.secondTarget?.hp === before.secondTarget?.hp, "the dropped target is untouched");
       break;
+    case "save-fan-out": {
+      const saves = routing.filter(entry => entry.rollType === "saving-throw").map(entry => entry.expectedUserId).sort();
+      expect(JSON.stringify(saves) === JSON.stringify([users.gmId, users.playerId].sort()),
+        "each target's save is routed to its own controller");
+      expect(rolls.filter(entry => entry.type === "save-roll").length === 2, "two saves are rolled");
+      expect(after.target.conditions.includes("poisoned") && after.secondTarget?.conditions.includes("poisoned"),
+        "both failed (DC 100) and are Poisoned");
+      expect(after.target.hp < before.target.hp && after.secondTarget?.hp < before.secondTarget?.hp, "both take damage");
+      break;
+    }
     case "configuration":
       expect(routing.some(entry => entry.type === "action-configuration" && entry.expectedUserId === users.playerId),
         "the configuration prompt is routed to the Player");

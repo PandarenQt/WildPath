@@ -1,0 +1,124 @@
+{
+  "schema": 1,
+  "role": "gm",
+  "caseId": "save-fan-out",
+  "runId": "Mg4dcPf1v636Itiq",
+  "gitSha": "702e8d8a2e378f52d02ff9685fa2119c37a21e5c",
+  "capturedAt": "2026-10-13T22:08:08.293Z",
+  "runtime": {
+    "foundryVersion": "14.369",
+    "build": 369,
+    "systemId": "wildpath",
+    "systemVersion": "0.0.1"
+  },
+  "users": {
+    "gmId": "hUdU40DWftTFyJzW",
+    "playerId": "6JWzwo5Aln6gZUWH",
+    "initiatorUserId": "hUdU40DWftTFyJzW",
+    "authorityUserId": "hUdU40DWftTFyJzW"
+  },
+  "resolutionId": "resolution:multiplayer:ywum9zz3",
+  "status": "completed",
+  "routing": [
+    {
+      "type": "roll",
+      "rollType": "saving-throw",
+      "expectedUserId": "6JWzwo5Aln6gZUWH"
+    },
+    {
+      "type": "roll",
+      "rollType": "saving-throw",
+      "expectedUserId": "hUdU40DWftTFyJzW"
+    },
+    {
+      "type": "roll",
+      "rollType": "damage",
+      "expectedUserId": "hUdU40DWftTFyJzW"
+    }
+  ],
+  "rolls": [
+    {
+      "type": "save-roll",
+      "provider": "foundry-digital",
+      "method": "digital",
+      "natural": 1,
+      "total": 1,
+      "dice": 1
+    },
+    {
+      "type": "save-roll",
+      "provider": "foundry-digital",
+      "method": "digital",
+      "natural": 16,
+      "total": 16,
+      "dice": 1
+    },
+    {
+      "type": "damage-roll",
+      "provider": "foundry-digital",
+      "method": "digital",
+      "natural": 2,
+      "total": 5,
+      "dice": 2
+    }
+  ],
+  "outcomes": {
+    "attack": null,
+    "save": [
+      {
+        "success": false,
+        "outcome": "failure"
+      },
+      {
+        "success": false,
+        "outcome": "failure"
+      }
+    ]
+  },
+  "configuration": null,
+  "before": {
+    "secondTarget": {
+      "hp": 30,
+      "conditions": []
+    },
+    "source": {
+      "action": 1,
+      "bonus": 1,
+      "pools": {}
+    },
+    "target": {
+      "hp": 30,
+      "conditions": []
+    }
+  },
+  "after": {
+    "secondTarget": {
+      "hp": 25,
+      "conditions": [
+        "poisoned"
+      ]
+    },
+    "source": {
+      "action": 0,
+      "bonus": 1,
+      "pools": {}
+    },
+    "target": {
+      "hp": 25,
+      "conditions": [
+        "poisoned"
+      ]
+    }
+  },
+  "card": {
+    "author": "hUdU40DWftTFyJzW",
+    "whisper": [],
+    "blind": false,
+    "rolls": 3,
+    "outcomeKeys": 2
+  },
+  "proof": {
+    "passed": true,
+    "failures": []
+  }
+}

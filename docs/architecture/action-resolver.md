@@ -214,8 +214,9 @@ enters the same pipeline shape that those slices will extend.
 
 The staged facade exposes prompt requests and consumes RollProvider results. The multiplayer
 authority coordinator now routes those pending requests to the expected active chooser and resumes
-only on authoritative validation. Rich HUD presentation and separate per-target remote save request
-fan-out remain future work.
+only on authoritative validation. A save against several targets asks each target's controller for its
+own roll, one request after another (`save-roll`, `save-roll:2`, …), and each target is resolved against
+its own roll; live-verified with two controllers. Rich HUD presentation remains future work.
 
 ## Next Resolver Slice
 

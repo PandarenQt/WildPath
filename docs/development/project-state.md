@@ -98,7 +98,8 @@ Action at `awaiting-roll`). Live-verified in two browsers on 14.369. Target refi
 selection, so the prompt's changes are real decisions (`c9742c8`). Its live case found a damage-routing
 bug: unlinked Tokens of one base Actor shared target-Actor keys, so the kept goblin's hit landed on the
 dropped one (`d96dbcb`, fixed with a Node test and re-verified live). Open: per-roller message modes,
-live concentration and per-target remote save fan-out. Done since: physical provenance, per-roller
+live concentration. Done since: per-target save fan-out (`702e8d8`, live with a Player and the GM
+each rolling their own creature's save); physical provenance, per-roller
 message mode for saves (live: a Player's public save is on the card), failure feedback decided (a private
 notification, never a public card). Prompt
 titles, labels, buttons, notifications and the dice setting now have WildPath copy (verified live: "Enter

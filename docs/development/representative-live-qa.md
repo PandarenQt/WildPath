@@ -13,6 +13,7 @@ configuration scaling). This gate proves what one client cannot: who rolls and w
 | `healing` | Player | Player | healing commit on a Player-owned Token |
 | `configuration` | Player | GM | the configuration prompt is answered by the Player in the real dialog; slot spent |
 | `refinement` | Player | GM | two Tokens of one base Actor targeted for a single-target attack; the Player keeps one in the refinement prompt and only that Token is attacked and damaged |
+| `save-fan-out` | GM | Player + GM | a save against two creatures with different controllers: each controller rolls its own target's save |
 
 ## Procedure
 
@@ -48,6 +49,7 @@ Accepted on 2026-10-13, Foundry 14.369. The agent drove two isolated browser pro
 | `save-routed` | `efe50de` | `5p1g435y` | save rolled by Player1 (natural 9 vs DC 100, failed); 2d6 = 7 full damage; Poisoned |
 | `healing` | `efe50de` | `bbjmeral` | HP 10 → 18 |
 | `configuration` | `765259f` | `tarxm1w0` | prompt answered by Player1 (Slot 2); 3d6 = 7; Slot 2 spent, Slot 1 kept |
+| `save-fan-out` | `702e8d8` | `ywum9zz3` | Player1 rolled their Token's save (1), the GM the other's (16); both failed DC 100; 2d6 = 5 to each; both Poisoned; card with three rolls |
 | `refinement` | `d96dbcb` | `j36enua4` | both Tokens preselected; Player1 unticked the second; attack vs the kept Token's AC 1 (hit), 1d8 = 2; kept 30 → 28, dropped 30 → 30 |
 
 Every case posted one card authored by the initiator, and each card was visible to the Player.
