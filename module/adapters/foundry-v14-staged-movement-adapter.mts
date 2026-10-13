@@ -11,7 +11,8 @@ import {clonePlainData} from "../helpers/multiplayer-authority.mjs";
 
 type Data = Record<string, unknown>;
 interface User {id: string; isGM?: boolean; active?: boolean}
-interface Actor {id: string; uuid: string; system: Data; toObject(source: boolean): Data; testUserPermission(user: User, level: string): boolean}
+interface Actor {id: string; uuid: string; system: Data; toObject(source: boolean): Data; testUserPermission(user: User, level: string): boolean;
+  items?: Iterable<{id?: string; type?: string; system?: {definition?: {id?: string}}}>}
 interface Token {id: string; uuid: string; actor: Actor; parent: object; toObject(source: boolean): Data;
   testUserPermission(user: User, level: string): boolean}
 interface Scene {tokens: {get(id: string): Token | undefined}}
@@ -111,7 +112,12 @@ export async function foundryMovementIntentToStagedOptions({intent, resolutionId
       const defenseKey = definition.attack?.defenseKey ?? "ac";
       const defense = resolveActorDefense(actor, defenseKey);
       const target = {...targetResult.tokenFootprint, defense, defenses: {[defenseKey]: defense}};
-      const statistic = definition.attack ? resolveActorAttackStatistic(reactor.actor, definition.attack) : null;
+      // The reacting Action's own modifiers count for its attack: find it on the reactor by definition id.
+      const reactionItem = [...(reactor.actor.items ?? [])].find(entry => entry.type === "action"
+        && entry.system?.definition?.id === definition.id) ?? null;
+      const statistic = definition.attack
+        ? resolveActorAttackStatistic(reactor.actor, definition.attack, {item: reactionItem, tags: [...(definition.tags ?? [])]})
+        : null;
       const targetSystem = foundryActorSystemSnapshot(actor);
       const base = args.baseChildState;
       return createActionResolutionState({id: base.id, parentId: base.parentId, relationship: base.relationship,

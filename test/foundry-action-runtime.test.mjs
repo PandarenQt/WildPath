@@ -139,8 +139,9 @@ function fakeActor(id, {system, size=CREATURE_SIZES.MEDIUM, statistics={}, owner
       assert.equal(level, "OWNER");
       return user?.isGM === true || owners.includes(user?.id);
     },
-    getStatistic(domain) {
-      return typeof statistics === "function" ? statistics(domain) : statistics[domain] ?? null;
+    getStatistic(domains) {
+      return [domains].flat().map(domain => (typeof statistics === "function" ? statistics(domain) : statistics[domain]))
+        .find(Boolean) ?? null;
     },
     getActiveTokens(linked, document) {
       return this.tokens;

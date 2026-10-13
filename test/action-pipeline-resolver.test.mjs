@@ -56,8 +56,8 @@ function actorWithCalls(id, calls, {system=actorSystem(1), fail=false, statistic
     name: id,
     type: "character",
     system,
-    getStatistic(domain) {
-      return statistics[domain] ?? null;
+    getStatistic(domains) {
+      return [domains].flat().map(domain => statistics[domain]).find(Boolean) ?? null;
     },
     async update(updates) {
       calls.push({actorId: id, updates});

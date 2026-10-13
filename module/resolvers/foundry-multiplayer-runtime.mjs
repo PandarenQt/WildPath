@@ -599,7 +599,7 @@ function combatStatisticsForAction({actor=null, action=null}={}) {
   const attackDefinition = result.ok ? result.definition?.attack ?? null : null;
   if ( !attackDefinition ) return {defenseKey: null, attack: null};
   const defenseKey = attackDefinition.defenseKey ?? "ac";
-  const statistic = resolveActorAttackStatistic(actor, attackDefinition);
+  const statistic = resolveActorAttackStatistic(actor, attackDefinition, {item: action, tags: result.definition?.tags ?? []});
   return {
     defenseKey,
     attack: statistic ? {

@@ -76,12 +76,10 @@ changing the pool; the Foundry persistence adapter now folds element paths into 
 from detached source. Separately, a client could put `configuration.effectiveDefinition` in an intent
 or configuration answer and the authority used it; it now reads choices only.
 
-**Open decision (maintainer, core rules semantic):** `resolveActorAttackStatistic` reads only the first
-attack domain that exists, and an empty `attack.weapon` statistic counts (total 0), so modifiers on
-`attack.melee` or `attack` never apply to a weapon attack. That matches `attack-resolver.md`
-(`getStatistic("attack.<statistic>")`) but contradicts the Dueling example in `rule-elements.md`
-(`attack.melee`). Options: skip empty domains (first non-empty wins), or stack every matching domain.
-Unchanged until decided.
+**Decided 2026-10-13 (maintainer): every matching attack domain stacks.** Eligibility comes from
+the modifier's source and predicate: an Action Item's own modifiers count only for that Action (a +2
+sword), Features/Gear/effects are Actor-wide (proficiency, an archery feat on `attack.ranged`), and
+predicates see the attack's tags. Defenses stack `defense.<key>` and `<key>`. See `attack-resolver.md`.
 
 The two-browser gate (`representative-live-qa.md`) passed 5/5 on 14.369 with committed evidence:
 Player-routed attack and damage rolls, a trip, a GM's save routed to the target's Player, healing, and a
@@ -90,8 +88,8 @@ the save fell back to the GM because target controllers were keyed only by the s
 (`efe50de`), and `anyOf` payment alternatives all had the id `payment-1`, so the Player could not choose
 Slot 2 (`765259f`).
 
-Limits carried forward: the attack-statistic decision above; the configuration dialog title shows the
-raw type `action-configuration` (needs maintainer copy); no third client.
+Limits carried forward: the configuration dialog title shows the raw type `action-configuration`
+(needs copy); no third client.
 
 **M2 — request and roll gaps (IN PROGRESS).** Done: the GM dice policy (`wildpath.dicePolicy`,
 digital or physical; physical dice go through the roll prompt), total bounds on every roll whose

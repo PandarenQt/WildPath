@@ -77,8 +77,10 @@ function actorDocument(id, {system=actorSystem(), effects=[]}={}) {
     system,
     effects
   };
-  actor.getStatistic = domain => {
-    if ( domain !== "defense.ac" && domain !== "ac" ) return {totalModifier: 0, trace: {domain}};
+  actor.getStatistic = domains => {
+    const list = [domains].flat();
+    const domain = list[0];
+    if ( !list.includes("defense.ac") && !list.includes("ac") ) return {totalModifier: 0, trace: {domain}};
     const effectBonus = (actor.effects ?? []).reduce((sum, effect) => {
       const bonus = Number(effect.flags?.wildpath?.conditionEffect?.metadata?.reactionDefenseBonus ?? 0);
       return Number.isFinite(bonus) ? sum + bonus : sum;

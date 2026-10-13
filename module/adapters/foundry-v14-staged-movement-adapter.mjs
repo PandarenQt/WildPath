@@ -85,7 +85,12 @@ export async function foundryMovementIntentToStagedOptions({ intent, resolutionI
                 const defenseKey = definition.attack?.defenseKey ?? "ac";
                 const defense = resolveActorDefense(actor, defenseKey);
                 const target = { ...targetResult.tokenFootprint, defense, defenses: { [defenseKey]: defense } };
-                const statistic = definition.attack ? resolveActorAttackStatistic(reactor.actor, definition.attack) : null;
+                // The reacting Action's own modifiers count for its attack: find it on the reactor by definition id.
+                const reactionItem = [...(reactor.actor.items ?? [])].find(entry => entry.type === "action"
+                    && entry.system?.definition?.id === definition.id) ?? null;
+                const statistic = definition.attack
+                    ? resolveActorAttackStatistic(reactor.actor, definition.attack, { item: reactionItem, tags: [...(definition.tags ?? [])] })
+                    : null;
                 const targetSystem = foundryActorSystemSnapshot(actor);
                 const base = args.baseChildState;
                 return createActionResolutionState({ id: base.id, parentId: base.parentId, relationship: base.relationship,

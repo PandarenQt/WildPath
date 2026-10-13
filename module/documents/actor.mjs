@@ -30,44 +30,55 @@ export default class WildPathActor extends Actor {
    * This is the PF2e-style calculation-engine entry point: domains are free-form strings
    * (conventionally a dot-path like "resources.health.max") rather than a fixed enum, so any
    * homebrew derived value can opt in without a schema change.
-   * @param {string} domain
+   * Several domains stack: a melee weapon attack reads `["attack.weapon", "attack.melee", "attack"]`, and a
+   * modifier counts once if it targets any of them. Whether it applies depends on its source: an Action
+   * Item's own modifiers (a +2 sword's attack) count only for that Action, everything else is Actor-wide,
+   * and each modifier's predicate sees the statistic's `item` and `tags` (e.g. a ranged-only feat).
+   * @param {string|string[]} domain
+   * @param {object} [options]
+   * @param {Item|null} [options.item]   The Action this statistic is computed for, if any.
+   * @param {string[]} [options.tags]    Tags of what is being rolled (attack type, Action tags).
    * @returns {WildPathStatistic}
    */
-  getStatistic(domain) {
+  getStatistic(domain, {item=null, tags=[]}={}) {
+    const domains = [domain].flat().filter(Boolean).map(String);
     const modifiers = [];
 
-    for ( const item of this.items ) {
-      if ( item.system?.active === false ) continue;
-      for ( const m of item.system?.modifiers ?? [] ) {
-        if ( !modifierTargetsDomain(m, domain) ) continue;
-        modifiers.push(new WildPathModifier({...m, source: item.uuid}));
+    for ( const owner of this.items ) {
+      if ( owner.system?.active === false ) continue;
+      if ( (owner.type === "action") && (owner.id !== item?.id) ) continue;
+      for ( const m of owner.system?.modifiers ?? [] ) {
+        if ( !domains.some(entry => modifierTargetsDomain(m, entry)) ) continue;
+        modifiers.push(new WildPathModifier({...m, source: owner.uuid}));
       }
-      modifiers.push(...collectRuleElementModifiers(item.system?.ruleElements, {
+      for ( const entry of domains ) modifiers.push(...collectRuleElementModifiers(owner.system?.ruleElements, {
         actor: this,
-        domain,
-        source: documentRuleElementSource(item, "item"),
-        context: {item}
+        domain: entry,
+        source: documentRuleElementSource(owner, "item"),
+        context: {item: owner}
       }));
     }
 
     for ( const effect of this.allApplicableEffects?.() ?? this.effects ) {
       if ( effect.disabled || effect.isSuppressed ) continue;
       for ( const m of effect.system?.modifiers ?? [] ) {
-        if ( !modifierTargetsDomain(m, domain) ) continue;
+        if ( !domains.some(entry => modifierTargetsDomain(m, entry)) ) continue;
         modifiers.push(new WildPathModifier({...m, source: effect.uuid}));
       }
-      modifiers.push(...collectRuleElementModifiers(effect.system?.ruleElements, {
+      for ( const entry of domains ) modifiers.push(...collectRuleElementModifiers(effect.system?.ruleElements, {
         actor: this,
-        domain,
+        domain: entry,
         source: documentRuleElementSource(effect, "effect"),
         context: {effect}
       }));
     }
 
-    return new WildPathStatistic(domain, modifiers, {
+    return new WildPathStatistic(domains[0] ?? null, modifiers, {
       context: {
         actor: this,
-        actorSystem: this.system
+        actorSystem: this.system,
+        item,
+        tags: [...new Set(tags.filter(Boolean).map(String))]
       }
     });
   }

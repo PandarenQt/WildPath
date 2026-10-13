@@ -333,8 +333,8 @@ test("GM setup persists marked Documents, reads the attack domain, and prepares 
     for (const resource of Object.values(a.system.resources)) resource.max = resource.base + (resource.bonus ?? 0);
     a.getFlag = (scope, key) => a.flags[scope]?.[key];
     a.toObject = () => ({system: structuredClone(a.system), effects: [], items: []});
-    a.getStatistic = domain => ({totalModifier: [...a.items.values()].flatMap(i => i.system.modifiers)
-      .filter(m => m.domains.includes(domain)).reduce((sum, m) => sum + m.value, 0)});
+    a.getStatistic = domains => ({totalModifier: [...a.items.values()].flatMap(i => i.system.modifiers)
+      .filter(m => [domains].flat().some(domain => m.domains.includes(domain))).reduce((sum, m) => sum + m.value, 0)});
     a.update = async patch => {
       writes.push({uuid, patch});
       for (const [path, value] of Object.entries(patch)) {

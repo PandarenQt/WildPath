@@ -25,7 +25,10 @@ function actor(id, owner) {
   return {id, uuid: `Actor.${id}`, effects: [], system: {traits: {size: "medium"}, defenses: {ac: {value: 12}},
     resources: {movement: {value: 30, max: 30}, reaction: {value: 1, max: 1}, health: {value: 20, max: 20}}, pools: []},
   toObject() {return {system: structuredClone(this.system)};},
-  getStatistic(domain) {return domain.startsWith("attack") ? {totalModifier: 4, trace: {domain}} : null;},
+  getStatistic(domains) {
+    const domain = [domains].flat()[0];
+    return domain.startsWith("attack") ? {totalModifier: 4, trace: {domain}} : null;
+  },
   testUserPermission(user) {return user.isGM || user.id === owner;}};
 }
 function squareGrid() {

@@ -51,11 +51,16 @@ export function resolveActorDefense(actor, defenseKey="ac") {
 
 /**
  * Resolve the attack statistic declared by an ActionDefinition into a roll modifier snapshot.
+ * Every matching domain stacks (`attack.weapon` + `attack.melee` + `attack`); which modifiers apply is
+ * decided by their source and predicate (see `WildPathActor#getStatistic`).
  * @param {object} actor
  * @param {object} attack
+ * @param {object} [options]
+ * @param {object|null} [options.item]  The Action Item making the attack (its own modifiers apply).
+ * @param {string[]} [options.tags]     The Action's tags; the attack type is added.
  * @returns {{key: string, domain: string, modifier: number, totalModifier: number, source: object}|null}
  */
-export function resolveActorAttackStatistic(actor, attack={}) {
+export function resolveActorAttackStatistic(actor, attack={}, {item=null, tags=[]}={}) {
   if ( !actor || !attack ) return null;
   const key = stringOrNull(attack.statistic ?? attack.statisticKey ?? attack.selector ?? attack.domain);
   if ( !key ) return null;
@@ -66,7 +71,7 @@ export function resolveActorAttackStatistic(actor, attack={}) {
     attack.type ? `attack.${attack.type}` : null,
     "attack"
   ]);
-  const statistic = resolveActorStatisticModifier(actor, domains);
+  const statistic = resolveActorStatisticModifier(actor, domains, {item, tags: uniqueStrings([attack.type, ...tags])});
   if ( !statistic.known ) return null;
   return {
     key,
@@ -85,19 +90,13 @@ export function resolveActorAttackStatistic(actor, attack={}) {
 
 /* -------------------------------------------- */
 
-function resolveActorStatisticModifier(actor, domains) {
+function resolveActorStatisticModifier(actor, domains, options={}) {
   if ( typeof actor?.getStatistic !== "function" ) return {known: false, value: null, trace: null, domain: null};
-  for ( const domain of uniqueStrings(domains) ) {
-    const statistic = actor.getStatistic(domain);
-    const value = finiteNumber(statistic?.totalModifier ?? statistic?.total ?? statistic?.value ?? statistic?.modifier);
-    if ( value != null ) return {
-      known: true,
-      value,
-      trace: clonePlain(statistic?.trace ?? {domain}),
-      domain
-    };
-  }
-  return {known: false, value: null, trace: null, domain: null};
+  const list = uniqueStrings(domains);
+  const statistic = actor.getStatistic(list, options);
+  const value = finiteNumber(statistic?.totalModifier ?? statistic?.total ?? statistic?.value ?? statistic?.modifier);
+  if ( value == null ) return {known: false, value: null, trace: null, domain: null};
+  return {known: true, value, trace: clonePlain(statistic?.trace ?? {domain: list[0]}), domain: list[0] ?? null};
 }
 
 function firstFiniteNumber(values) {

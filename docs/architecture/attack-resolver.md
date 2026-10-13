@@ -58,6 +58,19 @@ actor.system.defenses.<key>.value
 ```
 
 When an ActionDefinition declares an attack statistic, the runtime also snapshots the source roll
-modifier from `actor.getStatistic("attack.<statistic>").totalModifier`. These snapshots are
-serializable resolution inputs, so AttackResolver remains independent of Foundry documents while the
-runtime path no longer needs test-only defense injection.
+modifier. These snapshots are serializable resolution inputs, so AttackResolver remains independent
+of Foundry documents while the runtime path no longer needs test-only defense injection.
+
+**Every matching domain stacks** (maintainer decision, 2026-10-13). A melee weapon attack reads
+`actor.getStatistic(["attack.weapon", "attack.melee", "attack"], {item, tags})`, and a modifier counts
+once if it targets any of those domains. Whether a modifier applies depends on where it comes from
+and whether the attack is eligible:
+
+- an **Action** Item's own modifiers apply only to that Action (a +2 sword's bonus is on the sword's
+  attack, not on every attack);
+- Features, Gear and effects apply Actor-wide (proficiency on `attack`, an archery feat on
+  `attack.ranged`);
+- a modifier's predicate sees the statistic's `item` and `tags`: the attack type plus the Action's
+  tags. A feat can therefore restrict itself with `{tagsAny: ["ranged"]}`.
+
+Defenses stack the same way (`defense.<key>` plus `<key>`).

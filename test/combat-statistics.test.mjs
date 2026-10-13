@@ -21,8 +21,8 @@ test("resolveActorDefense combines persisted defense base with WildPathStatistic
     id: "actor-defender",
     uuid: "Actor.actor-defender",
     system: {defenses: {ac: {value: 14}}},
-    getStatistic(domain) {
-      return domain === "defense.ac" ? statistic(domain, 2) : null;
+    getStatistic(domains) {
+      return [domains].flat().includes("defense.ac") ? statistic("defense.ac", 2) : null;
     }
   };
 
@@ -40,8 +40,8 @@ test("resolveActorAttackStatistic snapshots source attack modifiers into plain r
   const actor = {
     id: "actor-attacker",
     uuid: "Actor.actor-attacker",
-    getStatistic(domain) {
-      return domain === "attack.weapon" ? statistic(domain, 4) : null;
+    getStatistic(domains) {
+      return [domains].flat().includes("attack.weapon") ? statistic("attack.weapon", 4) : null;
     }
   };
 
