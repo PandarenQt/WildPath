@@ -1,56 +1,13 @@
 import {useQuenchFixtures} from "./fixtures.mjs";
 import {buildFoundryActionUseIntent} from "../../resolvers/foundry-multiplayer-runtime.mjs";
+import {REPRESENTATIVE_ATTACK_MODIFIER, REPRESENTATIVE_DEFINITIONS, SPELL_SLOT_POOLS}
+  from "../../../docs/development/representative-live-qa.mjs";
 
 /**
  * The representative mechanic set (CODEX §28: one of each before volume) through the real runtime,
  * real Documents and the real digital RollProvider, on one GM client. Player routing of the same
- * definitions is the Level-5 gate in docs/development/action-runtime-live-qa.md.
+ * definitions is the Level-5 gate in docs/development/representative-live-qa.md.
  */
-export const REPRESENTATIVE_ATTACK_MODIFIER = Object.freeze({id:"rep-attack",selector:"attack.weapon",
-  domains:["attack.weapon"],label:"Representative attack modifier",type:"untyped",value:4,enabled:true});
-
-const cost = capability => ({allOf:[{capability,amount:1}]});
-const single = {type:"single",required:true,count:1};
-const reach = {type:"reach",distance:{value:5,unit:"ft"}};
-const noCriticals = {naturalCriticalHits:false,naturalCriticalMisses:false};
-
-export const REPRESENTATIVE_DEFINITIONS = Object.freeze({
-  meleeDice: () => ({schemaVersion:1,id:"action:rep-melee-dice",label:"Representative melee",costs:cost("action"),
-    targeting:single,range:reach,attack:{type:"melee",statistic:"weapon",defenseKey:"ac",policy:noCriticals},
-    damage:[{id:"blade",expression:{type:"dice",number:1,faces:8},damageType:"slashing",provenance:"weapon-base"}]}),
-  ranged: () => ({schemaVersion:1,id:"action:rep-ranged",label:"Representative ranged",costs:cost("action"),
-    targeting:single,range:{type:"ranged",normal:{value:80,unit:"ft"},long:{value:320,unit:"ft"}},
-    attack:{type:"ranged",statistic:"weapon",defenseKey:"ac",policy:noCriticals},
-    damage:[{id:"shot",expression:{type:"constant",value:5},damageType:"piercing",provenance:"weapon-base"}]}),
-  bonusStrike: () => ({schemaVersion:1,id:"action:rep-bonus",label:"Representative bonus strike",
-    costs:cost("bonus-action"),targeting:single,range:reach,
-    attack:{type:"melee",statistic:"weapon",defenseKey:"ac",policy:noCriticals},
-    damage:[{id:"jab",expression:{type:"constant",value:3},damageType:"bludgeoning",provenance:"weapon-base"}]}),
-  trip: () => ({schemaVersion:1,id:"action:rep-trip",label:"Representative trip",costs:cost("action"),
-    targeting:single,range:reach,attack:{type:"melee",statistic:"weapon",defenseKey:"ac",policy:noCriticals},
-    effects:[{id:"trip-prone",type:"condition",conditionId:"prone"}]}),
-  saveForHalf: dc => ({schemaVersion:1,id:"action:rep-save-half",label:"Representative save for half",
-    costs:cost("action"),targeting:single,range:reach,save:{ability:"fortitude",dc:{value:dc}},
-    damage:[{id:"venom",expression:{type:"dice",number:2,faces:6},damageType:"poison",provenance:"spell-base",
-      saveOutcomePolicy:{success:"half",failure:"full"}}],
-    effects:[{id:"venom-poisoned",type:"condition",conditionId:"poisoned",saveOutcomePolicy:"failure"}]}),
-  healing: () => ({schemaVersion:1,id:"action:rep-healing",label:"Representative healing",costs:cost("action"),
-    targeting:single,range:reach,healing:[{id:"mend",expression:{type:"constant",value:8},healingType:"healing"}]}),
-  scaling: () => ({schemaVersion:1,id:"action:rep-scaling",label:"Representative scaling",tags:["spell"],
-    costs:{allOf:[]},targeting:single,range:reach,
-    damage:[{id:"bolt",expression:{type:"dice",number:2,faces:6},damageType:"fire",provenance:"spell-base"}],
-    configuration:[{id:"casting-resource",type:"resource",label:"Cast At",required:true,
-      cost:{anyOf:[[{capability:"spell-slot.1",amount:1}],[{capability:"spell-slot.2",amount:1}]]},
-      levelByResourceId:{"spell-slot.1":1,"spell-slot.2":2},
-      effects:[{type:"scaleDamage",componentIds:["bolt"],levelChoiceId:"casting-resource",baseLevel:1,
-        dice:{number:1,faces:6}}]}]})
-});
-
-export const SPELL_SLOT_POOLS = Object.freeze([
-  {id:"spell-slot.1",label:"Slot 1",base:1,value:1},
-  {id:"spell-slot.2",label:"Slot 2",base:1,value:1}
-]);
-
 export function registerRepresentativeActionTests(quench) {
   quench.registerBatch("wildpath.representative-actions", context => {
     const {describe,it,assert,beforeEach,afterEach} = context;
