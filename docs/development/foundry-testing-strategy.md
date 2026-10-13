@@ -90,8 +90,9 @@ failures. WildPath neither patches Quench nor suppresses compatibility warnings.
 ## Registration and fixtures
 
 `wildpath.mjs` imports only `module/tests/quench/index.mjs` for this layer. That file owns the single
-`quenchReady` subscription and registers exactly nine batches (50 cases, **50/50 live** on Foundry
-14.369 on 2026-10-13, including the 4-case `wildpath.multiplayer-disclosure` batch). Batch modules do
+`quenchReady` subscription and registers exactly ten batches (53 cases, **53/53 live** on Foundry
+14.369 on 2026-10-13, including the 4-case `wildpath.multiplayer-disclosure` and 3-case
+`wildpath.action-results` batches; orphan check empty). Batch modules do
 not add registration hooks. When batches are started programmatically (`quench.runBatches`), render
 the Quench results window first (`quench.app.render({force: true})`); otherwise Quench's reporter
 throws on the missing window and the run stalls before any test executes.
@@ -104,6 +105,16 @@ real broadcast adapter refuses private and unclassified envelopes without emitti
 never touches the bus, and that the handler rejects a forged sender and a misaddressed recipient. It
 uses no fixtures and mutates nothing. One client cannot prove cross-browser privacy; that is the
 Level-5 sentinel's job.
+
+`wildpath.action-results` — **WILDPATH: Action Results** — declares the persisted QA melee Action
+through the real runtime on a marked Scene with two unlinked Tokens, with the intent built by
+`buildFoundryActionUseIntent` from the real `core.messageMode` setting, and checks exactly one chat
+card per resolution: `public` (authored by the initiator, attack roll attached and equal to the
+validated total, target named by its Token and never by the base Actor), `gm` (whispered to the GMs,
+no rolls) and `blind` (blind, no rolls). It restores the setting and deletes its cards. Core 14.369
+logs `Cannot set properties of null (setting 'hidden')` from `ChatLog#postNotification` whenever a
+chat message is deleted while the chat sidebar is collapsed (plain core messages reproduce it); this
+is not a WildPath failure.
 No Quench globals, dependency, client setting writes, fixture creation, or test
 execution are required at normal startup. If Quench is absent, its hook simply never fires.
 The old smoke file and unfinished top-level test index/fixtures have been migrated into this directory.

@@ -1350,7 +1350,7 @@ declares no `scripts` block and no test-related dependencies.
 testing workflow for a V14 system. The absence is a fact about Foundry's documentation, not evidence
 that testing is discouraged.
 
-### 19F. Quench — V14.367 Q1 17/17, Q2 17/17, Combat 6/6, staged movement 6/6 (46 live-confirmed); 50/50 on V14.369 with multiplayer disclosure 4/4
+### 19F. Quench — V14.367 Q1 17/17, Q2 17/17, Combat 6/6, staged movement 6/6 (46 live-confirmed); 50/50 on V14.369 with multiplayer disclosure 4/4; 53/53 with action results 3/3
 
 Quench is the ecosystem's in-Foundry test runner (Mocha + Chai + fast-check, registering a native
 Foundry Application as a test runner UI). It is the only known candidate for **layer 3**.
@@ -1463,7 +1463,8 @@ gate. The live multiplayer cases remain the evidence of record for multiplayer b
 by 34 maintainer-confirmed live cases (Q1 17/17 after the custom-pool persistence repair; Q2 17/17),
 plus the Combat slice's 6 cases (6/6 maintainer-reported) and the staged-movement batch's 6 cases (6/6
 after `e30d752`), for 46 live-confirmed cases in total; on 2026-10-13 the full nine-batch suite,
-including the 4-case multiplayer-disclosure batch, ran **50/50** on V14.369.
+including the 4-case multiplayer-disclosure batch, ran **50/50** on V14.369, and the ten-batch suite
+with the 3-case action-results batch ran **53/53**.
 
 ```text
 Level 1 — Pure Node tests

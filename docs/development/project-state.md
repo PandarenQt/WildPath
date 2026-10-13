@@ -57,8 +57,9 @@ controller as roller. The card layout (Action icon and name header, one row per 
 badge, hidden Tokens unnamed) takes its structure from Crucible's action card; no Crucible markup or
 CSS is used (its licence grants no reuse). The `WILDPATH.CHAT.Outcome.*` strings are **placeholders**
 taken from pf2e 8.5.1 (`PF2E.Check.Result.Degree.*`, the same words as Crucible's result types), at
-the maintainer's request, until WildPath's own copy is written (AGENTS §22). Open: the
-`wildpath.action-results` Quench batch and the representative live gate.
+the maintainer's request, until WildPath's own copy is written (AGENTS §22). Quench: the new
+`wildpath.action-results` batch (public, gm, blind) and the full ten-batch suite ran **53/53** live on
+14.369, orphan check empty. Open: the representative live gate.
 
 **Authority and disclosure hardening (M0) — CLOSED on 2026-10-13.** A review found that the
 authority trusted more than it could verify: any player could act through an Actor or Item they did

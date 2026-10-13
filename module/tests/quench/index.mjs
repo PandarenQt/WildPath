@@ -8,6 +8,7 @@ import {registerRuleElementTests} from "./rule-elements.mjs";
 import {registerCombatTests} from "./combat.mjs";
 import {registerStagedMovementTests} from "./staged-movement.mjs";
 import {registerMultiplayerDisclosureTests} from "./multiplayer-disclosure.mjs";
+import {registerActionResultTests} from "./action-results.mjs";
 
 Hooks.on("quenchReady", quench => {
   registerRuntimeSmokeTests(quench);
@@ -19,4 +20,5 @@ Hooks.on("quenchReady", quench => {
   registerCombatTests(quench);
   registerStagedMovementTests(quench);
   registerMultiplayerDisclosureTests(quench);
+  registerActionResultTests(quench);
 });
