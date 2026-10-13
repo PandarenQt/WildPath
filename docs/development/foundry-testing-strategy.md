@@ -90,9 +90,10 @@ failures. WildPath neither patches Quench nor suppresses compatibility warnings.
 ## Registration and fixtures
 
 `wildpath.mjs` imports only `module/tests/quench/index.mjs` for this layer. That file owns the single
-`quenchReady` subscription and registers exactly ten batches (53 cases, **53/53 live** on Foundry
-14.369 on 2026-10-13, including the 4-case `wildpath.multiplayer-disclosure` and 3-case
-`wildpath.action-results` batches; orphan check empty). Batch modules do
+`quenchReady` subscription and registers exactly eleven batches (60 cases, **60/60 live** on Foundry
+14.369 on 2026-10-13, including the 4-case `wildpath.multiplayer-disclosure`, 3-case
+`wildpath.action-results` and 7-case `wildpath.representative-actions` batches; orphan check empty).
+Batch modules do
 not add registration hooks. When batches are started programmatically (`quench.runBatches`), render
 the Quench results window first (`quench.app.render({force: true})`); otherwise Quench's reporter
 throws on the missing window and the run stalls before any test executes.
@@ -115,6 +116,16 @@ no rolls) and `blind` (blind, no rolls). It restores the setting and deletes its
 logs `Cannot set properties of null (setting 'hidden')` from `ChatLog#postNotification` whenever a
 chat message is deleted while the chat sidebar is collapsed (plain core messages reproduce it); this
 is not a WildPath failure.
+
+`wildpath.representative-actions` — **WILDPATH: Representative Actions** — runs one of each mechanic
+(`CODEX.md` §28) through the real runtime, real Documents and the real digital RollProvider on a marked
+Scene: melee with 1d8 damage (HP drops by exactly the rolled total), ranged at 45 ft (`normal`) and
+90 ft (`long`), a bonus-action cost (bonus spent, action kept), a trip (Prone on a hit, nothing on a
+miss), a save for half with Poisoned on failure (DC +100 / -100), constant healing, and a resource
+configuration choice that adds a die and spends the chosen spell slot. Its first live runs found two
+persistence defects at the Foundry boundary, both fixed with Node regression tests: dotted resource
+keys in persisted definitions are expanded by Foundry, and V14 silently drops ArrayField element
+update paths such as `system.pools.1.value`.
 No Quench globals, dependency, client setting writes, fixture creation, or test
 execution are required at normal startup. If Quench is absent, its hook simply never fires.
 The old smoke file and unfinished top-level test index/fixtures have been migrated into this directory.

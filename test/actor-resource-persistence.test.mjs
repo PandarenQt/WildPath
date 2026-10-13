@@ -1,3 +1,4 @@
+import {createFoundryV14DocumentPersistenceAdapter, foldArrayElementUpdates} from "../module/adapters/foundry-v14-persistence-adapter.mjs";
 import {test} from "node:test";
 import assert from "node:assert/strict";
 
@@ -148,3 +149,26 @@ for (const recovery of ["shortRest", "longRest"]) {
     assert.deepEqual(source.system.pools, pools);
   });
 }
+
+test("the Foundry persistence adapter folds pool element paths into one whole-array source write", async () => {
+  const source = {system: {pools: [{id: "spell-slot.1", base: 1, value: 1}, {id: "spell-slot.2", base: 1, value: 1}]}};
+  const calls = [];
+  const actor = {
+    uuid: "Actor.caster",
+    toObject(sourceOnly) {
+      assert.equal(sourceOnly, true, "the fold must start from detached source data");
+      return structuredClone(source);
+    },
+    async update(updates) { calls.push(updates); return this; }
+  };
+  const result = await createFoundryV14DocumentPersistenceAdapter().updateActor({actor,
+    updates: {"system.pools.1.value": 0, "system.resources.action.value": 0}});
+  assert.equal(result.ok, true);
+  assert.deepEqual(calls, [{
+    "system.resources.action.value": 0,
+    "system.pools": [{id: "spell-slot.1", base: 1, value: 1}, {id: "spell-slot.2", base: 1, value: 0}]
+  }], "V14 drops ArrayField element paths, so the whole array is written");
+  assert.equal(source.system.pools[1].value, 1, "the Document's own source is not mutated");
+  assert.deepEqual(foldArrayElementUpdates(actor, {"system.pools.7.value": 0}), {"system.pools.7.value": 0},
+    "a path to a missing element is left for Foundry to reject or ignore");
+});

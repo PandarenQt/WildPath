@@ -1350,7 +1350,7 @@ declares no `scripts` block and no test-related dependencies.
 testing workflow for a V14 system. The absence is a fact about Foundry's documentation, not evidence
 that testing is discouraged.
 
-### 19F. Quench — V14.367 Q1 17/17, Q2 17/17, Combat 6/6, staged movement 6/6 (46 live-confirmed); 50/50 on V14.369 with multiplayer disclosure 4/4; 53/53 with action results 3/3
+### 19F. Quench — V14.367 Q1 17/17, Q2 17/17, Combat 6/6, staged movement 6/6 (46 live-confirmed); 50/50 on V14.369 with multiplayer disclosure 4/4; 53/53 with action results 3/3; 60/60 with representative actions 7/7
 
 Quench is the ecosystem's in-Foundry test runner (Mocha + Chai + fast-check, registering a native
 Foundry Application as a test runner UI). It is the only known candidate for **layer 3**.

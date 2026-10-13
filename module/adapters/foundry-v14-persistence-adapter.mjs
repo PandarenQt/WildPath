@@ -7,6 +7,39 @@ export const FOUNDRY_PERSISTENCE_CODES = Object.freeze({
 
 /* -------------------------------------------- */
 
+/**
+ * V14 ArrayFields persist only as whole values: an element path such as `system.pools.1.value` is dropped
+ * without error. Fold element paths into one write of the Document's detached source array, as
+ * WildPathActor's own pool writes do.
+ */
+export function foldArrayElementUpdates(document, updates) {
+  let source = null;
+  const folded = {};
+  for ( const [path, value] of Object.entries(updates ?? {}) ) {
+    const match = /^(.+?)\.(\d+)\.(.+)$/u.exec(path);
+    if ( match ) source ??= document?.toObject?.(true) ?? null;
+    const array = match ? valueAtPath(source, match[1]) : null;
+    const element = Array.isArray(array) ? array[Number(match[2])] : null;
+    if ( !element || (typeof element !== "object") ) {
+      folded[path] = value;
+      continue;
+    }
+    setAtPath(element, match[3], value);
+    folded[match[1]] = array;
+  }
+  return folded;
+}
+
+function valueAtPath(object, path) {
+  return path.split(".").reduce((value, key) => value?.[key], object);
+}
+
+function setAtPath(object, path, value) {
+  const keys = path.split(".");
+  const parent = keys.slice(0, -1).reduce((target, key) => (target[key] ??= {}), object);
+  parent[keys.at(-1)] = value;
+}
+
 export function createFoundryV14DocumentPersistenceAdapter({
   id="foundry-v14-document-persistence",
   documentResolver=null
@@ -34,7 +67,7 @@ export function createFoundryV14DocumentPersistenceAdapter({
         metadata
       });
 
-      const result = await document.update(clonePlain(updates), clonePlain(operation) ?? {});
+      const result = await document.update(foldArrayElementUpdates(document, clonePlain(updates)), clonePlain(operation) ?? {});
       return persistenceSuccess(FOUNDRY_PERSISTENCE_CODES.OK, {
         actorRef: actorRef ?? documentRef(document),
         updates,

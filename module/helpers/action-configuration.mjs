@@ -606,12 +606,19 @@ function createPaymentChoiceOption(option, choiceDefinition, resourceById) {
   };
 }
 
+/** Foundry expands dotted keys in Document data: `{"spell-slot.2": 2}` persists as `{"spell-slot": {"2": 2}}`. */
+function valueByResourceId(map, resourceId) {
+  if ( !map || (typeof map !== "object") || (resourceId == null) ) return undefined;
+  if ( Object.hasOwn(map, resourceId) ) return map[resourceId];
+  return String(resourceId).split(".").reduce((value, key) => value?.[key], map);
+}
+
 function inferResourceOptionMetadata({resources, choiceDefinition, selectedResourceId, resourceById}) {
   const metadata = {
-    ...(choiceDefinition.metadataByResourceId?.[selectedResourceId] ?? {})
+    ...(valueByResourceId(choiceDefinition.metadataByResourceId, selectedResourceId) ?? {})
   };
   for ( const resource of resources ) {
-    const level = finiteNumber(choiceDefinition.levelByResourceId?.[resource.resourceId])
+    const level = finiteNumber(valueByResourceId(choiceDefinition.levelByResourceId, resource.resourceId))
       ?? finiteNumber(resource.resourceMetadata?.level)
       ?? finiteNumber(resource.resourceMetadata?.castingLevel)
       ?? finiteNumber(resourceById.get(resource.resourceId)?.metadata?.level)

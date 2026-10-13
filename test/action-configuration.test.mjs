@@ -178,6 +178,16 @@ test("damage-type choices are contributed by rules sources and appear only after
   assert.deepEqual(request.options.map(option => option.id), ["cold", "lightning"]);
 });
 
+test("resource-keyed configuration maps also resolve in the shape Foundry persists them", () => {
+  // Foundry expands dotted keys in Document data: {"spell-slot.5": 5} is stored as {"spell-slot": {"5": 5}}.
+  const definition = scalableSpellDefinition();
+  definition.configuration[0].levelByResourceId = {"spell-slot": {3: 3, 4: 4, 5: 5}, "pact-slot": {5: 5}};
+  const preview = createResolvedActionPreview({definition, actorSystem: actorSystem(),
+    choices: {"casting-resource": {resourceId: "spell-slot.5"}}});
+  assert.equal(preview.ok, true, JSON.stringify(preview.errors));
+  assert.equal(preview.preview.damage.components[0].formula, "10d6");
+});
+
 test("compatible configuration options compose damage scaling, replacement type, and added costs", () => {
   const preview = createResolvedActionPreview({
     definition: scalableSpellDefinition(),

@@ -11,7 +11,9 @@ Last verified: 2026-10-13.
 - Movement implementation commit: `87ed1fae93271b81b14432bb4312be9cd53285c5`.
 - Original milestone starting HEAD: `ea484fd8b503697ddf1c2b7b0f6984ea594378e2`.
 - Local main HEAD: `61d6268b838e286728c829924506c6c931174621`.
-- Portable full suite (`FOUNDRY_V14_APP_PATH` unset): **886 tests, 884 passed, 0 failed, 2 intentionally skipped**.
+- Portable full suite (`FOUNDRY_V14_APP_PATH` unset): **889 tests, 887 passed, 0 failed, 2 intentionally skipped**.
+- M1 fixes delta from 886/884/0/2: **3 new tests** (configuration answer reads choices only, dotted
+  resource keys in Foundry's persisted shape, ArrayField element-path folding).
 - Visible-results delta from 879/877/0/2: **7 new tests** (Roll JSON guard, publish port, Token names,
   and four in `test/chat-card.test.mjs`).
 - Authority-hardening delta from 863/861/0/2: **16 new tests** (including payment overflow, Action ownership,
@@ -59,7 +61,26 @@ CSS is used (its licence grants no reuse). The `WILDPATH.CHAT.Outcome.*` strings
 taken from pf2e 8.5.1 (`PF2E.Check.Result.Degree.*`, the same words as Crucible's result types), at
 the maintainer's request, until WildPath's own copy is written (AGENTS §22). Quench: the new
 `wildpath.action-results` batch (public, gm, blind) and the full ten-batch suite ran **53/53** live on
-14.369, orphan check empty. Open: the representative live gate.
+14.369, orphan check empty.
+
+The representative set now runs live on one GM client (`wildpath.representative-actions`, 7/7; full
+suite **60/60**). Its first runs exposed, and these changes fix: (1) Foundry expands dotted keys in
+Document data, so `levelByResourceId: {"spell-slot.2": 2}` persisted as `{"spell-slot": {"2": 2}}` and
+scaling failed; configuration lookups now read both shapes. (2) V14 silently drops ArrayField element
+paths, so every staged pool payment (`system.pools.<i>.value`) committed "successfully" without
+changing the pool; the Foundry persistence adapter now folds element paths into one whole-array write
+from detached source. Separately, a client could put `configuration.effectiveDefinition` in an intent
+or configuration answer and the authority used it; it now reads choices only.
+
+**Open decision (maintainer, core rules semantic):** `resolveActorAttackStatistic` reads only the first
+attack domain that exists, and an empty `attack.weapon` statistic counts (total 0), so modifiers on
+`attack.melee` or `attack` never apply to a weapon attack. That matches `attack-resolver.md`
+(`getStatistic("attack.<statistic>")`) but contradicts the Dueling example in `rule-elements.md`
+(`attack.melee`). Options: skip empty domains (first non-empty wins), or stack every matching domain.
+Unchanged until decided.
+
+Open: the two-browser representative gate (player-routed rolls, target-controller save, configuration
+prompt answered by the player).
 
 **Authority and disclosure hardening (M0) — CLOSED on 2026-10-13.** A review found that the
 authority trusted more than it could verify: any player could act through an Actor or Item they did

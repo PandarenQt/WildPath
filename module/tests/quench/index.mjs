@@ -9,6 +9,7 @@ import {registerCombatTests} from "./combat.mjs";
 import {registerStagedMovementTests} from "./staged-movement.mjs";
 import {registerMultiplayerDisclosureTests} from "./multiplayer-disclosure.mjs";
 import {registerActionResultTests} from "./action-results.mjs";
+import {registerRepresentativeActionTests} from "./representative-actions.mjs";
 
 Hooks.on("quenchReady", quench => {
   registerRuntimeSmokeTests(quench);
@@ -21,4 +22,5 @@ Hooks.on("quenchReady", quench => {
   registerStagedMovementTests(quench);
   registerMultiplayerDisclosureTests(quench);
   registerActionResultTests(quench);
+  registerRepresentativeActionTests(quench);
 });

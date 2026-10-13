@@ -33,6 +33,12 @@ These are typed operations, not arbitrary callbacks. The port is the only migrat
 layer that should call Foundry V14 document methods such as `update()` or
 `createEmbeddedDocuments()`.
 
+Mutation plans address array elements by path (`system.pools.1.value`), but V14 persists an
+ArrayField only as a whole value and silently drops element paths. `updateActor` therefore folds
+element paths into one write of the Actor's detached source array (`toObject(true)`), the same shape
+`WildPathActor`'s own pool writes use. The in-memory test adapter applies element paths directly, so
+only the Foundry adapter test and the live `wildpath.representative-actions` batch cover this.
+
 `module/adapters/test-persistence-adapter.mjs` provides the deterministic in-memory equivalent for
 Node tests. It records operations, applies dot-path updates to plain Actor-shaped data, supports
 ActiveEffect-shaped embedded documents, and can fail selected operations to prove rollback behavior.
