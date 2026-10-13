@@ -530,8 +530,8 @@ function createChoiceRequest({
     return {
       ...base,
       options: [
-        {id: "true", label: "Yes", value: true, source: null, metadata: {}},
-        {id: "false", label: "No", value: false, source: null, metadata: {}}
+        {id: "true", label: "WILDPATH.PROMPT.Yes", value: true, source: null, metadata: {}},
+        {id: "false", label: "WILDPATH.PROMPT.No", value: false, source: null, metadata: {}}
       ],
       stateFingerprint: fingerprint({type: choiceDefinition.type, options: ["true", "false"]})
     };
@@ -596,7 +596,7 @@ function createPaymentChoiceOption(option, choiceDefinition, resourceById) {
     id: option.id,
     label: resources.length
       ? resources.map(resource => resource.label).join(" + ")
-      : "No Resource",
+      : "WILDPATH.PROMPT.NoResource",
     value: option.id,
     paymentOptionId: option.id,
     paymentPlan: clonePlain(option),
@@ -710,7 +710,7 @@ function resolveBooleanSelection(request, rawResponse) {
   }
   return okSelection(request, {
     value,
-    label: value ? "Yes" : "No",
+    label: value ? "WILDPATH.PROMPT.Yes" : "WILDPATH.PROMPT.No",
     active: value
   });
 }

@@ -635,7 +635,6 @@ do not generate prepared user-facing:
 - rules prose
 - item descriptions
 - journal content
-- UI copy
 - artwork
 - audio
 
@@ -643,6 +642,14 @@ where doing so would conflict with the current Foundry AI Content Policy.
 
 Software code, tests, debugging assistance, refactoring, and technical package
 documentation are permitted categories.
+
+**Amendment (maintainer, 2026-10-13): functional UI copy is permitted.** Agents
+may write the functional interface text the system needs to be usable: labels,
+dialog titles, buttons, setting names and hints, notifications, validation
+messages, and chat-card outcome text. Keep it short, plain and neutral, put every
+string in `lang/en.json`, and never hard-code user-visible English in code. The
+maintainer reviews this copy. The restriction above still applies to lore, rules
+prose, item descriptions, journal content, artwork and audio.
 
 ---
 

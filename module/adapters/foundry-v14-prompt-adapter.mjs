@@ -41,13 +41,14 @@ export function createFoundryV14PromptAdapter({
       });
 
       const viewModel = createPromptViewModel(request, context);
+      const shown = localizeViewModel(viewModel);
       const response = await Dialog.input({
         window: {
-          title: viewModel.title
+          title: shown.title
         },
-        content: renderPromptContent(viewModel),
+        content: renderPromptContent(shown),
         ok: {
-          label: "Submit"
+          label: localize("WILDPATH.PROMPT.Confirm")
         },
         rejectClose: false,
         modal: true,
@@ -83,6 +84,25 @@ export function createFoundryV14PromptAdapter({
 }
 
 /* -------------------------------------------- */
+
+/**
+ * View models carry `WILDPATH.*` keys (plus `labelData`) for the system's own copy; author-written labels
+ * pass through `localize` unchanged. Parsing still reads ids from the unlocalized view model.
+ */
+function localizeViewModel(viewModel) {
+  const text = entry => ({...entry, label: localize(entry.label, entry.labelData)});
+  return {
+    ...viewModel,
+    title: localize(viewModel.title),
+    controls: viewModel.controls.map(control => ({...text(control), options: (control.options ?? []).map(text)}))
+  };
+}
+
+function localize(key, data=null) {
+  const i18n = globalThis.game?.i18n;
+  if ( typeof key !== "string" || !i18n ) return key;
+  return data ? i18n.format(key, data) : i18n.localize(key);
+}
 
 function renderPromptContent(viewModel) {
   const controls = viewModel.controls.map(renderControl).join("");

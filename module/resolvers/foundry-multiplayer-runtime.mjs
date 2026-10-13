@@ -374,11 +374,17 @@ function foundryUserTargetRefs(game=globalThis.game) {
  * Report a multiplayer resolution failure to the local user through Foundry's notification UI.
  * This is intentionally minimal - a full chat-card/result surface is a later product milestone.
  */
+const ROLL_REJECTION_CODES = new Set(["INVALID_MANUAL_RESULT", "INVALID_ROLL_RESULT"]);
+
 function notifyMultiplayerFailure(event={}, {logger=globalThis.console}={}) {
   if ( !event?.error ) return;
-  const reason = event.error.reason ?? event.error.code ?? "Action resolution failed.";
+  const reason = event.error.reason ?? event.error.code ?? "";
   if ( typeof globalThis.ui?.notifications?.warn === "function" ) {
-    globalThis.ui.notifications.warn(`Wild Path | ${reason}`);
+    const i18n = globalThis.game?.i18n;
+    const message = ROLL_REJECTION_CODES.has(event.error.code)
+      ? i18n?.localize?.("WILDPATH.NOTIFY.RollRejected")
+      : i18n?.format?.("WILDPATH.NOTIFY.ActionFailed", {reason});
+    globalThis.ui.notifications.warn(message ?? `Wild Path | ${reason}`);
   } else {
     logger?.warn?.("Wild Path | Multiplayer action resolution failed", event.error);
   }
@@ -387,9 +393,10 @@ function notifyMultiplayerFailure(event={}, {logger=globalThis.console}={}) {
 function notifyMultiplayerMovementFailure(event={}, {logger=globalThis.console}={}) {
   const error = event.error ?? event.result ?? null;
   if ( !error ) return;
-  const reason = error.reason ?? error.code ?? "Movement validation failed.";
+  const reason = error.reason ?? error.code ?? "";
   if ( typeof globalThis.ui?.notifications?.warn === "function" ) {
-    globalThis.ui.notifications.warn(`Wild Path | ${reason}`);
+    const message = globalThis.game?.i18n?.format?.("WILDPATH.NOTIFY.MovementFailed", {reason});
+    globalThis.ui.notifications.warn(message ?? `Wild Path | ${reason}`);
   } else {
     logger?.warn?.("Wild Path | Multiplayer movement failed", error);
   }

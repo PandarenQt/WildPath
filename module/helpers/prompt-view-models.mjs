@@ -136,7 +136,8 @@ function rollControl(rollRequest) {
   return {
     id: "roll",
     type: natural ? PROMPT_CONTROL_TYPES.ROLL_NATURAL : PROMPT_CONTROL_TYPES.ROLL_TOTAL,
-    label: natural ? "Natural Roll" : "Roll Total",
+    label: natural ? "WILDPATH.PROMPT.Roll.Natural" : "WILDPATH.PROMPT.Roll.Total",
+    labelData: {formula: formula ?? "?"},
     description: null,
     required: true,
     inputMode,
@@ -165,14 +166,16 @@ function targetListControl(payload, requestType) {
   return {
     id: "targets",
     type: PROMPT_CONTROL_TYPES.TARGET_LIST,
-    label: requestType === RESOLUTION_REQUEST_TYPES.TARGET_REFINEMENT ? "Target Refinement" : "Targets",
+    label: requestType === RESOLUTION_REQUEST_TYPES.TARGET_REFINEMENT ? "WILDPATH.PROMPT.TargetRefinement" : "WILDPATH.PROMPT.Targets",
     description: null,
     required: payload.validation?.required === true || payload.targeting?.required === true,
     min: payload.targeting?.refinementPolicy?.minSelections ?? payload.targeting?.refinementPolicy?.minChoices ?? null,
     max: payload.targeting?.refinementPolicy?.maxSelections ?? payload.targeting?.refinementPolicy?.maxChoices ?? null,
     options: candidates.map((candidate, index) => ({
       id: String(candidate.id ?? candidate.targetId ?? candidate.target?.id ?? `target:${index}`),
-      label: stringOrDefault(candidate.label ?? candidate.name ?? candidate.target?.name ?? candidate.id, `Target ${index + 1}`),
+      // A hidden or unnamed Token is never labelled by its id.
+      label: stringOrDefault(candidate.label ?? candidate.name ?? candidate.target?.name, "WILDPATH.PROMPT.TargetNumber"),
+      labelData: {number: index + 1},
       value: clonePromptData(candidate.target ?? candidate, "target.value"),
       selected: candidate.selected === true || selected.has(String(candidate.id ?? candidate.targetId ?? "")),
       selectable: candidate.selectable !== false && candidate.eligible !== false && candidate.eligibility?.ok !== false,
@@ -203,7 +206,7 @@ function genericControls(payload) {
   return [{
     id: "value",
     type: PROMPT_CONTROL_TYPES.GENERIC,
-    label: stringOrDefault(payload.label, "Choice"),
+    label: stringOrDefault(payload.label, "WILDPATH.PROMPT.Choice"),
     description: stringOrNull(payload.description),
     required: payload.required === true,
     options: [],
@@ -258,11 +261,18 @@ function promptTitle(request) {
       ?? payload.title
       ?? payload.label
       ?? payload.actionLabel
-      ?? request.expectedResponseType
-      ?? request.type,
-    "WildPath Prompt"
+      ?? PROMPT_TITLE_KEYS[request.type],
+    "WILDPATH.PROMPT.Title.Default"
   );
 }
+
+const PROMPT_TITLE_KEYS = Object.freeze({
+  [RESOLUTION_REQUEST_TYPES.ACTION_CONFIGURATION]: "WILDPATH.PROMPT.Title.ActionConfiguration",
+  [RESOLUTION_REQUEST_TYPES.ROLL]: "WILDPATH.PROMPT.Title.Roll",
+  [RESOLUTION_REQUEST_TYPES.TARGET_SELECTION]: "WILDPATH.PROMPT.Title.TargetSelection",
+  [RESOLUTION_REQUEST_TYPES.TARGET_REFINEMENT]: "WILDPATH.PROMPT.Title.TargetRefinement",
+  [RESOLUTION_REQUEST_TYPES.REACTION_CHOICE]: "WILDPATH.PROMPT.Title.ReactionChoice"
+});
 
 function requestRequired(request) {
   if ( request.validation?.required === false ) return false;

@@ -8,6 +8,12 @@
         "Hint": "Choose whether turn movement budgets are counted as scene distance or traversed grid fields.",
         "Distance": "Distance",
         "Fields": "Fields"
+      },
+      "DicePolicy": {
+        "Name": "Dice",
+        "Hint": "How rolls are made at this table. With physical dice, the roller rolls real dice and types in the result.",
+        "Digital": "Digital dice",
+        "Physical": "Physical dice"
       }
     },
     "ABILITIES": {
@@ -38,10 +44,10 @@
     "CHAT": {
       "Outcome": {
         "Hit": "Hit",
-        "Critical": "Critical Hit",
+        "Critical": "Critical hit",
         "Miss": "Miss",
-        "SaveSuccess": "Success",
-        "SaveFailure": "Failure"
+        "SaveSuccess": "Saved",
+        "SaveFailure": "Failed save"
       }
     },
     "CONDITIONS": {
@@ -53,6 +59,33 @@
       "Exhaustion": "Exhaustion",
       "Poisoned": "Poisoned",
       "Bleeding": "Bleeding"
+    },
+    "PROMPT": {
+      "Confirm": "Confirm",
+      "Yes": "Yes",
+      "No": "No",
+      "NoResource": "No resource",
+      "Choice": "Choice",
+      "Targets": "Targets",
+      "TargetRefinement": "Keep these targets",
+      "TargetNumber": "Target {number}",
+      "Roll": {
+        "Natural": "Die result ({formula})",
+        "Total": "Total rolled ({formula})"
+      },
+      "Title": {
+        "Default": "Choose",
+        "ActionConfiguration": "Choose options",
+        "Roll": "Enter your roll",
+        "TargetSelection": "Choose targets",
+        "TargetRefinement": "Adjust targets",
+        "ReactionChoice": "Reaction"
+      }
+    },
+    "NOTIFY": {
+      "RollRejected": "That result is not possible for these dice. Check the roll and enter it again.",
+      "ActionFailed": "The action could not be completed: {reason}",
+      "MovementFailed": "The movement could not be completed: {reason}"
     }
   },
   "TYPES": {

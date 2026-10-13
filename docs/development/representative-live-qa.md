@@ -78,5 +78,5 @@ The gate's runs found five defects. Each is fixed with a Node regression test:
   - physical and manual dice (request/roll gaps);
   - reactions inside an Action (covered by the movement sentinels);
   - the ranged and bonus-action cases (single-client Quench only; their routing is the same as `melee-dice`).
-- **Untranslated dialog title:** the configuration dialog title shows the raw request type
-  `action-configuration`. It needs a localized title (maintainer copy).
+- **Dialog titles:** these runs showed raw request types (`action-configuration`); prompts now carry
+  localized titles and labels.

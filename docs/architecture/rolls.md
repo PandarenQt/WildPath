@@ -141,4 +141,4 @@ through the multiplayer authority coordinator when the expected roller is remote
 (2026-10-13): under the physical policy a Player typed natural 12 (→ 16) and 1d8 = 4 through the real
 prompts; a mistyped 9 was refused, the Player was re-asked, and the chat card showed the authority's
 formulas with the validated totals. Open: the prompt stamps provenance `manual` even under the physical
-policy; prompt titles and validation messages are raw developer text (maintainer copy).
+policy.

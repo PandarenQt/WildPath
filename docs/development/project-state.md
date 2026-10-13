@@ -61,9 +61,9 @@ clients. That run found that the participant result dropped the player's own `gm
 (the player's proof failed); the participant now keeps `gm-only` rolls whose request names the source
 controller as roller. The card layout (Action icon and name header, one row per target with an outcome
 badge, hidden Tokens unnamed) takes its structure from Crucible's action card; no Crucible markup or
-CSS is used (its licence grants no reuse). The `WILDPATH.CHAT.Outcome.*` strings are **placeholders**
-taken from pf2e 8.5.1 (`PF2E.Check.Result.Degree.*`, the same words as Crucible's result types), at
-the maintainer's request, until WildPath's own copy is written (AGENTS §22). Quench: the new
+CSS is used (its licence grants no reuse). The outcome strings are WildPath's own (AGENTS §22 amended
+2026-10-13: functional UI copy is written by the agent, kept in `lang/en.json`, reviewed by the
+maintainer; `test/ui-copy.test.mjs` fails if code uses a `WILDPATH.*` key without copy). Quench: the new
 `wildpath.action-results` batch (public, gm, blind) and the full ten-batch suite ran **53/53** live on
 14.369, orphan check empty.
 
@@ -88,8 +88,7 @@ the save fell back to the GM because target controllers were keyed only by the s
 (`efe50de`), and `anyOf` payment alternatives all had the id `payment-1`, so the Player could not choose
 Slot 2 (`765259f`).
 
-Limits carried forward: the configuration dialog title shows the raw type `action-configuration`
-(needs copy); no third client.
+Limits carried forward: no third client.
 
 **M2 — request and roll gaps (IN PROGRESS).** Done: the GM dice policy (`wildpath.dicePolicy`,
 digital or physical; physical dice go through the roll prompt), total bounds on every roll whose
@@ -99,8 +98,9 @@ Action at `awaiting-roll`). Live-verified in two browsers on 14.369. Target refi
 selection, so the prompt's changes are real decisions (`c9742c8`). Its live case found a damage-routing
 bug: unlinked Tokens of one base Actor shared target-Actor keys, so the kept goblin's hit landed on the
 dropped one (`d96dbcb`, fixed with a Node test and re-verified live). Open: per-roller message modes,
-live concentration, per-target remote save fan-out, failure feedback, physical provenance, and prompt
-titles/messages (maintainer copy).
+live concentration, per-target remote save fan-out, failure feedback and physical provenance. Prompt
+titles, labels, buttons, notifications and the dice setting now have WildPath copy (verified live: "Enter
+your roll", "Die result (1d20 + 4)", "Confirm").
 
 **Authority and disclosure hardening (M0) — CLOSED on 2026-10-13.** A review found that the
 authority trusted more than it could verify: any player could act through an Actor or Item they did
