@@ -82,6 +82,8 @@ import {resolveActorResourcePayment} from "./resource-resolver.mjs";
 import {resolveActionTargets} from "./target-resolver.mjs";
 import {resolveAttackTargets} from "./attack-resolver.mjs";
 import {resolveSaveTargets} from "./save-resolver.mjs";
+import {planConcentrationChecks, resolveConcentrationCheckResults} from "./concentration-resolver.mjs";
+import {planEffectLifecycle} from "./effect-lifecycle-resolver.mjs";
 import {
   REACTION_WINDOW_TIMINGS,
   completeReactionChildResolution,
@@ -102,6 +104,7 @@ export const ACTION_PIPELINE_STAGE_IDS = Object.freeze({
   DAMAGE: "action.damage",
   HEALING: "action.healing",
   EFFECTS: "action.effects",
+  CONCENTRATION: "action.concentration",
   PAYMENT: "action.payment",
   LEGACY_RESOLUTION: "action.legacy-resolution",
   READY_TO_COMMIT: "action.ready-to-commit",
@@ -136,6 +139,7 @@ export function createActionResolutionState({
   healing=null,
   effects=null,
   durability=null,
+  concentration=null,
   reactions=null,
   configuration=null,
   configurationContributions=[],
@@ -182,6 +186,7 @@ export function createActionResolutionState({
       healing,
       effects,
       durability,
+      concentration,
       reactions,
       configuration,
       configurationContributions,
@@ -218,6 +223,7 @@ export function createActionResolutionPipeline({reactions=false}={}) {
     createDamageStage(),
     createHealingStage(),
     createEffectStage(),
+    createConcentrationStage(),
     createPaymentStage(),
     createReadyToCommitStage()
   );
@@ -1532,6 +1538,120 @@ function createEffectStage() {
         }
       });
     }
+  });
+}
+
+/**
+ * A damaged creature that is concentrating checks to keep it (DC from the damage taken; ConcentrationResolver).
+ * Each check is a save rolled by that creature's controller, one after another; a failed check ends every
+ * effect that depends on that concentration in the same transaction as the damage. `input.concentration`
+ * comes from the runtime: `{states, dependents: [{target, effects}], policy}`.
+ */
+function createConcentrationStage() {
+  return createResolutionPipelineStage({
+    id: ACTION_PIPELINE_STAGE_IDS.CONCENTRATION,
+    run(state) {
+      const input = preparedResolverInput(state);
+      const concentration = input.concentration;
+      if ( !concentration?.states || !state.results?.damageResolution ) return continueResolutionStage({state});
+      const planningChecks = planConcentrationChecks({
+        damageResolution: state.results.damageResolution,
+        durabilityResolution: state.results.damageDurabilityResolution ?? null,
+        concentrationStates: concentration.states,
+        policy: concentration.policy ?? {}
+      });
+      if ( !planningChecks.checkRequests.length ) return continueResolutionStage({state});
+
+      let current = state;
+      const rolled = {...(concentration.rolled ?? {})};
+      for ( const [index, check] of planningChecks.checkRequests.entries() ) {
+        if ( rolled[check.id] ) continue;
+        const requestId = requestIdFor(current, `concentration:${index + 1}`);
+        const accepted = getResolutionResponse(current, {requestId, type: RESOLUTION_REQUEST_TYPES.ROLL});
+        const rollRequest = accepted?.request?.payload?.rollRequest ?? concentrationRollRequest(current, check, requestId);
+        if ( !accepted ) return waitResolutionStage({
+          state: updateResolutionState(current, {
+            input: {...input, concentration: {...concentration, rolled}},
+            rollRequests: appendRollRequest(current.rollRequests, rollRequest)
+          }),
+          request: createResolutionRequest({
+            id: rollRequest.id,
+            resolutionId: current.id,
+            stageId: ACTION_PIPELINE_STAGE_IDS.CONCENTRATION,
+            type: RESOLUTION_REQUEST_TYPES.ROLL,
+            expectedResponseType: "roll-result",
+            chooser: rollRequest.chooser,
+            authority: rollRequest.authority,
+            validation: {rollRequestId: rollRequest.id, semanticType: rollRequest.type,
+              requireNatural: rollRequest.expected.requireNatural, formula: rollFormulaForRequest(rollRequest).formula ?? null},
+            payload: {actionDefinitionId: current.actionDefinition?.id ?? null, rollKind: "concentration", rollRequest,
+              targets: [check.target]}
+          }),
+          reason: "A concentration check is required before action resolution can continue."
+        });
+        const normalized = normalizeRollResponseValue(accepted.response.value, {
+          request: rollRequest,
+          completedRequestIds: completedRollRequestIds(current)
+        });
+        if ( !normalized.ok ) return failResolutionStage({
+          state: current,
+          code: normalized.code,
+          reason: normalized.reason,
+          errors: [{code: normalized.code, reason: normalized.reason, requestId, validation: normalized.validation}],
+          data: {requestId, rollRequest, validation: normalized.validation}
+        });
+        rolled[check.id] = {total: normalized.result.total, natural: normalized.result.natural};
+        current = updateResolutionState(current, {
+          rollRequests: appendRollRequest(current.rollRequests, rollRequest),
+          rollResults: [...current.rollResults, {requestId: accepted.request.id, type: "concentration-roll",
+            semanticType: normalized.result.type, rollRequest, rollResult: normalized.result,
+            roll: rollResultToResolverRoll(normalized.result), targetKey: check.targetRef}]
+        });
+      }
+
+      const checks = resolveConcentrationCheckResults({
+        checkRequests: planningChecks.checkRequests,
+        results: planningChecks.checkRequests.map(check => ({requestId: check.id, ...rolled[check.id]}))
+      });
+      const lifecycle = normalizeArray(concentration.dependents).map(dependent => planEffectLifecycle({
+        target: dependent.target,
+        effects: dependent.effects,
+        events: checks.breakEvents
+      }));
+      const mutationPlans = lifecycle.flatMap(entry => entry.mutationPlans ?? []);
+      const planning = ensureActionPlanningResult(current, input);
+      if ( planning.failed ) return planning.failed;
+      const actionResult = addResolutionStep(planning.actionResult, {
+        stage: ACTION_RESOLUTION_STAGES.EFFECTS,
+        consequences: [{type: "concentrationResolved", checks}],
+        mutationPlans,
+        data: {concentration: checks}
+      });
+      return continueResolutionStage({
+        state: stateWithActionResult(current, {
+          input: {...input, concentration: {...concentration, rolled}},
+          actionResult,
+          results: {concentrationResolution: {checks, endedEffects: mutationPlans.length}}
+        }),
+        data: {checkCount: planningChecks.checkRequests.length, endedEffects: mutationPlans.length}
+      });
+    }
+  });
+}
+
+function concentrationRollRequest(state, check, requestId) {
+  // The DC stays on the authority (the chooser projection never sends it); the roller sees a plain save.
+  return createD20RollRequest({
+    id: requestId,
+    resolutionId: state.id,
+    type: ROLL_TYPES.SAVING_THROW,
+    modifier: 0,
+    source: check.target,
+    target: state.source ?? null,
+    chooser: ROLL_AUTHORITY.TARGET_CONTROLLER,
+    authority: {kind: ROLL_AUTHORITY.TARGET_CONTROLLER},
+    expected: {validateTotalFromNatural: false, modifierTotal: null},
+    metadata: {actionDefinitionId: state.actionDefinition?.id ?? null, rollKind: "concentration", ability: check.ability}
   });
 }
 

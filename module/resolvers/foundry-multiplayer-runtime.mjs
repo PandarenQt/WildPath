@@ -513,6 +513,15 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   };
 
   const spatial = buildFoundryActionSpatialContext({sourceToken, targetEntries, game, defenseKey});
+  const concentration = foundryConcentrationContext({targetEntries, game, scene: sourceToken?.parent ?? null});
+  // Holders of effects a broken concentration ends are committed on too; a key another Actor already owns is
+  // ambiguous (copies of one base Actor) and is dropped, so lookups fall through to the holder's uuid.
+  for ( const holder of concentration?.holders ?? [] ) {
+    for ( const key of uniqueStrings([holder.uuid, holder.token?.uuid, holder.id, `actor:${holder.id}`]) ) {
+      if ( targetActors[key] && (targetActors[key] !== holder) ) delete targetActors[key];
+      else targetActors[key] = holder;
+    }
+  }
 
   return {
     ok: true,
@@ -532,6 +541,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       // Rules consume plain effective snapshots; commit retains the exact live (possibly synthetic) Actors.
       durability: {targetSystems},
       configuration: clonePlainData(intent.configuration ?? null, "intent.configuration"),
+      ...(concentration ? {concentration: concentration.input} : {}),
       persistencePort
     },
     requestContext: {
@@ -542,6 +552,49 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       }))
     }
   };
+}
+
+/**
+ * Concentration is derived, not stored: a creature concentrates while some effect names it as its
+ * concentration source (`flags.wildpath.conditionEffect.concentration.sourceRef`, a `token:<id>` or uuid
+ * ref). Scans the Scene's Token Actors and the world's Actors for those effects and returns, for the
+ * targeted creatures that sustain any, the pipeline's `concentration` input plus the holders to commit on.
+ */
+function foundryConcentrationContext({targetEntries=[], game=globalThis.game, scene=null}={}) {
+  const holders = [...new Set([
+    ...collectionContents(scene?.tokens).map(token => token?.actor).filter(Boolean),
+    ...collectionContents(game?.actors)
+  ])];
+  const sustained = new Map();
+  for ( const holder of holders ) for ( const effect of collectionContents(holder.effects) ) {
+    const sourceRef = effect?.flags?.wildpath?.conditionEffect?.concentration?.sourceRef;
+    if ( !sourceRef || effect.disabled ) continue;
+    if ( !sustained.has(sourceRef) ) sustained.set(sourceRef, []);
+    sustained.get(sourceRef).push({holder, effect});
+  }
+  if ( !sustained.size ) return null;
+
+  const states = {};
+  const dependents = [];
+  const usedHolders = new Set();
+  for ( const {actor, hint} of targetEntries ) {
+    const token = targetTokenFor(actor, hint, game);
+    const refs = uniqueStrings([token?.id ? `token:${token.id}` : null, ...targetControllerKeys(actor, hint, game)]);
+    const sourceRef = refs.find(ref => sustained.has(ref));
+    if ( !sourceRef ) continue;
+    const state = {concentrating: true, actorId: actor.id ?? null, actorRef: actor.uuid ?? null, sourceRef};
+    for ( const key of refs ) states[key] = state;
+    for ( const {holder, effect} of sustained.get(sourceRef) ) {
+      usedHolders.add(holder);
+      dependents.push({
+        target: {id: holder.token?.uuid ?? holder.uuid, actorId: holder.id, actorRef: holder.uuid, uuid: holder.uuid},
+        effects: [clonePlainData(effect.toObject?.() ?? effect, "concentration.effect")]
+      });
+    }
+  }
+  if ( !dependents.length ) return null;
+  // WildPath's concentration save is Fortitude; the DC policy is ConcentrationResolver's default.
+  return {input: {states, dependents, policy: {ability: "fortitude", saveKey: "concentration"}}, holders: [...usedHolders]};
 }
 
 /**

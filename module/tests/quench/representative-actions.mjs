@@ -22,7 +22,7 @@ export function registerRepresentativeActionTests(quench) {
       });
 
       async function useAction({definition, ac=1, grid={}, targetCell=[2,1], sourceSystem={}, targetHealth=30,
-        configuration=null}) {
+        configuration=null, prepare=null}) {
         const scene = await fixtures.createScene({name:"Representative",grid});
         const size = scene.grid.size;
         const sourceBase = await fixtures.createActor({name:"Source",system:foundry.utils.mergeObject(
@@ -33,6 +33,7 @@ export function registerRepresentativeActionTests(quench) {
         const target = await fixtures.createToken(scene,targetBase,{name:"Target",
           x:targetCell[0] * size,y:targetCell[1] * size});
         await target.actor.update({"system.defenses.ac.value":ac});
+        const prepared = prepare ? await prepare({scene,target,size}) : null;
         const [action] = await source.actor.createEmbeddedDocuments("Item",[{name:definition.label,type:"action",
           system:{active:true,modifiers:[structuredClone(REPRESENTATIVE_ATTACK_MODIFIER)],definition}}]);
         const built = buildFoundryActionUseIntent({actor:source.actor,action,game});
@@ -53,7 +54,7 @@ export function registerRepresentativeActionTests(quench) {
         const roll = kind => result.rolls.find(entry => entry.type?.includes(kind))?.rollResult ?? null;
         const conditions = () => target.actor.effects.filter(effect => effect.type === "condition")
           .map(effect => effect.system.type);
-        return {record,result,source:source.actor,target:target.actor,roll,conditions};
+        return {record,result,source:source.actor,target:target.actor,roll,conditions,prepared};
       }
 
       it("a melee attack with dice damage commits exactly the rolled damage", async function () {
@@ -109,6 +110,26 @@ export function registerRepresentativeActionTests(quench) {
         const {target,source} = await useAction({definition:REPRESENTATIVE_DEFINITIONS.healing(),targetHealth:10});
         assert.equal(target.system.resources.health.value,18);
         assert.equal(source.system.resources.action.value,0);
+      });
+
+      it("a damaged caster that fails its concentration check ends the effect it sustains", async function () {
+        const definition = {...REPRESENTATIVE_DEFINITIONS.meleeDice(),
+          damage:[{id:"blast",expression:{type:"constant",value:100},damageType:"force",provenance:"weapon-base"}]};
+        const {record,target,prepared} = await useAction({definition,prepare:async ({scene,target,size}) => {
+          const base = await fixtures.createActor({name:"Held",system:{resources:{health:{base:30,value:30}}}});
+          const victim = await fixtures.createToken(scene,base,{name:"Held",x:5 * size,y:5 * size});
+          await victim.actor.createEmbeddedDocuments("ActiveEffect",[{type:"condition",name:"Stunned",statuses:["stunned"],
+            system:{type:"stunned"},flags:{wildpath:{conditionEffect:{conditionId:"stunned",
+              concentration:{required:true,sourceRef:`token:${target.id}`,breakRemovesEffect:true}}}}}]);
+          return {victim};
+        }});
+        // 100 damage makes the DC 50, which no d20 reaches: the check fails deterministically.
+        const check = record.state.rollResults.find(entry => entry.type === "concentration-roll");
+        assert.exists(check,"the damaged caster rolled a concentration check");
+        assert.equal(record.state.results.concentrationResolution.checks.breakEvents.length,1);
+        assert.equal(target.system.resources.health.value,0);
+        assert.deepEqual(prepared.victim.actor.effects.filter(effect => effect.type === "condition").map(e => e.system.type),[],
+          "the Stun it sustained ended with the damage");
       });
 
       it("a configuration choice scales the damage dice and spends the chosen slot", async function () {

@@ -59,6 +59,24 @@ signal shape.
 For the adapter-facing path that immediately commits resulting lifecycle removals, see
 `docs/architecture/concentration-check-commit-resolver.md`.
 
+## Live Action integration
+
+The action pipeline's `action.concentration` stage (after effects, before payment) uses this resolver
+on every damaging Action:
+
+- `planConcentrationChecks()` runs over the stage's adjusted damage. The DC is `max(10, floor(damage/2))`
+  and the save is WildPath's Fortitude.
+- Each check is a save rolled by the damaged creature's controller, one request after another
+  (`concentration:1`, …). The DC stays on the authority; the roller sees a plain save.
+- `resolveConcentrationCheckResults()` turns a failed check into `concentration.broken`.
+- `planEffectLifecycle()` ends every dependent effect in the same transaction as the damage.
+
+Concentration is derived, not stored: the Foundry runtime scans the Scene's Token Actors and the world's
+Actors for effects whose `flags.wildpath.conditionEffect.concentration.sourceRef` names a targeted
+creature (`token:<id>` or uuid). It passes the states and dependents, and registers the holders for the
+commit. Live: a 100-damage hit (DC 50) broke a caster's concentration, and the Stun it sustained on a
+third creature ended in the same commit (`wildpath.representative-actions`).
+
 ## What It Does Not Do Yet
 
 ConcentrationResolver does not:

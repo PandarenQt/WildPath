@@ -340,7 +340,10 @@ function normalizeConcentrationBreak(value) {
 function normalizeTargetRef(target) {
   if ( !target ) return null;
   const ref = normalizeRef(target);
-  if ( ref ) return {ref, id: refId(ref), actorId: ref.startsWith("actor:") ? refId(ref) : target.actorId ?? null};
+  // Keep the Token-level identity: an unlinked Token's `actor:<id>` ref is shared by every copy of its base Actor.
+  if ( ref ) return {ref, id: refId(ref), actorId: ref.startsWith("actor:") ? refId(ref) : target.actorId ?? null,
+    ...(typeof target === "object" ? {uuid: target.uuid ?? null, actorRef: target.actorRef ?? null,
+      tokenId: target.tokenId ?? target.token?.id ?? null} : {})};
   if ( typeof target !== "object" ) return null;
   return {
     ref: normalizeRef(target.ref ?? target),

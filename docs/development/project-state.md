@@ -11,7 +11,7 @@ Last verified: 2026-10-13.
 - Movement implementation commit: `87ed1fae93271b81b14432bb4312be9cd53285c5`.
 - Original milestone starting HEAD: `ea484fd8b503697ddf1c2b7b0f6984ea594378e2`.
 - Local main HEAD: `61d6268b838e286728c829924506c6c931174621`.
-- Portable full suite (`FOUNDRY_V14_APP_PATH` unset): **901 tests, 899 passed, 0 failed, 2 intentionally skipped**.
+- Portable full suite (`FOUNDRY_V14_APP_PATH` unset): **910 tests, 908 passed, 0 failed, 2 intentionally skipped**.
 - M2 delta from 893/891/0/2: **6 new tests** (dice policy context and provider choice, re-prompt on a
   rejected answer, total bounds, prompt bounds, entered rolls on the card).
 - Representative-gate delta from 889/887/0/2: **4 new tests** (save routed to the target's Player,
@@ -90,20 +90,28 @@ Slot 2 (`765259f`).
 
 Limits carried forward: no third client.
 
-**M2 — request and roll gaps (IN PROGRESS).** Done: the GM dice policy (`wildpath.dicePolicy`,
-digital or physical; physical dice go through the roll prompt), total bounds on every roll whose
-formula is complete (any damage total was accepted before, including 999 or negative), entered rolls
-on the chat card, and a re-prompt when the rules reject a typed answer (a typo used to strand the
-Action at `awaiting-roll`). Live-verified in two browsers on 14.369. Target refinement now starts from the authority's default
-selection, so the prompt's changes are real decisions (`c9742c8`). Its live case found a damage-routing
-bug: unlinked Tokens of one base Actor shared target-Actor keys, so the kept goblin's hit landed on the
-dropped one (`d96dbcb`, fixed with a Node test and re-verified live). Open: per-roller message modes,
-live concentration. Done since: per-target save fan-out (`702e8d8`, live with a Player and the GM
-each rolling their own creature's save); physical provenance, per-roller
-message mode for saves (live: a Player's public save is on the card), failure feedback decided (a private
-notification, never a public card). Prompt
-titles, labels, buttons, notifications and the dice setting now have WildPath copy (verified live: "Enter
-your roll", "Die result (1d20 + 4)", "Confirm").
+**M2 — request and roll gaps (CLOSED 2026-10-14).** Everything below is live-verified on 14.369, in two
+browsers unless marked Quench.
+
+- **Dice policy:** `wildpath.dicePolicy` chooses digital or physical dice (GM-controlled). Physical dice go
+  through the roll prompt and keep `physical` provenance.
+- **Roll bounds:** every roll whose formula is complete is bounded; before this, any damage total was
+  accepted, including 999 or a negative number. A rejected typed answer is notified and asked again;
+  a typo used to strand the Action at `awaiting-roll`.
+- **Chat card:** entered rolls appear on the card with the authority's formula and the validated total.
+- **Target refinement:** the prompt starts from the authority's default selection (`c9742c8`). Its live
+  case found that unlinked Tokens of one base Actor shared target-Actor keys, so the kept goblin's hit
+  landed on the dropped one (`d96dbcb`).
+- **Per-target saves:** each creature's controller rolls its own save (`702e8d8`).
+- **Per-roller message mode:** saves follow the roller's message mode (a Player's public save is on the
+  card).
+- **Concentration:** a new `action.concentration` stage checks each damaged, concentrating creature (a save
+  by its controller, DC from the damage), and a failure ends the effects it sustains in the same
+  transaction. Concentration is derived from effects' `concentration.sourceRef`, so there is no schema
+  change (Quench).
+- **Failure feedback:** a failed Action is reported by private notification, never a public card.
+- **UI copy:** prompts, buttons, notifications and the dice setting have WildPath copy ("Enter your roll",
+  "Die result (1d20 + 4)", "Confirm").
 
 **Authority and disclosure hardening (M0) — CLOSED on 2026-10-13.** A review found that the
 authority trusted more than it could verify: any player could act through an Actor or Item they did

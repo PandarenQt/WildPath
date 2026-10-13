@@ -165,6 +165,7 @@ test("ActionPipeline plans a complete action without waiting and records expecte
     ACTION_PIPELINE_STAGE_IDS.DAMAGE,
     ACTION_PIPELINE_STAGE_IDS.HEALING,
     ACTION_PIPELINE_STAGE_IDS.EFFECTS,
+    ACTION_PIPELINE_STAGE_IDS.CONCENTRATION,
     ACTION_PIPELINE_STAGE_IDS.PAYMENT,
     ACTION_PIPELINE_STAGE_IDS.READY_TO_COMMIT
   ]);
@@ -604,6 +605,42 @@ test("each target rolls its own save, routed one after another, and gets its own
   const damage = Object.fromEntries(done.state.results.damageResolution.results.map(entry => [entry.target.id, entry.total]));
   assert.deepEqual(damage, {orc: 5, goblin: 10}, "half for the orc's success, full for the goblin's failure");
   assert.equal(done.state.rollResults.filter(entry => entry.type === "save-roll").length, 2);
+});
+
+test("a concentrating creature that is damaged checks to keep it, and a failure ends the effects it sustains", () => {
+  const plan = id => planStagedActionResolution({
+    id,
+    actorSystem: actorSystem(1),
+    action: legacyAction(),
+    source: {actorId: "actor-source"},
+    targets: [target("caster")],
+    damage: {components: [{id: "bolt", amount: 22, damageType: "fire"}]},
+    concentration: {
+      states: {caster: {concentrating: true, actorId: "actor-caster", sourceRef: "token:token-caster"}},
+      dependents: [{target: {id: "victim", actorId: "actor-victim"}, effects: [{id: "held", type: "condition",
+        system: {type: "stunned"}, flags: {wildpath: {conditionEffect: {conditionId: "stunned",
+          concentration: {required: true, sourceRef: "token:token-caster", breakRemovesEffect: true}}}}}]}]
+    }
+  });
+  const answer = (state, natural) => {
+    const request = state.pendingRequests[0];
+    return resumeStagedActionResolution({state, response: {resolutionId: state.id, requestId: request.id,
+      type: RESOLUTION_REQUEST_TYPES.ROLL, value: {requestId: request.payload.rollRequest.id, resolutionId: state.id,
+        type: request.payload.rollRequest.type, natural, total: natural}}});
+  };
+  const waiting = plan("resolution:concentration-break");
+  const request = waiting.state.pendingRequests[0];
+  assert.equal(request.payload.rollKind, "concentration");
+  assert.equal(request.payload.rollRequest.source.id, "caster", "the damaged caster's controller rolls");
+  assert.equal(request.payload.rollRequest.dc, null, "the DC (11 for 22 damage) stays on the authority");
+  const broken = answer(waiting.state, 2);
+  assert.equal(broken.ok, true, JSON.stringify(broken.state.errors));
+  const ended = broken.state.mutationPlans.filter(entry => entry.type === "conditionEffect");
+  assert.equal(ended.length, 1, "the stun it sustained ends with the damage");
+  assert.equal(broken.state.results.concentrationResolution.checks.breakEvents.length, 1);
+  const kept = answer(plan("resolution:concentration-kept").state, 19);
+  assert.equal(kept.state.mutationPlans.filter(entry => entry.type === "conditionEffect").length, 0);
+  assert.equal(kept.state.results.concentrationResolution.checks.maintained.length, 1);
 });
 
 test("ActionPipeline preserves transaction rollback when commit fails after target mutation", async () => {

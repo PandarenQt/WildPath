@@ -248,3 +248,15 @@ test("EffectLifecycleResolver deduplicates duration and concentration removal in
     EFFECT_LIFECYCLE_REASONS.CONCENTRATION_BROKEN
   ]);
 });
+
+test("lifecycle plans keep a Token's identity, not just the base Actor id its copies share", () => {
+  const result = planEffectLifecycle({
+    target: {id: "Scene.s.Token.v1", actorId: "base", actorRef: "Scene.s.Token.v1.Actor.base", uuid: "Scene.s.Token.v1.Actor.base", tokenId: "v1"},
+    effects: [{id: "held", type: "condition", system: {type: "stunned"}, flags: {wildpath: {conditionEffect: {
+      conditionId: "stunned", concentration: {required: true, sourceRef: "token:caster", breakRemovesEffect: true}}}}}],
+    events: [{type: "concentration.broken", ref: "token:caster", sourceRef: "token:caster"}]
+  });
+  assert.equal(result.mutationPlans.length, 1);
+  assert.equal(result.mutationPlans[0].target.uuid, "Scene.s.Token.v1.Actor.base");
+  assert.equal(result.mutationPlans[0].target.tokenId, "v1");
+});

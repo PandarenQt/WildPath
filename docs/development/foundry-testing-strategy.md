@@ -90,9 +90,9 @@ failures. WildPath neither patches Quench nor suppresses compatibility warnings.
 ## Registration and fixtures
 
 `wildpath.mjs` imports only `module/tests/quench/index.mjs` for this layer. That file owns the single
-`quenchReady` subscription and registers exactly eleven batches (60 cases, **60/60 live** on Foundry
-14.369 on 2026-10-13, including the 4-case `wildpath.multiplayer-disclosure`, 3-case
-`wildpath.action-results` and 7-case `wildpath.representative-actions` batches; orphan check empty).
+`quenchReady` subscription and registers exactly eleven batches (61 cases, **61/61 live** on Foundry
+14.369 on 2026-10-14, including the 4-case `wildpath.multiplayer-disclosure`, 3-case
+`wildpath.action-results` and 8-case `wildpath.representative-actions` batches; orphan check empty).
 Batch modules do
 not add registration hooks. When batches are started programmatically (`quench.runBatches`), render
 the Quench results window first (`quench.app.render({force: true})`); otherwise Quench's reporter
@@ -121,8 +121,9 @@ is not a WildPath failure.
 (`CODEX.md` §28) through the real runtime, real Documents and the real digital RollProvider on a marked
 Scene: melee with 1d8 damage (HP drops by exactly the rolled total), ranged at 45 ft (`normal`) and
 90 ft (`long`), a bonus-action cost (bonus spent, action kept), a trip (Prone on a hit, nothing on a
-miss), a save for half with Poisoned on failure (DC +100 / -100), constant healing, and a resource
-configuration choice that adds a die and spends the chosen spell slot. Its first live runs found two
+miss), a save for half with Poisoned on failure (DC +100 / -100), constant healing, a resource
+configuration choice that adds a die and spends the chosen spell slot, and a damaged caster whose failed
+concentration check (DC 50) ends the Stun it sustains on a third creature. Its first live runs found two
 persistence defects at the Foundry boundary, both fixed with Node regression tests: dotted resource
 keys in persisted definitions are expanded by Foundry, and V14 silently drops ArrayField element
 update paths such as `system.pools.1.value`.
