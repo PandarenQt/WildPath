@@ -170,21 +170,29 @@ export function recipientMatchesEnvelope(envelope, userId) {
 
 /* -------------------------------------------- */
 
+/**
+ * Default-deny projection of a client-declared intent: only the stable refs and movement facts the
+ * authority's resolvers read cross the broadcast bus. Adding a field to an intent never publishes it.
+ */
+const ACTION_INTENT_KEYS = Object.freeze([
+  "intentId", "resolutionId", "resolutionKind",
+  "actorRef", "actorUuid", "actionRef", "actionUuid", "itemRef", "itemId", "tokenId", "tokenRef", "configuration",
+  "schemaVersion", "movementId", "sceneRef", "sourceUserId", "origin", "destination", "waypoints", "movementKind",
+  "movementMode", "tokenOperationType", "foundry"
+]);
+const INTENT_SOURCE_KEYS = Object.freeze(["actorRef", "uuid", "tokenId", "tokenRef", "sceneId"]);
+const INTENT_TARGET_KEYS = Object.freeze(["actorRef", "uuid", "actorUuid", "actorId", "id", "tokenId", "sceneId"]);
+
 export function sanitizeActionIntentPayload(payload={}) {
   const intent = clonePlainData(payload.intent ?? payload, "actionIntent") ?? {};
-  const sanitized = {...intent};
-  delete sanitized.state;
-  delete sanitized.resolutionState;
-  delete sanitized.mutationPlans;
-  delete sanitized.transaction;
-  delete sanitized.rollResults;
-  delete sanitized.results;
-  delete sanitized.resolvedPreview;
-  delete sanitized.paymentPlan;
-  delete sanitized.damage;
-  delete sanitized.healing;
-  delete sanitized.effects;
-  return sanitized;
+  const projected = pick(intent, ACTION_INTENT_KEYS);
+  if ( intent.source && typeof intent.source === "object" ) projected.source = pick(intent.source, INTENT_SOURCE_KEYS);
+  for ( const key of ["targetRefs", "targets"] ) {
+    if ( intent[key] === undefined ) continue;
+    projected[key] = normalizeArray(intent[key])
+      .map(ref => ref && typeof ref === "object" ? pick(ref, INTENT_TARGET_KEYS) : ref);
+  }
+  return projected;
 }
 
 /* -------------------------------------------- */
@@ -193,11 +201,6 @@ export function sanitizeActionIntentPayload(payload={}) {
  * Keys never sent to a chooser at the top level of a pending request payload: they describe the
  * authority's state, other actors, or hidden numbers the chooser does not need in order to answer.
  */
-const CHOOSER_PAYLOAD_DENYLIST = Object.freeze([
-  "state", "resolutionState", "mutationPlans", "transaction", "rollResults", "results",
-  "targetSystems", "actorSystem", "actorSystems", "dc", "defense", "defenses"
-]);
-
 /** The only keys of a source/target entry that a remote chooser or an unrelated client may see. */
 const PUBLIC_REF_KEYS = Object.freeze([
   "id", "actorId", "actorRef", "uuid", "tokenId", "tokenRef", "actionRef", "itemRef", "slug", "name", "label"
@@ -210,26 +213,70 @@ export function projectEntityRefForDisclosure(value) {
 
 /**
  * A roller needs the request identity, the dice definition, modifiers, expectations, and stable refs.
- * It never needs the target's defenses, the DC, or roll data resolved on the authority.
+ * It never needs the target's defenses, the DC, roll data resolved on the authority, or metadata such
+ * as a concentration check request (which carries its DC).
  */
+const ROLL_REQUEST_CHOOSER_KEYS = Object.freeze([
+  "schemaVersion", "id", "resolutionId", "type", "formula", "definition", "modifiers", "rollMode", "visibility",
+  "chooser", "authority", "provenance", "expected"
+]);
+const ROLL_METADATA_CHOOSER_KEYS = Object.freeze(["rollKind", "d20", "providerId"]);
+
 export function projectRollRequestForChooser(rollRequest) {
   const data = clonePlainData(rollRequest, "rollRequest");
   if ( !data || typeof data !== "object" ) return data ?? null;
-  const {target, dc, data: rollData, source, ...rest} = data;
   return {
-    ...rest,
-    source: projectEntityRefForDisclosure(source),
-    target: projectEntityRefForDisclosure(target)
+    ...pick(data, ROLL_REQUEST_CHOOSER_KEYS),
+    metadata: pick(data.metadata ?? {}, ROLL_METADATA_CHOOSER_KEYS),
+    source: projectEntityRefForDisclosure(data.source),
+    target: projectEntityRefForDisclosure(data.target)
   };
 }
 
+const TARGET_CANDIDATE_FLAG_KEYS = Object.freeze(["targetId", "selected", "selectable", "eligible", "disposition", "kind"]);
+const TARGET_POLICY_CHOOSER_KEYS = Object.freeze(["minSelections", "maxSelections", "minChoices", "maxChoices"]);
+
+function projectTargetCandidateForChooser(candidate) {
+  if ( !candidate || typeof candidate !== "object" ) return null;
+  return {
+    ...projectEntityRefForDisclosure(candidate),
+    ...pick(candidate, TARGET_CANDIDATE_FLAG_KEYS),
+    ...(candidate.eligibility ? {eligibility: {ok: candidate.eligibility.ok !== false}} : {}),
+    ...(candidate.target ? {target: projectEntityRefForDisclosure(candidate.target)} : {})
+  };
+}
+
+/**
+ * Default-deny chooser payloads: each request type sends only what the chooser-side prompt, roll
+ * provider, and response validation read. Unknown request types send nothing.
+ */
 export function projectPendingRequestPayloadForChooser(type, payload) {
-  const data = clonePlainData(payload ?? {}, "pendingRequest.payload") ?? {};
-  for ( const key of CHOOSER_PAYLOAD_DENYLIST ) delete data[key];
-  if ( type === "roll" && data.rollRequest !== undefined ) data.rollRequest = projectRollRequestForChooser(data.rollRequest);
-  // The event snapshot carries every observer's relation and context; the prompt renders only options.
-  if ( type === "reaction-choice" ) delete data.event;
-  return data;
+  const data = payload ?? {};
+  switch ( type ) {
+    case RESOLUTION_REQUEST_TYPES.ROLL:
+      return {rollRequest: projectRollRequestForChooser(data.rollRequest ?? null)};
+    case RESOLUTION_REQUEST_TYPES.TARGET_SELECTION:
+    case RESOLUTION_REQUEST_TYPES.TARGET_REFINEMENT: {
+      const targeting = data.targeting ?? {};
+      return {
+        candidates: normalizeArray(data.candidates ?? data.targetSet?.candidates)
+          .map(projectTargetCandidateForChooser).filter(Boolean),
+        targeting: {
+          required: targeting.required === true,
+          decisions: normalizeArray(targeting.decisions)
+            .map(decision => ({operation: decision?.operation ?? null, targetId: decision?.targetId ?? null})),
+          refinementPolicy: pick(targeting.refinementPolicy ?? {}, TARGET_POLICY_CHOOSER_KEYS)
+        }
+      };
+    }
+    case RESOLUTION_REQUEST_TYPES.REACTION_CHOICE:
+      // Candidates are already request-safe (reaction-resolver requestSafeCandidate); the event is not sent.
+      return pick(data, ["candidates", "options"]);
+    case RESOLUTION_REQUEST_TYPES.ACTION_CONFIGURATION:
+      return pick(data, ["requests"]);
+    default:
+      return {};
+  }
 }
 
 export function sanitizePendingRequestForTransport(request, {expectedChooserUserId=null, authority=null}={}) {
@@ -245,7 +292,7 @@ export function sanitizePendingRequestForTransport(request, {expectedChooserUser
     validation: clonePlainData(data.validation ?? {}, "pendingRequest.validation") ?? {},
     payload: projectPendingRequestPayloadForChooser(stringOrNull(data.type), data.payload),
     metadata: {
-      ...(clonePlainData(data.metadata ?? {}, "pendingRequest.metadata") ?? {}),
+      ...pick(data.metadata ?? {}, ["title", "required", "promptPortId"]),
       multiplayer: {
         expectedChooserUserId: stringOrNull(expectedChooserUserId),
         authority: clonePlainData(authority ?? null, "pendingRequest.metadata.multiplayer.authority")
@@ -312,17 +359,49 @@ export function sanitizeResolutionResultForTransport({state=null, result=null, a
 /* -------------------------------------------- */
 
 /**
- * Explicit result projections. The sanitized result is Document-free but not disclosure-safe: it
- * carries target defenses, DCs, the initiator's payment, committed mutation values, and the effective
- * action definition. The PARTICIPANT_PRIVATE projection is that full sanitized result, tagged. The
- * BROADCAST_SAFE projection is an allow-list of what any connected client may learn: identity,
- * status, per-target attack/save outcome, movement outcome, and public-visibility roll totals.
+ * Explicit, default-deny result projections. The sanitized result is Document-free but not
+ * disclosure-safe: it carries target defenses, DCs, the initiator's payment, committed mutation values,
+ * the trace, and the effective action definition; those stay on the authority.
+ * - BROADCAST_SAFE: what any connected client may learn: identity, status, per-target attack/save
+ *   outcome, movement outcome, and public-visibility roll totals.
+ * - PARTICIPANT_PRIVATE (the initiator): the public projection plus the full roll results of every
+ *   roll that is not GM-only or blind.
  */
+const HIDDEN_FROM_PARTICIPANT_ROLL_VISIBILITY = Object.freeze(["gm-only", "blind"]);
+const MOVEMENT_OUTCOME_KEYS = Object.freeze([
+  "completedTransitionCount", "intendedTransitionCount", "cumulativeCost", "stopped", "reason", "committed"
+]);
+const FOOTPRINT_KEYS = Object.freeze(["type", "topology", "size", "anchor", "fields", "fieldKeys"]);
+
 export function projectResolutionResultForDisclosure(result, classification) {
   const disclosure = normalizeDisclosure(classification);
   if ( !disclosure ) throw new TypeError("Resolution result projection requires a disclosure classification.");
   const data = clonePlainData(result ?? {}, "resolutionResult") ?? {};
-  if ( disclosure !== DISCLOSURE_CLASSIFICATIONS.BROADCAST_SAFE ) return {...data, disclosure};
+  const publicResult = projectPublicResolutionResult(data);
+  if ( disclosure === DISCLOSURE_CLASSIFICATIONS.BROADCAST_SAFE ) return {...publicResult, disclosure};
+  return {
+    ...publicResult,
+    rolls: normalizeArray(data.rolls)
+      .filter(entry => !HIDDEN_FROM_PARTICIPANT_ROLL_VISIBILITY.includes(entry?.visibility))
+      .map(entry => clonePlainData({
+        requestId: entry.requestId ?? null,
+        type: entry.type ?? null,
+        visibility: entry.visibility ?? null,
+        rollResult: entry.rollResult ?? null
+      }, "resolutionResult.rolls")),
+    disclosure
+  };
+}
+
+function projectMovementOutcome(movement) {
+  if ( !movement || typeof movement !== "object" ) return null;
+  return {
+    ...pick(movement, MOVEMENT_OUTCOME_KEYS),
+    ...(movement.footprint ? {footprint: pick(movement.footprint, FOOTPRINT_KEYS)} : {})
+  };
+}
+
+function projectPublicResolutionResult(data) {
   return clonePlainData({
     resolutionId: data.resolutionId ?? null,
     status: data.status ?? null,
@@ -336,7 +415,7 @@ export function projectResolutionResultForDisclosure(result, classification) {
     outcomes: {
       attack: projectContestOutcome(data.outcomes?.attack, ["hit", "critical", "outcome"]),
       save: projectContestOutcome(data.outcomes?.save, ["success", "critical", "outcome"]),
-      movement: data.outcomes?.movement ?? null
+      movement: projectMovementOutcome(data.outcomes?.movement)
     },
     rolls: normalizeArray(data.rolls)
       .filter(entry => entry?.visibility === "public")
@@ -346,8 +425,7 @@ export function projectResolutionResultForDisclosure(result, classification) {
         visibility: entry.visibility,
         natural: entry.rollResult?.natural ?? null,
         total: entry.rollResult?.total ?? null
-      })),
-    disclosure
+      }))
   }, "resolutionResult.broadcast");
 }
 
@@ -363,14 +441,17 @@ function projectContestOutcome(outcome, keys) {
 }
 
 /**
- * Error diagnostics on the wire keep only scalar values. Nested failure objects can carry the
- * request, the local ResolutionState, or provider input that must never leave the client.
+ * Error diagnostics on the wire are default-deny: code and reason travel in the envelope itself, and
+ * `data` keeps only the resolution status. Failure objects can carry the request, the local
+ * ResolutionState, provider input, or scalar secrets; the sender's local error log keeps them.
  */
+const ERROR_DATA_TRANSPORT_KEYS = Object.freeze(["status"]);
+
 export function sanitizeResolutionErrorDataForTransport(data) {
   if ( !data || typeof data !== "object" || Array.isArray(data) ) return {};
-  return Object.fromEntries(Object.entries(data)
-    .filter(([, value]) => value === null || ["string", "number", "boolean"].includes(typeof value))
-    .map(([key, value]) => [key, typeof value === "string" ? value.slice(0, 1024) : value]));
+  return Object.fromEntries(ERROR_DATA_TRANSPORT_KEYS
+    .filter(key => typeof data[key] === "string")
+    .map(key => [key, data[key].slice(0, 64)]));
 }
 
 export function normalizeAuthorityUsers(users, {activeGMUserId=null}={}) {
@@ -671,6 +752,13 @@ function refsMatch(left, right) {
 
 function normalizeRef(value) {
   return stringOrNull(value)?.replace(/^User[.]/, "") ?? null;
+}
+
+/** Copy only the listed own keys, as detached plain data. */
+function pick(value, keys) {
+  if ( !value || typeof value !== "object" ) return {};
+  return Object.fromEntries(keys.filter(key => value[key] !== undefined)
+    .map(key => [key, clonePlainData(value[key], key)]));
 }
 
 function failure(code, reason, data={}) {

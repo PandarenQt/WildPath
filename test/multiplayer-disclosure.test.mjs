@@ -10,6 +10,7 @@ import {
   isPlainSerializableData,
   projectResolutionResultForDisclosure,
   projectRollRequestForChooser,
+  sanitizeActionIntentPayload,
   sanitizePendingRequestForTransport,
   sanitizeResolutionErrorDataForTransport,
   validateResolutionSocketEnvelope
@@ -25,6 +26,7 @@ import {
   selectDisclosureTransport
 } from "../module/helpers/multiplayer-disclosure.mjs";
 import {RESOLUTION_REQUEST_TYPES, RESOLUTION_STATE_STATUS} from "../module/helpers/resolution-state.mjs";
+import {createPromptViewModel} from "../module/helpers/prompt-view-models.mjs";
 import {createTestDocumentPersistenceAdapter} from "../module/adapters/test-persistence-adapter.mjs";
 import {createTestResolutionTransportHub} from "../module/adapters/test-resolution-transport.mjs";
 import {createDisclosureRoutedTransport} from "../module/adapters/disclosure-routed-transport.mjs";
@@ -387,6 +389,14 @@ test("11. private roll request contents never appear in recorded broadcast envel
   }
   const pending = f.hub.targetedMessages.find(m => m.envelope.messageType === M.PENDING_REQUEST);
   assert.equal(pending.recipientUserId, "player-a");
+  // Anywhere in the chooser's envelope: the attack, targets and targeting objects are not sent at all.
+  for ( const entry of f.hub.targetedMessages.filter(m => m.envelope.messageType === M.PENDING_REQUEST) ) {
+    const pendingText = JSON.stringify(entry.envelope);
+    for ( const marker of ['"defense":', '"defenses":', '"dc":'] ) {
+      assert.equal(pendingText.includes(marker), false, `a chooser payload must not contain ${marker}`);
+    }
+  }
+  assert.deepEqual(Object.keys(pending.envelope.payload.request.payload), ["rollRequest"]);
   const rollRequest = pending.envelope.payload.request.payload.rollRequest;
   assert.equal(rollRequest.type, "attack");
   assert.equal(rollRequest.dc, undefined);
@@ -412,8 +422,11 @@ test("13. result traffic still works: the initiator gets the participant project
   assert.equal(initiator.status, RESOLUTION_STATE_STATUS.COMPLETED);
   assert.equal(initiator.rolls[0].rollResult.total, 22);
   assert.equal(initiator.outcomes.attack.results[0].hit, true);
-  assert.equal(initiator.outcomes.attack.results[0].defense.value, 12);
-  assert.ok(initiator.committedMutations, "the initiator keeps the full sanitized result");
+  // Default-deny: target defenses, mutations, preview and trace stay on the authority.
+  assert.equal(initiator.outcomes.attack.results[0].defense, undefined);
+  assert.equal(initiator.committedMutations, undefined);
+  assert.equal(initiator.preview, undefined);
+  assert.equal(initiator.trace, undefined);
 
   const unrelated = f.playerB.getResult(INTENT.resolutionId);
   assert.equal(unrelated.disclosure, D.BROADCAST_SAFE);
@@ -701,7 +714,7 @@ function sampleResult() {
   };
 }
 
-test("result projection: BROADCAST_SAFE is an allow-list; PARTICIPANT_PRIVATE is the tagged full result", () => {
+test("result projection: both BROADCAST_SAFE and PARTICIPANT_PRIVATE are allow-lists", () => {
   const sample = sampleResult();
   const publicResult = projectResolutionResultForDisclosure(sample, D.BROADCAST_SAFE);
   assert.deepEqual(publicResult, {
@@ -718,18 +731,29 @@ test("result projection: BROADCAST_SAFE is an allow-list; PARTICIPANT_PRIVATE is
     disclosure: D.BROADCAST_SAFE
   });
   const participant = projectResolutionResultForDisclosure(sample, D.PARTICIPANT_PRIVATE);
-  assert.deepEqual(participant, {...sample, disclosure: D.PARTICIPANT_PRIVATE});
+  // The initiator sees the public projection plus full roll results, except GM-only and blind rolls.
+  const {disclosure: _public, ...publicFields} = publicResult;
+  assert.deepEqual(participant, {
+    ...publicFields,
+    rolls: [
+      {requestId: "r1", type: "attack", visibility: "public", rollResult: {natural: 18, total: 22, terms: [{faces: 20}]}},
+      {requestId: "r3", type: "damage", visibility: "system", rollResult: {total: 9}}
+    ],
+    disclosure: D.PARTICIPANT_PRIVATE
+  });
   assert.notStrictEqual(participant.outcomes, sample.outcomes, "projections are detached copies");
+  for ( const hidden of ["committedMutations", "trace", "preview", "configuration"] ) assert.equal(participant[hidden], undefined, hidden);
   assert.throws(() => projectResolutionResultForDisclosure(sample, null), /requires a disclosure classification/);
   assert.throws(() => projectResolutionResultForDisclosure(sample, "everyone"), /requires a disclosure classification/);
   assert.equal(isPlainSerializableData(publicResult), true);
 });
 
-test("chooser minimization: roll requests lose target defenses, DC and roll data; payload denylist keys are stripped", () => {
+test("chooser minimization: per-request-type allow-lists send only what the chooser reads", () => {
   const rollRequest = {
     id: "r1", resolutionId: "res", type: "attack", formula: "1d20+4", rollMode: "normal",
     definition: {dice: [{id: "d20", number: 1, faces: 20}]}, modifiers: [{id: "m", value: 4}], expected: {primaryDieFaces: 20},
-    metadata: {rollKind: "attack"}, chooser: {kind: "specific", userId: "player-a"}, authority: {kind: "specific", userId: "player-a"},
+    metadata: {rollKind: "attack", checkRequest: {dc: {value: 14}}, defenseKey: "ac"},
+    chooser: {kind: "specific", userId: "player-a"}, authority: {kind: "specific", userId: "player-a"},
     source: {actorId: "a", actorRef: "Actor.a", tokenId: "t", actorSystem: {resources: {}}},
     target: {id: "enemy", actorId: "e", actorRef: "Actor.e", uuid: "Actor.e", name: "Goblin", defense: {value: 12}, defenses: {ac: {value: 12}}},
     dc: {value: 15}, data: {mod: 4}
@@ -742,6 +766,7 @@ test("chooser minimization: roll requests lose target defenses, DC and roll data
   assert.deepEqual(projected.definition, rollRequest.definition);
   assert.deepEqual(projected.modifiers, rollRequest.modifiers);
   assert.equal(projected.chooser.userId, "player-a");
+  assert.deepEqual(projected.metadata, {rollKind: "attack"}, "roll metadata is allow-listed (a concentration DC never travels)");
   assert.equal(projectRollRequestForChooser(null), null);
 
   const sanitized = sanitizePendingRequestForTransport({
@@ -749,7 +774,7 @@ test("chooser minimization: roll requests lose target defenses, DC and roll data
     chooser: {kind: "specific", userId: "player-a"}, validation: {required: true},
     payload: {rollRequest, state: {secret: true}, dc: 15, defenses: {ac: 12}, targetSystems: {}, label: "Attack roll"}
   }, {expectedChooserUserId: "player-a"});
-  assert.deepEqual(Object.keys(sanitized.payload).sort(), ["label", "rollRequest"]);
+  assert.deepEqual(Object.keys(sanitized.payload).sort(), ["rollRequest"]);
   assert.equal(sanitized.payload.rollRequest.target.defenses, undefined);
   assert.equal(sanitized.metadata.multiplayer.expectedChooserUserId, "player-a");
 
@@ -757,28 +782,143 @@ test("chooser minimization: roll requests lose target defenses, DC and roll data
     payload: {candidates: [{id: "cand"}], options: [{id: "use"}], state: {secret: true},
       event: {id: "e", data: {relations: {otherObserver: {leavesReach: true, context: {hostile: true}}}}}}});
   assert.deepEqual(Object.keys(choice.payload).sort(), ["candidates", "options"]);
+
+  const refinement = sanitizePendingRequestForTransport({id: "t", resolutionId: "res", type: "target-refinement",
+    metadata: {title: "Pick one", internalNote: "gm-only"},
+    payload: {
+      targets: [{id: "orc", defenses: {ac: {value: 12}}}],
+      candidates: [{id: "orc", name: "Orc", eligible: true, defense: {value: 12},
+        target: {id: "orc", actorRef: "Actor.orc", defenses: {ac: {value: 12}}}, metadata: {secret: true}}],
+      targeting: {required: true, refinementPolicy: {maxSelections: 1, eligibilityPolicy: {secret: true}}, candidates: []}
+    }});
+  assert.deepEqual(Object.keys(refinement.payload).sort(), ["candidates", "targeting"]);
+  assert.equal(JSON.stringify(refinement.payload).includes("defense"), false);
+  assert.deepEqual(refinement.payload.targeting, {required: true, decisions: [], refinementPolicy: {maxSelections: 1}});
+  assert.deepEqual(Object.keys(refinement.metadata).sort(), ["multiplayer", "title"]);
+  const view = createPromptViewModel(refinement);
+  assert.equal(view.controls[0].options.length, 1, "the projected payload still renders the prompt");
+  assert.equal(view.controls[0].max, 1);
+
+  assert.deepEqual(sanitizePendingRequestForTransport({id: "x", resolutionId: "res", type: "unknown-kind",
+    payload: {anything: "SECRET_STATISTIC_943"}}).payload, {}, "unknown request types send nothing");
 });
 
-test("error diagnostics on the wire keep scalar values only", () => {
+test("error diagnostics on the wire are an allow-list: only the resolution status travels in data", () => {
   const data = sanitizeResolutionErrorDataForTransport({
-    code: "WRONG_USER", reason: "x".repeat(2000), ok: false, count: 2, nothing: null,
+    status: "failed", code: "WRONG_USER", reason: "x".repeat(2000), ok: false, dc: 15, expectedUserId: "gm-a",
     state: {pendingRequests: [{payload: {rollRequest: {}}}]}, provided: {request: {target: {defense: 12}}}, list: [1, 2]
   });
-  assert.deepEqual(Object.keys(data).sort(), ["code", "count", "nothing", "ok", "reason"]);
-  assert.equal(data.reason.length, 1024);
+  assert.deepEqual(data, {status: "failed"});
+  assert.deepEqual(sanitizeResolutionErrorDataForTransport({status: {nested: true}}), {});
   assert.deepEqual(sanitizeResolutionErrorDataForTransport(null), {});
   assert.deepEqual(sanitizeResolutionErrorDataForTransport([1, 2]), {});
 });
 
-test("authority errors cross the transport privately with scalar diagnostics while the local log keeps the full failure", async () => {
+test("authority errors cross the transport privately with allow-listed diagnostics while the local log keeps the full failure", async () => {
   const f = await pendingAttack();
   await f.transports.playerB.send(f.response("player-b"));
   const wire = f.hub.targetedMessages.find(m => m.envelope.messageType === M.RESOLUTION_ERROR && m.recipientUserId === "player-b");
   assert.ok(wire, "the rejection travels on the targeted transport");
   assert.equal(wire.envelope.disclosure, D.PARTICIPANT_PRIVATE);
   assert.equal(wire.envelope.payload.code, MULTIPLAYER_AUTHORITY_CODES.WRONG_USER);
-  for ( const value of Object.values(wire.envelope.payload.data) ) assert.equal(typeof value === "object" && value !== null, false);
+  assert.deepEqual(Object.keys(wire.envelope.payload.data).filter(key => key !== "status"), []);
+  assert.equal(typeof wire.envelope.payload.reason, "string", "the reason still explains the rejection");
   const local = f.gm.errors.find(e => e.error?.code === MULTIPLAYER_AUTHORITY_CODES.WRONG_USER);
   assert.equal(local.error.data.ok, false);
   assert.equal(f.hub.broadcastMessages.some(m => m.messageType === M.RESOLUTION_ERROR), false);
+});
+
+/* -------------------------------------------- */
+/*  Secret-sentinel regression (default-deny)    */
+/* -------------------------------------------- */
+
+// Test data standing in for future secret mechanics. None of these is an implemented mechanic; the
+// suite proves that unknown/extensible fields are never forwarded by any network projection.
+const SECRET_SENTINELS = [
+  "SECRET_MONSTER_AC_937", "SECRET_SAVE_DC_938", "SECRET_REACTION_CANDIDATE_939", "SECRET_GM_EFFECT_940",
+  "SECRET_RESISTANCE_941", "SECRET_TRAP_DC_942", "SECRET_STATISTIC_943", "SECRET_BLIND_ROLL_944",
+  "SECRET_TARGET_945", "SECRET_ACTION_METADATA_946", "SECRET_CONDITION_947", "SECRET_INVENTORY_948",
+  "SECRET_MODIFIER_949"
+];
+
+const withSecret = (value, secret) => ({...value, hiddenField: secret, nested: {hiddenField: secret}});
+
+const SENTINEL_PROJECTIONS = {
+  "ACTION_INTENT": secret => sanitizeActionIntentPayload(withSecret({
+    intentId: "i", resolutionId: "r", actorRef: "Actor.a", actionRef: "Item.x",
+    source: withSecret({tokenId: "t"}, secret), targetRefs: ["Actor.e", withSecret({actorRef: "Actor.f"}, secret)],
+    waypoints: [{x: 1, y: 2}]
+  }, secret)),
+  "roll request": secret => sanitizePendingRequestForTransport(withSecret({id: "q", resolutionId: "r", type: "roll",
+    metadata: withSecret({title: "Roll"}, secret),
+    payload: withSecret({
+      rollRequest: withSecret({id: "q", type: "attack", metadata: withSecret({rollKind: "attack"}, secret),
+        target: withSecret({id: "e"}, secret), source: withSecret({actorId: "a"}, secret)}, secret),
+      attack: withSecret({}, secret), save: withSecret({dc: {value: 13}}, secret), targets: [withSecret({id: "e"}, secret)]
+    }, secret)}, secret)),
+  "target refinement": secret => sanitizePendingRequestForTransport({id: "q", resolutionId: "r", type: "target-refinement",
+    payload: withSecret({
+      candidates: [withSecret({id: "e", target: withSecret({id: "e"}, secret), eligibility: withSecret({ok: true}, secret)}, secret)],
+      targeting: withSecret({required: true, refinementPolicy: withSecret({maxSelections: 1}, secret)}, secret)
+    }, secret)}),
+  "reaction choice": secret => sanitizePendingRequestForTransport({id: "q", resolutionId: "r", type: "reaction-choice",
+    payload: withSecret({candidates: [{id: "c"}], options: [{id: "use"}], event: withSecret({id: "ev"}, secret)}, secret)}),
+  "action configuration": secret => sanitizePendingRequestForTransport({id: "q", resolutionId: "r", type: "action-configuration",
+    payload: withSecret({requests: [{id: "choice"}], traces: [withSecret({}, secret)]}, secret)}),
+  "unknown request type": secret => sanitizePendingRequestForTransport({id: "q", resolutionId: "r", type: "future-kind",
+    payload: withSecret({}, secret)}),
+  "public result": secret => projectResolutionResultForDisclosure(secretResult(secret), D.BROADCAST_SAFE),
+  "participant result": secret => projectResolutionResultForDisclosure(secretResult(secret), D.PARTICIPANT_PRIVATE),
+  "error data": secret => sanitizeResolutionErrorDataForTransport(withSecret({code: "X"}, secret))
+};
+
+function secretResult(secret) {
+  const base = sampleResult();
+  return withSecret({
+    ...base,
+    action: withSecret(base.action, secret),
+    targets: base.targets.map(target => withSecret(target, secret)),
+    outcomes: withSecret({
+      ...base.outcomes,
+      attack: withSecret({...base.outcomes.attack, results: base.outcomes.attack.results.map(entry => withSecret(entry, secret))}, secret),
+      movement: withSecret({...base.outcomes.movement, footprint: withSecret({fields: []}, secret)}, secret)
+    }, secret),
+    // A blind roll's full result is withheld even from the initiator.
+    rolls: [...base.rolls, {requestId: "r4", type: "save", visibility: "blind", rollResult: {total: 3, note: secret}}]
+  }, secret);
+}
+
+for ( const [name, project] of Object.entries(SENTINEL_PROJECTIONS) ) {
+  test(`secret sentinels never cross the ${name} projection`, () => {
+    for ( const secret of SECRET_SENTINELS ) {
+      const text = JSON.stringify(project(secret));
+      assert.equal(text.includes(secret), false, `${name} forwarded ${secret}`);
+    }
+  });
+}
+
+test("secret sentinels planted in authoritative state reach neither the bus nor the chooser end to end", async () => {
+  const clients = setupClients({playerRollProviders: [createTestRollProvider({result: {natural: 18, total: 22}})]});
+  const {fixture} = clients;
+  Object.assign(fixture.target, {secretStatistic: "SECRET_STATISTIC_943", resistances: ["SECRET_RESISTANCE_941"]});
+  fixture.target.defenses.ac.secretNote = "SECRET_MONSTER_AC_937";
+  Object.assign(fixture.targetActor.system, {trapDC: "SECRET_TRAP_DC_942", conditions: ["SECRET_CONDITION_947"],
+    inventory: ["SECRET_INVENTORY_948"]});
+  const definition = fixture.action.system.definition;
+  definition.metadata = {secret: "SECRET_ACTION_METADATA_946"};
+  definition.attack.secretModifier = "SECRET_MODIFIER_949";
+  const declared = await clients.playerA.declareActionIntent({...INTENT, actorRef: fixture.actor.uuid, actionRef: fixture.action.uuid,
+    targetRefs: [{actorRef: fixture.target.actorRef, secret: "SECRET_TARGET_945"}], gmEffect: "SECRET_GM_EFFECT_940",
+    source: {tokenId: null, secret: "SECRET_SAVE_DC_938"}});
+  assert.equal(declared.ok, true, JSON.stringify(declared));
+  assert.equal(clients.gm.getRecord(INTENT.resolutionId)?.state.status, RESOLUTION_STATE_STATUS.COMPLETED);
+
+  const leaks = text => SECRET_SENTINELS.filter(secret => text.includes(secret));
+  assert.deepEqual(leaks(JSON.stringify(clients.hub.broadcastMessages)), [], "broadcast bus");
+  const pending = clients.hub.targetedMessages.filter(m => m.envelope.messageType === M.PENDING_REQUEST);
+  assert.ok(pending.length > 0);
+  assert.deepEqual(leaks(JSON.stringify(pending)), [], "chooser payloads");
+  const participant = clients.hub.targetedMessages.filter(m => m.envelope.messageType === M.RESOLUTION_RESULT);
+  assert.equal(participant.length, 1);
+  assert.deepEqual(leaks(JSON.stringify(participant)), [], "participant result");
 });
