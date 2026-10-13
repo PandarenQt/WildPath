@@ -57,7 +57,9 @@ export const REPRESENTATIVE_CASES = Object.freeze({
   trip: {initiator:"player",targetOwner:"gm",ac:1,definition:REPRESENTATIVE_DEFINITIONS.trip},
   "save-routed": {initiator:"gm",targetOwner:"player",definition:() => REPRESENTATIVE_DEFINITIONS.saveForHalf(100)},
   healing: {initiator:"player",targetOwner:"player",targetHealth:10,definition:REPRESENTATIVE_DEFINITIONS.healing},
-  configuration: {initiator:"player",targetOwner:"gm",pools:SPELL_SLOT_POOLS,definition:REPRESENTATIVE_DEFINITIONS.scaling}
+  configuration: {initiator:"player",targetOwner:"gm",pools:SPELL_SLOT_POOLS,definition:REPRESENTATIVE_DEFINITIONS.scaling},
+  // Two Tokens targeted for a single-target attack: the Player keeps the first in the refinement prompt.
+  refinement: {initiator:"player",targetOwner:"gm",ac:1,secondTarget:true,definition:REPRESENTATIVE_DEFINITIONS.meleeDice}
 });
 
 const check = (condition, message) => { if (!condition) throw new Error(`REPRESENTATIVE QA: ${message}`); };
@@ -69,7 +71,9 @@ function snapshot(fixture) {
   const tokens = canvas.scene.tokens;
   const source = tokens.get(fixture.sourceTokenId)?.actor;
   const target = tokens.get(fixture.targetTokenId)?.actor;
+  const second = fixture.secondTargetTokenId ? tokens.get(fixture.secondTargetTokenId)?.actor : null;
   return {
+    ...(second ? {secondTarget:{hp:second.system.resources.health.value}} : {}),
     source:{action:source?.system.resources.action.value, bonus:source?.system.resources.bonus.value,
       pools:Object.fromEntries((source?.system.pools ?? []).map(pool => [pool.id, pool.value]))},
     target:{hp:target?.system.resources.health.value,
@@ -98,8 +102,10 @@ export async function setupRepresentativeCase(caseId, playerId) {
       ownership:owned(owner), flags:flags({...fixture, role}), system}, {renderSheet:false});
   }
   const size = canvas.scene.grid.size;
-  for (const [role, column] of [["source", 2], ["target", 3]]) {
-    const token = await actors[role].getTokenDocument({x:column * size, y:2 * size, actorLink:false,
+  const placements = [["source", "source", 2, 2], ["target", "target", 3, 2],
+    ...(spec.secondTarget ? [["secondTarget", "target", 2, 3]] : [])];
+  for (const [role, actorRole, column, row] of placements) {
+    const token = await actors[actorRole].getTokenDocument({x:column * size, y:row * size, actorLink:false,
       name:`Rep ${role}`, flags:flags({...fixture, role})});
     const [created] = await canvas.scene.createEmbeddedDocuments("Token", [token.toObject()]);
     fixture[`${role}TokenId`] = created.id;
@@ -119,10 +125,11 @@ export async function setupRepresentativeCase(caseId, playerId) {
 /** Initiator: target natively and call the real Item.use(); returns the declared resolution ID. */
 export async function useRepresentativeCase(fixture) {
   check(game.user.id === fixture.initiatorUserId, "Run use() on the initiating client.");
-  const target = canvas.tokens.get(fixture.targetTokenId);
-  check(target, "The target Token must be on the viewed Scene.");
-  target.setTarget(true, {releaseOthers:true});
-  check(game.user.targets.size === 1 && game.user.targets.has(target), "Exactly the case target must be targeted.");
+  const targets = [fixture.targetTokenId, fixture.secondTargetTokenId].filter(Boolean).map(id => canvas.tokens.get(id));
+  check(targets.every(Boolean), "The target Tokens must be on the viewed Scene.");
+  targets.forEach((token, index) => token.setTarget(true, {releaseOthers:index === 0, groupSelection:index > 0}));
+  check(game.user.targets.size === targets.length && targets.every(token => game.user.targets.has(token)),
+    "Exactly the case targets must be targeted.");
   let resolutionId = null;
   const stop = game.wildpath.multiplayer.transport.observe(event => {
     if (event.direction === "sending" && event.envelope.messageType === "ACTION_INTENT") resolutionId ??= event.envelope.resolutionId;
@@ -219,6 +226,12 @@ function proveRepresentativeCase(evidence) {
       break;
     case "healing":
       expect(after.target.hp === before.target.hp + 8, "healing restores 8");
+      break;
+    case "refinement":
+      expect(routing.some(entry => entry.type === "target-refinement" && entry.expectedUserId === users.playerId),
+        "the refinement prompt is routed to the Player");
+      expect(after.target.hp === before.target.hp - (roll("damage")?.total ?? NaN), "the kept target takes the damage");
+      expect(after.secondTarget?.hp === before.secondTarget?.hp, "the dropped target is untouched");
       break;
     case "configuration":
       expect(routing.some(entry => entry.type === "action-configuration" && entry.expectedUserId === users.playerId),

@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "role": "player",
+  "caseId": "refinement",
+  "runId": "D1OCZzZZUr0z2PBL",
+  "gitSha": "d96dbcbc4c5cbf57b811ac88a1abac71c0e5dfd0",
+  "capturedAt": "2026-10-13T21:42:22.787Z",
+  "userId": "6JWzwo5Aln6gZUWH",
+  "resolutionId": "resolution:multiplayer:j36enua4",
+  "result": {
+    "status": "completed",
+    "keys": [
+      "action",
+      "authorityUserId",
+      "code",
+      "disclosure",
+      "initiatorUserId",
+      "ok",
+      "outcomes",
+      "resolutionId",
+      "rolls",
+      "source",
+      "status",
+      "targets"
+    ],
+    "disclosure": "PARTICIPANT_PRIVATE",
+    "rolls": [
+      {
+        "type": "attack-roll",
+        "visibility": "public",
+        "total": 5
+      },
+      {
+        "type": "damage-roll",
+        "visibility": "public",
+        "total": 2
+      }
+    ]
+  },
+  "card": {
+    "visible": true,
+    "isContentVisible": true,
+    "rolls": 2
+  }
+}

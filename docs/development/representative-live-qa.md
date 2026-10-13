@@ -12,6 +12,7 @@ configuration scaling). This gate proves what one client cannot: who rolls and w
 | `save-routed` | GM | Player | the save is rolled by the target's Player; full damage and Poisoned on failure |
 | `healing` | Player | Player | healing commit on a Player-owned Token |
 | `configuration` | Player | GM | the configuration prompt is answered by the Player in the real dialog; slot spent |
+| `refinement` | Player | GM | two Tokens of one base Actor targeted for a single-target attack; the Player keeps one in the refinement prompt and only that Token is attacked and damaged |
 
 ## Procedure
 
@@ -47,17 +48,23 @@ Accepted on 2026-10-13, Foundry 14.369. The agent drove two isolated browser pro
 | `save-routed` | `efe50de` | `5p1g435y` | save rolled by Player1 (natural 9 vs DC 100, failed); 2d6 = 7 full damage; Poisoned |
 | `healing` | `efe50de` | `bbjmeral` | HP 10 → 18 |
 | `configuration` | `765259f` | `tarxm1w0` | prompt answered by Player1 (Slot 2); 3d6 = 7; Slot 2 spent, Slot 1 kept |
+| `refinement` | `d96dbcb` | `j36enua4` | both Tokens preselected; Player1 unticked the second; attack vs the kept Token's AC 1 (hit), 1d8 = 2; kept 30 → 28, dropped 30 → 30 |
 
 Every case posted one card authored by the initiator, and each card was visible to the Player.
 `765259f` differs from `efe50de` only in the payment option ids of multi-branch (`anyOf`) costs,
 which only the configuration case uses.
 
-The gate's runs found three defects. Each is fixed with a Node regression test:
+The gate's runs found five defects. Each is fixed with a Node regression test:
 
 - The save routed to the GM fallback (`a5131b0`). The target controller map was keyed only by the
   synthetic Actor uuid, while a canvas target is identified by its Token. Fixed in `efe50de`.
 - The configuration dialog offered "Slot 1" and "Slot 2" with the same value `payment-1`, so the
   Player could never pick Slot 2. Fixed in `765259f`.
+- The refinement prompt showed every candidate unticked while the authority's default was all of them,
+  so keeping one of three counted as all three. Fixed in `c9742c8`.
+- With that fixed, the kept Token was correct but the other Token took the damage, against its own AC.
+  Unlinked Tokens of one base Actor share its id, and the runtime keyed target Actors by it. Fixed in
+  `d96dbcb`, which drops ambiguous keys and adds Token keys.
 - Before the gate, the single-client batch had found that Foundry expands dotted keys in persisted
   definitions, and that V14 silently drops ArrayField element paths, so no pool payment persisted.
   Fixed in `6052b39`.

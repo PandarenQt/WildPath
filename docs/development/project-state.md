@@ -11,7 +11,7 @@ Last verified: 2026-10-13.
 - Movement implementation commit: `87ed1fae93271b81b14432bb4312be9cd53285c5`.
 - Original milestone starting HEAD: `ea484fd8b503697ddf1c2b7b0f6984ea594378e2`.
 - Local main HEAD: `61d6268b838e286728c829924506c6c931174621`.
-- Portable full suite (`FOUNDRY_V14_APP_PATH` unset): **899 tests, 897 passed, 0 failed, 2 intentionally skipped**.
+- Portable full suite (`FOUNDRY_V14_APP_PATH` unset): **901 tests, 899 passed, 0 failed, 2 intentionally skipped**.
 - M2 delta from 893/891/0/2: **6 new tests** (dice policy context and provider choice, re-prompt on a
   rejected answer, total bounds, prompt bounds, entered rolls on the card).
 - Representative-gate delta from 889/887/0/2: **4 new tests** (save routed to the target's Player,
@@ -97,9 +97,12 @@ raw type `action-configuration` (needs maintainer copy); no third client.
 digital or physical; physical dice go through the roll prompt), total bounds on every roll whose
 formula is complete (any damage total was accepted before, including 999 or negative), entered rolls
 on the chat card, and a re-prompt when the rules reject a typed answer (a typo used to strand the
-Action at `awaiting-roll`). Live-verified in two browsers on 14.369. Open: per-roller message modes, the
-target-refinement default selection, live concentration, per-target remote save fan-out, failure
-feedback, physical provenance, and prompt titles/messages (maintainer copy).
+Action at `awaiting-roll`). Live-verified in two browsers on 14.369. Target refinement now starts from the authority's default
+selection, so the prompt's changes are real decisions (`c9742c8`). Its live case found a damage-routing
+bug: unlinked Tokens of one base Actor shared target-Actor keys, so the kept goblin's hit landed on the
+dropped one (`d96dbcb`, fixed with a Node test and re-verified live). Open: per-roller message modes,
+live concentration, per-target remote save fan-out, failure feedback, physical provenance, and prompt
+titles/messages (maintainer copy).
 
 **Authority and disclosure hardening (M0) — CLOSED on 2026-10-13.** A review found that the
 authority trusted more than it could verify: any player could act through an Actor or Item they did
