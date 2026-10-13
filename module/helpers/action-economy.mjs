@@ -222,7 +222,13 @@ export function resolvePaymentOptions({cost, resources, action={}, policies={}})
   const normalized = normalizeActivationCost(cost);
   const branches = normalized.anyOf ?? [normalized.allOf ?? []];
   const effectivePolicies = normalizePaymentPolicies(policies);
-  const branchResults = branches.map(requirements => resolveAllOf(requirements, resources, action, effectivePolicies));
+  const branchResults = branches.map((requirements, branch) => {
+    const result = resolveAllOf(requirements, resources, action, effectivePolicies);
+    if ( branches.length < 2 ) return result;
+    // Each branch numbers its own combinations from 1; qualify them so alternatives never share an id.
+    return {...result, options: result.options.map(option => ({...option,
+      id: option.id.replace(/^payment-/u, `payment-${branch + 1}-`)}))};
+  });
   const options = branchResults.flatMap(result => result.options);
   const failures = branchResults.flatMap(result => result.failures);
   options.sort(comparePaymentOptions);

@@ -178,6 +178,17 @@ test("damage-type choices are contributed by rules sources and appear only after
   assert.deepEqual(request.options.map(option => option.id), ["cold", "lightning"]);
 });
 
+test("resource alternatives get distinct option ids, so a prompt answer can select any of them", () => {
+  const discovery = discoverActionConfigurationChoices({definition: scalableSpellDefinition(), actorSystem: actorSystem()});
+  const options = discovery.requests[0].options;
+  assert.equal(new Set(options.map(option => option.id)).size, options.length, "anyOf branches must not share payment-1");
+  const slot5 = options.find(option => option.resources[0]?.resourceId === "spell-slot.5");
+  const preview = createResolvedActionPreview({definition: scalableSpellDefinition(), actorSystem: actorSystem(),
+    choices: {"casting-resource": {paymentOptionId: slot5.id}}});
+  assert.equal(preview.ok, true, JSON.stringify(preview.errors));
+  assert.equal(preview.preview.damage.components[0].formula, "10d6");
+});
+
 test("resource-keyed configuration maps also resolve in the shape Foundry persists them", () => {
   // Foundry expands dotted keys in Document data: {"spell-slot.5": 5} is stored as {"spell-slot": {"5": 5}}.
   const definition = scalableSpellDefinition();
