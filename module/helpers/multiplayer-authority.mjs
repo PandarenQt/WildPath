@@ -333,6 +333,8 @@ export function sanitizeResolutionResultForTransport({state=null, result=null, a
         requestId,
         type: entry.type ?? entry.semanticType ?? null,
         visibility: request?.visibility ?? entry.rollResult?.visibility ?? null,
+        // Who rolls, from the authority's own request (the roller's provenance is not trusted for this).
+        rollerKind: request?.authority?.kind ?? null,
         rollResult: entry.rollResult ?? null
       };
     }),
@@ -367,7 +369,6 @@ export function sanitizeResolutionResultForTransport({state=null, result=null, a
  * - PARTICIPANT_PRIVATE (the initiator): the public projection plus the full roll results of every
  *   roll that is not GM-only or blind.
  */
-const HIDDEN_FROM_PARTICIPANT_ROLL_VISIBILITY = Object.freeze(["gm-only", "blind"]);
 const MOVEMENT_OUTCOME_KEYS = Object.freeze([
   "completedTransitionCount", "intendedTransitionCount", "cumulativeCost", "stopped", "reason", "committed"
 ]);
@@ -382,7 +383,7 @@ export function projectResolutionResultForDisclosure(result, classification) {
   return {
     ...publicResult,
     rolls: normalizeArray(data.rolls)
-      .filter(entry => !HIDDEN_FROM_PARTICIPANT_ROLL_VISIBILITY.includes(entry?.visibility))
+      .filter(participantMaySeeRoll)
       .map(entry => clonePlainData({
         requestId: entry.requestId ?? null,
         type: entry.type ?? null,
@@ -391,6 +392,15 @@ export function projectResolutionResultForDisclosure(result, classification) {
       }, "resolutionResult.rolls")),
     disclosure
   };
+}
+
+/**
+ * `gm-only` is Foundry's "Private GM Roll": the GM and the roller see it. The initiator owns the acting
+ * Actor, so source-controller rolls are theirs; another roller's gm-only roll and every blind roll are not.
+ */
+function participantMaySeeRoll(entry) {
+  if ( entry?.visibility === "blind" ) return false;
+  return entry?.visibility !== "gm-only" || entry?.rollerKind === ROLL_AUTHORITY.SOURCE_CONTROLLER;
 }
 
 function projectMovementOutcome(movement) {

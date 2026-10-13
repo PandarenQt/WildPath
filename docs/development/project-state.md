@@ -11,7 +11,9 @@ Last verified: 2026-10-13.
 - Movement implementation commit: `87ed1fae93271b81b14432bb4312be9cd53285c5`.
 - Original milestone starting HEAD: `ea484fd8b503697ddf1c2b7b0f6984ea594378e2`.
 - Local main HEAD: `61d6268b838e286728c829924506c6c931174621`.
-- Portable full suite (`FOUNDRY_V14_APP_PATH` unset): **879 tests, 877 passed, 0 failed, 2 intentionally skipped**.
+- Portable full suite (`FOUNDRY_V14_APP_PATH` unset): **886 tests, 884 passed, 0 failed, 2 intentionally skipped**.
+- Visible-results delta from 879/877/0/2: **7 new tests** (Roll JSON guard, publish port, Token names,
+  and four in `test/chat-card.test.mjs`).
 - Authority-hardening delta from 863/861/0/2: **16 new tests** (including payment overflow, Action ownership,
   decisions-only refinement, the parameterized secret-sentinel suite, error allow-list, bounded
   coordinator/movement records, `pushBounded`).
@@ -43,6 +45,17 @@ Callbacks and Foundry Documents remain outside serialized rules state. Code defa
 turn configured reaction content into a second combat engine.
 
 ## Current milestone
+
+**M1 — Stage D close: visible results and the representative gate (IN PROGRESS).** Done: every
+completed Action posts one chat card from the public projection (`4d96df0` plus the `gm-only`
+participant repair). Live smoke run on 14.369 through the real `Item.use()`: Hit in `public` mode
+posted one card authored by Player1 with the `1d20 + 4` roll attached and rendered; Miss in `gm` mode
+posted one card whispered to the GM with no rolls, visible to its author; both proofs passed on both
+clients. That run found that the participant result dropped the player's own `gm-only` attack roll
+(the player's proof failed); the participant now keeps `gm-only` rolls whose request names the source
+controller as roller. Open: the `WILDPATH.CHAT.Outcome.*` English strings (maintainer, AGENTS §22;
+cards show the keys until then), the `wildpath.action-results` Quench batch, and the representative
+live gate.
 
 **Authority and disclosure hardening (M0) — CLOSED on 2026-10-13.** A review found that the
 authority trusted more than it could verify: any player could act through an Actor or Item they did

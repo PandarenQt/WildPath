@@ -725,8 +725,10 @@ function sampleResult() {
     preview: {damage: [{total: 9}]},
     rolls: [
       {requestId: "r1", type: "attack", visibility: "public", rollResult: {natural: 18, total: 22, terms: [{faces: 20}]}},
-      {requestId: "r2", type: "save", visibility: "gm-only", rollResult: {natural: 3, total: 5}},
-      {requestId: "r3", type: "damage", visibility: "system", rollResult: {total: 9}}
+      {requestId: "r2", type: "save", visibility: "gm-only", rollerKind: "target-controller", rollResult: {natural: 3, total: 5}},
+      {requestId: "r3", type: "damage", visibility: "system", rollResult: {total: 9}},
+      {requestId: "r4", type: "attack", visibility: "gm-only", rollerKind: "source-controller", rollResult: {natural: 7, total: 11}},
+      {requestId: "r5", type: "attack", visibility: "blind", rollerKind: "source-controller", rollResult: {natural: 9, total: 13}}
     ],
     outcomes: {
       attack: {ok: true, results: [{target: {id: "enemy", actorRef: "Actor.e", defenses: {ac: {value: 12}}}, hit: true, critical: false,
@@ -760,13 +762,15 @@ test("result projection: both BROADCAST_SAFE and PARTICIPANT_PRIVATE are allow-l
     disclosure: D.BROADCAST_SAFE
   });
   const participant = projectResolutionResultForDisclosure(sample, D.PARTICIPANT_PRIVATE);
-  // The initiator sees the public projection plus full roll results, except GM-only and blind rolls.
+  // The initiator sees the public projection plus full roll results, except blind rolls and another
+  // roller's GM-only rolls (Foundry's "Private GM Roll" is visible to the GM and the roller).
   const {disclosure: _public, ...publicFields} = publicResult;
   assert.deepEqual(participant, {
     ...publicFields,
     rolls: [
       {requestId: "r1", type: "attack", visibility: "public", rollResult: {natural: 18, total: 22, terms: [{faces: 20}]}},
-      {requestId: "r3", type: "damage", visibility: "system", rollResult: {total: 9}}
+      {requestId: "r3", type: "damage", visibility: "system", rollResult: {total: 9}},
+      {requestId: "r4", type: "attack", visibility: "gm-only", rollResult: {natural: 7, total: 11}}
     ],
     disclosure: D.PARTICIPANT_PRIVATE
   });

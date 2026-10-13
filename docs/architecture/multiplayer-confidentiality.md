@@ -172,17 +172,31 @@ reason; `data` keeps only the resolution `status`. The full failure object stays
 
 **Result projections** (`projectResolutionResultForDisclosure`):
 
-- `PARTICIPANT_PRIVATE`: the public projection plus the full `rollResult` of every roll that is not
-  `gm-only` or `blind`. Target defenses, DCs, mutations, payment, preview, configuration and trace stay
+- `PARTICIPANT_PRIVATE`: the public projection plus the full `rollResult` of every roll the initiator
+  may see: not `blind`, and `gm-only` only when the authority's own request names the source controller
+  as roller (Foundry's "Private GM Roll" is visible to the GM and the roller, and the initiator owns
+  the acting Actor). Target defenses, DCs, mutations, payment, preview, configuration and trace stay
   on the authority.
 - `BROADCAST_SAFE`: an allow-list — ids, status, `authorityUserId`/`initiatorUserId`, action and
   source/target refs, per-target attack `hit/critical/outcome`, per-target save
   `success/critical/outcome`, the movement outcome, and roll `natural/total` only for rolls whose
-  request `visibility` is `public`. It carries no defenses, DCs, margins, damage/healing amounts,
-  effects, payment, committed mutations, preview, configuration, or trace.
+  request `visibility` is `public`, with the roller's Foundry Roll JSON when it is evaluated and its
+  total equals the authority-validated total. It carries no defenses, DCs, margins, damage/healing
+  amounts, effects, payment, committed mutations, preview, configuration, or trace.
 
 A client that already holds the participant projection never lets the later public projection
 overwrite it.
+
+## Chat cards
+
+The authority posts one chat card per completed Action from the `BROADCAST_SAFE` projection only
+(`module/helpers/chat-card-view-model.mts`, `module/adapters/foundry-v14-chat-card-adapter.mts`),
+because Foundry 14.369 sends every ChatMessage to every client and hides whispers only in the browser
+(`server-backend.mjs`; verified live: a GM-only whisper's full content was present in the player's
+`game.messages` with `visible === false`). A whisper restricts display, never disclosure. The card is
+authored by the initiator and whispered per the initiator's `core.messageMode`, computed from the
+initiator rather than with `ChatMessage.applyMode` (which, run on the authority, would whisper `self`
+to the GM). Target names come from the Token, not the Actor, and hidden Tokens get none.
 
 ## What remains intentionally broadcast
 
