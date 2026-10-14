@@ -112,7 +112,9 @@ test("the chat card adapter posts one public card authored by the initiator, wit
   assert.deepEqual(message.whisper, []);
   assert.equal(message.blind, false);
   assert.deepEqual(message.rolls, [foundryRoll]);
-  assert.deepEqual(message.flags, {wildpath: {resolutionId: "resolution:card"}});
+  assert.deepEqual(message.flags, {wildpath: {resolutionId: "resolution:card", floating: [
+    {uuid: "Actor.goblin", label: CHAT_OUTCOME_KEYS.critical}, {uuid: "Actor.orc", label: CHAT_OUTCOME_KEYS.miss}]}},
+    "a critical hit and a miss float over their targets; a failed save shows as the damage taken");
   const rendered = JSON.parse(message.content);
   assert.equal(rendered.path, RESOLUTION_CARD_TEMPLATE);
   assert.equal(rendered.data.rollHtml, "<roll total=\"22\">");

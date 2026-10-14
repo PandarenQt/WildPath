@@ -201,6 +201,10 @@ Forced movement and elevation join G6, which becomes "space": areas, elevation a
     refused, unspent; at another creature it went through. With `ConditionImmunity` to Grappled, a hit
     applied nothing.
 
+- **B1.5, floating combat text (2026-10-14).** Done:
+  - damage, healing, Miss, Critical hit and Saved float over Tokens on every client that may see them;
+  - verified in Node, Quench (91/91) and two browsers ([ui-ux-layer.md](../architecture/ui-ux-layer.md)).
+  - Not yet: "Immune" when a condition is ignored, and damage coloured by type.
 - **B1.1, odds before acting (2026-10-14).** Done:
   - attack and save odds on the action bar;
   - the `playersSeeOdds` house rule, off by default;

@@ -179,8 +179,10 @@ Hooks.once("ready", async () => {
   // The in-play action bar needs Foundry's application classes, so it loads only in a running game.
   const {registerActionBar} = await import("./module/applications/action-bar.mjs");
   const {registerCombatCarousel} = await import("./module/applications/combat-carousel.mjs");
+  const {registerFloatingText} = await import("./module/applications/floating-text.mjs");
   registerCombatCarousel();
   registerActionBar();
+  registerFloatingText();
   // The GM's Rules Inspector: an Inspect link on each resolution card, and game.wildpath.inspect().
   const {openRulesInspector, registerRulesInspector} = await import("./module/applications/rules-inspector.mjs");
   registerRulesInspector();
