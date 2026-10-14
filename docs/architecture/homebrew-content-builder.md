@@ -32,10 +32,63 @@ effect's `system.ruleElements` the same way (`module/applications/effect-sheet.m
 - Legacy modifier rows still save.
 - Node covers the summary and the RuleElement list check.
 
-**Not yet:**
-- the structured builder this document describes;
-- friendly, field-level messages (the editor shows the validators' path and reason);
-- Test/Preview.
+The JSON editors now live on the item sheet's Advanced tab (second slice, below).
+
+## Second slice: the Action Builder (2026-10-14)
+
+An Action's item sheet opens on a **Builder** tab, with **Advanced** (the JSON editors, legacy cost fields and
+modifier rows) and **Description** beside it. Other Items have Advanced and Description.
+
+- **Sections**, each a tabletop question:
+  - a template;
+  - is it a spell;
+  - cost rows;
+  - range;
+  - targets;
+  - area: shape, size, width for a line, and lasting rounds with concentration;
+  - the deciding roll: an attack (melee or ranged, weapon or spell, finesse, ability), a save (ability, DC, what a
+    success does to the damage) or the user's check (ability, skill, DC);
+  - damage rows (formula, type, weapon/spell/extra);
+  - healing rows;
+  - effect rows: a condition with levels, or a custom effect with a name and duration; "only on a failed save".
+- **Formulas** use a small safe grammar, never eval (`module/helpers/formula.mts`):
+  - numbers, `NdM`, `+ - * /` and parentheses;
+  - `prof`, `level`, `level(class)`, `mod(ability)`, `spellmod`, `resource(id)`, `resourcemax(id)`, `floor()` and
+    `ceil()`.
+  - A DC refuses dice.
+  - An expression outside the grammar, such as a table, shows "edit on the Advanced tab" and is kept.
+- **Overlay writing** (`module/helpers/action-builder.mts`):
+  - Only fields the user changed are written. A changed one is written over its stored object.
+  - Rows are matched by a hidden id.
+  - So whatever the builder does not show survives, and an unchanged form writes nothing.
+  - Node proves this over every pack definition.
+- **Defaults.** Every choice writes a valid default:
+  - area targeting adds a 10 ft sphere;
+  - a new save gets the spell save DC (`8 + prof + spellmod`), or 13 for a non-spell;
+  - a new row copies the save rule of the rows before it.
+  - A blank Action gets the id `action:<item id>`.
+- **Mistakes.** Text the builder can't read is marked on its field (`aria-invalid`, with the reason). The typed
+  draft stays, and nothing is saved. A definition the validator refuses is not saved either.
+- **Issues.** An issues list sits under the summary: validator errors by section, and warnings (outcomes but no
+  targets, a roll with nothing on it, targets with no range).
+- **Read-only parts.** Choices, transform, summon, controller costs, stabilizing, rule elements and alternative
+  costs are named as "edited on the Advanced tab".
+- **Templates.** Melee attack, ranged attack, spell attack, saving throw, area saving throw, healing and custom.
+  Applying one over an Action that already does something asks first.
+
+**Evidence (live, two browsers, 14.369).**
+- The GM built Flame Burst on a blank Action with the Builder's fields alone: spell, one Action, ranged 150 ft, a
+  20 ft sphere, an Agility save at DC 13, 8d6 fire, half on a success. It was valid with no issues.
+- Player1 cast it at two NPCs. The one who failed took 39 fire, and the one who saved took 19.
+- Player1, as an observer of an NPC's Action, saw every Builder field disabled and no buttons.
+- Quench covers a builder edit that keeps hidden data, a bad formula kept as a marked draft, a template on a blank
+  Action, and no raw keys on the sheet.
+
+**Not yet (later phases):**
+- Rules rows for RuleElements, and the effect sheet's builder;
+- Test/Preview;
+- scaling;
+- trigger, summon, transform and choice editors.
 
 ## Product Goal
 

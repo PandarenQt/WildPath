@@ -19,8 +19,10 @@ test("every WILDPATH.* key the system shows has English copy in lang/en.json", (
   const missing = [];
   for ( const file of files ) {
     const text = readFileSync(new URL(file, root), "utf8");
-    for ( const [key] of text.matchAll(/WILDPATH\.[A-Z][A-Za-z]*(?:\.[A-Za-z]+)+/gu) ) {
-      if ( typeof lookup(key) !== "string" ) missing.push(`${file}: ${key}`);
+    // A key followed by `.${...}` or a closing `."` is a prefix the code completes; it must name a group of copy.
+    for ( const [key, prefix] of text.matchAll(/WILDPATH\.[A-Z][A-Za-z]*(?:\.[A-Za-z]+)+(\.(?=[$"'`]))?/gu) ) {
+      const name = prefix ? key.slice(0, -1) : key;
+      if ( typeof lookup(name) !== (prefix ? "object" : "string") ) missing.push(`${file}: ${key}`);
     }
   }
   assert.deepEqual(missing, []);

@@ -1,16 +1,4 @@
-<div class="wildpath item-sheet">
-
-  <header class="sheet-header">
-    <img class="profile-img" src="{{item.img}}" data-edit="img" alt="{{item.name}}">
-    <input class="item-name" type="text" name="name" value="{{item.name}}">
-  </header>
-
-  <section class="active-toggle">
-    <label>
-      <input type="checkbox" name="system.active" {{#if system.active}}checked{{/if}}>
-      {{localize "WILDPATH.ITEMSHEET.Active"}}
-    </label>
-  </section>
+<section class="tab advanced {{tab.cssClass}}" data-group="sheet" data-tab="advanced">
 
   {{#if isAction}}
   <section class="action-cost">
@@ -22,16 +10,9 @@
       </label>
     {{/each}}
   </section>
-  {{/if}}
 
-  {{#if isAction}}
   <section class="definition-editor">
     <h3>{{localize "WILDPATH.ITEMSHEET.Definition"}}</h3>
-    {{#if definitionSummary.length}}
-      <dl class="definition-summary">
-        {{#each definitionSummary as |line|}}<dt>{{line.label}}</dt><dd>{{line.text}}</dd>{{/each}}
-      </dl>
-    {{/if}}
     <textarea name="wildpath.definitionJson" class="json-editor" rows="14" spellcheck="false">{{definitionJson}}</textarea>
     {{#if definitionErrors.length}}
       <ul class="json-errors">
@@ -70,9 +51,4 @@
     </ol>
   </section>
 
-  <section class="description">
-    <h3>{{localize "WILDPATH.ITEMSHEET.Description"}}</h3>
-    {{editor system.description target="system.description" button=true engine="prosemirror"}}
-  </section>
-
-</div>
+</section>

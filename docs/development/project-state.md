@@ -197,7 +197,12 @@ needed engine work first (plan: builder in the sheets, engine first). Each item 
 - `ExtraDamage` with once-per-turn.
 - `Aura`.
 - Long rests restore short-rest resources, and the unused `GrantActionEconomyResource` was removed.
-Next: Phase B, the structured builder in the item sheet.
+
+**Homebrew Builder, Phase B: the Action Builder (2026-10-14, done).** An Action's item sheet opens on a Builder tab
+of plain fields and formulas, with the JSON editors on an Advanced tab. It writes only what the user changed
+([homebrew-content-builder.md](../architecture/homebrew-content-builder.md#second-slice-the-action-builder-2026-10-14)).
+Live: Flame Burst was built with the Builder alone, and a Player cast it at two creatures (half on a success).
+Next: Phase C, rules rows, Test/Preview and scaling.
 
 **M4 — content pack (in progress, 2026-10-14).**
 - **The pack.** `@foundryvtt/foundryvtt-cli` 3.0.4 was approved and added. The built-in **WildPath Actions**

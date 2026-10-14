@@ -1,0 +1,227 @@
+<section class="tab builder {{tab.cssClass}}" data-group="sheet" data-tab="builder">
+
+  {{#if b.summary.length}}
+  <dl class="definition-summary">
+    {{#each b.summary as |line|}}<dt>{{line.label}}</dt><dd>{{line.text}}</dd>{{/each}}
+  </dl>
+  {{/if}}
+  {{#if b.issues.length}}
+  <ul class="builder-issues">
+    {{#each b.issues as |issue|}}<li class="{{issue.level}}">{{issue.text}}</li>{{/each}}
+  </ul>
+  {{/if}}
+
+  {{#if b.editable}}
+  <fieldset class="builder-template">
+    <legend>{{localize "WILDPATH.BUILDER.Template.Legend"}}</legend>
+    <select class="template-choice" aria-label="{{localize "WILDPATH.BUILDER.Template.Legend"}}">{{selectOptions b.templates localize=true}}</select>
+    <button type="button" data-action="builderTemplate">{{localize "WILDPATH.BUILDER.Template.Apply"}}</button>
+  </fieldset>
+  {{/if}}
+
+  <fieldset>
+    <legend>{{localize "WILDPATH.BUILDER.Basics.Legend"}}</legend>
+    <label class="checkbox"><input type="checkbox" name="wildpath.builder.basics.spell" {{checked b.values.basics.spell}}>
+      {{localize "WILDPATH.BUILDER.Basics.Spell"}}</label>
+  </fieldset>
+
+  <fieldset>
+    <legend>{{localize "WILDPATH.BUILDER.Costs.Legend"}}</legend>
+    {{#if b.values.costsReadOnly}}
+      <p class="hint">{{localize "WILDPATH.BUILDER.EditInAdvanced"}}</p>
+    {{else}}
+      <ol class="builder-rows">
+        {{#each b.values.costs as |row|}}
+        <li>
+          <input type="text" name="wildpath.builder.costs.{{@index}}.capability" value="{{row.capability}}" list="{{../b.listId}}-capabilities"
+                 aria-label="{{localize "WILDPATH.BUILDER.Costs.Capability"}}">
+          <input type="number" name="wildpath.builder.costs.{{@index}}.amount" value="{{row.amount}}" min="0" step="1"
+                 aria-label="{{localize "WILDPATH.BUILDER.Costs.Amount"}}">
+          {{#if ../b.editable}}<button type="button" class="icon" data-action="builderRemove" data-section="costs" data-index="{{@index}}"
+            data-tooltip="WILDPATH.BUILDER.Remove" aria-label="{{localize "WILDPATH.BUILDER.Remove"}}"><i class="fa-solid fa-trash" inert></i></button>{{/if}}
+        </li>
+        {{else}}
+        <li class="hint">{{localize "WILDPATH.BUILDER.Costs.Free"}}</li>
+        {{/each}}
+      </ol>
+      {{#if b.editable}}<button type="button" data-action="builderAdd" data-section="costs">{{localize "WILDPATH.BUILDER.Costs.Add"}}</button>{{/if}}
+    {{/if}}
+    <datalist id="{{b.listId}}-capabilities">{{#each b.capabilities as |value|}}<option value="{{value}}"></option>{{/each}}</datalist>
+  </fieldset>
+
+  <fieldset>
+    <legend>{{localize "WILDPATH.BUILDER.Range.Legend"}}</legend>
+    <select name="wildpath.builder.range.type" aria-label="{{localize "WILDPATH.BUILDER.Range.Legend"}}">
+      {{selectOptions b.choices.rangeTypes selected=b.values.range.type localize=true}}</select>
+    {{#if b.rangeHasDistance}}
+    <label>{{localize "WILDPATH.BUILDER.Range.Distance"}}
+      <input type="number" name="wildpath.builder.range.distance" value="{{b.values.range.distance}}" min="0" step="5"></label>
+    {{/if}}
+    {{#if b.rangeIsRanged}}
+    <label>{{localize "WILDPATH.BUILDER.Range.Long"}}
+      <input type="number" name="wildpath.builder.range.long" value="{{b.values.range.long}}" min="0" step="5"></label>
+    {{/if}}
+  </fieldset>
+
+  <fieldset>
+    <legend>{{localize "WILDPATH.BUILDER.Targets.Legend"}}</legend>
+    <select name="wildpath.builder.targets.type" aria-label="{{localize "WILDPATH.BUILDER.Targets.Legend"}}">
+      {{selectOptions b.choices.targetTypes selected=b.values.targets.type localize=true}}</select>
+    {{#if b.targetsMultiple}}
+      {{#if b.values.targetCountReadOnly}}<span class="hint">{{localize "WILDPATH.BUILDER.EditInAdvanced"}}</span>{{else}}
+      <label>{{localize "WILDPATH.BUILDER.Targets.Count"}}
+        <input type="number" name="wildpath.builder.targets.count" value="{{b.values.targets.count}}" min="1" step="1"></label>
+      {{/if}}
+    {{/if}}
+  </fieldset>
+
+  {{#if b.showArea}}
+  <fieldset>
+    <legend>{{localize "WILDPATH.BUILDER.Area.Legend"}}</legend>
+    <select name="wildpath.builder.area.shape" aria-label="{{localize "WILDPATH.BUILDER.Area.Shape"}}">
+      {{selectOptions b.choices.areaShapes selected=b.values.area.shape localize=true}}</select>
+    <label>{{localize "WILDPATH.BUILDER.Area.Size"}}
+      <input type="number" name="wildpath.builder.area.size" value="{{b.values.area.size}}" min="5" step="5"></label>
+    {{#if b.areaIsLine}}
+    <label>{{localize "WILDPATH.BUILDER.Area.Width"}}
+      <input type="number" name="wildpath.builder.area.width" value="{{b.values.area.width}}" min="5" step="5"></label>
+    {{/if}}
+    <label class="checkbox"><input type="checkbox" name="wildpath.builder.area.lasting" {{checked b.values.area.lasting}}>
+      {{localize "WILDPATH.BUILDER.Area.Lasting"}}</label>
+    {{#if b.values.area.lasting}}
+    <label>{{localize "WILDPATH.BUILDER.Area.Rounds"}}
+      <input type="number" name="wildpath.builder.area.rounds" value="{{b.values.area.rounds}}" min="1" step="1"></label>
+    <label class="checkbox"><input type="checkbox" name="wildpath.builder.area.concentration" {{checked b.values.area.concentration}}>
+      {{localize "WILDPATH.BUILDER.Concentration"}}</label>
+    <p class="hint">{{localize "WILDPATH.BUILDER.Area.Triggers" count=b.values.areaTriggers}}</p>
+    {{/if}}
+  </fieldset>
+  {{/if}}
+
+  <fieldset>
+    <legend>{{localize "WILDPATH.BUILDER.Roll.Legend"}}</legend>
+    {{#if b.rollMixed}}
+      <p class="hint">{{localize "WILDPATH.BUILDER.EditInAdvanced"}}</p>
+    {{else}}
+    <select name="wildpath.builder.roll.kind" aria-label="{{localize "WILDPATH.BUILDER.Roll.Legend"}}">
+      {{selectOptions b.choices.rollKinds selected=b.values.roll.kind localize=true}}</select>
+    {{#if b.rollIsAttack}}
+      <select name="wildpath.builder.roll.attackType" aria-label="{{localize "WILDPATH.BUILDER.Roll.AttackType"}}">
+        {{selectOptions b.choices.attackTypes selected=b.values.roll.attackType localize=true}}</select>
+      <select name="wildpath.builder.roll.statistic" aria-label="{{localize "WILDPATH.BUILDER.Roll.Statistic"}}">
+        {{selectOptions b.choices.statistics selected=b.values.roll.statistic localize=true}}</select>
+      <label class="checkbox"><input type="checkbox" name="wildpath.builder.roll.finesse" {{checked b.values.roll.finesse}}>
+        {{localize "WILDPATH.BUILDER.Roll.Finesse"}}</label>
+      <label>{{localize "WILDPATH.BUILDER.Roll.Ability"}}
+        <select name="wildpath.builder.roll.ability">{{selectOptions b.choices.attackAbilities selected=b.values.roll.ability localize=true}}</select></label>
+    {{/if}}
+    {{#if b.rollIsSave}}
+      <label>{{localize "WILDPATH.BUILDER.Roll.SaveAbility"}}
+        <select name="wildpath.builder.roll.saveAbility">{{selectOptions b.choices.abilities selected=b.values.roll.saveAbility localize=true}}</select></label>
+    {{/if}}
+    {{#if b.rollIsCheck}}
+      <label>{{localize "WILDPATH.BUILDER.Roll.CheckAbility"}}
+        <select name="wildpath.builder.roll.checkAbility">{{selectOptions b.choices.abilities selected=b.values.roll.checkAbility localize=true}}</select></label>
+      <label>{{localize "WILDPATH.BUILDER.Roll.Skill"}}
+        <input type="text" name="wildpath.builder.roll.checkSkill" value="{{b.values.roll.checkSkill}}"></label>
+    {{/if}}
+    {{#if b.rollHasDC}}
+      {{#if b.values.dcReadOnly}}<span class="hint">{{localize "WILDPATH.BUILDER.EditInAdvanced"}}</span>{{else}}
+      <label>{{localize "WILDPATH.BUILDER.Roll.DC"}}
+        <input type="text" class="formula" name="wildpath.builder.roll.dc" value="{{b.values.roll.dc}}" placeholder="8 + prof + spellmod"
+               {{#if b.dcError}}aria-invalid="true" aria-describedby="{{b.listId}}-dc-error"{{/if}}></label>
+      {{#if b.dcError}}<span class="field-error" id="{{b.listId}}-dc-error">{{b.dcError}}</span>{{/if}}
+      {{/if}}
+    {{/if}}
+    {{#if b.rollIsSave}}
+      <label>{{localize "WILDPATH.BUILDER.Roll.OnSuccess"}}
+        <select name="wildpath.builder.roll.onSuccess">{{selectOptions b.choices.onSuccess selected=b.values.roll.onSuccess localize=true}}</select></label>
+    {{/if}}
+    {{/if}}
+  </fieldset>
+
+  <fieldset>
+    <legend>{{localize "WILDPATH.BUILDER.Damage.Legend"}}</legend>
+    <ol class="builder-rows">
+      {{#each b.damage as |row|}}
+      <li>
+        <input type="hidden" name="wildpath.builder.damage.{{@index}}.id" value="{{row.id}}">
+        {{#if row.formulaReadOnly}}<span class="hint">{{localize "WILDPATH.BUILDER.EditInAdvanced"}}</span>{{else}}
+        <input type="text" class="formula" name="wildpath.builder.damage.{{@index}}.formula" value="{{row.formula}}" placeholder="1d8 + 3"
+               aria-label="{{localize "WILDPATH.BUILDER.FormulaLabel"}}" {{#if row.error}}aria-invalid="true" aria-describedby="{{row.errorId}}"{{/if}}>
+        {{/if}}
+        <input type="text" name="wildpath.builder.damage.{{@index}}.damageType" value="{{row.damageType}}" list="{{../b.listId}}-damage-types"
+               aria-label="{{localize "WILDPATH.BUILDER.Damage.Type"}}">
+        <select name="wildpath.builder.damage.{{@index}}.provenance" aria-label="{{localize "WILDPATH.BUILDER.Damage.Provenance"}}">
+          {{selectOptions ../b.choices.provenances selected=row.provenance localize=true}}</select>
+        {{#if ../b.editable}}<button type="button" class="icon" data-action="builderRemove" data-section="damage" data-index="{{@index}}"
+          data-tooltip="WILDPATH.BUILDER.Remove" aria-label="{{localize "WILDPATH.BUILDER.Remove"}}"><i class="fa-solid fa-trash" inert></i></button>{{/if}}
+        {{#if row.error}}<span class="field-error" id="{{row.errorId}}">{{row.error}}</span>{{/if}}
+      </li>
+      {{/each}}
+    </ol>
+    {{#if b.editable}}<button type="button" data-action="builderAdd" data-section="damage">{{localize "WILDPATH.BUILDER.Damage.Add"}}</button>{{/if}}
+    <datalist id="{{b.listId}}-damage-types">{{#each b.damageTypes as |value|}}<option value="{{value}}"></option>{{/each}}</datalist>
+  </fieldset>
+
+  <fieldset>
+    <legend>{{localize "WILDPATH.BUILDER.Healing.Legend"}}</legend>
+    <ol class="builder-rows">
+      {{#each b.healing as |row|}}
+      <li>
+        <input type="hidden" name="wildpath.builder.healing.{{@index}}.id" value="{{row.id}}">
+        {{#if row.formulaReadOnly}}<span class="hint">{{localize "WILDPATH.BUILDER.EditInAdvanced"}}</span>{{else}}
+        <input type="text" class="formula" name="wildpath.builder.healing.{{@index}}.formula" value="{{row.formula}}" placeholder="2d8 + spellmod"
+               aria-label="{{localize "WILDPATH.BUILDER.FormulaLabel"}}" {{#if row.error}}aria-invalid="true" aria-describedby="{{row.errorId}}"{{/if}}>
+        {{/if}}
+        {{#if ../b.editable}}<button type="button" class="icon" data-action="builderRemove" data-section="healing" data-index="{{@index}}"
+          data-tooltip="WILDPATH.BUILDER.Remove" aria-label="{{localize "WILDPATH.BUILDER.Remove"}}"><i class="fa-solid fa-trash" inert></i></button>{{/if}}
+        {{#if row.error}}<span class="field-error" id="{{row.errorId}}">{{row.error}}</span>{{/if}}
+      </li>
+      {{/each}}
+    </ol>
+    {{#if b.editable}}<button type="button" data-action="builderAdd" data-section="healing">{{localize "WILDPATH.BUILDER.Healing.Add"}}</button>{{/if}}
+  </fieldset>
+
+  <fieldset>
+    <legend>{{localize "WILDPATH.BUILDER.Effects.Legend"}}</legend>
+    <ol class="builder-rows effects">
+      {{#each b.effects as |row|}}
+      <li>
+        <input type="hidden" name="wildpath.builder.effects.{{@index}}.id" value="{{row.id}}">
+        <select name="wildpath.builder.effects.{{@index}}.kind" aria-label="{{localize "WILDPATH.BUILDER.Effects.Kind"}}">
+          {{selectOptions ../b.choices.effectKinds selected=row.kind localize=true}}</select>
+        {{#if row.isCondition}}
+          <select name="wildpath.builder.effects.{{@index}}.conditionId" aria-label="{{localize "WILDPATH.BUILDER.Effects.Condition"}}">
+            {{selectOptions ../b.choices.conditions selected=row.conditionId localize=true}}</select>
+          {{#if row.stacks}}<label>{{localize "WILDPATH.BUILDER.Effects.Levels"}}
+            <input type="number" name="wildpath.builder.effects.{{@index}}.levels" value="{{row.levels}}" min="1" step="1"></label>{{/if}}
+        {{else}}
+          <input type="text" name="wildpath.builder.effects.{{@index}}.name" value="{{row.name}}" aria-label="{{localize "WILDPATH.BUILDER.Effects.Name"}}">
+          <label>{{localize "WILDPATH.BUILDER.Effects.Duration"}}
+            <input type="number" name="wildpath.builder.effects.{{@index}}.durationValue" value="{{row.durationValue}}" min="0" step="1"></label>
+          <select name="wildpath.builder.effects.{{@index}}.durationUnits" aria-label="{{localize "WILDPATH.BUILDER.Effects.Units"}}">
+            {{selectOptions ../b.choices.durationUnits selected=row.durationUnits localize=true}}</select>
+          <select name="wildpath.builder.effects.{{@index}}.expiry" aria-label="{{localize "WILDPATH.BUILDER.Effects.Expiry"}}">
+            {{selectOptions ../b.choices.expiry selected=row.expiry localize=true}}</select>
+          <span class="hint">{{localize "WILDPATH.BUILDER.Effects.Rules" count=row.rules}}</span>
+        {{/if}}
+        {{#if ../b.rollIsSave}}
+          {{#if row.policyReadOnly}}<span class="hint">{{localize "WILDPATH.BUILDER.EditInAdvanced"}}</span>{{else}}
+          <label class="checkbox"><input type="checkbox" name="wildpath.builder.effects.{{@index}}.onFailedSave" {{checked row.onFailedSave}}>
+            {{localize "WILDPATH.BUILDER.Effects.OnFailedSave"}}</label>
+          {{/if}}
+        {{/if}}
+        {{#if ../b.editable}}<button type="button" class="icon" data-action="builderRemove" data-section="effects" data-index="{{@index}}"
+          data-tooltip="WILDPATH.BUILDER.Remove" aria-label="{{localize "WILDPATH.BUILDER.Remove"}}"><i class="fa-solid fa-trash" inert></i></button>{{/if}}
+      </li>
+      {{/each}}
+    </ol>
+    {{#if b.editable}}<button type="button" data-action="builderAdd" data-section="effects">{{localize "WILDPATH.BUILDER.Effects.Add"}}</button>{{/if}}
+  </fieldset>
+
+  {{#if b.advancedOnly.length}}
+  <p class="hint">{{localize "WILDPATH.BUILDER.AdvancedOnly"}} {{b.advancedOnly}}</p>
+  {{/if}}
+
+</section>

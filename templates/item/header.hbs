@@ -1,0 +1,8 @@
+<header class="sheet-header">
+  <img class="profile-img" src="{{item.img}}" data-edit="img" alt="{{item.name}}">
+  <input class="item-name" type="text" name="name" value="{{item.name}}">
+  <label class="active-toggle">
+    <input type="checkbox" name="system.active" {{checked system.active}}>
+    {{localize "WILDPATH.ITEMSHEET.Active"}}
+  </label>
+</header>

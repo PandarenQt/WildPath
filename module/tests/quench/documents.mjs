@@ -81,6 +81,48 @@ export function registerDocumentTests(quench) {
           assert.deepEqual(stored.range,{type:"reach",distance:{value:5}},"the old long range is gone");
         } finally { await item.sheet.close(); }
       });
+      it("the Builder tab saves a changed field into the definition, and keeps a bad formula as a draft", async function () {
+        const actor = await fixtures.createActor({name:"builder edit"});
+        const definition = {schemaVersion:1,id:"action:quench-club",label:"Club",costs:{allOf:[{capability:"action",amount:1}]},
+          targeting:{type:"single",required:true,count:1},range:{type:"reach",distance:{value:5,unit:"ft"}},
+          attack:{type:"melee",statistic:"weapon",defenseKey:"ac"},
+          damage:[{id:"club",expression:{type:"dice",number:1,faces:4},damageType:"bludgeoning",provenance:"weapon-base",metadata:{kept:true}}]};
+        const item = await fixtures.createItem(actor,{name:"Club",type:"action",system:{definition}});
+        await item.sheet.render(true);
+        const wait = async test => { for (let i = 0; (i < 40) && !test(); i++) await new Promise(r => setTimeout(r,50)); };
+        const input = () => item.sheet.element.querySelector("input[name='wildpath.builder.damage.0.formula']");
+        try {
+          assert.notInclude(item.sheet.element.textContent,"WILDPATH.","every label is localized");
+          input().value = "1d6 + 1";
+          input().dispatchEvent(new Event("change",{bubbles:true}));
+          await wait(() => item.system.definition.damage[0].expression.type === "add");
+          const stored = item.toObject(true).system.definition;
+          assert.deepEqual(stored.damage[0].expression,{type:"add",terms:[{type:"dice",number:1,faces:6},{type:"constant",value:1}]});
+          assert.deepEqual(stored.damage[0].metadata,{kept:true},"what the builder does not show survives");
+          assert.deepEqual(stored.attack,definition.attack,"an untouched section is left alone");
+          input().value = "1d6 + bananas";
+          input().dispatchEvent(new Event("change",{bubbles:true}));
+          await wait(() => input()?.getAttribute("aria-invalid") === "true");
+          assert.equal(input().getAttribute("aria-invalid"),"true","the bad formula is marked");
+          assert.equal(input().value,"1d6 + bananas","the draft is kept for fixing");
+          assert.equal(item.system.definition.damage[0].expression.type,"add","nothing was saved");
+        } finally { await item.sheet.close(); }
+      });
+      it("a blank Action takes a template from the Builder and gets an id", async function () {
+        const actor = await fixtures.createActor({name:"builder template"});
+        const item = await fixtures.createItem(actor,{name:"Flame Burst",type:"action"});
+        await item.sheet.render(true);
+        try {
+          const element = item.sheet.element;
+          element.querySelector(".template-choice").value = "areaSave";
+          element.querySelector("[data-action='builderTemplate']").click();
+          for (let i = 0; (i < 40) && !item.system.definition.save; i++) await new Promise(r => setTimeout(r,50));
+          const stored = item.toObject(true).system.definition;
+          assert.equal(stored.id,`action:${item.id}`,"a blank Action gets a stable id");
+          assert.equal(stored.area.shape,"radial");
+          assert.isTrue(item.system.getActionDefinition().ok,"the templated definition is valid");
+        } finally { await item.sheet.close(); }
+      });
       it("the built-in Actions pack loads, and each of its Actions imports onto an Actor with a valid definition", async function () {
         const pack = game.packs.get("wildpath.actions");
         if (!pack) this.skip(); // The world loads a new pack only when it is launched again.

@@ -1,5 +1,7 @@
-import {validateActionDefinition} from "../helpers/action-definitions.mjs";
+import {CUSTOM_EFFECT_DURATION_UNITS, CUSTOM_EFFECT_EXPIRY_EVENTS, validateActionDefinition} from "../helpers/action-definitions.mjs";
 import {summarizeActionDefinition} from "../helpers/action-definition-summary.mjs";
+import {ACTION_TEMPLATES, addBuilderRow, applyActionTemplate, builderIssues, builderToDefinition, definitionToBuilder,
+  removeBuilderRow} from "../helpers/action-builder.mjs";
 import {DEFAULT_RULE_ELEMENT_REGISTRY, validateRuleElementDefinition} from "../helpers/rule-elements.mjs";
 
 const {HandlebarsApplicationMixin} = foundry.applications.api;
@@ -16,34 +18,95 @@ export function ruleElementListErrors(ruleElements) {
   });
 }
 
+/** 2024 damage types, offered as suggestions; any slug is accepted. */
+const DAMAGE_TYPES = ["acid", "bludgeoning", "cold", "fire", "force", "lightning", "necrotic", "piercing", "poison", "psychic", "radiant",
+  "slashing", "thunder"];
+
+const choices = (values, prefix) => Object.fromEntries(values.map(value => [value, `${prefix}${value || "NotSet"}`]));
+
 /**
- * A minimal, functional ItemSheet for the WildPath system. Its Action definition and RuleElements are edited as
- * JSON and checked by the engine's own validators before anything is saved (the first slice of the Homebrew
- * Builder); an invalid draft stays on the sheet with its errors and is not saved.
+ * The WildPath ItemSheet. An Action is built on the Builder tab (homebrew-content-builder.md, second slice): plain
+ * fields that write into its definition, checked by the engine's validator before anything is saved. The Advanced tab
+ * keeps the JSON editors for the definition and RuleElements, and an invalid draft on either tab stays on the sheet
+ * with its errors and is not saved.
  */
 export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 
   /** @override */
   static DEFAULT_OPTIONS = {
     classes: ["wildpath", "sheet", "item"],
-    position: {width: 560, height: 680},
-    form: {submitOnChange: true}
+    position: {width: 620, height: 720},
+    form: {submitOnChange: true},
+    actions: {
+      builderAdd: WildPathItemSheet.#onBuilderAdd,
+      builderRemove: WildPathItemSheet.#onBuilderRemove,
+      builderTemplate: WildPathItemSheet.#onBuilderTemplate
+    }
   };
 
   /** @override */
   static PARTS = {
-    sheet: {template: "systems/wildpath/templates/item/item-sheet.hbs"}
+    header: {template: "systems/wildpath/templates/item/header.hbs"},
+    tabs: {template: "templates/generic/tab-navigation.hbs"},
+    builder: {template: "systems/wildpath/templates/item/builder.hbs", scrollable: [""]},
+    advanced: {template: "systems/wildpath/templates/item/advanced.hbs", scrollable: [""]},
+    description: {template: "systems/wildpath/templates/item/description.hbs"}
   };
 
-  /** Invalid JSON drafts kept across renders: `{definition|ruleElements: {text, errors}}`. */
+  /** @override */
+  static TABS = {
+    sheet: {tabs: [{id: "builder", label: "WILDPATH.ITEMSHEET.Tab.builder"}, {id: "advanced", label: "WILDPATH.ITEMSHEET.Tab.advanced"},
+      {id: "description", label: "WILDPATH.ITEMSHEET.Tab.description"}], initial: "builder"}
+  };
+
+  /**
+   * Drafts kept across renders until they are fixed: `definition` and `ruleElements` (JSON, `{text, errors}`) and
+   * `builder` (`{values, errors, issues}`).
+   */
   #drafts = {};
+
+  /** Options the builder reads formulas and fills defaults with. */
+  get #builderOptions() {
+    return {abilities: Object.keys(CONFIG.WILDPATH.ABILITIES), conditions: Object.keys(CONFIG.WILDPATH.CONDITIONS),
+      fallbackId: `action:${this.item.id}`};
+  }
+
+  /* -------------------------------------------- */
+
+  /** Only an Action has a Builder. @override */
+  _configureRenderParts(options) {
+    const parts = super._configureRenderParts(options);
+    if ( this.item.type !== "action" ) delete parts.builder;
+    return parts;
+  }
+
+  /** @override */
+  _getTabsConfig(group) {
+    const config = super._getTabsConfig(group);
+    if ( (group !== "sheet") || (this.item.type === "action") ) return config;
+    return {...config, tabs: config.tabs.filter(tab => tab.id !== "builder"), initial: "advanced"};
+  }
+
+  /** @override */
+  _prepareTabs(group) {
+    const config = this._getTabsConfig(group);
+    if ( config && !config.tabs.some(tab => tab.id === this.tabGroups[group]) ) this.tabGroups[group] = config.initial;
+    return super._prepareTabs(group);
+  }
+
+  /** @override */
+  async _preparePartContext(partId, context, options) {
+    context = await super._preparePartContext(partId, context, options);
+    if ( context.tabs?.[partId] ) context.tab = context.tabs[partId];
+    return context;
+  }
 
   /* -------------------------------------------- */
 
   /**
    * Modifier `domains` is a SetField edited as a comma-separated list. Modifier fields are written as
    * `system.modifiers.<index>.<field>`, which V14 drops for ArrayFields, so they are folded into the whole array.
-   * The JSON editors are parsed and validated here; only a valid draft reaches the document.
+   * The Builder and the JSON editors are read and validated here; only a valid definition reaches the document.
    * @inheritDoc
    */
   _processFormData(event, form, formData) {
@@ -63,19 +126,53 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
     }
     const drafts = submitData.wildpath ?? {};
     delete submitData.wildpath;
-    if ( typeof drafts.definitionJson === "string" ) {
-      const definition = this.#parseDraft("definition", drafts.definitionJson, parsed => validateActionDefinition(parsed).errors
-        ?.map(entry => `${entry.path}: ${entry.reason}`) ?? []);
-      // The edited definition replaces the stored one whole: keys it leaves out return to their initial value. Without
-      // ForcedReplacement, V14 merges nested objects, so a key removed inside one (attack.properties) would survive.
-      if ( definition ) foundry.utils.setProperty(submitData, "system.definition", foundry.data.operators.ForcedReplacement
-        .create({...this.item.system.schema.fields.definition.getInitialValue(), ...definition}));
+    if ( this.item.type === "action" ) {
+      const definition = this.#definitionFromBuilder(drafts.builder) ?? this.#definitionFromJson(drafts.definitionJson);
+      if ( definition ) foundry.utils.setProperty(submitData, "system.definition", this.#replacement(definition));
     }
     if ( typeof drafts.ruleElementsJson === "string" ) {
       const ruleElements = this.#parseDraft("ruleElements", drafts.ruleElementsJson, ruleElementListErrors);
       if ( ruleElements ) foundry.utils.setProperty(submitData, "system.ruleElements", ruleElements);
     }
     return submitData;
+  }
+
+  /**
+   * The edited definition replaces the stored one whole: keys it leaves out return to their initial value. Without
+   * ForcedReplacement, V14 merges nested objects, so a key removed inside one (attack.properties) would survive.
+   */
+  #replacement(definition) {
+    return foundry.data.operators.ForcedReplacement.create({...this.item.system.schema.fields.definition.getInitialValue(), ...definition});
+  }
+
+  /** The definition the Builder's changed fields make, or null when they changed nothing or are kept as a draft. */
+  #definitionFromBuilder(values) {
+    if ( !values ) return null;
+    const result = builderToDefinition(values, this.item.toObject(true).system.definition, this.#builderOptions);
+    if ( result.errors.length ) {
+      this.#drafts.builder = {values, errors: result.errors};
+      return null;
+    }
+    if ( !result.changed ) {
+      delete this.#drafts.builder;
+      return null;
+    }
+    if ( !validateActionDefinition(result.definition).ok ) {
+      this.#drafts.builder = {values, errors: [], issues: builderIssues(result.definition)};
+      return null;
+    }
+    delete this.#drafts.builder;
+    delete this.#drafts.definition;
+    return result.definition;
+  }
+
+  /** The definition typed in the Advanced JSON editor, when it differs from the stored one and is valid. */
+  #definitionFromJson(text) {
+    if ( typeof text !== "string" ) return null;
+    const stored = JSON.stringify(this.item.toObject(true).system.definition, null, 2);
+    if ( !this.#drafts.definition && (text.replace(/\r\n/g, "\n") === stored) ) return null;
+    return this.#parseDraft("definition", text, parsed => validateActionDefinition(parsed).errors
+      ?.map(entry => `${entry.path}: ${entry.reason}`) ?? []);
   }
 
   /** A rejected draft changes nothing, so no update re-renders the sheet: render it to show the errors. */
@@ -103,6 +200,45 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
     return parsed;
   }
 
+  /* -------------------------------------------- */
+
+  /** Save a definition made by a Builder button, after folding in what the form holds now. */
+  async #editDefinition(change) {
+    const values = foundry.utils.expandObject(new foundry.applications.ux.FormDataExtended(this.form).object).wildpath?.builder;
+    const result = builderToDefinition(values, this.item.toObject(true).system.definition, this.#builderOptions);
+    if ( result.errors.length ) return ui.notifications.warn("WILDPATH.BUILDER.FixFirst", {localize: true});
+    const definition = change(result.definition);
+    if ( !definition.id ) definition.id = this.#builderOptions.fallbackId;
+    delete this.#drafts.builder;
+    delete this.#drafts.definition;
+    return this.item.update({system: {definition: this.#replacement(definition)}});
+  }
+
+  static async #onBuilderAdd(event, target) {
+    await this.#editDefinition(definition => addBuilderRow(definition, target.dataset.section, this.#builderOptions));
+  }
+
+  static async #onBuilderRemove(event, target) {
+    await this.#editDefinition(definition => removeBuilderRow(definition, target.dataset.section, Number(target.dataset.index)));
+  }
+
+  /** Replace the definition with a template; an Action that already does something asks first. */
+  static async #onBuilderTemplate() {
+    const key = this.element.querySelector(".template-choice")?.value;
+    const stored = this.item.toObject(true).system.definition;
+    const doesSomething = ["range", "targeting", "area", "attack", "save", "check"].some(part => stored[part])
+      || ["damage", "healing", "effects", "configuration"].some(part => stored[part]?.length);
+    if ( doesSomething && !(await foundry.applications.api.DialogV2.confirm({window: {title: "WILDPATH.BUILDER.Template.Legend"},
+      content: `<p>${game.i18n.localize("WILDPATH.BUILDER.Template.Confirm")}</p>`})) ) return;
+    const definition = applyActionTemplate(stored, key, this.#builderOptions);
+    if ( !definition ) return;
+    delete this.#drafts.builder;
+    delete this.#drafts.definition;
+    await this.item.update({system: {definition: this.#replacement(definition)}});
+  }
+
+  /* -------------------------------------------- */
+
   /** @override */
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
@@ -119,10 +255,79 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
       const definition = source.definition ?? {};
       context.definitionJson = this.#drafts.definition?.text ?? JSON.stringify(definition, null, 2);
       context.definitionErrors = this.#drafts.definition?.errors ?? [];
-      context.definitionSummary = summarizeActionDefinition(definition).map(([label, text]) => ({label, text}));
+      context.b = this.#builderContext(definition);
     }
     context.ruleElementsJson = this.#drafts.ruleElements?.text ?? JSON.stringify(source.ruleElements ?? [], null, 2);
     context.ruleElementErrors = this.#drafts.ruleElements?.errors ?? [];
     return context;
+  }
+
+  /** The Builder tab: the definition's builder values (or the draft being fixed), its choices and its issues. */
+  #builderContext(definition) {
+    const values = definitionToBuilder(definition);
+    const draft = this.#drafts.builder;
+    for ( const [section, submitted] of Object.entries(draft?.values ?? {}) ) {
+      if ( Array.isArray(values[section]) ) {
+        for ( const [index, row] of Object.entries(submitted ?? {}) ) if ( values[section][index] ) Object.assign(values[section][index], row);
+      } else if ( values[section] ) Object.assign(values[section], submitted);
+    }
+    const fieldErrors = Object.fromEntries((draft?.errors ?? []).map(error => [error.field,
+      game.i18n.format(`WILDPATH.BUILDER.Formula.${error.key}`, error.data)]));
+    const rows = section => values[section].map((row, index) => ({...row, error: fieldErrors[`${section}.${index}.formula`],
+      errorId: `${this.id}-${section}-${index}-error`}));
+    const sectionLabel = section => game.i18n.localize(`WILDPATH.BUILDER.Section.${section}`);
+    const issues = (draft?.issues ?? builderIssues(definition)).map(issue => ({level: issue.level,
+      text: `${sectionLabel(issue.section)}: ${issue.key ? game.i18n.localize(`WILDPATH.BUILDER.Issue.${issue.key}`) : issue.text}`}));
+    const {range, targets, area, roll} = values;
+    const conditions = CONFIG.WILDPATH.CONDITIONS;
+    // A stored value the choices do not list is still shown, as itself.
+    const keep = (map, value) => ((value && !(value in map)) ? {...map, [value]: value} : map);
+    const abilities = Object.fromEntries(Object.entries(CONFIG.WILDPATH.ABILITIES).map(([key, ability]) => [key, ability.label]));
+    const advancedOnly = [["configuration", definition.configuration?.length], ["transform", definition.transform],
+      ["summon", definition.summon], ["controllerCosts", definition.controllerCosts?.allOf?.length || definition.controllerCosts?.anyOf],
+      ["stabilize", definition.stabilize], ["ruleElements", definition.ruleElements?.length], ["duration", definition.duration]]
+      .filter(([, present]) => present).map(([key]) => game.i18n.localize(`WILDPATH.BUILDER.Part.${key}`));
+    return {
+      editable: this.isEditable,
+      listId: this.id,
+      values,
+      summary: summarizeActionDefinition(definition).map(([label, text]) => ({label, text})),
+      issues: draft ? [{level: "error", text: game.i18n.localize("WILDPATH.ITEMSHEET.NotSaved")}, ...issues] : issues,
+      templates: Object.fromEntries(Object.keys(ACTION_TEMPLATES).map(key => [key, `WILDPATH.BUILDER.Template.${key}`])),
+      capabilities: [...Object.values(CONFIG.WILDPATH.ECONOMY_CAPABILITIES), ...Array.from({length: 9}, (_, i) => `spell-slot.${i + 1}`)],
+      damageTypes: DAMAGE_TYPES,
+      rangeHasDistance: ["touch", "reach", "ranged"].includes(range.type),
+      rangeIsRanged: range.type === "ranged",
+      targetsMultiple: targets.type === "multiple",
+      showArea: (targets.type === "area") || Boolean(area.shape),
+      areaIsLine: area.shape === "line",
+      rollMixed: roll.kind === "mixed",
+      rollIsAttack: roll.kind === "attack",
+      rollIsSave: roll.kind === "save",
+      rollIsCheck: roll.kind === "check",
+      rollHasDC: ["save", "check"].includes(roll.kind),
+      dcError: fieldErrors["roll.dc"],
+      damage: rows("damage"),
+      healing: rows("healing"),
+      effects: values.effects.map(row => ({...row, isCondition: row.kind !== "effect", stacks: Boolean(conditions[row.conditionId]?.stacking)})),
+      advancedOnly: advancedOnly.join(", "),
+      choices: {
+        rangeTypes: choices(["", "self", "touch", "reach", "ranged", "sight", "special"], "WILDPATH.BUILDER.Range."),
+        targetTypes: choices(["", "self", "single", "multiple", "area", "none"], "WILDPATH.BUILDER.Targets."),
+        areaShapes: choices(["radial", "emanation", "cone", "line"], "WILDPATH.BUILDER.Area."),
+        rollKinds: choices(["none", "attack", "save", "check"], "WILDPATH.BUILDER.Roll."),
+        attackTypes: choices(["melee", "ranged"], "WILDPATH.BUILDER.Roll."),
+        statistics: choices(["weapon", "spell"], "WILDPATH.BUILDER.Roll."),
+        attackAbilities: {"": "WILDPATH.BUILDER.Roll.Automatic", ...abilities},
+        abilities: keep(abilities, roll.saveAbility || roll.checkAbility),
+        onSuccess: keep(choices(["half", "none", "full"], "WILDPATH.BUILDER.Roll.Success."), roll.onSuccess),
+        provenances: values.damage.reduce((map, row) => keep(map, row.provenance),
+          choices(["weapon-base", "spell-base", "additional"], "WILDPATH.BUILDER.Damage.")),
+        effectKinds: choices(["condition", "effect"], "WILDPATH.BUILDER.Effects."),
+        conditions: Object.fromEntries(Object.entries(conditions).map(([key, condition]) => [key, condition.name ?? key])),
+        durationUnits: choices(["", ...CUSTOM_EFFECT_DURATION_UNITS], "WILDPATH.BUILDER.Units."),
+        expiry: choices(["", ...CUSTOM_EFFECT_EXPIRY_EVENTS], "WILDPATH.BUILDER.Expiry.")
+      }
+    };
   }
 }

@@ -148,7 +148,187 @@
       "Description": "Description",
       "DomainsPlaceholder": "domains (comma separated, e.g. resources.health.max)",
       "LabelPlaceholder": "label",
-      "TypePlaceholder": "type"
+      "TypePlaceholder": "type",
+      "Tab": {
+        "builder": "Builder",
+        "advanced": "Advanced",
+        "description": "Description"
+      }
+    },
+    "BUILDER": {
+      "EditInAdvanced": "Edit this on the Advanced tab.",
+      "AdvancedOnly": "Also set, edited on the Advanced tab:",
+      "FixFirst": "Fix the marked fields first.",
+      "Remove": "Remove",
+      "FormulaLabel": "Formula",
+      "Concentration": "Needs concentration",
+      "Section": {
+        "basics": "Basics",
+        "costs": "Cost",
+        "range": "Range",
+        "targets": "Targets",
+        "area": "Area",
+        "roll": "Roll",
+        "damage": "Damage",
+        "healing": "Healing",
+        "effects": "Effects",
+        "advanced": "Advanced"
+      },
+      "Issue": {
+        "NoTargets": "it has outcomes but no targets.",
+        "NothingHappens": "it rolls, but deals no damage and applies no effect.",
+        "NoRange": "it targets creatures but has no range."
+      },
+      "Part": {
+        "configuration": "choices",
+        "transform": "transformation",
+        "summon": "summon",
+        "controllerCosts": "controller cost",
+        "stabilize": "stabilizing",
+        "ruleElements": "rule elements",
+        "duration": "duration"
+      },
+      "Formula": {
+        "Empty": "Enter a formula.",
+        "Unexpected": "Unexpected \"{token}\".",
+        "Unbalanced": "Unbalanced parentheses.",
+        "DiceNotAllowed": "No dice here ({token}).",
+        "UnknownWord": "Unknown word \"{word}\". Use prof, level, level(class), mod(ability), spellmod, resource(id), floor() or ceil().",
+        "UnknownAbility": "Unknown ability \"{ability}\". Use one of: {abilities}."
+      },
+      "Template": {
+        "Legend": "Start from a template",
+        "Apply": "Apply",
+        "Confirm": "This replaces everything the Action does now. Continue?",
+        "melee": "Melee attack",
+        "ranged": "Ranged attack",
+        "spellAttack": "Spell attack",
+        "save": "Saving throw",
+        "areaSave": "Area saving throw",
+        "healing": "Healing",
+        "custom": "Custom"
+      },
+      "Basics": {
+        "Legend": "What is it?",
+        "Spell": "It is a spell"
+      },
+      "Costs": {
+        "Legend": "What does it cost to use?",
+        "Capability": "What it spends",
+        "Amount": "How much",
+        "Free": "Free",
+        "Add": "Add a cost"
+      },
+      "Range": {
+        "Legend": "How far does it reach?",
+        "NotSet": "Not set",
+        "self": "Self",
+        "touch": "Touch",
+        "reach": "Reach",
+        "ranged": "Ranged",
+        "sight": "Sight",
+        "special": "Special",
+        "Distance": "Distance (ft)",
+        "Long": "Long range (ft)"
+      },
+      "Targets": {
+        "Legend": "Who does it affect?",
+        "NotSet": "Not set",
+        "self": "Only the user",
+        "single": "One creature",
+        "multiple": "Several creatures",
+        "area": "Everyone in an area",
+        "none": "No one",
+        "Count": "How many"
+      },
+      "Area": {
+        "Legend": "What area does it cover?",
+        "Shape": "Shape",
+        "radial": "Sphere (radius)",
+        "emanation": "Emanation (around the user)",
+        "cone": "Cone",
+        "line": "Line",
+        "Size": "Size (ft)",
+        "Width": "Width (ft)",
+        "Lasting": "It lasts on the battlefield",
+        "Rounds": "Rounds",
+        "Triggers": "{count} trigger(s) when creatures enter or start their turn there."
+      },
+      "Roll": {
+        "Legend": "What decides whether it works?",
+        "none": "Nothing: it just happens",
+        "attack": "An attack roll",
+        "save": "A saving throw",
+        "check": "The user's ability check",
+        "AttackType": "Attack type",
+        "melee": "Melee",
+        "ranged": "Ranged",
+        "Statistic": "Attack with",
+        "weapon": "A weapon",
+        "spell": "A spell",
+        "Finesse": "Finesse",
+        "Ability": "Ability",
+        "Automatic": "Automatic",
+        "SaveAbility": "Save",
+        "CheckAbility": "Check",
+        "Skill": "Skill",
+        "DC": "DC",
+        "OnSuccess": "On a successful save, damage is",
+        "Success": {
+          "half": "halved",
+          "none": "none",
+          "full": "full",
+          "mixed": "different per row"
+        }
+      },
+      "Damage": {
+        "Legend": "What damage does it deal?",
+        "Type": "Damage type",
+        "Provenance": "Kind",
+        "weapon-base": "Weapon",
+        "spell-base": "Spell",
+        "additional": "Extra",
+        "Add": "Add damage"
+      },
+      "Healing": {
+        "Legend": "What does it heal?",
+        "Add": "Add healing"
+      },
+      "Effects": {
+        "Legend": "What effects does it apply?",
+        "Kind": "Kind",
+        "condition": "A condition",
+        "effect": "A custom effect",
+        "Condition": "Condition",
+        "Levels": "Levels",
+        "Name": "Effect name",
+        "Duration": "Lasts",
+        "Units": "Units",
+        "Expiry": "Ends at",
+        "Rules": "{count} rule(s), edited on the Advanced tab.",
+        "OnFailedSave": "Only on a failed save",
+        "Add": "Add an effect"
+      },
+      "Units": {
+        "NotSet": "until removed",
+        "years": "years",
+        "months": "months",
+        "days": "days",
+        "hours": "hours",
+        "minutes": "minutes",
+        "seconds": "seconds",
+        "rounds": "rounds",
+        "turns": "turns"
+      },
+      "Expiry": {
+        "NotSet": "the end of its duration",
+        "combatStart": "the start of combat",
+        "roundStart": "the start of a round",
+        "turnStart": "the start of a turn",
+        "combatEnd": "the end of combat",
+        "roundEnd": "the end of a round",
+        "turnEnd": "the end of a turn"
+      }
     },
     "SHEET": {
       "AC": "AC",

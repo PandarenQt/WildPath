@@ -1,23 +1,17 @@
 /**
- * A short, plain summary of what an ActionDefinition does, for the item sheet's editor (the first slice of the
- * Homebrew Builder): each line names one part of the definition as the engine reads it.
+ * A short, plain summary of what an ActionDefinition does, for the item sheet's Builder: each line names one part of
+ * the definition as the engine reads it.
  */
+import { formatFormula } from "./formula.mjs";
 const requirementText = (requirement) => `${requirement.amount ?? 1} ${requirement.capability ?? requirement.resource ?? "?"}`;
 function costText(costs) {
     if (costs?.anyOf?.length)
         return costs.anyOf.map(branch => branch.map(requirementText).join(" + ")).join(" or ");
     return costs?.allOf?.length ? costs.allOf.map(requirementText).join(" + ") : null;
 }
+/** The builder's formula text; an expression only Advanced can show is named by its type. */
 function amountText(expression) {
-    if (!expression)
-        return "?";
-    if (expression.type === "dice")
-        return `${expression.number ?? 1}d${expression.faces ?? "?"}`;
-    if (expression.type === "constant")
-        return String(expression.value ?? 0);
-    if (expression.terms?.length)
-        return expression.terms.map(amountText).join(` ${expression.type ?? "?"} `);
-    return expression.type ?? "?";
+    return formatFormula(expression) ?? expression?.type ?? "?";
 }
 /** One line per part of the definition, as [label, text] pairs; an absent part has no line. */
 export function summarizeActionDefinition(definition) {
