@@ -1,4 +1,4 @@
-import {areaClickCount, foundryAreaFootprint, type AreaCode} from "../adapters/foundry-v14-area-placement.mjs";
+import {areaClickCount, foundryAreaFootprint, foundryPointInRange, type AreaCode} from "../adapters/foundry-v14-area-placement.mjs";
 import {createFoundryV14TacticalGridAdapter} from "../adapters/foundry-v14-tactical-grid-adapter.mjs";
 
 interface Point {x: number; y: number}
@@ -17,7 +17,7 @@ interface Canvas {
   canvasCoordinatesFromClient(point: Point): Point;
 }
 interface Globals {
-  canvas: Canvas;
+  canvas: Canvas & {grid: {getOffset(point: Point): unknown; getTopLeftPoint(offset: unknown): Point}};
   game: {user: {color: number}; i18n: {localize(key: string): string}};
   ui: {notifications: {info(message: string): unknown; warn(message: string): unknown}};
 }
@@ -43,26 +43,64 @@ const CODE_KEYS: Record<AreaCode, string> = {
  * @returns the placement points, or null when cancelled.
  */
 export function placeFoundryArea({definition, sourceToken}: {definition: Definition; sourceToken: SourceToken}) {
+  const {canvas} = globalThis as unknown as Globals;
+  const adapter = createFoundryV14TacticalGridAdapter({scene: sourceToken.parent});
+  const needed = areaClickCount(definition);
+  return pickPoints({
+    needed,
+    hint: needed === 1 ? "WILDPATH.AREA.PlaceRadial" : "WILDPATH.AREA.PlaceFromEdge",
+    highlight: (points, cursor) => {
+      const result = foundryAreaFootprint({definition, sourceToken, points: [...points, cursor]});
+      if ( !result.ok ) return [];
+      return result.footprint.fields.flatMap(field => {
+        const center = adapter.fieldToCenterPoint(field) as {ok: boolean; point?: Point};
+        return center.ok && center.point ? [{x: center.point.x - (canvas.grid.sizeX / 2), y: center.point.y - (canvas.grid.sizeY / 2)}] : [];
+      });
+    },
+    // A click counts only when it advances placement: a valid origin first, then a valid whole area.
+    accept: (points, point) => {
+      const result = foundryAreaFootprint({definition, sourceToken, points: [...points, point]});
+      return (result.ok || ((points.length === 0) && (needed === 2) && (result.needs === "direction"))) ? null : CODE_KEYS[result.code];
+    }
+  });
+}
+
+/**
+ * Choose where a summon's creatures appear (2024: spaces the caster can see within range): one click per creature,
+ * each on a field within the Action's range. The authority places each creature there, or on the nearest place it fits.
+ * @returns the points, or null when cancelled.
+ */
+export function placeFoundrySummons({definition, sourceToken, count}: {definition: Definition; sourceToken: SourceToken; count: number}) {
+  const {canvas} = globalThis as unknown as Globals;
+  const field = (point: Point) => canvas.grid.getTopLeftPoint(canvas.grid.getOffset(point));
+  return pickPoints({
+    needed: count,
+    hint: "WILDPATH.SUMMON.Place",
+    highlight: (points, cursor) => [...points, cursor].map(field),
+    accept: (points, point) => (foundryPointInRange({definition, sourceToken: sourceToken as never, point}) ? null : CODE_KEYS.OutOfRange)
+  });
+}
+
+/**
+ * WildPath's own clicks on the board: `needed` clicks, each checked by `accept` (a lang key to warn with, or null),
+ * with `highlight` showing the fields (top-left points) the next click would give. Clicks go to the placement
+ * only, never to Foundry's Token selection. Escape or right-click cancels.
+ */
+function pickPoints({needed, hint, highlight, accept}: {needed: number; hint: string;
+  highlight(points: Point[], cursor: Point): Point[]; accept(points: Point[], point: Point): string | null}) {
   const {canvas, game, ui} = globalThis as unknown as Globals;
   const board = canvas.app.view;
   const grid = canvas.interface.grid;
-  const adapter = createFoundryV14TacticalGridAdapter({scene: sourceToken.parent});
-  const needed = areaClickCount(definition);
   const points: Point[] = [];
   grid.addHighlightLayer(LAYER);
-  ui.notifications.info(game.i18n.localize(needed === 1 ? "WILDPATH.AREA.PlaceRadial" : "WILDPATH.AREA.PlaceFromEdge"));
+  ui.notifications.info(game.i18n.localize(hint));
 
   return new Promise<{points: Point[]} | null>(resolve => {
     const toCanvas = (event: PointerEvent) => canvas.canvasCoordinatesFromClient({x: event.clientX, y: event.clientY});
     const draw = (cursor: Point) => {
       grid.clearHighlightLayer(LAYER);
-      const result = foundryAreaFootprint({definition, sourceToken, points: [...points, cursor]});
-      if ( !result.ok ) return;
-      for ( const field of result.footprint.fields ) {
-        const center = adapter.fieldToCenterPoint(field) as {ok: boolean; point?: Point};
-        if ( !center.ok || !center.point ) continue;
-        grid.highlightPosition(LAYER, {x: center.point.x - (canvas.grid.sizeX / 2), y: center.point.y - (canvas.grid.sizeY / 2),
-          color: Number(game.user.color), border: Number(game.user.color), alpha: 0.35});
+      for ( const {x, y} of highlight(points, cursor) ) {
+        grid.highlightPosition(LAYER, {x, y, color: Number(game.user.color), border: Number(game.user.color), alpha: 0.35});
       }
     };
     const finish = (value: {points: Point[]} | null) => {
@@ -80,11 +118,8 @@ export function placeFoundryArea({definition, sourceToken}: {definition: Definit
       if ( event.button === 2 ) return finish(null);
       if ( event.button !== 0 ) return;
       const point = toCanvas(event);
-      const result = foundryAreaFootprint({definition, sourceToken, points: [...points, point]});
-      // A click counts only when it advances placement: a valid origin first, then a valid whole area.
-      if ( !result.ok && !((points.length === 0) && (needed === 2) && (result.needs === "direction")) ) {
-        return void ui.notifications.warn(game.i18n.localize(CODE_KEYS[result.code]));
-      }
+      const refused = accept(points, point);
+      if ( refused ) return void ui.notifications.warn(game.i18n.localize(refused));
       points.push(point);
       if ( points.length >= needed ) finish({points});
     };

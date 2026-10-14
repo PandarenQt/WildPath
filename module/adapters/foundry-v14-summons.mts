@@ -1,3 +1,5 @@
+import {foundryPointInRange} from "./foundry-v14-area-placement.mjs";
+
 /**
  * Summoning from an Action (M5, companions.md): when an Action with `summon` completes, the active GM places
  * unlinked Tokens of the summoned creature on the nearest free fields around the caster. Each is a summon its
@@ -23,7 +25,7 @@ interface SummonToken {
   object?: {checkCollision?(destination: {x: number; y: number}, options: {type: string; mode: string}): boolean} | null;
 }
 interface SummonScene {
-  id: string; grid: Grid;
+  id: string; grid: Grid; dimensions?: {sceneRect?: {contains(x: number, y: number): boolean}};
   tokens: Iterable<SummonToken> & {get(id: string): SummonToken | undefined};
   createEmbeddedDocuments(type: string, data: Data[]): Promise<SummonToken[]>;
   deleteEmbeddedDocuments(type: string, ids: string[]): Promise<unknown>;
@@ -55,16 +57,20 @@ export function summonPlacements({start, count, occupied, adjacent, footprint=of
   const seen = new Set([key(start)]);
   const queue: Offset[] = [start];
   const free: Offset[] = [];
+  const consider = (offset: Offset) => {
+    const cells = footprint(offset).map(key);
+    if ( cells.some(cell => taken.has(cell)) || !allowed(offset) ) return;
+    free.push(offset);
+    for ( const cell of cells ) taken.add(cell);
+  };
+  if ( count > 0 ) consider(start);
   while ( queue.length && (free.length < count) && (seen.size < limit) ) {
     const current = queue.shift()!;
     for ( const next of adjacent(current) ) {
       if ( seen.has(key(next)) ) continue;
       seen.add(key(next));
       queue.push(next);
-      const cells = footprint(next).map(key);
-      if ( cells.some(cell => taken.has(cell)) || !allowed(next) ) continue;
-      free.push(next);
-      for ( const cell of cells ) taken.add(cell);
+      consider(next);
       if ( free.length >= count ) break;
     }
   }
@@ -110,9 +116,10 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
     return ActorClass?.create({...data, flags: {...((data.flags as Data) ?? {}), wildpath: {summonSource: source.uuid}}}) ?? null;
   }
 
-  async function afterResolution({options, state}: {options?: {actor?: CasterActor}; state?: Data}) {
+  async function afterResolution({options, state}: {options?: {actor?: CasterActor; summonPoints?: Array<{x: number; y: number}>};
+    state?: Data}) {
     const definition = state?.actionDefinition as {label?: string; summon?: {actorRef?: string; choiceId?: string; count?: number;
-      rounds?: number; concentration?: boolean}} | undefined;
+      rounds?: number; concentration?: boolean}; range?: {normal?: {value?: number}; distance?: {value?: number}} | null} | undefined;
     const spec = definition?.summon;
     const caster = options?.actor;
     if ( !spec || !caster || !isActiveGM() ) return [];
@@ -146,10 +153,22 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
       const {x, y} = scene.grid.getTopLeftPoint(offset);
       return {x: x + (((shape.width ?? 1) * (scene.grid.sizeX ?? 0)) / 2), y: y + (((shape.height ?? 1) * (scene.grid.sizeY ?? 0)) / 2)};
     };
-    const offsets = summonPlacements({start, count: Math.max(1, Math.min(Number(spec.count) || 1, 20)), occupied,
-      adjacent: offset => scene.grid.getAdjacentOffsets(offset), footprint,
-      allowed: offset => !collides || [centre(offset), ...footprint(offset).map(cell => scene.grid.getCenterPoint?.(cell)
-        ?? scene.grid.getTopLeftPoint(cell))].every(seen)});
+    // 2024: on the Scene, within the Action's range, and seen by the caster.
+    const onScene = (offset: Offset) => { const {x, y} = centre(offset); return scene.dimensions?.sceneRect?.contains(x, y) ?? true; };
+    const allowed = (offset: Offset) => onScene(offset) && foundryPointInRange({definition: definition ?? {}, sourceToken: casterToken as never,
+      point: centre(offset)}) && (!collides || [centre(offset), ...footprint(offset).map(cell => scene.grid.getCenterPoint?.(cell)
+        ?? scene.grid.getTopLeftPoint(cell))].every(seen));
+    const count = Math.max(1, Math.min(Number(spec.count) || 1, 20));
+    const taken = new Set(occupied);
+    const place = (from: Offset, wanted: number) => {
+      const found = summonPlacements({start: from, count: wanted, occupied: taken, footprint, allowed,
+        adjacent: offset => scene.grid.getAdjacentOffsets(offset)});
+      for ( const offset of found ) for ( const cell of footprint(offset) ) taken.add(key(cell));
+      return found;
+    };
+    // Each clicked point is where one creature appears, or the nearest allowed place to it; the rest go near the caster.
+    const offsets = (options?.summonPoints ?? []).slice(0, count).flatMap(point => place(scene.grid.getOffset(point), 1));
+    offsets.push(...place(start, count - offsets.length));
     const combat = game.combat ?? null;
     const summon: SummonFlag = {casterUuid: caster.uuid, kind: "summon", rounds: Number(spec.rounds) || null,
       createdAt: combat ? {combatId: combat.id, round: combat.round, turn: combat.turn} : null};

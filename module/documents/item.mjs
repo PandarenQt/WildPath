@@ -1,6 +1,6 @@
 import {buildFoundryActionUseIntent} from "../resolvers/foundry-multiplayer-runtime.mjs";
 import {actionDefinitionFromAction} from "../helpers/action-definitions.mjs";
-import {placeFoundryArea} from "../applications/area-placement.mjs";
+import {placeFoundryArea, placeFoundrySummons} from "../applications/area-placement.mjs";
 import {areaClickCount} from "../adapters/foundry-v14-area-placement.mjs";
 
 /**
@@ -51,6 +51,15 @@ export default class WildPathItem extends Item {
       if ( !area ) return false;
       built.intent.area = area;
       built.intent.source = {tokenId: sourceToken.id, tokenRef: sourceToken.uuid, sceneId: sourceToken.parent?.id ?? null};
+    }
+    // A summon's creatures appear where the caster clicks; without a Token on the canvas the authority places them.
+    const summon = definition.ok ? definition.definition?.summon : null;
+    const summoner = summon ? (this.actor.token ?? this.actor.getActiveTokens?.(false, true)?.[0] ?? null) : null;
+    if ( summoner && globalThis.canvas?.ready && (summoner.parent === globalThis.canvas.scene) ) {
+      const placed = await placeFoundrySummons({definition: definition.definition, sourceToken: summoner,
+        count: Math.max(1, Math.min(Number(summon.count) || 1, 20))});
+      if ( !placed ) return false;
+      built.intent.summon = placed;
     }
     const declared = await runtime.executeActionIntent(built.intent);
     if ( !declared.ok ) {

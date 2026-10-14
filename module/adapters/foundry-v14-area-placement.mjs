@@ -17,6 +17,22 @@ export function areaClickCount(definition) {
  * Radial: `points[0]` picks the center field, within the Action's range of the caster. Cone and line:
  * `points[0]` picks a corner on the caster's Token edge and `points[1]` the direction.
  */
+/** Whether a canvas point's field is within the Action's range of the caster; true when the Action has no range. */
+export function foundryPointInRange({ definition, sourceToken, point }) {
+    const range = Number(definition.range?.normal?.value ?? definition.range?.distance?.value);
+    if (!Number.isFinite(range))
+        return true;
+    const adapter = createFoundryV14TacticalGridAdapter({ scene: sourceToken.parent });
+    const scene = adapter.getSceneContext();
+    if (!scene.ok || !("context" in scene))
+        return true;
+    const { topology, distance: gridDistance } = scene.context.grid;
+    const source = adapter.tokenToFootprint(sourceToken);
+    const field = adapter.pointToField(point);
+    if (!source.ok || !("footprint" in source) || !source.footprint || !field.ok || !field.field)
+        return false;
+    return footprintDistance(source.footprint, { topology, fields: [field.field] }) * gridDistance <= range;
+}
 export function foundryAreaFootprint({ definition, sourceToken, points }) {
     const adapter = createFoundryV14TacticalGridAdapter({ scene: sourceToken.parent });
     const scene = adapter.getSceneContext();

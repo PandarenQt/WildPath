@@ -104,6 +104,9 @@
       "NeedDirection": "Choose the area's direction.",
       "BadDirection": "That direction is not allowed."
     },
+    "SUMMON": {
+      "Place": "Click where each creature appears. Press Esc to cancel."
+    },
     "DYING": {
       "DeathSave": "Death Saving Throw"
     },

@@ -72,3 +72,30 @@ test("a Large summon needs its whole footprint free, summons never overlap each 
     allowed: ({j}) => j <= 5});
   assert.ok(behindWall.every(({j}) => j <= 5), "the caster cannot see past the wall at column 6");
 });
+
+test("a clicked point is where a summon appears; the rest go near the caster; the intent carries at most 20 points", async () => {
+  const {createFoundrySummons} = await import("../module/adapters/foundry-v14-summons.mjs");
+  const {sanitizeActionIntentPayload} = await import("../module/helpers/multiplayer-authority.mjs");
+  const tokens = new Map();
+  const scene = {id: "s", tokens: {[Symbol.iterator]: () => tokens.values(), get: id => tokens.get(id)},
+    dimensions: {sceneRect: {contains: (x, y) => (x >= 0) && (y >= 0)}},
+    grid: {getOffset: ({x, y}) => ({i: Math.floor(y / 100), j: Math.floor(x / 100)}), getAdjacentOffsets: square,
+      getTopLeftPoint: ({i, j}) => ({x: j * 100, y: i * 100})},
+    createEmbeddedDocuments: async (type, data) => data.map((entry, i) => { const token = {...entry, id: `t${i}`, parent: scene};
+      tokens.set(token.id, token); return token; }),
+    deleteEmbeddedDocuments: async () => {}};
+  const casterToken = {id: "caster", x: 0, y: 0, parent: scene, getOccupiedGridSpaceOffsets: () => [{i: 0, j: 0}]};
+  tokens.set("caster", casterToken);
+  const wolf = {uuid: "Actor.wolf", getTokenDocument: async data => ({toObject: () => ({...data})})};
+  const summons = createFoundrySummons({game: {user: {id: "gm"}, users: {activeGM: {id: "gm"}}, scenes: [scene]},
+    companions: {setControllers: async () => {}}, fromUuid: uuid => ({"Scene.s.Token.caster": casterToken, "Actor.wolf": wolf})[uuid] ?? null});
+  const placed = await summons.afterResolution({options: {actor: {uuid: "Actor.caster"}, summonPoints: [{x: 950, y: 350}]},
+    state: {source: {tokenRef: "Scene.s.Token.caster"}, actionDefinition: {summon: {actorRef: "Actor.wolf", count: 2}}}});
+  assert.deepEqual(placed.map(token => [token.x, token.y]), [[900, 300], [100, 0]],
+    "the clicked field, then the first field beside the caster that is on the Scene");
+
+  const points = Array.from({length: 25}, (_, i) => ({x: i, y: i}));
+  const sanitized = sanitizeActionIntentPayload({intent: {actorRef: "Actor.a", summon: {points: [...points, {x: "nope"}], extra: 1}}});
+  assert.equal(sanitized.summon.points.length, 20);
+  assert.deepEqual(Object.keys(sanitized.summon), ["points"]);
+});

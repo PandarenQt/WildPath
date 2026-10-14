@@ -676,6 +676,9 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       ...(Object.keys(saveRollModes).length ? {save: {rollModesByTarget: saveRollModes, modifiersByTarget: saveModifiers,
         outcomesByTarget: saveOutcomes}} : {}),
       ...(definition?.check ? {check: actionCheckInput(actor, definition.check)} : {}),
+      ...(definition?.summon && Array.isArray(intent.summon?.points) ? {summonPoints: intent.summon.points.slice(0, 20)
+        .map(point => ({x: Number(point?.x), y: Number(point?.y)}))
+        .filter(point => Number.isFinite(point.x) && Number.isFinite(point.y))} : {}),
       // Rules consume plain effective snapshots; commit retains the exact live (possibly synthetic) Actors.
       durability: {targetSystems, ...(Object.keys(targetProfiles).length ? {adjustmentProfiles: targetProfiles} : {})},
       configuration: clonePlainData(intent.configuration ?? null, "intent.configuration"),

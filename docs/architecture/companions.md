@@ -64,11 +64,15 @@ An ActionDefinition's `summon` brings creatures when the Action completes:
 {summon: {actorRef: "Actor.wolf", count: 2, rounds: 10, concentration: true}}   // or choiceId: a choice of creatures
 ```
 
-- **Placement.** The active GM places unlinked Tokens of the creature on the nearest places around the
-  caster's Token where it fits. The search is breadth-first over the grid's own adjacency, so square and hex
+- **Choosing the place (2024).** Using the Action, the caster's Player clicks once for each creature, on fields
+  within the Action's range; a field out of range is refused. The intent carries at most 20 points. The authority
+  checks each point again: a creature appears on its point, or on the nearest allowed place to it.
+- **Placement.** The active GM places unlinked Tokens of the creature where the caster clicked, and any without a
+  click on the nearest places around the caster's Token where it fits. The search is breadth-first over the grid's own adjacency, so square and hex
   grids work alike.
   - A place fits when every field of the summon's footprint is free, including of summons placed before it, so a
     Large summon needs all four of its fields.
+  - It must be on the Scene (not in its padding) and within the Action's range of the caster.
   - Under the 2024 rules it must also be a space the caster can see. The summon's centre and every field must
     be in the caster's sight, so it never straddles a wall. Walls are tested only when the GM is viewing the
     caster's Scene.
@@ -97,8 +101,9 @@ turn stayed on the summoner.
 Live (GM browser, 14.369): three 2×2 wolves summoned in a corridor three fields wide, with a wall on each side,
 all stayed inside it. None overlapped another or the caster.
 
-Not yet:
-- choosing where summons appear.
+Live (two browsers, 14.369): Player1 used a 30 ft summon of two wolves and clicked 15 ft away, then 50 ft away,
+then 10 ft away. The 50 ft click was refused as out of range. The wolves appeared on the other two fields, owned
+by Player1.
 
 ## Evidence
 
