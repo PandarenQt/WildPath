@@ -103,6 +103,23 @@ export function createCubeFootprint({topology=GRID_TOPOLOGIES.SQUARE, corner, si
 }
 
 /**
+ * A wall on a square grid: the fields of a straight grid path from `start` toward `end`, at most `length` fields long
+ * (Wall of Fire's 60 feet; a panel wall's panels, end to end). Null on other grids.
+ * @param {{topology?: string, start: {x: number, y: number}, end: {x: number, y: number}, length: number, metadata?: object}} options
+ */
+export function createWallFootprint({topology=GRID_TOPOLOGIES.SQUARE, start, end, length, metadata={}}={}) {
+  if ( normalizeTopology(topology) !== GRID_TOPOLOGIES.SQUARE ) return null;
+  const [x0, y0, x1, y1] = [start.x, start.y, end.x, end.y].map(Number);
+  const steps = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0));
+  // The direction from start to end, walked a field at a time, as far as the wall reaches.
+  const [dx, dy] = steps ? [(x1 - x0) / steps, (y1 - y0) / steps] : [0, 0];
+  const count = steps ? Math.max(1, length) : 1;
+  const fields = [];
+  for ( let i = 0; i < count; i++ ) fields.push({x: Math.round(x0 + (dx * i)), y: Math.round(y0 + (dy * i))});
+  return createGridFootprint({topology, fields, shape: AREA_SHAPES.WALL, origin: start, metadata: {length: count, ...metadata}});
+}
+
+/**
  * Where a Cube originating from its caster may go: each `side`-wide block touching the caster's square footprint
  * without overlapping it, as its top-left field.
  */

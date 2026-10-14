@@ -43,6 +43,14 @@ It is a domain helper; Foundry Scene/Grid adapters should feed it snapped fields
 
 A Cube needs a square grid; elsewhere its placement is refused.
 
+**Wall (2026-10-15, G6).** A wall on a square grid takes two clicks. It starts on the first field, which must be in
+range, and runs toward the second for its whole length (`createWallFootprint`), a field a step at any angle. A panel
+wall (Wall of Stone, ten 10-ft panels) is its panels end to end. Shortcut: in one straight line.
+
+Live (GM, 14.369): a 9th-level wizard's SRD Wall of Fire, started at QA Saver and run east, covered 12 fields. QA Saver
+saved (9 of 19 fire) and QA Failer failed (19). What the wall does afterwards (entering it, ending a turn near it)
+stays manual.
+
 **Range and areas.** An area Action's range limits its placement (its point, its Cube), not the creatures it covers.
 The pipeline's range check skips area Actions. Before this, every area with a `self` range (a cone, a Cube, an
 emanation from its caster) refused the creatures it reached.

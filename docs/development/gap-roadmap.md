@@ -205,7 +205,9 @@ Forced movement and elevation join G6, which becomes "space": areas, elevation a
   - Cubes and squares are blocks of fields, cast at a point or against the caster's edge; circles are radial.
     "Area shape: cube" fell from 118 documents to 10 (sizes from formulas).
   - Areas with a `self` range (cones, Cubes, emanations from the caster) no longer refuse the creatures they cover.
-  - Not yet: walls (47), cylinder heights (63), elevation in combat, forced movement and falling.
+  - Walls run from a point in range toward a second click for their length: "area shape: wall" fell from 47 to 0.
+    What a wall does afterwards stays manual.
+  - Not yet: cylinder heights (63), elevation in combat, forced movement and falling.
 - **G5, common traits, first part (2026-10-14).** Done:
   - Magic Resistance, Pack Tactics, Regeneration, Legendary Resistance and Flyby, matched by dnd5e identifier. By the
     trait survey these are 142, 52, 21, 82 and 25 stat-block features across the SRD and the four books.

@@ -1147,6 +1147,16 @@ test("a Cube (2024) is a block of fields: centered where it is cast, or against 
   assert.deepEqual([far.ok, far.reason], [false, "That point is out of range."]);
 });
 
+test("a wall starts within range and runs toward the second click for its length, catching whoever is in it", async t => {
+  const {game, intent} = areaFixture(t, {shape: "wall", size: 25});
+  const wall = await foundryActionIntentToStagedOptions({intent: {...intent, area: {points: [{x: 75, y: 25}, {x: 125, y: 25}]}},
+    senderUserId: "player-a", game});
+  assert.equal(wall.ok, true, wall.reason);
+  assert.deepEqual(wall.options.targets.map(target => target.tokenId), ["target-token", "far-token"], "25 ft: five fields from the target on");
+  const half = await foundryActionIntentToStagedOptions({intent: {...intent, area: {points: [{x: 75, y: 25}]}}, senderUserId: "player-a", game});
+  assert.deepEqual([half.ok, half.reason], [false, "Choose the area's direction."]);
+});
+
 test("an area placed out of range, or not placed at all, is refused by the authority", async t => {
   const {game, intent} = areaFixture(t, {range: 5});
   const far = await foundryActionIntentToStagedOptions({intent: {...intent, area: {points: [{x: 125, y: 25}]}},

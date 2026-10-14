@@ -833,11 +833,13 @@
             }
           },
           "targeting": {
-            "type": "multiple",
-            "required": true,
-            "count": 20,
-            "refinementPolicy": {
-              "minSelections": 1
+            "type": "area"
+          },
+          "area": {
+            "shape": "wall",
+            "size": {
+              "value": 60,
+              "unit": "ft"
             }
           },
           "save": {
@@ -896,7 +898,6 @@
           },
           "conversion": {
             "notes": [
-              "area: 60-ft wall is not supported; the user picks the targets",
               "concentration: nothing it sustains was converted",
               "area: a cylinder's height is not modeled",
               "\"damage\" is passive or triggered: not automated"
@@ -985,7 +986,6 @@
           "Bite: activation: turnStart is not an action-economy cost",
           "Hellfire Spellcasting: cast: Fireball at level 5 is cast at its own level",
           "Hellfire Spellcasting: cast: Hold Monster at level 7 is cast at its own level",
-          "Hellfire Spellcasting: area: 60-ft wall is not supported; the user picks the targets",
           "Hellfire Spellcasting: concentration: nothing it sustains was converted",
           "Hellfire Spellcasting: area: a cylinder's height is not modeled",
           "Hellfire Spellcasting: \"damage\" is passive or triggered: not automated"

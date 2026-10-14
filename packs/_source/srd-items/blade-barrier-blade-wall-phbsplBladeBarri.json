@@ -29,11 +29,13 @@
         }
       },
       "targeting": {
-        "type": "multiple",
-        "required": true,
-        "count": 20,
-        "refinementPolicy": {
-          "minSelections": 1
+        "type": "area"
+      },
+      "area": {
+        "shape": "wall",
+        "size": {
+          "value": 100,
+          "unit": "ft"
         }
       },
       "save": {
@@ -145,7 +147,6 @@
       },
       "conversion": {
         "notes": [
-          "area: 100-ft wall is not supported; the user picks the targets",
           "concentration: nothing it sustains was converted"
         ]
       }
