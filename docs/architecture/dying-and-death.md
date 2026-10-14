@@ -7,9 +7,14 @@ The rules are in `module/adapters/foundry-v14-dying.mts`: a pure core (`dyingAft
 
 ## The rules
 
+- **Who makes death saves** is a per-creature setting, `system.dyingMode` (maintainer decision, 2026-10-14):
+  - `auto` (the default): characters do, and so do companions and sidekicks a Player controls, which follow
+    their character. Other NPCs die at 0.
+  - `deathSaves` or `dies` sets it for that creature, for example an important NPC who makes death saves.
 - **Dropping to 0.**
-  - A character falls **Unconscious**, and its death saves reset.
-  - An NPC dies at once. This is the usual 2024 table practice and also PF2e's default for most foes.
+  - A creature that makes death saves falls **Unconscious**, and its death saves reset.
+  - Any other creature dies at once. This is the usual 2024 table practice and also PF2e's default for most
+    foes.
   - **Massive damage** kills either one: the damage left over after reaching 0 is at least the creature's
     maximum health.
 - **Death saves.** At the start of each of its turns, a character at 0 health that is neither stable nor

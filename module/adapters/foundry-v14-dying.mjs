@@ -8,6 +8,17 @@ const DAMAGE = new Set(["damage", "durabilityDamage"]);
 const lookupActor = resolveTargetLookupValue;
 const refsOf = targetLookupRefs;
 const HEALING = new Set(["healing", "durabilityHealing"]);
+/**
+ * Whether a creature makes death saves at 0 health (else it dies): its own `dyingMode` setting, or under
+ * `auto` a character, or a companion or sidekick a Player controls (it follows its character).
+ */
+export function makesDeathSaves({ type, dyingMode = "auto", companion = null, playerControlled = false }) {
+    if (dyingMode === "deathSaves")
+        return true;
+    if (dyingMode === "dies")
+        return false;
+    return (type === "character") || (!!companion?.controllers?.length && playerControlled);
+}
 /** What a change to a creature's health means under the dying rules, or null when nothing follows. */
 export function dyingAfterChange({ change, critical = false, character = true, deathSaves = RESET }) {
     const from = Number(change.from) || 0;
@@ -44,6 +55,8 @@ export function deathSaveResult({ natural, total, deathSaves = RESET }) {
 const hasCondition = (actor, id) => [...actor.effects].some(effect => effect.system?.type === id);
 const deathSavesOf = (actor) => ({ successes: Number(actor.system.deathSaves?.successes) || 0,
     failures: Number(actor.system.deathSaves?.failures) || 0 });
+const savesForDeath = (actor) => makesDeathSaves({ type: actor.type, dyingMode: actor.system.dyingMode,
+    companion: actor.system.companion ?? null, playerControlled: actor.hasPlayerOwner === true });
 export function createFoundryDying({ game, coordinator, resolveAction, logger = globalThis.console }) {
     let sequence = 0;
     const isActiveGM = () => game.users?.activeGM?.id === game.user.id;
@@ -85,7 +98,7 @@ export function createFoundryDying({ game, coordinator, resolveAction, logger = 
         for (const entry of plans) {
             const change = (entry.plan ?? entry);
             const type = String((entry.plan ? (change.type ?? entry.type) : entry.type) ?? "");
-            await apply(actor, dyingAfterChange({ change: { ...change, type }, critical, character: actor.type === "character",
+            await apply(actor, dyingAfterChange({ change: { ...change, type }, critical, character: savesForDeath(actor),
                 deathSaves: deathSavesOf(actor) }));
         }
     }
@@ -106,7 +119,7 @@ export function createFoundryDying({ game, coordinator, resolveAction, logger = 
     /** At the start of its turn a dying character (0 health, not stable, not dead) rolls its death save. */
     async function onTurnStart({ combatant }) {
         const actor = combatant?.actor ?? null;
-        if (!actor || !isActiveGM() || (actor.type !== "character") || isDead(actor))
+        if (!actor || !isActiveGM() || !savesForDeath(actor) || isDead(actor))
             return null;
         if ((Number(actor.system.resources?.health?.value) || 0) > 0 || (deathSavesOf(actor).successes >= 3))
             return null;

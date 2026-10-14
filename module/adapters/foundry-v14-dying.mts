@@ -24,6 +24,17 @@ const lookupActor = resolveTargetLookupValue as unknown as (lookup: unknown, tar
 const refsOf = targetLookupRefs as unknown as (target: Data) => string[];
 const HEALING = new Set(["healing", "durabilityHealing"]);
 
+/**
+ * Whether a creature makes death saves at 0 health (else it dies): its own `dyingMode` setting, or under
+ * `auto` a character, or a companion or sidekick a Player controls (it follows its character).
+ */
+export function makesDeathSaves({type, dyingMode="auto", companion=null, playerControlled=false}: {type?: string | undefined;
+  dyingMode?: string | undefined; companion?: {controllers?: readonly string[]} | null; playerControlled?: boolean}) {
+  if ( dyingMode === "deathSaves" ) return true;
+  if ( dyingMode === "dies" ) return false;
+  return (type === "character") || (!!companion?.controllers?.length && playerControlled);
+}
+
 /** What a change to a creature's health means under the dying rules, or null when nothing follows. */
 export function dyingAfterChange({change, critical=false, character=true, deathSaves=RESET}: {
   change: DurabilityChange; critical?: boolean; character?: boolean; deathSaves?: DeathSaves;
@@ -58,8 +69,9 @@ export function deathSaveResult({natural, total, deathSaves=RESET}: {natural: nu
 }
 
 interface DyingActor {
-  uuid: string; id: string; type?: string; name?: string;
-  system: {resources?: {health?: {value?: number}}; deathSaves?: DeathSaves};
+  uuid: string; id: string; type?: string; name?: string; hasPlayerOwner?: boolean;
+  system: {resources?: {health?: {value?: number}}; deathSaves?: DeathSaves; dyingMode?: string;
+    companion?: {controllers?: string[]}};
   effects: Iterable<{system?: {type?: string; level?: number}; parent?: unknown}>;
   update(data: Data): Promise<unknown>;
   toggleCondition(type: string, options?: {levels?: number}): Promise<unknown>;
@@ -71,6 +83,8 @@ interface Combatant {actor?: DyingActor | null; token?: {id: string; parent?: {i
 const hasCondition = (actor: DyingActor, id: string) => [...actor.effects].some(effect => effect.system?.type === id);
 const deathSavesOf = (actor: DyingActor): DeathSaves => ({successes: Number(actor.system.deathSaves?.successes) || 0,
   failures: Number(actor.system.deathSaves?.failures) || 0});
+const savesForDeath = (actor: DyingActor) => makesDeathSaves({type: actor.type, dyingMode: actor.system.dyingMode,
+  companion: actor.system.companion ?? null, playerControlled: actor.hasPlayerOwner === true});
 
 export function createFoundryDying({game, coordinator, resolveAction, logger=globalThis.console}: {
   game: {user: {id: string}; users?: {activeGM?: {id: string} | null}; combats?: Iterable<{combatants: Iterable<Combatant>}>;
@@ -112,7 +126,7 @@ export function createFoundryDying({game, coordinator, resolveAction, logger=glo
     for ( const entry of plans ) {
       const change = ((entry.plan as DurabilityChange | undefined) ?? entry) as DurabilityChange & {type?: string};
       const type = String((entry.plan ? (change.type ?? entry.type) : entry.type) ?? "");
-      await apply(actor, dyingAfterChange({change: {...change, type}, critical, character: actor.type === "character",
+      await apply(actor, dyingAfterChange({change: {...change, type}, critical, character: savesForDeath(actor),
         deathSaves: deathSavesOf(actor)}));
     }
   }
@@ -134,7 +148,7 @@ export function createFoundryDying({game, coordinator, resolveAction, logger=glo
   /** At the start of its turn a dying character (0 health, not stable, not dead) rolls its death save. */
   async function onTurnStart({combatant}: {combatant?: Combatant | null}) {
     const actor = combatant?.actor ?? null;
-    if ( !actor || !isActiveGM() || (actor.type !== "character") || isDead(actor) ) return null;
+    if ( !actor || !isActiveGM() || !savesForDeath(actor) || isDead(actor) ) return null;
     if ( (Number(actor.system.resources?.health?.value) || 0) > 0 || (deathSavesOf(actor).successes >= 3) ) return null;
     const token = combatant?.token ?? null;
     const label = game.i18n?.localize("WILDPATH.DYING.DeathSave") ?? "Death Saving Throw";

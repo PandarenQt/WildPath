@@ -1,6 +1,6 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import {createFoundryDying, deathSaveResult, dyingAfterChange} from "../module/adapters/foundry-v14-dying.mjs";
+import {createFoundryDying, deathSaveResult, dyingAfterChange, makesDeathSaves} from "../module/adapters/foundry-v14-dying.mjs";
 
 const damage = (from, amount, max=20) => ({type: "damage", from, to: Math.max(from - amount, 0), max, amount,
   overflow: Math.max(amount - from, 0)});
@@ -86,4 +86,24 @@ test("Exhaustion's sixth level is death; a lower level is not", async () => {
   assert.equal(hero.system.resources.health.value, 12);
   await dying.onEffectChanged({system: {type: "exhaustion", level: 6}, parent: hero});
   assert.deepEqual([hero.system.resources.health.value, hero.system.deathSaves.failures], [0, 3]);
+});
+
+test("who makes death saves: characters, and companions or sidekicks a Player controls, unless the creature says otherwise", () => {
+  const companion = {controllers: ["Actor.ranger"]};
+  assert.equal(makesDeathSaves({type: "character"}), true);
+  assert.equal(makesDeathSaves({type: "npc"}), false);
+  assert.equal(makesDeathSaves({type: "npc", companion, playerControlled: true}), true, "follows its character");
+  assert.equal(makesDeathSaves({type: "npc", companion, playerControlled: false}), false, "a GM's companion dies");
+  assert.equal(makesDeathSaves({type: "npc", dyingMode: "deathSaves"}), true, "an important NPC");
+  assert.equal(makesDeathSaves({type: "character", dyingMode: "dies"}), false);
+});
+
+test("a Player's companion dropped to 0 falls Unconscious instead of dying", async () => {
+  const wolf = creature({type: "npc", health: 5});
+  Object.assign(wolf, {hasPlayerOwner: true});
+  wolf.system.companion = {kind: "companion", controllers: ["Actor.ranger"]};
+  const dying = createFoundryDying({game: {user: {id: "gm"}, users: {activeGM: {id: "gm"}}, combats: []},
+    coordinator: {}, resolveAction: async () => ({ok: false})});
+  await dying.afterPlans(wolf, [damage(5, 8)]);
+  assert.deepEqual(wolf.effects.map(effect => effect.system.type), ["unconscious"]);
 });

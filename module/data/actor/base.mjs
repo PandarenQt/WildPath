@@ -63,6 +63,9 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
         kind: new StringField({required: true, initial: "companion", choices: ["companion", "summon", "sidekick"]}),
         controllers: new ArrayField(new StringField({required: true, blank: false}))
       }),
+      // Whether this creature makes death saves at 0 health or dies (dying-and-death.md): `auto` is a character,
+      // or a companion or sidekick a Player controls; `deathSaves` and `dies` set it for this creature.
+      dyingMode: new StringField({required: true, initial: "auto", choices: ["auto", "deathSaves", "dies"]}),
       // Death saves while at 0 health (2024): three successes stabilize, three failures are death.
       deathSaves: new SchemaField({
         successes: new NumberField({required: true, integer: true, initial: 0, min: 0, max: 3}),
