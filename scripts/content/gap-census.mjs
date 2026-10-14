@@ -1,0 +1,90 @@
+import {existsSync, readdirSync, readFileSync} from "node:fs";
+import {join} from "node:path";
+
+/**
+ * Count what converted content is not automated, by reason: the SRD packs (packs/_source/srd-*) and the local book
+ * packages (their conversion-notes.json). Each reason is counted once per document. Prints a table, one column per
+ * source, to rank the engine's gaps by how much content each one holds back.
+ *
+ *   node scripts/content/gap-census.mjs [--data <Foundry Data folder>]
+ */
+const data = process.argv.includes("--data") ? process.argv[process.argv.indexOf("--data") + 1]
+  : join(process.env.LOCALAPPDATA ?? "", "FoundryVTT", "Data");
+
+const RULES = [
+  [/^Multiattack: /, () => "Multiattack"],
+  [/effect: (\w+) is not a WildPath condition/, match => `condition: ${match[1]}`],
+  [/effect: ".*" \(its own changes\)/, () => "effect with its own changes (buff/debuff)"],
+  [/cantrip damage growing/, () => "cantrip scaling by level"],
+  [/more healing at higher levels/, () => "healing upcast"],
+  [/versatile/, () => "versatile damage"],
+  [/Recharge/, () => "recharge"],
+  [/temporary Hit Points/, () => "temporary Hit Points"],
+  [/targets: count/, () => "target count from a formula (upcast targets)"],
+  [/area: .*-ft (\w+) is not supported/, match => `area shape: ${match[1]}`],
+  [/a cylinder's height/, () => "area shape: cylinder height"],
+  [/is passive or triggered/, () => "passive or triggered ability"],
+  [/concentration: nothing it sustains/, () => "concentration effect not converted"],
+  [/^not automated \((\w+)\)/, match => `used, not automated: ${match[1]} activity`],
+  [/^not automated:/, () => "used, not automated: no activity"],
+  [/consumption: (\w+)/, match => `consumption: ${match[1]}`],
+  [/custom formula/, () => "custom damage formula"],
+  [/bonus "([^"]*)" not converted/, match => `formula: ${match[1].replace(/\d+/g, "n").slice(0, 40)}`],
+  [/uses: maximum "([^"]*)"/, match => `uses maximum: ${match[1].replace(/\d+/g, "n").slice(0, 40)}`],
+  [/save: .* DC .* not converted/, () => "save DC formula"],
+  [/item's base damage/, () => "item base damage on a non-weapon"],
+  [/a choice of [^ ]+ uses/, () => "a choice (damage type or save ability)"],
+  [/is not an action-economy cost/, () => "long activation (minutes, hours)"],
+  [/attack: (bonus|\+\d+ magic)/, () => "attack bonus or magic bonus"],
+  [/partial recovery/, () => "partial recovery on a short rest"],
+  [/vulnerabilities/, () => "vulnerabilities"],
+  [/condition immunities/, () => "condition immunities"],
+  [/magic or silvered/, () => "resistance bypasses"],
+  [/AC: /, () => "AC calculation"],
+  [/healing: temporary/, () => "temporary Hit Points"]
+];
+const reason = note => {
+  // A creature's notes name the item first ("Multiattack: not automated..."); the reason is what follows.
+  for ( const text of [note, note.replace(/^[^:"]+: /, "")] ) {
+    for ( const [pattern, name] of RULES ) {
+      const match = text.match(pattern);
+      if ( match ) return name(match);
+    }
+  }
+  return `other: ${note.replace(/"[^"]*"/g, "\"…\"").replace(/\d+/g, "n").slice(0, 50)}`;
+};
+
+/** Per source: document name → notes. */
+const sources = {};
+const srd = {};
+for ( const folder of ["srd-items", "srd-creatures"] ) {
+  const path = join("packs/_source", folder);
+  if ( !existsSync(path) ) continue;
+  for ( const file of readdirSync(path) ) {
+    const document = JSON.parse(readFileSync(join(path, file), "utf8"));
+    for ( const entry of [document, ...(document.items ?? [])] ) {
+      const notes = entry.flags?.wildpath?.conversion?.notes ?? [];
+      if ( notes.length && (entry !== document || !document.items) ) srd[`${document.name}/${entry.name}`] = notes;
+    }
+  }
+}
+sources.SRD = srd;
+for ( const id of ["dnd-players-handbook", "dnd-dungeon-masters-guide", "dnd-monster-manual", "dnd-tashas-cauldron"] ) {
+  const path = join(data, "modules", `wildpath-${id}`, "conversion-notes.json");
+  if ( existsSync(path) ) sources[id.replace("dnd-", "")] = JSON.parse(readFileSync(path, "utf8"));
+}
+
+const counts = {};
+for ( const [source, documents] of Object.entries(sources) ) {
+  for ( const notes of Object.values(documents) ) {
+    for ( const key of new Set(notes.map(reason)) ) {
+      counts[key] ??= {};
+      counts[key][source] = (counts[key][source] ?? 0) + 1;
+    }
+  }
+}
+const columns = Object.keys(sources);
+const rows = Object.entries(counts).map(([key, bySource]) => [key, columns.map(column => bySource[column] ?? 0)])
+  .sort((a, b) => b[1].reduce((x, y) => x + y, 0) - a[1].reduce((x, y) => x + y, 0));
+console.log(`| Reason | ${columns.join(" | ")} | Total |\n| --- | ${columns.map(() => "---").join(" | ")} | --- |`);
+for ( const [key, values] of rows ) console.log(`| ${key} | ${values.join(" | ")} | ${values.reduce((x, y) => x + y, 0)} |`);
