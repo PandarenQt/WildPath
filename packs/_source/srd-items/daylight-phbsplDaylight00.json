@@ -83,6 +83,12 @@
             "spell-slot.9": 9
           },
           "effects": []
+        },
+        {
+          "id": "on-object",
+          "type": "boolean",
+          "label": "Cast on an object (the Token at its center)",
+          "required": false
         }
       ],
       "targeting": {
@@ -109,8 +115,11 @@
           "light": {
             "bright": 60,
             "dim": 120,
-            "sunlight": true
-          }
+            "sunlight": true,
+            "dispels": 3,
+            "spellLevel": 3
+          },
+          "onObject": "on-object"
         }
       },
       "label": "Daylight"
@@ -129,9 +138,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "Daylight: cast on an object, it is placed where the object is; the Darkness it ends is ended by hand"
-        ]
+        "notes": []
       }
     }
   }

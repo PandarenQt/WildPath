@@ -529,6 +529,37 @@
               }
             ]
           },
+          "targeting": {
+            "type": "area"
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 60,
+              "unit": "ft"
+            }
+          },
+          "area": {
+            "shape": "radial",
+            "size": {
+              "value": 15,
+              "unit": "ft"
+            },
+            "persistence": {
+              "duration": {
+                "unit": "round",
+                "value": 100
+              },
+              "concentration": true,
+              "light": {
+                "bright": 15,
+                "darkness": true,
+                "dispels": 2,
+                "spellLevel": 2
+              },
+              "onObject": "on-object"
+            }
+          },
           "label": "Darkness"
         },
         "ruleElements": [
@@ -561,10 +592,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "concentration: nothing it sustains was converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -946,8 +974,6 @@
         "notes": [
           "Shape-Shift: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: cast: Charm Person at level 2 is cast at its own level",
-          "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
-          "Spellcasting: concentration: nothing it sustains was converted",
           "Spellcasting: effect: transformed is not a WildPath condition yet",
           "Spellcasting: effect: \"Gaseous Form\" change system.attributes.movement.hover (override) not converted",
           "Spellcasting: effect: \"Gaseous Form\" change img (override) not converted",

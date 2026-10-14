@@ -297,10 +297,11 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, names=
       definition = manualDefinition({document, activity, system, spell, level, notes, pool});
     }
     // A spell that fills its area with light (2024 Daylight's sunlight) is a lasting area shedding it.
-    const shedding = spell ? sheddingArea({document, activity, system}) : null;
+    const shedding = spell ? sheddingArea({document, activity, system, definition}) : null;
     if ( shedding ) {
       definition = {...definition, ...shedding.definition};
-      notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")), ...shedding.notes);
+      notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated") && !note.startsWith("concentration: nothing")),
+        ...shedding.notes);
     }
     const suffix = usable.length > 1 ? ` (${label})` : "";
     const id = index ? stableId(`${document._id}:${index}`) : document._id;
@@ -395,25 +396,31 @@ const extraAttackTrait = () => ({rules: [
   {schemaVersion: 1, id: "extra-attack", type: "ExtraAttack", data: {resourceId: "extra-attack"}}], notes: []});
 
 /**
- * Spells whose area is filled with light, by dnd5e identifier: the light, given the area's size. 2024 Daylight: "the
- * sunlight's area is Bright Light and sheds Dim Light for an additional 60 feet".
+ * Spells whose area is filled with light or darkness, by dnd5e identifier: the light, given the area's size. 2024
+ * Daylight: "the sunlight's area is Bright Light and sheds Dim Light for an additional 60 feet"; it ends overlapping
+ * Darkness of a spell of level 3 or lower. 2024 Darkness: magical Darkness over its area; it ends overlapping light of a
+ * spell of level 2 or lower.
  */
 const SHEDS_LIGHT = Object.freeze({
-  daylight: size => ({bright: size, dim: size + 60, sunlight: true})
+  daylight: size => ({bright: size, dim: size + 60, sunlight: true, dispels: 3}),
+  darkness: size => ({bright: size, darkness: true, dispels: 2})
 });
+/** "Alternatively, you cast the spell on an object that isn't being worn or carried": the Token at its center. */
+const ON_OBJECT = Object.freeze({id: "on-object", type: "boolean", label: "Cast on an object (the Token at its center)", required: false});
 const ROUNDS = Object.freeze({round: 1, minute: 10, hour: 600});
 
 /** A light-shedding spell's lasting area, for its duration; null when the spell is not one or has no area. */
-function sheddingArea({document, activity, system}) {
+function sheddingArea({document, activity, system, definition}) {
   const light = SHEDS_LIGHT[system.identifier];
   const {targeting, area} = light ? targetingOf({activity, system, notes: []}) : {};
   if ( targeting?.type !== "area" ) return null;
   const rounds = (Number(system.duration?.value) || 0) * (ROUNDS[system.duration?.units] ?? 0);
-  return {definition: {targeting, range: rangeOf({activity, system, document, attack: null}), area: {...area, persistence: {
-    ...(rounds ? {duration: {unit: "round", value: rounds}} : {}), ...((system.properties ?? []).includes("concentration") ? {concentration: true} : {}),
-    light: light(area.size.value)}}},
-    // shortcut: cast on an object, its light is placed as a point; the darkness it dispels is not tracked.
-    notes: [`${document.name}: cast on an object, it is placed where the object is; the Darkness it ends is ended by hand`]};
+  return {definition: {targeting, range: rangeOf({activity, system, document, attack: null}),
+    configuration: [...(definition.configuration ?? []), {...ON_OBJECT}],
+    area: {...area, persistence: {
+      ...(rounds ? {duration: {unit: "round", value: rounds}} : {}), ...((system.properties ?? []).includes("concentration") ? {concentration: true} : {}),
+      light: {...light(area.size.value), spellLevel: Number(system.level) || 0}, onObject: ON_OBJECT.id}}},
+    notes: []};
 }
 
 /** A feature's description as plain text, one space between words. */

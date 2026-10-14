@@ -659,8 +659,10 @@ export const AREA_PERSISTENCE_EVENTS = Object.freeze(["area.entered", "area.exit
 
 /**
  * A lasting area: `{duration: {unit: "round", value}, concentration, oncePerTurn, elevation: {bottom, top},
- * triggers: [{on: [...events], action: ActionDefinition}], light?: {bright, dim, sunlight}}`. Elevation is relative
- * to the floor of the caster's Level; a missing bound is open. `light` is shed from its center (Daylight).
+ * triggers: [{on: [...events], action: ActionDefinition}], light?: {bright, dim, sunlight, darkness, dispels, spellLevel},
+ * onObject?: <configuration choice id>}`. Elevation is relative to the floor of the caster's Level; a missing bound is
+ * open. `light` is shed from its center (Daylight, Darkness); when the `onObject` choice is chosen, the area surrounds
+ * the Token at its center and follows it.
  */
 function validateAreaPersistence(persistence, errors) {
   const path = "area.persistence";

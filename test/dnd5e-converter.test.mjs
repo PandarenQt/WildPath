@@ -334,7 +334,10 @@ test("common monster traits (G5): Magic Resistance, Pack Tactics and Regeneratio
     preparation: {mode: "prepared"}, activation: {type: "action"}, range: {value: "60", units: "ft"}, duration: {value: "1", units: "hour"},
     target: {template: {type: "sphere", size: "60"}, affects: {}}, activities: {a: activity("utility", {target: {override: false, template: {}, affects: {}}})}}}).items[0];
   assert.deepEqual([daylight.system.definition.targeting.type, daylight.system.definition.area.persistence],
-    ["area", {duration: {unit: "round", value: 600}, light: {bright: 60, dim: 120, sunlight: true}}], "Daylight sheds sunlight for an hour");
+    ["area", {duration: {unit: "round", value: 600}, light: {bright: 60, dim: 120, sunlight: true, dispels: 3, spellLevel: 3},
+      onObject: "on-object"}], "Daylight sheds sunlight for an hour, ends Darkness up to level 3, and can be cast on an object");
+  assert.deepEqual(daylight.system.definition.configuration.at(-1), {id: "on-object", type: "boolean",
+    label: "Cast on an object (the Token at its center)", required: false});
   assert.equal(validateActionDefinition(daylight.system.definition).ok, true);
   const [evade] = convertItem(trait("evasion", "Evasion")).items[0].system.ruleElements;
   assert.deepEqual([evade.type, evade.data, evade.predicate.not.any.length], ["RollOutcome", {domains: ["save.agility"], outcome: "evasion"}, 6]);

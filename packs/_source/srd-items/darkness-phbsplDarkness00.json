@@ -90,8 +90,45 @@
             "spell-slot.9": 9
           },
           "effects": []
+        },
+        {
+          "id": "on-object",
+          "type": "boolean",
+          "label": "Cast on an object (the Token at its center)",
+          "required": false
         }
       ],
+      "targeting": {
+        "type": "area"
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "area": {
+        "shape": "radial",
+        "size": {
+          "value": 15,
+          "unit": "ft"
+        },
+        "persistence": {
+          "duration": {
+            "unit": "round",
+            "value": 100
+          },
+          "concentration": true,
+          "light": {
+            "bright": 15,
+            "darkness": true,
+            "dispels": 2,
+            "spellLevel": 2
+          },
+          "onObject": "on-object"
+        }
+      },
       "label": "Darkness"
     },
     "ruleElements": []
@@ -108,10 +145,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "concentration: nothing it sustains was converted"
-        ]
+        "notes": []
       }
     }
   }
