@@ -34,7 +34,7 @@ import {tokenRef} from "../helpers/entity-refs.mjs";
 import {footprintDistance} from "../helpers/grid-footprints.mjs";
 import {combineRollModes} from "../helpers/rolls.mjs";
 import {
-  resolveActorAttackStatistic,
+  actionCombatStatistics,
   resolveActorCheckStatistic,
   resolveActorSaveStatistic,
   resolveActorDefense
@@ -532,7 +532,8 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   catch (error) {
     return {ok: false, code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED, reason: error.message};
   }
-  const combatStatistics = combatStatisticsForAction({actor, action});
+  const combatStatistics = actionCombatStatistics(actor, actionDefinitionFromAction(action, {actorSystem: actor?.system ?? null})
+    .definition ?? null, {item: action});
   const definitionResult = actionDefinitionFromAction(action, {actorSystem: actor?.system ?? null});
   const definition = definitionResult.ok ? definitionResult.definition : null;
   // 2024 Wild Shape and Polymorph: a transformed creature can't cast spells. Spells it already cast (their lasting
@@ -939,30 +940,6 @@ function buildFoundryActionSpatialContext({sourceToken=null, targetEntries=[], g
       sourceFootprint: sourceFootprintResult.footprint,
       targetFootprints
     }
-  };
-}
-
-function combatStatisticsForAction({actor=null, action=null}={}) {
-  const result = actionDefinitionFromAction(action, {actorSystem: actor?.system ?? null});
-  const attackDefinition = result.ok ? result.definition?.attack ?? null : null;
-  if ( !attackDefinition ) return {defenseKey: null, attack: null};
-  const defenseKey = attackDefinition.defenseKey ?? "ac";
-  const statistic = resolveActorAttackStatistic(actor, attackDefinition, {item: action, tags: result.definition?.tags ?? []});
-  // 2024: a weapon's damage adds the attack's ability modifier once; a spell's damage does not.
-  const weaponDamage = !statistic?.spell && Number.isFinite(statistic?.abilityModifier)
-    && (result.definition?.damage ?? []).some(component => component.provenance === "weapon-base");
-  return {
-    defenseKey,
-    damage: weaponDamage ? {modifierTotal: statistic.abilityModifier} : null,
-    attack: statistic ? {
-      statistic,
-      modifierTotal: statistic.totalModifier,
-      modifiers: [{
-        id: `statistic:${statistic.domain}`,
-        value: statistic.totalModifier,
-        source: statistic.source
-      }]
-    } : null
   };
 }
 

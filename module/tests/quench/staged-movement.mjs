@@ -273,7 +273,7 @@ export function registerStagedMovementTests(quench) {
         const baseMover = await fixtures.createActor({name:"provider mover",system:{traits:{size:"medium"},
           defenses:{ac:{value:1}},resources:{health:{base:30,value:30},movement:{base:30,value:30}}}});
         const baseGuard = await fixtures.createActor({name:"provider guard",system:{traits:{size:"medium"},
-          resources:{reaction:{base:1,value:1}}}});
+          abilities:{might:{value:14}},resources:{reaction:{base:1,value:1}}}});
         for (const base of [baseMover,baseGuard]) await base.update({ownership:{default:0,[game.user.id]:3}});
         const scene = await fixtures.createScene({name:"provider opportunity attack"});
         scene.initializeEdges();
@@ -313,7 +313,7 @@ export function registerStagedMovementTests(quench) {
         assert.isTrue(coordinator.getResult(resolutionId)?.ok,JSON.stringify({errors:coordinator.errors,state:record?.state?.errors}));
         assert.deepEqual([...record.requestExpectations.values()].map(entry => entry.request.type),["reaction-choice","roll"],
           "the guard was offered its reaction and rolled the attack");
-        assert.equal(mover.actor.system.resources.health.value,24,"the opportunity attack hit for 6");
+        assert.equal(mover.actor.system.resources.health.value,22,"the opportunity attack hit for 6, plus the guard's Might 2");
         assert.equal(guard.actor.system.resources.reaction.value,0,"the guard spent its reaction");
         assert.deepEqual([mover.x,mover.y],[route.at(-1).x,route.at(-1).y],"the movement still finished");
       });

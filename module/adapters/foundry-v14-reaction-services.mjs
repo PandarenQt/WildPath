@@ -1,7 +1,7 @@
 import { createFoundryV14TacticalGridAdapter } from "./foundry-v14-tactical-grid-adapter.mjs";
 import { foundryActorSystemSnapshot } from "./foundry-v14-actor-system-adapter.mjs";
 import { createActionResolutionState, createActionReactionChildState } from "../resolvers/action-pipeline-resolver.mjs";
-import { resolveActorAttackStatistic, resolveActorDefense } from "../helpers/combat-statistics.mjs";
+import { actionCombatStatistics, resolveActorDefense } from "../helpers/combat-statistics.mjs";
 import { economyResourcesFromActorResources } from "../helpers/action-economy.mjs";
 import { createAutomationEvent } from "../helpers/automation-events.mjs";
 import { movementTransitionRelations } from "../helpers/movement-transition.mjs";
@@ -55,9 +55,8 @@ function reactionChildState({ args, reactor, target, targetFootprint, sourceFoot
     const targetEntry = { ...targetFootprint, defense, defenses: { [defenseKey]: defense } };
     const reactionItem = [...(reactor.actor.items ?? [])].find(entry => entry.type === "action"
         && entry.system?.definition?.id === definition.id) ?? null;
-    const statistic = definition.attack
-        ? resolveActorAttackStatistic(reactor.actor, definition.attack, { item: reactionItem, tags: [...(definition.tags ?? [])] })
-        : null;
+    // The same attack and damage statistics as any Action: an opportunity attack adds the ability modifier and bonuses.
+    const statistics = actionCombatStatistics(reactor.actor, definition, { item: reactionItem });
     const targetSystem = foundryActorSystemSnapshot(actor);
     const profile = actor.getDamageProfile?.() ?? null;
     const targetKeys = [actor.id, actor.uuid, `actor:${actor.id}`];
@@ -71,7 +70,8 @@ function reactionChildState({ args, reactor, target, targetFootprint, sourceFoot
         targets: [{ id: actor.id, actorId: actor.id, actorRef: actor.uuid, tokenId: target.id, defense }],
         targeting: { candidates: [targetEntry] },
         context: { spatial: { sceneContext, gridDistance: sceneContext.grid.distance, sourceFootprint, targetFootprints: [targetEntry] } },
-        attack: statistic ? { statistic, modifierTotal: statistic.totalModifier } : null,
+        attack: statistics.attack ? { statistic: statistics.attack.statistic, modifierTotal: statistics.attack.modifierTotal } : null,
+        damage: statistics.damage,
         selectedPaymentOptionId: args.candidate.selectedPaymentOption?.id ?? null,
         durability: { targetSystems: Object.fromEntries(targetKeys.map(key => [key, targetSystem])),
             ...(profile ? { adjustmentProfiles: Object.fromEntries(targetKeys.map(key => [key, structuredClone(profile)])) } : {}) } });

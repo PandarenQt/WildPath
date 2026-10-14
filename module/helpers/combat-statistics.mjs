@@ -96,6 +96,47 @@ export function resolveActorAttackStatistic(actor, attack={}, {item=null, tags=[
 
 /* -------------------------------------------- */
 
+/**
+ * A creature's damage bonus for an Action: every Modifier on `damage.<weapon|spell>`, `damage.<melee|ranged>` and
+ * `damage` (all stack, as attack domains do). Its predicates see the attack type, the Action's tags and the attack's
+ * ability (`{tagsAny: ["might"]}` is "attacks using Might").
+ */
+export function resolveActorDamageStatistic(actor, attack=null, {item=null, tags=[]}={}) {
+  const kind = attack?.statistic ?? (tags.includes("spell") ? "spell" : null);
+  const statistic = resolveActorStatisticModifier(actor, [kind ? `damage.${kind}` : null, attack?.type ? `damage.${attack.type}` : null,
+    "damage"].filter(Boolean), {item, tags: uniqueStrings([attack?.type, ...tags])});
+  return statistic.known ? {domain: statistic.domain, totalModifier: statistic.value, trace: statistic.trace} : null;
+}
+
+/**
+ * An Action's attack and damage statistics for its creature: the attack bonus, and the flat modifier its damage
+ * adds. Weapon damage (a weapon-base component, not a spell attack) adds the attack's ability modifier (2024), and
+ * any damage adds the creature's damage bonuses. The runtime and reaction Actions share this.
+ * @param {object|null} actor
+ * @param {object|null} definition
+ * @param {{item?: object|null}} [options]
+ */
+export function actionCombatStatistics(actor, definition, {item=null}={}) {
+  const attackDefinition = definition?.attack ?? null;
+  const tags = [...(definition?.tags ?? [])];
+  const statistic = attackDefinition ? resolveActorAttackStatistic(actor, attackDefinition, {item, tags}) : null;
+  const components = definition?.damage ?? [];
+  const weapon = !statistic?.spell && Number.isFinite(statistic?.abilityModifier)
+    && components.some(component => component.provenance === "weapon-base");
+  const bonus = components.length
+    ? (resolveActorDamageStatistic(actor, attackDefinition, {item, tags: [...tags, statistic?.ability].filter(Boolean)})?.totalModifier ?? 0) : 0;
+  const modifierTotal = (weapon ? statistic.abilityModifier : 0) + bonus;
+  return {
+    defenseKey: attackDefinition ? (attackDefinition.defenseKey ?? "ac") : null,
+    damage: (components.length && (weapon || bonus)) ? {modifierTotal} : null,
+    attack: statistic ? {
+      statistic,
+      modifierTotal: statistic.totalModifier,
+      modifiers: [{id: `statistic:${statistic.domain}`, value: statistic.totalModifier, source: statistic.source}]
+    } : null
+  };
+}
+
 const isSpellAttack = (attack, tags=[]) => (attack?.statistic === "spell") || tags.includes("spell");
 
 /**

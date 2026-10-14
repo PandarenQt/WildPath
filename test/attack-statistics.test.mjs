@@ -70,3 +70,26 @@ test("a RuleElement's own predicate sees the attack's tags and the creature's co
   actor.statuses.add("raging");
   assert.equal(melee(), 2, "the raging condition reaches the rule");
 });
+
+test("damage adds the weapon's ability modifier and the creature's damage bonuses, each where it applies", async () => {
+  const {actionCombatStatistics} = await import("../module/helpers/combat-statistics.mjs");
+  const rule = (id, domains, value, predicate=null) => ({schemaVersion: 1, id, type: "Modifier", data: {domains, value}, predicate});
+  const feat = {id: "rage", uuid: "Actor.barbarian.Item.rage", type: "feature", system: {active: true, modifiers: [], ruleElements: [
+    rule("rage-damage", ["damage.melee"], 2, {hasCondition: "raging"}),
+    rule("spell-power", ["damage.spell"], 1)
+  ]}};
+  const actor = Object.assign(Object.create(WildPathActor.prototype), {id: "barbarian", uuid: "Actor.barbarian", effects: [],
+    items: [feat], statuses: new Set(), system: {abilities: {might: {value: 16}}}});
+  actor.allApplicableEffects = () => [];
+  const weapon = (type, provenance="weapon-base") => ({attack: {type, statistic: "weapon"},
+    damage: [{id: "hit", expression: {type: "dice", number: 1, faces: 8}, provenance}]});
+  assert.deepEqual(actionCombatStatistics(actor, weapon("melee")).damage, {modifierTotal: 3}, "Might only");
+  actor.statuses.add("raging");
+  assert.deepEqual(actionCombatStatistics(actor, weapon("melee")).damage, {modifierTotal: 5}, "Might and Rage");
+  assert.equal(actionCombatStatistics(actor, weapon("ranged")).damage, null,
+    "Rage is melee only, and a ranged weapon uses Agility (+0 here)");
+  const firebolt = {tags: ["spell"], attack: {type: "ranged", statistic: "spell"},
+    damage: [{id: "fire", expression: {type: "dice", number: 1, faces: 10}, provenance: "spell-base"}]};
+  assert.deepEqual(actionCombatStatistics(actor, firebolt).damage, {modifierTotal: 1}, "a spell bonus, but no ability modifier");
+  assert.equal(actionCombatStatistics(actor, {attack: {type: "melee", statistic: "weapon"}}).damage, null, "no damage, no modifier");
+});

@@ -91,5 +91,16 @@ else the first component (rolls.md, "Damage and healing rolls").
 - **Fixed damage**, such as an Unarmed Strike's 1, adds it to the first weapon component, and the result is
   never below 0.
 
+**Damage bonuses (2026-10-14).** The damage modifier also adds the creature's damage bonuses: every Modifier on
+`damage.<weapon|spell>`, `damage.<melee|ranged>` and `damage`. They all stack, as attack domains do.
+- An Action's own Modifiers count only for that Action, as for attacks. A +1 sword is Modifiers on `attack` and
+  `damage` on its Action Item.
+- Predicates see the attack type, the Action's tags and the attack's ability, so `{tagsAny: ["might"]}` means
+  "attacks using Might".
+- 2024 Rage (+2 melee damage while raging) is a feature with `{type: "Modifier", domains: ["damage.melee"],
+  value: 2, predicate: {hasCondition: "raging"}}`.
+- `actionCombatStatistics` (`helpers/combat-statistics.mjs`) builds the attack and damage statistics for the
+  runtime and for reaction Actions alike. Opportunity attacks used to miss the ability modifier on damage.
+
 Live (GM browser, 14.369): a rogue with Agility 18 and Might 12 used a finesse dagger. It rolled `1d20 + 4` to hit
 and `1d4 + 4` damage.
