@@ -84,9 +84,15 @@ Live (two browsers, 14.369): Player1's druid used Wild Shape and picked Bear in 
 druid took Might 19, its Token became 2×2 and the Bonus Action was spent. A Revert Action restored Might 8 and
 the 1×1 Token.
 
+- **No spellcasting (2024 Wild Shape and Polymorph).** While transformed, the creature can't use an Action
+  tagged `spell`, and the authority refuses it. Spells it cast before go on: their lasting areas run as
+  authority Actions, which are not refused. Live (GM browser, 14.369): a transformed druid's spell was
+  refused with "A transformed creature can't cast spells.", and its other Action and the same spell after
+  reverting went through.
+
 Not yet:
 
-- Stopping spellcasting while transformed.
+- A form that keeps spellcasting (2024 Shapechange-style). Every transformation stops it for now.
 
 Live (two browsers, 14.369): Player1 turned their Shifter into a Bear, which gave Might 18 and AC 13, and
 used the copied Bite through the GM's authority. The goblin went from 20 to 15, the Action was spent and a

@@ -520,6 +520,13 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const combatStatistics = combatStatisticsForAction({actor, action});
   const definitionResult = actionDefinitionFromAction(action, {actorSystem: actor?.system ?? null});
   const definition = definitionResult.ok ? definitionResult.definition : null;
+  // 2024 Wild Shape and Polymorph: a transformed creature can't cast spells. Spells it already cast (their lasting
+  // areas, which run as authority Actions) go on.
+  if ( !authorityAction && actor.transformation && definition?.tags?.includes("spell") ) return {
+    ok: false,
+    code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
+    reason: "A transformed creature can't cast spells."
+  };
   const defenseKey = combatStatistics.defenseKey;
   const sourceTokenResolution = resolveFoundrySourceToken({actor, source: intent.source ?? {}, game});
   if ( !sourceTokenResolution.ok ) return {

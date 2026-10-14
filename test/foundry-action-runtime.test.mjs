@@ -1528,3 +1528,19 @@ test("resolution result/error envelopes are rejected unless they come from the e
   assert.equal(player.errors.some(entry => entry.error?.code === "FORGED"), false,
     "A forged resolution error from a non-authoritative sender must be rejected before being recorded.");
 });
+
+test("a transformed creature can't cast spells, but its other Actions still resolve (2024 Wild Shape)", async t => {
+  const spell = syntheticRuntimeFixture(t, {...meleeStrikeDefinition(), tags: ["spell"]});
+  spell.sourceActor.transformation = {effect: {}, policy: {formRef: "Actor.bear"}};
+  const refused = await foundryActionIntentToStagedOptions({intent: spell.intent, senderUserId: "player-a", game: spell.game});
+  assert.equal(refused.code, MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED);
+  assert.match(refused.reason, /can't cast spells/);
+  spell.sourceActor.transformation = null;
+  const caster = await foundryActionIntentToStagedOptions({intent: spell.intent, senderUserId: "player-a", game: spell.game});
+  assert.equal(caster.ok, true, JSON.stringify(caster.reason));
+
+  const strike = syntheticRuntimeFixture(t);
+  strike.sourceActor.transformation = {effect: {}, policy: {formRef: "Actor.bear"}};
+  const bite = await foundryActionIntentToStagedOptions({intent: strike.intent, senderUserId: "player-a", game: strike.game});
+  assert.equal(bite.ok, true, JSON.stringify(bite.reason));
+});
