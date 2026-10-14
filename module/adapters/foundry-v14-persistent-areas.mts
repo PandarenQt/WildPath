@@ -19,7 +19,7 @@ export interface AreaRegion {
 export interface AreaScene {
   id: string; grid: Grid;
   tokens: {get(id: string): AreaToken | undefined} & Iterable<AreaToken>;
-  regions: Iterable<AreaRegion>;
+  regions?: Iterable<AreaRegion>;
   levels?: {get(id: string): Level | undefined};
   createEmbeddedDocuments(type: string, data: Data[]): Promise<unknown[]>;
 }
@@ -113,7 +113,7 @@ export function areaCovers(flag: AreaFlag, token: AreaToken, {fields=null, posit
 
 /** Every lasting area on a Scene, with its Region. */
 export function sceneAreas(scene: AreaScene) {
-  return [...scene.regions].flatMap(region => region.flags?.wildpath?.area ? [{region, flag: region.flags.wildpath.area}] : []);
+  return [...(scene.regions ?? [])].flatMap(region => region.flags?.wildpath?.area ? [{region, flag: region.flags.wildpath.area}] : []);
 }
 
 /** A once-per-turn key: the current combat turn, or null outside combat (no limit). */
@@ -190,5 +190,10 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
       && areaCovers(flag, token, {position}) && !areaCovers(flag, token, {position: previous}));
   }
 
-  return {create, apply, onTurn, entered};
+  /** Whether any lasting area on the Scene answers `area.entered`; moves there are then checkpointed per step. */
+  function hasEntryAreas(scene: AreaScene) {
+    return sceneAreas(scene).some(({flag}) => flag.persistence.triggers.some(trigger => trigger.on.includes(AREA_EVENTS.ENTERED)));
+  }
+
+  return {create, apply, onTurn, entered, hasEntryAreas};
 }

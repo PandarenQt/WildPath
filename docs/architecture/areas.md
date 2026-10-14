@@ -150,6 +150,15 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
   it both enters and starts its turn there. `oncePerTurn: false` turns this off. Outside combat there
   is no limit.
 - **Entering.** Being moved into an area counts as entering, and so does an aura moving over a creature.
+- **A move into an area stops there.** If an area affects a creature during its own (voluntary) move, the
+  move stops after the step that entered, and the rest of the move stays unspent (WildPath pays only the
+  steps taken). The player is told why. This stops a player who forgot the hazard from being dragged
+  through it. Forced movement is affected but not cut short. Entering an area that has already affected
+  the creature this turn does not stop it.
+  - A Scene with an entry hazard checkpoints every step of a drag.
+  - Each step's approval records the areas that step enters (fields and band).
+  - The after-step pause holds the Token while the area acts.
+  - The stop is an ordinary interruption (`reason: "entered-area"`).
 - **Elevation.** The `elevation` band is relative to the floor of the caster's Level. A missing bound is
   open, so a ground hazard is `{bottom: 0, top: 0}`. A creature is inside only if its height overlaps
   the band. Several areas can share a field, for example one on the ground and one in the air, and each
@@ -157,11 +166,17 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
 - **Duration.** It is counted in rounds.
 
 Live (two browsers, 14.369, 2026-10-14): Player1 cast Burning Ground (2 fire on casting, then 4 fire on
-`area.entered` or `turn.started`) on a goblin in combat. The goblin took 2, and a 9-field Region
-appeared for both clients. When the goblin's turn started it took 4, and a "Flames" card posted.
+`area.entered` or `turn.started`) on a goblin in combat.
 
-Still to come: stopping a voluntary move on entry, auras that move with their caster, expiry by
-duration and concentration, and falling through an area (vertical movement is not modelled yet).
+- The goblin took 2, and a 9-field Region appeared for both clients.
+- When the goblin's turn started it took 4, and a "Flames" card posted.
+- Player1 then moved the caster on a four-step route through the fire. Flames hit on the second step
+  (30→26), and the Token stopped there. Only those two steps were paid (30→20 ft), and the player saw "You
+  stopped on entering Burning Ground. Your remaining movement is kept."
+- Stepping out and back in on the same turn did nothing more.
+
+Still to come: auras that move with their caster, expiry by duration and concentration, the staged
+(programmatic) movement path, and falling through an area (vertical movement is not modelled yet).
 
 ## Auras and Emanations
 

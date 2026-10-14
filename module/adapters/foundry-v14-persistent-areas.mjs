@@ -75,7 +75,7 @@ export function areaCovers(flag, token, { fields = null, position = null } = {})
 }
 /** Every lasting area on a Scene, with its Region. */
 export function sceneAreas(scene) {
-    return [...scene.regions].flatMap(region => region.flags?.wildpath?.area ? [{ region, flag: region.flags.wildpath.area }] : []);
+    return [...(scene.regions ?? [])].flatMap(region => region.flags?.wildpath?.area ? [{ region, flag: region.flags.wildpath.area }] : []);
 }
 /** A once-per-turn key: the current combat turn, or null outside combat (no limit). */
 export function turnKey(combat) {
@@ -147,5 +147,9 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         return sceneAreas(token.parent).filter(({ flag }) => flag.persistence.triggers.some(trigger => trigger.on.includes(AREA_EVENTS.ENTERED))
             && areaCovers(flag, token, { position }) && !areaCovers(flag, token, { position: previous }));
     }
-    return { create, apply, onTurn, entered };
+    /** Whether any lasting area on the Scene answers `area.entered`; moves there are then checkpointed per step. */
+    function hasEntryAreas(scene) {
+        return sceneAreas(scene).some(({ flag }) => flag.persistence.triggers.some(trigger => trigger.on.includes(AREA_EVENTS.ENTERED)));
+    }
+    return { create, apply, onTurn, entered, hasEntryAreas };
 }

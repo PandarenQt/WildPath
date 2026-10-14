@@ -119,6 +119,7 @@ export function registerFoundryV14MultiplayerResolution({
     notify: event => notifyMultiplayerMovementFailure(event, {logger}),
     logger,
     actionCoordinator: coordinator,
+    areas,
     reactionPauseAdapter: createFoundryV14ReactionPauseAdapter(),
     reactionServices: context => typeof game.wildpath?.reactionServices === "function"
       ? game.wildpath.reactionServices(context) : {},
@@ -409,6 +410,11 @@ function notifyMultiplayerFailure(event={}, {logger=globalThis.console}={}) {
 }
 
 function notifyMultiplayerMovementFailure(event={}, {logger=globalThis.console}={}) {
+  if ( event.type === "movementStoppedByArea" ) {
+    globalThis.ui?.notifications?.info?.(globalThis.game?.i18n?.format?.("WILDPATH.NOTIFY.MovementStoppedByArea", {area: event.area})
+      ?? `Wild Path | Stopped in ${event.area}`);
+    return;
+  }
   const error = event.error ?? event.result ?? null;
   if ( !error ) return;
   const reason = error.reason ?? error.code ?? "";

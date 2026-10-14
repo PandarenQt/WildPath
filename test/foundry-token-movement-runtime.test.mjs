@@ -51,7 +51,7 @@ import {prepareFoundryReactionCheckpoints} from "../module/adapters/foundry-v14-
 
 function movementReactionFixture({count=1, cancel=false, match=true, grid, size="medium", kind=null, largeHex=false,
   foundrySystems=false, reactorActors=null, moverActor=null, duplicateCacheLimit=undefined,
-  event="movement.transition", beforeStepReaction=undefined}={}) {
+  event="movement.transition", beforeStepReaction=undefined, areas=undefined}={}) {
   const reactors = reactorActors ?? Array.from({length: count}, (_, i) => fakeActor(`reactor-${i}`));
   if ( foundrySystems ) reactors.forEach(withFoundryActorSystem);
   const action = {schemaVersion: 1, id: "action:test-event", label: "Test event action",
@@ -74,7 +74,7 @@ function movementReactionFixture({count=1, cancel=false, match=true, grid, size=
     createActionReactionChildState({...context, services: {reactions: {actorSystemsByActor}}}),
     {results: {parentDirective: {type: "cancel-parent"}}});
   const fixture = largeHex ? footprintTranslationFixture({reactionServices: () => services})
-    : createMovementRuntimeFixture({...(grid ? {grid} : {}), duplicateCacheLimit, beforeStepReaction,
+    : createMovementRuntimeFixture({...(grid ? {grid} : {}), duplicateCacheLimit, beforeStepReaction, areas,
       actor: moverActor ?? fakeActor("mover", {size}), reactionServices: () => services});
   let resumeCount = 0;
   let stopCount = 0;
@@ -638,6 +638,39 @@ for ( const cancel of [false, true] ) test(`a before-step reaction resolves insi
   assert.equal(fixture.coordinator.records.size, 1);
 });
 
+/** Burning ground from the first field to the east: the mover's first step enters it. */
+function burningGround() {
+  const applied = [];
+  const flag = {label: "Burning Ground"};
+  const region = {id: "fire", flags: {wildpath: {area: flag}}};
+  const inside = position => Number(position?.x) >= 50;
+  return {applied, region, port: {
+    hasEntryAreas: () => true,
+    entered: (token, {previous, position}) => (inside(position) && !inside(previous) ? [{region, flag}] : []),
+    async apply(area, areaFlag, token, event) { applied.push([area.id, token.id, event]); return [{status: "completed"}]; }
+  }};
+}
+
+for ( const kind of [null, "forced"] ) test(`a ${kind ?? "voluntary"} move into a lasting area is affected on entry and ${kind ? "continues" : "stops there, paying only the steps taken"}`, async () => {
+  const hazard = burningGround();
+  const fixture = movementReactionFixture({count: 0, kind, areas: hazard.port});
+  fixture.scene.regions = new Map([["fire", hazard.region]]);
+  const prepared = {movement: {[fixture.token.id]: {waypoints: [pointForOffset(fixture.scene, {i: 2, j: 0})]}}};
+  await prepareFoundryReactionCheckpoints(fixture.token, {}, prepared, PLAYER, fixture.playerAuthority, "checkpoint-root");
+  assert.equal(prepared.movement[fixture.token.id].waypoints.length, 2, "a Scene with an entry hazard checkpoints every step");
+  const root = await openMovementReaction(fixture);
+  assert.deepEqual(hazard.applied, [["fire", fixture.token.id, "area.entered"]]);
+  if ( kind ) {
+    assert.deepEqual([fixture.stopCount(), fixture.resumeCount()], [0, 1], "forced movement is not cut short");
+    return;
+  }
+  assert.deepEqual([fixture.stopCount(), fixture.resumeCount()], [1, 0]);
+  assert.equal(fixture.token.x, 50, "the mover stays where it entered");
+  assert.equal(fixture.actor.system.resources.movement.value, 25, "the remaining movement is kept");
+  assert.equal(progressOf(fixture, root).status, "interrupted");
+  assert.equal(fixture.semanticEvents.gm.at(-1).data.interruption.reason, "entered-area");
+});
+
 test("movement with an empty reaction provider retains the uninterrupted no-trigger path", async () => {
   const fixture = movementReactionFixture({count: 0});
   const operation = checkpointOperation(fixture.token, {passedCount: 2, offsets: [{i: 1, j: 0}, {i: 2, j: 0}]});
@@ -956,7 +989,8 @@ function createMovementRuntimeFixture({
   onAutomationEvent=null,
   reactionServices=null,
   duplicateCacheLimit=undefined,
-  beforeStepReaction=null
+  beforeStepReaction=null,
+  areas=null
 }={}) {
   const scene = fakeScene(grid);
   const token = fakeTokenDocument({actor, scene, ...tokenOptions});
@@ -1003,6 +1037,7 @@ function createMovementRuntimeFixture({
     game: gmGame,
     ...(reactionServices ? {reactionServices, actionCoordinator: coordinator} : {}),
     ...(beforeStepReaction ? {beforeStepReaction} : {}),
+    ...(areas ? {areas} : {}),
     onAutomationEvent: event => {
       semanticEvents.gm.push(structuredClone(event));
       onAutomationEvent?.(event);
