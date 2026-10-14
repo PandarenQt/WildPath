@@ -26,7 +26,7 @@ export function summarizeActionDefinition(definition) {
                 ? `/${d.range.long.value}` : ""} ft` : null],
         ["Area", d.area?.shape ? `${d.area.shape} ${d.area.size?.value ?? "?"} ft${d.area.persistence ? ", lasting" : ""}` : null],
         ["Attack", d.attack ? `${d.attack.type ?? "?"} vs ${d.attack.defenseKey ?? "ac"}${d.attack.properties?.length
-                ? ` (${d.attack.properties.join(", ")})` : ""}` : null],
+                ? ` (${d.attack.properties.join(", ")})` : ""}${d.attack.proficient ? ", proficient" : ""}` : null],
         ["Save", d.save ? `${d.save.ability ?? "?"} DC ${d.save.dc?.value ?? "?"}` : null],
         ["Check", d.check ? `${[d.check.ability, d.check.skill && `(${d.check.skill})`].filter(Boolean).join(" ")} DC ${d.check.dc?.value ?? "?"}`
                 : null],

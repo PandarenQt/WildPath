@@ -194,7 +194,9 @@ function evaluateProficiencyBonus(context) {
   ]);
   if ( explicit != null ) return ok(explicit);
 
-  const level = resolveCharacterLevel(context);
+  // A creature without a character level uses its threat (Challenge Rating).
+  const level = resolveCharacterLevel(context)
+    ?? firstNumeric([context.actor?.system?.details?.threat, context.actorSystem?.details?.threat]);
   return level == null
     ? fail(VALUE_EXPRESSION_CODES.UNKNOWN_CONTEXT_PATH, "No proficiency bonus or character level found.")
     : ok(2 + Math.floor((Math.max(level, 1) - 1) / 4));

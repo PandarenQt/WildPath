@@ -389,6 +389,7 @@
         "weapon": "A weapon",
         "spell": "A spell",
         "Finesse": "Finesse",
+        "Proficient": "Proficient (adds the proficiency bonus)",
         "Ability": "Ability",
         "Automatic": "Automatic",
         "SaveAbility": "Save",
@@ -455,6 +456,8 @@
     "SHEET": {
       "AC": "AC",
       "ArmorClass": "Armor Class",
+      "Proficiency": "Proficiency +{bonus}",
+      "SaveProficient": "Proficient in this ability's saves",
       "EffectiveAc": "Armor Class with gear, effects and auras; the field is its base",
       "Equipped": "Equipped",
       "Unequipped": "Not equipped",

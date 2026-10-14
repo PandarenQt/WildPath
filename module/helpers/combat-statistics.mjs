@@ -75,7 +75,9 @@ export function resolveActorAttackStatistic(actor, attack={}, {item=null, tags=[
   const ability = attackAbility(actor, attack, {tags});
   const abilityModifier = actorAbilityModifier(actor, ability);
   if ( !statistic.known && (abilityModifier == null) ) return null;
-  const total = (statistic.value ?? 0) + (abilityModifier ?? 0);
+  // 2024: the proficiency bonus joins only an attack the creature is proficient with (maintainer decision).
+  const proficiency = attack.proficient === true ? actorProficiencyBonus(actor) : 0;
+  const total = (statistic.value ?? 0) + (abilityModifier ?? 0) + proficiency;
   return {
     key,
     domain: statistic.domain ?? domains[0] ?? null,
@@ -83,6 +85,7 @@ export function resolveActorAttackStatistic(actor, attack={}, {item=null, tags=[
     totalModifier: total,
     ability,
     abilityModifier,
+    proficiency,
     spell: isSpellAttack(attack, tags),
     source: {
       type: "actor-combat-statistic",
@@ -182,10 +185,28 @@ export function actorAbilityModifier(actor, ability) {
   return score == null ? null : Math.floor((score - 10) / 2);
 }
 
-/** A creature's save bonus: its ability modifier, plus every Modifier on `save.<ability>` and `save`. */
+/** 2024 proficiency bonus at a level or Challenge Rating: 2 + floor((n - 1) / 4), at least 2. */
+export const proficiencyForLevel = level => 2 + Math.floor((Math.max(Number(level) || 0, 1) - 1) / 4);
+
+/**
+ * A creature's proficiency bonus: by its character level, or a creature's threat (its Challenge Rating), plus every
+ * Modifier on `proficiency`, so a feature or house rule changes it like any other statistic.
+ */
+export function actorProficiencyBonus(actor) {
+  const details = actor?.system?.details ?? {};
+  return proficiencyForLevel(details.level ?? details.threat) + (resolveActorStatisticModifier(actor, ["proficiency"]).value ?? 0);
+}
+
+/**
+ * A creature's save bonus: its ability modifier, every Modifier on `save.<ability>` and `save`, and its proficiency
+ * bonus when it is proficient in that save (`abilities.<ability>.saveProficient`).
+ */
 export function resolveActorSaveStatistic(actor, ability=null) {
-  return withAbilityModifier(resolveActorStatisticModifier(actor, [ability ? `save.${ability}` : null, "save"].filter(Boolean),
+  const save = withAbilityModifier(resolveActorStatisticModifier(actor, [ability ? `save.${ability}` : null, "save"].filter(Boolean),
     {tags: ability ? [ability] : []}), actor, ability);
+  if ( !save || (actor?.system?.abilities?.[ability]?.saveProficient !== true) ) return save;
+  const proficiency = actorProficiencyBonus(actor);
+  return {...save, totalModifier: save.totalModifier + proficiency, proficiency};
 }
 
 /** A creature's check bonus: its ability modifier, plus every Modifier on `check.<skill>`, `check.<ability>` and `check`. */

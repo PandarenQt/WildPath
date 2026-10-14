@@ -1,5 +1,5 @@
 import {createActorSheetViewModel} from "../helpers/character-sheet-view-models.mjs";
-import {resolveActorDefense} from "../helpers/combat-statistics.mjs";
+import {actorProficiencyBonus, resolveActorDefense} from "../helpers/combat-statistics.mjs";
 
 const {HandlebarsApplicationMixin} = foundry.applications.api;
 const {ActorSheetV2} = foundry.applications.sheets;
@@ -45,7 +45,8 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
       abilityLabels: CONFIG.WILDPATH.ABILITIES,
       resourceLabels: CONFIG.WILDPATH.RESOURCES,
       conditionDefinitions: Object.values(CONFIG.WILDPATH.CONDITIONS),
-      effectiveAc: resolveActorDefense(this.actor, "ac")?.value ?? null
+      effectiveAc: resolveActorDefense(this.actor, "ac")?.value ?? null,
+      proficiency: actorProficiencyBonus(this.actor)
     });
     context.sheet = sheet;
     Object.assign(context, sheet);

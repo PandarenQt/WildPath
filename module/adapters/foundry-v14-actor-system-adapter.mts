@@ -1,4 +1,5 @@
 import {clonePlainData} from "../helpers/multiplayer-authority.mjs";
+import {actorProficiencyBonus} from "../helpers/combat-statistics.mjs";
 
 interface ActorSourceDocument {
   readonly uuid?: string;
@@ -18,6 +19,10 @@ export function foundryActorSystemSnapshot(actor: ActorSourceDocument): Record<s
     }
     const snapshot = clonePlainData(source.system, "Foundry Actor system snapshot");
     projectEffectiveResources(snapshot, actor.system);
+    // The effective proficiency bonus (its Modifiers included), which `prof` in an Action's formulas reads.
+    if ( typeof (actor as {getStatistic?: unknown}).getStatistic === "function" ) {
+      (snapshot as Record<string, unknown>).proficiencyBonus = actorProficiencyBonus(actor);
+    }
     return snapshot;
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error);

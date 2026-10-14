@@ -130,6 +130,7 @@ export function definitionToBuilder(definition: Data | null | undefined, {abilit
       attackType: d.attack?.type ?? "melee",
       statistic: d.attack?.statistic ?? "weapon",
       finesse: (d.attack?.properties ?? []).includes("finesse"),
+      proficient: d.attack?.proficient === true,
       ability: d.attack?.ability ?? "",
       saveAbility: d.save?.ability ?? "",
       checkAbility: d.check?.ability ?? "",
@@ -292,7 +293,13 @@ const WRITERS = {
     for ( const other of ["attack", "save", "check"] ) if ( other !== kind ) next[other] = null;
 
     if ( kind === "attack" ) {
-      const attack: Data = (kindChanged || !next.attack) ? {type: "melee", statistic: spell ? "spell" : "weapon", defenseKey: "ac"} : {...next.attack};
+      // A new attack is one the creature is proficient with, as most are; the checkbox turns it off.
+      const attack: Data = (kindChanged || !next.attack) ? {type: "melee", statistic: spell ? "spell" : "weapon", defenseKey: "ac", proficient: true}
+        : {...next.attack};
+      if ( changed("proficient") ) {
+        if ( value("proficient") ) attack.proficient = true;
+        else delete attack.proficient;
+      }
       if ( set("attackType") ) attack.type = value("attackType") || "melee";
       if ( changed("statistic") ) attack.statistic = value("statistic") || "weapon";
       if ( set("finesse") ) {
@@ -523,14 +530,14 @@ const dice = (count: number, faces: number) => ({type: "dice", number: count, fa
 /** Starting points for a new Action; applying one replaces everything but the Action's identity. */
 export const ACTION_TEMPLATES: Record<string, Data> = {
   melee: {costs: ACTION, targeting: {type: "single", required: true, count: 1}, range: {type: "reach", distance: {value: 5, unit: "ft"}},
-    attack: {type: "melee", statistic: "weapon", defenseKey: "ac"},
+    attack: {type: "melee", statistic: "weapon", defenseKey: "ac", proficient: true},
     damage: [{id: "damage-1", expression: dice(1, 8), damageType: "slashing", provenance: "weapon-base"}]},
   ranged: {costs: ACTION, targeting: {type: "single", required: true, count: 1},
     range: {type: "ranged", normal: {value: 80, unit: "ft"}, long: {value: 320, unit: "ft"}},
-    attack: {type: "ranged", statistic: "weapon", defenseKey: "ac"},
+    attack: {type: "ranged", statistic: "weapon", defenseKey: "ac", proficient: true},
     damage: [{id: "damage-1", expression: dice(1, 6), damageType: "piercing", provenance: "weapon-base"}]},
   spellAttack: {tags: ["spell"], costs: ACTION, targeting: {type: "single", required: true, count: 1},
-    range: {type: "ranged", normal: {value: 120, unit: "ft"}}, attack: {type: "ranged", statistic: "spell", defenseKey: "ac"},
+    range: {type: "ranged", normal: {value: 120, unit: "ft"}}, attack: {type: "ranged", statistic: "spell", defenseKey: "ac", proficient: true},
     damage: [{id: "damage-1", expression: dice(1, 10), damageType: "fire", provenance: "spell-base"}]},
   save: {tags: ["spell"], costs: ACTION, targeting: {type: "single", required: true, count: 1},
     range: {type: "ranged", normal: {value: 60, unit: "ft"}}, save: {ability: "fortitude", dc: SPELL_DC},
@@ -559,7 +566,7 @@ export const ACTION_TEMPLATES: Record<string, Data> = {
     effects: [{id: "effect-1", type: "effect", name: "Shield", duration: {value: 1, units: "rounds", expiry: "turnStart"},
       ruleElements: [{schemaVersion: 1, id: "rule-1", type: "Modifier", data: {domains: ["defense.ac"], value: 5, modifierType: "untyped"}}]}]},
   legendary: {costs: {allOf: [{capability: "legendary-action", amount: 1}]}, targeting: {type: "single", required: true, count: 1},
-    range: {type: "reach", distance: {value: 10, unit: "ft"}}, attack: {type: "melee", statistic: "weapon", defenseKey: "ac"},
+    range: {type: "reach", distance: {value: 10, unit: "ft"}}, attack: {type: "melee", statistic: "weapon", defenseKey: "ac", proficient: true},
     damage: [{id: "damage-1", expression: dice(2, 8), damageType: "bludgeoning", provenance: "weapon-base"}]},
   custom: {costs: ACTION}
 };

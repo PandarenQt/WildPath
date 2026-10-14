@@ -24,7 +24,9 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
   /** @inheritDoc */
   static defineSchema() {
     const abilitySchema = () => new SchemaField({
-      value: new NumberField({required: true, integer: true, initial: 10, min: 0})
+      value: new NumberField({required: true, integer: true, initial: 10, min: 0}),
+      // Proficient in this ability's saves: the proficiency bonus joins them (combat-statistics.mjs).
+      saveProficient: new BooleanField({required: true, initial: false})
     });
     const abilities = {};
     for ( const key of Object.keys(WILDPATH.ABILITIES) ) abilities[key] = abilitySchema();

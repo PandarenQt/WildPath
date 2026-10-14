@@ -53,3 +53,19 @@ test("resolveActorAttackStatistic snapshots source attack modifiers into plain r
   assert.equal(attack.source.statistic.domain, "attack.weapon");
   assert.deepEqual(JSON.parse(JSON.stringify(attack)), attack);
 });
+
+test("proficiency joins only an attack or save the creature is proficient in, by level or threat, and Modifiers change it", async () => {
+  const {actorProficiencyBonus, proficiencyForLevel, resolveActorSaveStatistic} = await import("../module/helpers/combat-statistics.mjs");
+  assert.deepEqual([0, 1, 4, 5, 9, 13, 17, 20].map(proficiencyForLevel), [2, 2, 2, 3, 4, 5, 6, 6]);
+  const creature = (details, proficiencyModifier=0) => ({id: "c", system: {details, abilities: {might: {value: 16},
+    agility: {value: 12, saveProficient: true}}}, getStatistic(domains) {
+    return [domains].flat().includes("proficiency") ? statistic("proficiency", proficiencyModifier) : statistic("none", 0);
+  }});
+  const fighter = creature({level: 5});
+  assert.equal(resolveActorAttackStatistic(fighter, {type: "melee", statistic: "weapon"}).totalModifier, 3, "not proficient: Might only");
+  assert.equal(resolveActorAttackStatistic(fighter, {type: "melee", statistic: "weapon", proficient: true}).totalModifier, 6, "Might 3 + proficiency 3");
+  assert.equal(actorProficiencyBonus(creature({threat: 10})), 4, "a creature's Challenge Rating sets it");
+  assert.equal(actorProficiencyBonus(creature({level: 5}, -1)), 2, "a Modifier on proficiency changes it");
+  assert.equal(resolveActorSaveStatistic(fighter, "agility").totalModifier, 4, "a proficient save adds it: Agility 1 + 3");
+  assert.equal(resolveActorSaveStatistic(fighter, "might").totalModifier, 3, "a save it is not proficient in does not");
+});

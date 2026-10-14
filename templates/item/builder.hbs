@@ -126,6 +126,8 @@
         {{selectOptions b.choices.attackTypes selected=b.values.roll.attackType localize=true}}</select>
       <select name="wildpath.builder.roll.statistic" aria-label="{{localize "WILDPATH.BUILDER.Roll.Statistic"}}">
         {{selectOptions b.choices.statistics selected=b.values.roll.statistic localize=true}}</select>
+      <label class="checkbox"><input type="checkbox" name="wildpath.builder.roll.proficient" {{checked b.values.roll.proficient}}>
+        {{localize "WILDPATH.BUILDER.Roll.Proficient"}}</label>
       <label class="checkbox"><input type="checkbox" name="wildpath.builder.roll.finesse" {{checked b.values.roll.finesse}}>
         {{localize "WILDPATH.BUILDER.Roll.Finesse"}}</label>
       <label>{{localize "WILDPATH.BUILDER.Roll.Ability"}}

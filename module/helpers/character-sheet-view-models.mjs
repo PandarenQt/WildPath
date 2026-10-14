@@ -23,7 +23,8 @@ export function createActorSheetViewModel({
   abilityLabels={},
   resourceLabels={},
   conditionDefinitions=[],
-  effectiveAc=null
+  effectiveAc=null,
+  proficiency=null
 }={}) {
   const actorSystem = system ?? actor.system ?? {};
   const actorModel = normalizeActor(actor);
@@ -56,7 +57,7 @@ export function createActorSheetViewModel({
   return {
     actor: actorModel,
     system: actorSystem,
-    header: createHeaderView(actorModel, actorSystem, summary, effectiveAc),
+    header: {...createHeaderView(actorModel, actorSystem, summary, effectiveAc), proficiency},
     sections: CHARACTER_SHEET_SECTIONS.map(section => ({...section, anchor: `wildpath-${actorModel.id}-${section.id}`})),
     abilities: normalizeAbilities(actorSystem.abilities, abilityLabels),
     resources: normalizeResources(actorSystem.resources, resourceLabels),
@@ -129,6 +130,7 @@ function normalizeAbilities(abilities={}, labels={}) {
     key,
     value: Number(ability?.value ?? 0) || 0,
     modifier: Math.floor(((Number(ability?.value ?? 0) || 0) - 10) / 2),
+    saveProficient: ability?.saveProficient === true,
     label: labels[key]?.label ?? labels[key] ?? key
   }));
 }

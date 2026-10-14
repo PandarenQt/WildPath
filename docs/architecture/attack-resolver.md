@@ -83,6 +83,18 @@ first of these that applies:
 3. for a weapon with the `finesse` property (`attack.properties: ["finesse"]`), the better of Might and Agility;
 4. otherwise Might in melee and Agility at range.
 
+**Proficiency (maintainer decision, 2026-10-14).** The proficiency bonus is added only when the creature is
+proficient, and that is easy to change:
+- **The bonus** is 2 + floor((n − 1) / 4) (`actorProficiencyBonus`, `helpers/combat-statistics.mjs`). n is the
+  character level, or a creature's threat (its Challenge Rating). Every Modifier on `proficiency` adds to it, so a
+  feature or house rule changes it like any statistic. The character sheet's header shows it.
+- **Attacks** add it when their definition says `attack.proficient: true`. The Builder's "Proficient" checkbox sets
+  it, and the attack templates start ticked. A character not proficient with a weapon unticks it.
+- **Saves** add it when the creature is proficient in that save (`abilities.<ability>.saveProficient`, a checkbox
+  per ability on the sheet; an optional field). Concentration saves follow their ability's save.
+- **Formulas.** The authority's snapshot carries the effective bonus (`proficiencyBonus`), so `prof` in an Action's
+  formulas, such as a spell save DC, includes its Modifiers. A creature without a level takes it from its threat.
+
 Weapon damage adds the same modifier once. The runtime passes it as `damage.modifierTotal` when the Action has
 a `weapon-base` damage component and the attack is not a spell attack. It goes on the first weapon component, or
 else the first component (rolls.md, "Damage and healing rolls").

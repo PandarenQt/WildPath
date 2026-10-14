@@ -26,7 +26,7 @@ export function summarizeActionDefinition(definition: Data | null | undefined): 
   const d = definition as {costs?: Parameters<typeof costText>[0]; controllerCosts?: Parameters<typeof costText>[0];
     targeting?: {type?: string; count?: number}; range?: {type?: string; distance?: {value?: number}; normal?: {value?: number};
       long?: {value?: number}}; area?: {shape?: string; size?: {value?: number}; persistence?: unknown};
-    attack?: {type?: string; defenseKey?: string; properties?: string[]}; save?: {ability?: string; dc?: {value?: number}};
+    attack?: {type?: string; defenseKey?: string; properties?: string[]; proficient?: boolean}; save?: {ability?: string; dc?: {value?: number}};
     check?: {ability?: string; skill?: string; dc?: {value?: number}};
     damage?: Array<{expression?: DiceLike; damageType?: string}>; healing?: Array<{expression?: DiceLike}>;
     effects?: Array<{type?: string; conditionId?: string; name?: string}>; transform?: {formRef?: string; choiceId?: string; revert?: boolean};
@@ -40,7 +40,7 @@ export function summarizeActionDefinition(definition: Data | null | undefined): 
       ? `/${d.range.long.value}` : ""} ft` : null],
     ["Area", d.area?.shape ? `${d.area.shape} ${d.area.size?.value ?? "?"} ft${d.area.persistence ? ", lasting" : ""}` : null],
     ["Attack", d.attack ? `${d.attack.type ?? "?"} vs ${d.attack.defenseKey ?? "ac"}${d.attack.properties?.length
-      ? ` (${d.attack.properties.join(", ")})` : ""}` : null],
+      ? ` (${d.attack.properties.join(", ")})` : ""}${d.attack.proficient ? ", proficient" : ""}` : null],
     ["Save", d.save ? `${d.save.ability ?? "?"} DC ${d.save.dc?.value ?? "?"}` : null],
     ["Check", d.check ? `${[d.check.ability, d.check.skill && `(${d.check.skill})`].filter(Boolean).join(" ")} DC ${d.check.dc?.value ?? "?"}`
       : null],

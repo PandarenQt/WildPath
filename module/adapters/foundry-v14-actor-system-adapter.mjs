@@ -1,4 +1,5 @@
 import { clonePlainData } from "../helpers/multiplayer-authority.mjs";
+import { actorProficiencyBonus } from "../helpers/combat-statistics.mjs";
 /** Snapshot the supplied Actor, including synthetic deltas, without retaining runtime handles. */
 export function foundryActorSystemSnapshot(actor) {
     try {
@@ -12,6 +13,10 @@ export function foundryActorSystemSnapshot(actor) {
         }
         const snapshot = clonePlainData(source.system, "Foundry Actor system snapshot");
         projectEffectiveResources(snapshot, actor.system);
+        // The effective proficiency bonus (its Modifiers included), which `prof` in an Action's formulas reads.
+        if (typeof actor.getStatistic === "function") {
+            snapshot.proficiencyBonus = actorProficiencyBonus(actor);
+        }
         return snapshot;
     }
     catch (error) {

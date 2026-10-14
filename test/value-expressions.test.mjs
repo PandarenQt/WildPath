@@ -112,3 +112,8 @@ test("a class-based caster's source snapshot: level from its classes, spellcasti
   const dc = {type: "add", terms: [{type: "constant", value: 8}, {type: "proficiency-bonus"}, {type: "spellcasting-modifier"}]};
   assert.equal(evaluateValueExpression(dc, snapshot).value, 14, "a 5th-level wizard with Intellect 16 has spell save DC 14");
 });
+
+test("a creature without a character level takes its proficiency bonus from its threat; an effective bonus wins", () => {
+  assert.equal(evaluateValueExpression({type: "proficiency-bonus"}, {actorSystem: {details: {threat: 9}}}).value, 4);
+  assert.equal(evaluateValueExpression({type: "proficiency-bonus"}, {actorSystem: {details: {threat: 9}, proficiencyBonus: 6}}).value, 6);
+});

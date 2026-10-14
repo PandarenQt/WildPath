@@ -18,6 +18,7 @@
         {{/each}}
         {{#if header.ac}}<span title="{{localize "WILDPATH.SHEET.EffectiveAc"}}">{{localize "WILDPATH.SHEET.AC"}} {{header.ac}}</span>{{/if}}
         {{#if header.level}}<span>{{localize "WILDPATH.SHEET.Level"}} {{header.level}}</span>{{/if}}
+        {{#if header.proficiency}}<span>{{localize "WILDPATH.SHEET.Proficiency" bonus=header.proficiency}}</span>{{/if}}
         {{#if header.threat}}<span>{{localize "WILDPATH.SHEET.Threat"}} {{header.threat}}</span>{{/if}}
         <span>{{localize "WILDPATH.SHEET.ActionCount" count=summary.actionCount}}</span>
         <span>{{localize "WILDPATH.SHEET.ConditionCount" count=summary.activeConditionCount}}</span>
@@ -49,6 +50,8 @@
               <label class="ability">
                 <span>{{localize ability.label}}</span>
                 <input type="number" name="system.abilities.{{ability.key}}.value" value="{{ability.value}}">
+                <input type="checkbox" name="system.abilities.{{ability.key}}.saveProficient" {{checked ability.saveProficient}}
+                       title="{{localize "WILDPATH.SHEET.SaveProficient"}}" aria-label="{{localize "WILDPATH.SHEET.SaveProficient"}}">
               </label>
             {{/each}}
           </div>

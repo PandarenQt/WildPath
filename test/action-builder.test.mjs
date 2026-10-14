@@ -181,3 +181,12 @@ test("a spell slot level and its upcast dice scale the first damage row through 
   const scaling = packDefinitions.find(([file]) => file === "scaling-bolt.json")[1];
   assert.deepEqual(definitionToBuilder(scaling).slot, {level: 1, upcast: "1d6"});
 });
+
+test("the Proficient checkbox adds or removes the attack's proficiency; attack templates start proficient", () => {
+  const melee = applyActionTemplate({}, "melee", {fallbackId: "action:melee"});
+  assert.equal(melee.attack.proficient, true);
+  assert.equal(definitionToBuilder(melee).roll.proficient, true);
+  const off = submit(melee, {roll: {proficient: false}}).definition;
+  assert.equal("proficient" in off.attack, false);
+  assert.equal(submit(off, {roll: {proficient: true}}).definition.attack.proficient, true);
+});

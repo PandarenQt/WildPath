@@ -150,6 +150,7 @@ The authority adds it to the Modifiers it reads (`resolveActorSaveStatistic`, `r
 - **Checks** add the check's `ability`. A check that names only a skill adds no ability modifier, as no skill table
   exists yet.
 - **Initiative** is an Agility check, so it adds Agility, and Modifiers on `check.agility` reach it.
+- **Proficient saves** also add the proficiency bonus (attack-resolver.md, "Proficiency").
 - **Death saves** name no ability, so they add only Modifiers on `save`.
 - **Attacks** add their attack's ability, and weapon damage adds the same once (attack-resolver.md).
 
