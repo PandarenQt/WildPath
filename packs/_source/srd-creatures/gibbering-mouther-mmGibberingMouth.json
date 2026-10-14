@@ -269,7 +269,8 @@
                 "type": "constant",
                 "value": 1
               },
-              "recovery": "none"
+              "recovery": "none",
+              "recharge": 5
             }
           }
         ]
@@ -286,9 +287,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "uses: Recharge 5–6 is not rolled; refill the pool by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -339,8 +338,7 @@
         "notes": [
           "Aberrant Ground: \"Place Emanation\" is passive or triggered: not automated",
           "Gibbering: \"save\" is passive or triggered: not automated",
-          "Gibbering: \"Roll d8\" is passive or triggered: not automated",
-          "Blinding Spittle: uses: Recharge 5–6 is not rolled; refill the pool by hand"
+          "Gibbering: \"Roll d8\" is passive or triggered: not automated"
         ]
       }
     }

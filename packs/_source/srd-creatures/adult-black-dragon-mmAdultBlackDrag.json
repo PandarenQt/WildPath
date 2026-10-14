@@ -121,7 +121,7 @@
       "img": "icons/skills/melee/strike-weapons-orange.webp",
       "system": {
         "active": true,
-        "description": "<p>The adult black dragon makes three  attacks. It can replace one attack with a use of  to cast <em>Melf's Acid Arrow</em> (level 3 version).</p>",
+        "description": "<p>The adult black dragon makes three Rend attacks. It can replace one attack with a use of Spellcasting to cast <em>Melf's Acid Arrow</em> (level 3 version).</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-multiattack-use",
@@ -133,9 +133,32 @@
               }
             ]
           },
-          "label": "Multiattack"
+          "label": "Multiattack",
+          "targeting": {
+            "type": "none"
+          },
+          "restores": [
+            {
+              "resourceId": "multiattack",
+              "amount": 3
+            }
+          ]
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack",
+              "label": "Multiattack",
+              "maximum": 3,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -150,7 +173,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
             ]
           }
         }
@@ -169,11 +192,19 @@
           "schemaVersion": 1,
           "id": "action:srd-rend",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "attack": {
@@ -314,7 +345,8 @@
                 "type": "constant",
                 "value": 1
               },
-              "recovery": "none"
+              "recovery": "none",
+              "recharge": 5
             }
           }
         ]
@@ -331,233 +363,14 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "uses: Recharge 5–6 is not rolled; refill the pool by hand"
-            ]
+            "notes": []
           }
         }
       }
     },
     {
-      "_id": "mmSpellcasting00",
-      "_key": "!actors.items!mmAdultBlackDrag.mmSpellcasting00",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The adult black dragon casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC , +9 to hit with spell attacks):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Fear</em>, <em>Melf's Acid Arrow</em> (level 3 version)</p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Speak with Dead</em>, <em>Vitriolic Sphere</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "17svfvloelxmr000",
-      "_key": "!actors.items!mmAdultBlackDrag.17svfvloelxmr000",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The adult black dragon casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC , +9 to hit with spell attacks):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Fear</em>, <em>Melf's Acid Arrow</em> (level 3 version)</p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Speak with Dead</em>, <em>Vitriolic Sphere</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "16ywmso1mzul9w00",
-      "_key": "!actors.items!mmAdultBlackDrag.16ywmso1mzul9w00",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The adult black dragon casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC , +9 to hit with spell attacks):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Fear</em>, <em>Melf's Acid Arrow</em> (level 3 version)</p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Speak with Dead</em>, <em>Vitriolic Sphere</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "178w8hnnsecqh000",
-      "_key": "!actors.items!mmAdultBlackDrag.178w8hnnsecqh000",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The adult black dragon casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC , +9 to hit with spell attacks):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Fear</em>, <em>Melf's Acid Arrow</em> (level 3 version)</p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Speak with Dead</em>, <em>Vitriolic Sphere</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "consumption: activityUses 1 not converted"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "18mu8yi1mdn0dm00",
-      "_key": "!actors.items!mmAdultBlackDrag.18mu8yi1mdn0dm00",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The adult black dragon casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC , +9 to hit with spell attacks):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Fear</em>, <em>Melf's Acid Arrow</em> (level 3 version)</p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Speak with Dead</em>, <em>Vitriolic Sphere</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "consumption: activityUses 1 not converted"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "hoJ27ZfNj6LIlgzf",
-      "_key": "!actors.items!mmAdultBlackDrag.hoJ27ZfNj6LIlgzf",
+      "_id": "6xqx391flgrh3000",
+      "_key": "!actors.items!mmAdultBlackDrag.6xqx391flgrh3000",
       "name": "Detect Magic",
       "type": "action",
       "img": "icons/magic/symbols/runes-carved-stone-green.webp",
@@ -566,7 +379,7 @@
         "description": "<p>For the duration, you sense the presence of magical effects within 30 feet of yourself. If you sense such effects, you can take the Magic action to see a faint aura around any visible creature or object in the area that bears the magic, and if an effect was created by a spell, you learn the spell's school of magic.</p><p>The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-detect-magic-cast",
+          "id": "action:srd-spellcasting-detect-magic",
           "tags": [
             "spell"
           ],
@@ -578,84 +391,6 @@
               }
             ]
           },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.1",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.1": 1,
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
           "label": "Detect Magic"
         },
         "ruleElements": []
@@ -665,11 +400,12 @@
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "hoJ27ZfNj6LIlgzf",
+            "id": "phbsplDetectMagi",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
@@ -682,8 +418,8 @@
       }
     },
     {
-      "_id": "usixW0YhBv27P281",
-      "_key": "!actors.items!mmAdultBlackDrag.usixW0YhBv27P281",
+      "_id": "gzbnr1svkw6b0000",
+      "_key": "!actors.items!mmAdultBlackDrag.gzbnr1svkw6b0000",
       "name": "Fear",
       "type": "action",
       "img": "icons/magic/unholy/silhouette-robe-evil-glow.webp",
@@ -692,7 +428,7 @@
         "description": "<p>Each creature in a 30-foot Cone must succeed on a Wisdom saving throw or drop whatever it is holding and have the Frightened condition for the duration.</p><p>A Frightened creature takes the Dash action and moves away from you by the safest route on each of its turns unless there is nowhere to move. If the creature ends its turn in a space where it doesn't have line of sight to you, the creature makes a Wisdom saving throw. On a successful save, the spell ends on that creature.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-fear",
+          "id": "action:srd-spellcasting-fear",
           "tags": [
             "spell"
           ],
@@ -732,70 +468,6 @@
               "concentration": true
             }
           ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
           "label": "Fear"
         },
         "ruleElements": []
@@ -805,11 +477,12 @@
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "usixW0YhBv27P281",
+            "id": "phbsplFear000000",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": []
@@ -818,9 +491,9 @@
       }
     },
     {
-      "_id": "IjO0nHwPyxtJ6RzW",
-      "_key": "!actors.items!mmAdultBlackDrag.IjO0nHwPyxtJ6RzW",
-      "name": "Melf's Acid Arrow (Cast and Attack)",
+      "_id": "16xzdb2dgmtcs000",
+      "_key": "!actors.items!mmAdultBlackDrag.16xzdb2dgmtcs000",
+      "name": "Acid Arrow",
       "type": "action",
       "img": "icons/skills/ranged/arrow-flying-poisoned-green.webp",
       "system": {
@@ -828,7 +501,7 @@
         "description": "<p>A shimmering green arrow streaks toward a target within range and bursts in a spray of acid. Make a ranged spell attack against the target. On a hit, the target takes 4d4 Acid damage and 2d4 Acid damage at the end of its next turn. On a miss, the arrow splashes the target with acid for half as much of the initial damage only.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The damage (both initial and later) increases by 1d4 for each spell slot level above 2.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-melf-s-acid-arrow-cast-and-attack",
+          "id": "action:srd-spellcasting-acid-arrow",
           "tags": [
             "spell"
           ],
@@ -844,7 +517,8 @@
             "type": "ranged",
             "statistic": "spell",
             "defenseKey": "ac",
-            "proficient": true
+            "proficient": true,
+            "ability": "presence"
           },
           "range": {
             "type": "ranged",
@@ -870,91 +544,7 @@
               "provenance": "spell-base"
             }
           ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": [
-                {
-                  "type": "scaleDamage",
-                  "levelChoiceId": "spell-slot",
-                  "baseLevel": 2,
-                  "componentIds": [
-                    "damage-1"
-                  ],
-                  "dice": {
-                    "number": 1,
-                    "faces": 4
-                  }
-                }
-              ]
-            }
-          ],
-          "label": "Melf's Acid Arrow (Cast and Attack)"
+          "label": "Acid Arrow"
         },
         "ruleElements": []
       },
@@ -963,14 +553,16 @@
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "IjO0nHwPyxtJ6RzW",
+            "id": "phbsplMelfsAcidA",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
+              "cast: Acid Arrow at level 3 is cast at its own level",
               "effect: \"Lingering Acid\" (its own changes) not converted"
             ]
           }
@@ -978,160 +570,8 @@
       }
     },
     {
-      "_id": "14d23kd1slmb1n00",
-      "_key": "!actors.items!mmAdultBlackDrag.14d23kd1slmb1n00",
-      "name": "Melf's Acid Arrow (Lingering Acid Damage)",
-      "type": "action",
-      "img": "icons/skills/ranged/arrow-flying-poisoned-green.webp",
-      "system": {
-        "active": true,
-        "description": "<p>A shimmering green arrow streaks toward a target within range and bursts in a spray of acid. Make a ranged spell attack against the target. On a hit, the target takes 4d4 Acid damage and 2d4 Acid damage at the end of its next turn. On a miss, the arrow splashes the target with acid for half as much of the initial damage only.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The damage (both initial and later) increases by 1d4 for each spell slot level above 2.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-melf-s-acid-arrow-lingering-acid-damage",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "range": {
-            "type": "ranged",
-            "normal": {
-              "value": 90,
-              "unit": "ft"
-            }
-          },
-          "targeting": {
-            "type": "single",
-            "required": true,
-            "count": 1
-          },
-          "damage": [
-            {
-              "id": "damage-1",
-              "expression": {
-                "type": "dice",
-                "number": 2,
-                "faces": 4
-              },
-              "damageType": "acid",
-              "provenance": "spell-base"
-            }
-          ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": [
-                {
-                  "type": "scaleDamage",
-                  "levelChoiceId": "spell-slot",
-                  "baseLevel": 2,
-                  "componentIds": [
-                    "damage-1"
-                  ],
-                  "dice": {
-                    "number": 1,
-                    "faces": 4
-                  }
-                }
-              ]
-            }
-          ],
-          "label": "Melf's Acid Arrow (Lingering Acid Damage)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "IjO0nHwPyxtJ6RzW",
-            "type": "spell",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": []
-          }
-        }
-      }
-    },
-    {
-      "_id": "AkUkBEQO4WHp8wjd",
-      "_key": "!actors.items!mmAdultBlackDrag.AkUkBEQO4WHp8wjd",
+      "_id": "qyovahaosqnh0000",
+      "_key": "!actors.items!mmAdultBlackDrag.qyovahaosqnh0000",
       "name": "Speak with Dead",
       "type": "action",
       "img": "icons/magic/death/undead-ghost-scream-teal.webp",
@@ -1140,7 +580,7 @@
         "description": "<p>You grant the semblance of life to a corpse of your choice within range, allowing it to answer questions you pose. The corpse must have a mouth, and this spell fails if the deceased creature was Undead when it died. The spell also fails if the corpse was the target of this spell within the past 10 days.</p><p>Until the spell ends, you can ask the corpse up to five questions. The corpse knows only what it knew in life, including the languages it knew. Answers are usually brief, cryptic, or repetitive, and the corpse is under no compulsion to offer a truthful answer if you are antagonistic toward it or it recognizes you as an enemy. This spell doesn't return the creature's soul to its body, only its animating spirit. Thus, the corpse can't learn new information, doesn't comprehend anything that has happened since it died, and can't speculate about future events.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-speak-with-dead",
+          "id": "action:srd-spellcasting-speak-with-dead",
           "tags": [
             "spell"
           ],
@@ -1149,87 +589,43 @@
               {
                 "capability": "action",
                 "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplspeakwithd",
+                "amount": 1
               }
             ]
           },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
           "label": "Speak with Dead"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "spellcasting-phbsplspeakwithd-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "spellcasting-phbsplspeakwithd",
+              "label": "Spellcasting (Speak with Dead)",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "AkUkBEQO4WHp8wjd",
+            "id": "phbsplSpeakwithD",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
@@ -1240,9 +636,9 @@
       }
     },
     {
-      "_id": "YtqaPviYTERxxntD",
-      "_key": "!actors.items!mmAdultBlackDrag.YtqaPviYTERxxntD",
-      "name": "Vitriolic Sphere (save)",
+      "_id": "16nkto31fzbfkz00",
+      "_key": "!actors.items!mmAdultBlackDrag.16nkto31fzbfkz00",
+      "name": "Vitriolic Sphere",
       "type": "action",
       "img": "icons/magic/acid/orb-bubble-smoke-drip.webp",
       "system": {
@@ -1250,7 +646,7 @@
         "description": "<p>You point at a location within range, and a glowing, 1-foot-diameter ball of acid streaks there and explodes in a 20-foot-radius Sphere. Each creature in that area makes a Dexterity saving throw. On a failed save, a creature takes 10d4 Acid damage and another 10d4 Acid damage at the end of its next turn. On a successful save, a creature takes half the initial damage only.</p><p><strong>Using a Higher-Level Spell Slot. </strong>The initial damage increases by 2d4 for each spell slot level above 4.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-vitriolic-sphere",
+          "id": "action:srd-spellcasting-vitriolic-sphere",
           "tags": [
             "spell"
           ],
@@ -1258,6 +654,10 @@
             "allOf": [
               {
                 "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplvitriolics",
                 "amount": 1
               }
             ]
@@ -1301,94 +701,41 @@
               }
             }
           ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": [
-                {
-                  "type": "scaleDamage",
-                  "levelChoiceId": "spell-slot",
-                  "baseLevel": 4,
-                  "componentIds": [
-                    "damage-1"
-                  ],
-                  "dice": {
-                    "number": 2,
-                    "faces": 4
-                  }
-                }
-              ]
-            }
-          ],
-          "label": "Vitriolic Sphere (save)"
+          "label": "Vitriolic Sphere"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "spellcasting-phbsplvitriolics-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "spellcasting-phbsplvitriolics",
+              "label": "Spellcasting (Vitriolic Sphere)",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "YtqaPviYTERxxntD",
+            "id": "phbsplVitriolicS",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
-              "effect: \"Lingering Acid\" (its own changes) not converted"
+              "effect: \"Lingering Acid\" (its own changes) not converted",
+              "\"End of Turn Damage\" is passive or triggered: not automated"
             ]
           }
         }
@@ -1472,51 +819,8 @@
       }
     },
     {
-      "_id": "mmFrightfulPrese",
-      "_key": "!actors.items!mmAdultBlackDrag.mmFrightfulPrese",
-      "name": "Frightful Presence",
-      "type": "action",
-      "img": "icons/magic/unholy/silhouette-robe-evil-glow.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The adult black dragon casts <em>Fear</em>, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ). The adult black dragon can't take this action again until the start of its next turn.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-frightful-presence",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "legendary-action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Frightful Presence"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmFrightfulPrese",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "gVlAKwebdYMDFAzv",
-      "_key": "!actors.items!mmAdultBlackDrag.gVlAKwebdYMDFAzv",
+      "_id": "3wonbw1eoz76a000",
+      "_key": "!actors.items!mmAdultBlackDrag.3wonbw1eoz76a000",
       "name": "Fear",
       "type": "action",
       "img": "icons/magic/unholy/silhouette-robe-evil-glow.webp",
@@ -1525,14 +829,14 @@
         "description": "<p>Each creature in a 30-foot Cone must succeed on a Wisdom saving throw or drop whatever it is holding and have the Frightened condition for the duration.</p><p>A Frightened creature takes the Dash action and moves away from you by the safest route on each of its turns unless there is nowhere to move. If the creature ends its turn in a space where it doesn't have line of sight to you, the creature makes a Wisdom saving throw. On a successful save, the spell ends on that creature.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-fear",
+          "id": "action:srd-frightful-presence-fear",
           "tags": [
             "spell"
           ],
           "costs": {
             "allOf": [
               {
-                "capability": "action",
+                "capability": "legendary-action",
                 "amount": 1
               }
             ]
@@ -1565,70 +869,6 @@
               "concentration": true
             }
           ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
           "label": "Fear"
         },
         "ruleElements": []
@@ -1638,11 +878,12 @@
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "gVlAKwebdYMDFAzv",
+            "id": "phbsplFear000000",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Frightful Presence"
           },
           "conversion": {
             "notes": []
@@ -1658,7 +899,7 @@
       "img": "icons/skills/movement/arrow-upward-yellow.webp",
       "system": {
         "active": true,
-        "description": "<p>The adult black dragon moves up to half its Speed, and it makes one  attack.</p>",
+        "description": "<p>The adult black dragon moves up to half its Speed, and it makes one Rend attack.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-pounce-expend-use",
@@ -1770,21 +1011,16 @@
       "conversion": {
         "notes": [
           "Legendary Resistance: \"Expend Use\" is passive or triggered: not automated",
-          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Acid Breath: uses: Recharge 5–6 is not rolled; refill the pool by hand",
-          "Spellcasting: not automated (cast): using it spends its cost; its description says the rest",
-          "Spellcasting: consumption: activityUses 1 not converted",
-          "Detect Magic: not automated (utility): using it spends its cost; its description says the rest",
-          "Detect Magic: effect: \"Detect Magic\" (its own changes) not converted",
-          "Detect Magic: concentration: nothing it sustains was converted",
-          "Melf's Acid Arrow: effect: \"Lingering Acid\" (its own changes) not converted",
-          "Speak with Dead: not automated (utility): using it spends its cost; its description says the rest",
-          "Vitriolic Sphere: effect: \"Lingering Acid\" (its own changes) not converted",
-          "Vitriolic Sphere: \"End of Turn Damage\" is passive or triggered: not automated",
+          "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
+          "Spellcasting: effect: \"Detect Magic\" (its own changes) not converted",
+          "Spellcasting: concentration: nothing it sustains was converted",
+          "Spellcasting: cast: Acid Arrow at level 3 is cast at its own level",
+          "Spellcasting: effect: \"Lingering Acid\" (its own changes) not converted",
+          "Spellcasting: \"End of Turn Damage\" is passive or triggered: not automated",
           "Cloud of Insects: effect: \"Concentration Disadvantage\" (its own changes) not converted",
-          "Frightful Presence: not automated (cast): using it spends its cost; its description says the rest",
           "Pounce: not automated (utility): using it spends its cost; its description says the rest",
-          "Pounce: consumption: attribute 1 not converted"
+          "Pounce: consumption: attribute 1 not converted",
+          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
         ]
       }
     }

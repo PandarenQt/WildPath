@@ -12,7 +12,8 @@ const data = process.argv.includes("--data") ? process.argv[process.argv.indexOf
   : join(process.env.LOCALAPPDATA ?? "", "FoundryVTT", "Data");
 
 const RULES = [
-  [/^Multiattack: /, () => "Multiattack"],
+  [/^Multiattack: not automated/, () => "Multiattack"],
+  [/^Multiattack: any of its attacks/, () => "shortcut: Multiattack's named attacks not enforced"],
   [/effect: (\w+) is not a WildPath condition/, match => `condition: ${match[1]}`],
   [/effect: ".*" \(its own changes\)/, () => "effect with its own changes (buff/debuff)"],
   [/effect: ".*" change (\S+) \((\w+)\) not converted/, match => `effect change: ${match[1].replace(/\.(str|dex|con|int|wis|cha)\./, ".<ability>.")

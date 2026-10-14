@@ -444,6 +444,11 @@ function grantResourceRuleElement(ruleElement, context) {
       current: Math.max(current.value, 0),
       maximum: Math.max(maximum.value, 0),
       recovery: data.recovery ?? "none",
+      // Multiattack's attacks: the pool is emptied at the start of each of the creature's turns.
+      ...(data.emptiesAtTurnStart === true ? {emptiesAtTurnStart: true} : {}),
+      // Recharge (a breath weapon): at the start of the creature's turn a d6 of this or more refills the pool.
+      ...(Number.isInteger(Number(data.recharge)) && (Number(data.recharge) >= 2) && (Number(data.recharge) <= 6)
+        ? {recharge: Number(data.recharge)} : {}),
       source: ruleElementSource(ruleElement),
       metadata: contributionMetadata(ruleElement, data.metadata)
     }]

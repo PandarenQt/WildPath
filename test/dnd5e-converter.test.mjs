@@ -221,7 +221,8 @@ test("older dnd5e data (2014 modules, before activities) converts like the curre
   const definition = result.items[0].system.definition;
   assert.deepEqual([definition.area.shape, definition.area.size.value, definition.save.dc.value], ["cone", 30, 13]);
   assert.deepEqual(definition.damage[0].saveOutcomePolicy, {success: "half", failure: "full"});
-  assert.ok(result.notes.some(note => note.includes("Recharge 5")));
+  assert.deepEqual(result.items[0].system.ruleElements[0].data, {resourceId: "fire-breath", label: "Fire Breath",
+    maximum: {type: "constant", value: 1}, recovery: "none", recharge: 5}, "Recharge 5-6, rolled at the start of each turn");
 
   const bolt = upgradeLegacy({_id: "legacyBolt000001", name: "Bolt", type: "spell", system: {...legacy, level: 0, actionType: "rsak",
     activation: {type: "action", cost: 1}, range: {value: 120, units: "ft"}, scaling: {mode: "cantrip"}, damage: {parts: [["1d10", "fire"]]}}});
@@ -265,4 +266,48 @@ test("an effect with its own changes becomes a custom effect with the rules they
   const {actionDefinitionToResolverInput} = await import("../module/helpers/action-definitions.mjs");
   assert.deepEqual(actionDefinitionToResolverInput(converted.items[0].system.definition).targeting.refinementPolicy,
     {minSelections: 1, maxSelections: 3}, "up to three creatures: one is enough");
+});
+
+test("the monster toolkit (G4): Multiattack's attacks, a Spellcasting's spells at their own uses, and Recharge", async () => {
+  const {multiattackCount} = await import("../scripts/content/dnd5e-to-wildpath.mjs");
+  assert.equal(multiattackCount("<p>The dragon makes three Rend attacks. It can replace one attack.</p>"), 3);
+  assert.equal(multiattackCount("makes one Claws attack and one Tail attack, or it makes two Hurl Flame attacks."), 2);
+  assert.equal(multiattackCount("makes a number of Reaping Scythe attacks equal to half"), null);
+  assert.equal(multiattackCount("The dracolich can use its Frightful Presence. It then makes three attacks: one with its bite and two with its claws."), 3);
+
+  const rend = {_id: "rend000000000001", name: "Rend", type: "weapon", system: {source: SRD, properties: [], range: {value: null, units: "ft", reach: 10},
+    damage: {base: {number: 2, denomination: 8, types: ["slashing"]}},
+    activities: {a: activity("attack", {range: {value: "10", units: "ft", override: false},
+      attack: {ability: "str", bonus: "", type: {value: "melee", classification: "weapon"}}, damage: {includeBase: true, parts: []}})}}};
+  const multi = {_id: "multi00000000001", name: "Multiattack", type: "feat", system: {source: SRD,
+    description: {value: "<p>The [[lookup @name lowercase]]{monster} makes two [[/item Rend]] attacks.</p>"}, activities: {a: activity("utility")}}};
+  const fireball = {_id: "phbsplFireball00", name: "Fireball", type: "spell", system: {source: SRD, level: 3, preparation: {mode: "prepared"},
+    activation: {type: "action"}, range: {value: "150", units: "ft"}, target: {template: {type: "sphere", size: "20"}, affects: {type: "creature"}},
+    activities: {a: activity("save", {save: {ability: ["dex"], dc: {calculation: "spellcasting"}},
+      damage: {onSave: "half", parts: [{number: 8, denomination: 6, types: ["fire"]}]}})}}};
+  const casting = {_id: "spellcasting0001", name: "Spellcasting", type: "feat", system: {source: SRD, activities: {
+    a: activity("cast", {spell: {uuid: "Compendium.dnd5e.spells24.Item.phbsplFireball00", level: 3, ability: ""},
+      uses: {max: "2", recovery: [{period: "day", type: "recoverAll"}]}, consumption: {targets: [{type: "activityUses", value: "1"}]}})}}};
+  const cached = {...fireball, _id: "cachedFireball01", flags: {dnd5e: {cachedFor: ".Item.spellcasting0001.Activity.a"}}};
+  const caster = {_id: "testMage00000001", name: "Test Mage", type: "npc", system: {source: SRD, details: {cr: 6},
+    abilities: {str: {value: 18}, int: {value: 17}}, attributes: {hp: {max: 80}, movement: {walk: "30"}, spellcasting: "int"}, traits: {size: "med"}},
+    items: [rend, multi, casting, cached]};
+  const {actor} = convertActor(caster, {spells: {phbsplFireball00: fireball}});
+  const byName = name => actor.items.filter(item => item.name === name);
+  assert.equal(byName("Fireball").length, 1, "the cached copy is not converted again");
+  const [cast] = byName("Fireball");
+  valid(cast);
+  assert.deepEqual(cast.system.definition.costs, {allOf: [{capability: "action", amount: 1}, {capability: "spellcasting-phbsplfireball00", amount: 1}]});
+  assert.equal(cast.system.definition.configuration, undefined, "no spell slot");
+  assert.deepEqual(cast.system.definition.save.dc, {value: 14}, "8 + proficiency 3 + Intellect 3");
+  assert.deepEqual(cast.system.ruleElements[0].data, {resourceId: "spellcasting-phbsplfireball00", label: "Spellcasting (Fireball)",
+    maximum: {type: "constant", value: 2}, recovery: "longRest"});
+
+  const [multiattack] = byName("Multiattack");
+  valid(multiattack);
+  assert.deepEqual(multiattack.system.definition.restores, [{resourceId: "multiattack", amount: 2}]);
+  assert.deepEqual(multiattack.system.ruleElements.at(-1).data, {resourceId: "multiattack", label: "Multiattack", maximum: 2, current: 0,
+    recovery: "none", emptiesAtTurnStart: true});
+  assert.deepEqual(byName("Rend")[0].system.definition.costs, {anyOf: [[{capability: "multiattack", amount: 1}], [{capability: "action", amount: 1}]]});
+  assert.equal(multiattack.system.description, "<p>The test mage makes two Rend attacks.</p>", "an item named by name");
 });

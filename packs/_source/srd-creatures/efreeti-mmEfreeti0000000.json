@@ -112,17 +112,20 @@
       }
     },
     {
-      "_id": "mmWishes00000000",
-      "_key": "!actors.items!mmEfreeti0000000.mmWishes00000000",
-      "name": "Wishes",
+      "_id": "1cwp058enkw0q000",
+      "_key": "!actors.items!mmEfreeti0000000.1cwp058enkw0q000",
+      "name": "Wish",
       "type": "action",
       "img": "icons/magic/symbols/star-solid-gold.webp",
       "system": {
         "active": true,
-        "description": "<p class=\"feature\">The efreeti has a 30 percent chance of knowing the <em>Wish</em> spell. If the efreeti knows it, the efreeti can cast it only on behalf of a non-genie creature who communicates a wish in a way the efreeti can understand. If the efreeti casts the spell for the creature, the efreeti suffers none of the spell's stress. Once the efreeti has cast it three times, the efreeti can't do so again for 365 days.</p>",
+        "description": "<p><em>Wish</em> is the mightiest spell a mortal can cast. By simply speaking aloud, you can alter reality itself.</p><p>The basic use of this spell is to duplicate any other spell of level 8 or lower. If you use it this way, you don't need to meet any requirements to cast that spell, including costly components. The spell simply takes effect.</p><p>Alternatively, you can create one of the following effects of your choice:</p><p><strong>Object Creation.</strong> You create one object of up to 25,000 GP in value that isn't a magic item. The object can be no more than 300 feet in any dimension, and it appears in an unoccupied space that you can see on the ground.</p><p><strong>Instant Health.</strong> You allow yourself and up to twenty creatures that you can see to regain all Hit Points, and you end all effects on them listed in the <em>Greater Restoration</em> spell.</p><p><strong>Resistance.</strong> You grant up to ten creatures that you can see Resistance to one damage type that you choose. This Resistance is permanent.</p><p><strong>Spell Immunity.</strong> You grant up to ten creatures you can see immunity to a single spell or other magical effect for 8 hours.</p><p><strong>Sudden Learning.</strong> You replace one of your feats with another feat for which you are eligible. You lose all the benefits of the old feat and gain the benefits of the new one. You can't replace a feat that is a prerequisite for any of your other feats or features.</p><p><strong>Roll Redo.</strong> You undo a single recent event by forcing a reroll of any die roll made within the last round (including your last turn). Reality reshapes itself to accommodate the new result. For example, a <em>Wish</em> spell could undo an ally's failed saving throw or a foe's Critical Hit. You can force the reroll to be made with Advantage or Disadvantage, and you choose whether to use the reroll or the original roll.</p><p><strong>Reshape Reality.</strong> You may wish for something not included in any of the other effects. To do so, state your wish to the DM as precisely as possible. The DM has great latitude in ruling what occurs in such an instance; the greater the wish, the greater the likelihood that something goes wrong. This spell might simply fail, the effect you desire might be achieved only in part, or you might suffer an unforeseen consequence as a result of how you worded the wish. For example, wishing that a villain were dead might propel you forward in time to a period when that villain is no longer alive, effectively removing you from the game. Similarly, wishing for a Legendary magic item or an Artifact might instantly transport you to the presence of the item's current owner. If your wish is granted and its effects have consequences for a whole community, region, or world, you are likely to attract powerful foes. If your wish would affect a god, the god's divine servants might instantly intervene to prevent it or to encourage you to craft the wish in a particular way. If your wish would undo the multiverse itself, threaten the City of Sigil, or affect the Lady of Pain in any way, you see an image of her in your mind for a moment; she shakes her head, and your wish fails.</p><p>The stress of casting <em>Wish</em> to produce any effect other than duplicating another spell weakens you. After enduring that stress, each time you cast a spell until you finish a Long Rest, you take 1d10 Necrotic damage per level of that spell. This damage can't be reduced or prevented in any way. In addition, your Strength score becomes 3 for 2d4 days. For each of those days that you spend resting and doing nothing more than light activity, your remaining recovery time decreases by 2 days. Finally, there is a 33 percent chance that you are unable to cast <em>Wish</em> ever again if you suffer this stress.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-wishes-cast-wish",
+          "id": "action:srd-wishes-cast-wish-wish",
+          "tags": [
+            "spell"
+          ],
           "costs": {
             "allOf": [
               {
@@ -135,7 +138,7 @@
               }
             ]
           },
-          "label": "Wishes"
+          "label": "Wish"
         },
         "ruleElements": [
           {
@@ -159,79 +162,12 @@
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "mmWishes00000000",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "3RHFSrgTRVm6qg4U",
-      "_key": "!actors.items!mmEfreeti0000000.3RHFSrgTRVm6qg4U",
-      "name": "Wish",
-      "type": "action",
-      "img": "icons/magic/symbols/star-solid-gold.webp",
-      "system": {
-        "active": true,
-        "description": "<p><em>Wish</em> is the mightiest spell a mortal can cast. By simply speaking aloud, you can alter reality itself.</p><p>The basic use of this spell is to duplicate any other spell of level 8 or lower. If you use it this way, you don't need to meet any requirements to cast that spell, including costly components. The spell simply takes effect.</p><p>Alternatively, you can create one of the following effects of your choice:</p><p><strong>Object Creation.</strong> You create one object of up to 25,000 GP in value that isn't a magic item. The object can be no more than 300 feet in any dimension, and it appears in an unoccupied space that you can see on the ground.</p><p><strong>Instant Health.</strong> You allow yourself and up to twenty creatures that you can see to regain all Hit Points, and you end all effects on them listed in the <em>Greater Restoration</em> spell.</p><p><strong>Resistance.</strong> You grant up to ten creatures that you can see Resistance to one damage type that you choose. This Resistance is permanent.</p><p><strong>Spell Immunity.</strong> You grant up to ten creatures you can see immunity to a single spell or other magical effect for 8 hours.</p><p><strong>Sudden Learning.</strong> You replace one of your feats with another feat for which you are eligible. You lose all the benefits of the old feat and gain the benefits of the new one. You can't replace a feat that is a prerequisite for any of your other feats or features.</p><p><strong>Roll Redo.</strong> You undo a single recent event by forcing a reroll of any die roll made within the last round (including your last turn). Reality reshapes itself to accommodate the new result. For example, a <em>Wish</em> spell could undo an ally's failed saving throw or a foe's Critical Hit. You can force the reroll to be made with Advantage or Disadvantage, and you choose whether to use the reroll or the original roll.</p><p><strong>Reshape Reality.</strong> You may wish for something not included in any of the other effects. To do so, state your wish to the DM as precisely as possible. The DM has great latitude in ruling what occurs in such an instance; the greater the wish, the greater the likelihood that something goes wrong. This spell might simply fail, the effect you desire might be achieved only in part, or you might suffer an unforeseen consequence as a result of how you worded the wish. For example, wishing that a villain were dead might propel you forward in time to a period when that villain is no longer alive, effectively removing you from the game. Similarly, wishing for a Legendary magic item or an Artifact might instantly transport you to the presence of the item's current owner. If your wish is granted and its effects have consequences for a whole community, region, or world, you are likely to attract powerful foes. If your wish would affect a god, the god's divine servants might instantly intervene to prevent it or to encourage you to craft the wish in a particular way. If your wish would undo the multiverse itself, threaten the City of Sigil, or affect the Lady of Pain in any way, you see an image of her in your mind for a moment; she shakes her head, and your wish fails.</p><p>The stress of casting <em>Wish</em> to produce any effect other than duplicating another spell weakens you. After enduring that stress, each time you cast a spell until you finish a Long Rest, you take 1d10 Necrotic damage per level of that spell. This damage can't be reduced or prevented in any way. In addition, your Strength score becomes 3 for 2d4 days. For each of those days that you spend resting and doing nothing more than light activity, your remaining recovery time decreases by 2 days. Finally, there is a 33 percent chance that you are unable to cast <em>Wish</em> ever again if you suffer this stress.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-wish-cast",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
-          "label": "Wish"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "3RHFSrgTRVm6qg4U",
+            "id": "phbsplWish000000",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Wishes"
           },
           "conversion": {
             "notes": [
@@ -263,9 +199,32 @@
               }
             ]
           },
-          "label": "Multiattack"
+          "label": "Multiattack",
+          "targeting": {
+            "type": "none"
+          },
+          "restores": [
+            {
+              "resourceId": "multiattack",
+              "amount": 3
+            }
+          ]
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack",
+              "label": "Multiattack",
+              "maximum": 3,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -280,7 +239,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
             ]
           }
         }
@@ -299,11 +258,19 @@
           "schemaVersion": 1,
           "id": "action:srd-heated-blade",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "attack": {
@@ -380,11 +347,19 @@
           "schemaVersion": 1,
           "id": "action:srd-hurl-flame",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "attack": {
@@ -440,358 +415,8 @@
       }
     },
     {
-      "_id": "mmSpellcasting00",
-      "_key": "!actors.items!mmEfreeti0000000.mmSpellcasting00",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The efreeti casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Elementalism</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Gaseous Form</em>, <em>Invisibility</em>, <em>Major Image</em>, <em>Plane Shift</em>, <em>Tongues</em>, <em>Wall of Fire</em> (level 7 version)</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "17svfvloelxmr000",
-      "_key": "!actors.items!mmEfreeti0000000.17svfvloelxmr000",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The efreeti casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Elementalism</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Gaseous Form</em>, <em>Invisibility</em>, <em>Major Image</em>, <em>Plane Shift</em>, <em>Tongues</em>, <em>Wall of Fire</em> (level 7 version)</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "16ywmso1mzul9w00",
-      "_key": "!actors.items!mmEfreeti0000000.16ywmso1mzul9w00",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The efreeti casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Elementalism</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Gaseous Form</em>, <em>Invisibility</em>, <em>Major Image</em>, <em>Plane Shift</em>, <em>Tongues</em>, <em>Wall of Fire</em> (level 7 version)</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "consumption: activityUses 1 not converted"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "178w8hnnsecqh000",
-      "_key": "!actors.items!mmEfreeti0000000.178w8hnnsecqh000",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The efreeti casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Elementalism</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Gaseous Form</em>, <em>Invisibility</em>, <em>Major Image</em>, <em>Plane Shift</em>, <em>Tongues</em>, <em>Wall of Fire</em> (level 7 version)</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "consumption: activityUses 1 not converted"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "18mu8yi1mdn0dm00",
-      "_key": "!actors.items!mmEfreeti0000000.18mu8yi1mdn0dm00",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The efreeti casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Elementalism</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Gaseous Form</em>, <em>Invisibility</em>, <em>Major Image</em>, <em>Plane Shift</em>, <em>Tongues</em>, <em>Wall of Fire</em> (level 7 version)</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "consumption: activityUses 1 not converted"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "18wtunhn66ru7000",
-      "_key": "!actors.items!mmEfreeti0000000.18wtunhn66ru7000",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The efreeti casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Elementalism</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Gaseous Form</em>, <em>Invisibility</em>, <em>Major Image</em>, <em>Plane Shift</em>, <em>Tongues</em>, <em>Wall of Fire</em> (level 7 version)</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "consumption: activityUses 1 not converted"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "182v1kk1lrffhc00",
-      "_key": "!actors.items!mmEfreeti0000000.182v1kk1lrffhc00",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The efreeti casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Elementalism</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Gaseous Form</em>, <em>Invisibility</em>, <em>Major Image</em>, <em>Plane Shift</em>, <em>Tongues</em>, <em>Wall of Fire</em> (level 7 version)</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "consumption: activityUses 1 not converted"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "18cun9jmjz6xx000",
-      "_key": "!actors.items!mmEfreeti0000000.18cun9jmjz6xx000",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The efreeti casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Elementalism</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Gaseous Form</em>, <em>Invisibility</em>, <em>Major Image</em>, <em>Plane Shift</em>, <em>Tongues</em>, <em>Wall of Fire</em> (level 7 version)</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "consumption: activityUses 1 not converted"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "AARLCuxCB9gvuyL8",
-      "_key": "!actors.items!mmEfreeti0000000.AARLCuxCB9gvuyL8",
+      "_id": "ihlsll194qnmz000",
+      "_key": "!actors.items!mmEfreeti0000000.ihlsll194qnmz000",
       "name": "Detect Magic",
       "type": "action",
       "img": "icons/magic/symbols/runes-carved-stone-green.webp",
@@ -800,7 +425,7 @@
         "description": "<p>For the duration, you sense the presence of magical effects within 30 feet of yourself. If you sense such effects, you can take the Magic action to see a faint aura around any visible creature or object in the area that bears the magic, and if an effect was created by a spell, you learn the spell's school of magic.</p><p>The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-detect-magic-cast",
+          "id": "action:srd-spellcasting-detect-magic",
           "tags": [
             "spell"
           ],
@@ -812,84 +437,6 @@
               }
             ]
           },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.1",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.1": 1,
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
           "label": "Detect Magic"
         },
         "ruleElements": []
@@ -899,11 +446,12 @@
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "AARLCuxCB9gvuyL8",
+            "id": "phbsplDetectMagi",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
@@ -916,9 +464,9 @@
       }
     },
     {
-      "_id": "8OFkcAgYkcWB3OTz",
-      "_key": "!actors.items!mmEfreeti0000000.8OFkcAgYkcWB3OTz",
-      "name": "Elementalism (Beckon Element)",
+      "_id": "vi20rf1j7ougt000",
+      "_key": "!actors.items!mmEfreeti0000000.vi20rf1j7ougt000",
+      "name": "Elementalism",
       "type": "action",
       "img": "icons/magic/nature/leaf-hand-green.webp",
       "system": {
@@ -926,7 +474,7 @@
         "description": "<p>You exert control over the elements, creating one of the following effects within range.</p><p><strong>Beckon Air.</strong> You create a breeze strong enough to ripple cloth, stir dust, rustle leaves, and close open doors and shutters, all in a 5-foot Cube. Doors and shutters being held open by someone or something aren't affected.</p><p><strong>Beckon Earth.</strong> You create a thin shroud of dust or sand that covers surfaces in a 5-foot-square area, or you cause a single word to appear in your handwriting in a patch of dirt or sand.</p><p><strong>Beckon Fire.</strong> You create a thin cloud of harmless embers and colored, scented smoke in a 5-foot Cube. You choose the color and scent, and the embers can light candles, torches, or lamps in that area. The smoke's scent lingers for 1 minute.</p><p><strong>Beckon Water.</strong> You create a spray of cool mist that lightly dampens creatures and objects in a 5-foot Cube. Alternatively, you create 1 cup of clean water either in an open container or on a surface, and the water evaporates in 1 minute.</p><p><strong>Sculpt Element.</strong> You cause dirt, sand, fire, smoke, mist, or water that can fit in a 1-foot Cube to assume a crude shape (such as that of a creature) for 1 hour.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-elementalism-beckon-element",
+          "id": "action:srd-spellcasting-elementalism",
           "tags": [
             "spell"
           ],
@@ -938,7 +486,7 @@
               }
             ]
           },
-          "label": "Elementalism (Beckon Element)"
+          "label": "Elementalism"
         },
         "ruleElements": []
       },
@@ -947,62 +495,17 @@
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "8OFkcAgYkcWB3OTz",
+            "id": "phbsplElementali",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
               "not automated (utility): using it spends its cost; its description says the rest",
-              "area: 5-ft cube is not supported; the user picks the targets"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "gwmuah3ndsy50000",
-      "_key": "!actors.items!mmEfreeti0000000.gwmuah3ndsy50000",
-      "name": "Elementalism (Sculpt Element)",
-      "type": "action",
-      "img": "icons/magic/nature/leaf-hand-green.webp",
-      "system": {
-        "active": true,
-        "description": "<p>You exert control over the elements, creating one of the following effects within range.</p><p><strong>Beckon Air.</strong> You create a breeze strong enough to ripple cloth, stir dust, rustle leaves, and close open doors and shutters, all in a 5-foot Cube. Doors and shutters being held open by someone or something aren't affected.</p><p><strong>Beckon Earth.</strong> You create a thin shroud of dust or sand that covers surfaces in a 5-foot-square area, or you cause a single word to appear in your handwriting in a patch of dirt or sand.</p><p><strong>Beckon Fire.</strong> You create a thin cloud of harmless embers and colored, scented smoke in a 5-foot Cube. You choose the color and scent, and the embers can light candles, torches, or lamps in that area. The smoke's scent lingers for 1 minute.</p><p><strong>Beckon Water.</strong> You create a spray of cool mist that lightly dampens creatures and objects in a 5-foot Cube. Alternatively, you create 1 cup of clean water either in an open container or on a surface, and the water evaporates in 1 minute.</p><p><strong>Sculpt Element.</strong> You cause dirt, sand, fire, smoke, mist, or water that can fit in a 1-foot Cube to assume a crude shape (such as that of a creature) for 1 hour.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-elementalism-sculpt-element",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Elementalism (Sculpt Element)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "8OFkcAgYkcWB3OTz",
-            "type": "spell",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
+              "area: 5-ft cube is not supported; the user picks the targets",
               "area: 1-ft cube is not supported; the user picks the targets"
             ]
           }
@@ -1010,8 +513,8 @@
       }
     },
     {
-      "_id": "0PLY67QvZNu1t5g0",
-      "_key": "!actors.items!mmEfreeti0000000.0PLY67QvZNu1t5g0",
+      "_id": "1prgyw411aflng00",
+      "_key": "!actors.items!mmEfreeti0000000.1prgyw411aflng00",
       "name": "Gaseous Form",
       "type": "action",
       "img": "icons/magic/air/air-smoke-casting.webp",
@@ -1020,7 +523,7 @@
         "description": "<p>A willing creature you touch shape-shifts, along with everything it's wearing and carrying, into a misty cloud for the duration. The spell ends on the target if it drops to 0 Hit Points or if it takes a Magic action to end the spell on itself.</p><p>While in this form, the target's only method of movement is a Fly Speed of 10 feet, and it can hover. The target can enter and occupy the space of another creature. The target has Resistance to Bludgeoning, Piercing, and Slashing damage; it has Immunity to the Prone condition; and it has Advantage on Strength, Dexterity, and Constitution saving throws. The target can pass through narrow openings, but it treats liquids as though they were solid surfaces.</p><p>The target can't talk or manipulate objects, and any objects it was carrying or holding can't be dropped, used, or otherwise interacted with. Finally, the target can't attack or cast spells.</p><p><strong>Using a Higher-Level Spell Slot.</strong> You can target one additional creature for each spell slot level above 3.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-gaseous-form",
+          "id": "action:srd-spellcasting-gaseous-form",
           "tags": [
             "spell"
           ],
@@ -1028,6 +531,10 @@
             "allOf": [
               {
                 "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplgaseousfor",
                 "amount": 1
               }
             ]
@@ -1063,6 +570,39 @@
                 {
                   "schemaVersion": 1,
                   "id": "gaseous-form-2",
+                  "type": "RollMode",
+                  "data": {
+                    "domains": [
+                      "save.might"
+                    ],
+                    "mode": "advantage"
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "gaseous-form-3",
+                  "type": "RollMode",
+                  "data": {
+                    "domains": [
+                      "save.agility"
+                    ],
+                    "mode": "advantage"
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "gaseous-form-4",
+                  "type": "RollMode",
+                  "data": {
+                    "domains": [
+                      "save.fortitude"
+                    ],
+                    "mode": "advantage"
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "gaseous-form-5",
                   "type": "GrantResistance",
                   "data": {
                     "damageTypes": [
@@ -1074,7 +614,7 @@
                 },
                 {
                   "schemaVersion": 1,
-                  "id": "gaseous-form-3",
+                  "id": "gaseous-form-6",
                   "type": "ConditionImmunity",
                   "data": {
                     "conditions": [
@@ -1091,91 +631,36 @@
               "concentration": true
             }
           ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": [
-                {
-                  "type": "scaleTargets",
-                  "levelChoiceId": "spell-slot",
-                  "baseLevel": 3,
-                  "perLevel": 1
-                }
-              ]
-            }
-          ],
           "label": "Gaseous Form"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "spellcasting-phbsplgaseousfor-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "spellcasting-phbsplgaseousfor",
+              "label": "Spellcasting (Gaseous Form)",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "0PLY67QvZNu1t5g0",
+            "id": "phbsplGaseousFor",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
@@ -1188,8 +673,8 @@
       }
     },
     {
-      "_id": "aDInRtd983tifrXD",
-      "_key": "!actors.items!mmEfreeti0000000.aDInRtd983tifrXD",
+      "_id": "12gply1b1dbdu000",
+      "_key": "!actors.items!mmEfreeti0000000.12gply1b1dbdu000",
       "name": "Invisibility",
       "type": "action",
       "img": "icons/creatures/magical/spirit-undead-ghost-purple.webp",
@@ -1198,7 +683,7 @@
         "description": "<p>A creature you touch has the Invisible condition until the spell ends. The spell ends early immediately after the target makes an attack roll, deals damage, or casts a spell.</p><p><strong>Using a Higher-Level Spell Slot.</strong> You can target one additional creature for each spell slot level above 2.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-invisibility",
+          "id": "action:srd-spellcasting-invisibility",
           "tags": [
             "spell"
           ],
@@ -1206,6 +691,10 @@
             "allOf": [
               {
                 "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplinvisibili",
                 "amount": 1
               }
             ]
@@ -1230,98 +719,36 @@
               "concentration": true
             }
           ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": [
-                {
-                  "type": "scaleTargets",
-                  "levelChoiceId": "spell-slot",
-                  "baseLevel": 2,
-                  "perLevel": 1
-                }
-              ]
-            }
-          ],
           "label": "Invisibility"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "spellcasting-phbsplinvisibili-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "spellcasting-phbsplinvisibili",
+              "label": "Spellcasting (Invisibility)",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "aDInRtd983tifrXD",
+            "id": "phbsplInvisibili",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": []
@@ -1330,8 +757,8 @@
       }
     },
     {
-      "_id": "sMeC6D0sckQCpKZZ",
-      "_key": "!actors.items!mmEfreeti0000000.sMeC6D0sckQCpKZZ",
+      "_id": "1233jbj129r3h700",
+      "_key": "!actors.items!mmEfreeti0000000.1233jbj129r3h700",
       "name": "Major Image",
       "type": "action",
       "img": "icons/magic/light/orbs-smoke-pink.webp",
@@ -1340,7 +767,7 @@
         "description": "<p>You create the image of an object, a creature, or some other visible phenomenon that is no larger than a 20-foot Cube. The image appears at a spot that you can see within range and lasts for the duration. It seems real, including sounds, smells, and temperature appropriate to the thing depicted, but it can't deal damage or cause conditions.</p><p>If you are within range of the illusion, you can take a Magic action to cause the image to move to any other spot within range. As the image changes location, you can alter its appearance so that its movements appear natural for the image. For example, if you create an image of a creature and move it, you can alter the image so that it appears to be walking. Similarly, you can cause the illusion to make different sounds at different times, even making it carry on a conversation, for example.</p><p>Physical interaction with the image reveals it to be an illusion, for things can pass through it. A creature that takes a Study action to examine the image can determine that it is an illusion with a successful DC @attributes.spell.dc Intelligence (Investigation) check check against your spell save DC. If a creature discerns the illusion for what it is, the creature can see through the image, and its other sensory qualities become faint to the creature.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The spell lasts until dispelled, without requiring Concentration, if cast with a level 4+ spell slot.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-major-image",
+          "id": "action:srd-spellcasting-major-image",
           "tags": [
             "spell"
           ],
@@ -1349,87 +776,43 @@
               {
                 "capability": "action",
                 "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplmajorimage",
+                "amount": 1
               }
             ]
           },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
           "label": "Major Image"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "spellcasting-phbsplmajorimage-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "spellcasting-phbsplmajorimage",
+              "label": "Spellcasting (Major Image)",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "sMeC6D0sckQCpKZZ",
+            "id": "phbsplMajorImage",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
@@ -1440,8 +823,8 @@
       }
     },
     {
-      "_id": "ndzmsLuNebehyo3i",
-      "_key": "!actors.items!mmEfreeti0000000.ndzmsLuNebehyo3i",
+      "_id": "1kkmkb11po6o5000",
+      "_key": "!actors.items!mmEfreeti0000000.1kkmkb11po6o5000",
       "name": "Plane Shift",
       "type": "action",
       "img": "icons/skills/targeting/target-glowing-yellow.webp",
@@ -1450,7 +833,7 @@
         "description": "<p>You and up to eight willing creatures who link hands in a circle are transported to a different plane of existence. You can specify a target destination in general terms, such as the City of Brass on the Elemental Plane of Fire or the palace of Dispater on the second level of the Nine Hells, and you appear in or near that destination, as determined by the DM.</p><p>Alternatively, if you know the sigil sequence of a teleportation circle on another plane of existence, this spell can take you to that circle. If the teleportation circle is too small to hold all the creatures you transported, they appear in the closest unoccupied spaces next to the circle.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-plane-shift-transport",
+          "id": "action:srd-spellcasting-plane-shift",
           "tags": [
             "spell"
           ],
@@ -1459,71 +842,55 @@
               {
                 "capability": "action",
                 "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplplaneshift",
+                "amount": 1
               }
             ]
           },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
           "label": "Plane Shift"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "spellcasting-phbsplplaneshift-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "spellcasting-phbsplplaneshift",
+              "label": "Spellcasting (Plane Shift)",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "ndzmsLuNebehyo3i",
+            "id": "phbsplPlaneShift",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "not automated (teleport): using it spends its cost; its description says the rest"
             ]
           }
         }
       }
     },
     {
-      "_id": "v3qfyzDskfnhgYm9",
-      "_key": "!actors.items!mmEfreeti0000000.v3qfyzDskfnhgYm9",
+      "_id": "1gg1xkxlccai7000",
+      "_key": "!actors.items!mmEfreeti0000000.1gg1xkxlccai7000",
       "name": "Tongues",
       "type": "action",
       "img": "icons/environment/settlement/pyramid.webp",
@@ -1532,7 +899,7 @@
         "description": "<p>This spell grants the creature you touch the ability to understand any spoken or signed language that it hears or sees. Moreover, when the target communicates by speaking or signing, any creature that knows at least one language can understand it if that creature can hear the speech or see the signing.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-tongues",
+          "id": "action:srd-spellcasting-tongues",
           "tags": [
             "spell"
           ],
@@ -1541,87 +908,43 @@
               {
                 "capability": "action",
                 "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbspltongues000",
+                "amount": 1
               }
             ]
           },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
           "label": "Tongues"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "spellcasting-phbspltongues000-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "spellcasting-phbspltongues000",
+              "label": "Spellcasting (Tongues)",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "v3qfyzDskfnhgYm9",
+            "id": "phbsplTongues000",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
@@ -1634,9 +957,9 @@
       }
     },
     {
-      "_id": "Ks8BqKrODweOeMkF",
-      "_key": "!actors.items!mmEfreeti0000000.Ks8BqKrODweOeMkF",
-      "name": "Wall of Fire (Create Wall)",
+      "_id": "iikqbz1535d4z000",
+      "_key": "!actors.items!mmEfreeti0000000.iikqbz1535d4z000",
+      "name": "Wall of Fire",
       "type": "action",
       "img": "icons/magic/fire/flame-burning-fence.webp",
       "system": {
@@ -1644,7 +967,7 @@
         "description": "<p>You create a wall of fire on a solid surface within range. You can make the wall up to 60 feet long, 20 feet high, and 1 foot thick, or a ringed wall up to 20 feet in diameter, 20 feet high, and 1 foot thick. The wall is opaque and lasts for the duration.</p><p>When the wall appears, each creature in its area makes a Dexterity saving throw, taking 5d8 Fire damage on a failed save or half as much damage on a successful one.</p><p>One side of the wall, selected by you when you cast this spell, deals 5d8 Fire damage to each creature that ends its turn within 10 feet of that side or inside the wall. A creature takes the same damage when it enters the wall for the first time on a turn or ends its turn there. The other side of the wall deals no damage.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The damage increases by 1d8 for each spell slot level above 4.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-wall-of-fire-create-wall",
+          "id": "action:srd-spellcasting-wall-of-fire",
           "tags": [
             "spell"
           ],
@@ -1652,6 +975,10 @@
             "allOf": [
               {
                 "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplwalloffire",
                 "amount": 1
               }
             ]
@@ -1693,251 +1020,44 @@
               }
             }
           ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": [
-                {
-                  "type": "scaleDamage",
-                  "levelChoiceId": "spell-slot",
-                  "baseLevel": 4,
-                  "componentIds": [
-                    "damage-1"
-                  ],
-                  "dice": {
-                    "number": 1,
-                    "faces": 8
-                  }
-                }
-              ]
-            }
-          ],
-          "label": "Wall of Fire (Create Wall)"
+          "label": "Wall of Fire"
         },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "Ks8BqKrODweOeMkF",
-            "type": "spell",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "area: 60-ft wall is not supported; the user picks the targets",
-              "concentration: nothing it sustains was converted"
-            ]
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "spellcasting-phbsplwalloffire-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "spellcasting-phbsplwalloffire",
+              "label": "Spellcasting (Wall of Fire)",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "longRest"
+            }
           }
-        }
-      }
-    },
-    {
-      "_id": "cfkxbt1xdh2kl000",
-      "_key": "!actors.items!mmEfreeti0000000.cfkxbt1xdh2kl000",
-      "name": "Wall of Fire (Create Ring)",
-      "type": "action",
-      "img": "icons/magic/fire/flame-burning-fence.webp",
-      "system": {
-        "active": true,
-        "description": "<p>You create a wall of fire on a solid surface within range. You can make the wall up to 60 feet long, 20 feet high, and 1 foot thick, or a ringed wall up to 20 feet in diameter, 20 feet high, and 1 foot thick. The wall is opaque and lasts for the duration.</p><p>When the wall appears, each creature in its area makes a Dexterity saving throw, taking 5d8 Fire damage on a failed save or half as much damage on a successful one.</p><p>One side of the wall, selected by you when you cast this spell, deals 5d8 Fire damage to each creature that ends its turn within 10 feet of that side or inside the wall. A creature takes the same damage when it enters the wall for the first time on a turn or ends its turn there. The other side of the wall deals no damage.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The damage increases by 1d8 for each spell slot level above 4.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-wall-of-fire-create-ring",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "range": {
-            "type": "ranged",
-            "normal": {
-              "value": 120,
-              "unit": "ft"
-            }
-          },
-          "targeting": {
-            "type": "area"
-          },
-          "area": {
-            "shape": "radial",
-            "size": {
-              "value": 10,
-              "unit": "ft"
-            }
-          },
-          "save": {
-            "ability": "agility",
-            "dc": {
-              "value": 16
-            }
-          },
-          "damage": [
-            {
-              "id": "damage-1",
-              "expression": {
-                "type": "dice",
-                "number": 5,
-                "faces": 8
-              },
-              "damageType": "fire",
-              "provenance": "spell-base",
-              "saveOutcomePolicy": {
-                "success": "half",
-                "failure": "full"
-              }
-            }
-          ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": [
-                {
-                  "type": "scaleDamage",
-                  "levelChoiceId": "spell-slot",
-                  "baseLevel": 4,
-                  "componentIds": [
-                    "damage-1"
-                  ],
-                  "dice": {
-                    "number": 1,
-                    "faces": 8
-                  }
-                }
-              ]
-            }
-          ],
-          "label": "Wall of Fire (Create Ring)"
-        },
-        "ruleElements": []
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "Ks8BqKrODweOeMkF",
+            "id": "phbsplWallofFire",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
+              "cast: Wall of Fire at level 7 is cast at its own level",
+              "area: 60-ft wall is not supported; the user picks the targets",
+              "concentration: nothing it sustains was converted",
               "area: a cylinder's height is not modeled",
-              "concentration: nothing it sustains was converted"
+              "\"damage\" is passive or triggered: not automated"
             ]
           }
         }
@@ -1997,31 +1117,26 @@
       },
       "conversion": {
         "notes": [
-          "Wishes: not automated (cast): using it spends its cost; its description says the rest",
-          "Wish: not automated (utility): using it spends its cost; its description says the rest",
-          "Wish: effect: \"Wish Stress\" change system.abilities.str.value (downgrade) not converted",
-          "Wish: effect: \"Wish Stress\" (its own changes) not converted",
-          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Spellcasting: not automated (cast): using it spends its cost; its description says the rest",
-          "Spellcasting: consumption: activityUses 1 not converted",
-          "Detect Magic: not automated (utility): using it spends its cost; its description says the rest",
-          "Detect Magic: effect: \"Detect Magic\" (its own changes) not converted",
-          "Detect Magic: concentration: nothing it sustains was converted",
-          "Elementalism: not automated (utility): using it spends its cost; its description says the rest",
-          "Elementalism: area: 5-ft cube is not supported; the user picks the targets",
-          "Elementalism: area: 1-ft cube is not supported; the user picks the targets",
-          "Gaseous Form: effect: transformed is not a WildPath condition yet",
-          "Gaseous Form: effect: \"Gaseous Form\" change system.attributes.movement.hover (override) not converted",
-          "Gaseous Form: effect: \"Gaseous Form\" change img (override) not converted",
-          "Major Image: not automated (summon): using it spends its cost; its description says the rest",
-          "Plane Shift: not automated (utility): using it spends its cost; its description says the rest",
-          "Tongues: not automated (utility): using it spends its cost; its description says the rest",
-          "Tongues: effect: \"Universal Communication\" change system.traits.languages.custom (add) not converted",
-          "Tongues: effect: \"Universal Communication\" (its own changes) not converted",
-          "Wall of Fire: area: 60-ft wall is not supported; the user picks the targets",
-          "Wall of Fire: concentration: nothing it sustains was converted",
-          "Wall of Fire: area: a cylinder's height is not modeled",
-          "Wall of Fire: \"damage\" is passive or triggered: not automated"
+          "Wishes: not automated (utility): using it spends its cost; its description says the rest",
+          "Wishes: effect: \"Wish Stress\" change system.abilities.str.value (downgrade) not converted",
+          "Wishes: effect: \"Wish Stress\" (its own changes) not converted",
+          "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
+          "Spellcasting: effect: \"Detect Magic\" (its own changes) not converted",
+          "Spellcasting: concentration: nothing it sustains was converted",
+          "Spellcasting: area: 5-ft cube is not supported; the user picks the targets",
+          "Spellcasting: area: 1-ft cube is not supported; the user picks the targets",
+          "Spellcasting: effect: transformed is not a WildPath condition yet",
+          "Spellcasting: effect: \"Gaseous Form\" change system.attributes.movement.hover (override) not converted",
+          "Spellcasting: effect: \"Gaseous Form\" change img (override) not converted",
+          "Spellcasting: not automated (summon): using it spends its cost; its description says the rest",
+          "Spellcasting: not automated (teleport): using it spends its cost; its description says the rest",
+          "Spellcasting: effect: \"Universal Communication\" change system.traits.languages.custom (add) not converted",
+          "Spellcasting: effect: \"Universal Communication\" (its own changes) not converted",
+          "Spellcasting: cast: Wall of Fire at level 7 is cast at its own level",
+          "Spellcasting: area: 60-ft wall is not supported; the user picks the targets",
+          "Spellcasting: area: a cylinder's height is not modeled",
+          "Spellcasting: \"damage\" is passive or triggered: not automated",
+          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
         ]
       }
     }

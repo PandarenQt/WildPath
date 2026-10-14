@@ -79,7 +79,7 @@ import {
   shouldResolveSave,
   shouldResolveTargets
 } from "./action-resolver.mjs";
-import {resolveActorResourcePayment} from "./resource-resolver.mjs";
+import {resolveActorResourcePayment, withResourceRestores} from "./resource-resolver.mjs";
 import {resolveActionTargets} from "./target-resolver.mjs";
 import {resolveAttackTargets} from "./attack-resolver.mjs";
 import {resolveSaveAgainstDC, resolveSaveTargets} from "./save-resolver.mjs";
@@ -1800,6 +1800,9 @@ function createPaymentStage() {
           });
         }
       }
+
+      // The pools the Action refills (Multiattack) join its payment.
+      payment.mutationPlan = withResourceRestores(input.actorSystem, payment.mutationPlan, state.actionDefinition?.restores ?? []);
 
       const paymentRequiredEvent = createActionLifecycleEvent(actionContext, {
         type: AUTOMATION_EVENT_TYPES.PAYMENT_REQUIRED,

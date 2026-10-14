@@ -329,25 +329,26 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "uses: Recharge undefined–6 is not rolled; refill the pool by hand"
-            ]
+            "notes": []
           }
         }
       }
     },
     {
-      "_id": "mmSpellcasting00",
-      "_key": "!actors.items!mmAncientGoldDra.mmSpellcasting00",
-      "name": "Spellcasting (cast)",
+      "_id": "1k5jnaa1i8mr0m00",
+      "_key": "!actors.items!mmAncientGoldDra.1k5jnaa1i8mr0m00",
+      "name": "Detect Magic",
       "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "img": "icons/magic/symbols/runes-carved-stone-green.webp",
       "system": {
         "active": true,
-        "description": "<p class=\"feature\">The ancient gold dragon casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Guiding Bolt</em> (level 4 version), <em>Shapechange</em> (Beast or Humanoid form only, no Temporary Hit Points gained from the spell, and no Concentration or Temporary Hit Points required to maintain the spell)</p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Flame Strike </em>(level 6 version<em><strong>)</strong></em>, <em>Word of Recall,</em> <em>Zone of Truth</em></p>",
+        "description": "<p>For the duration, you sense the presence of magical effects within 30 feet of yourself. If you sense such effects, you can take the Magic action to see a faint aura around any visible creature or object in the area that bears the magic, and if an effect was created by a spell, you learn the spell's school of magic.</p><p>The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
+          "id": "action:srd-spellcasting-detect-magic",
+          "tags": [
+            "spell"
+          ],
           "costs": {
             "allOf": [
               {
@@ -356,7 +357,7 @@
               }
             ]
           },
-          "label": "Spellcasting (cast)"
+          "label": "Detect Magic"
         },
         "ruleElements": []
       },
@@ -365,32 +366,38 @@
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
+            "id": "phbsplDetectMagi",
+            "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "effect: \"Detect Magic\" (its own changes) not converted",
+              "concentration: nothing it sustains was converted"
             ]
           }
         }
       }
     },
     {
-      "_id": "17svfvloelxmr000",
-      "_key": "!actors.items!mmAncientGoldDra.17svfvloelxmr000",
-      "name": "Spellcasting (cast)",
+      "_id": "1mkvlv31j0l8ud00",
+      "_key": "!actors.items!mmAncientGoldDra.1mkvlv31j0l8ud00",
+      "name": "Guiding Bolt",
       "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "img": "icons/magic/light/projectile-flare-blue.webp",
       "system": {
         "active": true,
-        "description": "<p class=\"feature\">The ancient gold dragon casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Guiding Bolt</em> (level 4 version), <em>Shapechange</em> (Beast or Humanoid form only, no Temporary Hit Points gained from the spell, and no Concentration or Temporary Hit Points required to maintain the spell)</p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Flame Strike </em>(level 6 version<em><strong>)</strong></em>, <em>Word of Recall,</em> <em>Zone of Truth</em></p>",
+        "description": "<p>You hurl a bolt of light toward a creature within range. Make a ranged spell attack against the target. On a hit, it takes 4d6 Radiant damage, and the next attack roll made against it before the end of your next turn has Advantage.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The damage increases by 1d6 for each spell slot level above 1.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
+          "id": "action:srd-spellcasting-guiding-bolt",
+          "tags": [
+            "spell"
+          ],
           "costs": {
             "allOf": [
               {
@@ -399,7 +406,38 @@
               }
             ]
           },
-          "label": "Spellcasting (cast)"
+          "attack": {
+            "type": "ranged",
+            "statistic": "spell",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "presence"
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 120,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 4,
+                "faces": 6
+              },
+              "damageType": "radiant",
+              "provenance": "spell-base"
+            }
+          ],
+          "label": "Guiding Bolt"
         },
         "ruleElements": []
       },
@@ -408,32 +446,37 @@
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
+            "id": "phbsplGuidingBol",
+            "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
+              "cast: Guiding Bolt at level 4 is cast at its own level",
+              "effect: marked is not a WildPath condition yet"
             ]
           }
         }
       }
     },
     {
-      "_id": "16ywmso1mzul9w00",
-      "_key": "!actors.items!mmAncientGoldDra.16ywmso1mzul9w00",
-      "name": "Spellcasting (cast)",
+      "_id": "1c5pr79cqqg75000",
+      "_key": "!actors.items!mmAncientGoldDra.1c5pr79cqqg75000",
+      "name": "Shapechange",
       "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "img": "icons/magic/unholy/hand-fire-skeleton-pink.webp",
       "system": {
         "active": true,
-        "description": "<p class=\"feature\">The ancient gold dragon casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Guiding Bolt</em> (level 4 version), <em>Shapechange</em> (Beast or Humanoid form only, no Temporary Hit Points gained from the spell, and no Concentration or Temporary Hit Points required to maintain the spell)</p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Flame Strike </em>(level 6 version<em><strong>)</strong></em>, <em>Word of Recall,</em> <em>Zone of Truth</em></p>",
+        "description": "<p>You shape-shift into another creature for the duration or until you take a Magic action to shape-shift into a different eligible form. The new form must be of a creature that has a Challenge Rating no higher than your level or Challenge Rating. You must have seen the sort of creature before, and it can't be a Construct or an Undead.</p><p>When you cast the spell, you gain a number of Temporary Hit Points equal to the Hit Points of the first form into which you shape-shift. These Temporary Hit Points vanish if any remain when the spell ends.</p><p>Your game statistics are replaced by the stat block of the chosen form, but you retain your creature type; alignment; personality; Intelligence, Wisdom, and Charisma scores; Hit Points; Hit Point Dice; proficiencies; and ability to communicate. If you have the Spellcasting feature, you retain it too.</p><p>Upon shape-shifting, you determine whether your equipment drops to the ground or changes in size and shape to fit the new form while you're in it.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
+          "id": "action:srd-spellcasting-shapechange",
+          "tags": [
+            "spell"
+          ],
           "costs": {
             "allOf": [
               {
@@ -442,7 +485,7 @@
               }
             ]
           },
-          "label": "Spellcasting (cast)"
+          "label": "Shapechange"
         },
         "ruleElements": []
       },
@@ -451,147 +494,271 @@
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
+            "id": "phbsplShapechang",
+            "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "concentration: nothing it sustains was converted"
             ]
           }
         }
       }
     },
     {
-      "_id": "178w8hnnsecqh000",
-      "_key": "!actors.items!mmAncientGoldDra.178w8hnnsecqh000",
-      "name": "Spellcasting (cast)",
+      "_id": "rxuqlb17fp61p000",
+      "_key": "!actors.items!mmAncientGoldDra.rxuqlb17fp61p000",
+      "name": "Flame Strike",
       "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "img": "icons/magic/fire/beam-jet-stream-embers.webp",
       "system": {
         "active": true,
-        "description": "<p class=\"feature\">The ancient gold dragon casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Guiding Bolt</em> (level 4 version), <em>Shapechange</em> (Beast or Humanoid form only, no Temporary Hit Points gained from the spell, and no Concentration or Temporary Hit Points required to maintain the spell)</p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Flame Strike </em>(level 6 version<em><strong>)</strong></em>, <em>Word of Recall,</em> <em>Zone of Truth</em></p>",
+        "description": "<p>A vertical column of brilliant fire roars down from above. Each creature in a 10-foot-radius, 40-foot-high Cylinder centered on a point within range makes a Dexterity saving throw, taking 5d6 Fire damage and 5d6 Radiant damage on a failed save or half as much damage on a successful one.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The Fire damage and the Radiant damage increase by 1d6 for each spell slot level above 5.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
+          "id": "action:srd-spellcasting-flame-strike",
+          "tags": [
+            "spell"
+          ],
           "costs": {
             "allOf": [
               {
                 "capability": "action",
                 "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplflamestrik",
+                "amount": 1
               }
             ]
           },
-          "label": "Spellcasting (cast)"
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 60,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "radial",
+            "size": {
+              "value": 10,
+              "unit": "ft"
+            }
+          },
+          "save": {
+            "ability": "agility",
+            "dc": {
+              "value": 24
+            }
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 5,
+                "faces": 6
+              },
+              "damageType": "fire",
+              "provenance": "spell-base",
+              "saveOutcomePolicy": {
+                "success": "half",
+                "failure": "full"
+              }
+            },
+            {
+              "id": "damage-2",
+              "expression": {
+                "type": "dice",
+                "number": 5,
+                "faces": 6
+              },
+              "damageType": "radiant",
+              "provenance": "spell-base",
+              "saveOutcomePolicy": {
+                "success": "half",
+                "failure": "full"
+              }
+            }
+          ],
+          "label": "Flame Strike"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "spellcasting-phbsplflamestrik-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "spellcasting-phbsplflamestrik",
+              "label": "Spellcasting (Flame Strike)",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
+            "id": "phbsplFlameStrik",
+            "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "consumption: activityUses 1 not converted"
+              "cast: Flame Strike at level 6 is cast at its own level",
+              "area: a cylinder's height is not modeled"
             ]
           }
         }
       }
     },
     {
-      "_id": "18mu8yi1mdn0dm00",
-      "_key": "!actors.items!mmAncientGoldDra.18mu8yi1mdn0dm00",
-      "name": "Spellcasting (cast)",
+      "_id": "1v4v05m1n4oqy400",
+      "_key": "!actors.items!mmAncientGoldDra.1v4v05m1n4oqy400",
+      "name": "Word of Recall",
       "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "img": "icons/magic/movement/portal-vortex-orange.webp",
       "system": {
         "active": true,
-        "description": "<p class=\"feature\">The ancient gold dragon casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Guiding Bolt</em> (level 4 version), <em>Shapechange</em> (Beast or Humanoid form only, no Temporary Hit Points gained from the spell, and no Concentration or Temporary Hit Points required to maintain the spell)</p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Flame Strike </em>(level 6 version<em><strong>)</strong></em>, <em>Word of Recall,</em> <em>Zone of Truth</em></p>",
+        "description": "<p>You and up to five willing creatures within 5 feet of you instantly teleport to a previously designated sanctuary. You and any creatures that teleport with you appear in the nearest unoccupied space to the spot you designated when you prepared your sanctuary (see below). If you cast this spell without first preparing a sanctuary, the spell has no effect.</p><p>You must designate a location, such as a temple, as a sanctuary by casting this spell there.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
+          "id": "action:srd-spellcasting-word-of-recall",
+          "tags": [
+            "spell"
+          ],
           "costs": {
             "allOf": [
               {
                 "capability": "action",
                 "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplwordofreca",
+                "amount": 1
               }
             ]
           },
-          "label": "Spellcasting (cast)"
+          "label": "Word of Recall"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "spellcasting-phbsplwordofreca-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "spellcasting-phbsplwordofreca",
+              "label": "Spellcasting (Word of Recall)",
+              "maximum": {
+                "type": "constant",
+                "value": 2
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
+            "id": "phbsplWordofReca",
+            "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "consumption: activityUses 1 not converted"
+              "not automated (teleport): using it spends its cost; its description says the rest",
+              "not automated (utility): using it spends its cost; its description says the rest"
             ]
           }
         }
       }
     },
     {
-      "_id": "18wtunhn66ru7000",
-      "_key": "!actors.items!mmAncientGoldDra.18wtunhn66ru7000",
-      "name": "Spellcasting (cast)",
+      "_id": "cqvt7f1t17nmh000",
+      "_key": "!actors.items!mmAncientGoldDra.cqvt7f1t17nmh000",
+      "name": "Zone of Truth",
       "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "img": "icons/skills/social/diplomacy-unity-alliance.webp",
       "system": {
         "active": true,
-        "description": "<p class=\"feature\">The ancient gold dragon casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Guiding Bolt</em> (level 4 version), <em>Shapechange</em> (Beast or Humanoid form only, no Temporary Hit Points gained from the spell, and no Concentration or Temporary Hit Points required to maintain the spell)</p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Flame Strike </em>(level 6 version<em><strong>)</strong></em>, <em>Word of Recall,</em> <em>Zone of Truth</em></p>",
+        "description": "<p>You create a magical zone that guards against deception in a 15-foot-radius Sphere centered on a point within range. Until the spell ends, a creature that enters the spell's area for the first time on a turn or starts its turn there makes a Charisma saving throw. On a failed save, a creature can't speak a deliberate lie while in the radius. You know whether a creature succeeds or fails on this save.</p><p>An affected creature is aware of the spell and can avoid answering questions to which it would normally respond with a lie. Such a creature can be evasive yet must be truthful.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
+          "id": "action:srd-spellcasting-zone-of-truth",
+          "tags": [
+            "spell"
+          ],
           "costs": {
             "allOf": [
               {
                 "capability": "action",
                 "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplzoneoftrut",
+                "amount": 1
               }
             ]
           },
-          "label": "Spellcasting (cast)"
+          "label": "Zone of Truth"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "spellcasting-phbsplzoneoftrut-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "spellcasting-phbsplzoneoftrut",
+              "label": "Spellcasting (Zone of Truth)",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
+            "id": "phbsplZoneofTrut",
+            "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "consumption: activityUses 1 not converted"
+              "not automated (save): using it spends its cost; its description says the rest",
+              "effect: \"Cannot Lie\" (its own changes) not converted"
             ]
           }
         }
@@ -780,51 +947,8 @@
       }
     },
     {
-      "_id": "mmGuidingLight00",
-      "_key": "!actors.items!mmAncientGoldDra.mmGuidingLight00",
-      "name": "Guiding Light",
-      "type": "action",
-      "img": "icons/magic/light/projectile-flare-blue.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The ancient gold dragon uses Spellcasting to cast <em>Guiding Bolt</em> (level 2 version).</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-guiding-light",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "legendary-action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Guiding Light"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmGuidingLight00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "XdXrDIoYifWG1pNl",
-      "_key": "!actors.items!mmAncientGoldDra.XdXrDIoYifWG1pNl",
+      "_id": "1cjez031wlhxzd00",
+      "_key": "!actors.items!mmAncientGoldDra.1cjez031wlhxzd00",
       "name": "Guiding Bolt",
       "type": "action",
       "img": "icons/magic/light/projectile-flare-blue.webp",
@@ -833,14 +957,14 @@
         "description": "<p>You hurl a bolt of light toward a creature within range. Make a ranged spell attack against the target. On a hit, it takes 4d6 Radiant damage, and the next attack roll made against it before the end of your next turn has Advantage.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The damage increases by 1d6 for each spell slot level above 1.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-guiding-bolt",
+          "id": "action:srd-guiding-light-guiding-bolt",
           "tags": [
             "spell"
           ],
           "costs": {
             "allOf": [
               {
-                "capability": "action",
+                "capability": "legendary-action",
                 "amount": 1
               }
             ]
@@ -849,7 +973,8 @@
             "type": "ranged",
             "statistic": "spell",
             "defenseKey": "ac",
-            "proficient": true
+            "proficient": true,
+            "ability": "presence"
           },
           "range": {
             "type": "ranged",
@@ -875,97 +1000,6 @@
               "provenance": "spell-base"
             }
           ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.1",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.1": 1,
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": [
-                {
-                  "type": "scaleDamage",
-                  "levelChoiceId": "spell-slot",
-                  "baseLevel": 1,
-                  "componentIds": [
-                    "damage-1"
-                  ],
-                  "dice": {
-                    "number": 1,
-                    "faces": 6
-                  }
-                }
-              ]
-            }
-          ],
           "label": "Guiding Bolt"
         },
         "ruleElements": []
@@ -975,14 +1009,16 @@
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "XdXrDIoYifWG1pNl",
+            "id": "phbsplGuidingBol",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Guiding Light"
           },
           "conversion": {
             "notes": [
+              "cast: Guiding Bolt at level 2 is cast at its own level",
               "effect: marked is not a WildPath condition yet"
             ]
           }
@@ -997,7 +1033,7 @@
       "img": "icons/skills/movement/arrow-upward-yellow.webp",
       "system": {
         "active": true,
-        "description": "<p>The ancient gold dragon moves up to half its Speed, and it makes one  attack.</p>",
+        "description": "<p>The ancient gold dragon moves up to half its Speed, and it makes one Rend attack.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-pounce-expend-use",
@@ -1029,838 +1065,6 @@
               "not automated (utility): using it spends its cost; its description says the rest",
               "consumption: attribute 1 not converted",
               "consumption: attribute 1 not converted"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "3uvTdORfoscOryM8",
-      "_key": "!actors.items!mmAncientGoldDra.3uvTdORfoscOryM8",
-      "name": "Detect Magic",
-      "type": "action",
-      "img": "icons/magic/symbols/runes-carved-stone-green.webp",
-      "system": {
-        "active": true,
-        "description": "<p>For the duration, you sense the presence of magical effects within 30 feet of yourself. If you sense such effects, you can take the Magic action to see a faint aura around any visible creature or object in the area that bears the magic, and if an effect was created by a spell, you learn the spell's school of magic.</p><p>The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-detect-magic-cast",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.1",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.1": 1,
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
-          "label": "Detect Magic"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "3uvTdORfoscOryM8",
-            "type": "spell",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "effect: \"Detect Magic\" (its own changes) not converted",
-              "concentration: nothing it sustains was converted"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "SPdn3NhEymbSXb5G",
-      "_key": "!actors.items!mmAncientGoldDra.SPdn3NhEymbSXb5G",
-      "name": "Guiding Bolt",
-      "type": "action",
-      "img": "icons/magic/light/projectile-flare-blue.webp",
-      "system": {
-        "active": true,
-        "description": "<p>You hurl a bolt of light toward a creature within range. Make a ranged spell attack against the target. On a hit, it takes 4d6 Radiant damage, and the next attack roll made against it before the end of your next turn has Advantage.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The damage increases by 1d6 for each spell slot level above 1.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-guiding-bolt",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "attack": {
-            "type": "ranged",
-            "statistic": "spell",
-            "defenseKey": "ac",
-            "proficient": true
-          },
-          "range": {
-            "type": "ranged",
-            "normal": {
-              "value": 120,
-              "unit": "ft"
-            }
-          },
-          "targeting": {
-            "type": "single",
-            "required": true,
-            "count": 1
-          },
-          "damage": [
-            {
-              "id": "damage-1",
-              "expression": {
-                "type": "dice",
-                "number": 4,
-                "faces": 6
-              },
-              "damageType": "radiant",
-              "provenance": "spell-base"
-            }
-          ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.1",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.1": 1,
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": [
-                {
-                  "type": "scaleDamage",
-                  "levelChoiceId": "spell-slot",
-                  "baseLevel": 1,
-                  "componentIds": [
-                    "damage-1"
-                  ],
-                  "dice": {
-                    "number": 1,
-                    "faces": 6
-                  }
-                }
-              ]
-            }
-          ],
-          "label": "Guiding Bolt"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "SPdn3NhEymbSXb5G",
-            "type": "spell",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "effect: marked is not a WildPath condition yet"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "pRJU7bqMNKx6FDJS",
-      "_key": "!actors.items!mmAncientGoldDra.pRJU7bqMNKx6FDJS",
-      "name": "Shapechange",
-      "type": "action",
-      "img": "icons/magic/unholy/hand-fire-skeleton-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p>You shape-shift into another creature for the duration or until you take a Magic action to shape-shift into a different eligible form. The new form must be of a creature that has a Challenge Rating no higher than your level or Challenge Rating. You must have seen the sort of creature before, and it can't be a Construct or an Undead.</p><p>When you shape-shift, you gain a number of Temporary Hit Points equal to the Hit Points of the form. The spell ends early if you have no Temporary Hit Points left.</p><p>Your game statistics are replaced by the stat block of the chosen form, but you retain your creature type; alignment; personality; Intelligence, Wisdom, and Charisma scores; Hit Points; Hit Point Dice; proficiencies; and ability to communicate. If you have the Spellcasting feature, you retain it too.</p><p>Upon shape-shifting, you determine whether your equipment drops to the ground or changes in size and shape to fit the new form while you're in it.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-shapechange-cast",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
-          "label": "Shapechange"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "pRJU7bqMNKx6FDJS",
-            "type": "spell",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "concentration: nothing it sustains was converted"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "XvbPgh5M2XuLlSVA",
-      "_key": "!actors.items!mmAncientGoldDra.XvbPgh5M2XuLlSVA",
-      "name": "Flame Strike",
-      "type": "action",
-      "img": "icons/magic/fire/beam-jet-stream-embers.webp",
-      "system": {
-        "active": true,
-        "description": "<p>A vertical column of brilliant fire roars down from above. Each creature in a 10-foot-radius, 40-foot-high Cylinder centered on a point within range makes a Dexterity saving throw, taking 5d6 Fire damage and 5d6 Radiant damage on a failed save or half as much damage on a successful one.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The Fire damage and the Radiant damage increase by 1d6 for each spell slot level above 5.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-flame-strike",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "range": {
-            "type": "ranged",
-            "normal": {
-              "value": 60,
-              "unit": "ft"
-            }
-          },
-          "targeting": {
-            "type": "area"
-          },
-          "area": {
-            "shape": "radial",
-            "size": {
-              "value": 10,
-              "unit": "ft"
-            }
-          },
-          "save": {
-            "ability": "agility",
-            "dc": {
-              "value": 24
-            }
-          },
-          "damage": [
-            {
-              "id": "damage-1",
-              "expression": {
-                "type": "dice",
-                "number": 5,
-                "faces": 6
-              },
-              "damageType": "fire",
-              "provenance": "spell-base",
-              "saveOutcomePolicy": {
-                "success": "half",
-                "failure": "full"
-              }
-            },
-            {
-              "id": "damage-2",
-              "expression": {
-                "type": "dice",
-                "number": 5,
-                "faces": 6
-              },
-              "damageType": "radiant",
-              "provenance": "spell-base",
-              "saveOutcomePolicy": {
-                "success": "half",
-                "failure": "full"
-              }
-            }
-          ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": [
-                {
-                  "type": "scaleDamage",
-                  "levelChoiceId": "spell-slot",
-                  "baseLevel": 5,
-                  "componentIds": [
-                    "damage-1"
-                  ],
-                  "dice": {
-                    "number": 1,
-                    "faces": 6
-                  }
-                },
-                {
-                  "type": "scaleDamage",
-                  "levelChoiceId": "spell-slot",
-                  "baseLevel": 5,
-                  "componentIds": [
-                    "damage-2"
-                  ],
-                  "dice": {
-                    "number": 1,
-                    "faces": 6
-                  }
-                }
-              ]
-            }
-          ],
-          "label": "Flame Strike"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "XvbPgh5M2XuLlSVA",
-            "type": "spell",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "area: a cylinder's height is not modeled"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "MqlOf7xFojXjCb7l",
-      "_key": "!actors.items!mmAncientGoldDra.MqlOf7xFojXjCb7l",
-      "name": "Zone of Truth",
-      "type": "action",
-      "img": "icons/skills/social/diplomacy-unity-alliance.webp",
-      "system": {
-        "active": true,
-        "description": "<p>You create a magical zone that guards against deception in a 15-foot-radius Sphere centered on a point within range. Until the spell ends, a creature that enters the spell's area for the first time on a turn or starts its turn there makes a Charisma saving throw. On a failed save, a creature can't speak a deliberate lie while in the radius. You know whether a creature succeeds or fails on this save.</p><p>An affected creature is aware of the spell and can avoid answering questions to which it would normally respond with a lie. Such a creature can be evasive yet must be truthful.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-zone-of-truth",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
-          "label": "Zone of Truth"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "MqlOf7xFojXjCb7l",
-            "type": "spell",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "effect: \"Cannot Lie\" (its own changes) not converted"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "8fyeR6xiLPhR9TgR",
-      "_key": "!actors.items!mmAncientGoldDra.8fyeR6xiLPhR9TgR",
-      "name": "Word of Recall (Teleport to Sanctuary)",
-      "type": "action",
-      "img": "icons/magic/movement/portal-vortex-orange.webp",
-      "system": {
-        "active": true,
-        "description": "<p>You and up to five willing creatures within 5 feet of you instantly teleport to a previously designated sanctuary. You and any creatures that teleport with you appear in the nearest unoccupied space to the spot you designated when you prepared your sanctuary (see below). If you cast this spell without first preparing a sanctuary, the spell has no effect.</p><p>You must designate a location, such as a temple, as a sanctuary by casting this spell there.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-word-of-recall-teleport-to-sanctuary",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
-          "label": "Word of Recall (Teleport to Sanctuary)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "8fyeR6xiLPhR9TgR",
-            "type": "spell",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "e0mhsh62f0ut0000",
-      "_key": "!actors.items!mmAncientGoldDra.e0mhsh62f0ut0000",
-      "name": "Word of Recall (Designate Sanctuary)",
-      "type": "action",
-      "img": "icons/magic/movement/portal-vortex-orange.webp",
-      "system": {
-        "active": true,
-        "description": "<p>You and up to five willing creatures within 5 feet of you instantly teleport to a previously designated sanctuary. You and any creatures that teleport with you appear in the nearest unoccupied space to the spot you designated when you prepared your sanctuary (see below). If you cast this spell without first preparing a sanctuary, the spell has no effect.</p><p>You must designate a location, such as a temple, as a sanctuary by casting this spell there.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-word-of-recall-designate-sanctuary",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
-          "label": "Word of Recall (Designate Sanctuary)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "8fyeR6xiLPhR9TgR",
-            "type": "spell",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
             ]
           }
         }
@@ -1942,23 +1146,20 @@
         "notes": [
           "Legendary Resistance: \"Expend Use\" is passive or triggered: not automated",
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Fire Breath: uses: Recharge undefined–6 is not rolled; refill the pool by hand",
-          "Spellcasting: not automated (cast): using it spends its cost; its description says the rest",
-          "Spellcasting: consumption: activityUses 1 not converted",
-          "Guiding Light: not automated (cast): using it spends its cost; its description says the rest",
-          "Guiding Bolt: effect: marked is not a WildPath condition yet",
+          "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
+          "Spellcasting: effect: \"Detect Magic\" (its own changes) not converted",
+          "Spellcasting: concentration: nothing it sustains was converted",
+          "Spellcasting: cast: Guiding Bolt at level 4 is cast at its own level",
+          "Spellcasting: effect: marked is not a WildPath condition yet",
+          "Spellcasting: cast: Flame Strike at level 6 is cast at its own level",
+          "Spellcasting: area: a cylinder's height is not modeled",
+          "Spellcasting: not automated (teleport): using it spends its cost; its description says the rest",
+          "Spellcasting: not automated (save): using it spends its cost; its description says the rest",
+          "Spellcasting: effect: \"Cannot Lie\" (its own changes) not converted",
+          "Guiding Light: cast: Guiding Bolt at level 2 is cast at its own level",
+          "Guiding Light: effect: marked is not a WildPath condition yet",
           "Pounce: not automated (utility): using it spends its cost; its description says the rest",
-          "Pounce: consumption: attribute 1 not converted",
-          "Detect Magic: not automated (utility): using it spends its cost; its description says the rest",
-          "Detect Magic: effect: \"Detect Magic\" (its own changes) not converted",
-          "Detect Magic: concentration: nothing it sustains was converted",
-          "Guiding Bolt: effect: marked is not a WildPath condition yet",
-          "Shapechange: not automated (utility): using it spends its cost; its description says the rest",
-          "Shapechange: concentration: nothing it sustains was converted",
-          "Flame Strike: area: a cylinder's height is not modeled",
-          "Zone of Truth: not automated (save): using it spends its cost; its description says the rest",
-          "Zone of Truth: effect: \"Cannot Lie\" (its own changes) not converted",
-          "Word of Recall: not automated (utility): using it spends its cost; its description says the rest"
+          "Pounce: consumption: attribute 1 not converted"
         ]
       }
     }

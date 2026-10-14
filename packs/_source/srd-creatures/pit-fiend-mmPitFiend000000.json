@@ -161,9 +161,32 @@
               }
             ]
           },
-          "label": "Multiattack"
+          "label": "Multiattack",
+          "targeting": {
+            "type": "none"
+          },
+          "restores": [
+            {
+              "resourceId": "multiattack",
+              "amount": 4
+            }
+          ]
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack",
+              "label": "Multiattack",
+              "maximum": 4,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -178,7 +201,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
             ]
           }
         }
@@ -227,11 +250,19 @@
           "schemaVersion": 1,
           "id": "action:srd-bite",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "attack": {
@@ -353,11 +384,19 @@
           "schemaVersion": 1,
           "id": "action:srd-devilish-claw",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "attack": {
@@ -424,11 +463,19 @@
           "schemaVersion": 1,
           "id": "action:srd-fiery-mace",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "attack": {
@@ -493,197 +540,8 @@
       }
     },
     {
-      "_id": "mmHellfireSpellc",
-      "_key": "!actors.items!mmPitFiend000000.mmHellfireSpellc",
-      "name": "Hellfire Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/fire/explosion-flame-lightning-strike.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The pit fiend casts <em>Fireball</em> (level 5 version) twice, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ).. It can replace one <em>Fireball</em> with <em>Hold Monster</em> (level 7 version) or <em>Wall of Fire.</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-hellfire-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              },
-              {
-                "capability": "hellfire-spellcasting",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Hellfire Spellcasting (cast)"
-        },
-        "ruleElements": [
-          {
-            "schemaVersion": 1,
-            "id": "hellfire-spellcasting-uses",
-            "type": "GrantResource",
-            "data": {
-              "resourceId": "hellfire-spellcasting",
-              "label": "Hellfire Spellcasting",
-              "maximum": {
-                "type": "constant",
-                "value": 1
-              },
-              "recovery": "none"
-            }
-          }
-        ]
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmHellfireSpellc",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "uses: Recharge 4–6 is not rolled; refill the pool by hand"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "1g3ocjenpkro0000",
-      "_key": "!actors.items!mmPitFiend000000.1g3ocjenpkro0000",
-      "name": "Hellfire Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/fire/explosion-flame-lightning-strike.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The pit fiend casts <em>Fireball</em> (level 5 version) twice, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ).. It can replace one <em>Fireball</em> with <em>Hold Monster</em> (level 7 version) or <em>Wall of Fire.</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-hellfire-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              },
-              {
-                "capability": "hellfire-spellcasting",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Hellfire Spellcasting (cast)"
-        },
-        "ruleElements": [
-          {
-            "schemaVersion": 1,
-            "id": "hellfire-spellcasting-uses",
-            "type": "GrantResource",
-            "data": {
-              "resourceId": "hellfire-spellcasting",
-              "label": "Hellfire Spellcasting",
-              "maximum": {
-                "type": "constant",
-                "value": 1
-              },
-              "recovery": "none"
-            }
-          }
-        ]
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmHellfireSpellc",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "uses: Recharge 4–6 is not rolled; refill the pool by hand"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "1ftoquf1o5g5zz00",
-      "_key": "!actors.items!mmPitFiend000000.1ftoquf1o5g5zz00",
-      "name": "Hellfire Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/fire/explosion-flame-lightning-strike.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The pit fiend casts <em>Fireball</em> (level 5 version) twice, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ).. It can replace one <em>Fireball</em> with <em>Hold Monster</em> (level 7 version) or <em>Wall of Fire.</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-hellfire-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              },
-              {
-                "capability": "hellfire-spellcasting",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Hellfire Spellcasting (cast)"
-        },
-        "ruleElements": [
-          {
-            "schemaVersion": 1,
-            "id": "hellfire-spellcasting-uses",
-            "type": "GrantResource",
-            "data": {
-              "resourceId": "hellfire-spellcasting",
-              "label": "Hellfire Spellcasting",
-              "maximum": {
-                "type": "constant",
-                "value": 1
-              },
-              "recovery": "none"
-            }
-          }
-        ]
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmHellfireSpellc",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "uses: Recharge 4–6 is not rolled; refill the pool by hand"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "VAZbEXPMFjy1i6tB",
-      "_key": "!actors.items!mmPitFiend000000.VAZbEXPMFjy1i6tB",
+      "_id": "xp8ttds85q8v0000",
+      "_key": "!actors.items!mmPitFiend000000.xp8ttds85q8v0000",
       "name": "Fireball",
       "type": "action",
       "img": "icons/magic/fire/barrier-shield-explosion-yellow.webp",
@@ -692,7 +550,7 @@
         "description": "<p>A bright streak flashes from you to a point you choose within range and then blossoms with a low roar into a fiery explosion. Each creature in a 20-foot-radius Sphere centered on that point makes a Dexterity saving throw, taking 8d6 Fire damage on a failed save or half as much damage on a successful one.</p><p>Flammable objects in the area that aren't being worn or carried start burning.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The damage increases by 1d6 for each spell slot level above 3.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-fireball",
+          "id": "action:srd-hellfire-spellcasting-fireball",
           "tags": [
             "spell"
           ],
@@ -700,6 +558,10 @@
             "allOf": [
               {
                 "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "hellfire-spellcasting",
                 "amount": 1
               }
             ]
@@ -743,107 +605,49 @@
               }
             }
           ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": [
-                {
-                  "type": "scaleDamage",
-                  "levelChoiceId": "spell-slot",
-                  "baseLevel": 3,
-                  "componentIds": [
-                    "damage-1"
-                  ],
-                  "dice": {
-                    "number": 1,
-                    "faces": 6
-                  }
-                }
-              ]
-            }
-          ],
           "label": "Fireball"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "hellfire-spellcasting-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "hellfire-spellcasting",
+              "label": "Hellfire Spellcasting",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "none",
+              "recharge": 4
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "VAZbEXPMFjy1i6tB",
+            "id": "phbsplFireball00",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Hellfire Spellcasting"
           },
           "conversion": {
-            "notes": []
+            "notes": [
+              "cast: Fireball at level 5 is cast at its own level"
+            ]
           }
         }
       }
     },
     {
-      "_id": "5irtCzIrQGv5EGRw",
-      "_key": "!actors.items!mmPitFiend000000.5irtCzIrQGv5EGRw",
+      "_id": "jh0vxy1os16l0000",
+      "_key": "!actors.items!mmPitFiend000000.jh0vxy1os16l0000",
       "name": "Hold Monster",
       "type": "action",
       "img": "icons/magic/control/encase-creature-monster-hold.webp",
@@ -852,7 +656,7 @@
         "description": "<p>Choose a creature that you can see within range. The target must succeed on a Wisdom saving throw or have the Paralyzed condition for the duration. At the end of each of its turns, the target repeats the save, ending the spell on itself on a success.</p><p><strong>Using a Higher-Level Spell Slot.</strong> You can target one additional creature for each spell slot level above 5.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-hold-monster",
+          "id": "action:srd-hellfire-spellcasting-hold-monster",
           "tags": [
             "spell"
           ],
@@ -860,6 +664,10 @@
             "allOf": [
               {
                 "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "hellfire-spellcasting",
                 "amount": 1
               }
             ]
@@ -891,88 +699,50 @@
               "concentration": true
             }
           ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": [
-                {
-                  "type": "scaleTargets",
-                  "levelChoiceId": "spell-slot",
-                  "baseLevel": 5,
-                  "perLevel": 1
-                }
-              ]
-            }
-          ],
           "label": "Hold Monster"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "hellfire-spellcasting-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "hellfire-spellcasting",
+              "label": "Hellfire Spellcasting",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "none",
+              "recharge": 4
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "5irtCzIrQGv5EGRw",
+            "id": "phbsplHoldMonste",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Hellfire Spellcasting"
           },
           "conversion": {
-            "notes": []
+            "notes": [
+              "cast: Hold Monster at level 7 is cast at its own level"
+            ]
           }
         }
       }
     },
     {
-      "_id": "JoMfpvWvju6ILd45",
-      "_key": "!actors.items!mmPitFiend000000.JoMfpvWvju6ILd45",
-      "name": "Wall of Fire (Create Wall)",
+      "_id": "hv0yzu1thwzz4000",
+      "_key": "!actors.items!mmPitFiend000000.hv0yzu1thwzz4000",
+      "name": "Wall of Fire",
       "type": "action",
       "img": "icons/magic/fire/flame-burning-fence.webp",
       "system": {
@@ -980,7 +750,7 @@
         "description": "<p>You create a wall of fire on a solid surface within range. You can make the wall up to 60 feet long, 20 feet high, and 1 foot thick, or a ringed wall up to 20 feet in diameter, 20 feet high, and 1 foot thick. The wall is opaque and lasts for the duration.</p><p>When the wall appears, each creature in its area makes a Dexterity saving throw, taking 5d8 Fire damage on a failed save or half as much damage on a successful one.</p><p>One side of the wall, selected by you when you cast this spell, deals 5d8 Fire damage to each creature that ends its turn within 10 feet of that side or inside the wall. A creature takes the same damage when it enters the wall for the first time on a turn or ends its turn there. The other side of the wall deals no damage.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The damage increases by 1d8 for each spell slot level above 4.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-wall-of-fire-create-wall",
+          "id": "action:srd-hellfire-spellcasting-wall-of-fire",
           "tags": [
             "spell"
           ],
@@ -988,6 +758,10 @@
             "allOf": [
               {
                 "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "hellfire-spellcasting",
                 "amount": 1
               }
             ]
@@ -1029,251 +803,44 @@
               }
             }
           ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": [
-                {
-                  "type": "scaleDamage",
-                  "levelChoiceId": "spell-slot",
-                  "baseLevel": 4,
-                  "componentIds": [
-                    "damage-1"
-                  ],
-                  "dice": {
-                    "number": 1,
-                    "faces": 8
-                  }
-                }
-              ]
-            }
-          ],
-          "label": "Wall of Fire (Create Wall)"
+          "label": "Wall of Fire"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "hellfire-spellcasting-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "hellfire-spellcasting",
+              "label": "Hellfire Spellcasting",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "none",
+              "recharge": 4
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "JoMfpvWvju6ILd45",
+            "id": "phbsplWallofFire",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Hellfire Spellcasting"
           },
           "conversion": {
             "notes": [
               "area: 60-ft wall is not supported; the user picks the targets",
-              "concentration: nothing it sustains was converted"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "h2fv98oqb3tg0000",
-      "_key": "!actors.items!mmPitFiend000000.h2fv98oqb3tg0000",
-      "name": "Wall of Fire (Create Ring)",
-      "type": "action",
-      "img": "icons/magic/fire/flame-burning-fence.webp",
-      "system": {
-        "active": true,
-        "description": "<p>You create a wall of fire on a solid surface within range. You can make the wall up to 60 feet long, 20 feet high, and 1 foot thick, or a ringed wall up to 20 feet in diameter, 20 feet high, and 1 foot thick. The wall is opaque and lasts for the duration.</p><p>When the wall appears, each creature in its area makes a Dexterity saving throw, taking 5d8 Fire damage on a failed save or half as much damage on a successful one.</p><p>One side of the wall, selected by you when you cast this spell, deals 5d8 Fire damage to each creature that ends its turn within 10 feet of that side or inside the wall. A creature takes the same damage when it enters the wall for the first time on a turn or ends its turn there. The other side of the wall deals no damage.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The damage increases by 1d8 for each spell slot level above 4.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-wall-of-fire-create-ring",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "range": {
-            "type": "ranged",
-            "normal": {
-              "value": 120,
-              "unit": "ft"
-            }
-          },
-          "targeting": {
-            "type": "area"
-          },
-          "area": {
-            "shape": "radial",
-            "size": {
-              "value": 10,
-              "unit": "ft"
-            }
-          },
-          "save": {
-            "ability": "agility",
-            "dc": {
-              "value": 21
-            }
-          },
-          "damage": [
-            {
-              "id": "damage-1",
-              "expression": {
-                "type": "dice",
-                "number": 5,
-                "faces": 8
-              },
-              "damageType": "fire",
-              "provenance": "spell-base",
-              "saveOutcomePolicy": {
-                "success": "half",
-                "failure": "full"
-              }
-            }
-          ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": [
-                {
-                  "type": "scaleDamage",
-                  "levelChoiceId": "spell-slot",
-                  "baseLevel": 4,
-                  "componentIds": [
-                    "damage-1"
-                  ],
-                  "dice": {
-                    "number": 1,
-                    "faces": 8
-                  }
-                }
-              ]
-            }
-          ],
-          "label": "Wall of Fire (Create Ring)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "JoMfpvWvju6ILd45",
-            "type": "spell",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
+              "concentration: nothing it sustains was converted",
               "area: a cylinder's height is not modeled",
-              "concentration: nothing it sustains was converted"
+              "\"damage\" is passive or triggered: not automated"
             ]
           }
         }
@@ -1355,16 +922,16 @@
       "conversion": {
         "notes": [
           "Fear Aura: \"save\" is passive or triggered: not automated",
-          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
           "Legendary Resistance: \"Expend Use\" is passive or triggered: not automated",
           "Bite: \"save\" is passive or triggered: not automated",
           "Bite: activation: turnStart is not an action-economy cost",
-          "Hellfire Spellcasting: not automated (cast): using it spends its cost; its description says the rest",
-          "Hellfire Spellcasting: uses: Recharge 4–6 is not rolled; refill the pool by hand",
-          "Wall of Fire: area: 60-ft wall is not supported; the user picks the targets",
-          "Wall of Fire: concentration: nothing it sustains was converted",
-          "Wall of Fire: area: a cylinder's height is not modeled",
-          "Wall of Fire: \"damage\" is passive or triggered: not automated"
+          "Hellfire Spellcasting: cast: Fireball at level 5 is cast at its own level",
+          "Hellfire Spellcasting: cast: Hold Monster at level 7 is cast at its own level",
+          "Hellfire Spellcasting: area: 60-ft wall is not supported; the user picks the targets",
+          "Hellfire Spellcasting: concentration: nothing it sustains was converted",
+          "Hellfire Spellcasting: area: a cylinder's height is not modeled",
+          "Hellfire Spellcasting: \"damage\" is passive or triggered: not automated",
+          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
         ]
       }
     }

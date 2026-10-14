@@ -190,6 +190,10 @@
       "UnarmedStrike": "Unarmed Strike",
       "OpportunityAttack": "Opportunity Attack"
     },
+    "RECHARGE": {
+      "Recharged": "Recharge {range}: {name} is ready again",
+      "Spent": "Recharge {range}: {name} is still spent"
+    },
     "RULER": {
       "Left": "{distance} {units} left",
       "Over": "Not enough movement",

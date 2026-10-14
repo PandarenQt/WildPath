@@ -36,7 +36,7 @@
             "type": "constant",
             "value": 10
           },
-          "recovery": "none"
+          "recovery": "longRest"
         }
       }
     ]
@@ -55,7 +55,8 @@
       "conversion": {
         "notes": [
           "not automated (cast): using it spends its cost; its description says the rest",
-          "uses: a partial recovery refills the whole pool"
+          "uses: a partial recovery refills the whole pool",
+          "cast: its spell was not found among the converted spells"
         ]
       }
     }

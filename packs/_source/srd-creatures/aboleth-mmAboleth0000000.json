@@ -230,11 +230,19 @@
           "schemaVersion": 1,
           "id": "action:srd-tentacle",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "attack": {
@@ -315,9 +323,32 @@
               }
             ]
           },
-          "label": "Multiattack"
+          "label": "Multiattack",
+          "targeting": {
+            "type": "none"
+          },
+          "restores": [
+            {
+              "resourceId": "multiattack",
+              "amount": 2
+            }
+          ]
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack",
+              "label": "Multiattack",
+              "maximum": 2,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -332,7 +363,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
             ]
           }
         }
@@ -376,7 +407,7 @@
                 "type": "constant",
                 "value": 2
               },
-              "recovery": "none"
+              "recovery": "longRest"
             }
           }
         ]
@@ -636,9 +667,9 @@
           "Mucus Cloud: \"save\" is passive or triggered: not automated",
           "Mucus Cloud: \"Damage: Outside Water\" is passive or triggered: not automated",
           "Tentacle: \"Escape Check\" is passive or triggered: not automated",
-          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
           "Dominate Mind: not automated (save): using it spends its cost; its description says the rest",
-          "Lash: not automated (utility): using it spends its cost; its description says the rest"
+          "Lash: not automated (utility): using it spends its cost; its description says the rest",
+          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
         ]
       }
     }

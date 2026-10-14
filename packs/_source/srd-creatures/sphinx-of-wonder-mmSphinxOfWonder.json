@@ -201,7 +201,7 @@
                 "type": "constant",
                 "value": 2
               },
-              "recovery": "none"
+              "recovery": "longRest"
             }
           }
         ]

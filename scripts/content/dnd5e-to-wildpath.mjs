@@ -21,7 +21,8 @@ const CONDITION_MAP = Object.freeze(Object.fromEntries(["prone", "blinded", "res
   "exhaustion", "charmed", "deafened", "frightened", "grappled", "incapacitated", "invisible", "paralyzed", "petrified", "dead"]
   .map(id => [id, id])));
 const ACTIVATION_COST = Object.freeze({action: "action", bonus: "bonus-action", reaction: "reaction", legendary: "legendary-action"});
-const RECOVERY = Object.freeze({lr: "longRest", sr: "shortRest", turn: "turn", turnStart: "turn", round: "turn"});
+const RECOVERY = Object.freeze({lr: "longRest", sr: "shortRest", day: "longRest", dawn: "longRest", dusk: "longRest", turn: "turn", turnStart: "turn",
+  round: "turn"});
 const ACTIVITIES = new Set(["attack", "save", "damage", "heal", "utility"]);
 const SPELL_DC = {type: "add", terms: [{type: "constant", value: 8}, {type: "proficiency-bonus"}, {type: "spellcasting-modifier"}]};
 const SLOT_MODES = new Set(["prepared", "always", "spell", "pact", "ritual"]);
@@ -250,7 +251,7 @@ export function upgradeLegacy(document) {
  * @returns {{ok: true, items: object[], notes: string[]} | {ok: false, reason: string}}
  */
 export function convertItem(document, {scales={}, pack=null, saveDC=null, names={}, creature=null, licensed=isSrd2024, book="SRD 5.2",
-  images=["icons/"]}={}) {
+  images=["icons/"], spells={}}={}) {
   if ( !licensed(document) ) return {ok: false, reason: "not SRD 5.2 (CC-BY-4.0)"};
   document = upgradeLegacy(document);
   const system = document.system ?? {};
@@ -275,6 +276,15 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, names=
       allNotes.push(`"${label}" is passive or triggered: not automated`);
       continue;
     }
+    // Monster spellcasting (G4): a cast activity is its spell, at the activity's cost and uses rather than a slot.
+    if ( activity.type === "cast" ) {
+      const cast = castSpell({document, activity, system, notes, pool, options: {scales, pack, saveDC, names, creature, book, images, spells}});
+      if ( cast ) {
+        items.push(cast);
+        allNotes.push(...notes);
+        continue;
+      }
+    }
     let definition = ACTIVITIES.has(activity.type)
       ? convertActivity({document, activity, system, spell, level, scales, notes, pool, saveDC, creature}) : null;
     if ( !definition ) {
@@ -287,7 +297,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, names=
     items.push({
       _id: id, _key: `!items!${id}`, name: `${document.name}${suffix}`, type: "action", img,
       system: {active: true, description, definition: {...definition, label: `${document.name}${suffix}`},
-        ruleElements: pool ? [pool.rule] : []},
+        ruleElements: [pool?.rule, activityPool({document, activity, scales})?.rule].filter(Boolean)},
       flags: {wildpath: {source, conversion: {notes}}}
     });
     allNotes.push(...notes);
@@ -301,6 +311,41 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, names=
   return {ok: true, items, notes: [...new Set(allNotes)]};
 }
 
+/**
+ * A cast activity (a monster's Spellcasting, an item's spell) as its spell's Action: the spell converted with the
+ * creature's own save DC and casting ability, at the activity's cost and uses, with no spell slot. Null when the
+ * spell is not among `spells`, so the activity stays a manual Action.
+ */
+function castSpell({document, activity, system, notes, pool: itemPool=null, options}) {
+  const spellDocument = options.spells?.[String(activity.spell?.uuid ?? "").split(".").pop()];
+  if ( !spellDocument ) {
+    notes.push("cast: its spell was not found among the converted spells");
+    return null;
+  }
+  const casting = ABILITY_MAP[activity.spell?.ability] ?? options.creature?.castingAbility ?? null;
+  const creature = options.creature && casting
+    ? {...options.creature, spellDC: options.creature.saveDC?.(Object.keys(ABILITY_MAP).find(key => ABILITY_MAP[key] === casting))?.value
+      ?? options.creature.spellDC} : options.creature;
+  const converted = convertItem(spellDocument, {...options, creature, licensed: () => true});
+  const action = converted.items?.find(item => item.type === "action");
+  if ( !action ) return null;
+  // A wand's charges (the item's uses) or the activity's own uses pay for it.
+  const base = baseDefinition({document, activity, system, spell: false, notes, pool: itemPool});
+  const definition = {...action.system.definition, id: `${base.id}-${slugify(spellDocument.name)}`, label: spellDocument.name,
+    tags: [...new Set([...(action.system.definition.tags ?? []), "spell"])], costs: base.costs};
+  delete definition.configuration;
+  if ( definition.attack && casting ) definition.attack = {...definition.attack, ability: casting};
+  const castLevel = Number(activity.spell?.level);
+  if ( castLevel > (Number(spellDocument.system?.level) || 0) ) notes.push(`cast: ${spellDocument.name} at level ${castLevel} is cast at its own level`);
+  notes.push(...converted.notes.filter(note => !note.startsWith("uses:")));
+  const pool = activityPool({document, activity, scales: options.scales, spellName: spellDocument.name});
+  const id = stableId(`${document._id}:cast:${activity._id ?? spellDocument._id}`);
+  return {_id: id, _key: `!items!${id}`, name: spellDocument.name, type: "action",
+    img: kept(spellDocument.img, options.images ?? ["icons/"]) ?? action.img,
+    system: {active: true, description: action.system.description, definition, ruleElements: [itemPool?.rule, pool?.rule].filter(Boolean)},
+    flags: {wildpath: {source: {...action.flags.wildpath.source, castBy: document.name}, conversion: {notes: [...notes]}}}};
+}
+
 /** The Action of something used but not automated: its cost, its uses and, for a spell, its slot. */
 function manualDefinition({document, activity, system, spell, level, notes, pool}) {
   const definition = baseDefinition({document, activity, system, spell, notes, pool});
@@ -310,7 +355,19 @@ function manualDefinition({document, activity, system, spell, level, notes, pool
 
 /** An item's limited uses as a resource pool its Actions spend, with the dnd5e recovery. */
 function usesPool({document, scales}) {
-  const uses = document.system?.uses;
+  return poolOf(document.system?.uses, {id: slugify(document.name), label: document.name, scales});
+}
+
+/** An activity's own uses ("3/Day each" spells, a once-a-day option) as a pool of its own (G4). */
+function activityPool({document, activity, scales={}, spellName=null}) {
+  // Each activity's own pool: by its name, else by the spell it casts (2/Day each), else by its id.
+  const key = activity?.name || String(activity?.spell?.uuid ?? "").split(".").pop() || activity?._id || activity?.type || "use";
+  return poolOf(activity?.uses, {id: `${slugify(document.name)}-${slugify(key)}`,
+    label: `${document.name} (${activity?.name || spellName || key})`, scales});
+}
+
+/** Limited uses (`{max, recovery}`) as a GrantResource pool with the dnd5e recovery and Recharge. */
+function poolOf(uses, {id, label, scales}) {
   if ( !uses?.max ) return null;
   const notes = [];
   const maximum = formulaExpression(uses.max, {scales});
@@ -321,11 +378,10 @@ function usesPool({document, scales}) {
   // 2024 often recovers one use on a short rest and all on a long one; WildPath pools refill whole.
   const recovery = RECOVERY[periods.includes("sr") ? "sr" : periods[0]] ?? "none";
   if ( recoveries.some(entry => entry.type === "formula") ) notes.push("uses: a partial recovery refills the whole pool");
-  const recharge = recoveries.find(entry => entry.period === "recharge");
-  if ( recharge ) notes.push(`uses: Recharge ${recharge.formula}${recharge.formula === "6" ? "" : "–6"} is not rolled; refill the pool by hand`);
-  const id = slugify(document.name);
+  // Recharge 5-6: rolled at the start of the creature's turn.
+  const recharge = Number(recoveries.find(entry => entry.period === "recharge")?.formula);
   return {id, notes, rule: {schemaVersion: 1, id: `${id}-uses`, type: "GrantResource",
-    data: {resourceId: id, label: document.name, maximum: maximum ?? 1, recovery}}};
+    data: {resourceId: id, label, maximum: maximum ?? 1, recovery, ...(recharge >= 2 && recharge <= 6 ? {recharge} : {})}}};
 }
 
 /** An Action's identity and costs: its activation in the action economy and the uses it spends. */
@@ -343,6 +399,9 @@ function baseDefinition({document, activity, system, spell, notes, pool}) {
     const amount = target.value === "" || target.value == null ? 1 : number(target.value);
     // A negative consumption gives a use back; that is not a cost.
     if ( (target.type === "itemUses") && pool && (amount > 0) ) definition.costs.allOf.push({capability: pool.id, amount});
+    else if ( (target.type === "activityUses") && activityPool({document, activity}) && (amount > 0) ) {
+      definition.costs.allOf.push({capability: activityPool({document, activity}).id, amount});
+    }
     else notes.push(`consumption: ${target.type} ${target.value ?? ""} not converted`.trim());
   }
   return definition;
@@ -510,7 +569,7 @@ export const proficiencyForChallenge = challenge => Math.max(2, Math.floor((Math
  * - Resistances and immunities, and Legendary Actions (a pool that refills each turn), go on a Traits feature.
  * @returns {{ok: true, actor: object, notes: string[]} | {ok: false, reason: string}}
  */
-export function convertActor(document, {scales={}, pack=null, names={}, licensed=isSrd2024, book="SRD 5.2", images=["icons/"]}={}) {
+export function convertActor(document, {scales={}, pack=null, names={}, licensed=isSrd2024, book="SRD 5.2", images=["icons/"], spells={}}={}) {
   if ( !licensed(document) ) return {ok: false, reason: "not SRD 5.2 (CC-BY-4.0)"};
   if ( document.type !== "npc" ) return {ok: false, reason: `a ${document.type} is not converted`};
   const system = document.system ?? {};
@@ -524,13 +583,14 @@ export function convertActor(document, {scales={}, pack=null, names={}, licensed
   // What a stat block's text reads from its creature: its name, numbers and its own items' names.
   const casting = system.attributes?.spellcasting;
   const creature = {name: document.name, modifier, proficiency, saveDC, challenge,
-    spellDC: ABILITY_MAP[casting] ? 8 + proficiency + modifier(casting) : null,
+    spellDC: ABILITY_MAP[casting] ? 8 + proficiency + modifier(casting) : null, castingAbility: ABILITY_MAP[casting] ?? null,
     itemNames: Object.fromEntries((document.items ?? []).map(item => [item._id, item.name]))};
 
   const items = [];
   for ( const item of document.items ?? [] ) {
-    if ( item.type === "equipment" ) continue;
-    const result = convertItem(item, {scales, pack, saveDC, names, creature, licensed, book, images});
+    // dnd5e's cached copy of a spell a cast activity casts: the cast activity converts it.
+    if ( (item.type === "equipment") || item.flags?.dnd5e?.cachedFor ) continue;
+    const result = convertItem(item, {scales, pack, saveDC, names, creature, licensed, book, images, spells});
     if ( !result.ok ) {
       notes.push(`${item.name}: ${result.reason}`);
       continue;
@@ -543,6 +603,8 @@ export function convertActor(document, {scales={}, pack=null, names={}, licensed
       items.push({...converted, _key: `!actors.items!${actorId}.${converted._id}`});
     }
   }
+
+  multiattack(items, notes);
 
   const traits = traitRules(system, notes);
   if ( traits.length ) items.push({_id: `${String(actorId).slice(0, 12)}trts`, _key: `!actors.items!${actorId}.${String(actorId).slice(0, 12)}trts`,
@@ -590,6 +652,52 @@ function armorClass(document, agility, notes) {
   }
   if ( shield ) value += number(shield.system.armor?.value) ?? 2;
   return value;
+}
+
+const COUNTS = Object.freeze({one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8});
+
+/**
+ * How many attacks a Multiattack's text makes: each "one/two/... attack(s)" of its first sentence, up to an
+ * alternative (", or"). Null when it does not say ("a number of attacks equal to...").
+ */
+export function multiattackCount(description) {
+  // The sentence that makes the attacks (2014 text may first use Frightful Presence).
+  const sentences = String(description ?? "").replace(/<[^>]+>/g, " ").split(/(?<=\.)\s/);
+  const sentence = sentences.find(text => /\bmakes\b/i.test(text)) ?? sentences[0] ?? "";
+  const first = sentence.split(/,\s*or\s/)[0];
+  let total = 0;
+  for ( const [, count] of first.matchAll(/\b(one|two|three|four|five|six|seven|eight|\d+)\s+(?:[^.,;]*?\s)??attacks?\b/gi) ) {
+    total += COUNTS[count.toLowerCase()] ?? Number(count);
+  }
+  return total > 0 ? total : null;
+}
+
+/**
+ * A creature's Multiattack (G4): using it spends the Action and fills its "Multiattack" pool with its attacks for
+ * this turn; each of its attack Actions is then paid from that pool, or with the Action when the pool is empty. The
+ * pool starts empty and empties at the start of each turn.
+ */
+function multiattack(items, notes) {
+  const item = items.find(entry => (entry.name === "Multiattack") && (entry.type === "action"));
+  const count = item ? multiattackCount(item.system.description) : null;
+  if ( !count ) return;
+  item.system.definition = {...item.system.definition, costs: {allOf: [{capability: "action", amount: 1}]}, targeting: {type: "none"},
+    restores: [{resourceId: "multiattack", amount: count}]};
+  item.system.ruleElements = [...(item.system.ruleElements ?? []), {schemaVersion: 1, id: "multiattack-uses", type: "GrantResource",
+    data: {resourceId: "multiattack", label: "Multiattack", maximum: count, current: 0, recovery: "none", emptiesAtTurnStart: true}}];
+  // shortcut: any of the creature's attacks may be each of them, whatever the text names; upgrade with a per-attack count.
+  const note = "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand";
+  item.flags.wildpath.conversion.notes = [note];
+  notes.splice(0, notes.length, ...notes.filter(entry => !entry.startsWith("Multiattack: not automated")), `Multiattack: ${note.slice(13)}`);
+  for ( const action of items ) {
+    const definition = action.system?.definition;
+    const allOf = definition?.costs?.allOf ?? [];
+    // A spell the creature casts is not one of its Multiattack's attacks.
+    if ( (action === item) || !definition?.attack || action.flags?.wildpath?.source?.castBy
+      || !allOf.some(cost => cost.capability === "action") ) continue;
+    const rest = allOf.filter(cost => cost.capability !== "action");
+    definition.costs = {anyOf: [[{capability: "multiattack", amount: 1}, ...rest], [{capability: "action", amount: 1}, ...rest]]};
+  }
 }
 
 /** Resistances, immunities and Legendary Actions as rules on the creature's Traits feature. */
@@ -848,7 +956,9 @@ export function describe(document, {names={}, creature=null}={}) {
       case "/heal": case "/healing": return label ?? damageText(activity ?? firstOf("heal"), flags);
       case "/save": return label ?? saveText(activity ?? firstOf("save"), params, args);
       case "/check": case "/skill": case "/tool": return label ?? checkText(params, args);
-      case "/item": return label ?? creature?.itemNames?.[String(args[0] ?? "").replace(/^\./, "")] ?? names[String(args[0] ?? "").split(".").pop()] ?? "";
+      // An item by id (".abc"), by uuid, or by its own name ("[[/item Rend]]", "[[/item Thunderous Slam]]").
+      case "/item": return label ?? creature?.itemNames?.[String(args[0] ?? "").replace(/^\./, "")] ?? names[String(args[0] ?? "").split(".").pop()]
+        ?? (String(args[0] ?? "").includes(".") ? "" : args.join(" "));
       case "/award": return label ?? args.join(" ");
       case "/r": case "/roll": case "/gmr": case "/br": case "/sr": case "/pr": return label ?? args.join(" ").replace(/#.*$/, "").trim();
       default: return label ?? inner.replace(/@prof/g, creature ? String(creature.proficiency) : "PB");

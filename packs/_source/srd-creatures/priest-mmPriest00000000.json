@@ -66,11 +66,19 @@
           "schemaVersion": 1,
           "id": "action:srd-mace",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "attack": {
@@ -154,9 +162,32 @@
               }
             ]
           },
-          "label": "Multiattack"
+          "label": "Multiattack",
+          "targeting": {
+            "type": "none"
+          },
+          "restores": [
+            {
+              "resourceId": "multiattack",
+              "amount": 2
+            }
+          ]
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack",
+              "label": "Multiattack",
+              "maximum": 2,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -171,7 +202,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
             ]
           }
         }
@@ -190,11 +221,19 @@
           "schemaVersion": 1,
           "id": "action:srd-radiant-flame",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "attack": {
@@ -250,17 +289,20 @@
       }
     },
     {
-      "_id": "mmSpellcasting00",
-      "_key": "!actors.items!mmPriest00000000.mmSpellcasting00",
-      "name": "Spellcasting (cast)",
+      "_id": "1a6q9ob8469cp000",
+      "_key": "!actors.items!mmPriest00000000.1a6q9ob8469cp000",
+      "name": "Light",
       "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "img": "icons/sundries/lights/candle-pillar-lit-yellow.webp",
       "system": {
         "active": true,
-        "description": "<p class=\"feature\">The priest casts one of the following spells, using Wisdom as the spellcasting ability:</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Light</em>, <em>Thaumaturgy</em></p><p class=\"feature-trait\"><strong>1/Day:</strong> <em>Spirit Guardians</em></p>",
+        "description": "<p>You touch one Large or smaller object that isn't being worn or carried by someone else. Until the spell ends, the object sheds Bright Light in a 20-foot radius and Dim Light for an additional 20 feet. The light can be colored as you like.</p><p>Covering the object with something opaque blocks the light. The spell ends if you cast it again.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
+          "id": "action:srd-spellcasting-light",
+          "tags": [
+            "spell"
+          ],
           "costs": {
             "allOf": [
               {
@@ -269,7 +311,7 @@
               }
             ]
           },
-          "label": "Spellcasting (cast)"
+          "label": "Light"
         },
         "ruleElements": []
       },
@@ -278,32 +320,36 @@
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
+            "id": "phbsplLight00000",
+            "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
+              "not automated (summon): using it spends its cost; its description says the rest"
             ]
           }
         }
       }
     },
     {
-      "_id": "17svfvloelxmr000",
-      "_key": "!actors.items!mmPriest00000000.17svfvloelxmr000",
-      "name": "Spellcasting (cast)",
+      "_id": "hw1xc155zsus0000",
+      "_key": "!actors.items!mmPriest00000000.hw1xc155zsus0000",
+      "name": "Thaumaturgy",
       "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "img": "icons/environment/people/cleric-orange.webp",
       "system": {
         "active": true,
-        "description": "<p class=\"feature\">The priest casts one of the following spells, using Wisdom as the spellcasting ability:</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Light</em>, <em>Thaumaturgy</em></p><p class=\"feature-trait\"><strong>1/Day:</strong> <em>Spirit Guardians</em></p>",
+        "description": "<p>You manifest a minor wonder within range. You create one of the effects below within range. If you cast this spell multiple times, you can have up to three of its 1-minute effects active at a time.</p><p><strong>Altered Eyes.</strong> You alter the appearance of your eyes for 1 minute.</p><p><strong>Booming Voice.</strong> Your voice booms up to three times as loud as normal for 1 minute. For the duration, you have Advantage on Charisma (Intimidation) check checks.</p><p><strong>Fire Play.</strong> You cause flames to flicker, brighten, dim, or change color for 1 minute.</p><p><strong>Invisible Hand.</strong> You instantaneously cause an unlocked door or window to fly open or slam shut.</p><p><strong>Phantom Sound.</strong> You create an instantaneous sound that originates from a point of your choice within range, such as a rumble of thunder, the cry of a raven, or ominous whispers.</p><p><strong>Tremors.</strong> You cause harmless tremors in the ground for 1 minute.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
+          "id": "action:srd-spellcasting-thaumaturgy",
+          "tags": [
+            "spell"
+          ],
           "costs": {
             "allOf": [
               {
@@ -312,7 +358,45 @@
               }
             ]
           },
-          "label": "Spellcasting (cast)"
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Booming Voice",
+              "img": "icons/environment/people/cleric-orange.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "booming-voice-1",
+                  "type": "RollMode",
+                  "data": {
+                    "domains": [
+                      "check.intimidation"
+                    ],
+                    "mode": "advantage"
+                  }
+                }
+              ],
+              "duration": {
+                "value": 60,
+                "units": "seconds",
+                "expiry": "turnStart"
+              }
+            }
+          ],
+          "label": "Thaumaturgy"
         },
         "ruleElements": []
       },
@@ -321,103 +405,61 @@
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
+            "id": "phbsplThaumaturg",
+            "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
     },
     {
-      "_id": "16ywmso1mzul9w00",
-      "_key": "!actors.items!mmPriest00000000.16ywmso1mzul9w00",
-      "name": "Spellcasting (cast)",
+      "_id": "1pkg30r98of0v000",
+      "_key": "!actors.items!mmPriest00000000.1pkg30r98of0v000",
+      "name": "Spiritual Weapon",
       "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "img": "icons/weapons/axes/axe-double-gold.webp",
       "system": {
         "active": true,
-        "description": "<p class=\"feature\">The priest casts one of the following spells, using Wisdom as the spellcasting ability:</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Light</em>, <em>Thaumaturgy</em></p><p class=\"feature-trait\"><strong>1/Day:</strong> <em>Spirit Guardians</em></p>",
+        "description": "<p>You create a floating, spectral force that resembles a weapon of your choice and lasts for the duration. The force appears within range in a space of your choice, and you can immediately make one melee spell attack against one creature within 5 feet of the force. On a hit, the target takes Force damage equal to 1d8 plus your spellcasting ability modifier.</p><p>As a Bonus Action on your later turns, you can move the force up to 20 feet and repeat the attack against a creature within 5 feet of it.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The damage increases by 1d8 for every slot level above 2.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
+          "id": "action:srd-spellcasting-spiritual-weapon",
+          "tags": [
+            "spell"
+          ],
           "costs": {
             "allOf": [
               {
                 "capability": "action",
                 "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "consumption: activityUses 1 not converted"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "mmDivineAid00000",
-      "_key": "!actors.items!mmPriest00000000.mmDivineAid00000",
-      "name": "Divine Aid (cast)",
-      "type": "action",
-      "img": "icons/magic/life/cross-beam-green.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The priest casts <em>Bless</em>, <em>Dispel Magic</em>, <em>Healing Word</em>, or <em>Lesser Restoration</em>, using the same spellcasting ability as Spellcasting.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-divine-aid",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "bonus-action",
-                "amount": 1
               },
               {
-                "capability": "divine-aid",
+                "capability": "spellcasting-phbsplspiritualw",
                 "amount": 1
               }
             ]
           },
-          "label": "Divine Aid (cast)"
+          "label": "Spiritual Weapon"
         },
         "ruleElements": [
           {
             "schemaVersion": 1,
-            "id": "divine-aid-uses",
+            "id": "spellcasting-phbsplspiritualw-uses",
             "type": "GrantResource",
             "data": {
-              "resourceId": "divine-aid",
-              "label": "Divine Aid",
+              "resourceId": "spellcasting-phbsplspiritualw",
+              "label": "Spellcasting (Spiritual Weapon)",
               "maximum": {
                 "type": "constant",
-                "value": 3
+                "value": 1
               },
-              "recovery": "none"
+              "recovery": "longRest"
             }
           }
         ]
@@ -427,209 +469,24 @@
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "mmDivineAid00000",
-            "type": "feat",
+            "id": "phbsplSpiritualW",
+            "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
+              "not automated (summon): using it spends its cost; its description says the rest"
             ]
           }
         }
       }
     },
     {
-      "_id": "in7k0j15326nh000",
-      "_key": "!actors.items!mmPriest00000000.in7k0j15326nh000",
-      "name": "Divine Aid (cast)",
-      "type": "action",
-      "img": "icons/magic/life/cross-beam-green.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The priest casts <em>Bless</em>, <em>Dispel Magic</em>, <em>Healing Word</em>, or <em>Lesser Restoration</em>, using the same spellcasting ability as Spellcasting.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-divine-aid",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "bonus-action",
-                "amount": 1
-              },
-              {
-                "capability": "divine-aid",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Divine Aid (cast)"
-        },
-        "ruleElements": [
-          {
-            "schemaVersion": 1,
-            "id": "divine-aid-uses",
-            "type": "GrantResource",
-            "data": {
-              "resourceId": "divine-aid",
-              "label": "Divine Aid",
-              "maximum": {
-                "type": "constant",
-                "value": 3
-              },
-              "recovery": "none"
-            }
-          }
-        ]
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmDivineAid00000",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "ix75pi5vly420000",
-      "_key": "!actors.items!mmPriest00000000.ix75pi5vly420000",
-      "name": "Divine Aid (cast)",
-      "type": "action",
-      "img": "icons/magic/life/cross-beam-green.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The priest casts <em>Bless</em>, <em>Dispel Magic</em>, <em>Healing Word</em>, or <em>Lesser Restoration</em>, using the same spellcasting ability as Spellcasting.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-divine-aid",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "bonus-action",
-                "amount": 1
-              },
-              {
-                "capability": "divine-aid",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Divine Aid (cast)"
-        },
-        "ruleElements": [
-          {
-            "schemaVersion": 1,
-            "id": "divine-aid-uses",
-            "type": "GrantResource",
-            "data": {
-              "resourceId": "divine-aid",
-              "label": "Divine Aid",
-              "maximum": {
-                "type": "constant",
-                "value": 3
-              },
-              "recovery": "none"
-            }
-          }
-        ]
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmDivineAid00000",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "j76reh15p9rjr000",
-      "_key": "!actors.items!mmPriest00000000.j76reh15p9rjr000",
-      "name": "Divine Aid (cast)",
-      "type": "action",
-      "img": "icons/magic/life/cross-beam-green.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The priest casts <em>Bless</em>, <em>Dispel Magic</em>, <em>Healing Word</em>, or <em>Lesser Restoration</em>, using the same spellcasting ability as Spellcasting.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-divine-aid",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "bonus-action",
-                "amount": 1
-              },
-              {
-                "capability": "divine-aid",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Divine Aid (cast)"
-        },
-        "ruleElements": [
-          {
-            "schemaVersion": 1,
-            "id": "divine-aid-uses",
-            "type": "GrantResource",
-            "data": {
-              "resourceId": "divine-aid",
-              "label": "Divine Aid",
-              "maximum": {
-                "type": "constant",
-                "value": 3
-              },
-              "recovery": "none"
-            }
-          }
-        ]
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmDivineAid00000",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "pTeocF4StpOtAxCp",
-      "_key": "!actors.items!mmPriest00000000.pTeocF4StpOtAxCp",
+      "_id": "16u2c7s4bagfm000",
+      "_key": "!actors.items!mmPriest00000000.16u2c7s4bagfm000",
       "name": "Bless",
       "type": "action",
       "img": "icons/magic/holy/prayer-hands-glowing-yellow-white.webp",
@@ -638,14 +495,18 @@
         "description": "<p>You bless up to three creatures within range. Whenever a target makes an attack roll or a saving throw before the spell ends, the target adds 1d4 to the attack roll or save.</p><p><strong>Using a Higher-Level Spell Slot.</strong> You can target one additional creature for each spell slot level above 1.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-bless",
+          "id": "action:srd-divine-aid-bless",
           "tags": [
             "spell"
           ],
           "costs": {
             "allOf": [
               {
-                "capability": "action",
+                "capability": "bonus-action",
+                "amount": 1
+              },
+              {
+                "capability": "divine-aid",
                 "amount": 1
               }
             ]
@@ -713,105 +574,36 @@
               "concentration": true
             }
           ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.1",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.1": 1,
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": [
-                {
-                  "type": "scaleTargets",
-                  "levelChoiceId": "spell-slot",
-                  "baseLevel": 1,
-                  "perLevel": 1
-                }
-              ]
-            }
-          ],
           "label": "Bless"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "divine-aid-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "divine-aid",
+              "label": "Divine Aid",
+              "maximum": {
+                "type": "constant",
+                "value": 3
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "pTeocF4StpOtAxCp",
+            "id": "phbsplBless00000",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Divine Aid"
           },
           "conversion": {
             "notes": []
@@ -820,8 +612,8 @@
       }
     },
     {
-      "_id": "08e7KqfpyJGkvCS4",
-      "_key": "!actors.items!mmPriest00000000.08e7KqfpyJGkvCS4",
+      "_id": "13lym29joii87000",
+      "_key": "!actors.items!mmPriest00000000.13lym29joii87000",
       "name": "Dispel Magic",
       "type": "action",
       "img": "icons/skills/melee/sword-damaged-broken-purple.webp",
@@ -830,96 +622,52 @@
         "description": "<p>Choose one creature, object, or magical effect within range. Any ongoing spell of level 3 or lower on the target ends. For each ongoing spell of level 4 or higher on the target, make an ability check using your spellcasting ability (DC 10 plus that spell's level). On a successful check, the spell ends.</p><p><strong>Using a Higher-Level Spell Slot.</strong> You automatically end a spell on the target if the spell's level is equal to or less than the level of the spell slot you use.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-dispel-magic",
+          "id": "action:srd-divine-aid-dispel-magic",
           "tags": [
             "spell"
           ],
           "costs": {
             "allOf": [
               {
-                "capability": "action",
+                "capability": "bonus-action",
+                "amount": 1
+              },
+              {
+                "capability": "divine-aid",
                 "amount": 1
               }
             ]
           },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
           "label": "Dispel Magic"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "divine-aid-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "divine-aid",
+              "label": "Divine Aid",
+              "maximum": {
+                "type": "constant",
+                "value": 3
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "08e7KqfpyJGkvCS4",
+            "id": "phbsplDispelMagi",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Divine Aid"
           },
           "conversion": {
             "notes": [
@@ -930,8 +678,8 @@
       }
     },
     {
-      "_id": "dNeqcysBBxKDW1rB",
-      "_key": "!actors.items!mmPriest00000000.dNeqcysBBxKDW1rB",
+      "_id": "ua92816iqmlr0000",
+      "_key": "!actors.items!mmPriest00000000.ua92816iqmlr0000",
       "name": "Healing Word",
       "type": "action",
       "img": "icons/magic/life/cross-beam-green.webp",
@@ -940,7 +688,7 @@
         "description": "<p>A creature of your choice that you can see within range regains Hit Points equal to 2d4 plus your spellcasting ability modifier.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The healing increases by 2d4 for each spell slot level above 1.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-healing-word",
+          "id": "action:srd-divine-aid-healing-word",
           "tags": [
             "spell"
           ],
@@ -948,6 +696,10 @@
             "allOf": [
               {
                 "capability": "bonus-action",
+                "amount": 1
+              },
+              {
+                "capability": "divine-aid",
                 "amount": 1
               }
             ]
@@ -983,111 +735,36 @@
               "healingType": "healing"
             }
           ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.1",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.1": 1,
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": [
-                {
-                  "type": "scaleHealing",
-                  "levelChoiceId": "spell-slot",
-                  "baseLevel": 1,
-                  "componentIds": [
-                    "healing-1"
-                  ],
-                  "dice": {
-                    "number": 2,
-                    "faces": 4
-                  }
-                }
-              ]
-            }
-          ],
           "label": "Healing Word"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "divine-aid-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "divine-aid",
+              "label": "Divine Aid",
+              "maximum": {
+                "type": "constant",
+                "value": 3
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "dNeqcysBBxKDW1rB",
+            "id": "phbsplHealingWor",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Divine Aid"
           },
           "conversion": {
             "notes": []
@@ -1096,8 +773,8 @@
       }
     },
     {
-      "_id": "91eijThR6aV99Tg5",
-      "_key": "!actors.items!mmPriest00000000.91eijThR6aV99Tg5",
+      "_id": "1hjkd631ps290f00",
+      "_key": "!actors.items!mmPriest00000000.1hjkd631ps290f00",
       "name": "Lesser Restoration",
       "type": "action",
       "img": "icons/magic/holy/prayer-hands-glowing-yellow-green.webp",
@@ -1106,7 +783,7 @@
         "description": "<p>You touch a creature and end one condition on it: Blinded, Deafened, Paralyzed, or Poisoned.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-lesser-restoration",
+          "id": "action:srd-divine-aid-lesser-restoration",
           "tags": [
             "spell"
           ],
@@ -1115,307 +792,47 @@
               {
                 "capability": "bonus-action",
                 "amount": 1
+              },
+              {
+                "capability": "divine-aid",
+                "amount": 1
               }
             ]
           },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
           "label": "Lesser Restoration"
         },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "91eijThR6aV99Tg5",
-            "type": "spell",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "1F6pAxZqnn2QQhTm",
-      "_key": "!actors.items!mmPriest00000000.1F6pAxZqnn2QQhTm",
-      "name": "Light",
-      "type": "action",
-      "img": "icons/sundries/lights/candle-pillar-lit-yellow.webp",
-      "system": {
-        "active": true,
-        "description": "<p>You touch one Large or smaller object that isn't being worn or carried by someone else. Until the spell ends, the object sheds Bright Light in a 20-foot radius and Dim Light for an additional 20 feet. The light can be colored as you like.</p><p>Covering the object with something opaque blocks the light. The spell ends if you cast it again.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-light-cast",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Light"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "1F6pAxZqnn2QQhTm",
-            "type": "spell",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (summon): using it spends its cost; its description says the rest"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "eyBhljnqMxfzc8px",
-      "_key": "!actors.items!mmPriest00000000.eyBhljnqMxfzc8px",
-      "name": "Thaumaturgy",
-      "type": "action",
-      "img": "icons/environment/people/cleric-orange.webp",
-      "system": {
-        "active": true,
-        "description": "<p>You manifest a minor wonder within range. You create one of the effects below within range. If you cast this spell multiple times, you can have up to three of its 1-minute effects active at a time.</p><p><strong>Altered Eyes.</strong> You alter the appearance of your eyes for 1 minute.</p><p><strong>Booming Voice.</strong> Your voice booms up to three times as loud as normal for 1 minute. For the duration, you have Advantage on Charisma (Intimidation) check checks.</p><p><strong>Fire Play.</strong> You cause flames to flicker, brighten, dim, or change color for 1 minute.</p><p><strong>Invisible Hand.</strong> You instantaneously cause an unlocked door or window to fly open or slam shut.</p><p><strong>Phantom Sound.</strong> You create an instantaneous sound that originates from a point of your choice within range, such as a rumble of thunder, the cry of a raven, or ominous whispers.</p><p><strong>Tremors.</strong> You cause harmless tremors in the ground for 1 minute.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-thaumaturgy-cast",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Thaumaturgy"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "eyBhljnqMxfzc8px",
-            "type": "spell",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "KreMwVUMFCVqmF01",
-      "_key": "!actors.items!mmPriest00000000.KreMwVUMFCVqmF01",
-      "name": "Spiritual Weapon",
-      "type": "action",
-      "img": "icons/weapons/axes/axe-double-gold.webp",
-      "system": {
-        "active": true,
-        "description": "<p>You create a floating, spectral force that resembles a weapon of your choice and lasts for the duration. The force appears within range in a space of your choice, and you can immediately make one melee spell attack against one creature within 5 feet of the force. On a hit, the target takes Force damage equal to 1d8 plus your spellcasting ability modifier.</p><p>As a Bonus Action on your later turns, you can move the force up to 20 feet and repeat the attack against a creature within 5 feet of it.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The damage increases by 1d8 for every slot level above 2.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spiritual-weapon",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": [
-              {
-                "capability": "bonus-action",
-                "amount": 1
-              }
-            ]
-          },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "divine-aid-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "divine-aid",
+              "label": "Divine Aid",
+              "maximum": {
+                "type": "constant",
+                "value": 3
               },
-              "levelByResourceId": {
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
+              "recovery": "longRest"
             }
-          ],
-          "label": "Spiritual Weapon"
-        },
-        "ruleElements": []
+          }
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "KreMwVUMFCVqmF01",
+            "id": "phbsplLesserRest",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Divine Aid"
           },
           "conversion": {
             "notes": [
-              "not automated (summon): using it spends its cost; its description says the rest"
+              "not automated (utility): using it spends its cost; its description says the rest"
             ]
           }
         }
@@ -1464,15 +881,9 @@
       },
       "conversion": {
         "notes": [
-          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Spellcasting: not automated (cast): using it spends its cost; its description says the rest",
-          "Spellcasting: consumption: activityUses 1 not converted",
-          "Divine Aid: not automated (cast): using it spends its cost; its description says the rest",
-          "Dispel Magic: not automated (utility): using it spends its cost; its description says the rest",
-          "Lesser Restoration: not automated (utility): using it spends its cost; its description says the rest",
-          "Light: not automated (summon): using it spends its cost; its description says the rest",
-          "Thaumaturgy: not automated (utility): using it spends its cost; its description says the rest",
-          "Spiritual Weapon: not automated (summon): using it spends its cost; its description says the rest"
+          "Spellcasting: not automated (summon): using it spends its cost; its description says the rest",
+          "Divine Aid: not automated (utility): using it spends its cost; its description says the rest",
+          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
         ]
       }
     }

@@ -125,17 +125,38 @@ module packages**. `scripts/content/convert-dnd5e-module.mjs <module-id> --srd <
 - **Enabling them.** Foundry lists a new module only after it scans packages again: return to setup, launch the
   world, and enable the packages under Manage Modules.
 
-Converted on 2026-10-14 (dnd5e 6.0.2 data), as of the effects track (G3):
+Converted on 2026-10-14 (dnd5e 6.0.2 data), as of the monster toolkit (G4):
 
 | Package | Items: automated / manual / features | Creatures |
 | --- | --- | --- |
-| Player's Handbook (2.1.0) | 319 / 432 / 409 | 127 |
-| Dungeon Master's Guide (2.0.0) | 83 / 163 / 52 | 71 |
-| Monster Manual (1.3.0) | 433 / 185 / 134 | 504 |
+| Player's Handbook (2.1.0) | 320 / 431 / 409 | 127 |
+| Dungeon Master's Guide (2.0.0) | 122 / 124 / 52 | 71 |
+| Monster Manual (1.3.0) | 472 / 146 / 134 | 504 |
 | Tasha's Cauldron of Everything (3.0.0, 2014 rules) | 83 / 158 / 190 | 124 |
 
 Each package was read back with the Foundry CLI, and every art path resolves on disk. They have not been opened
 in Foundry yet; that waits for the next world launch.
+
+### The monster toolkit (G4)
+
+- **Multiattack.**
+  - The attack count comes from its text: "makes three Rend attacks", "one Bite attack and two Claw attacks", the
+    first alternative of ", or".
+  - Multiattack costs the Action and restores a "Multiattack" pool of that many uses. The pool starts empty and
+    empties at the start of each turn.
+  - Each of the creature's attack Actions costs one Multiattack use, or the Action.
+
+  Shortcut: any of its attacks may be each of them, whatever the text names. Its other parts ("and uses Frightful
+  Presence") are used by hand.
+- **Spellcasting.**
+  - A cast activity becomes its spell's Action, converted with the creature's save DC and casting ability.
+  - It costs the activity's activation and its own uses ("2/Day each"), or an item's charges, never a slot.
+  - dnd5e's cached copies of those spells are left out.
+- **Uses.**
+  - Each activity with uses has a pool of its own.
+  - "Day" and "dawn" recover on a long rest.
+  - Recharge is rolled at the start of the creature's turn.
+- **Item references** by name (`[[/item Rend]]`) keep their name in descriptions.
 
 ### Effects with their own changes (G3)
 

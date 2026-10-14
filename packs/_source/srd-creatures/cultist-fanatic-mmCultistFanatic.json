@@ -139,361 +139,8 @@
       }
     },
     {
-      "_id": "mmSpellcasting00",
-      "_key": "!actors.items!mmCultistFanatic.mmSpellcasting00",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The cultist fanatic casts one of the following spells, using Wisdom as the spellcasting ability (spell save DC , +4 to hit with spell attacks):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Light</em>, <em>Thaumaturgy</em></p><p class=\"feature-trait\"><strong>2/Day:</strong> <em>Command</em></p><p class=\"feature-trait\"><strong>1/Day:</strong> <em>Hold Person</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "17svfvloelxmr000",
-      "_key": "!actors.items!mmCultistFanatic.17svfvloelxmr000",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The cultist fanatic casts one of the following spells, using Wisdom as the spellcasting ability (spell save DC , +4 to hit with spell attacks):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Light</em>, <em>Thaumaturgy</em></p><p class=\"feature-trait\"><strong>2/Day:</strong> <em>Command</em></p><p class=\"feature-trait\"><strong>1/Day:</strong> <em>Hold Person</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "16ywmso1mzul9w00",
-      "_key": "!actors.items!mmCultistFanatic.16ywmso1mzul9w00",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The cultist fanatic casts one of the following spells, using Wisdom as the spellcasting ability (spell save DC , +4 to hit with spell attacks):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Light</em>, <em>Thaumaturgy</em></p><p class=\"feature-trait\"><strong>2/Day:</strong> <em>Command</em></p><p class=\"feature-trait\"><strong>1/Day:</strong> <em>Hold Person</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "consumption: activityUses 1 not converted"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "178w8hnnsecqh000",
-      "_key": "!actors.items!mmCultistFanatic.178w8hnnsecqh000",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The cultist fanatic casts one of the following spells, using Wisdom as the spellcasting ability (spell save DC , +4 to hit with spell attacks):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Light</em>, <em>Thaumaturgy</em></p><p class=\"feature-trait\"><strong>2/Day:</strong> <em>Command</em></p><p class=\"feature-trait\"><strong>1/Day:</strong> <em>Hold Person</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "consumption: activityUses 1 not converted"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "mmSpiritualWeapo",
-      "_key": "!actors.items!mmCultistFanatic.mmSpiritualWeapo",
-      "name": "Spiritual Weapon",
-      "type": "action",
-      "img": "icons/weapons/axes/axe-double-gold.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The cultist fanatic casts the <em>Spiritual Weapon</em> spell, using the same spellcasting ability as Spellcasting.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spiritual-weapon",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "bonus-action",
-                "amount": 1
-              },
-              {
-                "capability": "spiritual-weapon",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spiritual Weapon"
-        },
-        "ruleElements": [
-          {
-            "schemaVersion": 1,
-            "id": "spiritual-weapon-uses",
-            "type": "GrantResource",
-            "data": {
-              "resourceId": "spiritual-weapon",
-              "label": "Spiritual Weapon",
-              "maximum": {
-                "type": "constant",
-                "value": 2
-              },
-              "recovery": "none"
-            }
-          }
-        ]
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpiritualWeapo",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "z817Et9IPt6qHawH",
-      "_key": "!actors.items!mmCultistFanatic.z817Et9IPt6qHawH",
-      "name": "Spiritual Weapon",
-      "type": "action",
-      "img": "icons/weapons/axes/axe-double-gold.webp",
-      "system": {
-        "active": true,
-        "description": "<p>You create a floating, spectral force that resembles a weapon of your choice and lasts for the duration. The force appears within range in a space of your choice, and you can immediately make one melee spell attack against one creature within 5 feet of the force. On a hit, the target takes Force damage equal to 1d8 plus your spellcasting ability modifier.</p><p>As a Bonus Action on your later turns, you can move the force up to 20 feet and repeat the attack against a creature within 5 feet of it.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The damage increases by 1d8 for every slot level above 2.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spiritual-weapon",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": [
-              {
-                "capability": "bonus-action",
-                "amount": 1
-              }
-            ]
-          },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
-          "label": "Spiritual Weapon"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "z817Et9IPt6qHawH",
-            "type": "spell",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (summon): using it spends its cost; its description says the rest"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "7Hk3xmtV1lhTEMu6",
-      "_key": "!actors.items!mmCultistFanatic.7Hk3xmtV1lhTEMu6",
+      "_id": "1a6q9ob8469cp000",
+      "_key": "!actors.items!mmCultistFanatic.1a6q9ob8469cp000",
       "name": "Light",
       "type": "action",
       "img": "icons/sundries/lights/candle-pillar-lit-yellow.webp",
@@ -502,7 +149,7 @@
         "description": "<p>You touch one Large or smaller object that isn't being worn or carried by someone else. Until the spell ends, the object sheds Bright Light in a 20-foot radius and Dim Light for an additional 20 feet. The light can be colored as you like.</p><p>Covering the object with something opaque blocks the light. The spell ends if you cast it again.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-light-cast",
+          "id": "action:srd-spellcasting-light",
           "tags": [
             "spell"
           ],
@@ -523,11 +170,12 @@
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "7Hk3xmtV1lhTEMu6",
+            "id": "phbsplLight00000",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
@@ -538,8 +186,8 @@
       }
     },
     {
-      "_id": "XLyCWW9vPAQwvaGr",
-      "_key": "!actors.items!mmCultistFanatic.XLyCWW9vPAQwvaGr",
+      "_id": "ia0ev0g0kvv00000",
+      "_key": "!actors.items!mmCultistFanatic.ia0ev0g0kvv00000",
       "name": "Thaumaturgy",
       "type": "action",
       "img": "icons/environment/people/cleric-orange.webp",
@@ -548,7 +196,7 @@
         "description": "<p>You manifest a minor wonder within range. You create one of the effects below within range. If you cast this spell multiple times, you can have up to three of its 1-minute effects active at a time.</p><p><strong>Altered Eyes.</strong> You alter the appearance of your eyes for 1 minute.</p><p><strong>Booming Voice.</strong> Your voice booms up to three times as loud as normal for 1 minute. For the duration, you have Advantage on Charisma (Intimidation) check checks.</p><p><strong>Fire Play.</strong> You cause flames to flicker, brighten, dim, or change color for 1 minute.</p><p><strong>Invisible Hand.</strong> You instantaneously cause an unlocked door or window to fly open or slam shut.</p><p><strong>Phantom Sound.</strong> You create an instantaneous sound that originates from a point of your choice within range, such as a rumble of thunder, the cry of a raven, or ominous whispers.</p><p><strong>Tremors.</strong> You cause harmless tremors in the ground for 1 minute.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-thaumaturgy-cast",
+          "id": "action:srd-spellcasting-thaumaturgy",
           "tags": [
             "spell"
           ],
@@ -560,6 +208,44 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Booming Voice",
+              "img": "icons/environment/people/cleric-orange.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "booming-voice-1",
+                  "type": "RollMode",
+                  "data": {
+                    "domains": [
+                      "check.intimidation"
+                    ],
+                    "mode": "advantage"
+                  }
+                }
+              ],
+              "duration": {
+                "value": 60,
+                "units": "seconds",
+                "expiry": "turnStart"
+              }
+            }
+          ],
           "label": "Thaumaturgy"
         },
         "ruleElements": []
@@ -569,23 +255,22 @@
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "XLyCWW9vPAQwvaGr",
+            "id": "phbsplThaumaturg",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
     },
     {
-      "_id": "uW5SgMN0N4BGrkkl",
-      "_key": "!actors.items!mmCultistFanatic.uW5SgMN0N4BGrkkl",
+      "_id": "klcfztpg7k1t0000",
+      "_key": "!actors.items!mmCultistFanatic.klcfztpg7k1t0000",
       "name": "Command",
       "type": "action",
       "img": "icons/magic/sonic/scream-wail-shout-teal.webp",
@@ -594,7 +279,7 @@
         "description": "<p>You speak a one-word command to a creature you can see within range. The target must succeed on a Wisdom saving throw or follow the command on its next turn. Choose the command from these options:</p><p><strong>Approach.</strong> The target moves toward you by the shortest and most direct route, ending its turn if it moves within 5 feet of you.</p><p><strong>Drop.</strong> The target drops whatever it is holding and then ends its turn.</p><p><strong>Flee.</strong> The target spends its turn moving away from you by the fastest available means.</p><p><strong>Grovel.</strong> The target has the Prone condition and then ends its turn.</p><p><strong>Halt.</strong> On its turn, the target doesn't move and takes no action or Bonus Action.</p><p><strong>Using a Higher-Level Spell Slot.</strong> You can affect one additional creature for each spell slot level above 1.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-command",
+          "id": "action:srd-spellcasting-command",
           "tags": [
             "spell"
           ],
@@ -603,101 +288,43 @@
               {
                 "capability": "action",
                 "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplcommand000",
+                "amount": 1
               }
             ]
           },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.1",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.1": 1,
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
           "label": "Command"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "spellcasting-phbsplcommand000-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "spellcasting-phbsplcommand000",
+              "label": "Spellcasting (Command)",
+              "maximum": {
+                "type": "constant",
+                "value": 2
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "uW5SgMN0N4BGrkkl",
+            "id": "phbsplCommand000",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
@@ -708,8 +335,8 @@
       }
     },
     {
-      "_id": "usukVMEiBvOYV5GI",
-      "_key": "!actors.items!mmCultistFanatic.usukVMEiBvOYV5GI",
+      "_id": "3fn44118ezwxd000",
+      "_key": "!actors.items!mmCultistFanatic.3fn44118ezwxd000",
       "name": "Hold Person",
       "type": "action",
       "img": "icons/magic/control/encase-creature-humanoid-hold.webp",
@@ -718,7 +345,7 @@
         "description": "<p>Choose a Humanoid that you can see within range. The target must succeed on a Wisdom saving throw or have the Paralyzed condition for the duration. At the end of each of its turns, the target repeats the save, ending the spell on itself on a success.</p><p><strong>Using a Higher-Level Spell Slot.</strong> You can target one additional Humanoid for each spell slot level above 2.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-hold-person",
+          "id": "action:srd-spellcasting-hold-person",
           "tags": [
             "spell"
           ],
@@ -726,6 +353,10 @@
             "allOf": [
               {
                 "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplholdperson",
                 "amount": 1
               }
             ]
@@ -757,101 +388,105 @@
               "concentration": true
             }
           ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": [
-                {
-                  "type": "scaleTargets",
-                  "levelChoiceId": "spell-slot",
-                  "baseLevel": 2,
-                  "perLevel": 1
-                }
-              ]
-            }
-          ],
           "label": "Hold Person"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "spellcasting-phbsplholdperson-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "spellcasting-phbsplholdperson",
+              "label": "Spellcasting (Hold Person)",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "usukVMEiBvOYV5GI",
+            "id": "phbsplHoldPerson",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "9dwbp618q0n7s000",
+      "_key": "!actors.items!mmCultistFanatic.9dwbp618q0n7s000",
+      "name": "Spiritual Weapon",
+      "type": "action",
+      "img": "icons/weapons/axes/axe-double-gold.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You create a floating, spectral force that resembles a weapon of your choice and lasts for the duration. The force appears within range in a space of your choice, and you can immediately make one melee spell attack against one creature within 5 feet of the force. On a hit, the target takes Force damage equal to 1d8 plus your spellcasting ability modifier.</p><p>As a Bonus Action on your later turns, you can move the force up to 20 feet and repeat the attack against a creature within 5 feet of it.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The damage increases by 1d8 for every slot level above 2.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spiritual-weapon-spiritual-weapon",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              },
+              {
+                "capability": "spiritual-weapon",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Spiritual Weapon"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "spiritual-weapon-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "spiritual-weapon",
+              "label": "Spiritual Weapon",
+              "maximum": {
+                "type": "constant",
+                "value": 2
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbsplSpiritualW",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024",
+            "castBy": "Spiritual Weapon"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (summon): using it spends its cost; its description says the rest"
+            ]
           }
         }
       }
@@ -900,13 +535,9 @@
       "conversion": {
         "notes": [
           "Pact Blade: damage: versatile two-handed damage not converted",
-          "Spellcasting: not automated (cast): using it spends its cost; its description says the rest",
-          "Spellcasting: consumption: activityUses 1 not converted",
-          "Spiritual Weapon: not automated (cast): using it spends its cost; its description says the rest",
-          "Spiritual Weapon: not automated (summon): using it spends its cost; its description says the rest",
-          "Light: not automated (summon): using it spends its cost; its description says the rest",
-          "Thaumaturgy: not automated (utility): using it spends its cost; its description says the rest",
-          "Command: not automated (save): using it spends its cost; its description says the rest"
+          "Spellcasting: not automated (summon): using it spends its cost; its description says the rest",
+          "Spellcasting: not automated (save): using it spends its cost; its description says the rest",
+          "Spiritual Weapon: not automated (summon): using it spends its cost; its description says the rest"
         ]
       }
     }

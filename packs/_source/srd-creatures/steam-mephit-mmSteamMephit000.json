@@ -296,7 +296,8 @@
                 "type": "constant",
                 "value": 1
               },
-              "recovery": "none"
+              "recovery": "none",
+              "recharge": 6
             }
           }
         ]
@@ -314,7 +315,6 @@
           },
           "conversion": {
             "notes": [
-              "uses: Recharge 6 is not rolled; refill the pool by hand",
               "effect: \"Slowed: 10 ft.\" change system.attributes.movement.fly (add) not converted",
               "effect: \"Slowed: 10 ft.\" change system.attributes.movement.swim (add) not converted",
               "effect: \"Slowed: 10 ft.\" change system.attributes.movement.burrow (add) not converted",
@@ -391,7 +391,6 @@
       "conversion": {
         "notes": [
           "Death Burst: \"save\" is passive or triggered: not automated",
-          "Steam Breath: uses: Recharge 6 is not rolled; refill the pool by hand",
           "Steam Breath: effect: \"Slowed: 10 ft.\" change system.attributes.movement.fly (add) not converted",
           "Steam Breath: effect: \"Slowed: 10 ft.\" change system.attributes.movement.swim (add) not converted",
           "Steam Breath: effect: \"Slowed: 10 ft.\" change system.attributes.movement.burrow (add) not converted",

@@ -96,11 +96,19 @@
           "schemaVersion": 1,
           "id": "action:srd-restless-touch",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "attack": {
@@ -177,9 +185,32 @@
               }
             ]
           },
-          "label": "Multiattack"
+          "label": "Multiattack",
+          "targeting": {
+            "type": "none"
+          },
+          "restores": [
+            {
+              "resourceId": "multiattack",
+              "amount": 2
+            }
+          ]
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack",
+              "label": "Multiattack",
+              "maximum": 2,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -194,24 +225,27 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
             ]
           }
         }
       }
     },
     {
-      "_id": "mmSpellcasting00",
-      "_key": "!actors.items!mmIncubus0000000.mmSpellcasting00",
-      "name": "Spellcasting (cast)",
+      "_id": "1a6q9ob8469cp000",
+      "_key": "!actors.items!mmIncubus0000000.1a6q9ob8469cp000",
+      "name": "Disguise Self",
       "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "img": "icons/equipment/head/mask-carved-bird-grey-pink.webp",
       "system": {
         "active": true,
-        "description": "<p class=\"feature\">The incubus casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Disguise Self</em>, <em>Etherealness</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Dream</em>, <em>Hypnotic Pattern</em></p>",
+        "description": "<p>You make yourself—including your clothing, armor, weapons, and other belongings on your person—look different until the spell ends. You can seem 1 foot shorter or taller and can appear heavier or lighter. You must adopt a form that has the same basic arrangement of limbs as you have. Otherwise, the extent of the illusion is up to you.</p><p>The changes wrought by this spell fail to hold up to physical inspection. For example, if you use this spell to add a hat to your outfit, objects pass through the hat, and anyone who touches it would feel nothing.</p><p>To discern that you are disguised, a creature must take the Study action to inspect your appearance and succeed on an DC @attributes.spell.dc Intelligence (Investigation) check check against your spell save DC.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
+          "id": "action:srd-spellcasting-disguise-self",
+          "tags": [
+            "spell"
+          ],
           "costs": {
             "allOf": [
               {
@@ -220,7 +254,7 @@
               }
             ]
           },
-          "label": "Spellcasting (cast)"
+          "label": "Disguise Self"
         },
         "ruleElements": []
       },
@@ -229,32 +263,37 @@
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
+            "id": "phbsplDisguiseSe",
+            "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "effect: \"Disguised\" (its own changes) not converted"
             ]
           }
         }
       }
     },
     {
-      "_id": "17svfvloelxmr000",
-      "_key": "!actors.items!mmIncubus0000000.17svfvloelxmr000",
-      "name": "Spellcasting (cast)",
+      "_id": "17ndme5jez1jd000",
+      "_key": "!actors.items!mmIncubus0000000.17ndme5jez1jd000",
+      "name": "Etherealness",
       "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "img": "icons/magic/air/wind-vortex-swirl-purple.webp",
       "system": {
         "active": true,
-        "description": "<p class=\"feature\">The incubus casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Disguise Self</em>, <em>Etherealness</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Dream</em>, <em>Hypnotic Pattern</em></p>",
+        "description": "<p>You step into the border regions of the Ethereal Plane, where it overlaps with your current plane. You remain in the Border Ethereal for the duration. During this time, you can move in any direction. If you move up or down, every foot of movement costs an extra foot. You can perceive the plane you left, which looks gray, and you can't see anything there more than 60 feet away.</p><p>While on the Ethereal Plane, you can affect and be affected only by creatures, objects, and effects on that plane. Creatures that aren't on the Ethereal Plane can't perceive or interact with you unless a feature gives them the ability to do so.</p><p>When the spell ends, you return to the plane you left in the spot that corresponds to your space in the Border Ethereal. If you appear in an occupied space, you are shunted to the nearest unoccupied space and take Force damage equal to twice the number of feet you are moved.</p><p>This spell ends instantly if you cast it while you are on the Ethereal Plane or a plane that doesn't border it, such as one of the Outer Planes.</p><p><strong>Using a Higher-Level Spell Slot.</strong>You can target up to three willing creatures (including yourself) for each spell slot level above 7. The creatures must be within 10 feet of you when you cast the spell.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
+          "id": "action:srd-spellcasting-etherealness",
+          "tags": [
+            "spell"
+          ],
           "costs": {
             "allOf": [
               {
@@ -263,7 +302,7 @@
               }
             ]
           },
-          "label": "Spellcasting (cast)"
+          "label": "Etherealness"
         },
         "ruleElements": []
       },
@@ -272,103 +311,226 @@
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
+            "id": "phbsplEtherealne",
+            "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "effect: ethereal is not a WildPath condition yet"
             ]
           }
         }
       }
     },
     {
-      "_id": "16ywmso1mzul9w00",
-      "_key": "!actors.items!mmIncubus0000000.16ywmso1mzul9w00",
-      "name": "Spellcasting (cast)",
+      "_id": "11v4xgo1d7jjk000",
+      "_key": "!actors.items!mmIncubus0000000.11v4xgo1d7jjk000",
+      "name": "Dream",
       "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "img": "icons/magic/control/sleep-bubble-purple.webp",
       "system": {
         "active": true,
-        "description": "<p class=\"feature\">The incubus casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Disguise Self</em>, <em>Etherealness</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Dream</em>, <em>Hypnotic Pattern</em></p>",
+        "description": "<p>You target a creature you know on the same plane of existence. You or a willing creature you touch enters a trance state to act as a dream messenger. While in the trance, the messenger is Incapacitated and has a Speed of 0.</p><p>If the target is asleep, the messenger appears in the target's dreams and can converse with the target as long as it remains asleep, through the spell's duration. The messenger can also shape the dream's environment, creating landscapes, objects, and other images. The messenger can emerge from the trance at any time, ending the spell. The target recalls the dream perfectly upon waking.</p><p>If the target is awake when you cast the spell, the messenger knows it and can either end the trance (and the spell) or wait for the target to sleep, at which point the messenger enters its dreams.</p><p>You can make the messenger terrifying to the target. If you do so, the messenger can deliver a message of no more than ten words, and then the target makes a Wisdom saving throw. On a failed save, the target gains no benefit from its rest, and it takes 3d6 Psychic damage when it wakes up.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
+          "id": "action:srd-spellcasting-dream",
+          "tags": [
+            "spell"
+          ],
           "costs": {
             "allOf": [
               {
                 "capability": "action",
                 "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbspldream00000",
+                "amount": 1
               }
             ]
           },
-          "label": "Spellcasting (cast)"
+          "range": {
+            "type": "special"
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "value": 15
+            }
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 3,
+                "faces": 6
+              },
+              "damageType": "psychic",
+              "provenance": "spell-base",
+              "saveOutcomePolicy": {
+                "success": "half",
+                "failure": "full"
+              }
+            }
+          ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "incapacitated",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
+          "label": "Dream"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "spellcasting-phbspldream00000-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "spellcasting-phbspldream00000",
+              "label": "Spellcasting (Dream)",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
+            "id": "phbsplDream00000",
+            "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "consumption: activityUses 1 not converted"
+              "activation: 1 minute is not an action-economy cost",
+              "effect: \"Trance State\" change system.attributes.movement.multiplier (override) not converted"
             ]
           }
         }
       }
     },
     {
-      "_id": "178w8hnnsecqh000",
-      "_key": "!actors.items!mmIncubus0000000.178w8hnnsecqh000",
-      "name": "Spellcasting (cast)",
+      "_id": "axju1y1wu6yl4000",
+      "_key": "!actors.items!mmIncubus0000000.axju1y1wu6yl4000",
+      "name": "Hypnotic Pattern",
       "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "img": "icons/magic/control/hypnosis-mesmerism-swirl.webp",
       "system": {
         "active": true,
-        "description": "<p class=\"feature\">The incubus casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Disguise Self</em>, <em>Etherealness</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Dream</em>, <em>Hypnotic Pattern</em></p>",
+        "description": "<p>You create a twisting pattern of colors in a 30-foot Cube within range. The pattern appears for a moment and vanishes. Each creature in the area who can see the pattern must succeed on a Wisdom saving throw or have the Charmed condition for the duration. While Charmed, the creature has the Incapacitated condition and a Speed of 0.</p><p>The spell ends for an affected creature if it takes any damage or if someone else uses an action to shake the creature out of its stupor.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
+          "id": "action:srd-spellcasting-hypnotic-pattern",
+          "tags": [
+            "spell"
+          ],
           "costs": {
             "allOf": [
               {
                 "capability": "action",
                 "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplhypnoticpa",
+                "amount": 1
               }
             ]
           },
-          "label": "Spellcasting (cast)"
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 120,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "multiple",
+            "required": true,
+            "count": 20,
+            "refinementPolicy": {
+              "minSelections": 1
+            }
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "value": 15
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "charmed",
+              "saveOutcomePolicy": "failure",
+              "concentration": true
+            },
+            {
+              "id": "effect-2",
+              "type": "condition",
+              "conditionId": "incapacitated",
+              "saveOutcomePolicy": "failure",
+              "concentration": true
+            }
+          ],
+          "label": "Hypnotic Pattern"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "spellcasting-phbsplhypnoticpa-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "spellcasting-phbsplhypnoticpa",
+              "label": "Spellcasting (Hypnotic Pattern)",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
+            "id": "phbsplHypnoticPa",
+            "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "consumption: activityUses 1 not converted"
+              "area: 30-ft cube is not supported; the user picks the targets",
+              "effect: \"Hypnotized\" change system.attributes.movement.multiplier (override) not converted"
             ]
           }
         }
@@ -454,7 +616,8 @@
                 "type": "constant",
                 "value": 1
               },
-              "recovery": "none"
+              "recovery": "none",
+              "recharge": 6
             }
           }
         ]
@@ -471,549 +634,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "uses: Recharge 6 is not rolled; refill the pool by hand"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "Epzabor9RV5yUeqA",
-      "_key": "!actors.items!mmIncubus0000000.Epzabor9RV5yUeqA",
-      "name": "Disguise Self",
-      "type": "action",
-      "img": "icons/equipment/head/mask-carved-bird-grey-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p>You make yourself—including your clothing, armor, weapons, and other belongings on your person—look different until the spell ends. You can seem 1 foot shorter or taller and can appear heavier or lighter. You must adopt a form that has the same basic arrangement of limbs as you have. Otherwise, the extent of the illusion is up to you.</p><p>The changes wrought by this spell fail to hold up to physical inspection. For example, if you use this spell to add a hat to your outfit, objects pass through the hat, and anyone who touches it would feel nothing.</p><p>To discern that you are disguised, a creature must take the Study action to inspect your appearance and succeed on an DC @attributes.spell.dc Intelligence (Investigation) check check against your spell save DC.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-disguise-self-cast",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.1",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.1": 1,
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
-          "label": "Disguise Self"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "Epzabor9RV5yUeqA",
-            "type": "spell",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "effect: \"Disguised\" (its own changes) not converted"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "cuHZ2sYkluUF9oHO",
-      "_key": "!actors.items!mmIncubus0000000.cuHZ2sYkluUF9oHO",
-      "name": "Etherealness",
-      "type": "action",
-      "img": "icons/magic/air/wind-vortex-swirl-purple.webp",
-      "system": {
-        "active": true,
-        "description": "<p>You step into the border regions of the Ethereal Plane, where it overlaps with your current plane. You remain in the Border Ethereal for the duration. During this time, you can move in any direction. If you move up or down, every foot of movement costs an extra foot. You can perceive the plane you left, which looks gray, and you can't see anything there more than 60 feet away.</p><p>While on the Ethereal Plane, you can affect and be affected only by creatures, objects, and effects on that plane. Creatures that aren't on the Ethereal Plane can't perceive or interact with you unless a feature gives them the ability to do so.</p><p>When the spell ends, you return to the plane you left in the spot that corresponds to your space in the Border Ethereal. If you appear in an occupied space, you are shunted to the nearest unoccupied space and take Force damage equal to twice the number of feet you are moved.</p><p>This spell ends instantly if you cast it while you are on the Ethereal Plane or a plane that doesn't border it, such as one of the Outer Planes.</p><p><strong>Using a Higher-Level Spell Slot.</strong>You can target up to three willing creatures (including yourself) for each spell slot level above 7. The creatures must be within 10 feet of you when you cast the spell.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-etherealness-enter-border-ethereal",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
-          "label": "Etherealness"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "cuHZ2sYkluUF9oHO",
-            "type": "spell",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "effect: ethereal is not a WildPath condition yet"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "CM68DGw3MVinKTAz",
-      "_key": "!actors.items!mmIncubus0000000.CM68DGw3MVinKTAz",
-      "name": "Dream",
-      "type": "action",
-      "img": "icons/magic/control/sleep-bubble-purple.webp",
-      "system": {
-        "active": true,
-        "description": "<p>You target a creature you know on the same plane of existence. You or a willing creature you touch enters a trance state to act as a dream messenger. While in the trance, the messenger is Incapacitated and has a Speed of 0.</p><p>If the target is asleep, the messenger appears in the target's dreams and can converse with the target as long as it remains asleep, through the spell's duration. The messenger can also shape the dream's environment, creating landscapes, objects, and other images. The messenger can emerge from the trance at any time, ending the spell. The target recalls the dream perfectly upon waking.</p><p>If the target is awake when you cast the spell, the messenger knows it and can either end the trance (and the spell) or wait for the target to sleep, at which point the messenger enters its dreams.</p><p>You can make the messenger terrifying to the target. If you do so, the messenger can deliver a message of no more than ten words, and then the target makes a Wisdom saving throw. On a failed save, the target gains no benefit from its rest, and it takes 3d6 Psychic damage when it wakes up.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-dream",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": []
-          },
-          "range": {
-            "type": "special"
-          },
-          "targeting": {
-            "type": "single",
-            "required": true,
-            "count": 1
-          },
-          "save": {
-            "ability": "wits",
-            "dc": {
-              "value": 15
-            }
-          },
-          "damage": [
-            {
-              "id": "damage-1",
-              "expression": {
-                "type": "dice",
-                "number": 3,
-                "faces": 6
-              },
-              "damageType": "psychic",
-              "provenance": "spell-base",
-              "saveOutcomePolicy": {
-                "success": "half",
-                "failure": "full"
-              }
-            }
-          ],
-          "effects": [
-            {
-              "id": "effect-1",
-              "type": "condition",
-              "conditionId": "incapacitated",
-              "saveOutcomePolicy": "failure"
-            },
-            {
-              "id": "effect-2",
-              "type": "effect",
-              "name": "Trance State",
-              "img": "icons/magic/control/hypnosis-mesmerism-eye-tan.webp",
-              "ruleElements": [
-                {
-                  "schemaVersion": 1,
-                  "id": "trance-state-1",
-                  "type": "ResourceCap",
-                  "data": {
-                    "resources": [
-                      "movement"
-                    ],
-                    "maximum": 0
-                  }
-                }
-              ],
-              "duration": {
-                "value": 28800,
-                "units": "seconds",
-                "expiry": "turnStart"
-              },
-              "saveOutcomePolicy": "failure"
-            }
-          ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
-          "label": "Dream"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "CM68DGw3MVinKTAz",
-            "type": "spell",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "activation: 1 minute is not an action-economy cost",
-              "effect: \"Trance State\" change system.attributes.movement.fly (downgrade) not converted",
-              "effect: \"Trance State\" change system.attributes.movement.swim (downgrade) not converted",
-              "effect: \"Trance State\" change system.attributes.movement.burrow (downgrade) not converted",
-              "effect: \"Trance State\" change system.attributes.movement.climb (downgrade) not converted"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "4pZ322c02dDoRQXF",
-      "_key": "!actors.items!mmIncubus0000000.4pZ322c02dDoRQXF",
-      "name": "Hypnotic Pattern",
-      "type": "action",
-      "img": "icons/magic/control/hypnosis-mesmerism-swirl.webp",
-      "system": {
-        "active": true,
-        "description": "<p>You create a twisting pattern of colors in a 30-foot Cube within range. The pattern appears for a moment and vanishes. Each creature in the area who can see the pattern must succeed on a Wisdom saving throw or have the Charmed condition for the duration. While Charmed, the creature has the Incapacitated condition and a Speed of 0.</p><p>The spell ends for an affected creature if it takes any damage or if someone else uses an action to shake the creature out of its stupor.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-hypnotic-pattern",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "range": {
-            "type": "ranged",
-            "normal": {
-              "value": 120,
-              "unit": "ft"
-            }
-          },
-          "targeting": {
-            "type": "multiple",
-            "required": true,
-            "count": 20,
-            "refinementPolicy": {
-              "minSelections": 1
-            }
-          },
-          "save": {
-            "ability": "wits",
-            "dc": {
-              "value": 15
-            }
-          },
-          "effects": [
-            {
-              "id": "effect-1",
-              "type": "condition",
-              "conditionId": "charmed",
-              "saveOutcomePolicy": "failure"
-            },
-            {
-              "id": "effect-2",
-              "type": "condition",
-              "conditionId": "incapacitated",
-              "saveOutcomePolicy": "failure"
-            },
-            {
-              "id": "effect-3",
-              "type": "effect",
-              "name": "Hypnotized",
-              "img": "icons/magic/control/hypnosis-mesmerism-eye-tan.webp",
-              "ruleElements": [
-                {
-                  "schemaVersion": 1,
-                  "id": "hypnotized-1",
-                  "type": "ResourceCap",
-                  "data": {
-                    "resources": [
-                      "movement"
-                    ],
-                    "maximum": 0
-                  }
-                }
-              ],
-              "duration": {
-                "value": 60,
-                "units": "seconds",
-                "expiry": "turnStart"
-              },
-              "saveOutcomePolicy": "failure"
-            }
-          ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
-          "label": "Hypnotic Pattern"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "4pZ322c02dDoRQXF",
-            "type": "spell",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "area: 30-ft cube is not supported; the user picks the targets",
-              "effect: \"Hypnotized\" change system.attributes.movement.burrow (downgrade) not converted",
-              "effect: \"Hypnotized\" change system.attributes.movement.climb (downgrade) not converted",
-              "effect: \"Hypnotized\" change system.attributes.movement.fly (downgrade) not converted",
-              "effect: \"Hypnotized\" change system.attributes.movement.swim (downgrade) not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -1077,24 +698,14 @@
         "notes": [
           "Succubus Form: \"Shape-Shift: Succubus\" is passive or triggered: not automated",
           "Restless Touch: effect: cursed is not a WildPath condition yet",
-          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Spellcasting: not automated (cast): using it spends its cost; its description says the rest",
-          "Spellcasting: consumption: activityUses 1 not converted",
-          "Nightmare: uses: Recharge 6 is not rolled; refill the pool by hand",
-          "Disguise Self: not automated (utility): using it spends its cost; its description says the rest",
-          "Disguise Self: effect: \"Disguised\" (its own changes) not converted",
-          "Etherealness: not automated (utility): using it spends its cost; its description says the rest",
-          "Etherealness: effect: ethereal is not a WildPath condition yet",
-          "Dream: activation: 1 minute is not an action-economy cost",
-          "Dream: effect: \"Trance State\" change system.attributes.movement.fly (downgrade) not converted",
-          "Dream: effect: \"Trance State\" change system.attributes.movement.swim (downgrade) not converted",
-          "Dream: effect: \"Trance State\" change system.attributes.movement.burrow (downgrade) not converted",
-          "Dream: effect: \"Trance State\" change system.attributes.movement.climb (downgrade) not converted",
-          "Hypnotic Pattern: area: 30-ft cube is not supported; the user picks the targets",
-          "Hypnotic Pattern: effect: \"Hypnotized\" change system.attributes.movement.burrow (downgrade) not converted",
-          "Hypnotic Pattern: effect: \"Hypnotized\" change system.attributes.movement.climb (downgrade) not converted",
-          "Hypnotic Pattern: effect: \"Hypnotized\" change system.attributes.movement.fly (downgrade) not converted",
-          "Hypnotic Pattern: effect: \"Hypnotized\" change system.attributes.movement.swim (downgrade) not converted"
+          "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
+          "Spellcasting: effect: \"Disguised\" (its own changes) not converted",
+          "Spellcasting: effect: ethereal is not a WildPath condition yet",
+          "Spellcasting: activation: 1 minute is not an action-economy cost",
+          "Spellcasting: effect: \"Trance State\" change system.attributes.movement.multiplier (override) not converted",
+          "Spellcasting: area: 30-ft cube is not supported; the user picks the targets",
+          "Spellcasting: effect: \"Hypnotized\" change system.attributes.movement.multiplier (override) not converted",
+          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
         ]
       }
     }

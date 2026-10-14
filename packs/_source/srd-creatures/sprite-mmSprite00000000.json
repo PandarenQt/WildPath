@@ -250,51 +250,8 @@
       }
     },
     {
-      "_id": "mmInvisibility00",
-      "_key": "!actors.items!mmSprite00000000.mmInvisibility00",
-      "name": "Invisibility",
-      "type": "action",
-      "img": "icons/creatures/magical/spirit-undead-ghost-purple.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The sprite casts <em>Invisibility</em> on itself, requiring no spell components and using Charisma as the spellcasting ability.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-invisibility",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Invisibility"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmInvisibility00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "FAek73jM5CyQOO60",
-      "_key": "!actors.items!mmSprite00000000.FAek73jM5CyQOO60",
+      "_id": "1i7qgdz1jy22pr00",
+      "_key": "!actors.items!mmSprite00000000.1i7qgdz1jy22pr00",
       "name": "Invisibility",
       "type": "action",
       "img": "icons/creatures/magical/spirit-undead-ghost-purple.webp",
@@ -303,7 +260,7 @@
         "description": "<p>A creature you touch has the Invisible condition until the spell ends. The spell ends early immediately after the target makes an attack roll, deals damage, or casts a spell.</p><p><strong>Using a Higher-Level Spell Slot.</strong> You can target one additional creature for each spell slot level above 2.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-invisibility",
+          "id": "action:srd-invisibility-invisibility",
           "tags": [
             "spell"
           ],
@@ -335,84 +292,6 @@
               "concentration": true
             }
           ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": [
-                {
-                  "type": "scaleTargets",
-                  "levelChoiceId": "spell-slot",
-                  "baseLevel": 2,
-                  "perLevel": 1
-                }
-              ]
-            }
-          ],
           "label": "Invisibility"
         },
         "ruleElements": []
@@ -422,11 +301,12 @@
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "FAek73jM5CyQOO60",
+            "id": "phbsplInvisibili",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Invisibility"
           },
           "conversion": {
             "notes": []
@@ -478,8 +358,7 @@
       },
       "conversion": {
         "notes": [
-          "Heart Sight: not automated (save): using it spends its cost; its description says the rest",
-          "Invisibility: not automated (cast): using it spends its cost; its description says the rest"
+          "Heart Sight: not automated (save): using it spends its cost; its description says the rest"
         ]
       }
     }

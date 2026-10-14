@@ -336,6 +336,16 @@ Petrified gives immunity to Poisoned this way.
 as the odds of attacks and saves against it, to the creature that applied the effect. This holds whatever the
 table's `playersSeeOdds` house rule says ([ui-ux-layer.md](ui-ux-layer.md)).
 
+**Granted pools, for monsters (2026-10-14, G4).** A `GrantResource` may also say:
+- `current: 0`: the pool starts empty (Multiattack's attacks);
+- `emptiesAtTurnStart: true`: the pool empties at the start of each of the creature's turns;
+- `recharge: 5`: at the start of the creature's turn, a spent pool comes back on a d6 of 5 or more. The roll is
+  whispered to the GM ("Recharge 5–6: Acid Breath is ready again").
+
+An Action Item's own `GrantResource` now counts too, though its other rules still only describe that Action. It is
+the pool of uses that Action spends: Fire Breath, Second Wind, "3/Day". Before this, those pools were never
+created, so the Actions could not be paid for.
+
 **Resource grants.** `GrantResource` gives a creature a pool to spend and recover, such as Ki equal to a
 class level. The grant backs a stored pool of the same id in `system.pools`, so payments, rests and the
 sheet treat it like any other pool:

@@ -199,7 +199,8 @@
                 "type": "constant",
                 "value": 1
               },
-              "recovery": "none"
+              "recovery": "none",
+              "recharge": 4
             }
           }
         ]
@@ -216,9 +217,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "uses: Recharge 4–6 is not rolled; refill the pool by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -272,7 +271,8 @@
                 "type": "constant",
                 "value": 1
               },
-              "recovery": "none"
+              "recovery": "none",
+              "recharge": 4
             }
           }
         ]
@@ -290,7 +290,6 @@
           },
           "conversion": {
             "notes": [
-              "uses: Recharge 4–6 is not rolled; refill the pool by hand",
               "activation: turnEnd is not an action-economy cost"
             ]
           }
@@ -312,7 +311,6 @@
       },
       "conversion": {
         "notes": [
-          "Petrifying Gaze: uses: Recharge 4–6 is not rolled; refill the pool by hand",
           "Petrifying Gaze: activation: turnEnd is not an action-economy cost"
         ]
       }

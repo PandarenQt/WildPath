@@ -244,7 +244,8 @@
                 "type": "constant",
                 "value": 1
               },
-              "recovery": "none"
+              "recovery": "none",
+              "recharge": 6
             }
           }
         ]
@@ -261,9 +262,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "uses: Recharge 6 is not rolled; refill the pool by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -344,8 +343,7 @@
       },
       "conversion": {
         "notes": [
-          "Death Burst: \"save\" is passive or triggered: not automated",
-          "Fire Breath: uses: Recharge 6 is not rolled; refill the pool by hand"
+          "Death Burst: \"save\" is passive or triggered: not automated"
         ]
       }
     }

@@ -15,6 +15,10 @@
           {
             "capability": "action",
             "amount": 1
+          },
+          {
+            "capability": "rod-of-lordly-might-terrify",
+            "amount": 1
           }
         ]
       },
@@ -44,7 +48,22 @@
       ],
       "label": "Rod of Lordly Might (Terrify)"
     },
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "rod-of-lordly-might-terrify-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "rod-of-lordly-might-terrify",
+          "label": "Rod of Lordly Might (Terrify)",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -58,9 +77,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "consumption: activityUses 1 not converted"
-        ]
+        "notes": []
       }
     }
   }

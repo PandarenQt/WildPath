@@ -417,71 +417,8 @@
       }
     },
     {
-      "_id": "mmCharm000000000",
-      "_key": "!actors.items!mmVampire0000000.mmCharm000000000",
-      "name": "Charm",
-      "type": "action",
-      "img": "icons/magic/control/hypnosis-mesmerism-eye.webp",
-      "system": {
-        "active": true,
-        "description": "<p>The vampire casts <em>Charm Person</em>, requiring no spell components and using Charisma as the spellcasting ability (spell save DC ), and the duration is 24 hours. The Charmed target is a willing recipient of the vampire's Bite, the damage of which doesn't end the spell. When the spell ends, the target is unaware it was Charmed by the vampire.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-charm",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "bonus-action",
-                "amount": 1
-              },
-              {
-                "capability": "charm",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Charm"
-        },
-        "ruleElements": [
-          {
-            "schemaVersion": 1,
-            "id": "charm-uses",
-            "type": "GrantResource",
-            "data": {
-              "resourceId": "charm",
-              "label": "Charm",
-              "maximum": {
-                "type": "constant",
-                "value": 1
-              },
-              "recovery": "none"
-            }
-          }
-        ]
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmCharm000000000",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "uses: Recharge 5–6 is not rolled; refill the pool by hand"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "7UhygzsYYtKfVJJ3",
-      "_key": "!actors.items!mmVampire0000000.7UhygzsYYtKfVJJ3",
+      "_id": "1hq8i6d1itdo9300",
+      "_key": "!actors.items!mmVampire0000000.1hq8i6d1itdo9300",
       "name": "Charm Person",
       "type": "action",
       "img": "icons/magic/control/hypnosis-mesmerism-eye.webp",
@@ -490,14 +427,18 @@
         "description": "<p>One Humanoid you can see within range makes a Wisdom saving throw. It does so with Advantage if you or your allies are fighting it. On a failed save, the target has the Charmed condition until the spell ends or until you or your allies damage it. The Charmed creature is Friendly to you. When the spell ends, the target knows it was Charmed by you.</p><p><strong>Using a Higher-Level Spell Slot.</strong> You can target one additional creature for each spell slot level above 1.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-charm-person",
+          "id": "action:srd-charm-charm-person",
           "tags": [
             "spell"
           ],
           "costs": {
             "allOf": [
               {
-                "capability": "action",
+                "capability": "bonus-action",
+                "amount": 1
+              },
+              {
+                "capability": "charm",
                 "amount": 1
               }
             ]
@@ -528,105 +469,37 @@
               "saveOutcomePolicy": "failure"
             }
           ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.1",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.1": 1,
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": [
-                {
-                  "type": "scaleTargets",
-                  "levelChoiceId": "spell-slot",
-                  "baseLevel": 1,
-                  "perLevel": 1
-                }
-              ]
-            }
-          ],
           "label": "Charm Person"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "charm-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "charm",
+              "label": "Charm",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "none",
+              "recharge": 5
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "7UhygzsYYtKfVJJ3",
+            "id": "phbsplCharmPerso",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Charm"
           },
           "conversion": {
             "notes": []
@@ -678,51 +551,8 @@
       }
     },
     {
-      "_id": "mmBeguile0000000",
-      "_key": "!actors.items!mmVampire0000000.mmBeguile0000000",
-      "name": "Beguile",
-      "type": "action",
-      "img": "icons/magic/control/mouth-smile-deception-purple.webp",
-      "system": {
-        "active": true,
-        "description": "<p>The vampire casts <em>Command</em>, requiring no spell components and using Charisma as the spellcasting ability (spell save DC ). The vampire can't take this action again until the start of its next turn.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-beguile",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "legendary-action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Beguile"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmBeguile0000000",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "IzS0oSSgTDp0oltT",
-      "_key": "!actors.items!mmVampire0000000.IzS0oSSgTDp0oltT",
+      "_id": "13pvcnv49e1j1000",
+      "_key": "!actors.items!mmVampire0000000.13pvcnv49e1j1000",
       "name": "Command",
       "type": "action",
       "img": "icons/magic/sonic/scream-wail-shout-teal.webp",
@@ -731,96 +561,18 @@
         "description": "<p>You speak a one-word command to a creature you can see within range. The target must succeed on a Wisdom saving throw or follow the command on its next turn. Choose the command from these options:</p><p><strong>Approach.</strong> The target moves toward you by the shortest and most direct route, ending its turn if it moves within 5 feet of you.</p><p><strong>Drop.</strong> The target drops whatever it is holding and then ends its turn.</p><p><strong>Flee.</strong> The target spends its turn moving away from you by the fastest available means.</p><p><strong>Grovel.</strong> The target has the Prone condition and then ends its turn.</p><p><strong>Halt.</strong> On its turn, the target doesn't move and takes no action or Bonus Action.</p><p><strong>Using a Higher-Level Spell Slot.</strong> You can affect one additional creature for each spell slot level above 1.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-command",
+          "id": "action:srd-beguile-command",
           "tags": [
             "spell"
           ],
           "costs": {
             "allOf": [
               {
-                "capability": "action",
+                "capability": "legendary-action",
                 "amount": 1
               }
             ]
           },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.1",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.1": 1,
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
           "label": "Command"
         },
         "ruleElements": []
@@ -830,11 +582,12 @@
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "IzS0oSSgTDp0oltT",
+            "id": "phbsplCommand000",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Beguile"
           },
           "conversion": {
             "notes": [
@@ -989,11 +742,8 @@
           "Multiattack (Vampire Form Only): not automated (utility): using it spends its cost; its description says the rest",
           "Grave Strike (Vampire Form Only): \"Escape Check\" is passive or triggered: not automated",
           "Bite (Bat or Vampire Form Only): not automated (summon): using it spends its cost; its description says the rest",
-          "Charm: not automated (cast): using it spends its cost; its description says the rest",
-          "Charm: uses: Recharge 5–6 is not rolled; refill the pool by hand",
           "Shape-Shift: not automated (summon): using it spends its cost; its description says the rest",
-          "Beguile: not automated (cast): using it spends its cost; its description says the rest",
-          "Command: not automated (save): using it spends its cost; its description says the rest",
+          "Beguile: not automated (save): using it spends its cost; its description says the rest",
           "Deathless Strike: not automated (utility): using it spends its cost; its description says the rest",
           "Vampire Weakness: \"Damage: Running Water\" is passive or triggered: not automated",
           "Vampire Weakness: \"Staked to the Heart\" is passive or triggered: not automated",
