@@ -118,6 +118,44 @@ export function createMultiplayerActionCoordinator({
       records.set(resolutionId, record);
       return advanceRecord(record);
     },
+    /** Requests this authority is waiting on another user to answer, for the GM's Rules Inspector. */
+    waitingRequests() {
+      return [...records.values()].filter(record => (record.authorityUserId === localUserId) && !isTerminalState(record.state))
+        .flatMap(record => {
+          const execution = activeResolutionExecution(record.state);
+          const pending = new Set((execution.state?.pendingRequests ?? []).map(request => requestKey(request, execution.state)));
+          return [...record.requestExpectations.entries()]
+            .filter(([key, expectation]) => pending.has(key) && (expectation.expectedUserId !== localUserId))
+            .map(([, expectation]) => ({resolutionId: record.resolutionId, requestId: expectation.request?.id ?? null,
+              type: expectation.request?.type ?? null, userId: expectation.expectedUserId}));
+        });
+    },
+    /**
+     * The GM answers, on this client, every request of a resolution that still waits on another user: a Player
+     * who is away, or who closed the prompt. That user is told, and their open prompt is withdrawn; an answer
+     * they send afterwards is refused, as it no longer comes from the expected chooser.
+     */
+    async answerForUsers(resolutionId) {
+      const record = findRecordForResolutionId(resolutionId);
+      if ( !record || (record.authorityUserId !== localUserId) || isTerminalState(record.state) ) {
+        return failure(MULTIPLAYER_AUTHORITY_CODES.RESOLUTION_NOT_FOUND, "Only the authority can answer for a running resolution.");
+      }
+      const execution = activeResolutionExecution(record.state);
+      const pending = new Set((execution.state?.pendingRequests ?? []).map(request => requestKey(request, execution.state)));
+      const taken = [];
+      for ( const [key, expectation] of record.requestExpectations ) {
+        if ( (expectation.expectedUserId === localUserId) || !pending.has(key) ) continue;
+        record.requestExpectations.delete(key);
+        record.routedRequestIds.delete(key);
+        (record.requestOverrides ??= new Map()).set(key, localUserId);
+        taken.push(expectation);
+      }
+      if ( !taken.length ) return failure(MULTIPLAYER_AUTHORITY_CODES.NOTHING_TO_ANSWER, "Nothing in this resolution waits on another user.");
+      for ( const expectation of taken ) await sendError({resolutionId: expectation.resolutionId, requestId: expectation.request?.id ?? null,
+        recipientUserId: expectation.expectedUserId, code: MULTIPLAYER_AUTHORITY_CODES.REQUEST_ANSWERED_BY_GM,
+        reason: "The GM answered this for you."});
+      return advanceRecord(record);
+    },
     /**
      * A user who disconnected cannot answer: requests still waiting on them are routed again without them
      * (another controller, or the GM fallback). The authority calls this from Foundry's `userConnected` hook.
@@ -428,7 +466,9 @@ export function createMultiplayerActionCoordinator({
       const key = requestKey(request, state);
       if ( record.routedRequestIds.has(key) ) continue;
       const sourceControllerUserIds = sourceControllerUserIdsForRequest(record, request, state);
-      const chooser = resolveRequestChooser({
+      // The GM took this request over (answerForUsers): it is answered here, whoever would normally choose.
+      const override = record.requestOverrides?.get(key);
+      const chooser = override ? {ok: true, userId: override, policy: "gm-answer"} : resolveRequestChooser({
         request,
         users: userDirectory(),
         initiatorUserId: execution.nested ? null : record.initiatorUserId,

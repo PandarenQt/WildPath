@@ -771,6 +771,48 @@ test("a save waiting on a Player who disconnects goes to the GM instead of hangi
   assert.equal(errors.find(envelope => envelope.messageType === "RESOLUTION_ERROR")?.payload?.code, "RESOLUTION_NOT_FOUND");
 });
 
+test("the GM answers a save a connected Player leaves waiting; the Player is told, and a late answer is refused", async t => {
+  const saveDefinition = {schemaVersion: 1, id: "action:routed-save", label: "Routed save",
+    costs: {allOf: [{capability: "action", amount: 1}]}, targeting: {type: "single", required: true, count: 1},
+    range: {type: "reach", distance: {value: 5, unit: "ft"}}, save: {ability: "fortitude", dc: {value: 100}},
+    damage: [{id: "venom", expression: {type: "constant", value: 4}, damageType: "poison",
+      saveOutcomePolicy: {success: "half", failure: "full"}}]};
+  const {sourceActor, targetActor, targetToken, action, game} = syntheticRuntimeFixture(t, saveDefinition, {targetHealth: 30});
+  const hub = createTestResolutionTransportHub({users: [
+    {id: "gm-a", active: true, isGM: true, isActiveGM: true},
+    {id: "player-a", active: true, isGM: false}
+  ]});
+  const gm = createMultiplayerActionCoordinator({userId: "gm-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
+    transport: hub.createEndpoint({userId: "gm-a"}), rollProviders: [createTestRollProvider({result: {natural: 5, total: 5}})],
+    actionIntentResolver: ({intent, envelope}) => foundryActionIntentToStagedOptions({intent,
+      senderUserId: envelope.senderUserId, game, persistencePort: createTestDocumentPersistenceAdapter()})});
+  gm.register();
+  // The Player stays connected but never answers.
+  const received = [];
+  const away = hub.createEndpoint({userId: "player-a"});
+  away.register(envelope => { received.push(envelope); return {ok: true}; });
+  const built = buildFoundryActionUseIntent({actor: sourceActor, action, game: {user: {targets: new Set([{document: targetToken}])}}});
+  const declared = await gm.declareActionIntent(built.intent);
+  const record = gm.getRecord(declared.resolutionId);
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.AWAITING_ROLL);
+  const [waiting] = gm.waitingRequests();
+  assert.deepEqual([waiting.resolutionId, waiting.userId, waiting.type], [declared.resolutionId, "player-a", "roll"]);
+  const request = received.find(envelope => envelope.messageType === "PENDING_REQUEST");
+
+  await gm.answerForUsers(declared.resolutionId);
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors));
+  assert.equal(targetActor.system.resources.health.value, 26, "the GM rolled the save; it failed against DC 100");
+  assert.deepEqual(gm.waitingRequests(), []);
+  const told = received.find(envelope => envelope.messageType === "RESOLUTION_ERROR");
+  assert.deepEqual([told?.payload?.code, told?.requestId], ["REQUEST_ANSWERED_BY_GM", request.requestId]);
+  // The Player's answer, arriving after the GM's, changes nothing.
+  await away.send(createResolutionSocketEnvelope({messageType: "REQUEST_RESPONSE", senderUserId: "player-a", recipientUserId: "gm-a",
+    resolutionId: request.resolutionId, requestId: request.requestId,
+    payload: {response: {resolutionId: request.resolutionId, requestId: request.requestId, type: "roll", value: {natural: 20, total: 20}}}}));
+  assert.equal(targetActor.system.resources.health.value, 26);
+  assert.equal((await gm.answerForUsers(declared.resolutionId)).ok, false, "nothing is left to answer");
+});
+
 test("a creature's own grants form its damage profile, and nothing granted means no profile", () => {
   const resist = {schemaVersion: 1, id: "hide", type: "GrantResistance", data: {damageTypes: ["slashing"]}};
   const immune = {schemaVersion: 1, id: "ward", type: "GrantImmunity", data: {damageTypes: ["poison"]}};

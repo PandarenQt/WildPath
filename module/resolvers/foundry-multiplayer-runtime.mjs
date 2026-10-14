@@ -1,7 +1,7 @@
 import {WILDPATH} from "../config.mjs";
 import {createFoundryDigitalRollProvider} from "../adapters/foundry-digital-roll-provider.mjs";
 import {createFoundryV14DocumentPersistenceAdapter} from "../adapters/foundry-v14-persistence-adapter.mjs";
-import {createFoundryV14PromptAdapter} from "../adapters/foundry-v14-prompt-adapter.mjs";
+import {closeFoundryPrompt, createFoundryV14PromptAdapter} from "../adapters/foundry-v14-prompt-adapter.mjs";
 import {foundryActorSystemSnapshot} from "../adapters/foundry-v14-actor-system-adapter.mjs";
 import {
   createFoundryV14ResolutionSocketAdapter,
@@ -446,6 +446,12 @@ const ROLL_REJECTION_CODES = new Set(["INVALID_MANUAL_RESULT", "INVALID_ROLL_RES
 
 function notifyMultiplayerFailure(event={}, {logger=globalThis.console}={}) {
   if ( !event?.error ) return;
+  // The GM answered a request this user had open: withdraw its prompt and say so, as news rather than a failure.
+  if ( event.error.code === MULTIPLAYER_AUTHORITY_CODES.REQUEST_ANSWERED_BY_GM ) {
+    closeFoundryPrompt({resolutionId: event.envelope?.resolutionId ?? null, requestId: event.envelope?.requestId ?? null});
+    globalThis.ui?.notifications?.info?.(globalThis.game?.i18n?.localize?.("WILDPATH.NOTIFY.AnsweredByGM") ?? "");
+    return;
+  }
   const reason = event.error.reason ?? event.error.code ?? "";
   if ( typeof globalThis.ui?.notifications?.warn === "function" ) {
     const i18n = globalThis.game?.i18n;

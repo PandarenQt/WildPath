@@ -11,6 +11,18 @@ import {
   PROMPT_PORT_OUTCOMES
 } from "../resolvers/choice-coordinator.mjs";
 
+/** Prompts open on this client, by resolution and request, so one the GM took over can be withdrawn. */
+const openPrompts = new Map();
+const promptKey = (resolutionId, requestId) => `${resolutionId ?? ""}|${requestId ?? ""}`;
+
+/** Close this client's open prompt for a request (the GM answered it instead); its answer is then a cancel. */
+export function closeFoundryPrompt({resolutionId=null, requestId=null}={}) {
+  const dialog = openPrompts.get(promptKey(resolutionId, requestId));
+  if ( !dialog ) return false;
+  void dialog.close?.();
+  return true;
+}
+
 export function createFoundryV14PromptAdapter({
   id="foundry-v14-prompt",
   label="Foundry V14 Prompt Adapter",
@@ -42,7 +54,9 @@ export function createFoundryV14PromptAdapter({
 
       const viewModel = createPromptViewModel(request, context);
       const shown = localizeViewModel(viewModel);
+      const key = promptKey(request.resolutionId, request.id);
       const response = await Dialog.input({
+        render: (_event, dialog) => openPrompts.set(key, dialog),
         window: {
           title: shown.title
         },
@@ -54,7 +68,7 @@ export function createFoundryV14PromptAdapter({
         modal: true,
         ...dialogOptions,
         ...(context.dialogOptions ?? {})
-      });
+      }).finally(() => openPrompts.delete(key));
       if ( response == null ) return {
         ok: false,
         status: PROMPT_PORT_OUTCOMES.CANCELLED,

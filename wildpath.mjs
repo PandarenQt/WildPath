@@ -130,6 +130,13 @@ Hooks.once("init", () => {
     label: "WILDPATH.SheetItem"
   });
 
+  game.keybindings.register("wildpath", "openRulesInspector", {
+    name: "WILDPATH.INSPECTOR.Open",
+    editable: [{key: "KeyI", modifiers: ["Shift"]}],
+    restricted: true,
+    onDown: () => { void game.wildpath?.inspect?.(); return true; }
+  });
+
   DocumentSheetConfig.registerSheet(WildPathActiveEffect, "wildpath", WildPathEffectSheet, {
     types: ["effect", "condition"],
     makeDefault: true,

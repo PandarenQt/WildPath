@@ -535,3 +535,9 @@
 #wildpath-combat-carousel .turn-conditions { display: flex; flex-wrap: wrap; gap: 1px; }
 #wildpath-combat-carousel .carousel-round { white-space: nowrap; font-weight: bold; }
 #wildpath-combat-carousel .carousel-next { white-space: nowrap; width: auto; }
+
+/* Rules Inspector: what a running resolution waits on, and the GM's Answer button. */
+.wildpath-inspector .inspector-waiting { display: flex; align-items: center; gap: 8px; margin: 4px 0; padding: 4px 6px;
+  border: 1px dashed #c9a227; border-radius: 4px; }
+.wildpath-inspector .inspector-waiting ul { margin: 0; padding-left: 1rem; flex: 1; }
+.wildpath-inspector .inspector-waiting button { width: auto; white-space: nowrap; }

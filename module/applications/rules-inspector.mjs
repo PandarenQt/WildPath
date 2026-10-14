@@ -13,16 +13,30 @@ export class WildPathRulesInspector extends HandlebarsApplicationMixin(Applicati
         classes: ["wildpath", "rules-inspector"],
         window: { title: "WILDPATH.INSPECTOR.Title", resizable: true },
         position: { width: 760, height: 560 },
-        actions: { select: WildPathRulesInspector.#onSelect }
+        actions: { select: WildPathRulesInspector.#onSelect, answer: WildPathRulesInspector.#onAnswer }
     };
     static PARTS = { body: { template: "systems/wildpath/templates/apps/rules-inspector.hbs" } };
     selectedId = null;
     async _prepareContext() {
-        const records = [...(globals.game.wildpath?.multiplayer?.coordinator?.records?.values() ?? [])].reverse().slice(0, RECENT);
+        const coordinator = globals.game.wildpath?.multiplayer?.coordinator;
+        const records = [...(coordinator?.records?.values() ?? [])].reverse().slice(0, RECENT);
         const entries = records.map(inspectResolution);
         const selected = entries.find(entry => entry.id === this.selectedId) ?? entries[0] ?? null;
+        // Who each running resolution waits on, so the GM can answer for a Player who is away.
+        const waiting = (coordinator?.waitingRequests?.() ?? []).filter(entry => entry.resolutionId === selected?.id)
+            .map(entry => ({ type: entry.type, user: globals.game.users?.get(entry.userId)?.name ?? entry.userId }));
         return { entries: entries.map(entry => ({ id: entry.id, label: entry.label, status: entry.status,
-                active: entry.id === selected?.id })), selected };
+                active: entry.id === selected?.id })), selected, waiting };
+    }
+    /** The GM answers, here, what the selected resolution waits on another user for. */
+    static async #onAnswer() {
+        if (this.selectedId === null) {
+            const first = [...(globals.game.wildpath?.multiplayer?.coordinator?.records?.values() ?? [])].at(-1);
+            this.selectedId = first?.resolutionId ?? null;
+        }
+        if (this.selectedId)
+            await globals.game.wildpath?.multiplayer?.coordinator?.answerForUsers?.(this.selectedId);
+        await this.render();
     }
     static async #onSelect(event, target) {
         this.selectedId = target.closest("[data-resolution-id]")?.dataset.resolutionId ?? null;

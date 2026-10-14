@@ -2,12 +2,18 @@ import {inspectResolution} from "../helpers/resolution-inspection.mjs";
 
 type Data = Record<string, unknown>;
 type InspectedRecord = Parameters<typeof inspectResolution>[0];
+interface Waiting {resolutionId: string; requestId: string | null; type: string | null; userId: string}
+interface Coordinator {
+  records?: Map<string, InspectedRecord>;
+  waitingRequests?(): Waiting[];
+  answerForUsers?(resolutionId: string): Promise<unknown>;
+}
 interface AppInstance {render(options?: Data): Promise<unknown>}
 type AppClass = new (options?: Data) => AppInstance;
 interface Globals {
   foundry: {applications: {api: {ApplicationV2: AppClass; HandlebarsApplicationMixin(base: AppClass): AppClass}}};
-  game: {user?: {isGM?: boolean}; i18n: {localize(key: string): string};
-    wildpath?: {multiplayer?: {coordinator?: {records?: Map<string, InspectedRecord>}}}};
+  game: {user?: {isGM?: boolean}; i18n: {localize(key: string): string}; users?: {get(id: string): {name?: string} | undefined};
+    wildpath?: {multiplayer?: {coordinator?: Coordinator}}};
   Hooks: {on(name: string, callback: (message: {flags?: {wildpath?: {resolutionId?: string}}}, html: HTMLElement) => unknown): number};
 }
 
@@ -26,7 +32,7 @@ export class WildPathRulesInspector extends HandlebarsApplicationMixin(Applicati
     classes: ["wildpath", "rules-inspector"],
     window: {title: "WILDPATH.INSPECTOR.Title", resizable: true},
     position: {width: 760, height: 560},
-    actions: {select: WildPathRulesInspector.#onSelect}
+    actions: {select: WildPathRulesInspector.#onSelect, answer: WildPathRulesInspector.#onAnswer}
   };
 
   static PARTS = {body: {template: "systems/wildpath/templates/apps/rules-inspector.hbs"}};
@@ -34,11 +40,25 @@ export class WildPathRulesInspector extends HandlebarsApplicationMixin(Applicati
   selectedId: string | null = null;
 
   async _prepareContext() {
-    const records = [...(globals.game.wildpath?.multiplayer?.coordinator?.records?.values() ?? [])].reverse().slice(0, RECENT);
+    const coordinator = globals.game.wildpath?.multiplayer?.coordinator;
+    const records = [...(coordinator?.records?.values() ?? [])].reverse().slice(0, RECENT);
     const entries = records.map(inspectResolution);
     const selected = entries.find(entry => entry.id === this.selectedId) ?? entries[0] ?? null;
+    // Who each running resolution waits on, so the GM can answer for a Player who is away.
+    const waiting = (coordinator?.waitingRequests?.() ?? []).filter(entry => entry.resolutionId === selected?.id)
+      .map(entry => ({type: entry.type, user: globals.game.users?.get(entry.userId)?.name ?? entry.userId}));
     return {entries: entries.map(entry => ({id: entry.id, label: entry.label, status: entry.status,
-      active: entry.id === selected?.id})), selected};
+      active: entry.id === selected?.id})), selected, waiting};
+  }
+
+  /** The GM answers, here, what the selected resolution waits on another user for. */
+  static async #onAnswer(this: WildPathRulesInspector) {
+    if ( this.selectedId === null ) {
+      const first = [...(globals.game.wildpath?.multiplayer?.coordinator?.records?.values() ?? [])].at(-1) as {resolutionId?: string} | undefined;
+      this.selectedId = first?.resolutionId ?? null;
+    }
+    if ( this.selectedId ) await globals.game.wildpath?.multiplayer?.coordinator?.answerForUsers?.(this.selectedId);
+    await this.render();
   }
 
   static async #onSelect(this: WildPathRulesInspector, event: Event, target: HTMLElement) {

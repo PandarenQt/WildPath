@@ -82,6 +82,21 @@ Live (two browsers, 14.369, 2026-10-14): with physical dice, the GM's save Actio
 roll. Player1's browser left without answering. The GM then received the same "Enter your roll" prompt,
 answered it, and the resolution completed.
 
+**The GM answers for a Player (maintainer decision, 2026-10-14).** A Player who stays connected but never
+answers is not timed out. The GM answers in their place instead.
+- **`waitingRequests()`** lists what each running resolution waits on, and from whom. The Rules Inspector shows
+  it on the selected resolution with an **Answer for them** button. Shift+I opens the Inspector.
+- **`answerForUsers(resolutionId)`** takes those requests over. Each is routed again to the GM's own client
+  through a per-request override, so the GM gets the same prompt, or rolls digitally.
+- **The Player** is sent `REQUEST_ANSWERED_BY_GM`. Their client closes the open prompt and shows "The GM
+  answered this for you."
+- **A late answer** from them is refused, because they are no longer the expected chooser.
+
+Live (two browsers, 14.369): with physical dice, the GM's Hex asked Player1 for a save roll, and Player1
+left the dialog open. In the GM's Inspector, opened with Shift+I, the resolution showed "Waiting on Player1
+(roll)". Answer for them closed Player1's dialog with the notice. The GM entered a 4 and the save failed;
+the hero went from 10 to 7.
+
 ## Socket Envelope
 
 `module/adapters/foundry-v14-resolution-socket-adapter.mjs` isolates Foundry socket access. The
@@ -395,9 +410,9 @@ Not implemented here:
   [multiplayer-confidentiality.md](multiplayer-confidentiality.md) is client-level, recipient-restricted transport
 - resolution cancel: `RESOLUTION_CANCEL` was removed (nothing sent it and it had no sender check);
   re-add it with an initiator/GM check when a cancel UI exists
-- time-outs for idle requests: a disconnected chooser's requests are routed again (above), but a connected
-  Player who never answers still holds the resolution. Finished resolutions and committed movements are
-  retained only up to `duplicateCacheLimit` (200) and then released.
+- time-outs for idle requests: there are none by decision. A disconnected chooser's requests are routed
+  again, and the GM answers for a connected Player who never does (both above). Finished resolutions and
+  committed movements are retained only up to `duplicateCacheLimit` (200) and then released.
 
 Generic reaction-choice routing and nested child advancement are covered by deterministic transport
 tests. The live movement/reaction gate additionally proved active-GM authority, a real player prompt,

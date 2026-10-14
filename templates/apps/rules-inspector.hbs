@@ -13,6 +13,12 @@
     <section class="inspector-detail">
       <h3>{{selected.label}} <span class="entry-status">{{selected.status}}</span></h3>
       <p class="inspector-stages">{{#each selected.stages as |stage|}}<span>{{stage}}</span>{{/each}}</p>
+      {{#if waiting.length}}
+        <div class="inspector-waiting">
+          <ul>{{#each waiting as |entry|}}<li>{{localize "WILDPATH.INSPECTOR.WaitingOn" user=entry.user type=entry.type}}</li>{{/each}}</ul>
+          <button type="button" data-action="answer">{{localize "WILDPATH.INSPECTOR.AnswerFor"}}</button>
+        </div>
+      {{/if}}
       {{#if selected.rolls.length}}
         <h4>{{localize "WILDPATH.INSPECTOR.Rolls"}}</h4>
         <table><tbody>

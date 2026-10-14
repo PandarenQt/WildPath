@@ -120,7 +120,10 @@
       "Automatic": "automatic",
       "Changes": "Health changes",
       "Payments": "Payments",
-      "Errors": "Errors"
+      "Errors": "Errors",
+      "WaitingOn": "Waiting on {user} ({type})",
+      "AnswerFor": "Answer for them",
+      "Open": "Open the Rules Inspector"
     },
     "CAROUSEL": {
       "Round": "Round {round}",
@@ -220,7 +223,8 @@
       "ActionFailed": "The action could not be completed: {reason}",
       "PaymentUnavailable": "This creature can't pay what this action costs right now.",
       "MovementFailed": "The movement could not be completed: {reason}",
-      "MovementStoppedByArea": "You stopped on entering {area}. Your remaining movement is kept."
+      "MovementStoppedByArea": "You stopped on entering {area}. Your remaining movement is kept.",
+      "AnsweredByGM": "The GM answered this for you."
     }
   },
   "TYPES": {

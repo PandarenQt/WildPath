@@ -143,6 +143,10 @@ Live (two browsers, 14.369):
 - The GM's Venom Burst showed the Fortitude save, 3 against DC 13, a failure, and the 2d6 damage.
 - Player1's cards carried no Inspect link.
 
+**Waiting resolutions.** Shift+I opens the Inspector for the GM, including for a resolution with no card yet.
+A running resolution that waits on another user lists who it waits on, with **Answer for them**
+(multiplayer-authority.md).
+
 ## Boundary Rule
 
 - UI renders view models.
