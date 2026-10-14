@@ -90,15 +90,15 @@ export function createReactionWindowStage({
         windowId: reactionWindowId({parent: state, timing, event: selectedEvent})
       });
 
-      if ( accepted ) {
+      const answer = (request, response) => {
         state = updateResolutionState(state, {metadata: {...state.metadata,
-          handledReactionRequestIds: [...(state.metadata.handledReactionRequestIds ?? []), accepted.request.id]}});
+          handledReactionRequestIds: [...(state.metadata.handledReactionRequestIds ?? []), request.id]}});
         const stageChildStateFactory = typeof createChildState === "function"
           ? (context) => createChildState({...context, services, event: selectedEvent, timing})
           : null;
         const resolved = resolveReactionChoiceResponse({
-          state: updateResolutionState(state, {pendingRequests: [accepted.request]}),
-          response: accepted.response,
+          state: updateResolutionState(state, {pendingRequests: [request]}),
+          response,
           event: selectedEvent,
           timing,
           stageId: id,
@@ -113,7 +113,7 @@ export function createReactionWindowStage({
             data: resolved
           });
         }
-        if ( resolved.waiting ) return waitResolutionStage({
+        if ( resolved.waiting ) return always(resolved) ?? waitResolutionStage({
           state: resolved.state,
           request: resolved.request,
           reason: "Reaction window advanced to the next eligible reactor.",
@@ -136,7 +136,16 @@ export function createReactionWindowStage({
             reactionWindowId: resolved.window?.id ?? null
           }
         });
-      }
+      };
+      // A reaction set to "Always" answers its own offer: the first such candidate is used, with no prompt.
+      const always = offer => {
+        const candidate = offer.waiting ? offer.offeredCandidates?.find(entry => entry.policy === "always") : null;
+        if ( !candidate ) return null;
+        state = offer.state;
+        return answer(offer.request, {resolutionId: offer.state.id, requestId: offer.request.id,
+          value: {decision: REACTION_CHOICE_DECISIONS.USE, candidateId: candidate.id}});
+      };
+      if ( accepted ) return answer(accepted.request, accepted.response);
 
       const planned = planReactionWindow({
         parentState: state,
@@ -146,7 +155,7 @@ export function createReactionWindowStage({
         stageId: id,
         ...options
       });
-      if ( planned.waiting ) return waitResolutionStage({
+      if ( planned.waiting ) return always(planned) ?? waitResolutionStage({
         state: planned.state,
         request: planned.request,
         reason: "Reaction choice is required before this window can close.",
@@ -845,7 +854,8 @@ function createReactionCandidate({window, timing, actionDefinition, controllerUs
       source: clonePlain(window.metadata?.source ?? window.metadata ?? null),
       owner: clonePlain(window.owner ?? null)
     },
-    priority: Number(window.priority ?? 100)
+    priority: Number(window.priority ?? 100),
+    policy: window.metadata?.reactionPolicy === "always" ? "always" : "ask"
   };
 }
 

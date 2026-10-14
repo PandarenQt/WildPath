@@ -159,6 +159,11 @@
         "action": "Actions",
         "bonus": "Bonus Actions",
         "reaction": "Reactions"
+      },
+      "Policy": {
+        "Ask": "Ask before using this reaction (click to use it automatically)",
+        "Always": "Use this reaction automatically (click to never use it)",
+        "Never": "Never use this reaction (click to ask again)"
       }
     },
     "ITEMSHEET": {

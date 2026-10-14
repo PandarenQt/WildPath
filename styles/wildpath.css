@@ -492,6 +492,9 @@
 #wildpath-action-bar .bar-action { display: flex; align-items: center; gap: 4px; width: auto; padding: 2px 6px; }
 #wildpath-action-bar .bar-action img { border: none; }
 #wildpath-action-bar .bar-action:disabled { opacity: 0.45; }
+#wildpath-action-bar .bar-policy { width: auto; min-width: 0; padding: 2px 4px; line-height: 1; }
+#wildpath-action-bar .bar-policy.policy-always { color: var(--color-warm-2, #ff6400); }
+#wildpath-action-bar .bar-policy.policy-never { opacity: 0.6; }
 
 /* The Rules Inspector (M6, GM only). */
 .wildpath.rules-inspector .wildpath-inspector { display: grid; grid-template-columns: 220px 1fr; gap: 8px; height: 100%; }

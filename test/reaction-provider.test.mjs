@@ -54,3 +54,14 @@ test("the provider serves native drags from resolved documents and supplies noth
   assert.deepEqual(bindSelf({not: {equals: {path: "a.{self}.b", value: "{self}"}}}, "x"),
     {not: {equals: {path: "a.x.b", value: "{self}"}}}, "only paths are bound");
 });
+
+test("a reaction set to Never is not offered, and one set to Always says so on its trigger", () => {
+  const set = policy => ({...strike(), flags: {wildpath: {reactionPolicy: policy}}});
+  const mover = token("mover", 1);
+  const scene = {grid: {distance: 5}, tokens: [mover, token("eager", -1, [set("always")]), token("calm", -1, [set("never")]),
+    token("asks", -1, [strike()])]};
+  const services = createFoundryReactionProvider({resolve: () => null})({scene, token: mover});
+  assert.deepEqual(services.reactions.triggers.map(trigger => [trigger.owner.tokenId, trigger.metadata.reactionPolicy ?? "ask"]),
+    [["eager", "always"], ["asks", "ask"]]);
+  assert.deepEqual(services.movement.observers.map(observer => observer.id), ["eager", "asks"], "a Never reactor does not even watch");
+});

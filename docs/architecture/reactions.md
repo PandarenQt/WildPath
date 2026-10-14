@@ -61,6 +61,15 @@ This is intentionally simple until the combat/timeline layer provides richer ord
 Multiple options for the same reactor are presented in one request with a Decline option. Multiple
 reactors are offered in deterministic order; declining the current group advances to the next group.
 
+**Always, Ask or Never (2026-10-14, after Baldur's Gate 3).** Each reaction's Action Item may store
+`flags.wildpath.reactionPolicy`:
+- `ask`, the default: the reactor's controller is prompted, as above;
+- `always`: when its reactor's group is offered, the first such reaction is used at once. The stage answers
+  its own request, so no one is prompted. This also applies after an earlier reactor declines;
+- `never`: the production reaction provider leaves it out, so its creature does not even watch movement for it.
+
+Players switch it from the action bar. The authority reads it from the Item when it gathers reactions.
+
 The request payload is presentation-safe. It includes candidate summaries, cost/payment metadata,
 source/provenance, and the event snapshot, but not mutation plans, live documents, functions, or a
 full parent `ResolutionState`.

@@ -27,6 +27,11 @@
               <img src="{{action.img}}" alt="" width="28" height="28">
               <span>{{action.label}}</span>
             </button>
+            {{#if action.policy}}
+              <button type="button" class="bar-policy policy-{{action.policy.id}}" data-action="reactionPolicy" data-item-id="{{action.id}}"
+                      data-tooltip="{{action.policy.label}}" aria-label="{{localize action.policy.label}}">
+                <i class="fa-solid {{action.policy.icon}}" inert></i></button>
+            {{/if}}
           {{/each}}
         </div>
       {{else}}

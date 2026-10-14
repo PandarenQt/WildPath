@@ -34,3 +34,12 @@ test("a spent Action greys out its Actions with the reason, and the bar shows ac
   assert.deepEqual(bar.conditions.map(condition => [condition.id, condition.level]), [["prone", null], ["exhaustion", 2]],
     "a disabled condition effect is not shown");
 });
+
+test("each reaction on the bar shows whether it asks, is used automatically, or never", () => {
+  const hero = creature();
+  hero.items.push(action("Parry", "reaction"), {...action("Riposte", "reaction"), flags: {wildpath: {reactionPolicy: "always"}}});
+  const reactions = actionBarContext({actor: hero, conditions}).groups.find(group => group.id === "reaction").actions;
+  assert.deepEqual(reactions.map(entry => [entry.label, entry.policy.id, entry.policy.label]), [
+    ["Parry", "ask", "WILDPATH.ACTIONBAR.Policy.Ask"], ["Riposte", "always", "WILDPATH.ACTIONBAR.Policy.Always"]]);
+  assert.equal(actionBarContext({actor: hero, conditions}).groups[0].actions[0].policy, undefined, "only reactions have one");
+});

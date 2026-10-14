@@ -130,6 +130,18 @@ export function createTriggerDefinition({
 
 /* -------------------------------------------- */
 
+/**
+ * How a creature answers a reaction it is offered (Baldur's Gate 3's reaction settings), stored on the reaction's
+ * Action Item as `flags.wildpath.reactionPolicy`: `ask` (the default) prompts its controller, `always` uses it at
+ * once, and `never` leaves it out.
+ */
+export const REACTION_POLICIES = Object.freeze(["ask", "always", "never"]);
+
+export function reactionPolicyOf(item) {
+  const policy = item?.flags?.wildpath?.reactionPolicy;
+  return REACTION_POLICIES.includes(policy) ? policy : "ask";
+}
+
 export function createReactionTrigger({
   id,
   event,

@@ -1,4 +1,5 @@
 import { actionBarContext } from "../helpers/action-bar-context.mjs";
+import { REACTION_POLICIES, reactionPolicyOf } from "../helpers/automation-events.mjs";
 const globals = globalThis;
 const { ApplicationV2, HandlebarsApplicationMixin } = globals.foundry.applications.api;
 /**
@@ -11,7 +12,7 @@ export class WildPathActionBar extends HandlebarsApplicationMixin(ApplicationV2)
         classes: ["wildpath", "action-bar"],
         tag: "aside",
         window: { frame: false, positioned: false },
-        actions: { use: WildPathActionBar.#onUse }
+        actions: { use: WildPathActionBar.#onUse, reactionPolicy: WildPathActionBar.#onReactionPolicy }
     };
     static PARTS = { bar: { template: "systems/wildpath/templates/hud/action-bar.hbs" } };
     /** The creature shown, when a test or caller sets it; otherwise it follows the controlled Token. */
@@ -29,6 +30,14 @@ export class WildPathActionBar extends HandlebarsApplicationMixin(ApplicationV2)
         const id = target.closest("[data-item-id]")?.dataset.itemId;
         if (id)
             await this.shownActor?.items.get(id)?.use();
+    }
+    /** Cycle a reaction between Ask, Always and Never (Baldur's Gate 3's reaction settings). */
+    static async #onReactionPolicy(event, target) {
+        const item = this.shownActor?.items.get(target.dataset.itemId ?? "");
+        if (!item)
+            return;
+        const policies = REACTION_POLICIES;
+        await item.setFlag("wildpath", "reactionPolicy", policies[(policies.indexOf(reactionPolicyOf(item)) + 1) % policies.length]);
     }
 }
 let bar = null;

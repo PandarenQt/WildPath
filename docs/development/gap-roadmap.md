@@ -80,7 +80,12 @@ Each is small, and each changes every turn at the table.
    - each modifier and where it comes from.
 
    It is built on the Test tab's `previewAction` and the authority's roll modes, and the authority still
-   resolves for real. The odds reveal a target's AC and save bonuses, so a world setting decides who sees them.
+   resolves for real.
+
+   The odds reveal a target's AC and save bonuses. Maintainer decision (2026-10-14): whether players see them
+   is a house rule (a world setting), and by default only the GM does. An effect can reveal a creature's
+   details to the creature that applied it. That gives martials a kind of utility casters do not get, such
+   as sizing up a foe.
 2. **Reactions: Always, Ask or Never**, per reaction, set from the action bar. Today every eligible reactor is
    prompted, with Decline. A stored choice answers for the creature, so fewer attacks wait on a prompt.
 3. **Movement that warns.** While moving, the path shows:
@@ -122,7 +127,8 @@ Each is small, and each changes every turn at the table.
 
 ### B3. BG3's own rules, as world settings (maintainer decides)
 
-Each changes the rules, so each is a world setting, off unless the maintainer decides otherwise:
+Each changes the rules, so each is a world setting. Maintainer decision (2026-10-14): offer all of them, off by
+default:
 - **High ground:** +2 to attack rolls from 2.5 m (8 ft) above the target, and −2 from as far below.
 - **Bonus-action moves:** Shove and Jump as Bonus Actions, and Dip a weapon in fire for extra fire damage.
 - **Surfaces** with BG3's reactions, and its Wet condition: resistance to fire, vulnerability to cold and
@@ -136,7 +142,7 @@ Each changes the rules, so each is a world setting, off unless the maintainer de
 
 ### Order
 
-B1 interleaves with the G tracks, starting with:
+Maintainer decision (2026-10-14): B1 comes before G3, starting with:
 1. reactions Always, Ask or Never;
 2. odds;
 3. floating combat text;
@@ -194,6 +200,11 @@ Forced movement and elevation join G6, which becomes "space": areas, elevation a
     the Captain and 2d20kl at another creature. Charmed by the Captain, the caster's Fire Bolt at it was
     refused, unspent; at another creature it went through. With `ConditionImmunity` to Grappled, a hit
     applied nothing.
+
+- **B1.2, reactions Always, Ask or Never (2026-10-14).** Done:
+  - each reaction's toggle on the action bar is stored on its Item;
+  - Always reactions answer their own offer, and Never reactions are not offered at all;
+  - verified in Node, Quench (91/91) and two browsers ([reactions.md](../architecture/reactions.md)).
 
 ## Tracks, in order
 

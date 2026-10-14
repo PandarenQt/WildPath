@@ -1,5 +1,5 @@
 import {actionDefinitionFromAction} from "../helpers/action-definitions.mjs";
-import {createReactionTrigger} from "../helpers/automation-events.mjs";
+import {createReactionTrigger, reactionPolicyOf} from "../helpers/automation-events.mjs";
 
 type Data = Record<string, unknown>;
 
@@ -7,6 +7,7 @@ interface ItemLike {
   readonly id: string;
   readonly type?: string;
   readonly system?: {active?: boolean; ruleElements?: readonly Data[]; definition?: {id?: string}};
+  readonly flags?: {wildpath?: {reactionPolicy?: string}};
 }
 
 interface ActorLike {
@@ -38,6 +39,7 @@ interface ProviderContext {
 const MOVEMENT_EVENT = "movement.transition-proposed";
 // The JS builders are untyped; these are the only places their shapes are asserted.
 const reactionTrigger = createReactionTrigger as (options: Data) => Data;
+const policyOf = reactionPolicyOf as (item: ItemLike) => string;
 const definitionFor = actionDefinitionFromAction as (item: ItemLike) => {ok: boolean; definition?: Data | null};
 
 /**
@@ -87,6 +89,9 @@ function tokenReactions(token: TokenLike) {
           && (entry.system?.definition?.id === (data.reaction as Data | undefined)?.actionId));
       const definition = actionItem ? definitionFor(actionItem) : null;
       if ( !definition?.ok || !definition.definition ) return [];
+      // A reaction set to "Never" is not offered; one set to "Always" is used without asking.
+      const policy = policyOf(actionItem!);
+      if ( policy === "never" ) return [];
       const trigger = reactionTrigger({
         id: `reaction:${token.id}:${item.id}:${String(element.id ?? "trigger")}`,
         event,
@@ -95,7 +100,8 @@ function tokenReactions(token: TokenLike) {
         tokenId: token.id,
         action: definition.definition,
         actionId: definition.definition.id ?? null,
-        predicate: bindSelf(data.triggerPredicate ?? data.eventPredicate ?? null, token.id)
+        predicate: bindSelf(data.triggerPredicate ?? data.eventPredicate ?? null, token.id),
+        ...(policy === "always" ? {metadata: {reactionPolicy: policy}} : {})
       });
       return [{trigger, event, definition: definition.definition}];
     });
