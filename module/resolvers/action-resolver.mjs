@@ -453,62 +453,6 @@ export function planActionResolution({
 
 /* -------------------------------------------- */
 
-export async function executeActionResolution({
-  actor,
-  action,
-  source=null,
-  targets=[],
-  targeting=null,
-  attack=null,
-  save=null,
-  damage=null,
-  healing=null,
-  effects=null,
-  durability=null,
-  configuration=null,
-  configurationContributions=[],
-  targetActors=null,
-  authority=null,
-  context={},
-  policies={},
-  selectedPaymentOptionId=null,
-  persistencePort=null
-}={}) {
-  const executionDurability = prepareExecutionDurabilityOptions(durability, targetActors);
-  const result = planActionResolution({
-    actorSystem: actor?.system,
-    action,
-    source: source ?? actorSource(actor),
-    targets,
-    targeting,
-    attack,
-    save,
-    damage,
-    healing,
-    effects,
-    durability: executionDurability,
-    configuration,
-    configurationContributions,
-    context,
-    policies,
-    selectedPaymentOptionId,
-    complete: false
-  });
-  if ( result.status === ACTION_RESULT_STATUS.FAILED || result.status === ACTION_RESULT_STATUS.CANCELLED ) {
-    return result;
-  }
-
-  return commitPlannedActionResult({
-    result,
-    actor,
-    targetActors,
-    authority,
-    persistencePort
-  });
-}
-
-/* -------------------------------------------- */
-
 export async function commitPlannedActionResult({result, actor, targetActors, authority, persistencePort=null}={}) {
   if ( result?.status === ACTION_RESULT_STATUS.FAILED || result?.status === ACTION_RESULT_STATUS.CANCELLED ) {
     return result;
@@ -750,44 +694,6 @@ function summarizeResolvedConfiguration(configuration) {
 
 function uniqueStrings(values) {
   return [...new Set(values.filter(value => value != null).map(String))];
-}
-
-function actorSource(actor) {
-  if ( !actor ) return null;
-  return {
-    id: actor.id ?? actor.uuid ?? null,
-    uuid: actor.uuid ?? null,
-    actorId: actor.id ?? null,
-    name: actor.name ?? null,
-    type: actor.type ?? "actor"
-  };
-}
-
-export function prepareExecutionDurabilityOptions(durability, targetActors) {
-  if ( !durability || !targetActors ) return durability;
-  const options = durability === true ? {} : {...durability};
-  if ( options.targetSystems ) return durability;
-  return {
-    ...options,
-    targetSystems: targetActorSystemsFromActors(targetActors)
-  };
-}
-
-function targetActorSystemsFromActors(targetActors) {
-  if ( typeof targetActors === "function" ) {
-    return lookupContext => {
-      const actor = targetActors(lookupContext);
-      return actor?.system ?? actor?.actorSystem ?? actor ?? null;
-    };
-  }
-  if ( targetActors instanceof Map ) {
-    return new Map([...targetActors.entries()].map(([ref, actor]) => [ref, actor?.system ?? actor?.actorSystem ?? actor]));
-  }
-  if ( Array.isArray(targetActors) ) return targetActors;
-  if ( targetActors && typeof targetActors === "object" ) {
-    return Object.fromEntries(Object.entries(targetActors).map(([ref, actor]) => [ref, actor?.system ?? actor?.actorSystem ?? actor]));
-  }
-  return targetActors;
 }
 
 function isSupportedTargetMutationPlan(plan) {

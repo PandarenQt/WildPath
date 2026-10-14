@@ -46,8 +46,7 @@ mutation plans
 - source resource payment
 
 `ActionPipelineResolver` now reaches the same boundary by committing the already-planned staged
-`ActionResult` with `commitPlannedActionResult()`. It no longer replans through
-`executeActionResolution()` during `action.commit`.
+`ActionResult` with `commitPlannedActionResult()` during `action.commit`, without replanning.
 
 Target durability commits still require explicit authority before they become transaction
 operations. Target condition-effect commits use the same authority gate.

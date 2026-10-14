@@ -159,8 +159,8 @@ discovers payment options, selects a plan, maps economy resources back to Actor 
 commits through `DocumentPersistencePort` when the resolution transaction reaches the persistence
 boundary.
 
-Current `WildPathActor#useAction()` uses `ActionResolver`, which delegates resource planning and
-Actor update paths to this resolver for direct compatibility calls. Representative staged actions
+The staged Action pipeline delegates resource planning and Actor update paths to this resolver.
+Representative staged actions
 now compose targeting, rolls, damage, healing, effects, payment, transaction, and persistence
 without embedding resource mutation in the UI.
 

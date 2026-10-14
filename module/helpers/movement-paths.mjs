@@ -119,16 +119,6 @@ export function reconstructMovementFootprint(pathLike, anchorIndex=0) {
 
 /* -------------------------------------------- */
 
-/**
- * Reconstruct the full TokenGridFootprint occupied at every path anchor.
- * @param {object} pathLike
- * @returns {Array<object>}
- */
-export function reconstructMovementFootprints(pathLike) {
-  const path = createMovementPath(pathLike);
-  return path.anchors.map((_, index) => reconstructMovementFootprint(path, index));
-}
-
 /* -------------------------------------------- */
 
 /**

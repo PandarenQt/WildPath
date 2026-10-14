@@ -139,11 +139,6 @@ export function createTokenGridFootprint({
 
 /* -------------------------------------------- */
 
-export function validateFootprintDefinition(definition) {
-  const normalized = createTokenFootprintDefinition(definition);
-  return validateFootprintFields(normalized.offsets, normalized.topology);
-}
-
 export function validateFootprintFields(fields, topology) {
   const normalizedTopology = normalizeTopology(topology);
   if ( !Object.values(GRID_TOPOLOGIES).includes(normalizedTopology) ) {

@@ -11,7 +11,7 @@ const {SchemaField, NumberField, ArrayField, StringField} = foundry.data.fields;
 
 /**
  * A spendable Action: the primary vehicle for BG3-style action-economy costs.
- * Costs are expressed as resource deltas so `WildPathActor#useAction` can spend them through
+ * Costs are expressed as resource deltas so the Action runtime can spend them through
  * the same generic `spendResource` chokepoint used everywhere else.
  */
 export default class WildPathAction extends WildPathBaseItem {

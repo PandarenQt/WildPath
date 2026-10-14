@@ -115,14 +115,6 @@ export function resolveTargetEligibility(targetSet, policy={}, context={}) {
 
 /* -------------------------------------------- */
 
-export function eligibleTargetSet(targetSet) {
-  return {
-    ...targetSet,
-    candidates: targetSet.candidates.filter(candidate => candidate.eligibility?.ok)
-      .map(cloneCandidate)
-  };
-}
-
 /* -------------------------------------------- */
 
 export function targetSetContains(targetSet, targetId) {

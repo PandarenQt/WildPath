@@ -50,9 +50,8 @@ can roll back if payment fails.
 
 `WildPathActor#getActionPaymentOptions()` exposes discovery results for future UI.
 
-`WildPathActor#canUseAction()` goes through the resolver. `WildPathActor#useAction()` now goes
-through `ActionResolver`, which in turn delegates payment planning and Actor update paths to this
-resolver while preserving the current compatibility behavior.
+`WildPathActor#canUseAction()` goes through the resolver, and so does the staged Action pipeline's
+payment.
 
 ## Deferred Work
 

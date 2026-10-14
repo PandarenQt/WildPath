@@ -11,9 +11,19 @@ import {
 } from "../module/resolvers/damage-resolver.mjs";
 import {
   ACTION_RESOLVER_CODES,
-  executeActionResolution,
+  commitPlannedActionResult,
   planActionResolution
 } from "../module/resolvers/action-resolver.mjs";
+
+/** The legacy planner, then `commitPlannedActionResult`: the commit path the staged pipeline uses. */
+async function planAndCommit({actor, targetActors=null, authority=null, durability=null, ...options}) {
+  const targetSystems = targetActors ? Object.fromEntries(Object.entries(targetActors).map(([ref, target]) => [ref, target.system])) : null;
+  const result = planActionResolution({actorSystem: actor.system, source: {id: actor.id, actorId: actor.id, name: actor.name,
+    type: actor.type ?? "actor"}, ...options, durability: durability && targetSystems && !durability.targetSystems
+      ? {...(durability === true ? {} : durability), targetSystems} : durability,
+    complete: false});
+  return commitPlannedActionResult({result, actor, targetActors, authority});
+}
 
 function actorSystem(actionValue=1) {
   return {
@@ -802,7 +812,7 @@ test("ActionResolver execution commits resource plans and emits payment committe
       calls.push(updates);
     }
   };
-  const result = await executeActionResolution({actor, action: action()});
+  const result = await planAndCommit({actor, action: action()});
 
   assert.equal(result.ok, true);
   assert.deepEqual(calls, [{"system.resources.action.value": 0}]);
@@ -825,7 +835,7 @@ test("ActionResolver execution commits payment after an attack miss", async () =
       calls.push(updates);
     }
   };
-  const result = await executeActionResolution({
+  const result = await planAndCommit({
     actor,
     action: action(),
     targeting: {
@@ -854,7 +864,7 @@ test("ActionResolver execution requires explicit authority for target durability
       calls.push(updates);
     }
   };
-  const result = await executeActionResolution({
+  const result = await planAndCommit({
     actor,
     action: action(),
     targets: [{id: "orc", actorId: "actor-orc"}],
@@ -884,7 +894,7 @@ test("ActionResolver execution requires explicit authority for condition effect 
       sourceCalls.push(updates);
     }
   };
-  const result = await executeActionResolution({
+  const result = await planAndCommit({
     actor,
     action: action(),
     targets: [{id: "ogre", actorId: "actor-ogre"}],
@@ -920,7 +930,7 @@ test("ActionResolver execution commits target durability plans with active GM au
       targetCalls.push(updates);
     }
   };
-  const result = await executeActionResolution({
+  const result = await planAndCommit({
     actor,
     action: action(),
     targets: [{id: "orc", actorId: "actor-orc"}],
@@ -950,7 +960,7 @@ test("ActionResolver execution commits condition effect plans with active GM aut
       sourceCalls.push(updates);
     }
   };
-  const result = await executeActionResolution({
+  const result = await planAndCommit({
     actor,
     action: action(),
     targets: [{id: "ogre", actorId: "actor-ogre"}],
@@ -996,7 +1006,7 @@ test("ActionResolver execution commits target absorption plans with active GM au
       targetCalls.push(updates);
     }
   };
-  const result = await executeActionResolution({
+  const result = await planAndCommit({
     actor,
     action: action(),
     targets: [{id: "salamander", actorId: "actor-salamander"}],
@@ -1042,7 +1052,7 @@ test("ActionResolver execution rolls target mutations back when source payment c
       targetCalls.push(updates);
     }
   };
-  const result = await executeActionResolution({
+  const result = await planAndCommit({
     actor,
     action: action(),
     targets: [{id: "orc", actorId: "actor-orc"}],
@@ -1077,7 +1087,7 @@ test("ActionResolver execution rolls condition effects back when source payment 
       throw new Error("payment failed");
     }
   };
-  const result = await executeActionResolution({
+  const result = await planAndCommit({
     actor,
     action: action(),
     targets: [{id: "ogre", actorId: "actor-ogre"}],
@@ -1126,7 +1136,7 @@ test("ActionResolver execution rolls back earlier target mutations when a later 
       throw new Error("target failed");
     }
   };
-  const result = await executeActionResolution({
+  const result = await planAndCommit({
     actor,
     action: action(),
     targets: [
@@ -1174,7 +1184,7 @@ test("ActionResolver execution commits target healing durability plans with acti
       targetCalls.push(updates);
     }
   };
-  const result = await executeActionResolution({
+  const result = await planAndCommit({
     actor,
     action: action(),
     targets: [{id: "ally", actorId: "actor-ally"}],
@@ -1200,7 +1210,7 @@ test("ActionResolver execution supports zero-cost actions without Actor updates"
       calls.push(updates);
     }
   };
-  const result = await executeActionResolution({
+  const result = await planAndCommit({
     actor,
     action: action({allOf: [{capability: ECONOMY_CAPABILITIES.ACTION, amount: 0}]})
   });

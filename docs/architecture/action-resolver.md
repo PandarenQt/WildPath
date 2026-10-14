@@ -139,24 +139,16 @@ successfully.
 - records target durability and resource-payment mutation plans
 - returns an `ActionResult`
 
-`executeActionResolution()`:
-
-- runs the same planning flow
-- can derive target Actor system snapshots from supplied target Actors
-- prepares target durability transaction operations only with explicit authority
-- prepares target condition-effect transaction operations only with explicit authority
-- commits target durability, target condition effects, and source resource-payment operations
-  through a single `ResolutionTransaction`
-- rolls back already-committed target/source updates in reverse order when a later Actor update
-  fails
-- returns the resulting `ActionResult`
-
 `commitPlannedActionResult()`:
 
 - accepts an already-planned `ActionResult`
 - commits supported target mutation and resource-payment plans without replanning
+- prepares target durability and condition-effect transaction operations only with explicit authority
+- commits them and source resource-payment operations through a single `ResolutionTransaction`
+- rolls back already-committed target/source updates in reverse order when a later Actor update
+  fails
 - records the payment-committed event and final complete step
-- is shared by direct `executeActionResolution()` callers and the staged pipeline
+- is the commit step of the staged pipeline
 
 `planStagedActionResolution()` / `resumeStagedActionResolution()`:
 
@@ -177,11 +169,12 @@ successfully.
 - records `action.commit` and `action.finalization` trace entries
 - preserves rollback behavior when later transaction operations fail
 
-`WildPathActor#useAction()` still uses `executeActionResolution()` while preserving its current
-boolean return behavior, but it is a legacy/compatibility helper only. The player-facing execution
-path is `WildPathItem#use()`, which declares an Action intent through `game.wildpath.executeActionIntent`
-(the multiplayer authority coordinator and staged Action pipeline) instead of calling `useAction()`.
+The only execution path is `WildPathItem#use()`, which declares an Action intent through
+`game.wildpath.executeActionIntent` (the multiplayer authority coordinator and staged Action pipeline).
 See `docs/architecture/multiplayer-authority.md` and `foundry-multiplayer-runtime.mjs`.
+`WildPathActor#useAction()` and `executeActionResolution()`, the legacy synchronous path, were removed
+on 2026-10-14 because nothing called them. `planActionResolution()` remains as the synchronous planner the
+resolver tests drive.
 
 Invalid persisted definitions fail during validation with `ACTION_DEFINITION_INVALID`; payment is
 not planned.

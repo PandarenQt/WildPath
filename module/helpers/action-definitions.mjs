@@ -58,16 +58,6 @@ export const ACTION_TARGETING_TYPES = Object.freeze({
   AREA: "area"
 });
 
-export const ACTION_AREA_SHAPES = Object.freeze({
-  RADIAL: "radial",
-  LINE: "line",
-  CONE: "cone",
-  WALL: "wall",
-  AURA: "aura",
-  EMANATION: "emanation",
-  SPECIAL: "special"
-});
-
 const DAMAGE_TYPE_PATTERN = /^[a-z][a-z0-9-]*$/i;
 
 /* -------------------------------------------- */

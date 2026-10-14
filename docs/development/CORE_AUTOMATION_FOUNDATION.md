@@ -102,7 +102,7 @@ finished game system name is **WildPath**.
   `token:scene.token`, `uuid:...`) that future domain and resolver code should pass instead of
   live Foundry documents or cross-layer object handles.
 - `module/resolvers/resource-resolver.mjs` maps generic action-economy payment plans to Actor
-  resource update paths and is now the payment boundary used by `WildPathActor#useAction`.
+  resource update paths and is the payment boundary the staged Action pipeline uses.
 - `module/resolvers/resolution-transaction-resolver.mjs` provides ordered mutation commit
   operations with preflight rollback requirements, custom rollback callbacks for document
   operations, and reverse-order rollback when a later commit fails. Migrated action commits now

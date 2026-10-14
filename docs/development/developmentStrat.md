@@ -260,13 +260,11 @@ Node-level production-entry proof.
 Replace `action.legacy-resolution` one responsibility at a time with dedicated stages calling the
 existing domain resolvers. Preserve behavior and parity tests.
 
-Status: `action.legacy-resolution` is no longer part of the default action pipeline. The legacy
-`ActionResolver#executeActionResolution` is a compatibility helper with exactly one production
-caller (`WildPathActor#useAction`, itself no longer the player-facing execution path - see the
-production-wiring note under Stage D). It is not shared planning code for the staged pipeline;
-`action-pipeline-resolver.mjs` calls the same underlying target/attack/save/damage/effect resolvers
-directly. Remaining extraction work is limited to `useAction()` and older document/lifecycle paths,
-not the normal staged vertical-slice execution path.
+Status: `action.legacy-resolution` is no longer part of the default action pipeline, and
+`action-pipeline-resolver.mjs` calls the underlying target/attack/save/damage/effect resolvers directly.
+`WildPathActor#useAction` and `ActionResolver#executeActionResolution`, the legacy synchronous path, were
+removed on 2026-10-14 because nothing called them. Remaining work is limited to older document and
+lifecycle writes outside the persistence port.
 
 ## Stage F — Multiplayer Authority / Sockets
 

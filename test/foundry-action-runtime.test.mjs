@@ -268,14 +268,6 @@ function syntheticRuntimeFixture(t, definition=meleeStrikeDefinition(), {targetH
 /*  Canonical entry point                        */
 /* -------------------------------------------- */
 
-test("module/documents/item.mjs no longer authoritatively executes Action use through the legacy executeActionResolution resolver", () => {
-  const source = readFileSync(fileURLToPath(new URL("../module/documents/item.mjs", import.meta.url)), "utf8");
-  assert.equal(/executeActionResolution/.test(source), false,
-    "Item#use() must not call the legacy executeActionResolution resolver - it bypasses the staged pipeline, reactions, prompts, and TacticalGrid context.");
-  assert.equal(/executeActionIntent/.test(source), true,
-    "Item#use() must declare its Action intent through the authoritative multiplayer runtime (game.wildpath.executeActionIntent).");
-});
-
 test("buildFoundryActionUseIntent constructs a stable, non-authoritative Action intent using game.user.targets", () => {
   const sourceActor = {id: "actor-a", uuid: "Actor.actor-a", token: null};
   const action = {id: "action-a", uuid: "Item.action-a"};

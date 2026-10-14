@@ -5,7 +5,6 @@ import {
 } from "../helpers/rule-elements.mjs";
 import {DEFAULT_FORM_STATISTICS, DEFAULT_KEPT_ITEM_TYPES, itemContributesWhileTransformed} from "../helpers/transformations.mjs";
 import WildPathConditionEffect from "../data/active-effect/condition.mjs";
-import {executeActionResolution} from "../resolvers/action-resolver.mjs";
 import {executeConditionEffect} from "../resolvers/effect-resolver.mjs";
 import {executeEffectLifecycleCommit} from "../resolvers/effect-lifecycle-commit-resolver.mjs";
 import {planConditionTriggerConsequences} from "../resolvers/condition-trigger-resolver.mjs";
@@ -376,22 +375,6 @@ export default class WildPathActor extends Actor {
    */
   getActionPaymentOptions(action, {policies={}, actionContext={}}={}) {
     return this.resolveActionPayment(action, {policies, actionContext}).discovery;
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Legacy/compatibility helper: resolves an Action through the older synchronous
-   * `executeActionResolution` resolver (no pause/resume, reactions, prompts, or TacticalGrid
-   * context). No longer the player-facing execution path - `WildPathItem#use()` now declares
-   * an Action intent through the authoritative multiplayer runtime instead. Kept for direct
-   * programmatic callers that need a synchronous resource-only resolution.
-   * @param {Item} action   An Item of type "action".
-   * @returns {Promise<boolean>}   Whether the cost was successfully paid.
-   */
-  async useAction(action, options={}) {
-    const result = await executeActionResolution({actor: this, action, ...options});
-    return result.ok;
   }
 
   /* -------------------------------------------- */

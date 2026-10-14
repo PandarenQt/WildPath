@@ -19,16 +19,6 @@ export const AREA_SHAPES = Object.freeze({
   EMANATION: "emanation"
 });
 
-export const PLACEMENT_POLICIES = Object.freeze({
-  SOURCE_BOUNDARY_DIRECTION: "source-boundary-direction",
-  SOURCE_BOUNDARY_ENDPOINT: "source-boundary-endpoint",
-  FREE_VERTEX_DIRECTION: "free-vertex-direction",
-  FREE_VERTEX_ENDPOINT: "free-vertex-endpoint",
-  TOKEN_CENTERED: "token-centered",
-  TARGET_CENTERED: "target-centered",
-  SELF: "self"
-});
-
 export const ORIGIN_SOURCE_POLICIES = Object.freeze({
   SELF: "self",
   ELIGIBLE_CONTROLLED: "eligible-controlled",
@@ -200,27 +190,6 @@ export function createConeFootprint({
 }
 
 /* -------------------------------------------- */
-
-export function createWallFootprint({
-  topology=GRID_TOPOLOGIES.SQUARE,
-  origin,
-  endpoint,
-  metadata={}
-}={}) {
-  const normalizedTopology = normalizeTopology(topology);
-  const line = gridLineFields(
-    normalizeGridField(origin, normalizedTopology),
-    normalizeGridField(endpoint, normalizedTopology),
-    normalizedTopology
-  );
-  return createGridFootprint({
-    topology: normalizedTopology,
-    fields: line,
-    shape: AREA_SHAPES.WALL,
-    origin: normalizeGridField(origin, normalizedTopology),
-    metadata
-  });
-}
 
 /* -------------------------------------------- */
 
@@ -454,26 +423,6 @@ function lateralDirections(direction, topology) {
   }).slice(0, 2);
 }
 
-function gridLineFields(start, end, topology) {
-  const distance = fieldDistance(start, end, topology);
-  if ( distance === 0 ) return [start];
-  const fields = [];
-  for ( let i = 0; i <= distance; i++ ) {
-    const t = i / distance;
-    const field = topology === GRID_TOPOLOGIES.HEX
-      ? roundAxial({
-        q: lerp(Number(start.q), Number(end.q), t),
-        r: lerp(Number(start.r), Number(end.r), t)
-      })
-      : {
-        x: Math.round(lerp(Number(start.x), Number(end.x), t)),
-        y: Math.round(lerp(Number(start.y), Number(end.y), t))
-      };
-    fields.push(field);
-  }
-  return sortGridFields(fields, topology);
-}
-
 function nearestDirection(vector, topology) {
   const normalizedTopology = normalizeTopology(topology);
   if ( isZeroDirection(vector, normalizedTopology) ) {
@@ -577,10 +526,6 @@ function failedFootprint(code, reason=null) {
 
 function normalizeTopology(topology) {
   return String(topology ?? GRID_TOPOLOGIES.SQUARE).toLowerCase();
-}
-
-function lerp(a, b, t) {
-  return a + ((b - a) * t);
 }
 
 function clonePlain(value) {

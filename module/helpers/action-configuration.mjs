@@ -348,10 +348,6 @@ export function createResolvedActionPreview({
 
 /* -------------------------------------------- */
 
-export function actionDefinitionFromResolvedConfiguration(configuration) {
-  return clonePlain(configuration?.effectiveDefinition ?? null);
-}
-
 /* -------------------------------------------- */
 
 function collectChoiceDefinitions(actionDefinition, configurationContributions) {
