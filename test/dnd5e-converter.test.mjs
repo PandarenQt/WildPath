@@ -232,3 +232,37 @@ test("older dnd5e data (2014 modules, before activities) converts like the curre
   assert.deepEqual(cure.items[0].system.definition.configuration[0].effects[0], {type: "scaleHealing", levelChoiceId: "spell-slot", baseLevel: 1,
     componentIds: ["healing-1"], dice: {number: 1, faces: 8}});
 });
+
+test("an effect with its own changes becomes a custom effect with the rules they map to, and its duration (G3)", async () => {
+  const {effectRules, changeValue} = await import("../scripts/content/dnd5e-to-wildpath.mjs");
+  const attack = kind => ({key: `system.bonuses.${kind}.attack`, value: "1d4", type: "add"});
+  const blessed = {name: "Blessed", system: {changes: [attack("mwak"), attack("rwak"), attack("msak"), attack("rsak"),
+    {key: "system.bonuses.abilities.save", value: "1d4", type: "add"}]}};
+  assert.deepEqual(effectRules(blessed).map(rule => [rule.type, rule.data.domains, rule.data.valueExpression]), [
+    ["Modifier", ["attack"], {type: "dice", number: 1, faces: 4}], ["Modifier", ["save"], {type: "dice", number: 1, faces: 4}]]);
+  const notes = [];
+  const mixed = effectRules({name: "Mixed", system: {changes: [attack("mwak"), {key: "system.skills.ste.roll.mode", value: "-1", type: "add"},
+    {key: "system.traits.ci.value", value: "charmed", type: "add"}, {key: "system.traits.ci.value", value: "diseased", type: "add"},
+    {key: "system.attributes.movement.walk", value: "0", type: "override"}, {key: "system.attributes.movement.fly", value: "60", type: "upgrade"},
+    {key: "system.attributes.ac.calc", value: "mage", type: "override"}]}}, notes);
+  assert.deepEqual(mixed.map(rule => [rule.type, rule.predicate ?? null]), [["Modifier", {tagsAny: ["melee"]}], ["RollMode", null],
+    ["ResourceCap", null], ["GrantMovement", null], ["ConditionImmunity", null]]);
+  assert.deepEqual(mixed[0].data.domains, ["attack.weapon"], "a melee weapon attack bonus");
+  assert.deepEqual(mixed[1].data, {domains: ["check.stealth"], mode: "disadvantage"});
+  assert.deepEqual(notes, ['effect: "Mixed" change system.attributes.ac.calc (override) not converted',
+    'effect: "Mixed" condition immunity diseased not converted']);
+  assert.deepEqual(changeValue("-1d4"), {type: "subtract", left: {type: "constant", value: 0}, right: {type: "dice", number: 1, faces: 4}});
+
+  const spell = {_id: "testBless0000001", name: "Test Bless", type: "spell", system: {source: SRD, level: 1, preparation: {mode: "prepared"},
+    properties: ["concentration"], activation: {type: "action"}, range: {value: "30", units: "ft"}, target: {affects: {type: "creature", count: "3"}, template: {}},
+    activities: {a: activity("utility", {effects: [{_id: "blessed00000001"}]})}},
+    effects: [{_id: "blessed00000001", name: "Blessed", img: "bless.webp", ...blessed, duration: {value: 60, units: "seconds", expiry: "turnStart"}}]};
+  const converted = convertItem(spell);
+  valid(converted.items[0]);
+  const [effect] = converted.items[0].system.definition.effects;
+  assert.deepEqual([effect.type, effect.name, effect.concentration, effect.duration], ["effect", "Blessed", true,
+    {value: 60, units: "seconds", expiry: "turnStart"}]);
+  const {actionDefinitionToResolverInput} = await import("../module/helpers/action-definitions.mjs");
+  assert.deepEqual(actionDefinitionToResolverInput(converted.items[0].system.definition).targeting.refinementPolicy,
+    {minSelections: 1, maxSelections: 3}, "up to three creatures: one is enough");
+});

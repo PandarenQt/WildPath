@@ -21,6 +21,101 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "emanation",
+        "size": {
+          "value": 30,
+          "unit": "ft"
+        }
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Holy Protection",
+          "img": "icons/svg/mage-shield.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "holy-protection-1",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "save.might"
+                ],
+                "mode": "advantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "holy-protection-2",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "save.agility"
+                ],
+                "mode": "advantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "holy-protection-3",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "save.fortitude"
+                ],
+                "mode": "advantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "holy-protection-4",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "save.intellect"
+                ],
+                "mode": "advantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "holy-protection-5",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "save.wits"
+                ],
+                "mode": "advantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "holy-protection-6",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "save.presence"
+                ],
+                "mode": "advantage"
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -66,11 +161,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Holy Protection\" (its own changes) not converted",
-          "concentration: nothing it sustains was converted"
-        ]
+        "notes": []
       }
     }
   }

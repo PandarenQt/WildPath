@@ -31,7 +31,10 @@
       "targeting": {
         "type": "multiple",
         "required": true,
-        "count": 4
+        "count": 4,
+        "refinementPolicy": {
+          "minSelections": 1
+        }
       },
       "save": {
         "ability": "agility",

@@ -21,6 +21,560 @@
           }
         ]
       },
+      "range": {
+        "type": "touch",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Acrobatic Guidance",
+          "img": "systems/dnd5e/icons/svg/activity/check.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "acrobatic-guidance-1",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "check.acrobatics"
+                ],
+                "modifierType": "untyped",
+                "valueExpression": {
+                  "type": "dice",
+                  "number": 1,
+                  "faces": 4
+                }
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-2",
+          "type": "effect",
+          "name": "Animal Handling Guidance",
+          "img": "systems/dnd5e/icons/svg/activity/check.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "animal-handling-guidance-1",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "check.animal-handling"
+                ],
+                "modifierType": "untyped",
+                "valueExpression": {
+                  "type": "dice",
+                  "number": 1,
+                  "faces": 4
+                }
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-3",
+          "type": "effect",
+          "name": "Arcana Guidance",
+          "img": "systems/dnd5e/icons/svg/activity/check.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "arcana-guidance-1",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "check.arcana"
+                ],
+                "modifierType": "untyped",
+                "valueExpression": {
+                  "type": "dice",
+                  "number": 1,
+                  "faces": 4
+                }
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-4",
+          "type": "effect",
+          "name": "Athletic Guidance",
+          "img": "systems/dnd5e/icons/svg/activity/check.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "athletic-guidance-1",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "check.athletics"
+                ],
+                "modifierType": "untyped",
+                "valueExpression": {
+                  "type": "dice",
+                  "number": 1,
+                  "faces": 4
+                }
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-5",
+          "type": "effect",
+          "name": "Deception Guidance",
+          "img": "systems/dnd5e/icons/svg/activity/check.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "deception-guidance-1",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "check.deception"
+                ],
+                "modifierType": "untyped",
+                "valueExpression": {
+                  "type": "dice",
+                  "number": 1,
+                  "faces": 4
+                }
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-6",
+          "type": "effect",
+          "name": "History Guidance",
+          "img": "systems/dnd5e/icons/svg/activity/check.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "history-guidance-1",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "check.history"
+                ],
+                "modifierType": "untyped",
+                "valueExpression": {
+                  "type": "dice",
+                  "number": 1,
+                  "faces": 4
+                }
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-7",
+          "type": "effect",
+          "name": "Insight Guidance",
+          "img": "systems/dnd5e/icons/svg/activity/check.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "insight-guidance-1",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "check.insight"
+                ],
+                "modifierType": "untyped",
+                "valueExpression": {
+                  "type": "dice",
+                  "number": 1,
+                  "faces": 4
+                }
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-8",
+          "type": "effect",
+          "name": "Investigation Guidance",
+          "img": "systems/dnd5e/icons/svg/activity/check.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "investigation-guidance-1",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "check.investigation"
+                ],
+                "modifierType": "untyped",
+                "valueExpression": {
+                  "type": "dice",
+                  "number": 1,
+                  "faces": 4
+                }
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-9",
+          "type": "effect",
+          "name": "Intimidation Guidance",
+          "img": "systems/dnd5e/icons/svg/activity/check.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "intimidation-guidance-1",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "check.intimidation"
+                ],
+                "modifierType": "untyped",
+                "valueExpression": {
+                  "type": "dice",
+                  "number": 1,
+                  "faces": 4
+                }
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-10",
+          "type": "effect",
+          "name": "Medicine Guidance",
+          "img": "systems/dnd5e/icons/svg/activity/check.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "medicine-guidance-1",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "check.medicine"
+                ],
+                "modifierType": "untyped",
+                "valueExpression": {
+                  "type": "dice",
+                  "number": 1,
+                  "faces": 4
+                }
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-11",
+          "type": "effect",
+          "name": "Nature Guidance",
+          "img": "systems/dnd5e/icons/svg/activity/check.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "nature-guidance-1",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "check.nature"
+                ],
+                "modifierType": "untyped",
+                "valueExpression": {
+                  "type": "dice",
+                  "number": 1,
+                  "faces": 4
+                }
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-12",
+          "type": "effect",
+          "name": "Persuasion Guidance",
+          "img": "systems/dnd5e/icons/svg/activity/check.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "persuasion-guidance-1",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "check.persuasion"
+                ],
+                "modifierType": "untyped",
+                "valueExpression": {
+                  "type": "dice",
+                  "number": 1,
+                  "faces": 4
+                }
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-13",
+          "type": "effect",
+          "name": "Perception Guidance",
+          "img": "systems/dnd5e/icons/svg/activity/check.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "perception-guidance-1",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "check.perception"
+                ],
+                "modifierType": "untyped",
+                "valueExpression": {
+                  "type": "dice",
+                  "number": 1,
+                  "faces": 4
+                }
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-14",
+          "type": "effect",
+          "name": "Performance Guidance",
+          "img": "systems/dnd5e/icons/svg/activity/check.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "performance-guidance-1",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "check.performance"
+                ],
+                "modifierType": "untyped",
+                "valueExpression": {
+                  "type": "dice",
+                  "number": 1,
+                  "faces": 4
+                }
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-15",
+          "type": "effect",
+          "name": "Religion Guidance",
+          "img": "systems/dnd5e/icons/svg/activity/check.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "religion-guidance-1",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "check.religion"
+                ],
+                "modifierType": "untyped",
+                "valueExpression": {
+                  "type": "dice",
+                  "number": 1,
+                  "faces": 4
+                }
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-16",
+          "type": "effect",
+          "name": "Sleight of Hand Guidance",
+          "img": "systems/dnd5e/icons/svg/activity/check.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "sleight-of-hand-guidance-1",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "check.sleight-of-hand"
+                ],
+                "modifierType": "untyped",
+                "valueExpression": {
+                  "type": "dice",
+                  "number": 1,
+                  "faces": 4
+                }
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-17",
+          "type": "effect",
+          "name": "Stealth Guidance",
+          "img": "systems/dnd5e/icons/svg/activity/check.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "stealth-guidance-1",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "check.stealth"
+                ],
+                "modifierType": "untyped",
+                "valueExpression": {
+                  "type": "dice",
+                  "number": 1,
+                  "faces": 4
+                }
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-18",
+          "type": "effect",
+          "name": "Survival Guidance",
+          "img": "systems/dnd5e/icons/svg/activity/check.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "survival-guidance-1",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "check.survival"
+                ],
+                "modifierType": "untyped",
+                "valueExpression": {
+                  "type": "dice",
+                  "number": 1,
+                  "faces": 4
+                }
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        }
+      ],
       "label": "Guidance"
     },
     "ruleElements": []
@@ -37,28 +591,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Acrobatic Guidance\" (its own changes) not converted",
-          "effect: \"Animal Handling Guidance\" (its own changes) not converted",
-          "effect: \"Arcana Guidance\" (its own changes) not converted",
-          "effect: \"Athletic Guidance\" (its own changes) not converted",
-          "effect: \"Deception Guidance\" (its own changes) not converted",
-          "effect: \"History Guidance\" (its own changes) not converted",
-          "effect: \"Insight Guidance\" (its own changes) not converted",
-          "effect: \"Investigation Guidance\" (its own changes) not converted",
-          "effect: \"Intimidation Guidance\" (its own changes) not converted",
-          "effect: \"Medicine Guidance\" (its own changes) not converted",
-          "effect: \"Nature Guidance\" (its own changes) not converted",
-          "effect: \"Persuasion Guidance\" (its own changes) not converted",
-          "effect: \"Perception Guidance\" (its own changes) not converted",
-          "effect: \"Performance Guidance\" (its own changes) not converted",
-          "effect: \"Religion Guidance\" (its own changes) not converted",
-          "effect: \"Sleight of Hand Guidance\" (its own changes) not converted",
-          "effect: \"Stealth Guidance\" (its own changes) not converted",
-          "effect: \"Survival Guidance\" (its own changes) not converted",
-          "concentration: nothing it sustains was converted"
-        ]
+        "notes": []
       }
     }
   }

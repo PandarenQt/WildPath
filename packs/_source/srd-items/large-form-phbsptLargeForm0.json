@@ -22,6 +22,50 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Large Form",
+          "img": "icons/magic/control/silhouette-grow-shrink-tan.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "large-form-1",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "resources.movement.max"
+                ],
+                "modifierType": "untyped",
+                "value": 10
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "large-form-2",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "check.might"
+                ],
+                "mode": "advantage"
+              }
+            }
+          ],
+          "duration": {
+            "value": 600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "label": "Large Form"
     },
     "ruleElements": [
@@ -53,10 +97,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Large Form\" (its own changes) not converted"
-        ]
+        "notes": []
       }
     }
   }

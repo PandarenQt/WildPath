@@ -391,6 +391,104 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 120,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "multiple",
+            "required": true,
+            "count": 20,
+            "refinementPolicy": {
+              "minSelections": 1
+            }
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "value": 17
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Slowed",
+              "img": "icons/magic/time/clock-stopwatch-white-blue.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "slowed-1",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "defense.ac"
+                    ],
+                    "modifierType": "untyped",
+                    "value": -2
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "slowed-2",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "resources.movement.max"
+                    ],
+                    "modifierType": "untyped",
+                    "valueExpression": {
+                      "type": "floor",
+                      "value": {
+                        "type": "multiply",
+                        "terms": [
+                          {
+                            "type": "constant",
+                            "value": -0.5
+                          },
+                          {
+                            "type": "add",
+                            "terms": [
+                              {
+                                "type": "context",
+                                "path": "actorSystem.resources.movement.base"
+                              },
+                              {
+                                "type": "context",
+                                "path": "actorSystem.resources.movement.bonus"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "slowed-3",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "save.agility"
+                    ],
+                    "modifierType": "untyped",
+                    "value": -2
+                  }
+                }
+              ],
+              "duration": {
+                "value": 60,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
+              "saveOutcomePolicy": "failure",
+              "concentration": true
+            }
+          ],
           "configuration": [
             {
               "id": "spell-slot",
@@ -472,10 +570,11 @@
           },
           "conversion": {
             "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
               "area: 40-ft cube is not supported; the user picks the targets",
-              "effect: \"Slowed\" (its own changes) not converted",
-              "concentration: nothing it sustains was converted"
+              "effect: \"Slowed\" change system.attributes.movement.burrow (multiply) not converted",
+              "effect: \"Slowed\" change system.attributes.movement.climb (multiply) not converted",
+              "effect: \"Slowed\" change system.attributes.movement.fly (multiply) not converted",
+              "effect: \"Slowed\" change system.attributes.movement.swim (multiply) not converted"
             ]
           }
         }
@@ -504,6 +603,97 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 120,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "multiple",
+            "required": true,
+            "count": 20,
+            "refinementPolicy": {
+              "minSelections": 1
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Slowed",
+              "img": "icons/magic/time/clock-stopwatch-white-blue.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "slowed-1",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "defense.ac"
+                    ],
+                    "modifierType": "untyped",
+                    "value": -2
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "slowed-2",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "resources.movement.max"
+                    ],
+                    "modifierType": "untyped",
+                    "valueExpression": {
+                      "type": "floor",
+                      "value": {
+                        "type": "multiply",
+                        "terms": [
+                          {
+                            "type": "constant",
+                            "value": -0.5
+                          },
+                          {
+                            "type": "add",
+                            "terms": [
+                              {
+                                "type": "context",
+                                "path": "actorSystem.resources.movement.base"
+                              },
+                              {
+                                "type": "context",
+                                "path": "actorSystem.resources.movement.bonus"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "slowed-3",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "save.agility"
+                    ],
+                    "modifierType": "untyped",
+                    "value": -2
+                  }
+                }
+              ],
+              "duration": {
+                "value": 60,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
+              "concentration": true
+            }
+          ],
           "configuration": [
             {
               "id": "spell-slot",
@@ -585,10 +775,11 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
               "area: 40-ft cube is not supported; the user picks the targets",
-              "effect: \"Slowed\" (its own changes) not converted",
-              "concentration: nothing it sustains was converted"
+              "effect: \"Slowed\" change system.attributes.movement.burrow (multiply) not converted",
+              "effect: \"Slowed\" change system.attributes.movement.climb (multiply) not converted",
+              "effect: \"Slowed\" change system.attributes.movement.fly (multiply) not converted",
+              "effect: \"Slowed\" change system.attributes.movement.swim (multiply) not converted"
             ]
           }
         }
@@ -658,11 +849,11 @@
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
           "Slow: not automated (cast): using it spends its cost; its description says the rest",
           "Slow: uses: Recharge 5–6 is not rolled; refill the pool by hand",
-          "Slow: not automated (save): using it spends its cost; its description says the rest",
           "Slow: area: 40-ft cube is not supported; the user picks the targets",
-          "Slow: effect: \"Slowed\" (its own changes) not converted",
-          "Slow: concentration: nothing it sustains was converted",
-          "Slow: not automated (utility): using it spends its cost; its description says the rest"
+          "Slow: effect: \"Slowed\" change system.attributes.movement.burrow (multiply) not converted",
+          "Slow: effect: \"Slowed\" change system.attributes.movement.climb (multiply) not converted",
+          "Slow: effect: \"Slowed\" change system.attributes.movement.fly (multiply) not converted",
+          "Slow: effect: \"Slowed\" change system.attributes.movement.swim (multiply) not converted"
         ]
       }
     }

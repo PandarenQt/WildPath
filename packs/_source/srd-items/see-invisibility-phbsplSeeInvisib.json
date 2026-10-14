@@ -110,6 +110,8 @@
       "conversion": {
         "notes": [
           "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"See Invisibility\" change system.attributes.senses.special (add) not converted",
+          "effect: \"See Invisibility\" change system.attributes.senses.special (add) not converted",
           "effect: \"See Invisibility\" (its own changes) not converted"
         ]
       }

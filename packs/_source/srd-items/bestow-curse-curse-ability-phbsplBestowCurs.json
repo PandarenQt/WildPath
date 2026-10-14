@@ -21,6 +21,256 @@
           }
         ]
       },
+      "range": {
+        "type": "touch",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "save": {
+        "ability": "wits",
+        "dc": {
+          "valueExpression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 8
+              },
+              {
+                "type": "proficiency-bonus"
+              },
+              {
+                "type": "spellcasting-modifier"
+              }
+            ]
+          }
+        }
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Cursed Wisdom",
+          "img": "systems/dnd5e/icons/svg/abilities/wisdom.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "cursed-wisdom-1",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "save.wits"
+                ],
+                "mode": "disadvantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "cursed-wisdom-2",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "save.wits"
+                ],
+                "mode": "disadvantage"
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-2",
+          "type": "effect",
+          "name": "Cursed Strength",
+          "img": "systems/dnd5e/icons/svg/abilities/strength.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "cursed-strength-1",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "check.might"
+                ],
+                "mode": "disadvantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "cursed-strength-2",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "save.might"
+                ],
+                "mode": "disadvantage"
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-3",
+          "type": "effect",
+          "name": "Cursed Intelligence",
+          "img": "systems/dnd5e/icons/svg/abilities/intelligence.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "cursed-intelligence-1",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "check.intellect"
+                ],
+                "mode": "disadvantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "cursed-intelligence-2",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "save.intellect"
+                ],
+                "mode": "disadvantage"
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-4",
+          "type": "effect",
+          "name": "Cursed Dexterity",
+          "img": "systems/dnd5e/icons/svg/abilities/dexterity.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "cursed-dexterity-1",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "check.agility"
+                ],
+                "mode": "disadvantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "cursed-dexterity-2",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "save.agility"
+                ],
+                "mode": "disadvantage"
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-5",
+          "type": "effect",
+          "name": "Cursed Constitution",
+          "img": "systems/dnd5e/icons/svg/abilities/constitution.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "cursed-constitution-1",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "check.fortitude"
+                ],
+                "mode": "disadvantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "cursed-constitution-2",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "save.fortitude"
+                ],
+                "mode": "disadvantage"
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-6",
+          "type": "effect",
+          "name": "Cursed Charisma",
+          "img": "systems/dnd5e/icons/svg/abilities/charisma.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "cursed-charisma-1",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "check.presence"
+                ],
+                "mode": "disadvantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "cursed-charisma-2",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "save.presence"
+                ],
+                "mode": "disadvantage"
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -102,14 +352,12 @@
       },
       "conversion": {
         "notes": [
-          "not automated (save): using it spends its cost; its description says the rest",
           "effect: cursed is not a WildPath condition yet",
           "effect: cursed is not a WildPath condition yet",
           "effect: cursed is not a WildPath condition yet",
           "effect: cursed is not a WildPath condition yet",
           "effect: cursed is not a WildPath condition yet",
-          "effect: cursed is not a WildPath condition yet",
-          "concentration: nothing it sustains was converted"
+          "effect: cursed is not a WildPath condition yet"
         ]
       }
     }

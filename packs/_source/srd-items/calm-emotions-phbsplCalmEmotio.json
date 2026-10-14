@@ -21,6 +21,71 @@
           }
         ]
       },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "radial",
+        "size": {
+          "value": 20,
+          "unit": "ft"
+        }
+      },
+      "save": {
+        "ability": "presence",
+        "dc": {
+          "valueExpression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 8
+              },
+              {
+                "type": "proficiency-bonus"
+              },
+              {
+                "type": "spellcasting-modifier"
+              }
+            ]
+          }
+        }
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Calmed",
+          "img": "icons/magic/holy/yin-yang-balance-symbol.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "calmed-1",
+              "type": "ConditionImmunity",
+              "data": {
+                "conditions": [
+                  "charmed",
+                  "frightened"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "saveOutcomePolicy": "failure",
+          "concentration": true
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -109,10 +174,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (save): using it spends its cost; its description says the rest",
-          "effect: \"Calmed\" (its own changes) not converted",
-          "effect: \"Indifference\" (its own changes) not converted",
-          "concentration: nothing it sustains was converted"
+          "effect: \"Indifference\" (its own changes) not converted"
         ]
       }
     }

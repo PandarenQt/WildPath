@@ -449,6 +449,33 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Speed: Wolf Form",
+              "img": "icons/skills/movement/figure-running-gray.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "speed-wolf-form-1",
+                  "type": "ResourceCap",
+                  "data": {
+                    "resources": [
+                      "movement"
+                    ],
+                    "maximum": 40
+                  }
+                }
+              ]
+            }
+          ],
           "label": "Shape-Shift"
         },
         "ruleElements": []
@@ -465,10 +492,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "effect: \"Speed: Wolf Form\" (its own changes) not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -491,9 +515,7 @@
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
           "Bite (Wolf or Hybrid Form Only): not automated (save): using it spends its cost; its description says the rest",
           "Bite (Wolf or Hybrid Form Only): effect: cursed is not a WildPath condition yet",
-          "Bite (Wolf or Hybrid Form Only): not automated (summon): using it spends its cost; its description says the rest",
-          "Shape-Shift: not automated (utility): using it spends its cost; its description says the rest",
-          "Shape-Shift: effect: \"Speed: Wolf Form\" (its own changes) not converted"
+          "Bite (Wolf or Hybrid Form Only): not automated (summon): using it spends its cost; its description says the rest"
         ]
       }
     }

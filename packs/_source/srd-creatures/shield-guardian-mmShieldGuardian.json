@@ -283,6 +283,39 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Protected",
+              "img": "icons/magic/defensive/barrier-shield-dome-pink.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "protected-1",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "defense.ac"
+                    ],
+                    "modifierType": "untyped",
+                    "value": 5
+                  }
+                }
+              ],
+              "duration": {
+                "value": 1,
+                "units": "turns",
+                "expiry": "turnStart"
+              }
+            }
+          ],
           "label": "Protection"
         },
         "ruleElements": []
@@ -299,10 +332,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "effect: \"Protected\" (its own changes) not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -368,9 +398,7 @@
       "conversion": {
         "notes": [
           "Regeneration: \"heal\" is passive or triggered: not automated",
-          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Protection: not automated (utility): using it spends its cost; its description says the rest",
-          "Protection: effect: \"Protected\" (its own changes) not converted"
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

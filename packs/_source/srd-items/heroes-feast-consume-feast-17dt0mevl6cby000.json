@@ -38,6 +38,42 @@
           "healingType": "healing"
         }
       ],
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Feast's Benefits",
+          "img": "icons/consumables/food/cooked-ribs-rack-glazed-bones-brown-white.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "feast-s-benefits-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "poison"
+                ]
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "feast-s-benefits-2",
+              "type": "ConditionImmunity",
+              "data": {
+                "conditions": [
+                  "frightened",
+                  "poisoned"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 86400,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -126,8 +162,7 @@
       },
       "conversion": {
         "notes": [
-          "activation: 1 hour is not an action-economy cost",
-          "effect: \"Feast's Benefits\" (its own changes) not converted"
+          "activation: 1 hour is not an action-economy cost"
         ]
       }
     }

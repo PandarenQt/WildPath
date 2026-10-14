@@ -634,6 +634,39 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Imperceptible Barrier",
+              "img": "icons/equipment/shield/heater-steel-crystal-red.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "imperceptible-barrier-1",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "defense.ac"
+                    ],
+                    "modifierType": "untyped",
+                    "value": 5
+                  }
+                }
+              ],
+              "duration": {
+                "value": 1,
+                "units": "rounds",
+                "expiry": "turnStart"
+              }
+            }
+          ],
           "configuration": [
             {
               "id": "spell-slot",
@@ -728,10 +761,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "effect: \"Imperceptible Barrier\" (its own changes) not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -2138,6 +2168,7 @@
           "conversion": {
             "notes": [
               "not automated (utility): using it spends its cost; its description says the rest",
+              "effect: \"Mage Armor\" change system.attributes.ac.calc (override) not converted",
               "effect: \"Mage Armor\" (its own changes) not converted"
             ]
           }
@@ -2213,6 +2244,43 @@
               }
             ]
           },
+          "range": {
+            "type": "touch",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Flight",
+              "img": "icons/creatures/abilities/wings-birdlike-blue.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "flight-1",
+                  "type": "GrantMovement",
+                  "data": {
+                    "mode": "fly",
+                    "distance": 60
+                  }
+                }
+              ],
+              "duration": {
+                "value": 600,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
+              "concentration": true
+            }
+          ],
           "configuration": [
             {
               "id": "spell-slot",
@@ -2274,7 +2342,14 @@
                 "spell-slot.8": 8,
                 "spell-slot.9": 9
               },
-              "effects": []
+              "effects": [
+                {
+                  "type": "scaleTargets",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 3,
+                  "perLevel": 1
+                }
+              ]
             }
           ],
           "label": "Fly"
@@ -2294,9 +2369,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "effect: \"Flight\" (its own changes) not converted",
-              "concentration: nothing it sustains was converted"
+              "effect: \"Flight\" change system.attributes.movement.hover (override) not converted"
             ]
           }
         }
@@ -2627,6 +2700,53 @@
               }
             ]
           },
+          "range": {
+            "type": "touch",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Mind Blanked",
+              "img": "icons/sundries/documents/paper-plain-white.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "mind-blanked-1",
+                  "type": "GrantImmunity",
+                  "data": {
+                    "damageTypes": [
+                      "psychic"
+                    ]
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "mind-blanked-2",
+                  "type": "ConditionImmunity",
+                  "data": {
+                    "conditions": [
+                      "charmed"
+                    ]
+                  }
+                }
+              ],
+              "duration": {
+                "value": 86400,
+                "units": "seconds",
+                "expiry": "turnStart"
+              }
+            }
+          ],
           "configuration": [
             {
               "id": "spell-slot",
@@ -2672,10 +2792,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "effect: \"Mind Blanked\" (its own changes) not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -3704,8 +3821,6 @@
           "Misty Step: not automated (utility): using it spends its cost; its description says the rest",
           "Protective Magic: not automated (cast): using it spends its cost; its description says the rest",
           "Counterspell: not automated (save): using it spends its cost; its description says the rest",
-          "Shield: not automated (utility): using it spends its cost; its description says the rest",
-          "Shield: effect: \"Imperceptible Barrier\" (its own changes) not converted",
           "Spellcasting: not automated (cast): using it spends its cost; its description says the rest",
           "Spellcasting: consumption: activityUses 1 not converted",
           "Detect Magic: not automated (utility): using it spends its cost; its description says the rest",
@@ -3718,13 +3833,10 @@
           "Disguise Self: effect: \"Disguised\" (its own changes) not converted",
           "Light: not automated (summon): using it spends its cost; its description says the rest",
           "Mage Armor: not automated (utility): using it spends its cost; its description says the rest",
+          "Mage Armor: effect: \"Mage Armor\" change system.attributes.ac.calc (override) not converted",
           "Mage Armor: effect: \"Mage Armor\" (its own changes) not converted",
           "Prestidigitation: not automated (utility): using it spends its cost; its description says the rest",
-          "Fly: not automated (utility): using it spends its cost; its description says the rest",
-          "Fly: effect: \"Flight\" (its own changes) not converted",
-          "Fly: concentration: nothing it sustains was converted",
-          "Mind Blank: not automated (utility): using it spends its cost; its description says the rest",
-          "Mind Blank: effect: \"Mind Blanked\" (its own changes) not converted",
+          "Fly: effect: \"Flight\" change system.attributes.movement.hover (override) not converted",
           "Scrying: not automated (save): using it spends its cost; its description says the rest",
           "Scrying: activation: 10 minute is not an action-economy cost",
           "Scrying: concentration: nothing it sustains was converted",

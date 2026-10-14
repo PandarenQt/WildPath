@@ -15,6 +15,8 @@ const RULES = [
   [/^Multiattack: /, () => "Multiattack"],
   [/effect: (\w+) is not a WildPath condition/, match => `condition: ${match[1]}`],
   [/effect: ".*" \(its own changes\)/, () => "effect with its own changes (buff/debuff)"],
+  [/effect: ".*" change (\S+) \((\w+)\) not converted/, match => `effect change: ${match[1].replace(/\.(str|dex|con|int|wis|cha)\./, ".<ability>.")
+    .replace(/skills\.\w+\./, "skills.<skill>.").replace(/movement\.\w+/, "movement.<mode>")} (${match[2]})`],
   [/cantrip damage growing/, () => "cantrip scaling by level"],
   [/more healing at higher levels/, () => "healing upcast"],
   [/versatile/, () => "versatile damage"],

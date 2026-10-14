@@ -31,7 +31,10 @@
       "targeting": {
         "type": "multiple",
         "required": true,
-        "count": 20
+        "count": 20,
+        "refinementPolicy": {
+          "minSelections": 1
+        }
       },
       "save": {
         "ability": "wits",
@@ -150,7 +153,8 @@
       },
       "conversion": {
         "notes": [
-          "area: 30-ft cube is not supported; the user picks the targets"
+          "area: 30-ft cube is not supported; the user picks the targets",
+          "effect: \"Hypnotized\" change system.attributes.movement.multiplier (override) not converted"
         ]
       }
     }

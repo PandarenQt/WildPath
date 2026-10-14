@@ -201,6 +201,25 @@ Forced movement and elevation join G6, which becomes "space": areas, elevation a
     refused, unspent; at another creature it went through. With `ConditionImmunity` to Grappled, a hit
     applied nothing.
 
+- **G3, effects with their own rules (2026-10-14).** Done:
+  - dnd5e effect changes map to rules on custom effects, with their duration, concentration and save policy;
+  - dice bonuses (Bless, Bane, Guidance) roll with the d20, for attacks, saves and checks, physical dice included;
+  - "up to N creatures" targets one to N.
+  - Effect on automated Items:
+
+    | Source | Before | After |
+    | --- | --- | --- |
+    | SRD | 250 | 292 |
+    | PHB | 264 | 319 |
+    | DMG | 82 | 83 |
+    | MM | 425 | 433 |
+    | Tasha's | 65 | 83 |
+
+    "Effect with its own changes" fell from 614 to 405 documents, and unconverted concentration from 587 to 510.
+    What is left changes things WildPath does not model yet: AC formulas (Mage Armor), hovering, languages, item
+    enchantments.
+  - Live: Player1's caster cast the SRD's Bless on itself (Blessed, 1 minute, concentration). Its Fire Bolt then
+    rolled "2d20kl + 1d4 + 4".
 - **B1.4, area preview (2026-10-14).** Done: while placing an area, the creatures it would hit are outlined, allies
   in amber. Every B1 item now has a first version.
 - **B1.6 and B1.8, tooltips and a tidier bar (2026-10-14).** Done:

@@ -110,6 +110,7 @@
       "conversion": {
         "notes": [
           "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Bark-like Skin\" change system.attributes.ac.min (upgrade) not converted",
           "effect: \"Bark-like Skin\" (its own changes) not converted"
         ]
       }

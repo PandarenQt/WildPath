@@ -1340,6 +1340,43 @@
               }
             ]
           },
+          "range": {
+            "type": "touch",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Flight",
+              "img": "icons/creatures/abilities/wings-birdlike-blue.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "flight-1",
+                  "type": "GrantMovement",
+                  "data": {
+                    "mode": "fly",
+                    "distance": 60
+                  }
+                }
+              ],
+              "duration": {
+                "value": 600,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
+              "concentration": true
+            }
+          ],
           "configuration": [
             {
               "id": "spell-slot",
@@ -1401,7 +1438,14 @@
                 "spell-slot.8": 8,
                 "spell-slot.9": 9
               },
-              "effects": []
+              "effects": [
+                {
+                  "type": "scaleTargets",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 3,
+                  "perLevel": 1
+                }
+              ]
             }
           ],
           "label": "Fly"
@@ -1421,9 +1465,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "effect: \"Flight\" (its own changes) not converted",
-              "concentration: nothing it sustains was converted"
+              "effect: \"Flight\" change system.attributes.movement.hover (override) not converted"
             ]
           }
         }
@@ -1793,9 +1835,7 @@
           "Disguise Self: effect: \"Disguised\" (its own changes) not converted",
           "Mage Hand: not automated (summon): using it spends its cost; its description says the rest",
           "Minor Illusion: not automated (summon): using it spends its cost; its description says the rest",
-          "Fly: not automated (utility): using it spends its cost; its description says the rest",
-          "Fly: effect: \"Flight\" (its own changes) not converted",
-          "Fly: concentration: nothing it sustains was converted",
+          "Fly: effect: \"Flight\" change system.attributes.movement.hover (override) not converted",
           "Major Image: not automated (summon): using it spends its cost; its description says the rest",
           "Plane Shift: not automated (utility): using it spends its cost; its description says the rest"
         ]

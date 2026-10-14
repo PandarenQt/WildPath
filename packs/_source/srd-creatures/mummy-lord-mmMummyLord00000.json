@@ -1218,11 +1218,39 @@
           "targeting": {
             "type": "multiple",
             "required": true,
-            "count": 20
+            "count": 20,
+            "refinementPolicy": {
+              "minSelections": 1
+            }
           },
           "effects": [
             {
               "id": "effect-1",
+              "type": "effect",
+              "name": "+2 AC",
+              "img": "icons/magic/air/air-wave-gust-smoke-yellow.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "2-ac-1",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "defense.ac"
+                    ],
+                    "modifierType": "untyped",
+                    "value": 2
+                  }
+                }
+              ],
+              "duration": {
+                "value": 1,
+                "units": "turns",
+                "expiry": "turnStart"
+              }
+            },
+            {
+              "id": "effect-2",
               "type": "condition",
               "conditionId": "blinded"
             }
@@ -1244,8 +1272,7 @@
           },
           "conversion": {
             "notes": [
-              "area: 5-ft circle is not supported; the user picks the targets",
-              "effect: \"+2 AC\" (its own changes) not converted"
+              "area: 5-ft circle is not supported; the user picks the targets"
             ]
           }
         }
@@ -1638,7 +1665,6 @@
           "Insect Plague: concentration: nothing it sustains was converted",
           "Glare: not automated (utility): using it spends its cost; its description says the rest",
           "Whirlwind of Sand: area: 5-ft circle is not supported; the user picks the targets",
-          "Whirlwind of Sand: effect: \"+2 AC\" (its own changes) not converted",
           "Dread Command: not automated (cast): using it spends its cost; its description says the rest",
           "Command: not automated (save): using it spends its cost; its description says the rest",
           "Necrotic Strike: not automated (utility): using it spends its cost; its description says the rest"

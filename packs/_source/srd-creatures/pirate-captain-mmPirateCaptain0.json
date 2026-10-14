@@ -336,6 +336,43 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "+3 AC",
+              "img": "icons/skills/melee/swords-parry-block-yellow.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "3-ac-1",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "defense.ac"
+                    ],
+                    "modifierType": "untyped",
+                    "value": 3
+                  }
+                }
+              ],
+              "duration": {
+                "value": 1,
+                "units": "rounds",
+                "expiry": "turnStart"
+              }
+            }
+          ],
           "label": "Riposte"
         },
         "ruleElements": []
@@ -352,10 +389,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "effect: \"+3 AC\" (its own changes) not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -375,9 +409,7 @@
       },
       "conversion": {
         "notes": [
-          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Riposte: not automated (utility): using it spends its cost; its description says the rest",
-          "Riposte: effect: \"+3 AC\" (its own changes) not converted"
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

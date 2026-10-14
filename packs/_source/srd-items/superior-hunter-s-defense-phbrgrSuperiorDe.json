@@ -18,6 +18,313 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Hunter's Defense: Acid",
+          "img": "icons/magic/lightning/fist-unarmed-strike-blue-green.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "hunter-s-defense-acid-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "acid"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 1,
+            "units": "turns",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-2",
+          "type": "effect",
+          "name": "Hunter's Defense: Bludgeoning",
+          "img": "icons/magic/lightning/fist-unarmed-strike-blue-green.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "hunter-s-defense-bludgeoning-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "bludgeoning"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 1,
+            "units": "turns",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-3",
+          "type": "effect",
+          "name": "Hunter's Defense: Cold",
+          "img": "icons/magic/lightning/fist-unarmed-strike-blue-green.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "hunter-s-defense-cold-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "cold"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 1,
+            "units": "turns",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-4",
+          "type": "effect",
+          "name": "Hunter's Defense: Fire",
+          "img": "icons/magic/lightning/fist-unarmed-strike-blue-green.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "hunter-s-defense-fire-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "fire"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 1,
+            "units": "turns",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-5",
+          "type": "effect",
+          "name": "Hunter's Defense: Force",
+          "img": "icons/magic/lightning/fist-unarmed-strike-blue-green.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "hunter-s-defense-force-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "force"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 1,
+            "units": "turns",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-6",
+          "type": "effect",
+          "name": "Hunter's Defense: Lightning",
+          "img": "icons/magic/lightning/fist-unarmed-strike-blue-green.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "hunter-s-defense-lightning-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "lightning"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 1,
+            "units": "turns",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-7",
+          "type": "effect",
+          "name": "Hunter's Defense: Necrotic",
+          "img": "icons/magic/lightning/fist-unarmed-strike-blue-green.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "hunter-s-defense-necrotic-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "necrotic"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 1,
+            "units": "turns",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-8",
+          "type": "effect",
+          "name": "Hunter's Defense: Piercing",
+          "img": "icons/magic/lightning/fist-unarmed-strike-blue-green.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "hunter-s-defense-piercing-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "piercing"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 1,
+            "units": "turns",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-9",
+          "type": "effect",
+          "name": "Hunter's Defense: Poison",
+          "img": "icons/magic/lightning/fist-unarmed-strike-blue-green.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "hunter-s-defense-poison-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "poison"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 1,
+            "units": "turns",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-10",
+          "type": "effect",
+          "name": "Hunter's Defense: Psychic",
+          "img": "icons/magic/lightning/fist-unarmed-strike-blue-green.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "hunter-s-defense-psychic-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "psychic"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 1,
+            "units": "turns",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-11",
+          "type": "effect",
+          "name": "Hunter's Defense: Radiant",
+          "img": "icons/magic/lightning/fist-unarmed-strike-blue-green.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "hunter-s-defense-radiant-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "radiant"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 1,
+            "units": "turns",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-12",
+          "type": "effect",
+          "name": "Hunter's Defense: Slashing",
+          "img": "icons/magic/lightning/fist-unarmed-strike-blue-green.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "hunter-s-defense-slashing-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "slashing"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 1,
+            "units": "turns",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-13",
+          "type": "effect",
+          "name": "Hunter's Defense: Thunder",
+          "img": "icons/magic/lightning/fist-unarmed-strike-blue-green.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "hunter-s-defense-thunder-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "thunder"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 1,
+            "units": "turns",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "label": "Superior Hunter's Defense"
     },
     "ruleElements": []
@@ -34,22 +341,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Hunter's Defense: Acid\" (its own changes) not converted",
-          "effect: \"Hunter's Defense: Bludgeoning\" (its own changes) not converted",
-          "effect: \"Hunter's Defense: Cold\" (its own changes) not converted",
-          "effect: \"Hunter's Defense: Fire\" (its own changes) not converted",
-          "effect: \"Hunter's Defense: Force\" (its own changes) not converted",
-          "effect: \"Hunter's Defense: Lightning\" (its own changes) not converted",
-          "effect: \"Hunter's Defense: Necrotic\" (its own changes) not converted",
-          "effect: \"Hunter's Defense: Piercing\" (its own changes) not converted",
-          "effect: \"Hunter's Defense: Poison\" (its own changes) not converted",
-          "effect: \"Hunter's Defense: Psychic\" (its own changes) not converted",
-          "effect: \"Hunter's Defense: Radiant\" (its own changes) not converted",
-          "effect: \"Hunter's Defense: Slashing\" (its own changes) not converted",
-          "effect: \"Hunter's Defense: Thunder\" (its own changes) not converted"
-        ]
+        "notes": []
       }
     }
   }

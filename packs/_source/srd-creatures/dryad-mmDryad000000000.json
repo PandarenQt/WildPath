@@ -925,7 +925,10 @@
           "targeting": {
             "type": "multiple",
             "required": true,
-            "count": 20
+            "count": 20,
+            "refinementPolicy": {
+              "minSelections": 1
+            }
           },
           "save": {
             "ability": "might",
@@ -1066,6 +1069,40 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Concealed",
+              "img": "icons/magic/nature/stealth-hide-beast-eyes-green.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "concealed-1",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "check.stealth"
+                    ],
+                    "modifierType": "untyped",
+                    "value": 10
+                  }
+                }
+              ],
+              "duration": {
+                "value": 3600,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
+              "concentration": true
+            }
+          ],
           "configuration": [
             {
               "id": "spell-slot",
@@ -1153,11 +1190,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "effect: \"Concealed\" (its own changes) not converted",
-              "concentration: nothing it sustains was converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -1183,10 +1216,7 @@
           "Tree Stride: not automated (utility): using it spends its cost; its description says the rest",
           "Druidcraft: not automated (utility): using it spends its cost; its description says the rest",
           "Druidcraft: area: 5-ft cube is not supported; the user picks the targets",
-          "Entangle: area: 20-ft cube is not supported; the user picks the targets",
-          "Pass without Trace: not automated (utility): using it spends its cost; its description says the rest",
-          "Pass without Trace: effect: \"Concealed\" (its own changes) not converted",
-          "Pass without Trace: concentration: nothing it sustains was converted"
+          "Entangle: area: 20-ft cube is not supported; the user picks the targets"
         ]
       }
     }

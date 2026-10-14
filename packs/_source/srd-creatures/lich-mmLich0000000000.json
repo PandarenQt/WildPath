@@ -2005,7 +2005,10 @@
           "targeting": {
             "type": "multiple",
             "required": true,
-            "count": 2
+            "count": 2,
+            "refinementPolicy": {
+              "minSelections": 1
+            }
           },
           "damage": [
             {
@@ -2225,7 +2228,10 @@
           "targeting": {
             "type": "multiple",
             "required": true,
-            "count": 4
+            "count": 4,
+            "refinementPolicy": {
+              "minSelections": 1
+            }
           },
           "save": {
             "ability": "agility",
@@ -3636,6 +3642,39 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Imperceptible Barrier",
+              "img": "icons/equipment/shield/heater-steel-crystal-red.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "imperceptible-barrier-1",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "defense.ac"
+                    ],
+                    "modifierType": "untyped",
+                    "value": 5
+                  }
+                }
+              ],
+              "duration": {
+                "value": 1,
+                "units": "rounds",
+                "expiry": "turnStart"
+              }
+            }
+          ],
           "configuration": [
             {
               "id": "spell-slot",
@@ -3730,10 +3769,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "effect: \"Imperceptible Barrier\" (its own changes) not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -3768,7 +3804,10 @@
           "targeting": {
             "type": "multiple",
             "required": true,
-            "count": 20
+            "count": 20,
+            "refinementPolicy": {
+              "minSelections": 1
+            }
           },
           "damage": [
             {
@@ -4317,8 +4356,6 @@
           "Scrying: \"Create Sensor\" is passive or triggered: not automated",
           "Protective Magic: not automated (cast): using it spends its cost; its description says the rest",
           "Counterspell: not automated (save): using it spends its cost; its description says the rest",
-          "Shield: not automated (utility): using it spends its cost; its description says the rest",
-          "Shield: effect: \"Imperceptible Barrier\" (its own changes) not converted",
           "Deathly Teleport: area: 10-ft circle is not supported; the user picks the targets",
           "Frightening Gaze: not automated (cast): using it spends its cost; its description says the rest"
         ]

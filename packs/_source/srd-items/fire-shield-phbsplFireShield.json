@@ -21,6 +21,60 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Warm Shield",
+          "img": "icons/equipment/shield/heater-steel-crystal-red.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "warm-shield-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "cold"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-2",
+          "type": "effect",
+          "name": "Chill Shield",
+          "img": "icons/equipment/shield/heater-crystal-blue.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "chill-shield-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "fire"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -94,11 +148,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Warm Shield\" (its own changes) not converted",
-          "effect: \"Chill Shield\" (its own changes) not converted"
-        ]
+        "notes": []
       }
     }
   }

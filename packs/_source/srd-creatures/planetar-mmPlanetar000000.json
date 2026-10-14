@@ -1256,6 +1256,232 @@
               "healingType": "healing"
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Resurrection Sickness (Day 1)",
+              "img": "icons/svg/stoned.svg",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "resurrection-sickness-day-1-1",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "check"
+                    ],
+                    "modifierType": "untyped",
+                    "value": -1
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "resurrection-sickness-day-1-2",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "save"
+                    ],
+                    "modifierType": "untyped",
+                    "value": -1
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "resurrection-sickness-day-1-3",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "initiative"
+                    ],
+                    "modifierType": "untyped",
+                    "value": -1
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "resurrection-sickness-day-1-4",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "attack"
+                    ],
+                    "modifierType": "untyped",
+                    "value": -1
+                  }
+                }
+              ]
+            },
+            {
+              "id": "effect-2",
+              "type": "effect",
+              "name": "Resurrection Sickness (Day 2)",
+              "img": "icons/svg/stoned.svg",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "resurrection-sickness-day-2-1",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "check"
+                    ],
+                    "modifierType": "untyped",
+                    "value": -1
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "resurrection-sickness-day-2-2",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "save"
+                    ],
+                    "modifierType": "untyped",
+                    "value": -1
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "resurrection-sickness-day-2-3",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "initiative"
+                    ],
+                    "modifierType": "untyped",
+                    "value": -1
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "resurrection-sickness-day-2-4",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "attack"
+                    ],
+                    "modifierType": "untyped",
+                    "value": -1
+                  }
+                }
+              ]
+            },
+            {
+              "id": "effect-3",
+              "type": "effect",
+              "name": "Resurrection Sickness (Day 3)",
+              "img": "icons/svg/stoned.svg",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "resurrection-sickness-day-3-1",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "check"
+                    ],
+                    "modifierType": "untyped",
+                    "value": -1
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "resurrection-sickness-day-3-2",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "save"
+                    ],
+                    "modifierType": "untyped",
+                    "value": -1
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "resurrection-sickness-day-3-3",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "initiative"
+                    ],
+                    "modifierType": "untyped",
+                    "value": -1
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "resurrection-sickness-day-3-4",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "attack"
+                    ],
+                    "modifierType": "untyped",
+                    "value": -1
+                  }
+                }
+              ]
+            },
+            {
+              "id": "effect-4",
+              "type": "effect",
+              "name": "Resurrection Sickness (Day 4)",
+              "img": "icons/svg/stoned.svg",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "resurrection-sickness-day-4-1",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "check"
+                    ],
+                    "modifierType": "untyped",
+                    "value": -1
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "resurrection-sickness-day-4-2",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "save"
+                    ],
+                    "modifierType": "untyped",
+                    "value": -1
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "resurrection-sickness-day-4-3",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "initiative"
+                    ],
+                    "modifierType": "untyped",
+                    "value": -1
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "resurrection-sickness-day-4-4",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "attack"
+                    ],
+                    "modifierType": "untyped",
+                    "value": -1
+                  }
+                }
+              ]
+            }
+          ],
           "configuration": [
             {
               "id": "spell-slot",
@@ -1323,11 +1549,7 @@
           },
           "conversion": {
             "notes": [
-              "activation: 1 hour is not an action-economy cost",
-              "effect: \"Resurrection Sickness (Day 1)\" (its own changes) not converted",
-              "effect: \"Resurrection Sickness (Day 2)\" (its own changes) not converted",
-              "effect: \"Resurrection Sickness (Day 3)\" (its own changes) not converted",
-              "effect: \"Resurrection Sickness (Day 4)\" (its own changes) not converted"
+              "activation: 1 hour is not an action-economy cost"
             ]
           }
         }
@@ -1852,6 +2074,69 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "multiple",
+            "required": true,
+            "count": 3,
+            "refinementPolicy": {
+              "minSelections": 1
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Blessed",
+              "img": "icons/magic/holy/chalice-glowing-gold-water.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "blessed-1",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "save"
+                    ],
+                    "modifierType": "untyped",
+                    "valueExpression": {
+                      "type": "dice",
+                      "number": 1,
+                      "faces": 4
+                    }
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "blessed-2",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "attack"
+                    ],
+                    "modifierType": "untyped",
+                    "valueExpression": {
+                      "type": "dice",
+                      "number": 1,
+                      "faces": 4
+                    }
+                  }
+                }
+              ],
+              "duration": {
+                "value": 60,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
+              "concentration": true
+            }
+          ],
           "configuration": [
             {
               "id": "spell-slot",
@@ -1927,7 +2212,14 @@
                 "spell-slot.8": 8,
                 "spell-slot.9": 9
               },
-              "effects": []
+              "effects": [
+                {
+                  "type": "scaleTargets",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 1,
+                  "perLevel": 1
+                }
+              ]
             }
           ],
           "label": "Bless"
@@ -1946,11 +2238,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "effect: \"Blessed\" (its own changes) not converted",
-              "concentration: nothing it sustains was converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -2953,14 +3241,7 @@
           "Dispel Evil and Good: concentration: nothing it sustains was converted",
           "Dispel Evil and Good: not automated (save): using it spends its cost; its description says the rest",
           "Raise Dead: activation: 1 hour is not an action-economy cost",
-          "Raise Dead: effect: \"Resurrection Sickness (Day 1)\" (its own changes) not converted",
-          "Raise Dead: effect: \"Resurrection Sickness (Day 2)\" (its own changes) not converted",
-          "Raise Dead: effect: \"Resurrection Sickness (Day 3)\" (its own changes) not converted",
-          "Raise Dead: effect: \"Resurrection Sickness (Day 4)\" (its own changes) not converted",
           "Divine Aid: not automated (cast): using it spends its cost; its description says the rest",
-          "Bless: not automated (utility): using it spends its cost; its description says the rest",
-          "Bless: effect: \"Blessed\" (its own changes) not converted",
-          "Bless: concentration: nothing it sustains was converted",
           "Dispel Magic: not automated (utility): using it spends its cost; its description says the rest",
           "Lesser Restoration: not automated (utility): using it spends its cost; its description says the rest",
           "Lesser Restoration: not automated (utility): using it spends its cost; its description says the rest",

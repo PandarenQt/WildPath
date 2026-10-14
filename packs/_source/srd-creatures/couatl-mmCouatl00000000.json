@@ -1372,6 +1372,31 @@
               "type": "condition",
               "conditionId": "incapacitated",
               "saveOutcomePolicy": "failure"
+            },
+            {
+              "id": "effect-2",
+              "type": "effect",
+              "name": "Trance State",
+              "img": "icons/magic/control/hypnosis-mesmerism-eye-tan.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "trance-state-1",
+                  "type": "ResourceCap",
+                  "data": {
+                    "resources": [
+                      "movement"
+                    ],
+                    "maximum": 0
+                  }
+                }
+              ],
+              "duration": {
+                "value": 28800,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
+              "saveOutcomePolicy": "failure"
             }
           ],
           "configuration": [
@@ -1441,7 +1466,11 @@
           },
           "conversion": {
             "notes": [
-              "activation: 1 minute is not an action-economy cost"
+              "activation: 1 minute is not an action-economy cost",
+              "effect: \"Trance State\" change system.attributes.movement.fly (downgrade) not converted",
+              "effect: \"Trance State\" change system.attributes.movement.swim (downgrade) not converted",
+              "effect: \"Trance State\" change system.attributes.movement.burrow (downgrade) not converted",
+              "effect: \"Trance State\" change system.attributes.movement.climb (downgrade) not converted"
             ]
           }
         }
@@ -2626,6 +2655,10 @@
           "Shapechange: concentration: nothing it sustains was converted",
           "Create Food and Water: not automated (utility): using it spends its cost; its description says the rest",
           "Dream: activation: 1 minute is not an action-economy cost",
+          "Dream: effect: \"Trance State\" change system.attributes.movement.fly (downgrade) not converted",
+          "Dream: effect: \"Trance State\" change system.attributes.movement.swim (downgrade) not converted",
+          "Dream: effect: \"Trance State\" change system.attributes.movement.burrow (downgrade) not converted",
+          "Dream: effect: \"Trance State\" change system.attributes.movement.climb (downgrade) not converted",
           "Greater Restoration: not automated (utility): using it spends its cost; its description says the rest",
           "Scrying: not automated (save): using it spends its cost; its description says the rest",
           "Scrying: activation: 10 minute is not an action-economy cost",

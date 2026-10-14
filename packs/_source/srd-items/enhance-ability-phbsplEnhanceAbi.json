@@ -21,6 +21,145 @@
           }
         ]
       },
+      "range": {
+        "type": "touch",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Enhanced Strength",
+          "img": "systems/dnd5e/icons/svg/abilities/strength.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "enhanced-strength-1",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "check.might"
+                ],
+                "mode": "advantage"
+              }
+            }
+          ],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-2",
+          "type": "effect",
+          "name": "Enhanced Dexterity",
+          "img": "systems/dnd5e/icons/svg/abilities/dexterity.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "enhanced-dexterity-1",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "check.agility"
+                ],
+                "mode": "advantage"
+              }
+            }
+          ],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-3",
+          "type": "effect",
+          "name": "Enhanced Intelligence",
+          "img": "systems/dnd5e/icons/svg/abilities/intelligence.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "enhanced-intelligence-1",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "check.intellect"
+                ],
+                "mode": "advantage"
+              }
+            }
+          ],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-4",
+          "type": "effect",
+          "name": "Enhanced Wisdom",
+          "img": "systems/dnd5e/icons/svg/abilities/wisdom.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "enhanced-wisdom-1",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "check.wits"
+                ],
+                "mode": "advantage"
+              }
+            }
+          ],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-5",
+          "type": "effect",
+          "name": "Enhanced Charisma",
+          "img": "systems/dnd5e/icons/svg/abilities/charisma.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "enhanced-charisma-1",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "check.presence"
+                ],
+                "mode": "advantage"
+              }
+            }
+          ],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -89,7 +228,14 @@
             "spell-slot.8": 8,
             "spell-slot.9": 9
           },
-          "effects": []
+          "effects": [
+            {
+              "type": "scaleTargets",
+              "levelChoiceId": "spell-slot",
+              "baseLevel": 2,
+              "perLevel": 1
+            }
+          ]
         }
       ],
       "label": "Enhance Ability"
@@ -108,15 +254,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Enhanced Strength\" (its own changes) not converted",
-          "effect: \"Enhanced Dexterity\" (its own changes) not converted",
-          "effect: \"Enhanced Intelligence\" (its own changes) not converted",
-          "effect: \"Enhanced Wisdom\" (its own changes) not converted",
-          "effect: \"Enhanced Charisma\" (its own changes) not converted",
-          "concentration: nothing it sustains was converted"
-        ]
+        "notes": []
       }
     }
   }

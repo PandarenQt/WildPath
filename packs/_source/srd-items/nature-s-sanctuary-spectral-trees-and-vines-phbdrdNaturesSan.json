@@ -18,6 +18,95 @@
           }
         ]
       },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 120,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "multiple",
+        "required": true,
+        "count": 20,
+        "refinementPolicy": {
+          "minSelections": 1
+        }
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Nature's Ward: Arid",
+          "img": "icons/magic/nature/vines-thorned-curled-glow-green.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "nature-s-ward-arid-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "fire"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "effect-2",
+          "type": "effect",
+          "name": "Nature's Ward: Polar",
+          "img": "icons/magic/nature/vines-thorned-curled-glow-green.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "nature-s-ward-polar-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "cold"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "effect-3",
+          "type": "effect",
+          "name": "Nature's Ward: Temperate",
+          "img": "icons/magic/nature/vines-thorned-curled-glow-green.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "nature-s-ward-temperate-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "lightning"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "effect-4",
+          "type": "effect",
+          "name": "Nature's Ward: Tropical",
+          "img": "icons/magic/nature/vines-thorned-curled-glow-green.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "nature-s-ward-tropical-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "poison"
+                ]
+              }
+            }
+          ]
+        }
+      ],
       "label": "Nature's Sanctuary (Spectral Trees and Vines)"
     },
     "ruleElements": []
@@ -35,14 +124,12 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
           "consumption: itemUses 1 not converted",
           "area: 15-ft cube is not supported; the user picks the targets",
           "effect: coverHalf is not a WildPath condition yet",
           "effect: coverHalf is not a WildPath condition yet",
           "effect: coverHalf is not a WildPath condition yet",
-          "effect: coverHalf is not a WildPath condition yet",
-          "consumption: itemUses 1 not converted"
+          "effect: coverHalf is not a WildPath condition yet"
         ]
       }
     }

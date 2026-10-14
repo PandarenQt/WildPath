@@ -117,6 +117,7 @@
       "conversion": {
         "notes": [
           "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Bestial Communication\" change system.traits.languages.custom (add) not converted",
           "effect: \"Bestial Communication\" (its own changes) not converted"
         ]
       }

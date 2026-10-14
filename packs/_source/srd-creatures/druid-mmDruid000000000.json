@@ -722,6 +722,7 @@
           "conversion": {
             "notes": [
               "not automated (utility): using it spends its cost; its description says the rest",
+              "effect: \"Bestial Communication\" change system.traits.languages.custom (add) not converted",
               "effect: \"Bestial Communication\" (its own changes) not converted"
             ]
           }
@@ -761,7 +762,10 @@
           "targeting": {
             "type": "multiple",
             "required": true,
-            "count": 20
+            "count": 20,
+            "refinementPolicy": {
+              "minSelections": 1
+            }
           },
           "save": {
             "ability": "might",
@@ -908,7 +912,10 @@
           "targeting": {
             "type": "multiple",
             "required": true,
-            "count": 20
+            "count": 20,
+            "refinementPolicy": {
+              "minSelections": 1
+            }
           },
           "save": {
             "ability": "fortitude",
@@ -1187,6 +1194,45 @@
               }
             ]
           },
+          "range": {
+            "type": "touch",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Longstrider",
+              "img": "icons/equipment/feet/boots-leather-laced-brown.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "longstrider-1",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "resources.movement.max"
+                    ],
+                    "modifierType": "untyped",
+                    "value": 10
+                  }
+                }
+              ],
+              "duration": {
+                "value": 3600,
+                "units": "seconds",
+                "expiry": "turnStart"
+              }
+            }
+          ],
           "configuration": [
             {
               "id": "spell-slot",
@@ -1262,7 +1308,14 @@
                 "spell-slot.8": 8,
                 "spell-slot.9": 9
               },
-              "effects": []
+              "effects": [
+                {
+                  "type": "scaleTargets",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 1,
+                  "perLevel": 1
+                }
+              ]
             }
           ],
           "label": "Longstrider"
@@ -1281,10 +1334,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "effect: \"Longstrider\" (its own changes) not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -1480,13 +1530,12 @@
           "Druidcraft: not automated (utility): using it spends its cost; its description says the rest",
           "Druidcraft: area: 5-ft cube is not supported; the user picks the targets",
           "Speak with Animals: not automated (utility): using it spends its cost; its description says the rest",
+          "Speak with Animals: effect: \"Bestial Communication\" change system.traits.languages.custom (add) not converted",
           "Speak with Animals: effect: \"Bestial Communication\" (its own changes) not converted",
           "Entangle: area: 20-ft cube is not supported; the user picks the targets",
           "Thunderwave: area: 15-ft cube is not supported; the user picks the targets",
           "Animal Messenger: not automated (save): using it spends its cost; its description says the rest",
           "Animal Messenger: effect: \"Carrying Message\" (its own changes) not converted",
-          "Longstrider: not automated (utility): using it spends its cost; its description says the rest",
-          "Longstrider: effect: \"Longstrider\" (its own changes) not converted",
           "Moonbeam: area: a cylinder's height is not modeled",
           "Moonbeam: concentration: nothing it sustains was converted"
         ]

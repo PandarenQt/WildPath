@@ -117,6 +117,8 @@
       "conversion": {
         "notes": [
           "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Divine Favor\" change system.bonuses.mwak.damage (add) not converted",
+          "effect: \"Divine Favor\" change system.bonuses.rwak.damage (add) not converted",
           "effect: \"Divine Favor\" (its own changes) not converted"
         ]
       }

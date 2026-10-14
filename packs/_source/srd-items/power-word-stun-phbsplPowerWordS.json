@@ -86,6 +86,7 @@
       },
       "conversion": {
         "notes": [
+          "effect: \"No Movement\" change system.attributes.movement.multiplier (override) not converted",
           "effect: \"No Movement\" (its own changes) not converted"
         ]
       }

@@ -31,7 +31,10 @@
       "targeting": {
         "type": "multiple",
         "required": true,
-        "count": 3
+        "count": 3,
+        "refinementPolicy": {
+          "minSelections": 1
+        }
       },
       "damage": [
         {

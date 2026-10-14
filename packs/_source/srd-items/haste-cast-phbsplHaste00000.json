@@ -21,6 +21,57 @@
           }
         ]
       },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 30,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Hasted",
+          "img": "icons/magic/time/clock-spinning-gold-pink.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "hasted-1",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "defense.ac"
+                ],
+                "modifierType": "untyped",
+                "value": 2
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "hasted-2",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "save.agility"
+                ],
+                "mode": "advantage"
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -102,9 +153,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Hasted\" (its own changes) not converted",
-          "concentration: nothing it sustains was converted"
+          "effect: \"Hasted\" change system.attributes.movement.multiplier (multiply) not converted"
         ]
       }
     }

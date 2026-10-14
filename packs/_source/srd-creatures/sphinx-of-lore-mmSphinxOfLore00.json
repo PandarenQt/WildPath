@@ -1812,6 +1812,7 @@
           "conversion": {
             "notes": [
               "not automated (utility): using it spends its cost; its description says the rest",
+              "effect: \"Universal Communication\" change system.traits.languages.custom (add) not converted",
               "effect: \"Universal Communication\" (its own changes) not converted"
             ]
           }
@@ -2036,6 +2037,7 @@
           "Plane Shift: not automated (utility): using it spends its cost; its description says the rest",
           "Remove Curse: not automated (utility): using it spends its cost; its description says the rest",
           "Tongues: not automated (utility): using it spends its cost; its description says the rest",
+          "Tongues: effect: \"Universal Communication\" change system.traits.languages.custom (add) not converted",
           "Tongues: effect: \"Universal Communication\" (its own changes) not converted",
           "Arcane Prowl: not automated (utility): using it spends its cost; its description says the rest",
           "Weight of Years: \"Years Older\" is passive or triggered: not automated"

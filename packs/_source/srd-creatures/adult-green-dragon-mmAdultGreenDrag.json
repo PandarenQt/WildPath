@@ -1185,6 +1185,7 @@
           },
           "conversion": {
             "notes": [
+              "effect: \"Damaged: −2 AC\" change system.armor.value (add) not converted",
               "effect: \"Damaged: −2 AC\" (its own changes) not converted"
             ]
           }
@@ -1334,6 +1335,7 @@
           "Mind Invasion: not automated (cast): using it spends its cost; its description says the rest",
           "Mind Spike: effect: \"Spiked\" (its own changes) not converted",
           "Mind Spike: concentration: nothing it sustains was converted",
+          "Noxious Miasma: effect: \"Damaged: −2 AC\" change system.armor.value (add) not converted",
           "Noxious Miasma: effect: \"Damaged: −2 AC\" (its own changes) not converted",
           "Pounce: not automated (utility): using it spends its cost; its description says the rest",
           "Pounce: consumption: attribute 1 not converted"

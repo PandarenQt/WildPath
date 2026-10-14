@@ -39,6 +39,32 @@
           "provenance": "spell-base"
         }
       ],
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Shining",
+          "img": "icons/magic/light/explosion-star-glow-silhouette.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "shining-1",
+              "type": "ConditionImmunity",
+              "data": {
+                "conditions": [
+                  "invisible"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -140,8 +166,7 @@
       },
       "conversion": {
         "notes": [
-          "effect: marked is not a WildPath condition yet",
-          "concentration: nothing it sustains was converted"
+          "effect: marked is not a WildPath condition yet"
         ]
       }
     }

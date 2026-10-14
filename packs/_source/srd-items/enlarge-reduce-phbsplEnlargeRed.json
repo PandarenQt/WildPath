@@ -21,6 +21,114 @@
           }
         ]
       },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 30,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "save": {
+        "ability": "fortitude",
+        "dc": {
+          "valueExpression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 8
+              },
+              {
+                "type": "proficiency-bonus"
+              },
+              {
+                "type": "spellcasting-modifier"
+              }
+            ]
+          }
+        }
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Enlarged",
+          "img": "icons/magic/control/silhouette-grow-shrink-tan.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "enlarged-1",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "check.might"
+                ],
+                "mode": "advantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "enlarged-2",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "save.might"
+                ],
+                "mode": "advantage"
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "saveOutcomePolicy": "failure",
+          "concentration": true
+        },
+        {
+          "id": "effect-2",
+          "type": "effect",
+          "name": "Reduced",
+          "img": "icons/magic/control/silhouette-grow-shrink-blue.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "reduced-1",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "check.might"
+                ],
+                "mode": "disadvantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "reduced-2",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "save.might"
+                ],
+                "mode": "disadvantage"
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "saveOutcomePolicy": "failure",
+          "concentration": true
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -109,10 +217,12 @@
       },
       "conversion": {
         "notes": [
-          "not automated (save): using it spends its cost; its description says the rest",
-          "effect: \"Enlarged\" (its own changes) not converted",
-          "effect: \"Reduced\" (its own changes) not converted",
-          "concentration: nothing it sustains was converted"
+          "effect: \"Enlarged\" change system.rolls.damage.mwak.bonus (add) not converted",
+          "effect: \"Enlarged\" change system.rolls.damage.rwak.bonus (add) not converted",
+          "effect: \"Enlarged\" change system.traits.size (add) not converted",
+          "effect: \"Reduced\" change system.rolls.damage.mwak.bonus (subtract) not converted",
+          "effect: \"Reduced\" change system.rolls.damage.rwak.bonus (subtract) not converted",
+          "effect: \"Reduced\" change system.traits.size (subtract) not converted"
         ]
       }
     }

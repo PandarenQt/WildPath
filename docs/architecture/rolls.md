@@ -121,6 +121,24 @@ Live (two browsers, 14.369):
   resists fire, a critical rolled "2d8 + 3" = 17 and "2d6" = 6, and the goblin lost 17 + 3.
 - Mending Touch healed "1d8" = 4.
 
+## Bonus dice on d20 rolls (2026-10-14)
+
+A Modifier whose value is dice is rolled with the d20, not added as a number: Bless (+1d4), Bane (−1d4, written
+`0 - 1d4` or `-1 * 1d4`), Guidance, Resistance.
+- **The statistic.** `WildPathStatistic#dice` lists the applied dice Modifiers; they add nothing to
+  `totalModifier`.
+- **The snapshots.** The attack, save and check snapshots (combat-statistics.mjs) carry them as `dice`. The runtime
+  passes them on: an attack's `attack.dice`, each target's save dice as `save.diceByTarget`, a check's
+  `check.dice`, and a reaction's attack.
+- **The roll request.** It adds them after the d20 as `purpose: "bonus"` terms, signed: "2d20kl + 1d4 + 4". Advantage
+  applies to the d20 alone.
+  - The total is no longer the natural d20 plus a known modifier, so only the formula's bounds check it.
+  - A physical roller enters the d20, for critical hits, and the total of every die.
+- **Odds.** They average over each bonus die's outcomes.
+
+`simpleFormulaBounds` now also bounds keep-highest and keep-lowest dice (`2d20kh` keeps one d20), so an advantage
+roll's total is checked too.
+
 ## ResolutionState Integration
 
 Roll requests/results in a staged resolution are plain serializable data and correlate using stable

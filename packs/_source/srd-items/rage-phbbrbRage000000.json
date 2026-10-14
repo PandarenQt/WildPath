@@ -22,6 +22,61 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Rage",
+          "img": "icons/creatures/abilities/mouth-teeth-human.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "rage-1",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "check.might"
+                ],
+                "mode": "advantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "rage-2",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "save.might"
+                ],
+                "mode": "advantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "rage-3",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "slashing",
+                  "piercing",
+                  "bludgeoning"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "label": "Rage"
     },
     "ruleElements": [
@@ -64,9 +119,8 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
           "uses: a partial recovery refills the whole pool",
-          "effect: \"Rage\" (its own changes) not converted"
+          "effect: \"Rage\" change system.bonuses.mwak.damage (add) not converted"
         ]
       }
     }

@@ -271,6 +271,32 @@
               "provenance": "additional"
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Webbed",
+              "img": "icons/creatures/invertebrates/spider-web-black.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "webbed-1",
+                  "type": "ResourceCap",
+                  "data": {
+                    "resources": [
+                      "movement"
+                    ],
+                    "maximum": 0
+                  }
+                }
+              ],
+              "duration": {
+                "value": 1,
+                "units": "rounds",
+                "expiry": "turnStart"
+              }
+            }
+          ],
           "label": "Web Bolt (Spider Only)"
         },
         "ruleElements": []
@@ -288,7 +314,10 @@
           },
           "conversion": {
             "notes": [
-              "effect: \"Webbed\" (its own changes) not converted"
+              "effect: \"Webbed\" change system.attributes.movement.burrow (downgrade) not converted",
+              "effect: \"Webbed\" change system.attributes.movement.climb (downgrade) not converted",
+              "effect: \"Webbed\" change system.attributes.movement.fly (downgrade) not converted",
+              "effect: \"Webbed\" change system.attributes.movement.swim (downgrade) not converted"
             ]
           }
         }
@@ -377,7 +406,10 @@
       "conversion": {
         "notes": [
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Web Bolt (Spider Only): effect: \"Webbed\" (its own changes) not converted"
+          "Web Bolt (Spider Only): effect: \"Webbed\" change system.attributes.movement.burrow (downgrade) not converted",
+          "Web Bolt (Spider Only): effect: \"Webbed\" change system.attributes.movement.climb (downgrade) not converted",
+          "Web Bolt (Spider Only): effect: \"Webbed\" change system.attributes.movement.fly (downgrade) not converted",
+          "Web Bolt (Spider Only): effect: \"Webbed\" change system.attributes.movement.swim (downgrade) not converted"
         ]
       }
     }
