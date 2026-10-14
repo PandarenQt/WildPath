@@ -117,7 +117,6 @@
       "conversion": {
         "notes": [
           "not automated (utility): using it spends its cost; its description says the rest",
-          "targets: count \"2 + @item.level\" not converted",
           "effect: \"Blessed\" (its own changes) not converted",
           "concentration: nothing it sustains was converted"
         ]

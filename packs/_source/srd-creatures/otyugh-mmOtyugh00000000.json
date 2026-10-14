@@ -283,9 +283,18 @@
             {
               "id": "damage-1",
               "expression": {
-                "type": "dice",
-                "number": 3,
-                "faces": 8
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "dice",
+                    "number": 3,
+                    "faces": 8
+                  },
+                  {
+                    "type": "ability-modifier",
+                    "ability": "might"
+                  }
+                ]
               },
               "damageType": "untyped",
               "provenance": "additional",
@@ -319,9 +328,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "damage 1: bonus \"@abilities.str.mod\" not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -344,8 +351,7 @@
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
           "Bite: \"save\" is passive or triggered: not automated",
           "Tentacle: effect: grappled is not a WildPath condition yet",
-          "Tentacle: \"Escape Check\" is passive or triggered: not automated",
-          "Tentacle Slam: damage 1: bonus \"@abilities.str.mod\" not converted"
+          "Tentacle: \"Escape Check\" is passive or triggered: not automated"
         ]
       }
     }

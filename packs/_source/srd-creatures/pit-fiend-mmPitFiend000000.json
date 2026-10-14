@@ -724,21 +724,7 @@
           "save": {
             "ability": "agility",
             "dc": {
-              "valueExpression": {
-                "type": "add",
-                "terms": [
-                  {
-                    "type": "constant",
-                    "value": 8
-                  },
-                  {
-                    "type": "proficiency-bonus"
-                  },
-                  {
-                    "type": "spellcasting-modifier"
-                  }
-                ]
-              }
+              "value": 21
             }
           },
           "damage": [
@@ -946,7 +932,6 @@
           "conversion": {
             "notes": [
               "not automated (save): using it spends its cost; its description says the rest",
-              "targets: count \"@item.level - 4\" not converted",
               "effect: paralyzed is not a WildPath condition yet",
               "concentration: nothing it sustains was converted"
             ]
@@ -992,21 +977,7 @@
           "save": {
             "ability": "agility",
             "dc": {
-              "valueExpression": {
-                "type": "add",
-                "terms": [
-                  {
-                    "type": "constant",
-                    "value": 8
-                  },
-                  {
-                    "type": "proficiency-bonus"
-                  },
-                  {
-                    "type": "spellcasting-modifier"
-                  }
-                ]
-              }
+              "value": 21
             }
           },
           "damage": [
@@ -1162,21 +1133,7 @@
           "save": {
             "ability": "agility",
             "dc": {
-              "valueExpression": {
-                "type": "add",
-                "terms": [
-                  {
-                    "type": "constant",
-                    "value": 8
-                  },
-                  {
-                    "type": "proficiency-bonus"
-                  },
-                  {
-                    "type": "spellcasting-modifier"
-                  }
-                ]
-              }
+              "value": 21
             }
           },
           "damage": [
@@ -1362,7 +1319,6 @@
           "Hellfire Spellcasting: not automated (cast): using it spends its cost; its description says the rest",
           "Hellfire Spellcasting: uses: Recharge 4–6 is not rolled; refill the pool by hand",
           "Hold Monster: not automated (save): using it spends its cost; its description says the rest",
-          "Hold Monster: targets: count \"@item.level - 4\" not converted",
           "Hold Monster: effect: paralyzed is not a WildPath condition yet",
           "Hold Monster: concentration: nothing it sustains was converted",
           "Wall of Fire: area: 60-ft wall is not supported; the user picks the targets",

@@ -1,7 +1,7 @@
 import {normalizeActivationCost} from "./action-economy.mjs";
 import {computeActivationCost} from "./actions.mjs";
 import {evaluatePredicate, PREDICATE_CODES} from "./predicates.mjs";
-import {evaluateValueExpression} from "./value-expressions.mjs";
+import {evaluateValueExpression, selectTableRows} from "./value-expressions.mjs";
 import {
   DEFAULT_RULE_ELEMENT_REGISTRY,
   RULE_ELEMENT_CODES,
@@ -436,7 +436,9 @@ function resolverRequestFromEffectsDefinition(definition, runtimeEffects) {
 
 function damageComponentForResolver({component, index, runtimeComponents, evaluationContext}) {
   const overlay = componentRuntimeOverlay(component, index, runtimeComponents);
-  const expression = overlay.expression ?? overlay.valueExpression ?? expressionFromAmountFields(overlay) ?? component.expression;
+  // A table of dice (damage growing with level) is its row for this creature before anything is rolled.
+  const expression = selectTableRows(overlay.expression ?? overlay.valueExpression ?? expressionFromAmountFields(overlay)
+    ?? component.expression, evaluationContext);
   const amount = finiteNumber(overlay.amount ?? overlay.total ?? overlay.value)
     ?? evaluateComponentExpression(expression, evaluationContext);
   const dice = overlay.dice ?? diceFromExpression(expression);
@@ -465,7 +467,9 @@ function damageComponentForResolver({component, index, runtimeComponents, evalua
 
 function healingComponentForResolver({component, index, runtimeComponents, evaluationContext}) {
   const overlay = componentRuntimeOverlay(component, index, runtimeComponents);
-  const expression = overlay.expression ?? overlay.valueExpression ?? expressionFromAmountFields(overlay) ?? component.expression;
+  // A table of dice (damage growing with level) is its row for this creature before anything is rolled.
+  const expression = selectTableRows(overlay.expression ?? overlay.valueExpression ?? expressionFromAmountFields(overlay)
+    ?? component.expression, evaluationContext);
   const amount = finiteNumber(overlay.amount ?? overlay.total ?? overlay.value)
     ?? evaluateComponentExpression(expression, evaluationContext);
   const dice = overlay.dice ?? diceFromExpression(expression);

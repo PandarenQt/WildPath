@@ -808,7 +808,6 @@
           "conversion": {
             "notes": [
               "not automated (utility): using it spends its cost; its description says the rest",
-              "targets: count \"@item.level - 1\" not converted",
               "effect: invisible is not a WildPath condition yet",
               "concentration: nothing it sustains was converted"
             ]
@@ -905,21 +904,7 @@
           "save": {
             "ability": "fortitude",
             "dc": {
-              "valueExpression": {
-                "type": "add",
-                "terms": [
-                  {
-                    "type": "constant",
-                    "value": 8
-                  },
-                  {
-                    "type": "proficiency-bonus"
-                  },
-                  {
-                    "type": "spellcasting-modifier"
-                  }
-                ]
-              }
+              "value": 22
             }
           },
           "damage": [
@@ -1130,7 +1115,7 @@
             "notes": [
               "not automated (save): using it spends its cost; its description says the rest",
               "activation: 10 minute is not an action-economy cost",
-              "save: wis DC (@attributes.spell.dc - 5 + 2) not converted",
+              "concentration: nothing it sustains was converted",
               "activation: 10 minute is not an action-economy cost"
             ]
           }
@@ -1224,7 +1209,7 @@
             "notes": [
               "not automated (save): using it spends its cost; its description says the rest",
               "activation: 10 minute is not an action-economy cost",
-              "save: wis DC (@attributes.spell.dc - 5 + 4) not converted",
+              "concentration: nothing it sustains was converted",
               "activation: 10 minute is not an action-economy cost"
             ]
           }
@@ -1318,7 +1303,7 @@
             "notes": [
               "not automated (save): using it spends its cost; its description says the rest",
               "activation: 10 minute is not an action-economy cost",
-              "save: wis DC (@attributes.spell.dc - 5 + 10) not converted",
+              "concentration: nothing it sustains was converted",
               "activation: 10 minute is not an action-economy cost"
             ]
           }
@@ -1412,7 +1397,7 @@
             "notes": [
               "not automated (save): using it spends its cost; its description says the rest",
               "activation: 10 minute is not an action-economy cost",
-              "save: wis DC (@attributes.spell.dc - 0 + 2) not converted",
+              "concentration: nothing it sustains was converted",
               "activation: 10 minute is not an action-economy cost"
             ]
           }
@@ -1506,7 +1491,7 @@
             "notes": [
               "not automated (save): using it spends its cost; its description says the rest",
               "activation: 10 minute is not an action-economy cost",
-              "save: wis DC (@attributes.spell.dc - 0 + 4) not converted",
+              "concentration: nothing it sustains was converted",
               "activation: 10 minute is not an action-economy cost"
             ]
           }
@@ -1600,7 +1585,7 @@
             "notes": [
               "not automated (save): using it spends its cost; its description says the rest",
               "activation: 10 minute is not an action-economy cost",
-              "save: wis DC (@attributes.spell.dc - 0 + 10) not converted",
+              "concentration: nothing it sustains was converted",
               "activation: 10 minute is not an action-economy cost"
             ]
           }
@@ -1694,7 +1679,7 @@
             "notes": [
               "not automated (save): using it spends its cost; its description says the rest",
               "activation: 10 minute is not an action-economy cost",
-              "save: wis DC (@attributes.spell.dc + 5 + 2) not converted",
+              "concentration: nothing it sustains was converted",
               "activation: 10 minute is not an action-economy cost"
             ]
           }
@@ -1788,7 +1773,7 @@
             "notes": [
               "not automated (save): using it spends its cost; its description says the rest",
               "activation: 10 minute is not an action-economy cost",
-              "save: wis DC (@attributes.spell.dc + 5 + 4) not converted",
+              "concentration: nothing it sustains was converted",
               "activation: 10 minute is not an action-economy cost"
             ]
           }
@@ -1882,7 +1867,7 @@
             "notes": [
               "not automated (save): using it spends its cost; its description says the rest",
               "activation: 10 minute is not an action-economy cost",
-              "save: wis DC (@attributes.spell.dc + 5 + 10) not converted",
+              "concentration: nothing it sustains was converted",
               "activation: 10 minute is not an action-economy cost"
             ]
           }
@@ -2154,7 +2139,6 @@
           "conversion": {
             "notes": [
               "not automated (utility): using it spends its cost; its description says the rest",
-              "targets: count \"@item.level - 1\" not converted",
               "effect: invisible is not a WildPath condition yet",
               "concentration: nothing it sustains was converted"
             ]
@@ -2248,21 +2232,7 @@
           "save": {
             "ability": "fortitude",
             "dc": {
-              "valueExpression": {
-                "type": "add",
-                "terms": [
-                  {
-                    "type": "constant",
-                    "value": 8
-                  },
-                  {
-                    "type": "proficiency-bonus"
-                  },
-                  {
-                    "type": "spellcasting-modifier"
-                  }
-                ]
-              }
+              "value": 22
             }
           },
           "damage": [
@@ -2512,26 +2482,16 @@
           "Detect Magic: effect: \"Detect Magic\" (its own changes) not converted",
           "Detect Magic: concentration: nothing it sustains was converted",
           "Invisibility: not automated (utility): using it spends its cost; its description says the rest",
-          "Invisibility: targets: count \"@item.level - 1\" not converted",
           "Invisibility: effect: invisible is not a WildPath condition yet",
           "Invisibility: concentration: nothing it sustains was converted",
           "Mage Hand: not automated (summon): using it spends its cost; its description says the rest",
           "Scrying: not automated (save): using it spends its cost; its description says the rest",
           "Scrying: activation: 10 minute is not an action-economy cost",
-          "Scrying: save: wis DC (@attributes.spell.dc - 5 + 2) not converted",
-          "Scrying: save: wis DC (@attributes.spell.dc - 5 + 4) not converted",
-          "Scrying: save: wis DC (@attributes.spell.dc - 5 + 10) not converted",
-          "Scrying: save: wis DC (@attributes.spell.dc - 0 + 2) not converted",
-          "Scrying: save: wis DC (@attributes.spell.dc - 0 + 4) not converted",
-          "Scrying: save: wis DC (@attributes.spell.dc - 0 + 10) not converted",
-          "Scrying: save: wis DC (@attributes.spell.dc + 5 + 2) not converted",
-          "Scrying: save: wis DC (@attributes.spell.dc + 5 + 4) not converted",
-          "Scrying: save: wis DC (@attributes.spell.dc + 5 + 10) not converted",
+          "Scrying: concentration: nothing it sustains was converted",
           "Scrying: \"Create Sensor\" is passive or triggered: not automated",
           "Sending: not automated (utility): using it spends its cost; its description says the rest",
           "Cloaked Flight: not automated (cast): using it spends its cost; its description says the rest",
           "Invisibility: not automated (utility): using it spends its cost; its description says the rest",
-          "Invisibility: targets: count \"@item.level - 1\" not converted",
           "Invisibility: effect: invisible is not a WildPath condition yet",
           "Invisibility: concentration: nothing it sustains was converted",
           "Sonic Boom: not automated (cast): using it spends its cost; its description says the rest",

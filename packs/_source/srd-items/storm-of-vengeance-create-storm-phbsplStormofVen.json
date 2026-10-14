@@ -81,7 +81,20 @@
           "levelByResourceId": {
             "spell-slot.9": 9
           },
-          "effects": []
+          "effects": [
+            {
+              "type": "scaleDamage",
+              "levelChoiceId": "spell-slot",
+              "baseLevel": 9,
+              "componentIds": [
+                "damage-1"
+              ],
+              "dice": {
+                "number": 1,
+                "faces": 6
+              }
+            }
+          ]
         }
       ],
       "label": "Storm of Vengeance (Create Storm)"

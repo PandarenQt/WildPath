@@ -154,6 +154,18 @@
                 "number": 1,
                 "faces": 10
               }
+            },
+            {
+              "type": "scaleDamage",
+              "levelChoiceId": "spell-slot",
+              "baseLevel": 4,
+              "componentIds": [
+                "damage-2"
+              ],
+              "dice": {
+                "number": 1,
+                "faces": 6
+              }
             }
           ]
         }

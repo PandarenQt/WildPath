@@ -324,3 +324,22 @@ test("a resource removed after preview causes resolved configuration revalidatio
   assert.equal(validation.ok, false);
   assert.equal(validation.code, ACTION_CONFIGURATION_CODES.RESOURCE_UNAVAILABLE);
 });
+
+test("a higher slot can add healing dice and targets, as it adds damage dice", () => {
+  const slot = {id: "spell-slot", type: ACTION_CHOICE_TYPES.RESOURCE, required: true,
+    cost: {anyOf: [[{capability: "spell-slot.3", amount: 1}], [{capability: "spell-slot.5", amount: 1}]]},
+    levelByResourceId: {"spell-slot.3": 3, "spell-slot.5": 5}};
+  const definition = {schemaVersion: 1, id: "action:mend-many", tags: ["spell"], costs: {allOf: []},
+    targeting: {type: "single", required: true, count: 1},
+    healing: [{id: "heal", expression: {type: "dice", number: 2, faces: 8}, healingType: "healing"}],
+    configuration: [{...slot, effects: [
+      {type: "scaleHealing", levelChoiceId: "spell-slot", baseLevel: 3, componentIds: ["heal"], dice: {number: 2, faces: 8}},
+      {type: "scaleTargets", levelChoiceId: "spell-slot", baseLevel: 3, perLevel: 1}]}]};
+  const result = resolveActionConfiguration({definition, actorSystem: actorSystem(), choices: {"spell-slot": {resourceId: "spell-slot.5"}}});
+  assert.equal(result.ok, true, JSON.stringify(result.errors));
+  assert.deepEqual(result.configuration.effectiveDefinition.healing[0].expression, {type: "dice", number: 6, faces: 8});
+  assert.deepEqual(result.configuration.effectiveDefinition.targeting.type, "multiple");
+  assert.equal(result.configuration.effectiveDefinition.targeting.count, 3);
+  const base = resolveActionConfiguration({definition, actorSystem: actorSystem(), choices: {"spell-slot": {resourceId: "spell-slot.3"}}});
+  assert.equal(base.configuration.effectiveDefinition.targeting.count, 1, "the spell's own level adds nothing");
+});

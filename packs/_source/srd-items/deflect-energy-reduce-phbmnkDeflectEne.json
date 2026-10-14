@@ -28,9 +28,27 @@
         {
           "id": "healing-1",
           "expression": {
-            "type": "dice",
-            "number": 1,
-            "faces": 10
+            "type": "add",
+            "terms": [
+              {
+                "type": "dice",
+                "number": 1,
+                "faces": 10
+              },
+              {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "ability-modifier",
+                    "ability": "agility"
+                  },
+                  {
+                    "type": "class-level",
+                    "class": "monk"
+                  }
+                ]
+              }
+            ]
           },
           "healingType": "healing"
         }
@@ -51,9 +69,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "healing: bonus \"@abilities.dex.mod + @classes.monk.levels\" not converted"
-        ]
+        "notes": []
       }
     }
   }

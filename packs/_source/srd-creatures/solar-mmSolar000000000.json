@@ -252,9 +252,18 @@
             {
               "id": "damage-1",
               "expression": {
-                "type": "dice",
-                "number": 4,
-                "faces": 8
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "dice",
+                    "number": 4,
+                    "faces": 8
+                  },
+                  {
+                    "type": "ability-modifier",
+                    "ability": "agility"
+                  }
+                ]
               },
               "damageType": "piercing",
               "provenance": "additional",
@@ -294,9 +303,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "damage 1: bonus \"@abilities.dex.mod\" not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -1887,7 +1894,20 @@
                 "spell-slot.8": 8,
                 "spell-slot.9": 9
               },
-              "effects": []
+              "effects": [
+                {
+                  "type": "scaleHealing",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 1,
+                  "componentIds": [
+                    "healing-1"
+                  ],
+                  "dice": {
+                    "number": 2,
+                    "faces": 8
+                  }
+                }
+              ]
             }
           ],
           "label": "Cure Wounds"
@@ -1906,9 +1926,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "healing: more healing at higher levels not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -2208,7 +2226,6 @@
         "notes": [
           "Legendary Resistance: \"Expend Use\" is passive or triggered: not automated",
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Slaying Bow: damage 1: bonus \"@abilities.dex.mod\" not converted",
           "Spellcasting: not automated (cast): using it spends its cost; its description says the rest",
           "Spellcasting: consumption: activityUses 1 not converted",
           "Detect Evil and Good: not automated (utility): using it spends its cost; its description says the rest",
@@ -2231,7 +2248,6 @@
           "Resurrection: effect: \"Resurrection Sickness (Day 4)\" (its own changes) not converted",
           "Resurrection: effect: \"Spell Taxed\" (its own changes) not converted",
           "Divine Aid: not automated (cast): using it spends its cost; its description says the rest",
-          "Cure Wounds: healing: more healing at higher levels not converted",
           "Lesser Restoration: not automated (utility): using it spends its cost; its description says the rest",
           "Remove Curse: not automated (utility): using it spends its cost; its description says the rest",
           "condition immunities (charmed, exhaustion, frightened, poisoned) not converted"

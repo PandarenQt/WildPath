@@ -18,6 +18,38 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "emanation",
+        "size": {
+          "value": 30,
+          "unit": "ft"
+        }
+      },
+      "healing": [
+        {
+          "id": "healing-1",
+          "expression": {
+            "type": "multiply",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 5
+              },
+              {
+                "type": "class-level",
+                "class": "cleric"
+              }
+            ]
+          },
+          "healingType": "healing"
+        }
+      ],
       "label": "Preserve Life"
     },
     "ruleElements": []
@@ -35,9 +67,6 @@
       },
       "conversion": {
         "notes": [
-          "not automated (heal): using it spends its cost; its description says the rest",
-          "consumption: itemUses 1 not converted",
-          "healing: custom formula \"5 * @classes.cleric.levels\" not converted",
           "consumption: itemUses 1 not converted"
         ]
       }

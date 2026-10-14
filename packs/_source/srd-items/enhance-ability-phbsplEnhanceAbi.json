@@ -110,7 +110,6 @@
       "conversion": {
         "notes": [
           "not automated (utility): using it spends its cost; its description says the rest",
-          "targets: count \"@item.level - 1\" not converted",
           "effect: \"Enhanced Strength\" (its own changes) not converted",
           "effect: \"Enhanced Dexterity\" (its own changes) not converted",
           "effect: \"Enhanced Intelligence\" (its own changes) not converted",

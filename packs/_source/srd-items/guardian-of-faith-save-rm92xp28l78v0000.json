@@ -21,6 +21,53 @@
           }
         ]
       },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 30,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "save": {
+        "ability": "agility",
+        "dc": {
+          "valueExpression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 8
+              },
+              {
+                "type": "proficiency-bonus"
+              },
+              {
+                "type": "spellcasting-modifier"
+              }
+            ]
+          }
+        }
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "constant",
+            "value": 20
+          },
+          "damageType": "radiant",
+          "provenance": "spell-base",
+          "saveOutcomePolicy": {
+            "success": "half",
+            "failure": "full"
+          }
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -94,10 +141,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (save): using it spends its cost; its description says the rest",
-          "damage 1: custom formula \"20\" not converted"
-        ]
+        "notes": []
       }
     }
   }

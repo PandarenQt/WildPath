@@ -399,7 +399,6 @@
           "conversion": {
             "notes": [
               "not automated (utility): using it spends its cost; its description says the rest",
-              "targets: count \"@item.level - 1\" not converted",
               "effect: invisible is not a WildPath condition yet",
               "concentration: nothing it sustains was converted"
             ]
@@ -455,7 +454,6 @@
           "Heart Sight: not automated (save): using it spends its cost; its description says the rest",
           "Invisibility: not automated (cast): using it spends its cost; its description says the rest",
           "Invisibility: not automated (utility): using it spends its cost; its description says the rest",
-          "Invisibility: targets: count \"@item.level - 1\" not converted",
           "Invisibility: effect: invisible is not a WildPath condition yet",
           "Invisibility: concentration: nothing it sustains was converted"
         ]

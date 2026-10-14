@@ -701,8 +701,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "targets: count \"@item.level\" not converted"
+              "not automated (save): using it spends its cost; its description says the rest"
             ]
           }
         }
@@ -820,7 +819,6 @@
           "conversion": {
             "notes": [
               "not automated (save): using it spends its cost; its description says the rest",
-              "targets: count \"@item.level - 1\" not converted",
               "effect: paralyzed is not a WildPath condition yet",
               "concentration: nothing it sustains was converted"
             ]
@@ -879,9 +877,7 @@
           "Light: not automated (summon): using it spends its cost; its description says the rest",
           "Thaumaturgy: not automated (utility): using it spends its cost; its description says the rest",
           "Command: not automated (save): using it spends its cost; its description says the rest",
-          "Command: targets: count \"@item.level\" not converted",
           "Hold Person: not automated (save): using it spends its cost; its description says the rest",
-          "Hold Person: targets: count \"@item.level - 1\" not converted",
           "Hold Person: effect: paralyzed is not a WildPath condition yet",
           "Hold Person: concentration: nothing it sustains was converted"
         ]

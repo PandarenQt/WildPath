@@ -104,7 +104,20 @@
             "spell-slot.8": 8,
             "spell-slot.9": 9
           },
-          "effects": []
+          "effects": [
+            {
+              "type": "scaleHealing",
+              "levelChoiceId": "spell-slot",
+              "baseLevel": 5,
+              "componentIds": [
+                "healing-1"
+              ],
+              "dice": {
+                "number": 1,
+                "faces": 8
+              }
+            }
+          ]
         }
       ],
       "label": "Mass Cure Wounds"
@@ -123,9 +136,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "healing: more healing at higher levels not converted"
-        ]
+        "notes": []
       }
     }
   }

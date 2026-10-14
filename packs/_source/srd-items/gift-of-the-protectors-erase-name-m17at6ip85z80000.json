@@ -28,7 +28,19 @@
         "data": {
           "resourceId": "gift-of-the-protectors",
           "label": "Gift of the Protectors",
-          "maximum": 1,
+          "maximum": {
+            "type": "max",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 1
+              },
+              {
+                "type": "ability-modifier",
+                "ability": "presence"
+              }
+            ]
+          },
           "recovery": "none"
         }
       }
@@ -48,7 +60,6 @@
       "conversion": {
         "notes": [
           "not automated (utility): using it spends its cost; its description says the rest",
-          "uses: maximum \"(max(1,@abilities.cha.mod))\" not converted",
           "consumption: itemUses -1 not converted",
           "consumption: itemUses -1 not converted"
         ]

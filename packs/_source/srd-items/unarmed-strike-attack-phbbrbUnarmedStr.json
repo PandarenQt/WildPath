@@ -18,6 +18,45 @@
           }
         ]
       },
+      "attack": {
+        "type": "melee",
+        "statistic": "weapon",
+        "defenseKey": "ac",
+        "proficient": true,
+        "ability": "might"
+      },
+      "range": {
+        "type": "reach",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "damage": [
+        {
+          "id": "base",
+          "expression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 1
+              },
+              {
+                "type": "ability-modifier",
+                "ability": "might"
+              }
+            ]
+          },
+          "damageType": "bludgeoning",
+          "provenance": "weapon-base"
+        }
+      ],
       "label": "Unarmed Strike (attack)"
     },
     "ruleElements": []
@@ -34,10 +73,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (attack): using it spends its cost; its description says the rest",
-          "base damage: custom formula \"1 + @abilities.str.mod\" not converted"
-        ]
+        "notes": []
       }
     }
   }

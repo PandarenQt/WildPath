@@ -21,6 +21,29 @@
           }
         ]
       },
+      "range": {
+        "type": "touch",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "constant",
+            "value": 50
+          },
+          "damageType": "untyped",
+          "provenance": "spell-base"
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -101,10 +124,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (damage): using it spends its cost; its description says the rest",
-          "damage 1: custom formula \"50\" not converted"
-        ]
+        "notes": []
       }
     }
   }

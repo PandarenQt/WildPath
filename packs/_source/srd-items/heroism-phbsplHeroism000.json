@@ -117,8 +117,6 @@
       "conversion": {
         "notes": [
           "not automated (heal): using it spends its cost; its description says the rest",
-          "targets: count \"@item.level\" not converted",
-          "healing: custom formula \"@mod\" not converted",
           "healing: temporary Hit Points not converted",
           "effect: \"Bravery\" (its own changes) not converted",
           "concentration: nothing it sustains was converted"

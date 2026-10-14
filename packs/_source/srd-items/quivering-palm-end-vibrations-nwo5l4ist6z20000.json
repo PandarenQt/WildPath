@@ -18,6 +18,49 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "save": {
+        "ability": "fortitude",
+        "dc": {
+          "valueExpression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 8
+              },
+              {
+                "type": "proficiency-bonus"
+              },
+              {
+                "type": "ability-modifier",
+                "ability": "wits"
+              }
+            ]
+          }
+        }
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "dice",
+            "number": 10,
+            "faces": 12
+          },
+          "damageType": "force",
+          "provenance": "additional",
+          "saveOutcomePolicy": {
+            "success": "half",
+            "failure": "full"
+          }
+        }
+      ],
       "label": "Quivering Palm (End Vibrations)"
     },
     "ruleElements": []
@@ -34,10 +77,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (save): using it spends its cost; its description says the rest",
-          "save: con DC (wis) not converted"
-        ]
+        "notes": []
       }
     }
   }

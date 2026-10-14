@@ -746,7 +746,6 @@
           "conversion": {
             "notes": [
               "not automated (utility): using it spends its cost; its description says the rest",
-              "targets: count \"2 + @item.level\" not converted",
               "effect: \"Blessed\" (its own changes) not converted",
               "concentration: nothing it sustains was converted"
             ]
@@ -993,7 +992,20 @@
                 "spell-slot.8": 8,
                 "spell-slot.9": 9
               },
-              "effects": []
+              "effects": [
+                {
+                  "type": "scaleHealing",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 1,
+                  "componentIds": [
+                    "healing-1"
+                  ],
+                  "dice": {
+                    "number": 2,
+                    "faces": 4
+                  }
+                }
+              ]
             }
           ],
           "label": "Healing Word"
@@ -1012,9 +1024,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "healing: more healing at higher levels not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -1393,11 +1403,9 @@
           "Spellcasting: consumption: activityUses 1 not converted",
           "Divine Aid: not automated (cast): using it spends its cost; its description says the rest",
           "Bless: not automated (utility): using it spends its cost; its description says the rest",
-          "Bless: targets: count \"2 + @item.level\" not converted",
           "Bless: effect: \"Blessed\" (its own changes) not converted",
           "Bless: concentration: nothing it sustains was converted",
           "Dispel Magic: not automated (utility): using it spends its cost; its description says the rest",
-          "Healing Word: healing: more healing at higher levels not converted",
           "Lesser Restoration: not automated (utility): using it spends its cost; its description says the rest",
           "Light: not automated (summon): using it spends its cost; its description says the rest",
           "Thaumaturgy: not automated (utility): using it spends its cost; its description says the rest",

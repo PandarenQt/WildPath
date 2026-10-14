@@ -137,7 +137,14 @@
             "spell-slot.8": 8,
             "spell-slot.9": 9
           },
-          "effects": []
+          "effects": [
+            {
+              "type": "scaleTargets",
+              "levelChoiceId": "spell-slot",
+              "baseLevel": 1,
+              "perLevel": 1
+            }
+          ]
         }
       ],
       "label": "Hideous Laughter"
@@ -157,7 +164,6 @@
       },
       "conversion": {
         "notes": [
-          "targets: count \"@item.level\" not converted",
           "effect: incapacitated is not a WildPath condition yet"
         ]
       }

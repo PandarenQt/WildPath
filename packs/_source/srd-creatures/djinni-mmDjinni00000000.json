@@ -1482,7 +1482,6 @@
           "conversion": {
             "notes": [
               "not automated (utility): using it spends its cost; its description says the rest",
-              "targets: count \"@item.level - 2\" not converted",
               "effect: transformed is not a WildPath condition yet",
               "concentration: nothing it sustains was converted"
             ]
@@ -1602,7 +1601,6 @@
           "conversion": {
             "notes": [
               "not automated (utility): using it spends its cost; its description says the rest",
-              "targets: count \"@item.level - 1\" not converted",
               "effect: invisible is not a WildPath condition yet",
               "concentration: nothing it sustains was converted"
             ]
@@ -2172,11 +2170,9 @@
           "Creation: activation: 1 minute is not an action-economy cost",
           "Creation: area: 5 * @item.level - 20-ft cube is not supported; the user picks the targets",
           "Gaseous Form: not automated (utility): using it spends its cost; its description says the rest",
-          "Gaseous Form: targets: count \"@item.level - 2\" not converted",
           "Gaseous Form: effect: transformed is not a WildPath condition yet",
           "Gaseous Form: concentration: nothing it sustains was converted",
           "Invisibility: not automated (utility): using it spends its cost; its description says the rest",
-          "Invisibility: targets: count \"@item.level - 1\" not converted",
           "Invisibility: effect: invisible is not a WildPath condition yet",
           "Invisibility: concentration: nothing it sustains was converted",
           "Major Image: not automated (summon): using it spends its cost; its description says the rest",

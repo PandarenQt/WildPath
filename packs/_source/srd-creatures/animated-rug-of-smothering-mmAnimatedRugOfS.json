@@ -169,9 +169,18 @@
             {
               "id": "damage-1",
               "expression": {
-                "type": "dice",
-                "number": 2,
-                "faces": 6
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "dice",
+                    "number": 2,
+                    "faces": 6
+                  },
+                  {
+                    "type": "ability-modifier",
+                    "ability": "might"
+                  }
+                ]
               },
               "damageType": "untyped",
               "provenance": "additional"
@@ -193,9 +202,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "damage 1: bonus \"@abilities.str.mod\" not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -248,7 +255,6 @@
         "notes": [
           "Smother: effect: grappled is not a WildPath condition yet",
           "Smother: effect: suffocation is not a WildPath condition yet",
-          "Smother: damage 1: bonus \"@abilities.str.mod\" not converted",
           "condition immunities (charmed, deafened, exhaustion, frightened, paralyzed, petrified, poisoned) not converted"
         ]
       }

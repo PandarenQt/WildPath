@@ -37,7 +37,6 @@
         "notes": [
           "not automated (heal): using it spends its cost; its description says the rest",
           "consumption: activityUses 1 not converted",
-          "healing: bonus \"(max(1,@abilities.wis.mod))\" not converted",
           "healing: temporary Hit Points not converted",
           "consumption: activityUses 1 not converted"
         ]

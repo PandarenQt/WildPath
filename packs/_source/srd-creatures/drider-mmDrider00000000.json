@@ -796,21 +796,7 @@
           "save": {
             "ability": "agility",
             "dc": {
-              "valueExpression": {
-                "type": "add",
-                "terms": [
-                  {
-                    "type": "constant",
-                    "value": 8
-                  },
-                  {
-                    "type": "proficiency-bonus"
-                  },
-                  {
-                    "type": "spellcasting-modifier"
-                  }
-                ]
-              }
+              "value": 14
             }
           },
           "damage": [
@@ -893,7 +879,20 @@
                 "spell-slot.8": 8,
                 "spell-slot.9": 9
               },
-              "effects": []
+              "effects": [
+                {
+                  "type": "scaleDamage",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 2,
+                  "componentIds": [
+                    "damage-1"
+                  ],
+                  "dice": {
+                    "number": 1,
+                    "faces": 4
+                  }
+                }
+              ]
             }
           ],
           "label": "Web"

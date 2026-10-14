@@ -1294,7 +1294,20 @@
                 "spell-slot.8": 8,
                 "spell-slot.9": 9
               },
-              "effects": []
+              "effects": [
+                {
+                  "type": "scaleDamage",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 4,
+                  "componentIds": [
+                    "damage-1"
+                  ],
+                  "dice": {
+                    "number": 1,
+                    "faces": 6
+                  }
+                }
+              ]
             }
           ],
           "label": "Dimension Door"
@@ -1430,7 +1443,6 @@
           "conversion": {
             "notes": [
               "not automated (save): using it spends its cost; its description says the rest",
-              "targets: count \"@item.level - 1\" not converted",
               "effect: paralyzed is not a WildPath condition yet",
               "concentration: nothing it sustains was converted"
             ]
@@ -1481,21 +1493,7 @@
           "save": {
             "ability": "agility",
             "dc": {
-              "valueExpression": {
-                "type": "add",
-                "terms": [
-                  {
-                    "type": "constant",
-                    "value": 8
-                  },
-                  {
-                    "type": "proficiency-bonus"
-                  },
-                  {
-                    "type": "spellcasting-modifier"
-                  }
-                ]
-              }
+              "value": 14
             }
           },
           "damage": [
@@ -1671,7 +1669,6 @@
           "Detect Thoughts: concentration: nothing it sustains was converted",
           "Detect Thoughts: not automated (save): using it spends its cost; its description says the rest",
           "Hold Person: not automated (save): using it spends its cost; its description says the rest",
-          "Hold Person: targets: count \"@item.level - 1\" not converted",
           "Hold Person: effect: paralyzed is not a WildPath condition yet",
           "Hold Person: concentration: nothing it sustains was converted",
           "condition immunities (charmed, poisoned) not converted"

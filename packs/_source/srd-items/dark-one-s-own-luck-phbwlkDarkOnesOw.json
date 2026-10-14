@@ -15,7 +15,19 @@
         "data": {
           "resourceId": "dark-one-s-own-luck",
           "label": "Dark One's Own Luck",
-          "maximum": 1,
+          "maximum": {
+            "type": "max",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 1
+              },
+              {
+                "type": "ability-modifier",
+                "ability": "presence"
+              }
+            ]
+          },
           "recovery": "longRest"
         }
       }

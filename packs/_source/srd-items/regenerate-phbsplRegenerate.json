@@ -81,7 +81,20 @@
             "spell-slot.8": 8,
             "spell-slot.9": 9
           },
-          "effects": []
+          "effects": [
+            {
+              "type": "scaleHealing",
+              "levelChoiceId": "spell-slot",
+              "baseLevel": 7,
+              "componentIds": [
+                "healing-1"
+              ],
+              "dice": {
+                "number": 1,
+                "faces": 8
+              }
+            }
+          ]
         }
       ],
       "label": "Regenerate"
@@ -102,7 +115,6 @@
       "conversion": {
         "notes": [
           "activation: 1 minute is not an action-economy cost",
-          "healing: more healing at higher levels not converted",
           "effect: \"Regenerating\" (its own changes) not converted"
         ]
       }

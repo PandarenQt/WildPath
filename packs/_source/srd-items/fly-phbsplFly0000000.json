@@ -103,7 +103,6 @@
       "conversion": {
         "notes": [
           "not automated (utility): using it spends its cost; its description says the rest",
-          "targets: count \"@item.level - 2\" not converted",
           "effect: \"Flight\" (its own changes) not converted",
           "concentration: nothing it sustains was converted"
         ]

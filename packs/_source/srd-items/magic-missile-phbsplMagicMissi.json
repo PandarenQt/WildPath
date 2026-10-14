@@ -29,9 +29,9 @@
         }
       },
       "targeting": {
-        "type": "single",
+        "type": "multiple",
         "required": true,
-        "count": 1
+        "count": 3
       },
       "damage": [
         {
@@ -129,7 +129,26 @@
             "spell-slot.8": 8,
             "spell-slot.9": 9
           },
-          "effects": []
+          "effects": [
+            {
+              "type": "scaleDamage",
+              "levelChoiceId": "spell-slot",
+              "baseLevel": 1,
+              "componentIds": [
+                "damage-1"
+              ],
+              "dice": {
+                "number": 1,
+                "faces": 4
+              }
+            },
+            {
+              "type": "scaleTargets",
+              "levelChoiceId": "spell-slot",
+              "baseLevel": 1,
+              "perLevel": 1
+            }
+          ]
         }
       ],
       "label": "Magic Missile"
@@ -148,9 +167,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "targets: count \"2 + @item.level\" not converted"
-        ]
+        "notes": []
       }
     }
   }

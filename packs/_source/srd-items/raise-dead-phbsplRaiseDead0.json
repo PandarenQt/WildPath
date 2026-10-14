@@ -100,7 +100,6 @@
       "conversion": {
         "notes": [
           "activation: 1 hour is not an action-economy cost",
-          "healing: more healing at higher levels not converted",
           "effect: \"Resurrection Sickness (Day 1)\" (its own changes) not converted",
           "effect: \"Resurrection Sickness (Day 2)\" (its own changes) not converted",
           "effect: \"Resurrection Sickness (Day 3)\" (its own changes) not converted",

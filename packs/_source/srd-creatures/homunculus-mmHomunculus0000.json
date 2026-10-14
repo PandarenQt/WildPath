@@ -103,6 +103,36 @@
               }
             ]
           },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "agility"
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "constant",
+                "value": 1
+              },
+              "damageType": "piercing",
+              "provenance": "weapon-base"
+            }
+          ],
           "label": "Bite (attack)"
         },
         "ruleElements": []
@@ -119,10 +149,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (attack): using it spends its cost; its description says the rest",
-              "base damage: custom formula \"1\" not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -181,8 +208,6 @@
       },
       "conversion": {
         "notes": [
-          "Bite: not automated (attack): using it spends its cost; its description says the rest",
-          "Bite: base damage: custom formula \"1\" not converted",
           "Bite: \"save\" is passive or triggered: not automated",
           "condition immunities (charmed, poisoned) not converted"
         ]

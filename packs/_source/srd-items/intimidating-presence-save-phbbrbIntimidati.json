@@ -55,7 +55,7 @@
       "conversion": {
         "notes": [
           "not automated (save): using it spends its cost; its description says the rest",
-          "save: wis DC (8 + @abilities.str.mod + @prof) not converted"
+          "effect: frightened is not a WildPath condition yet"
         ]
       }
     }

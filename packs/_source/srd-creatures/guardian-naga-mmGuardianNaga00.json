@@ -837,7 +837,20 @@
                 "spell-slot.8": 8,
                 "spell-slot.9": 9
               },
-              "effects": []
+              "effects": [
+                {
+                  "type": "scaleHealing",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 1,
+                  "componentIds": [
+                    "healing-1"
+                  ],
+                  "dice": {
+                    "number": 2,
+                    "faces": 8
+                  }
+                }
+              ]
             }
           ],
           "label": "Cure Wounds"
@@ -856,9 +869,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "healing: more healing at higher levels not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -906,21 +917,7 @@
           "save": {
             "ability": "agility",
             "dc": {
-              "valueExpression": {
-                "type": "add",
-                "terms": [
-                  {
-                    "type": "constant",
-                    "value": 8
-                  },
-                  {
-                    "type": "proficiency-bonus"
-                  },
-                  {
-                    "type": "spellcasting-modifier"
-                  }
-                ]
-              }
+              "value": 16
             }
           },
           "damage": [
@@ -1084,21 +1081,7 @@
           "save": {
             "ability": "wits",
             "dc": {
-              "valueExpression": {
-                "type": "add",
-                "terms": [
-                  {
-                    "type": "constant",
-                    "value": 8
-                  },
-                  {
-                    "type": "proficiency-bonus"
-                  },
-                  {
-                    "type": "spellcasting-modifier"
-                  }
-                ]
-              }
+              "value": 16
             }
           },
           "damage": [
@@ -1164,7 +1147,20 @@
                 "spell-slot.8": 8,
                 "spell-slot.9": 9
               },
-              "effects": []
+              "effects": [
+                {
+                  "type": "scaleDamage",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 5,
+                  "componentIds": [
+                    "damage-1"
+                  ],
+                  "dice": {
+                    "number": 1,
+                    "faces": 10
+                  }
+                }
+              ]
             }
           ],
           "label": "Geas"
@@ -1350,7 +1346,6 @@
           "Thaumaturgy: not automated (utility): using it spends its cost; its description says the rest",
           "Clairvoyance: not automated (summon): using it spends its cost; its description says the rest",
           "Clairvoyance: activation: 10 minute is not an action-economy cost",
-          "Cure Wounds: healing: more healing at higher levels not converted",
           "Flame Strike: area: a cylinder's height is not modeled",
           "Geas: activation: 1 minute is not an action-economy cost",
           "Geas: effect: charmed is not a WildPath condition yet",

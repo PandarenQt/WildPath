@@ -3,6 +3,15 @@
 Maintainer direction (2026-10-14): focus on the gaps, thinking about **every book Wizards publishes on D&D Beyond**,
 not only the ones converted so far.
 
+**2014 and up (maintainer, 2026-10-14).** Older books count too, from 2014 onward:
+- **2014 content under 2024 rules.** Older content plays under the 2024 rules, as Wizards intends. So the converter
+  reads dnd5e's older item data, which is how 2014 modules store their content: before activities, with damage
+  parts as formulas, uses per day and Recharge on the item. It also maps 2014-only mechanics, such as resistance to
+  nonmagical attacks.
+- **The 2014 rule set.** For tables that play by it, the places where the rulesets differ get a world setting:
+  Exhaustion's six-level table, Grappled, Incapacitated, Invisible, surprise and the 2014 rest rules. The 2024 rules
+  stay the default.
+
 ## How the gaps are measured
 
 `node scripts/content/gap-census.mjs` counts what is not automated, by reason, in the converted content. That is
@@ -53,6 +62,26 @@ The other Wizards books on D&D Beyond reuse these same mechanics at volume. They
   - Arcana Unleashed (2026; its mechanics are not yet known).
 - **Magic items everywhere:** attunement, charges that recover at dawn, spells cast from items, potions and
   scrolls, and +N weapons and armor.
+
+## Progress
+
+- **G1 (2026-10-14).** Done:
+  - dnd5e formulas translate into WildPath formulas: ability modifiers, proficiency, class levels, `max`/`min`,
+    class scale values as tables of numbers or dice, and creature and character spell save DCs.
+  - Cantrips get tables on character level, and the engine picks a table's row before rolling.
+  - A higher slot can add healing dice (`scaleHealing`) and targets (`scaleTargets`).
+  - The converter reads dnd5e's older item format (2014 modules).
+  - Effect on automated Items:
+
+    | Source | Before | After |
+    | --- | --- | --- |
+    | SRD | 209 | 221 |
+    | PHB | 204 | 231 |
+    | MM | 291 | 390 |
+    | Tasha's | 53 | 61 |
+
+    Tasha's creatures now also show their Multiattack and traits for later tracks.
+  - Live: a 5th-level wizard's Fire Bolt rolled 2d10, and Cure Wounds from a 2nd-level slot rolled 2d8 + 2d8 + 3.
 
 ## Tracks, in order
 

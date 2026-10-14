@@ -1132,7 +1132,6 @@
           "conversion": {
             "notes": [
               "not automated (utility): using it spends its cost; its description says the rest",
-              "targets: count \"@item.level - 2\" not converted",
               "effect: \"Flight\" (its own changes) not converted",
               "concentration: nothing it sustains was converted"
             ]
@@ -1307,7 +1306,6 @@
           "Confusion: effect: \"Confused\" (its own changes) not converted",
           "Confusion: concentration: nothing it sustains was converted",
           "Fly: not automated (utility): using it spends its cost; its description says the rest",
-          "Fly: targets: count \"@item.level - 2\" not converted",
           "Fly: effect: \"Flight\" (its own changes) not converted",
           "Fly: concentration: nothing it sustains was converted",
           "Power Word Stun: effect: \"No Movement\" (its own changes) not converted",

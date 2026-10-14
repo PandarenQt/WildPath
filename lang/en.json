@@ -71,6 +71,7 @@
         "Title": "Use {name}",
         "Spends": "Spends",
         "Damage": "Damage",
+        "Healing": "Healing",
         "Save": "Save",
         "Invalid": "These choices can't be used now."
       },

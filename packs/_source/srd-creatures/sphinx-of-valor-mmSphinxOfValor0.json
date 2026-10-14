@@ -1401,7 +1401,20 @@
                 "spell-slot.8": 8,
                 "spell-slot.9": 9
               },
-              "effects": []
+              "effects": [
+                {
+                  "type": "scaleHealing",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 6,
+                  "componentIds": [
+                    "healing-1"
+                  ],
+                  "dice": {
+                    "number": 1,
+                    "faces": 10
+                  }
+                }
+              ]
             }
           ],
           "label": "Heroes' Feast (Consume Feast)"
@@ -1437,7 +1450,6 @@
           "conversion": {
             "notes": [
               "activation: 1 hour is not an action-economy cost",
-              "healing: more healing at higher levels not converted",
               "effect: \"Feast's Benefits\" (its own changes) not converted"
             ]
           }
@@ -1770,7 +1782,6 @@
           "Heroes' Feast: consumption: itemUses -12 not converted",
           "Heroes' Feast: area: 10-ft cube is not supported; the user picks the targets",
           "Heroes' Feast: activation: 1 hour is not an action-economy cost",
-          "Heroes' Feast: healing: more healing at higher levels not converted",
           "Heroes' Feast: effect: \"Feast's Benefits\" (its own changes) not converted",
           "Zone of Truth: not automated (save): using it spends its cost; its description says the rest",
           "Zone of Truth: effect: \"Cannot Lie\" (its own changes) not converted",

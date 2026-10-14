@@ -86,13 +86,18 @@ test("an attack cantrip, a healing spell and a class feature with uses", () => {
   valid(cantrip.items[0]);
   assert.equal(cantrip.items[0].system.definition.attack.statistic, "spell");
   assert.equal(cantrip.items[0].system.definition.configuration, undefined, "a cantrip spends no slot");
-  assert.deepEqual(cantrip.notes, ["damage 1: cantrip damage growing with character level not converted"]);
+  assert.deepEqual(cantrip.items[0].system.definition.damage[0].expression, {type: "table", key: {type: "character-level"},
+    rows: {1: {type: "dice", number: 1, faces: 10}, 5: {type: "dice", number: 2, faces: 10}, 11: {type: "dice", number: 3, faces: 10},
+      17: {type: "dice", number: 4, faces: 10}}}, "a cantrip's dice grow at levels 5, 11 and 17");
+  assert.deepEqual(cantrip.notes, []);
 
   const heal = convertItem(mend);
   valid(heal.items[0]);
   assert.deepEqual(heal.items[0].system.definition.healing[0].expression, {type: "add", terms: [{type: "dice", number: 2, faces: 8},
     {type: "spellcasting-modifier"}]});
-  assert.deepEqual(heal.notes, ["healing: more healing at higher levels not converted"]);
+  assert.deepEqual(heal.notes, []);
+  assert.deepEqual(heal.items[0].system.definition.configuration[0].effects, [{type: "scaleHealing", levelChoiceId: "spell-slot", baseLevel: 1,
+    componentIds: ["healing-1"], dice: {number: 2, faces: 8}}], "2d8 more healing per slot level above 1st");
 
   const scales = scaleTables([{name: "Fighter", system: {identifier: "fighter", advancement: {x: {type: "ScaleValue", title: "Second Wind",
     configuration: {identifier: "", type: "number", scale: {1: {value: 2}, 4: {value: 3}, 10: {value: 4}}}}}}}]);
@@ -123,7 +128,16 @@ test("what WildPath cannot automate is a manual Action that spends its cost, nam
   assert.deepEqual(tripped.items[0].system.definition.effects, [{id: "effect-1", type: "condition", conditionId: "prone", saveOutcomePolicy: "failure"}]);
   assert.deepEqual(tripped.notes, ["save: a choice of str/dex uses str"]);
 
-  assert.equal(formulaExpression("@abilities.str.mod"), null);
+  assert.deepEqual(formulaExpression("@abilities.str.mod"), {type: "ability-modifier", ability: "might"});
+  assert.deepEqual(formulaExpression("max(1, @abilities.cha.mod)"), {type: "max", terms: [{type: "constant", value: 1},
+    {type: "ability-modifier", ability: "presence"}]});
+  assert.deepEqual(formulaExpression("1d8 + @prof"), {type: "add", terms: [{type: "dice", number: 1, faces: 8}, {type: "proficiency-bonus"}]});
+  assert.equal(formulaExpression("@abilities.str.value"), null, "what WildPath cannot read stays out");
+  const scales = {"rogue.sneak-attack": {1: {number: 1, faces: 6}, 3: {number: 2, faces: 6}}, "monk.martial-arts": {1: {number: 1, faces: 6}, 5: {number: 1, faces: 8}}};
+  assert.deepEqual(formulaExpression("@scale.rogue.sneak-attack", {scales}), {type: "table", key: {type: "class-level", class: "rogue"},
+    rows: {1: {type: "dice", number: 1, faces: 6}, 3: {type: "dice", number: 2, faces: 6}}});
+  assert.deepEqual(formulaExpression("1@scale.monk.martial-arts.die + @mod", {scales, ability: "agility"}).terms[1],
+    {type: "ability-modifier", ability: "agility"});
   assert.deepEqual(formulaExpression("@prof"), {type: "proficiency-bonus"});
   assert.deepEqual(formulaExpression("@mod", {ability: "might"}), {type: "ability-modifier", ability: "might"});
 });
@@ -174,4 +188,34 @@ test("a book package keeps its art, and its script refuses to write inside the r
   assert.equal(actor.flags.wildpath.source.book, "Monster Manual");
   assert.throws(() => execFileSync(process.execPath, ["scripts/content/convert-dnd5e-module.mjs", "dnd-monster-manual", "--data", "test"],
     {stdio: "pipe"}), /inside this repository/);
+});
+
+test("older dnd5e data (2014 modules, before activities) converts like the current format", async () => {
+  const {upgradeLegacy} = await import("../scripts/content/dnd5e-to-wildpath.mjs");
+  const legacy = {source: {license: "", rules: "2014"}};
+  const own = {licensed: () => true, book: "A 2014 book"};
+  const claw = {_id: "legacyClaw000001", name: "Claw", type: "weapon", system: {...legacy, actionType: "mwak", activation: {type: "action", cost: 1},
+    range: {value: 5, units: "ft"}, properties: {fin: true}, damage: {parts: [["1d8 + @mod", "slashing"], ["1d6", "poison"]]}}};
+  const [weaponAction] = convertItem(claw, own).items;
+  assert.equal(validateActionDefinition(weaponAction.system.definition).ok, true);
+  assert.deepEqual(weaponAction.system.definition.damage.map(entry => [entry.provenance, entry.damageType]), [["weapon-base", "slashing"], ["additional", "poison"]]);
+  assert.deepEqual(weaponAction.system.definition.attack.properties, ["finesse"]);
+
+  const breath = {_id: "legacyBreath0001", name: "Fire Breath", type: "feat", system: {...legacy, actionType: "save", activation: {type: "action", cost: 1},
+    target: {value: 30, units: "ft", type: "cone"}, range: {units: "self"}, recharge: {value: 5}, uses: {},
+    save: {ability: "dex", dc: 13, scaling: "flat"}, damage: {parts: [["7d6", "fire"]]}}};
+  const result = convertItem(breath, own);
+  const definition = result.items[0].system.definition;
+  assert.deepEqual([definition.area.shape, definition.area.size.value, definition.save.dc.value], ["cone", 30, 13]);
+  assert.deepEqual(definition.damage[0].saveOutcomePolicy, {success: "half", failure: "full"});
+  assert.ok(result.notes.some(note => note.includes("Recharge 5")));
+
+  const bolt = upgradeLegacy({_id: "legacyBolt000001", name: "Bolt", type: "spell", system: {...legacy, level: 0, actionType: "rsak",
+    activation: {type: "action", cost: 1}, range: {value: 120, units: "ft"}, scaling: {mode: "cantrip"}, damage: {parts: [["1d10", "fire"]]}}});
+  assert.deepEqual(bolt.system.activities.legacy.damage.parts[0].scaling, {mode: "whole"});
+  const cure = convertItem({_id: "legacyCure000001", name: "Cure", type: "spell", system: {...legacy, level: 1, actionType: "heal",
+    activation: {type: "action", cost: 1}, range: {units: "touch"}, target: {value: 1, type: "creature"}, preparation: {mode: "prepared"},
+    scaling: {mode: "level", formula: "1d8"}, damage: {parts: [["1d8 + @mod", "healing"]]}}}, own);
+  assert.deepEqual(cure.items[0].system.definition.configuration[0].effects[0], {type: "scaleHealing", levelChoiceId: "spell-slot", baseLevel: 1,
+    componentIds: ["healing-1"], dice: {number: 1, faces: 8}});
 });

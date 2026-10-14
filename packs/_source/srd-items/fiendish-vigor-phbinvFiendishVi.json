@@ -36,7 +36,6 @@
       "conversion": {
         "notes": [
           "not automated (heal): using it spends its cost; its description says the rest",
-          "healing: custom formula \"8 + 4\" not converted",
           "healing: temporary Hit Points not converted"
         ]
       }

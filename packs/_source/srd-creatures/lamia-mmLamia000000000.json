@@ -727,21 +727,7 @@
           "save": {
             "ability": "wits",
             "dc": {
-              "valueExpression": {
-                "type": "add",
-                "terms": [
-                  {
-                    "type": "constant",
-                    "value": 8
-                  },
-                  {
-                    "type": "proficiency-bonus"
-                  },
-                  {
-                    "type": "spellcasting-modifier"
-                  }
-                ]
-              }
+              "value": 13
             }
           },
           "damage": [
@@ -807,7 +793,20 @@
                 "spell-slot.8": 8,
                 "spell-slot.9": 9
               },
-              "effects": []
+              "effects": [
+                {
+                  "type": "scaleDamage",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 5,
+                  "componentIds": [
+                    "damage-1"
+                  ],
+                  "dice": {
+                    "number": 1,
+                    "faces": 10
+                  }
+                }
+              ]
             }
           ],
           "label": "Geas"
@@ -1031,7 +1030,7 @@
             "notes": [
               "not automated (save): using it spends its cost; its description says the rest",
               "activation: 10 minute is not an action-economy cost",
-              "save: wis DC (@attributes.spell.dc - 5 + 2) not converted",
+              "concentration: nothing it sustains was converted",
               "activation: 10 minute is not an action-economy cost"
             ]
           }
@@ -1125,7 +1124,7 @@
             "notes": [
               "not automated (save): using it spends its cost; its description says the rest",
               "activation: 10 minute is not an action-economy cost",
-              "save: wis DC (@attributes.spell.dc - 5 + 4) not converted",
+              "concentration: nothing it sustains was converted",
               "activation: 10 minute is not an action-economy cost"
             ]
           }
@@ -1219,7 +1218,7 @@
             "notes": [
               "not automated (save): using it spends its cost; its description says the rest",
               "activation: 10 minute is not an action-economy cost",
-              "save: wis DC (@attributes.spell.dc - 5 + 10) not converted",
+              "concentration: nothing it sustains was converted",
               "activation: 10 minute is not an action-economy cost"
             ]
           }
@@ -1313,7 +1312,7 @@
             "notes": [
               "not automated (save): using it spends its cost; its description says the rest",
               "activation: 10 minute is not an action-economy cost",
-              "save: wis DC (@attributes.spell.dc - 0 + 2) not converted",
+              "concentration: nothing it sustains was converted",
               "activation: 10 minute is not an action-economy cost"
             ]
           }
@@ -1407,7 +1406,7 @@
             "notes": [
               "not automated (save): using it spends its cost; its description says the rest",
               "activation: 10 minute is not an action-economy cost",
-              "save: wis DC (@attributes.spell.dc - 0 + 4) not converted",
+              "concentration: nothing it sustains was converted",
               "activation: 10 minute is not an action-economy cost"
             ]
           }
@@ -1501,7 +1500,7 @@
             "notes": [
               "not automated (save): using it spends its cost; its description says the rest",
               "activation: 10 minute is not an action-economy cost",
-              "save: wis DC (@attributes.spell.dc - 0 + 10) not converted",
+              "concentration: nothing it sustains was converted",
               "activation: 10 minute is not an action-economy cost"
             ]
           }
@@ -1595,7 +1594,7 @@
             "notes": [
               "not automated (save): using it spends its cost; its description says the rest",
               "activation: 10 minute is not an action-economy cost",
-              "save: wis DC (@attributes.spell.dc + 5 + 2) not converted",
+              "concentration: nothing it sustains was converted",
               "activation: 10 minute is not an action-economy cost"
             ]
           }
@@ -1689,7 +1688,7 @@
             "notes": [
               "not automated (save): using it spends its cost; its description says the rest",
               "activation: 10 minute is not an action-economy cost",
-              "save: wis DC (@attributes.spell.dc + 5 + 4) not converted",
+              "concentration: nothing it sustains was converted",
               "activation: 10 minute is not an action-economy cost"
             ]
           }
@@ -1783,7 +1782,7 @@
             "notes": [
               "not automated (save): using it spends its cost; its description says the rest",
               "activation: 10 minute is not an action-economy cost",
-              "save: wis DC (@attributes.spell.dc + 5 + 10) not converted",
+              "concentration: nothing it sustains was converted",
               "activation: 10 minute is not an action-economy cost"
             ]
           }
@@ -1818,15 +1817,7 @@
           "Major Image: not automated (summon): using it spends its cost; its description says the rest",
           "Scrying: not automated (save): using it spends its cost; its description says the rest",
           "Scrying: activation: 10 minute is not an action-economy cost",
-          "Scrying: save: wis DC (@attributes.spell.dc - 5 + 2) not converted",
-          "Scrying: save: wis DC (@attributes.spell.dc - 5 + 4) not converted",
-          "Scrying: save: wis DC (@attributes.spell.dc - 5 + 10) not converted",
-          "Scrying: save: wis DC (@attributes.spell.dc - 0 + 2) not converted",
-          "Scrying: save: wis DC (@attributes.spell.dc - 0 + 4) not converted",
-          "Scrying: save: wis DC (@attributes.spell.dc - 0 + 10) not converted",
-          "Scrying: save: wis DC (@attributes.spell.dc + 5 + 2) not converted",
-          "Scrying: save: wis DC (@attributes.spell.dc + 5 + 4) not converted",
-          "Scrying: save: wis DC (@attributes.spell.dc + 5 + 10) not converted",
+          "Scrying: concentration: nothing it sustains was converted",
           "Scrying: \"Create Sensor\" is passive or triggered: not automated"
         ]
       }

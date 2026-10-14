@@ -22,6 +22,56 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "healing": [
+        {
+          "id": "healing-1",
+          "expression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "table",
+                "key": {
+                  "type": "class-level",
+                  "class": "monk"
+                },
+                "rows": {
+                  "1": {
+                    "type": "dice",
+                    "number": 1,
+                    "faces": 6
+                  },
+                  "5": {
+                    "type": "dice",
+                    "number": 1,
+                    "faces": 8
+                  },
+                  "11": {
+                    "type": "dice",
+                    "number": 1,
+                    "faces": 10
+                  },
+                  "17": {
+                    "type": "dice",
+                    "number": 1,
+                    "faces": 12
+                  }
+                }
+              },
+              {
+                "type": "ability-modifier",
+                "ability": "wits"
+              }
+            ]
+          },
+          "healingType": "healing"
+        }
+      ],
       "label": "Wholeness of Body"
     },
     "ruleElements": [
@@ -32,7 +82,19 @@
         "data": {
           "resourceId": "wholeness-of-body",
           "label": "Wholeness of Body",
-          "maximum": 1,
+          "maximum": {
+            "type": "max",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 1
+              },
+              {
+                "type": "ability-modifier",
+                "ability": "wits"
+              }
+            ]
+          },
           "recovery": "longRest"
         }
       }
@@ -50,11 +112,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (heal): using it spends its cost; its description says the rest",
-          "uses: maximum \"max(1,@abilities.wis.mod)\" not converted",
-          "healing: custom formula \"@scale.monk.die + @abilities.wis.mod\" not converted"
-        ]
+        "notes": []
       }
     }
   }
