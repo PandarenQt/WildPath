@@ -406,7 +406,6 @@
             "notes": [
               "cast: Wall of Ice at level 8 is cast at its own level",
               "concentration: nothing it sustains was converted",
-              "area: 10-ft wall is not supported; the user picks the targets",
               "\"Frigid Air\" is passive or triggered: not automated"
             ]
           }
@@ -592,7 +591,6 @@
         "notes": [
           "Ice Wall: cast: Wall of Ice at level 8 is cast at its own level",
           "Ice Wall: concentration: nothing it sustains was converted",
-          "Ice Wall: area: 10-ft wall is not supported; the user picks the targets",
           "Ice Wall: \"Frigid Air\" is passive or triggered: not automated"
         ]
       }

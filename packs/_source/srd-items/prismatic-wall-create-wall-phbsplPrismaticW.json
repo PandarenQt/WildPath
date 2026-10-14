@@ -60,8 +60,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "area: 90-ft wall is not supported; the user picks the targets"
+          "not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

@@ -13,6 +13,7 @@ import {
   createConeFootprint,
   createCubeFootprint,
   createRadialFootprint,
+  createWallFootprint,
   cubeCornersAgainst,
   createSourceBoundarySelectionRequest,
   gridlessAreaLimitation,
@@ -228,4 +229,13 @@ test("a Cube is a square block of fields; one originating from a creature touche
   const corners = cubeCornersAgainst([{x: 0, y: 0}], 3);
   assert.equal(corners.length, 5 * 5 - 9, "every 3x3 block touching a 1x1 creature that does not cover it");
   assert.ok(corners.every(({x, y}) => !((x <= 0) && (x + 2 >= 0) && (y <= 0) && (y + 2 >= 0))));
+});
+
+test("a wall runs from its start toward the second point, at any angle, for its whole length", () => {
+  const straight = createWallFootprint({start: {x: 0, y: 0}, end: {x: 0, y: 2}, length: 4});
+  assert.deepEqual(straight.fields.map(field => [field.x, field.y]), [[0, 0], [0, 1], [0, 2], [0, 3]], "past the second point, to its length");
+  const slanted = createWallFootprint({start: {x: 0, y: 0}, end: {x: 2, y: 4}, length: 5});
+  assert.equal(slanted.fields.length, 5);
+  assert.deepEqual(slanted.fields.map(field => field.y).sort((a, b) => a - b), [0, 1, 2, 3, 4], "one field a step");
+  assert.equal(createWallFootprint({topology: GRID_TOPOLOGIES.HEX, start: {x: 0, y: 0}, end: {x: 1, y: 0}, length: 2}), null);
 });

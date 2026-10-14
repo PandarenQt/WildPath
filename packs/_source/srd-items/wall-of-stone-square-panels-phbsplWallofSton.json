@@ -89,7 +89,6 @@
       "conversion": {
         "notes": [
           "not automated (utility): using it spends its cost; its description says the rest",
-          "area: 10-ft wall is not supported; the user picks the targets",
           "concentration: nothing it sustains was converted"
         ]
       }

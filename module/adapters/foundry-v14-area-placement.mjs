@@ -1,5 +1,5 @@
 import { createFoundryV14TacticalGridAdapter } from "./foundry-v14-tactical-grid-adapter.mjs";
-import { AREA_SHAPES, createCubeFootprint, createRadialFootprint, cubeCornersAgainst, previewSourceBoundaryArea, selectSourceBoundaryOrigin } from "../helpers/tactical-areas.mjs";
+import { AREA_SHAPES, createCubeFootprint, createRadialFootprint, createWallFootprint, cubeCornersAgainst, previewSourceBoundaryArea, selectSourceBoundaryOrigin } from "../helpers/tactical-areas.mjs";
 import { createReachFootprint, footprintDistance } from "../helpers/grid-footprints.mjs";
 // The JS area helpers infer narrow default types; these are the only places their shapes are asserted.
 const radialFootprint = createRadialFootprint;
@@ -7,6 +7,7 @@ const selectOrigin = selectSourceBoundaryOrigin;
 const boundaryArea = previewSourceBoundaryArea;
 const reachFootprint = createReachFootprint;
 const createCube = createCubeFootprint;
+const createWall = createWallFootprint;
 const cornersAgainst = cubeCornersAgainst;
 /** Clicks that place this area: none for an emanation, one field for a radial area or a Cube, a corner and a direction otherwise. */
 export function areaClickCount(definition) {
@@ -67,6 +68,8 @@ export function foundryAreaFootprint({ definition, sourceToken, points }) {
     }
     if (shape === AREA_SHAPES.CUBE)
         return cubeFootprint({ definition, adapter, source, point: first, topology, size, gridDistance });
+    if (shape === AREA_SHAPES.WALL)
+        return wallFootprint({ definition, adapter, source, points: [first, second], topology, size, gridDistance });
     if ((shape !== AREA_SHAPES.CONE) && (shape !== AREA_SHAPES.LINE))
         return { ok: false, code: "UnsupportedShape", reason: `Unsupported area shape: ${shape}.` };
     const vertexResult = adapter.pointToVertex(first);
@@ -115,6 +118,27 @@ function cubeFootprint({ definition, adapter, source, point, topology, size, gri
         return { ok: false, code: "OutOfRange", reason: "That point is out of range.", needs: "origin" };
     }
     return { ok: true, footprint };
+}
+/**
+ * A wall (2024: Wall of Fire, Wall of Thorns, Blade Barrier) on a square grid: it starts on the first clicked field,
+ * within range, and runs toward the second for its whole length, in a straight grid path at any angle.
+ */
+function wallFootprint({ definition, adapter, source, points, topology, size, gridDistance }) {
+    const field = (point) => adapter.pointToField(point).field ?? null;
+    const start = points[0] ? field(points[0]) : null;
+    if (!start)
+        return { ok: false, code: "OffGrid", reason: "That point is not on the grid.", needs: "origin" };
+    const range = Number(definition.range?.normal?.value ?? definition.range?.distance?.value);
+    if (Number.isFinite(range) && (footprintDistance(source, { topology, fields: [start] }) * gridDistance > range)) {
+        return { ok: false, code: "OutOfRange", reason: "That point is out of range.", needs: "origin" };
+    }
+    if (!points[1])
+        return { ok: false, code: "NeedDirection", reason: "Choose the area's direction.", needs: "direction" };
+    const end = field(points[1]);
+    if (!end)
+        return { ok: false, code: "BadDirection", reason: "That direction is not on the grid.", needs: "direction" };
+    const footprint = createWall({ topology, start, end, length: Math.max(1, Math.round(size / gridDistance)) });
+    return footprint ? { ok: true, footprint } : { ok: false, code: "UnsupportedShape", reason: "Walls need a square grid.", needs: "origin" };
 }
 /** Every Token on the caster's Scene and Level that any covered field touches, the caster included. */
 export function foundryAreaTargetTokens({ sourceToken, footprint }) {

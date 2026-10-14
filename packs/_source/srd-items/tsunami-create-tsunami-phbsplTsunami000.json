@@ -17,11 +17,13 @@
         "allOf": []
       },
       "targeting": {
-        "type": "multiple",
-        "required": true,
-        "count": 20,
-        "refinementPolicy": {
-          "minSelections": 1
+        "type": "area"
+      },
+      "area": {
+        "shape": "wall",
+        "size": {
+          "value": 300,
+          "unit": "ft"
         }
       },
       "save": {
@@ -136,7 +138,6 @@
         "notes": [
           "activation: 1 minute is not an action-economy cost",
           "consumption: itemUses -6 not converted",
-          "area: 300-ft wall is not supported; the user picks the targets",
           "concentration: nothing it sustains was converted"
         ]
       }
