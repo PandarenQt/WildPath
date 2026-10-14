@@ -421,10 +421,13 @@ function damageComponentForResolver({component, index, runtimeComponents, evalua
   const expression = overlay.expression ?? overlay.valueExpression ?? expressionFromAmountFields(overlay) ?? component.expression;
   const amount = finiteNumber(overlay.amount ?? overlay.total ?? overlay.value)
     ?? evaluateComponentExpression(expression, evaluationContext);
+  const dice = overlay.dice ?? diceFromExpression(expression);
   return {
     id: component.id,
     amount,
-    dice: overlay.dice ?? diceFromExpression(expression),
+    dice,
+    // A rolled sum ("1d8 + 3", "2d8 + mod(wits)") keeps its expression for the dice and its flat part as a bonus.
+    ...((amount == null) ? {bonus: rolledBonus(expression, evaluationContext), ...(dice ? {} : {expression: clonePlain(expression)})} : {}),
     damageType: component.damageType,
     provenance: component.provenance,
     scalingCategory: component.scalingCategory,
@@ -447,10 +450,13 @@ function healingComponentForResolver({component, index, runtimeComponents, evalu
   const expression = overlay.expression ?? overlay.valueExpression ?? expressionFromAmountFields(overlay) ?? component.expression;
   const amount = finiteNumber(overlay.amount ?? overlay.total ?? overlay.value)
     ?? evaluateComponentExpression(expression, evaluationContext);
+  const dice = overlay.dice ?? diceFromExpression(expression);
   return {
     id: component.id,
     amount,
-    dice: overlay.dice ?? diceFromExpression(expression),
+    dice,
+    // A rolled sum ("1d8 + 3", "2d8 + mod(wits)") keeps its expression for the dice and its flat part as a bonus.
+    ...((amount == null) ? {bonus: rolledBonus(expression, evaluationContext), ...(dice ? {} : {expression: clonePlain(expression)})} : {}),
     healingType: component.healingType,
     source: component.source,
     tags: component.tags,
@@ -1021,6 +1027,23 @@ function validateDistanceDefinition(distance, path, errors) {
 function expressionFromAmountFields(component) {
   const amount = finiteNumber(component.amount ?? component.total ?? component.value);
   return amount == null ? null : {type: "constant", value: amount};
+}
+
+/** The flat part of a rolled expression: what "1d8 + 3" or "1d8 + mod(might)" adds after its dice. */
+function rolledBonus(expression, context) {
+  if ( !expression || (typeof expression !== "object") ) return 0;
+  if ( expression.type === "dice" ) return finiteNumber(expression.bonus) ?? 0;
+  const terms = Array.isArray(expression.terms) ? expression.terms : [];
+  const part = term => (containsDice(term) ? rolledBonus(term, context) : (evaluateComponentExpression(term, context) ?? 0));
+  if ( expression.type === "add" ) return terms.reduce((sum, term) => sum + part(term), 0);
+  if ( (expression.type === "subtract") && terms.length ) return terms.slice(1).reduce((sum, term) => sum - part(term), part(terms[0]));
+  return 0;
+}
+
+function containsDice(expression) {
+  if ( !expression || (typeof expression !== "object") ) return false;
+  return (expression.type === "dice") || Object.values(expression).some(value => (Array.isArray(value)
+    ? value.some(containsDice) : containsDice(value)));
 }
 
 function diceFromExpression(expression) {

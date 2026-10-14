@@ -1585,7 +1585,7 @@ test("a weapon attack adds the attacker's Might to the attack and its damage; a 
   const built = await foundryActionIntentToStagedOptions({intent: weapon.intent, senderUserId: "player-a", game: weapon.game});
   assert.equal(built.ok, true, JSON.stringify(built.reason));
   assert.equal(built.options.attack.modifierTotal, 7, "the weapon statistic's 4 plus Might's 3");
-  assert.deepEqual(built.options.damage, {abilityModifier: 3});
+  assert.deepEqual(built.options.damage, {modifierTotal: 3});
 
   const spell = syntheticRuntimeFixture(t, {...meleeStrikeDefinition(), tags: ["spell"]});
   spell.sourceActor.system.abilities = {might: {value: 16}, wits: {value: 14}};

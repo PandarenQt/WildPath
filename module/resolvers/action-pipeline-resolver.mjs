@@ -104,6 +104,7 @@ export const ACTION_PIPELINE_STAGE_IDS = Object.freeze({
   SAVE_ROLL: "action.save-roll",
   SAVE_OUTCOME: "action.save-outcome",
   DAMAGE_ROLL: "action.damage-roll",
+  HEALING_ROLL: "action.healing-roll",
   DAMAGE: "action.damage",
   HEALING: "action.healing",
   EFFECTS: "action.effects",
@@ -230,6 +231,7 @@ export function createActionResolutionPipeline({reactions=false}={}) {
     createSaveOutcomeStage(),
     createDamageRollStage(),
     createDamageStage(),
+    createHealingRollStage(),
     createHealingStage(),
     createEffectStage(),
     createConcentrationStage(),
@@ -241,6 +243,7 @@ export function createActionResolutionPipeline({reactions=false}={}) {
 
 const TARGETED_STAGE_IDS = new Set([ACTION_PIPELINE_STAGE_IDS.ATTACK_ROLL, ACTION_PIPELINE_STAGE_IDS.ATTACK_OUTCOME,
   ACTION_PIPELINE_STAGE_IDS.SAVE_ROLL, ACTION_PIPELINE_STAGE_IDS.SAVE_OUTCOME, ACTION_PIPELINE_STAGE_IDS.DAMAGE_ROLL,
+  ACTION_PIPELINE_STAGE_IDS.HEALING_ROLL,
   ACTION_PIPELINE_STAGE_IDS.DAMAGE, ACTION_PIPELINE_STAGE_IDS.HEALING, ACTION_PIPELINE_STAGE_IDS.EFFECTS]);
 
 /**
@@ -1335,104 +1338,78 @@ function createSaveOutcomeStage() {
 }
 
 function createDamageRollStage() {
+  return createComponentRollStage({id: ACTION_PIPELINE_STAGE_IDS.DAMAGE_ROLL, kind: "damage", rollType: ROLL_TYPES.DAMAGE,
+    request: "damage-roll"});
+}
+
+function createHealingRollStage() {
+  return createComponentRollStage({id: ACTION_PIPELINE_STAGE_IDS.HEALING_ROLL, kind: "healing", rollType: ROLL_TYPES.HEALING,
+    request: "healing-roll"});
+}
+
+/**
+ * Rolls each damage or healing component that has no amount yet, one request per component, so each damage type is
+ * its own roll (a physical total can be typed per type, and resistance lands on the right part). A component's flat
+ * part ("1d8 + 3") rolls with it. Damage also: a critical hit doubles each component's dice, the creature's damage
+ * modifier (`damage.modifierTotal`: ability modifier and bonuses) is added once, to the first weapon component or
+ * else the first component, and nothing rolls when every attack missed.
+ */
+function createComponentRollStage({id, kind, rollType, request}) {
   return createResolutionPipelineStage({
-    id: ACTION_PIPELINE_STAGE_IDS.DAMAGE_ROLL,
+    id,
     run(state) {
       const input = preparedResolverInput(state);
-      if ( !shouldResolveDamage(input.damage) || damageComponentsHaveAmounts(input.damage?.components) || attackResolvedAsOnlyMisses(state) ) {
-        const damage = attackResolvedAsOnlyMisses(state) ? input.damage : withFixedAbilityModifier(input.damage);
-        return continueResolutionStage({
-          state: updateResolutionState(state, {input: {...input, damage}})
+      const resolves = kind === "damage" ? shouldResolveDamage(input.damage) : shouldResolveHealing(input.healing);
+      if ( !resolves || ((kind === "damage") && attackResolvedAsOnlyMisses(state)) ) {
+        return continueResolutionStage({state: updateResolutionState(state, {input})});
+      }
+      let values = kind === "damage" ? withFixedModifier(input.damage) : input[kind];
+      let current = state;
+      for ( ;; ) {
+        const components = values?.components ?? [];
+        const index = components.findIndex(component => component?.amount == null);
+        if ( index < 0 ) return continueResolutionStage({state: updateResolutionState(current, {input: {...input, [kind]: values}})});
+        const requestId = requestIdFor(current, index ? `${request}:${index}` : request);
+        const build = () => componentRollRequestForState(current, input, {kind, rollType, requestId, index, values});
+        const accepted = getResolutionResponse(current, {requestId, type: RESOLUTION_REQUEST_TYPES.ROLL});
+        if ( !accepted ) {
+          const rollRequest = build();
+          return waitResolutionStage({
+            state: updateResolutionState(current, {input: {...input, [kind]: values},
+              rollRequests: appendRollRequest(current.rollRequests, rollRequest)}),
+            request: createResolutionRequest({
+              id: rollRequest.id,
+              resolutionId: current.id,
+              stageId: id,
+              type: RESOLUTION_REQUEST_TYPES.ROLL,
+              expectedResponseType: "roll-result",
+              chooser: rollRequest.chooser,
+              authority: rollRequest.authority,
+              validation: {rollRequestId: rollRequest.id, semanticType: rollRequest.type,
+                formula: rollFormulaForRequest(rollRequest).formula ?? null},
+              payload: {actionDefinitionId: current.actionDefinition?.id ?? null, rollKind: kind, rollRequest,
+                [kind]: values, targets: input.targets ?? []}
+            }),
+            reason: `A ${kind} roll result is required before action resolution can continue.`
+          });
+        }
+        const rollRequest = rollRequestFromAcceptedResponse(accepted, build);
+        const normalized = normalizeRollResponseValue(accepted.response.value, {request: rollRequest,
+          completedRequestIds: completedRollRequestIds(current)});
+        if ( !normalized.ok ) return failResolutionStage({state: current, code: normalized.code, reason: normalized.reason,
+          errors: [{code: normalized.code, reason: normalized.reason, requestId, validation: normalized.validation}],
+          data: {requestId, rollRequest, validation: normalized.validation}});
+        const [rolled] = rollResultToDamageComponents({result: normalized.result, components: [components[index]]});
+        // The damage modifier rolled with this component's dice; it must not be added again to its amount.
+        const modifierRolled = (kind === "damage") && (index === modifierComponentIndex(values));
+        values = {...values, components: components.map((component, i) => (i === index ? rolled : component)),
+          ...(modifierRolled ? {modifierApplied: true} : {})};
+        current = updateResolutionState(current, {
+          rollRequests: appendRollRequest(current.rollRequests, rollRequest),
+          rollResults: [...current.rollResults, {requestId: accepted.request.id, type: `${kind}-roll`,
+            semanticType: normalized.result.type, rollRequest, rollResult: normalized.result, roll: {total: normalized.result.total}}]
         });
       }
-
-      const requestId = requestIdFor(state, "damage-roll");
-      const accepted = getResolutionResponse(state, {
-        requestId,
-        type: RESOLUTION_REQUEST_TYPES.ROLL
-      });
-      if ( accepted ) {
-        const rollRequest = rollRequestFromAcceptedResponse(accepted, () => damageRollRequestForState(state, input));
-        const normalized = normalizeRollResponseValue(accepted.response.value, {
-          request: rollRequest,
-          completedRequestIds: completedRollRequestIds(state)
-        });
-        if ( !normalized.ok ) return failResolutionStage({
-          state,
-          code: normalized.code,
-          reason: normalized.reason,
-          errors: [{
-            code: normalized.code,
-            reason: normalized.reason,
-            requestId,
-            validation: normalized.validation
-          }],
-          data: {
-            requestId,
-            rollRequest,
-            validation: normalized.validation
-          }
-        });
-
-        const damage = {
-          ...(input.damage ?? {}),
-          components: rollResultToDamageComponents({
-            result: normalized.result,
-            components: input.damage?.components ?? []
-          })
-        };
-        return continueResolutionStage({
-          state: updateResolutionState(state, {
-            input: {...input, damage},
-            rollRequests: appendRollRequest(state.rollRequests, rollRequest),
-            rollResults: [
-              ...state.rollResults,
-              {
-                requestId: accepted.request.id,
-                type: "damage-roll",
-                semanticType: normalized.result.type,
-                rollRequest,
-                rollResult: normalized.result,
-                roll: {total: normalized.result.total}
-              }
-            ]
-          }),
-          data: {
-            requestId: accepted.request.id,
-            rollRequestId: rollRequest.id,
-            semanticType: normalized.result.type
-          }
-        });
-      }
-
-      const rollRequest = damageRollRequestForState(state, input);
-      return waitResolutionStage({
-        state: updateResolutionState(state, {
-          rollRequests: appendRollRequest(state.rollRequests, rollRequest)
-        }),
-        request: createResolutionRequest({
-          id: rollRequest.id,
-          resolutionId: state.id,
-          stageId: ACTION_PIPELINE_STAGE_IDS.DAMAGE_ROLL,
-          type: RESOLUTION_REQUEST_TYPES.ROLL,
-          expectedResponseType: "roll-result",
-          chooser: rollRequest.chooser,
-          authority: rollRequest.authority,
-          validation: {
-            rollRequestId: rollRequest.id,
-            semanticType: rollRequest.type,
-            formula: rollFormulaForRequest(rollRequest).formula ?? null
-          },
-          payload: {
-            actionDefinitionId: state.actionDefinition?.id ?? null,
-            rollKind: "damage",
-            rollRequest,
-            damage: input.damage,
-            targets: input.targets ?? []
-          }
-        }),
-        reason: "Damage roll result is required before action resolution can continue."
-      });
     }
   });
 }
@@ -2111,40 +2088,45 @@ function attackResolvedAsOnlyMisses(state) {
   return !!attackResolution && !attackResolution.hits?.length && !!attackResolution.misses?.length;
 }
 
-function damageRollRequestForState(state, input) {
-  const damage = input.damage ?? {};
+function componentRollRequestForState(state, input, {kind, rollType, requestId, index, values}) {
+  const component = values.components[index];
   // 2024: a critical hit rolls the attack's damage dice twice (flat modifiers once).
-  const critical = (state.results?.attackResolution?.hits ?? []).some(hit => hit.outcome === "criticalHit");
+  const critical = (kind === "damage") && (state.results?.attackResolution?.hits ?? []).some(hit => hit.outcome === "criticalHit");
+  const rolled = !critical ? component : {...component,
+    ...(component.dice ? {dice: {...component.dice, number: (Number(component.dice.number) || 1) * 2}} : {}),
+    ...(component.expression ? {expression: withDoubledDice(component.expression)} : {})};
+  const modifier = (Number(component.bonus) || 0)
+    + (((kind === "damage") && (index === modifierComponentIndex(values)) && Number.isFinite(values.modifierTotal)
+      && !values.modifierApplied) ? values.modifierTotal : 0);
   return createDamageRollRequest({
-    id: requestIdFor(state, "damage-roll"),
+    id: requestId,
     resolutionId: state.id,
-    type: ROLL_TYPES.DAMAGE,
-    components: critical ? (damage.components ?? []).map(component => ({...component,
-      ...(component.dice ? {dice: {...component.dice, number: (Number(component.dice.number) || 1) * 2}} : {}),
-      ...(component.expression ? {expression: withDoubledDice(component.expression)} : {})})) : damage.components ?? [],
-    formula: damage.formula ?? damage.rollFormula ?? null,
-    // The weapon's ability modifier is added once, after the dice (a critical hit doubles only the dice).
-    definition: {modifierTotal: Number.isFinite(damage.abilityModifier) ? damage.abilityModifier : 0},
-    visibility: damage.visibility ?? input.context?.messageMode,
+    type: rollType,
+    components: [rolled],
+    formula: (values.components.length === 1) ? (values.formula ?? values.rollFormula ?? null) : null,
+    definition: {modifierTotal: modifier},
+    visibility: values.visibility ?? input.context?.messageMode,
     source: state.source ?? input.source ?? null,
     target: firstRollTarget(input),
-    chooser: damage.chooser ?? ROLL_AUTHORITY.SOURCE_CONTROLLER,
-    authority: damage.authority ?? {kind: ROLL_AUTHORITY.SOURCE_CONTROLLER},
-    metadata: {
-      actionDefinitionId: state.actionDefinition?.id ?? null,
-      rollKind: "damage"
-    }
+    chooser: values.chooser ?? ROLL_AUTHORITY.SOURCE_CONTROLLER,
+    authority: values.authority ?? {kind: ROLL_AUTHORITY.SOURCE_CONTROLLER},
+    metadata: {actionDefinitionId: state.actionDefinition?.id ?? null, rollKind: kind, componentId: component.id ?? null}
   });
 }
 
-/** Fixed weapon damage (no dice to roll, e.g. an Unarmed Strike's 1) adds the ability modifier to its first weapon component. */
-function withFixedAbilityModifier(damage) {
-  const bonus = damage?.abilityModifier;
-  const index = (damage?.components ?? []).findIndex(component => component?.provenance === "weapon-base");
-  if ( !Number.isFinite(bonus) || !bonus || (index < 0) || damage.abilityModifierApplied ) return damage;
-  const components = damage.components.map((component, i) => (i === index
-    ? {...component, amount: Math.max((Number(component.amount) || 0) + bonus, 0)} : component));
-  return {...damage, components, abilityModifierApplied: true};
+/** The component the creature's damage modifier goes on: the first weapon component, else the first one. */
+function modifierComponentIndex(damage) {
+  return Math.max((damage?.components ?? []).findIndex(component => component?.provenance === "weapon-base"), 0);
+}
+
+/** Fixed damage (no dice, e.g. an Unarmed Strike's 1) adds the damage modifier to that component's amount, once. */
+function withFixedModifier(damage) {
+  const bonus = damage?.modifierTotal;
+  const index = modifierComponentIndex(damage);
+  const component = damage?.components?.[index];
+  if ( !Number.isFinite(bonus) || !bonus || (component?.amount == null) || damage.modifierApplied ) return damage;
+  const components = damage.components.map((entry, i) => (i === index ? {...entry, amount: Math.max((Number(entry.amount) || 0) + bonus, 0)} : entry));
+  return {...damage, components, modifierApplied: true};
 }
 
 /** A ValueExpression with every dice term's count doubled, wherever it is nested. */

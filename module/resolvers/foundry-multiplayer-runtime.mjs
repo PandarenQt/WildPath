@@ -953,7 +953,7 @@ function combatStatisticsForAction({actor=null, action=null}={}) {
     && (result.definition?.damage ?? []).some(component => component.provenance === "weapon-base");
   return {
     defenseKey,
-    damage: weaponDamage ? {abilityModifier: statistic.abilityModifier} : null,
+    damage: weaponDamage ? {modifierTotal: statistic.abilityModifier} : null,
     attack: statistic ? {
       statistic,
       modifierTotal: statistic.totalModifier,

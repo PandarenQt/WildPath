@@ -100,6 +100,27 @@ RollRequest
 → Resolution resumes
 ```
 
+## Damage and healing rolls (2026-10-14)
+
+Each damage or healing component without a fixed amount is its own roll request: `damage-roll`,
+`damage-roll:1`, … and `healing-roll`, `healing-roll:1`, …
+- **Why one per component.** Every damage type has its own total, so resistance lands on the right part, and a
+  Player with physical dice types one total per type.
+- **Flat parts.** A component's flat part rolls with it: "1d8 + 3", or "2d8 + mod(wits)" for Cure Wounds
+  (`rolledBonus` in `action-definitions.mjs`).
+- **The creature's damage modifier** (`damage.modifierTotal`) goes on one component, the first weapon component
+  or else the first. If that component has a fixed amount, the modifier is added to the amount once instead.
+- **Criticals.** A critical hit doubles each component's dice and none of the flat parts.
+- **Misses.** When every attack misses, nothing rolls.
+
+Before this, a second rolled component failed with `MISSING_AMOUNT`, a bonus written into a damage formula was
+dropped, and dice healing (the pack's Mending Touch) failed the same way.
+
+Live (two browsers, 14.369):
+- Player1's fighter (Might 16) hit with a Flaming Longsword: "1d8 + 3" and "1d6" fire. Against a goblin that
+  resists fire, a critical rolled "2d8 + 3" = 17 and "2d6" = 6, and the goblin lost 17 + 3.
+- Mending Touch healed "1d8" = 4.
+
 ## ResolutionState Integration
 
 Roll requests/results in a staged resolution are plain serializable data and correlate using stable

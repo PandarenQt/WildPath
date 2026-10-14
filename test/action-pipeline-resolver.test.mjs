@@ -165,6 +165,7 @@ test("ActionPipeline plans a complete action without waiting and records expecte
     ACTION_PIPELINE_STAGE_IDS.SAVE_OUTCOME,
     ACTION_PIPELINE_STAGE_IDS.DAMAGE_ROLL,
     ACTION_PIPELINE_STAGE_IDS.DAMAGE,
+    ACTION_PIPELINE_STAGE_IDS.HEALING_ROLL,
     ACTION_PIPELINE_STAGE_IDS.HEALING,
     ACTION_PIPELINE_STAGE_IDS.EFFECTS,
     ACTION_PIPELINE_STAGE_IDS.CONCENTRATION,
@@ -770,7 +771,7 @@ test("weapon damage adds the attack's ability modifier once: after the dice, kep
     actorSystem: actorSystem(1),
     action: definitionAction({...attackDefinition(), damage: [damage]}),
     source: {actorId: "actor-source"},
-    damage: {abilityModifier: 3},
+    damage: {modifierTotal: 3},
     targeting: {required: true, candidates: [{id: "orc", target: target("orc", {defenses: {ac: {value: 12}}}),
       actor: {id: "actor-orc"}, disposition: "enemy", kind: "creature"}]}
   });
@@ -784,4 +785,58 @@ test("weapon damage adds the attack's ability modifier once: after the dice, kep
     "resolution:fist"), 12);
   assert.equal(fist.ok, true, JSON.stringify(fist.state.errors));
   assert.deepEqual(fist.state.results.damageResolution.results.map(entry => entry.total), [4], "an Unarmed Strike's 1 + 3");
+});
+
+test("each damage component is its own roll: a Flaming Longsword rolls 1d8 + 3 and 1d6, and fire resistance halves only the fire", () => {
+  const definition = {schemaVersion: 1, id: "action:flaming-longsword", label: "Flaming Longsword", costs: {allOf: []},
+    targeting: {type: "single", required: true, count: 1}, attack: {type: "melee", statistic: "weapon", defenseKey: "ac"},
+    damage: [{id: "blade", expression: {type: "dice", number: 1, faces: 8}, damageType: "slashing", provenance: "weapon-base"},
+      {id: "flame", expression: {type: "dice", number: 1, faces: 6}, damageType: "fire", provenance: "additional"}]};
+  const strike = id => planStagedActionResolution({id, actorSystem: actorSystem(1), action: definitionAction(definition),
+    source: {actorId: "actor-source"}, damage: {modifierTotal: 3},
+    targeting: {required: true, candidates: [{id: "orc", target: target("orc", {defenses: {ac: {value: 10}}}),
+      actor: {id: "actor-orc"}, disposition: "enemy", kind: "creature"}]},
+    durability: {targetSystems: {"actor:actor-orc": {resources: {health: {value: 30, max: 30}}}},
+      adjustmentProfiles: {"actor:actor-orc": {resistances: [{damageTypes: ["fire"], multiplier: 0.5}]}}}});
+  const answer = (result, value) => {
+    const request = result.state.pendingRequests[0];
+    return {formula: rollFormulaForRequest(request.payload.rollRequest).formula,
+      next: resumeStagedActionResolution({state: result.state, response: {resolutionId: result.state.id, requestId: request.id,
+        type: RESOLUTION_REQUEST_TYPES.ROLL, value}})};
+  };
+  let step = answer(strike("resolution:longsword"), {total: 15, die: 10});
+  step = answer(step.next, {total: 9});
+  assert.equal(step.formula, "1d8 + 3", "the weapon's ability modifier rides on the weapon's own dice");
+  step = answer(step.next, {total: 4});
+  assert.equal(step.formula, "1d6");
+  assert.equal(step.next.state.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT, JSON.stringify(step.next.state.errors));
+  const plan = step.next.state.mutationPlans.find(entry => entry.type === "durabilityDamage")?.plan;
+  assert.equal(plan.appliedAmount, 11, "9 slashing (the 3 is in that roll), and 4 fire halved to 2");
+
+  let crit = answer(strike("resolution:longsword-crit"), {total: 25, die: 20});
+  crit = answer(crit.next, {total: 13});
+  assert.equal(crit.formula, "2d8 + 3", "a critical hit doubles the dice, not the modifier");
+  assert.equal(answer(crit.next, {total: 7}).formula, "2d6");
+});
+
+test("a rolled formula's flat part rolls with its dice, and healing dice are rolled too", () => {
+  const rolled = (definition, extra={}) => planStagedActionResolution({id: `resolution:${definition.id}`,
+    actorSystem: {...actorSystem(1), abilities: {wits: {value: 14}}}, action: definitionAction(definition),
+    source: {actorId: "actor-source"}, targets: [target("ally", {disposition: "friendly"})], ...extra});
+  const base = {schemaVersion: 1, costs: {allOf: []}, targeting: {type: "single", required: true, count: 1}};
+  const formula = result => rollFormulaForRequest(result.state.pendingRequests[0].payload.rollRequest).formula;
+  const club = rolled({...base, id: "action:club", label: "Club", damage: [{id: "club", damageType: "bludgeoning",
+    expression: {type: "add", terms: [{type: "dice", number: 1, faces: 8}, {type: "constant", value: 3}]}}]});
+  assert.equal(formula(club), "1d8 + 3", "a bonus written into the damage is not dropped");
+
+  const cure = rolled({...base, id: "action:cure", label: "Cure", healing: [{id: "cure", healingType: "healing",
+    expression: {type: "add", terms: [{type: "dice", number: 2, faces: 8}, {type: "ability-modifier", ability: "wits"}]}}]},
+  {durability: {targetSystems: {"actor:actor-ally": {resources: {health: {value: 3, max: 30}}}}}});
+  const request = cure.state.pendingRequests[0];
+  assert.equal(request.payload.rollRequest.type, ROLL_TYPES.HEALING);
+  assert.equal(formula(cure), "2d8 + 2", "2d8 plus the Wits modifier");
+  const healed = resumeStagedActionResolution({state: cure.state, response: {resolutionId: cure.state.id, requestId: request.id,
+    type: RESOLUTION_REQUEST_TYPES.ROLL, value: {total: 11}}});
+  assert.equal(healed.state.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT, JSON.stringify(healed.state.errors));
+  assert.equal(healed.state.mutationPlans.find(entry => entry.type === "durabilityHealing")?.plan?.to, 14);
 });
