@@ -154,6 +154,10 @@
             {
               "resourceId": "multiattack-vine-lash",
               "amount": 1
+            },
+            {
+              "resourceId": "multiattack-spells",
+              "amount": 1
             }
           ]
         },
@@ -165,6 +169,19 @@
             "data": {
               "resourceId": "multiattack-vine-lash",
               "label": "Multiattack (Vine Lash)",
+              "maximum": 1,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-spells-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-spells",
+              "label": "Multiattack (Spellcasting)",
               "maximum": 1,
               "current": 0,
               "recovery": "none",
@@ -185,9 +202,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -360,11 +375,19 @@
             "spell"
           ],
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-spells",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "range": {
@@ -431,11 +454,19 @@
             "spell"
           ],
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-spells",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "range": {
@@ -502,11 +533,19 @@
             "spell"
           ],
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-spells",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "label": "Druidcraft"
@@ -550,15 +589,27 @@
             "spell"
           ],
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              },
-              {
-                "capability": "spellcasting-phbsplentangle00",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-spells",
+                  "amount": 1
+                },
+                {
+                  "capability": "spellcasting-phbsplentangle00",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                },
+                {
+                  "capability": "spellcasting-phbsplentangle00",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "range": {
@@ -646,15 +697,27 @@
             "spell"
           ],
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              },
-              {
-                "capability": "spellcasting-phbsplpasswithou",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-spells",
+                  "amount": 1
+                },
+                {
+                  "capability": "spellcasting-phbsplpasswithou",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                },
+                {
+                  "capability": "spellcasting-phbsplpasswithou",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "range": {
@@ -789,8 +852,7 @@
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: area: 5-ft cube is not supported; the user picks the targets",
           "Spellcasting: area: 20-ft cube is not supported; the user picks the targets",
-          "Tree Stride: not automated (utility): using it spends its cost; its description says the rest",
-          "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
+          "Tree Stride: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

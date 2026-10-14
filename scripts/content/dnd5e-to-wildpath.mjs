@@ -887,6 +887,50 @@ export function multiattackPlans(description, attackNames=[]) {
 }
 
 /**
+ * What a Multiattack lets its creature do besides, or instead of, its attacks, as the Actions its text names:
+ * - `uses`: "makes two Tentacle attacks and uses Constrict" (or "either A or B"): one use, shared by those Actions;
+ * - `replace`: "it can replace one attack with a use of (A) Sleep Breath or (B) Spellcasting to cast Scorching Ray"
+ *   (`of` names the attack only it replaces: "replace the Claw attack with..."). "Spellcasting to cast X" is X;
+ *   "Spellcasting" alone is any spell it casts (`SPELLS`).
+ * Each is null when its text says nothing of it, or names an Action the creature does not have (`unknown`).
+ */
+export function multiattackExtras(description, actionNames=[]) {
+  const text = String(description ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
+  const find = phrase => {
+    const words = phrase.replace(/^(?:a use of|an?|its|the)\s+/i, "").replace(/\s*\(level \d+ version\)/i, "").replace(/\s+if available$/i, "")
+      .replace(/\s+attacks?$/i, "").replace(/\s+(?:twice|two times)$/i, "").trim();
+    // "Spellcasting", or "Spellcasting to cast" a spell whose name the text lost: any spell it casts.
+    const spell = /^Spellcasting(?:\s+to cast\s*(.*))?$/i.exec(words);
+    if ( spell && !spell[1]?.trim() ) return [SPELLS];
+    const name = spell ? spell[1].trim() : words;
+    // The Action's own name within the text's ("Acid Arrow" in "Melf's Acid Arrow").
+    const found = actionNames.filter(entry => nameWord(entry).test(name));
+    return found.length ? found : null;
+  };
+  const namesOf = list => {
+    const found = list.replace(/^a use of\s+/i, "").split(/\s*\([A-Z]\)\s*|\s*,\s*(?:or\s+)?|\s+or\s+|\s+and\s+/).map(entry => entry.trim()).filter(Boolean).map(find);
+    return found.every(Boolean) ? found.flat() : null;
+  };
+  // "...and uses Constrict", "and can use Entangling Rope", "uses Reel, and makes two Bite attacks", "uses Antennae twice".
+  const uses = /\b(?:and\s+)?(?:can\s+use|uses)\s+(?:either\s+)?(.+?)\s*(?:,\s*and\b|\.|$)/i
+    .exec(text.split(/(?<=\.)\s*/).find(sentence => /\bmakes\b/i.test(sentence)) ?? "");
+  const twice = uses ? /\b(?:twice|two times)\b/i.test(uses[1]) : false;
+  const replace = /\breplace\s+(one|two|any|the\s+(.+?))\s+attacks?\s+with\s+(.+?)\s*\.(?:\s|$)/i.exec(text);
+  const usesNames = uses ? namesOf(uses[1]) : null;
+  const replaceNames = replace ? namesOf(replace[3]) : null;
+  const of = replace?.[2] ? actionNames.find(entry => nameWord(entry).test(replace[2])) ?? null : null;
+  return {
+    uses: usesNames ? {names: usesNames, amount: twice ? 2 : 1} : null,
+    // "Replace any attack": as many as it makes (null).
+    replace: replaceNames ? {names: replaceNames, amount: replace[2] ? 1 : (/^any$/i.test(replace[1]) ? null : (COUNTS[replace[1].toLowerCase()] ?? 1)),
+      of} : null,
+    unknown: Boolean((uses && !usesNames) || (replace && !replaceNames) || (replace?.[2] && !of))
+  };
+}
+/** "Spellcasting" with no spell named: any spell its creature casts. */
+const SPELLS = "*spells*";
+
+/**
  * A creature's Multiattack (G4): using it spends the Action and fills its pools for this turn, which start empty and
  * empty at the start of each turn. Each group of attacks its text names has a pool of its own ("one Bite and two Claw
  * attacks"; "two attacks, using Scimitar or Shortbow in any combination" shares one), and attacks it does not name
@@ -913,11 +957,23 @@ function multiattack(items, notes) {
     pools.set(pool.id, pool);
   }
   const named = plans.flat().every(group => group.names);
+  // What else it lets the creature do: another Action it uses, or one that replaces an attack.
+  const others = items.filter(action => (action !== item) && (action.type === "action") && !action.name.startsWith("Multiattack"));
+  const extras = multiattackExtras(item.system.description, others.map(action => action.name));
+  const extraActions = names => others.filter(action => names.includes(action.name)
+    || (names.includes(SPELLS) && action.flags?.wildpath?.source?.castBy));
+  const usesPool = extras.uses ? {id: extras.uses.names.length === 1 ? `multiattack-${slugify(bare(extras.uses.names[0]))}`
+    : `multiattack-${slugify(extras.uses.names.map(bare).join(" or "))}`, label: `Multiattack (${extras.uses.names.map(bare).join(" or ")})`
+    .replace(SPELLS, "Spellcasting"), maximum: extras.uses.amount} : null;
+  const replacePool = extras.replace ? {id: "multiattack-replace", label: "Multiattack (replace an attack)", maximum: extras.replace.amount ?? count}
+    : null;
+  for ( const pool of [usesPool, replacePool] ) if ( pool ) pools.set(pool.id, {...pool, names: []});
   // shortcut: without names, any of the creature's attacks may be each of them; other parts of it are used by hand.
-  // Its other parts ("it can replace one attack with...", "and uses Frightful Presence") are used by hand.
-  const others = /\breplace|\buses?\b|\bcan\b/i.test(String(item.system.description).replace(/<[^>]+>/g, " "));
+  // Other parts it does not name ("and uses Frightful Presence" when it has no such Action) are used by hand too.
+  const rest = /\breplace|\buses?\b/i.test(String(item.system.description).replace(/<[^>]+>/g, " ")) && (extras.unknown
+    || !(extras.uses || extras.replace));
   const note = !named ? "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
-    : (others ? "Multiattack: its other parts (a replacement, an ability it uses) are used by hand" : null);
+    : (rest ? "Multiattack: its other parts (a replacement, an ability it uses) are used by hand" : null);
   const multiattacks = plans.map((plan, index) => {
     // Alternatives by what they make: "Multiattack (2 Slam)", "Multiattack (3 Slam)".
     const label = (plans.length > 1)
@@ -927,7 +983,8 @@ function multiattack(items, notes) {
     action.name = label;
     action.system.definition = {...action.system.definition, id: `${item.system.definition.id}${index ? `-${index + 1}` : ""}`, label,
       costs: {allOf: [{capability: "action", amount: 1}]}, targeting: {type: "none"},
-      restores: plan.map(group => ({resourceId: poolOf(group), amount: group.amount}))};
+      restores: [...plan.map(group => ({resourceId: poolOf(group), amount: group.amount})),
+        ...[usesPool, replacePool].filter(Boolean).map(pool => ({resourceId: pool.id, amount: pool.maximum}))]};
     action.system.ruleElements = [...(action.system.ruleElements ?? [])];
     action.flags.wildpath.conversion.notes = note ? [note] : [];
     return action;
@@ -937,12 +994,28 @@ function multiattack(items, notes) {
       emptiesAtTurnStart: true}})));
   items.splice(items.indexOf(item) + 1, 0, ...multiattacks.slice(1));
   notes.splice(0, notes.length, ...notes.filter(entry => !entry.startsWith("Multiattack: not automated")), ...(note ? [`Multiattack: ${note.slice(13)}`] : []));
+  const attackPools = [...pools.values()].filter(pool => ![usesPool?.id, replacePool?.id].includes(pool.id));
   for ( const action of attacks ) {
-    const own = [...pools.values()].filter(pool => !pool.names || pool.names.includes(action.name));
+    const own = attackPools.filter(pool => !pool.names || pool.names.includes(action.name));
     if ( !own.length ) continue;
     const definition = action.system.definition;
     const rest = definition.costs.allOf.filter(cost => cost.capability !== "action");
     definition.costs = {anyOf: [...own.map(pool => [{capability: pool.id, amount: 1}, ...rest]), [{capability: "action", amount: 1}, ...rest]]};
+  }
+  // An Action it uses besides its attacks is paid from its own use; one that replaces an attack, from the replacement
+  // and one of the attacks it could replace. Its other costs (a spell's uses) are still paid.
+  const payable = (action, options) => {
+    const definition = action.system.definition;
+    const original = definition.costs.anyOf ?? [definition.costs.allOf ?? []];
+    const rest = original[0].filter(cost => cost.capability !== "action");
+    definition.costs = {anyOf: [...options.map(option => [...option, ...rest]), ...original]};
+  };
+  if ( usesPool ) for ( const action of extraActions(extras.uses.names) ) payable(action, [[{capability: usesPool.id, amount: 1}]]);
+  if ( replacePool ) {
+    const replaceable = extras.replace.of ? attackPools.filter(pool => !pool.names || pool.names.includes(extras.replace.of)) : attackPools;
+    for ( const action of extraActions(extras.replace.names) ) {
+      payable(action, replaceable.map(pool => [{capability: replacePool.id, amount: 1}, {capability: pool.id, amount: 1}]));
+    }
   }
 }
 

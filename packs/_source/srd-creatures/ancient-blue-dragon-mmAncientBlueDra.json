@@ -123,6 +123,10 @@
             {
               "resourceId": "multiattack-rend",
               "amount": 3
+            },
+            {
+              "resourceId": "multiattack-replace",
+              "amount": 1
             }
           ]
         },
@@ -135,6 +139,19 @@
               "resourceId": "multiattack-rend",
               "label": "Multiattack (Rend)",
               "maximum": 3,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-replace-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-replace",
+              "label": "Multiattack (replace an attack)",
+              "maximum": 1,
               "current": 0,
               "recovery": "none",
               "emptiesAtTurnStart": true
@@ -154,9 +171,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -527,11 +542,23 @@
             "spell"
           ],
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-replace",
+                  "amount": 1
+                },
+                {
+                  "capability": "multiattack-rend",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "range": {
@@ -813,11 +840,27 @@
             "spell"
           ],
           "costs": {
-            "allOf": [
-              {
-                "capability": "legendary-action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-replace",
+                  "amount": 1
+                },
+                {
+                  "capability": "multiattack-rend",
+                  "amount": 1
+                },
+                {
+                  "capability": "legendary-action",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "legendary-action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "range": {
@@ -1009,8 +1052,7 @@
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: \"Create Sensor\" is passive or triggered: not automated",
           "Sonic Boom: cast: Shatter at level 3 is cast at its own level",
-          "Tail Swipe: not automated (utility): using it spends its cost; its description says the rest",
-          "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
+          "Tail Swipe: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

@@ -179,8 +179,12 @@ Flyby on 6 and Regeneration on 4. The book packages convert the same way.
   - "Two attacks, using Scimitar or Shortbow in any combination" is one pool those two attacks share.
   - Each alternative ("two Greatclub attacks, or it makes two Javelin attacks") is a Multiattack Action of its own:
     "Multiattack (2 Greatclub)" and "Multiattack (2 Javelin)".
-  - When its text names no attacks, any of its attacks may be each of them, from one pool. Its other parts ("it can
-    replace one attack with...", "and uses Frightful Presence") are used by hand.
+  - "...and uses Constrict" (or "either A or B", "uses Antennae twice") gives that Action a use of its own for the turn.
+  - "It can replace one attack with a use of (A) Sleep Breath or (B) Spellcasting to cast Scorching Ray" gives those
+    Actions another way to pay: the replacement plus one of the attacks it may replace, besides their own costs (a
+    spell's uses). "Replace the Claw attack" allows only the Claw's; "replace any attack" allows as many as it makes.
+  - When its text names no attacks, any of its attacks may be each of them, from one pool. What it names but the
+    creature has no Action for ("and uses Frightful Presence") is used by hand.
 - **Spellcasting.**
   - A cast activity becomes its spell's Action, converted with the creature's save DC and casting ability.
   - It costs the activity's activation and its own uses ("2/Day each"), or an item's charges, never a slot.

@@ -210,6 +210,10 @@
             {
               "resourceId": "multiattack",
               "amount": 2
+            },
+            {
+              "resourceId": "multiattack-replace",
+              "amount": 1
             }
           ]
         },
@@ -222,6 +226,19 @@
               "resourceId": "multiattack",
               "label": "Multiattack",
               "maximum": 2,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-replace-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-replace",
+              "label": "Multiattack (replace an attack)",
+              "maximum": 1,
               "current": 0,
               "recovery": "none",
               "emptiesAtTurnStart": true
@@ -241,9 +258,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -261,11 +276,23 @@
           "schemaVersion": 1,
           "id": "action:srd-bite-wolf-or-hybrid-form-only",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-replace",
+                  "amount": 1
+                },
+                {
+                  "capability": "multiattack",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "attack": {
@@ -332,11 +359,23 @@
           "schemaVersion": 1,
           "id": "action:srd-bite-wolf-or-hybrid-form-only",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-replace",
+                  "amount": 1
+                },
+                {
+                  "capability": "multiattack",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "label": "Bite (Wolf or Hybrid Form Only) (save)"
@@ -376,11 +415,23 @@
           "schemaVersion": 1,
           "id": "action:srd-bite-wolf-or-hybrid-form-only-become-werewolf",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-replace",
+                  "amount": 1
+                },
+                {
+                  "capability": "multiattack",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "label": "Bite (Wolf or Hybrid Form Only) (Become Werewolf)"
@@ -571,8 +622,7 @@
         "notes": [
           "Bite (Wolf or Hybrid Form Only): not automated (save): using it spends its cost; its description says the rest",
           "Bite (Wolf or Hybrid Form Only): effect: cursed is not a WildPath condition yet",
-          "Bite (Wolf or Hybrid Form Only): not automated (summon): using it spends its cost; its description says the rest",
-          "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
+          "Bite (Wolf or Hybrid Form Only): not automated (summon): using it spends its cost; its description says the rest"
         ]
       }
     }

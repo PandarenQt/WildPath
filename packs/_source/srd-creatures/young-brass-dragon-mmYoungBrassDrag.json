@@ -83,6 +83,10 @@
             {
               "resourceId": "multiattack-rend",
               "amount": 3
+            },
+            {
+              "resourceId": "multiattack-replace",
+              "amount": 2
             }
           ]
         },
@@ -95,6 +99,19 @@
               "resourceId": "multiattack-rend",
               "label": "Multiattack (Rend)",
               "maximum": 3,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-replace-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-replace",
+              "label": "Multiattack (replace an attack)",
+              "maximum": 2,
               "current": 0,
               "recovery": "none",
               "emptiesAtTurnStart": true
@@ -114,9 +131,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -313,11 +328,23 @@
           "schemaVersion": 1,
           "id": "action:srd-sleep-breath-1st-save",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-replace",
+                  "amount": 1
+                },
+                {
+                  "capability": "multiattack-rend",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "range": {
@@ -381,11 +408,23 @@
           "schemaVersion": 1,
           "id": "action:srd-sleep-breath-2nd-save",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-replace",
+                  "amount": 1
+                },
+                {
+                  "capability": "multiattack-rend",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "range": {
@@ -491,9 +530,7 @@
         "challenge": 6
       },
       "conversion": {
-        "notes": [
-          "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
-        ]
+        "notes": []
       }
     }
   }

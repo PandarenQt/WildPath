@@ -222,6 +222,10 @@
             {
               "resourceId": "multiattack-flying-sword",
               "amount": 2
+            },
+            {
+              "resourceId": "multiattack-replace",
+              "amount": 1
             }
           ]
         },
@@ -234,6 +238,19 @@
               "resourceId": "multiattack-flying-sword",
               "label": "Multiattack (Flying Sword)",
               "maximum": 2,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-replace-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-replace",
+              "label": "Multiattack (replace an attack)",
+              "maximum": 1,
               "current": 0,
               "recovery": "none",
               "emptiesAtTurnStart": true
@@ -253,9 +270,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -273,11 +288,23 @@
           "schemaVersion": 1,
           "id": "action:srd-slaying-bow-save",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-replace",
+                  "amount": 1
+                },
+                {
+                  "capability": "multiattack-flying-sword",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "range": {
@@ -1470,8 +1497,7 @@
           "Spellcasting: activation: 1 hour is not an action-economy cost",
           "Spellcasting: effect: \"Spell Taxed\" (its own changes) not converted",
           "Divine Aid: cast: Cure Wounds at level 2 is cast at its own level",
-          "Divine Aid: not automated (utility): using it spends its cost; its description says the rest",
-          "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
+          "Divine Aid: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

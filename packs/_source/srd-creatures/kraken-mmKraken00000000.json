@@ -181,6 +181,10 @@
             {
               "resourceId": "multiattack-tentacle",
               "amount": 2
+            },
+            {
+              "resourceId": "multiattack-fling-or-lightning-strike-or-swallow-or-swallow",
+              "amount": 1
             }
           ]
         },
@@ -193,6 +197,19 @@
               "resourceId": "multiattack-tentacle",
               "label": "Multiattack (Tentacle)",
               "maximum": 2,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-fling-or-lightning-strike-or-swallow-or-swallow-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-fling-or-lightning-strike-or-swallow-or-swallow",
+              "label": "Multiattack (Fling or Lightning Strike or Swallow or Swallow)",
+              "maximum": 1,
               "current": 0,
               "recovery": "none",
               "emptiesAtTurnStart": true
@@ -212,9 +229,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -323,11 +338,19 @@
           "schemaVersion": 1,
           "id": "action:srd-fling-save",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-fling-or-lightning-strike-or-swallow-or-swallow",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "range": {
@@ -406,11 +429,19 @@
           "schemaVersion": 1,
           "id": "action:srd-lightning-strike-save",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-fling-or-lightning-strike-or-swallow-or-swallow",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "range": {
@@ -481,11 +512,23 @@
           "schemaVersion": 1,
           "id": "action:srd-swallow-save",
           "costs": {
-            "allOf": [
-              {
-                "capability": "bonus-action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-fling-or-lightning-strike-or-swallow-or-swallow",
+                  "amount": 1
+                },
+                {
+                  "capability": "bonus-action",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "bonus-action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "range": {
@@ -568,11 +611,19 @@
           "schemaVersion": 1,
           "id": "action:srd-swallow-escape-from-corpse",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-fling-or-lightning-strike-or-swallow-or-swallow",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "range": {
@@ -809,8 +860,7 @@
           "Swallow: effect: coverTotal is not a WildPath condition yet",
           "Swallow: \"Damage: Swallowed\" is passive or triggered: not automated",
           "Swallow: \"Regurgitate: Save\" is passive or triggered: not automated",
-          "Storm Bolt: not automated (utility): using it spends its cost; its description says the rest",
-          "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
+          "Storm Bolt: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

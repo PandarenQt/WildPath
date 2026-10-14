@@ -114,6 +114,10 @@
             {
               "resourceId": "multiattack-bite",
               "amount": 2
+            },
+            {
+              "resourceId": "multiattack-replace",
+              "amount": 2
             }
           ]
         },
@@ -125,6 +129,19 @@
             "data": {
               "resourceId": "multiattack-bite",
               "label": "Multiattack (Bite)",
+              "maximum": 2,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-replace-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-replace",
+              "label": "Multiattack (replace an attack)",
               "maximum": 2,
               "current": 0,
               "recovery": "none",
@@ -145,9 +162,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -254,11 +269,23 @@
           "schemaVersion": 1,
           "id": "action:srd-poisonous-spittle-save",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-replace",
+                  "amount": 1
+                },
+                {
+                  "capability": "multiattack-bite",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "range": {
@@ -953,8 +980,7 @@
           "Spellcasting: activation: 1 minute is not an action-economy cost",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Truesight\" change system.attributes.senses.truesight (upgrade) not converted",
-          "Spellcasting: effect: \"Truesight\" (its own changes) not converted",
-          "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
+          "Spellcasting: effect: \"Truesight\" (its own changes) not converted"
         ]
       }
     }

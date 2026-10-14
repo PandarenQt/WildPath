@@ -341,6 +341,10 @@
             {
               "resourceId": "multiattack-tentacle",
               "amount": 2
+            },
+            {
+              "resourceId": "multiattack-consume-memories-or-dominate-mind",
+              "amount": 1
             }
           ]
         },
@@ -353,6 +357,19 @@
               "resourceId": "multiattack-tentacle",
               "label": "Multiattack (Tentacle)",
               "maximum": 2,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-consume-memories-or-dominate-mind-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-consume-memories-or-dominate-mind",
+              "label": "Multiattack (Consume Memories or Dominate Mind)",
+              "maximum": 1,
               "current": 0,
               "recovery": "none",
               "emptiesAtTurnStart": true
@@ -372,9 +389,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -392,15 +407,27 @@
           "schemaVersion": 1,
           "id": "action:srd-dominate-mind",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              },
-              {
-                "capability": "dominate-mind",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-consume-memories-or-dominate-mind",
+                  "amount": 1
+                },
+                {
+                  "capability": "dominate-mind",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                },
+                {
+                  "capability": "dominate-mind",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "label": "Dominate Mind"
@@ -454,11 +481,19 @@
           "schemaVersion": 1,
           "id": "action:srd-consume-memories-intelligence-saving-throw",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-consume-memories-or-dominate-mind",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "range": {
@@ -677,8 +712,7 @@
           "Mucus Cloud: \"Damage: Outside Water\" is passive or triggered: not automated",
           "Tentacle: \"Escape Check\" is passive or triggered: not automated",
           "Dominate Mind: not automated (save): using it spends its cost; its description says the rest",
-          "Lash: not automated (utility): using it spends its cost; its description says the rest",
-          "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
+          "Lash: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

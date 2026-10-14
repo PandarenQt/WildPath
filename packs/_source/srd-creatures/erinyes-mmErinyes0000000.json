@@ -185,6 +185,10 @@
             {
               "resourceId": "multiattack-withering-sword",
               "amount": 3
+            },
+            {
+              "resourceId": "multiattack-entangling-rope",
+              "amount": 1
             }
           ]
         },
@@ -197,6 +201,19 @@
               "resourceId": "multiattack-withering-sword",
               "label": "Multiattack (Withering Sword)",
               "maximum": 3,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-entangling-rope-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-entangling-rope",
+              "label": "Multiattack (Entangling Rope)",
+              "maximum": 1,
               "current": 0,
               "recovery": "none",
               "emptiesAtTurnStart": true
@@ -216,9 +233,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -370,11 +385,19 @@
           "schemaVersion": 1,
           "id": "action:srd-entangling-rope",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-entangling-rope",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "range": {
@@ -516,8 +539,7 @@
       "conversion": {
         "notes": [
           "Parry: not automated (utility): using it spends its cost; its description says the rest",
-          "Withering Sword: damage: versatile two-handed damage not converted",
-          "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
+          "Withering Sword: damage: versatile two-handed damage not converted"
         ]
       }
     }

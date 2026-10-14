@@ -81,6 +81,10 @@
             {
               "resourceId": "multiattack-slam",
               "amount": 2
+            },
+            {
+              "resourceId": "multiattack-unsettling-visage",
+              "amount": 1
             }
           ]
         },
@@ -93,6 +97,19 @@
               "resourceId": "multiattack-slam",
               "label": "Multiattack (Slam)",
               "maximum": 2,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-unsettling-visage-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-unsettling-visage",
+              "label": "Multiattack (Unsettling Visage)",
+              "maximum": 1,
               "current": 0,
               "recovery": "none",
               "emptiesAtTurnStart": true
@@ -112,9 +129,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -261,15 +276,27 @@
           "schemaVersion": 1,
           "id": "action:srd-unsettling-visage-save",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              },
-              {
-                "capability": "unsettling-visage",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-unsettling-visage",
+                  "amount": 1
+                },
+                {
+                  "capability": "unsettling-visage",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                },
+                {
+                  "capability": "unsettling-visage",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "range": {
@@ -427,8 +454,7 @@
           "Read Thoughts: not automated (utility): using it spends its cost; its description says the rest",
           "Read Thoughts: concentration: nothing it sustains was converted",
           "Read Thoughts: not automated (save): using it spends its cost; its description says the rest",
-          "Shape-Shift: not automated (utility): using it spends its cost; its description says the rest",
-          "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
+          "Shape-Shift: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

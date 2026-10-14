@@ -429,4 +429,27 @@ test("Multiattack's named attacks: one pool each, an Action per alternative, and
   assert.equal(javelin.system.ruleElements.filter(rule => rule.type === "GrantResource").length, 0);
   assert.deepEqual(byName("Javelin").system.definition.costs.anyOf[0], [{capability: "multiattack-javelin", amount: 1}]);
   assert.deepEqual(byName("Stomp").system.definition.costs, {allOf: [{capability: "action", amount: 1}]}, "an attack it does not name");
+
+  // "...and uses Constrict. It can replace the Claw attack with a use of Fire Breath."
+  const save = (id, name, extra={}, consumption={targets: []}) => ({_id: id, name, type: "feat", system: {source: SRD, ...extra,
+    activities: {a: activity("save", {save: {ability: ["str"], dc: {calculation: "str"}}, damage: {onSave: "none", parts: []}, consumption})}}});
+  const chimera = {_id: "testChimera00001", name: "Test Chimera", type: "npc", system: {source: SRD, details: {cr: 6},
+    abilities: {str: {value: 19}}, attributes: {hp: {max: 114}, movement: {walk: "30"}}, traits: {size: "lg"}},
+    items: [attack("bite000000000001", "Bite"), attack("claw000000000001", "Claw"), save("constrict0000001", "Constrict"),
+      save("firebreath000001", "Fire Breath", {uses: {max: "1", recovery: [{period: "recharge", formula: "5"}]}},
+        {targets: [{type: "itemUses", value: "1"}]}),
+      {_id: "multiattack00003", name: "Multiattack", type: "feat", system: {source: SRD, description: {value: "<p>The chimera makes one Bite "
+        + "attack and one Claw attack and uses Constrict. It can replace the Claw attack with a use of Fire Breath.</p>"},
+        activities: {a: activity("utility")}}}]};
+  const beast = convertActor(chimera).actor;
+  const named = name => beast.items.find(item => item.name === name);
+  assert.deepEqual(named("Multiattack").system.definition.restores.map(entry => [entry.resourceId, entry.amount]), [["multiattack-bite", 1],
+    ["multiattack-claw", 1], ["multiattack-constrict", 1], ["multiattack-replace", 1]]);
+  assert.deepEqual(named("Multiattack").flags.wildpath.conversion.notes, [], "nothing left by hand");
+  assert.deepEqual(named("Constrict").system.definition.costs.anyOf.map(option => option.map(cost => cost.capability)),
+    [["multiattack-constrict"], ["action"]], "the Action it uses besides its attacks");
+  assert.deepEqual(named("Fire Breath").system.definition.costs.anyOf.map(option => option.map(cost => cost.capability)),
+    [["multiattack-replace", "multiattack-claw", "fire-breath"], ["action", "fire-breath"]],
+    "instead of the Claw attack, still spending its own use");
+  for ( const item of ["Multiattack", "Constrict", "Fire Breath"] ) valid(named(item));
 });

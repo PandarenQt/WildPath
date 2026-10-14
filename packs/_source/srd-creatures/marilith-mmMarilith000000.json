@@ -186,6 +186,10 @@
             {
               "resourceId": "multiattack-pact-blade",
               "amount": 6
+            },
+            {
+              "resourceId": "multiattack-constrict",
+              "amount": 1
             }
           ]
         },
@@ -198,6 +202,19 @@
               "resourceId": "multiattack-pact-blade",
               "label": "Multiattack (Pact Blade)",
               "maximum": 6,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-constrict-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-constrict",
+              "label": "Multiattack (Constrict)",
+              "maximum": 1,
               "current": 0,
               "recovery": "none",
               "emptiesAtTurnStart": true
@@ -217,9 +234,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -329,11 +344,19 @@
           "schemaVersion": 1,
           "id": "action:srd-constrict",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-constrict",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "range": {
@@ -598,8 +621,7 @@
           "Pact Blade: damage: versatile two-handed damage not converted",
           "Constrict: \"Escape Check\" is passive or triggered: not automated",
           "Teleport: not automated (utility): using it spends its cost; its description says the rest",
-          "Parry: not automated (utility): using it spends its cost; its description says the rest",
-          "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
+          "Parry: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }
