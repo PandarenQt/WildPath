@@ -1,0 +1,53 @@
+/**
+ * Class and spellcasting progression for the 2024 rules, as pure data functions. The Actor model derives
+ * its total level, original class and spell slots from these; another ruleset replaces this module rather
+ * than branching inside callers (AGENTS §10).
+ */
+export const SPELLCASTING_PROGRESSIONS = Object.freeze({ NONE: "none", FULL: "full", HALF: "half" });
+/** The pool that holds slots of one spell level; slot payments name it as their capability. */
+export const spellSlotPoolId = (spellLevel) => `spell-slot.${spellLevel}`;
+// Slots per spell level (1st-9th) at each caster level 1-20: the 2024 multiclass spellcaster table.
+const SLOTS_BY_CASTER_LEVEL = [
+    [], [2], [3], [4, 2], [4, 3], [4, 3, 2], [4, 3, 3], [4, 3, 3, 1], [4, 3, 3, 2], [4, 3, 3, 3, 1],
+    [4, 3, 3, 3, 2], [4, 3, 3, 3, 2, 1], [4, 3, 3, 3, 2, 1], [4, 3, 3, 3, 2, 1, 1], [4, 3, 3, 3, 2, 1, 1],
+    [4, 3, 3, 3, 2, 1, 1, 1], [4, 3, 3, 3, 2, 1, 1, 1], [4, 3, 3, 3, 2, 1, 1, 1, 1], [4, 3, 3, 3, 3, 1, 1, 1, 1],
+    [4, 3, 3, 3, 3, 2, 1, 1, 1], [4, 3, 3, 3, 3, 2, 2, 1, 1]
+];
+/**
+ * 2024 caster level: every level in a full-caster class, plus half the levels in each half-caster class,
+ * rounded up per class. A single-class half-caster therefore uses the same table (Paladin 5 = caster 3).
+ */
+export function casterLevel(classes) {
+    return classes.reduce((total, entry) => {
+        const level = Math.max(Number(entry.level) || 0, 0);
+        const progression = entry.spellcasting?.progression;
+        if (progression === SPELLCASTING_PROGRESSIONS.FULL)
+            return total + level;
+        if (progression === SPELLCASTING_PROGRESSIONS.HALF)
+            return total + Math.ceil(level / 2);
+        return total;
+    }, 0);
+}
+/** Slots for spell levels 1-9 at a caster level (nine entries, zero where none). */
+export function spellSlots(level) {
+    const row = SLOTS_BY_CASTER_LEVEL[Math.min(Math.max(Math.floor(level) || 0, 0), 20)] ?? [];
+    return Array.from({ length: 9 }, (_, index) => row[index] ?? 0);
+}
+/**
+ * What an Actor's class records mean: the total level, the original (level-1) class, and spellcasting.
+ * The original class is the one marked `original`, else the first. The Actor's spellcasting ability is
+ * the original class's when it casts, else the first casting class's; each class keeps its own.
+ */
+export function deriveClassData(classes) {
+    const level = classes.reduce((total, entry) => total + Math.max(Number(entry.level) || 0, 0), 0);
+    const original = classes.find(entry => entry.original) ?? classes[0] ?? null;
+    const casts = (entry) => !!entry?.spellcasting?.progression
+        && (entry.spellcasting.progression !== SPELLCASTING_PROGRESSIONS.NONE);
+    const caster = casts(original) ? original : classes.find(casts) ?? null;
+    const levelForSlots = casterLevel(classes);
+    return {
+        level,
+        original,
+        spellcasting: { casterLevel: levelForSlots, ability: caster?.spellcasting?.ability || null, slots: spellSlots(levelForSlots) }
+    };
+}

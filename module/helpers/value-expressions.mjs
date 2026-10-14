@@ -215,6 +215,12 @@ function evaluateClassLevel(expression, context) {
 }
 
 function evaluateSpellcastingModifier(expression, context) {
+  // A class's own spellcasting ability, when the expression names the class (multiclass casters).
+  if ( expression.class ) {
+    const classes = context.actor?.system?.classes ?? context.actorSystem?.classes ?? [];
+    const record = Array.isArray(classes) ? classes.find(entry => [entry.id, entry.name].includes(expression.class)) : null;
+    if ( record?.spellcasting?.ability ) return evaluateAbilityModifier({type: "ability-modifier", ability: record.spellcasting.ability}, context);
+  }
   const explicit = firstNumeric([
     context.spellcastingModifier,
     context.actor?.spellcastingModifier,

@@ -126,6 +126,25 @@ export function registerResourceTests(quench) {
           "turn recovery writes the maximum, which clears spent");
       });
 
+      it("class records derive the level, original class and spell slots, creating the slot pools a caster needs", async function () {
+        const wizard = {id:"wizard",name:"Wizard",level:3,original:true,subclasses:[],spellcasting:{progression:"full",ability:"int"}};
+        const paladin = {id:"paladin",name:"Paladin",level:3,subclasses:["oath-a","oath-b"],spellcasting:{progression:"half",ability:"cha"}};
+        const actor = await fixtures.createActor({name:"multiclass caster",system:{classes:[wizard,paladin]}});
+        assert.equal(actor.system.details.level,6,"total level is the sum of class levels");
+        assert.equal(actor.system.originalClass.id,"wizard");
+        assert.deepEqual(actor.system.classes[1].subclasses,["oath-a","oath-b"],"a class keeps several subclasses");
+        assert.equal(actor.system.spellcasting.casterLevel,5,"Wizard 3 + Paladin 3 (half, rounded up) = caster 5");
+        const slots = id => actor.getResource(id);
+        assert.deepEqual(["spell-slot.1","spell-slot.2","spell-slot.3"].map(id => [slots(id)?.max,slots(id)?.value]),
+          [[4,4],[3,3],[2,2]],"slot pools were created full, with maxima from the 2024 table");
+        assert.isNull(slots("spell-slot.4"),"no pool for a spell level the caster does not reach");
+        await actor.update({"system.classes":[wizard,{...paladin,level:5},{id:"cleric",name:"Cleric",level:1,
+          subclasses:[],spellcasting:{progression:"full",ability:"wis"}}]});
+        assert.equal(actor.system.spellcasting.casterLevel,7,"3 + ceil(5/2) + 1 = 7");
+        assert.deepEqual([slots("spell-slot.4")?.max,slots("spell-slot.4")?.value],[1,1],"levelling up adds the new slot pool");
+        assert.equal(slots("spell-slot.3").max,3);
+      });
+
       it("applies an Item maximum modifier once across repeated preparation and removes it on deletion", async function () {
         const actor = await fixtures.createActor({name:"modifier preparation",
           system:{resources:{health:{base:10,bonus:2,value:10}}}});

@@ -1,11 +1,12 @@
 import {WILDPATH} from "../../config.mjs";
 import {defenseField, resourceField, poolsField} from "../fields.mjs";
 import {computeResourceMax, clampResourceValue, remainingFromSpent, spentFromRemaining} from "../../helpers/resources.mjs";
+import {SPELLCASTING_PROGRESSIONS, deriveClassData, spellSlotPoolId} from "../../helpers/spellcasting.mjs";
 
 /** Action-economy counters: what is spent is stored, what remains is derived from the (modifiable) maximum. */
 const COUNTED_RESOURCES = Object.freeze(["action", "bonus", "reaction"]);
 
-const {SchemaField, NumberField, HTMLField} = foundry.data.fields;
+const {SchemaField, NumberField, HTMLField, ArrayField, StringField, BooleanField} = foundry.data.fields;
 
 /**
  * Shared data schema, derived-data preparation, and helper methods used by every Actor
@@ -40,6 +41,20 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
         movement: resourceField({initial: 30, recovery: "turn"})
       }),
       pools: poolsField(),
+      // One record per class (multiclassing is the normal case); total level, the original class and
+      // spellcasting are derived from these (helpers/spellcasting.mts).
+      classes: new ArrayField(new SchemaField({
+        id: new StringField({required: true, blank: false}),
+        name: new StringField({required: true, blank: true}),
+        level: new NumberField({required: true, integer: true, initial: 1, min: 1}),
+        original: new BooleanField(),
+        subclasses: new ArrayField(new StringField({required: true, blank: false})),
+        spellcasting: new SchemaField({
+          progression: new StringField({required: true, initial: SPELLCASTING_PROGRESSIONS.NONE,
+            choices: Object.values(SPELLCASTING_PROGRESSIONS)}),
+          ability: new StringField({required: true, blank: true})
+        })
+      })),
       status: new SchemaField({
         turnsTaken: new NumberField({required: true, integer: true, initial: 0, min: 0})
       })
@@ -67,12 +82,42 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
    */
   async _preUpdate(changes, options, user) {
     if ( (await super._preUpdate(changes, options, user)) === false ) return false;
+    const classes = foundry.utils.getProperty(changes, "system.classes");
+    if ( Array.isArray(classes) ) {
+      const pools = this.#withSlotPools(classes, foundry.utils.getProperty(changes, "system.pools") ?? this.parent.toObject(true).system.pools);
+      if ( pools ) foundry.utils.setProperty(changes, "system.pools", pools);
+    }
     for ( const id of COUNTED_RESOURCES ) {
       const path = `system.resources.${id}.value`;
       const value = foundry.utils.getProperty(changes, path) ?? changes[path];
       if ( typeof value !== "number" ) continue;
       foundry.utils.setProperty(changes, `system.resources.${id}.spent`, spentFromRemaining(this.resources[id].max, value));
     }
+  }
+
+  /** @inheritDoc */
+  async _preCreate(data, options, user) {
+    if ( (await super._preCreate(data, options, user)) === false ) return false;
+    const pools = this.#withSlotPools(data.system?.classes ?? [], data.system?.pools ?? []);
+    if ( pools ) this.parent.updateSource({"system.pools": pools});
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * A caster gets a pool for every spell level its classes reach, so slots can be spent and recovered;
+   * the maximum is derived from the progression. Returns the pools to store, or null when none is missing.
+   */
+  #withSlotPools(classes, pools) {
+    const slots = deriveClassData(classes).spellcasting.slots;
+    const existing = new Set(pools.map(pool => pool.id));
+    const missing = slots.flatMap((count, index) => {
+      const id = spellSlotPoolId(index + 1);
+      if ( !count || existing.has(id) ) return [];
+      const label = globalThis.game?.i18n?.format?.("WILDPATH.SPELLCASTING.SlotPool", {level: index + 1}) ?? id;
+      return [{id, label, base: 0, bonus: 0, max: count, value: count, recovery: "longRest"}];
+    });
+    return missing.length ? [...pools, ...missing] : null;
   }
 
   /* -------------------------------------------- */
@@ -99,8 +144,22 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
   /** @inheritDoc */
   prepareDerivedData() {
     super.prepareDerivedData();
+    this.#deriveClasses();
     this.#applyResourceModifiers();
     this.#finalizeResources();
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * With class records, the total level is their sum (a character's `details.level` is then derived);
+   * `originalClass` and `spellcasting` ({casterLevel, ability, slots}) come from the same records.
+   */
+  #deriveClasses() {
+    const derived = deriveClassData(this.classes);
+    if ( this.classes.length && this.details && ("level" in this.details) ) this.details.level = derived.level;
+    this.originalClass = derived.original;
+    this.spellcasting = derived.spellcasting;
   }
 
   /* -------------------------------------------- */
@@ -116,8 +175,11 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
     for ( const id of Object.keys(this.resources) ) {
       this.resources[id].modifierBonus = this.parent.getStatistic?.(`resources.${id}.max`)?.totalModifier ?? 0;
     }
+    // Spell slot pools also hold what the class progression gives at the current caster level.
+    const slotPools = new Map(this.spellcasting.slots.map((count, index) => [spellSlotPoolId(index + 1), count]));
     for ( const pool of this.pools ) {
-      pool.modifierBonus = this.parent.getStatistic?.(`pools.${pool.id}.max`)?.totalModifier ?? 0;
+      pool.modifierBonus = (this.parent.getStatistic?.(`pools.${pool.id}.max`)?.totalModifier ?? 0)
+        + (slotPools.get(pool.id) ?? 0);
     }
   }
 
