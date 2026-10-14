@@ -671,6 +671,31 @@ for ( const kind of [null, "forced"] ) test(`a ${kind ?? "voluntary"} move into 
   assert.equal(fixture.semanticEvents.gm.at(-1).data.interruption.reason, "entered-area");
 });
 
+test("a mover's own aura enters a creature it sweeps over, without holding the mover", async () => {
+  const applied = [];
+  const flag = {label: "Guardian Aura"};
+  const aura = {id: "aura", flags: {wildpath: {area: flag}}};
+  const goblin = {id: "goblin"};
+  const port = {
+    hasEntryAreas: () => true,
+    entered: () => [],
+    swept: (token, {position}) => (Number(position?.x) === 50 ? [{region: aura, flag, tokens: [goblin]}] : []),
+    async apply(area, areaFlag, token, event) { applied.push([area.id, token.id, event]); return [{status: "completed"}]; }
+  };
+  const fixture = movementReactionFixture({count: 0, areas: port});
+  fixture.scene.regions = new Map([["aura", aura]]);
+  fixture.scene.tokens.set("goblin", goblin);
+  const operation = checkpointOperation(fixture.token, {passedCount: 1, offsets: [{i: 1, j: 0}, {i: 2, j: 0}]});
+  await approveCheckpoint(fixture, operation);
+  fixture.token.setOffset({i: 1, j: 0});
+  fixture.token.movement = {...operation, user: PLAYER, state: "pending"};
+  await onFoundryV14MoveToken(fixture.token, operation, {}, PLAYER, {game: fixture.playerGame});
+  assert.equal(fixture.token.movement.state, "pending", "the mover is not held by its own aura");
+  assert.equal((await onFoundryV14MoveToken(fixture.token, operation, {}, PLAYER, {game: fixture.gmGame})).ok, true);
+  assert.deepEqual(applied, [["aura", "goblin", "area.entered"]]);
+  assert.equal(fixture.stopCount(), 0, "the mover's own aura never stops it");
+});
+
 test("movement with an empty reaction provider retains the uninterrupted no-trigger path", async () => {
   const fixture = movementReactionFixture({count: 0});
   const operation = checkpointOperation(fixture.token, {passedCount: 2, offsets: [{i: 1, j: 0}, {i: 2, j: 0}]});

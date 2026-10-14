@@ -159,6 +159,13 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
   - Each step's approval records the areas that step enters (fields and band).
   - The after-step pause holds the Token while the area acts.
   - The stop is an ordinary interruption (`reason: "entered-area"`).
+- **Auras.** An `emanation` surrounds its caster with no placement clicks, and its Region is attached to
+  the caster's Token, so Foundry carries the drawn cells along. Who is inside is recomputed around the
+  caster's current footprint. When the caster's step carries the aura over a creature, the aura has
+  entered that creature. The caster's own move is never held by its own aura.
+- **Empty areas.** An area that catches nobody still happens: it is paid and leaves its lasting area.
+  `targeting.required` now defaults to false for `area`, and the target-dependent stages pass through
+  when nobody was targeted.
 - **Elevation.** The `elevation` band is relative to the floor of the caster's Level. A missing bound is
   open, so a ground hazard is `{bottom: 0, top: 0}`. A creature is inside only if its height overlaps
   the band. Several areas can share a field, for example one on the ground and one in the air, and each
@@ -174,9 +181,13 @@ Live (two browsers, 14.369, 2026-10-14): Player1 cast Burning Ground (2 fire on 
   (30→26), and the Token stopped there. Only those two steps were paid (30→20 ft), and the player saw "You
   stopped on entering Burning Ground. Your remaining movement is kept."
 - Stepping out and back in on the same turn did nothing more.
+- The caster backed off and cast a 5-ft Guardian Aura where nobody stood. It still completed, leaving the
+  8 cells around the caster. The caster then stepped next to the goblin. Foundry moved the aura's cells
+  with the caster, and the aura entering the goblin hit it for 3 ("Radiance"). The caster's move was not
+  held.
 
-Still to come: auras that move with their caster, expiry by duration and concentration, the staged
-(programmatic) movement path, and falling through an area (vertical movement is not modelled yet).
+Still to come: expiry by duration and concentration, the staged (programmatic) movement path, and
+falling through an area (vertical movement is not modelled yet).
 
 ## Auras and Emanations
 

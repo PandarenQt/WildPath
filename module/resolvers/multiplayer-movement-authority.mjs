@@ -555,6 +555,7 @@ export function createMultiplayerMovementAuthority({
     let afterStepReactions = false;
     let stepReactions = null;
     let areaEntries = [];
+    let auraSweeps = [];
     try {
       approval = await authorizeMovement({
         intent: chain.length ? {...intent, movementKind: record.approval.path.movementKind,
@@ -605,8 +606,13 @@ export function createMultiplayerMovementAuthority({
           if ( !passed.ok || passed.path.anchors.length !== 2 ) throw new Error(
             "Reaction-capable movement must commit exactly one approved transition per Foundry checkpoint.");
           // A step into a lasting area pauses after it, like an after-step reaction, so the area acts first.
-          if ( entryAreas ) areaEntries = areas.entered(documents.token, {previous: intent.origin,
-            position: {...intent.origin, ...(intent.foundry?.passedWaypoints?.[0] ?? {})}}).map(({region}) => region.id);
+          // A step that carries the mover's own aura over others makes it enter them; the mover is not held.
+          if ( entryAreas ) {
+            const step = {previous: intent.origin, position: {...intent.origin, ...(intent.foundry?.passedWaypoints?.[0] ?? {})}};
+            areaEntries = areas.entered(documents.token, step).map(({region}) => region.id);
+            auraSweeps = (areas.swept?.(documents.token, step) ?? [])
+              .map(({region, tokens}) => ({regionId: region.id, tokenIds: tokens.map(token => token.id)}));
+          }
           if ( (afterStepReactions || areaEntries.length) && (approval.evaluation.transitions.length > 1) ) {
             approval.reactionBoundary = movementReactionBoundary(record?.progress ?? progress, intent.movementId, baseTransitionCount);
           }
@@ -639,7 +645,7 @@ export function createMultiplayerMovementAuthority({
       const currentAuthority = verifyCurrentAuthority(authorityContext, intent);
       if ( !currentAuthority.ok ) return {...currentAuthority, approved: false, resolutionId: intent.resolutionId};
       const operation = {id: intent.movementId, chain, subpathId: intent.foundry?.subpathId ?? null,
-        reactionTriggers, afterStepReactions, areaEntries,
+        reactionTriggers, afterStepReactions, areaEntries, auraSweeps,
         baseTransitionCount, observedTransitionCount: null,
         intent: clonePlainData(intent), approval: clonePlainData(approval)};
       if ( chain.length ) record.operations.push(operation);
@@ -953,9 +959,10 @@ export function createMultiplayerMovementAuthority({
     for ( const event of record.semanticEvents ) {
       if ( event.type !== "movement.transition" || record.handledReactionEventIds.includes(event.id) ) continue;
       const operation = record.operations.find(entry => entry.baseTransitionCount === event.data.transitionIndex);
-      // Only after-step subscriptions and entered areas pause here; before-step reactions resolved in the approval.
-      if ( !operation?.afterStepReactions && !operation?.areaEntries?.length ) { record.handledReactionEventIds.push(event.id); continue; }
       record.handledReactionEventIds.push(event.id);
+      if ( operation?.auraSweeps?.length ) await resolveAuraSweeps(operation);
+      // Only after-step subscriptions and entered areas pause here; before-step reactions resolved in the approval.
+      if ( !operation?.afterStepReactions && !operation?.areaEntries?.length ) continue;
       const boundary = movementReactionBoundary(record.progress, operation.id, event.data.transitionIndex);
       const terminal = ["completed", "interrupted"].includes(record.progress.status);
       if ( !terminal ) record.reactionPending = boundary;
@@ -999,6 +1006,21 @@ export function createMultiplayerMovementAuthority({
       }
     }
     return stoppedBy;
+  }
+
+  /** The mover's aura entered these creatures on this step; each is affected as if it had walked in. */
+  async function resolveAuraSweeps(operation) {
+    const documents = await resolveMovementCompletionDocuments({completion: operation.intent, game});
+    if ( !documents.ok ) return;
+    for ( const {regionId, tokenIds} of operation.auraSweeps ) {
+      const region = documents.scene.regions?.get?.(regionId);
+      const flag = region?.flags?.wildpath?.area;
+      for ( const token of tokenIds.map(id => documents.scene.tokens?.get?.(id)).filter(Boolean) ) {
+        if ( !flag ) break;
+        try { await areas.apply(region, flag, token, "area.entered"); }
+        catch (error) { logger?.error?.("Wild Path | An aura failed on entry", error); }
+      }
+    }
   }
 
   function notifyAreaStop(payload) {

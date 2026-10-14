@@ -783,11 +783,11 @@ test("a counterattack Trigger on a bystander's Token ignores an attack on someon
 });
 
 /** A 5-ft radial burst, 6 damage, cast from (0,0) at range 30 ft. A bystander stands at (5,0). */
-function areaFixture(t, {range=30, persistence=null}={}) {
+function areaFixture(t, {range=30, persistence=null, shape="radial"}={}) {
   const definition = {schemaVersion: 1, id: "action:runtime-burst", label: "Runtime Burst",
     costs: {allOf: [{capability: ECONOMY_CAPABILITIES.ACTION, amount: 1}]},
     range: {type: "ranged", normal: {value: range, unit: "ft"}}, targeting: {type: "area"},
-    area: {shape: "radial", size: {value: 5, unit: "ft"}, ...(persistence ? {persistence} : {})},
+    area: {shape, size: {value: 5, unit: "ft"}, ...(persistence ? {persistence} : {})},
     damage: [{id: "burst", expression: {type: "constant", value: 6}, damageType: "fire", provenance: "spell-base"}]};
   const fixture = syntheticRuntimeFixture(t, definition, {targetHealth: 30});
   const {scene} = fixture;
@@ -859,8 +859,8 @@ test("a lasting area's persistence is validated: rounds, an elevation band, and 
 });
 
 /** A burst whose ground keeps burning; the Scene can hold Regions and the GM runs the turn. */
-function lastingAreaFixture(t) {
-  const fixture = areaFixture(t, {persistence: {duration: {unit: "round", value: 10}, elevation: {bottom: 0, top: 0},
+function lastingAreaFixture(t, {shape="radial", range=60}={}) {
+  const fixture = areaFixture(t, {shape, range, persistence: {duration: {unit: "round", value: 10}, elevation: {bottom: 0, top: 0},
     triggers: [{on: ["turn.started"], action: BURNING}]}});
   const {scene, game} = fixture;
   scene.regions = [];
@@ -924,6 +924,33 @@ test("a lasting area becomes a Region and burns a creature that starts its turn 
   // A creature flying above the burning ground is out of its band.
   targetToken.elevation = 30;
   assert.equal(areaCovers(flag, targetToken), false);
+});
+
+test("an emanation is attached to its caster and covers whoever is next to the caster now", async t => {
+  const {scene, sourceToken, targetActor, targetToken, player, areas, intent} = lastingAreaFixture(t, {shape: "emanation"});
+  const declared = await player.declareActionIntent({...intent, area: {points: []}});
+  assert.equal(declared.ok, true, JSON.stringify(declared));
+  assert.equal(targetActor.system.resources.health.value, 24, "the emanation's own hit lands on the adjacent target");
+  const [region] = scene.regions;
+  assert.deepEqual([region.attachment.token, region.flags.wildpath.area.attached], ["source-token", true]);
+  await areas.onTurn("turn.started", {combatant: {token: targetToken}});
+  assert.equal(targetActor.system.resources.health.value, 20, "starting a turn next to the caster burns");
+  // The caster walks away: the aura goes with it and no longer covers the target.
+  sourceToken.getOccupiedGridSpaceOffsets = () => [{i: 6, j: 0}];
+  scene.regions[0].flags.wildpath.area.applied = {};
+  await areas.onTurn("turn.started", {combatant: {token: targetToken}});
+  assert.equal(targetActor.system.resources.health.value, 20);
+});
+
+test("an area that catches nobody still happens and leaves its lasting area", async t => {
+  const {scene, targetActor, player, gm, intent} = lastingAreaFixture(t);
+  // Field (8,8) is in range (40 ft) and empty.
+  const declared = await player.declareActionIntent({...intent, area: {points: [{x: 425, y: 425}]}});
+  assert.equal(declared.ok, true, JSON.stringify(declared));
+  const state = gm.getRecord(declared.resolutionId).state;
+  assert.equal(state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(state.errors));
+  assert.equal(scene.regions.length, 1);
+  assert.equal(targetActor.system.resources.health.value, 30);
 });
 
 test("Action targets carry the Token's public name, never a hidden Token's or the base Actor's", async t => {

@@ -850,7 +850,8 @@ function normalizeTargetingDefinition(targeting) {
   const type = stringOrDefault(targeting.type ?? targeting.mode, ACTION_TARGETING_TYPES.SINGLE);
   return {
     type,
-    required: targeting.required ?? type !== ACTION_TARGETING_TYPES.NONE,
+    // An area's placement decides its targets; an area that catches nobody still happens.
+    required: targeting.required ?? ![ACTION_TARGETING_TYPES.NONE, ACTION_TARGETING_TYPES.AREA].includes(type),
     count: targeting.count ?? targeting.targetCount ?? targeting.maxTargets ?? null,
     targetPolicy: stringOrNull(targeting.targetPolicy ?? targeting.target),
     predicate: clonePlain(targeting.predicate ?? null),

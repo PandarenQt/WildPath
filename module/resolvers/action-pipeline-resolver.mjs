@@ -227,7 +227,24 @@ export function createActionResolutionPipeline({reactions=false}={}) {
     createPaymentStage(),
     createReadyToCommitStage()
   );
-  return stages;
+  return stages.map(stage => (TARGETED_STAGE_IDS.has(stage.id) ? skippedWithoutTargets(stage) : stage));
+}
+
+const TARGETED_STAGE_IDS = new Set([ACTION_PIPELINE_STAGE_IDS.ATTACK_ROLL, ACTION_PIPELINE_STAGE_IDS.ATTACK_OUTCOME,
+  ACTION_PIPELINE_STAGE_IDS.SAVE_ROLL, ACTION_PIPELINE_STAGE_IDS.SAVE_OUTCOME, ACTION_PIPELINE_STAGE_IDS.DAMAGE_ROLL,
+  ACTION_PIPELINE_STAGE_IDS.DAMAGE, ACTION_PIPELINE_STAGE_IDS.HEALING, ACTION_PIPELINE_STAGE_IDS.EFFECTS]);
+
+/**
+ * An Action whose targets were optional and resolved to nobody (an area that caught no one) still happens:
+ * its payment and lasting effects stand, but nothing is rolled against, saved, damaged or affected.
+ */
+function skippedWithoutTargets(stage) {
+  return {...stage, run(state, ...rest) {
+    const resolution = state.results?.targetResolution;
+    const nobody = !!resolution && !normalizeArray(resolution.targetContexts ?? resolution.targets)
+      .some(context => (context?.selected !== false) && !context?.excluded);
+    return nobody ? continueResolutionStage({state, data: {skipped: "no-targets"}}) : stage.run(state, ...rest);
+  }};
 }
 
 /* -------------------------------------------- */

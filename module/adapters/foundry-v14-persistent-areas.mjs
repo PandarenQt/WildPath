@@ -45,14 +45,17 @@ export function persistentAreaRegionData({ placement, sourceToken, combat, color
         flags: { wildpath: { area: flag } }
     };
 }
-/** The fields an area covers now: an emanation is recomputed around its caster's current footprint. */
-export function areaFields(flag, scene) {
+/**
+ * The fields an area covers: an emanation is recomputed around its caster's footprint, now or at `position`
+ * (where a step takes it).
+ */
+export function areaFields(flag, scene, { position = null } = {}) {
     if (!flag.attached)
         return flag.fields;
     const caster = flag.sourceTokenId ? scene.tokens.get(flag.sourceTokenId) : null;
     if (!caster)
         return [];
-    const footprint = createFoundryV14TacticalGridAdapter({ scene }).tokenToFootprint(caster);
+    const footprint = createFoundryV14TacticalGridAdapter({ scene }).tokenToFootprint(caster, position ? { position } : {});
     if (!footprint.ok || !footprint.footprint)
         return [];
     return reachFootprint({ source: footprint.footprint, reachDistance: flag.size, gridDistance: scene.grid.distance }).fields;
@@ -147,9 +150,22 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         return sceneAreas(token.parent).filter(({ flag }) => flag.persistence.triggers.some(trigger => trigger.on.includes(AREA_EVENTS.ENTERED))
             && areaCovers(flag, token, { position }) && !areaCovers(flag, token, { position: previous }));
     }
+    /** Creatures an aura newly covers as its caster steps from `previous` to `position`: the aura enters them. */
+    function swept(owner, { previous, position }) {
+        const scene = owner.parent;
+        return sceneAreas(scene).filter(({ flag }) => flag.attached && (flag.sourceTokenId === owner.id)
+            && flag.persistence.triggers.some(trigger => trigger.on.includes(AREA_EVENTS.ENTERED)))
+            .map(({ region, flag }) => {
+            const before = areaFields(flag, scene, { position: previous });
+            const after = areaFields(flag, scene, { position });
+            const tokens = [...scene.tokens].filter(token => (token.id !== owner.id)
+                && areaCovers(flag, token, { fields: after }) && !areaCovers(flag, token, { fields: before }));
+            return { region, flag, tokens };
+        }).filter(entry => entry.tokens.length);
+    }
     /** Whether any lasting area on the Scene answers `area.entered`; moves there are then checkpointed per step. */
     function hasEntryAreas(scene) {
         return sceneAreas(scene).some(({ flag }) => flag.persistence.triggers.some(trigger => trigger.on.includes(AREA_EVENTS.ENTERED)));
     }
-    return { create, apply, onTurn, entered, hasEntryAreas };
+    return { create, apply, onTurn, entered, swept, hasEntryAreas };
 }
