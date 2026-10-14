@@ -745,6 +745,7 @@ function normalizeConcentrationState(state, target) {
     itemRef: normalizeRef(state.itemRef ?? concentration.itemRef ?? state.item ?? concentration.item),
     ability: state.ability ?? concentration.ability ?? null,
     saveKey: state.saveKey ?? concentration.saveKey ?? null,
+    saveBonus: finiteNumber(state.saveBonus ?? concentration.saveBonus),
     metadata: clonePlain(state.metadata ?? concentration.metadata ?? {}) ?? {}
   };
 }
@@ -766,6 +767,7 @@ function createConcentrationCheckRequest({index, target, state, damageResult, da
     dc,
     saveKey: state.saveKey ?? policy.saveKey,
     ability: state.ability ?? policy.ability,
+    saveBonus: state.saveBonus ?? null,
     damageResult: clonePlain(damageResult),
     metadata: {
       ...(clonePlain(metadata) ?? {}),

@@ -854,7 +854,9 @@ function foundryConcentrationContext({targetEntries=[], game=globalThis.game, sc
     const refs = uniqueStrings([token?.id ? `token:${token.id}` : null, ...targetControllerKeys(actor, hint, game)]);
     const sourceRef = refs.find(ref => sustained.has(ref));
     if ( !sourceRef ) continue;
-    const state = {concentrating: true, actorId: actor.id ?? null, actorRef: actor.uuid ?? null, sourceRef};
+    // Its concentration save adds its Fortitude save bonus (ability modifier and Modifiers).
+    const state = {concentrating: true, actorId: actor.id ?? null, actorRef: actor.uuid ?? null, sourceRef,
+      saveBonus: resolveActorSaveStatistic(actor, "fortitude")?.totalModifier ?? null};
     for ( const key of refs ) states[key] = state;
     for ( const {holder, effect} of sustained.get(sourceRef) ) {
       usedHolders.add(holder);

@@ -106,7 +106,7 @@ Wits, Medicine), hiding (DC 15), escaping a grapple.
 - **Validation.** It names an ability or a skill, and a DC: a number, `{value}` or a ValueExpression,
   evaluated like a save DC.
 - **The roll.** The creature's controller rolls it, as for an attack, before any attack or save. The bonus is
-  every Modifier on `check.<skill>`, `check.<ability>` and `check`. The creature's advantage and disadvantage
+  the ability's modifier plus every Modifier on `check.<skill>`, `check.<ability>` and `check` (rolls.md). The creature's advantage and disadvantage
   on those domains combine as for any roll. The roller is never shown the DC.
 - **The outcome.** It uses a save's d20-against-DC rule. It picks what the Action does:
   - each damage, healing and effect entry's `checkOutcomePolicy` is `success` (the default), `failure` or `any`;

@@ -90,18 +90,32 @@ export function resolveActorAttackStatistic(actor, attack={}, {item=null, tags=[
 
 /* -------------------------------------------- */
 
-/** A creature's save bonus: every Modifier on `save.<ability>` and `save`, as attacks read their domains. */
-export function resolveActorSaveStatistic(actor, ability=null) {
-  const statistic = resolveActorStatisticModifier(actor, [ability ? `save.${ability}` : null, "save"].filter(Boolean),
-    {tags: ability ? [ability] : []});
-  return statistic.known ? {domain: statistic.domain, totalModifier: statistic.value, trace: statistic.trace} : null;
+/**
+ * An ability's modifier from the creature's prepared score: floor((score - 10) / 2). Null when the creature has
+ * no such ability (a death save's "death"), so nothing is added. A transformation's form score counts.
+ */
+export function actorAbilityModifier(actor, ability) {
+  const score = ability ? finiteNumber(actor?.system?.abilities?.[ability]?.value) : null;
+  return score == null ? null : Math.floor((score - 10) / 2);
 }
 
-/** A creature's check bonus: every Modifier on `check.<skill>`, `check.<ability>` and `check`. */
+/** A creature's save bonus: its ability modifier, plus every Modifier on `save.<ability>` and `save`. */
+export function resolveActorSaveStatistic(actor, ability=null) {
+  return withAbilityModifier(resolveActorStatisticModifier(actor, [ability ? `save.${ability}` : null, "save"].filter(Boolean),
+    {tags: ability ? [ability] : []}), actor, ability);
+}
+
+/** A creature's check bonus: its ability modifier, plus every Modifier on `check.<skill>`, `check.<ability>` and `check`. */
 export function resolveActorCheckStatistic(actor, {ability=null, skill=null}={}) {
-  const statistic = resolveActorStatisticModifier(actor, [skill ? `check.${skill}` : null, ability ? `check.${ability}` : null, "check"]
-    .filter(Boolean), {tags: [ability, skill].filter(Boolean)});
-  return statistic.known ? {domain: statistic.domain, totalModifier: statistic.value, trace: statistic.trace} : null;
+  return withAbilityModifier(resolveActorStatisticModifier(actor, [skill ? `check.${skill}` : null,
+    ability ? `check.${ability}` : null, "check"].filter(Boolean), {tags: [ability, skill].filter(Boolean)}), actor, ability);
+}
+
+function withAbilityModifier(statistic, actor, ability) {
+  const abilityModifier = actorAbilityModifier(actor, ability);
+  if ( !statistic.known && (abilityModifier == null) ) return null;
+  return {domain: statistic.domain, totalModifier: (statistic.value ?? 0) + (abilityModifier ?? 0), abilityModifier,
+    trace: statistic.trace};
 }
 
 function resolveActorStatisticModifier(actor, domains, options={}) {

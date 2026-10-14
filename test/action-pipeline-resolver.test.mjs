@@ -739,3 +739,27 @@ test("an Action's own check is rolled by its controller, and its outcome picks t
   assert.equal(types.includes("healingResolved"), false, "failure: no healing");
   assert.equal(types.some(type => /effect/i.test(type)), true, "failure: the failure's effect");
 });
+
+test("a concentration save adds the concentrating creature's save bonus, so 8 + 3 keeps a DC 11", () => {
+  const waiting = planStagedActionResolution({
+    id: "resolution:concentration-bonus",
+    actorSystem: actorSystem(1),
+    action: legacyAction(),
+    source: {actorId: "actor-source"},
+    targets: [target("caster")],
+    damage: {components: [{id: "bolt", amount: 22, damageType: "fire"}]},
+    concentration: {
+      states: {caster: {concentrating: true, actorId: "actor-caster", sourceRef: "token:token-caster", saveBonus: 3}},
+      dependents: [{target: {id: "victim", actorId: "actor-victim"}, effects: [{id: "held", type: "condition",
+        system: {type: "stunned"}, flags: {wildpath: {conditionEffect: {conditionId: "stunned",
+          concentration: {required: true, sourceRef: "token:token-caster", breakRemovesEffect: true}}}}}]}]
+    }
+  });
+  const request = waiting.state.pendingRequests[0];
+  assert.equal(request.payload.rollRequest.expected.modifierTotal, 3);
+  const kept = resumeStagedActionResolution({state: waiting.state, response: {resolutionId: waiting.state.id, requestId: request.id,
+    type: RESOLUTION_REQUEST_TYPES.ROLL, value: {requestId: request.payload.rollRequest.id, resolutionId: waiting.state.id,
+      type: request.payload.rollRequest.type, natural: 8, total: 11}}});
+  assert.equal(kept.ok, true, JSON.stringify(kept.state.errors));
+  assert.equal(kept.state.results.concentrationResolution.checks.maintained.length, 1);
+});

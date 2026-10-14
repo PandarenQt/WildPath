@@ -1754,16 +1754,18 @@ function createConcentrationStage() {
 
 function concentrationRollRequest(state, check, requestId) {
   // The DC stays on the authority (the chooser projection never sends it); the roller sees a plain save.
+  const bonus = Number.isFinite(check.saveBonus) ? check.saveBonus : null;
   return createD20RollRequest({
     id: requestId,
     resolutionId: state.id,
     type: ROLL_TYPES.SAVING_THROW,
-    modifier: 0,
+    modifier: bonus ?? 0,
+    modifiers: bonus == null ? [] : [{id: "save-modifier", value: bonus}],
     source: check.target,
     target: state.source ?? null,
     chooser: ROLL_AUTHORITY.TARGET_CONTROLLER,
     authority: {kind: ROLL_AUTHORITY.TARGET_CONTROLLER},
-    expected: {validateTotalFromNatural: false, modifierTotal: null},
+    expected: {validateTotalFromNatural: bonus != null, modifierTotal: bonus},
     metadata: {actionDefinitionId: state.actionDefinition?.id ?? null, rollKind: "concentration", ability: check.ability}
   });
 }

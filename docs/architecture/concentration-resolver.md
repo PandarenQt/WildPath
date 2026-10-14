@@ -67,7 +67,9 @@ on every damaging Action:
 - `planConcentrationChecks()` runs over the stage's adjusted damage. The DC is `max(10, floor(damage/2))`
   and the save is WildPath's Fortitude.
 - Each check is a save rolled by the damaged creature's controller, one request after another
-  (`concentration:1`, …). The DC stays on the authority; the roller sees a plain save.
+  (`concentration:1`, …). The DC stays on the authority; the roller sees a plain save. The roll adds the
+  creature's Fortitude save bonus: its Fortitude modifier plus Modifiers on `save.fortitude` and `save`. The
+  runtime puts this in the concentration state as `saveBonus`.
 - `resolveConcentrationCheckResults()` turns a failed check into `concentration.broken`.
 - `planEffectLifecycle()` ends every dependent effect in the same transaction as the damage.
 

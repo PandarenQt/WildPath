@@ -121,6 +121,17 @@ The provider executes the already-resolved roll mechanics. It does not decide wh
 advantage/disadvantage, proficiency, an ability modifier, or another rules contribution. Those are
 resolved by the owning rules domains before the `RollRequest` is created.
 
+**Ability modifiers (maintainer decision, 2026-10-14).** Saves, checks and initiative add the creature's ability
+modifier automatically: floor((score − 10) / 2) of its prepared score, so a transformation's form score counts.
+The authority adds it to the Modifiers it reads (`resolveActorSaveStatistic`, `resolveActorCheckStatistic`,
+`actorAbilityModifier` in `helpers/combat-statistics.mjs`).
+- **Saves** add the save's ability (a Fortitude save adds Fortitude), and so do concentration saves.
+- **Checks** add the check's `ability`. A check that names only a skill adds no ability modifier, as no skill table
+  exists yet.
+- **Initiative** is an Agility check, so it adds Agility, and Modifiers on `check.agility` reach it.
+- **Death saves** name no ability, so they add only Modifiers on `save`.
+- **Attacks and damage** add no ability modifier yet.
+
 **Where advantage comes from (2024 rules, 2026-10-14):**
 
 - **Sources.** `RollMode` RuleElements on a creature's features, gear and effects (see rule-elements.md).
