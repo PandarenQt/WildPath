@@ -659,8 +659,8 @@ export const AREA_PERSISTENCE_EVENTS = Object.freeze(["area.entered", "area.exit
 
 /**
  * A lasting area: `{duration: {unit: "round", value}, concentration, oncePerTurn, elevation: {bottom, top},
- * triggers: [{on: [...events], action: ActionDefinition}]}`. Elevation is relative to the floor of the
- * caster's Level; a missing bound is open.
+ * triggers: [{on: [...events], action: ActionDefinition}], light?: {bright, dim, sunlight}}`. Elevation is relative
+ * to the floor of the caster's Level; a missing bound is open. `light` is shed from its center (Daylight).
  */
 function validateAreaPersistence(persistence, errors) {
   const path = "area.persistence";
@@ -669,6 +669,11 @@ function validateAreaPersistence(persistence, errors) {
   const duration = persistence.duration;
   if ( duration != null && !((duration.unit === "round") && Number.isInteger(Number(duration.value)) && (Number(duration.value) > 0)) ) {
     fail(".duration", "A lasting area's duration is a positive whole number of rounds.");
+  }
+  const light = persistence.light;
+  if ( (light != null) && (!isPlainObject(light) || ["bright", "dim"].some(key => (light[key] != null)
+    && !(Number.isFinite(Number(light[key])) && (Number(light[key]) >= 0)))) ) {
+    fail(".light", "A lasting area's light has a bright and a dim radius of 0 or more.");
   }
   const {bottom=null, top=null} = persistence.elevation ?? {};
   if ( [bottom, top].some(value => (value !== null) && !Number.isFinite(Number(value))) ) {

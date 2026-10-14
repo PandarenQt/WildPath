@@ -1,4 +1,4 @@
-import {createFoundryV14TacticalGridAdapter, gridFieldToFoundryOffset} from "./foundry-v14-tactical-grid-adapter.mjs";
+import {createFoundryV14TacticalGridAdapter, gridFieldToFoundryCenterPoint, gridFieldToFoundryOffset} from "./foundry-v14-tactical-grid-adapter.mjs";
 import {createReachFootprint, fieldKey} from "../helpers/grid-footprints.mjs";
 import {AREA_SHAPES} from "../helpers/tactical-areas.mjs";
 import {runAuthorityAction} from "./foundry-v14-automation-dispatcher.mjs";
@@ -14,7 +14,7 @@ export interface AreaToken {
   parent: AreaScene;
 }
 export interface AreaRegion {
-  id: string; flags?: {wildpath?: {area?: AreaFlag}};
+  id: string; flags?: {wildpath?: {area?: AreaFlag}}; parent?: AreaScene | null;
   update(data: Data): Promise<unknown>;
   delete(): Promise<unknown>;
 }
@@ -22,6 +22,7 @@ export interface AreaScene {
   id: string; grid: Grid;
   tokens: {get(id: string): AreaToken | undefined} & Iterable<AreaToken>;
   regions?: Iterable<AreaRegion>;
+  lights?: {get(id: string): {delete(): Promise<unknown>} | undefined};
   levels?: {get(id: string): Level | undefined};
   createEmbeddedDocuments(type: string, data: Data[]): Promise<unknown[]>;
 }
@@ -33,12 +34,17 @@ export interface AreaFlag {
   sourceActorRef: string; sourceTokenId: string | null;
   topology: string; fields: Field[]; shape: string; size: number; attached: boolean;
   band: {bottom: number | null; top: number | null};
-  persistence: {oncePerTurn: boolean; concentration: boolean; duration: {unit: string; value: number} | null; triggers: Trigger[]};
+  persistence: {oncePerTurn: boolean; concentration: boolean; duration: {unit: string; value: number} | null; triggers: Trigger[];
+    light?: AreaLight | null};
   createdAt: {combatId: string; round: number; turn: number | null} | null;
   applied: Record<string, string>;
   /** The caster's concentration marker, for a concentration area (its uuid). */
   concentrationEffect?: string | null;
+  /** The ambient light the area sheds (its id on the Scene). */
+  lightId?: string | null;
 }
+/** The light a lasting area sheds from its center, in the Scene's units: Daylight's is bright 60, dim 120, sunlight. */
+interface AreaLight {bright?: number; dim?: number; sunlight?: boolean}
 interface Placement {footprint: {topology: string; fields: Field[]}; definition: Data; sourceTokenId: string; sceneId: string}
 
 export const AREA_EVENTS = Object.freeze({ENTERED: "area.entered", EXITED: "area.exited", TURN_STARTED: "turn.started",
@@ -47,6 +53,7 @@ const answers = (flag: AreaFlag, event: string) => flag.persistence.triggers.som
 const reachFootprint = createReachFootprint as unknown as (options: Data) => {fields: Field[]};
 const keyOf = fieldKey as unknown as (field: Field, topology?: string) => string;
 const toOffset = gridFieldToFoundryOffset as unknown as (field: Field, options: {grid: unknown}) => {offset?: Data};
+const toCenter = gridFieldToFoundryCenterPoint as unknown as (field: Field, options: {scene: unknown; grid: unknown}) => {point?: {x: number; y: number}};
 
 /**
  * A lasting area is a Foundry Region (V14's template successor) whose `flags.wildpath.area` holds the rules:
@@ -60,7 +67,8 @@ export function persistentAreaRegionData({placement, sourceToken, combat, color}
     persistence?: Data}};
   const area = definition.area ?? {};
   const persistence = (area.persistence ?? {}) as {oncePerTurn?: boolean; concentration?: boolean;
-    duration?: {unit: string; value: number}; elevation?: {bottom?: number | null; top?: number | null}; triggers?: Trigger[]};
+    duration?: {unit: string; value: number}; elevation?: {bottom?: number | null; top?: number | null}; triggers?: Trigger[];
+    light?: AreaLight};
   const scene = sourceToken.parent;
   // Bands are authored relative to the floor of the caster's Level; a missing bound is open.
   const floor = Number(scene.levels?.get(String(sourceToken.level))?.elevation?.bottom) || 0;
@@ -75,7 +83,7 @@ export function persistentAreaRegionData({placement, sourceToken, combat, color}
     topology: placement.footprint.topology, fields: placement.footprint.fields, shape: String(area.shape),
     size: Number(area.size?.value) || 0, attached, band,
     persistence: {oncePerTurn: persistence.oncePerTurn !== false, concentration: persistence.concentration === true,
-      duration: persistence.duration ?? null, triggers: persistence.triggers ?? []},
+      duration: persistence.duration ?? null, triggers: persistence.triggers ?? [], light: persistence.light ?? null},
     createdAt: combat ? {combatId: combat.id, round: combat.round, turn: combat.turn} : null,
     applied: {}
   };
@@ -167,7 +175,25 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
     const data = persistentAreaRegionData({placement, sourceToken: token, combat: game.combat ?? null, color: game.user.color});
     const [region] = await token.parent.createEmbeddedDocuments("Region", [data]) as AreaRegion[];
     if ( region && data.flags.wildpath.area.persistence.concentration ) await markConcentration(region, token, data.name);
+    const light = data.flags.wildpath.area.persistence.light;
+    if ( region && light ) await shedLight(region, token.parent, data.flags.wildpath.area, light);
     return region ?? null;
+  }
+
+  /**
+   * A lasting area that sheds light (Daylight) gets an ambient light at its center, tagged as sunlight when its light
+   * is; it goes when the area goes.
+   */
+  async function shedLight(region: AreaRegion, scene: AreaScene, flag: AreaFlag, light: AreaLight) {
+    // shortcut: an emanation's light stays where it was cast; upgrade by moving the light with the caster's Token.
+    const points = flag.fields.map(field => toCenter(field, {scene, grid: scene.grid}).point).filter(Boolean) as Array<{x: number; y: number}>;
+    if ( !points.length ) return;
+    const x = points.reduce((sum, point) => sum + point.x, 0) / points.length;
+    const y = points.reduce((sum, point) => sum + point.y, 0) / points.length;
+    const [created] = await scene.createEmbeddedDocuments("AmbientLight", [{x, y, elevation: flag.band.bottom ?? 0,
+      config: {bright: Number(light.bright) || 0, dim: Math.max(Number(light.dim) || 0, Number(light.bright) || 0)},
+      flags: {wildpath: {sunlight: light.sunlight === true, areaRegion: region.id}}}]) as Array<{id: string}>;
+    if ( created ) await region.update({"flags.wildpath.area.lightId": created.id});
   }
 
   /**
@@ -207,8 +233,12 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
   }
 
   async function onRegionDeleted(region: AreaRegion) {
+    if ( !isActiveGM() ) return;
+    // Its light goes with it.
+    const lightId = region.flags?.wildpath?.area?.lightId;
+    if ( lightId ) await region.parent?.lights?.get(lightId)?.delete();
     const uuid = region.flags?.wildpath?.area?.concentrationEffect;
-    if ( !uuid || !isActiveGM() ) return;
+    if ( !uuid ) return;
     const effect = await fromUuid?.(uuid) as Effect | null;
     await effect?.delete();
   }

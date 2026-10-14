@@ -147,9 +147,11 @@ A feature is matched by its dnd5e identifier (or its name) and gets the rules of
 - **Regeneration:** its healing at the start of each of its turns, on the terms its own text sets: "at least 1 Hit
   Point", the damage types that stop it for a turn (Acid or Fire for a Troll, Fire or Radiant for a Revenant), and
   "dies only if it starts its turn with 0 Hit Points and doesn't regenerate". Its healing activity is the trait's,
-  however dnd5e activates it ("special" or "turnStart"). Shortcut: a Vampire's sunlight and running water are not
-  checked.
+  however dnd5e activates it ("special" or "turnStart"). A Vampire's does not work in sunlight; running water is
+  the GM's to track (maintainer, 2026-10-15).
 - **Flyby:** no Opportunity Attacks when it flies out of reach (`AvoidOpportunityAttacks` for `fly`).
+- **Daylight** (a spell): a lasting area for its duration that sheds sunlight, bright over its area and dim 60 ft
+  beyond. Cast on an object, it is placed where the object is; the Darkness it ends is ended by hand.
 - **Evasion:** an Agility save that halves takes none on a success and half on a failure, unless Incapacitated.
 - **Sneak Attack:** once per turn, its dice (by Rogue level, or a stat block's own) of the weapon's damage type, on a
   hit with a Finesse or ranged weapon, with Advantage or with an ally beside the target and no Disadvantage. Its

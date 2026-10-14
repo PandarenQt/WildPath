@@ -296,6 +296,12 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, names=
       notes.unshift(`not automated${activity.type === "manual" ? "" : ` (${activity.type})`}: using it spends its cost; its description says the rest`);
       definition = manualDefinition({document, activity, system, spell, level, notes, pool});
     }
+    // A spell that fills its area with light (2024 Daylight's sunlight) is a lasting area shedding it.
+    const shedding = spell ? sheddingArea({document, activity, system}) : null;
+    if ( shedding ) {
+      definition = {...definition, ...shedding.definition};
+      notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")), ...shedding.notes);
+    }
     const suffix = usable.length > 1 ? ` (${label})` : "";
     const id = index ? stableId(`${document._id}:${index}`) : document._id;
     items.push({
@@ -374,7 +380,8 @@ const TRAITS = Object.freeze({
       ...(stoppedBy.length ? {stoppedBy} : {}), ...(deferDeath ? {deferDeath: true} : {}),
       ...(predicates.length ? {predicate: predicates.length > 1 ? {all: predicates} : predicates[0]} : {}),
       action: {...heal, costs: {allOf: []}}}}], consumes: [activity],
-      notes: /running water/i.test(text) ? ["Regeneration: running water is not checked"] : []};
+      // A Vampire's running water is the GM's to track (maintainer, 2026-10-15).
+      notes: []};
   }
 });
 
@@ -386,6 +393,28 @@ const extraAttackTrait = () => ({rules: [
   {schemaVersion: 1, id: "extra-attack-pool", type: "GrantResource", data: {resourceId: "extra-attack", label: "Extra Attack",
     maximum: 1, current: 0, recovery: "none", emptiesAtTurnStart: true}},
   {schemaVersion: 1, id: "extra-attack", type: "ExtraAttack", data: {resourceId: "extra-attack"}}], notes: []});
+
+/**
+ * Spells whose area is filled with light, by dnd5e identifier: the light, given the area's size. 2024 Daylight: "the
+ * sunlight's area is Bright Light and sheds Dim Light for an additional 60 feet".
+ */
+const SHEDS_LIGHT = Object.freeze({
+  daylight: size => ({bright: size, dim: size + 60, sunlight: true})
+});
+const ROUNDS = Object.freeze({round: 1, minute: 10, hour: 600});
+
+/** A light-shedding spell's lasting area, for its duration; null when the spell is not one or has no area. */
+function sheddingArea({document, activity, system}) {
+  const light = SHEDS_LIGHT[system.identifier];
+  const {targeting, area} = light ? targetingOf({activity, system, notes: []}) : {};
+  if ( targeting?.type !== "area" ) return null;
+  const rounds = (Number(system.duration?.value) || 0) * (ROUNDS[system.duration?.units] ?? 0);
+  return {definition: {targeting, range: rangeOf({activity, system, document, attack: null}), area: {...area, persistence: {
+    ...(rounds ? {duration: {unit: "round", value: rounds}} : {}), ...((system.properties ?? []).includes("concentration") ? {concentration: true} : {}),
+    light: light(area.size.value)}}},
+    // shortcut: cast on an object, its light is placed as a point; the darkness it dispels is not tracked.
+    notes: [`${document.name}: cast on an object, it is placed where the object is; the Darkness it ends is ended by hand`]};
+}
 
 /** A feature's description as plain text, one space between words. */
 const plainText = document => String(document.system?.description?.value ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");

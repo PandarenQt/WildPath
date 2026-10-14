@@ -207,6 +207,17 @@ and the move went on to its end (30→20 ft) without stopping.
 Not yet: the staged (programmatic) movement path, falling through an area (vertical movement is not
 modelled), and hidden areas such as traps.
 
+**Light (2026-10-15).** `persistence.light: {bright, dim, sunlight}` (radii in the Scene's units):
+- **Placement:** the area sheds light from its center as an ambient light, `flags.wildpath.areaRegion` naming its
+  Region. The Region keeps the light's id (`flags.wildpath.area.lightId`), and deleting the Region deletes the light.
+- **Daylight:** `sunlight: true` tags the light as sunlight (rule-elements.md, "Sunlight"). The converted 2024 Daylight
+  spell is a 60-ft radial lasting area for 600 rounds, with `{bright: 60, dim: 120, sunlight: true}`.
+- **Shortcut:** an emanation's light stays where it was cast.
+
+Live (two browsers, 14.369): Player1 cast the SRD Daylight beside a Kobold Warrior, and its Region and sunlight light
+appeared at the chosen point. The Kobold's Dagger showed 56% with Disadvantage. When the Region was deleted, the light
+went with it, and the Dagger was back to 75%.
+
 ## Auras and Emanations
 
 Future auras and emanations should derive from token footprints and grid-native radial expansion.

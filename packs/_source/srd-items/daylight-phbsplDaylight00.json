@@ -85,6 +85,34 @@
           "effects": []
         }
       ],
+      "targeting": {
+        "type": "area"
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "area": {
+        "shape": "radial",
+        "size": {
+          "value": 60,
+          "unit": "ft"
+        },
+        "persistence": {
+          "duration": {
+            "unit": "round",
+            "value": 600
+          },
+          "light": {
+            "bright": 60,
+            "dim": 120,
+            "sunlight": true
+          }
+        }
+      },
       "label": "Daylight"
     },
     "ruleElements": []
@@ -102,7 +130,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest"
+          "Daylight: cast on an object, it is placed where the object is; the Darkness it ends is ended by hand"
         ]
       }
     }
