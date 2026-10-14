@@ -177,6 +177,11 @@ Effects got the same RuleElements editor. Later the same day:
 - The sheets' remaining English moved to `lang/en.json`.
 - An in-play combat carousel shows the running combat's turns
   ([ui-ux-layer.md](../architecture/ui-ux-layer.md#combat-carousel)).
+- Attacks add their ability modifier (finesse is an attack property), and weapon damage adds it once
+  ([attack-resolver.md](../architecture/attack-resolver.md)).
+- The unused legacy `useAction` path and eight dead exports were removed.
+- The GM can answer for a Player who leaves a request waiting, from the Rules Inspector (Shift+I)
+  ([multiplayer-authority.md](../architecture/multiplayer-authority.md)).
 
 **M4 — content pack (in progress, 2026-10-14).**
 - **The pack.** `@foundryvtt/foundryvtt-cli` 3.0.4 was approved and added. The built-in **WildPath Actions**
