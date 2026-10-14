@@ -141,6 +141,7 @@ Every creature has the 2024 actions anyone can take, with no Items (`module/help
 | Grapple | The target makes a Might save, DC 8 + Might modifier + Proficiency Bonus; on a failure, Grappled |
 | Shove | The same save; on a failure, Prone |
 | Unarmed Strike | A melee attack for 1 + Might modifier bludgeoning damage |
+| Opportunity Attack | A reaction: the creature's first melee attack Action (else its Unarmed Strike), for its Reaction |
 
 - **Built by the authority.** An intent names one as `actionRef: "common:<id>"`. The authority builds the Action
   from the system's own definition, so a client can name a common action but never supply its rules. An unknown id
@@ -152,7 +153,7 @@ Shortcuts:
 - the Dash Speed is the creature's own, before Modifiers;
 - Grapple and Shove use a Might save, where 2024 lets the target choose Might or Agility;
 - Shove's push waits for forced movement (G6);
-- Disengage takes effect once Opportunity Attacks check for it.
+- Disengage stops the common Opportunity Attack, but not a movement reaction a creature's own content defines.
 
 Not yet: Help, Influence, Magic, Ready, Search, Study and Utilize.
 

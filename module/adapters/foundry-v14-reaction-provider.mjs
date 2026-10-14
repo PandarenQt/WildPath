@@ -1,9 +1,16 @@
 import { actionDefinitionFromAction } from "../helpers/action-definitions.mjs";
 import { createReactionTrigger, reactionPolicyOf } from "../helpers/automation-events.mjs";
+import { commonAction } from "../helpers/common-actions.mjs";
 const MOVEMENT_EVENT = "movement.transition-proposed";
 // The JS builders are untyped; these are the only places their shapes are asserted.
 const reactionTrigger = createReactionTrigger;
 const policyOf = reactionPolicyOf;
+const common = commonAction;
+/** An Opportunity Attack's trigger: a hostile creature leaves this reactor's reach. */
+const OPPORTUNITY_PREDICATE = { all: [
+        { equals: { path: "event.data.relations.{self}.leavesReach", value: true } },
+        { equals: { path: "event.data.relations.{self}.context.hostile", value: true } }
+    ] };
 const definitionFor = actionDefinitionFromAction;
 /**
  * Production reaction services, derived from the world: every other Token on the acting Token's Scene whose
@@ -22,10 +29,16 @@ export function createFoundryReactionProvider({ resolve = defaultResolve } = {})
             return {};
         const triggers = [];
         const observers = [];
+        // 2024 Disengage: the mover's movement provokes no Opportunity Attacks this turn.
+        const disengaged = mover.actor?.statuses?.has("disengaged") === true;
         for (const token of scene.tokens) {
             if ((token.id === mover.id) || !token.actor)
                 continue;
             const reactions = tokenReactions(token);
+            // Every creature makes Opportunity Attacks (Baldur's Gate 3), unless an Item of its own reacts to movement,
+            // even one switched off or set to Never.
+            if (!disengaged && !ownsMovementReaction(token))
+                reactions.push(...opportunityAttack(token));
             triggers.push(...reactions.map(entry => entry.trigger));
             const watching = reactions.filter(entry => entry.event === MOVEMENT_EVENT);
             if (watching.length)
@@ -76,6 +89,32 @@ function tokenReactions(token) {
             return [{ trigger, event, definition: definition.definition }];
         });
     });
+}
+/** Whether any Item of `token`'s creature has a reaction to movement, active or not. */
+function ownsMovementReaction(token) {
+    return [...(token.actor?.items ?? [])].some(item => (item.system?.ruleElements ?? []).some(element => (element.type === "Trigger")
+        && (element.data?.kind === "reaction") && (element.data?.event === MOVEMENT_EVENT)));
+}
+/** The common Opportunity Attack of `token`'s creature, unless it is set to Never. */
+function opportunityAttack(token) {
+    const localize = (key) => globalThis.game?.i18n?.localize(key) ?? key;
+    const action = common(token.actor, "opportunity", { localize });
+    const definition = action ? definitionFor(action) : null;
+    const policy = action ? policyOf(action) : "never";
+    if ((policy === "never") || !definition?.ok || !definition.definition)
+        return [];
+    const trigger = reactionTrigger({
+        id: `reaction:${token.id}:common-opportunity`,
+        event: MOVEMENT_EVENT,
+        match: { phase: "interrupt" },
+        actorId: token.actor.uuid,
+        tokenId: token.id,
+        action: definition.definition,
+        actionId: definition.definition.id ?? null,
+        predicate: bindSelf(OPPORTUNITY_PREDICATE, token.id),
+        ...(policy === "always" ? { metadata: { reactionPolicy: policy } } : {})
+    });
+    return [{ trigger, event: MOVEMENT_EVENT, definition: definition.definition }];
 }
 /** Reach in grid fields from the reaction Action's reach range (5 ft by default). */
 function reachFields(definition, scene) {

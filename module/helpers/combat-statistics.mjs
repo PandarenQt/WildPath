@@ -1,3 +1,5 @@
+import {combineRollModes} from "./rolls.mjs";
+
 /**
  * Snapshot actor combat statistics into plain data for staged action resolution.
  * Persisted Actor data provides the base value; `WildPathActor#getStatistic(domain)` contributes
@@ -119,6 +121,24 @@ function damageDomains(attack, tags=[]) {
 function onceKey(entry) {
   const owner = entry.source?.parent ?? entry.source ?? {};
   return `${owner.id ?? owner.uuid ?? "owner"}-${entry.id}`.replace(/\./g, "_");
+}
+
+/**
+ * 2024 advantage and disadvantage on an attack roll: the attacker's own (`attack`, `attack.<type>`, the Action's
+ * `item` included) and the target's on attacks against it (`attacked`, `attacked.<type>`), combined so any of each
+ * cancel. `context` is what their predicates see: `{attack: {type, adjacent, fromTarget}}`.
+ */
+export function attackRollMode(attacker, target, {type=null, item=null, context={}}={}) {
+  return combineRollModes([
+    ...(attacker?.getRollModes?.(["attack", `attack.${type}`], {item, context}) ?? []),
+    ...(target?.getRollModes?.(["attacked", `attacked.${type}`], {context}) ?? [])
+  ]);
+}
+
+/** Whether every hit on `target` is a critical hit (`critical-on-hit`: Paralyzed or Unconscious, within 5 ft). */
+export function attackForcesCritical(target, {type=null, context={}}={}) {
+  return (target?.getRollOutcomes?.(["attacked", `attacked.${type}`], {context}) ?? [])
+    .some(outcome => outcome.outcome === "critical-on-hit");
 }
 
 /**

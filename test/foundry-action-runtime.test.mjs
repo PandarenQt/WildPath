@@ -925,13 +925,17 @@ function counterattackFixture(t, {decision="use", reactor="target"}={}) {
   ]});
   const offers = [];
   const posts = [];
+  // The GM rolls the counterattack; its requests are kept for their roll mode.
+  const gmRollRequests = [];
+  const gmProvider = createTestRollProvider({result: {natural: 15, total: 15}});
+  const gmRolls = {...gmProvider, execute: request => { gmRollRequests.push(request); return gmProvider.execute(request); }};
   const gm = createMultiplayerActionCoordinator({userId: "gm-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
     transport: hub.createEndpoint({userId: "gm-a"}), publishResult: post => { posts.push(post); },
     promptPorts: [createTestPromptAdapter({id: "counterattack-choice", queue: [request => {
       offers.push(request);
       return decision === "use" ? {decision, candidateId: request.payload.candidates[0].id} : {decision};
     }]})],
-    rollProviders: [createTestRollProvider({result: {natural: 15, total: 15}})],
+    rollProviders: [gmRolls],
     actionIntentResolver: ({intent, envelope}) => foundryActionIntentToStagedOptions({intent,
       senderUserId: envelope.senderUserId, game, persistencePort})});
   const player = createMultiplayerActionCoordinator({userId: "player-a", users: () => hub.userDirectory(),
@@ -939,7 +943,7 @@ function counterattackFixture(t, {decision="use", reactor="target"}={}) {
     rollProviders: [createTestRollProvider({result: {natural: 18, total: 22}})]});
   gm.register();
   player.register();
-  return {...fixture, gm, player, offers, holder, posts};
+  return {...fixture, gm, player, offers, holder, posts, gmRollRequests};
 }
 
 for ( const decision of ["use", "decline"] ) test(`a counterattack Trigger on the target's Token is offered after the hit and ${decision === "use" ? "strikes the attacker" : "can be declined"}`, async t => {
@@ -1705,4 +1709,14 @@ test("a common action is built by the authority from its id: a client names it, 
   assert.equal(planned.state.rollRequests[0].dc.value, 14, "8 + Might +3 + proficiency +3");
   const unknown = await foundryActionIntentToStagedOptions({senderUserId: "player-a", game, intent: intent("common:fireball")});
   assert.equal(unknown.ok, false, "only the system's own common actions exist");
+});
+
+test("a reaction's attack rolls with the same advantage as any attack: a Prone attacker within 5 ft is easier to hit", async t => {
+  const {sourceActor, gm, player, intent, gmRollRequests} = counterattackFixture(t, {decision: "use"});
+  withConditions(sourceActor, "prone");
+  const declared = await player.declareActionIntent(intent);
+  const record = gm.getRecord(declared.resolutionId);
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors));
+  const counter = gmRollRequests.find(request => request.type === "attack");
+  assert.equal(counter.rollMode, "advantage");
 });

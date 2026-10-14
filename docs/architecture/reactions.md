@@ -61,6 +61,24 @@ This is intentionally simple until the combat/timeline layer provides richer ord
 Multiple options for the same reactor are presented in one request with a Decline option. Multiple
 reactors are offered in deterministic order; declining the current group advances to the next group.
 
+**Opportunity Attacks for every creature (2026-10-14, after Baldur's Gate 3).** The production reaction provider
+gives each creature on the Scene a common Opportunity Attack, unless an Item of its own reacts to movement (even
+one switched off or set to Never):
+- **The attack.** Its first melee attack Action, else its Unarmed Strike, costs its Reaction. The weapon's
+  definition id is kept, so the weapon's own modifiers count.
+- **When it triggers.** A hostile creature leaves its reach (`relations.{self}.leavesReach` and `hostile`).
+- **Disengage.** A mover with the `disengaged` status provokes none.
+- **The setting.** Its Always, Ask or Never setting is the creature's own:
+  `flags.wildpath.commonPolicies.opportunity`, set from the Common group on the action bar.
+
+A reaction's attack now rolls with the same advantage, disadvantage and forced critical hits as any attack:
+`attackRollMode` and `attackForcesCritical` (combat-statistics.mjs) serve the Action runtime and reaction children
+alike. Predicates see `attack.adjacent` from the two footprints.
+
+Live (two browsers): the GM set the Bandit Captain's Opportunity Attack to Always. When Player1's Prone caster left
+its reach, the Captain struck with its Scimitar, rolling 2d20kh + 5, with no prompt. Moving towards it provoked
+nothing. After Disengage, leaving provoked nothing.
+
 **Always, Ask or Never (2026-10-14, after Baldur's Gate 3).** Each reaction's Action Item may store
 `flags.wildpath.reactionPolicy`:
 - `ask`, the default: the reactor's controller is prompted, as above;
