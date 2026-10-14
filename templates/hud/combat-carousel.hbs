@@ -1,0 +1,27 @@
+<div class="wildpath-combat-carousel">
+  {{#if shown}}
+    <span class="carousel-round">{{localize "WILDPATH.CAROUSEL.Round" round=round}}</span>
+    <ol class="carousel-turns">
+      {{#each turns as |turn|}}
+        <li class="carousel-turn {{#if turn.active}}active{{/if}} {{#if turn.defeated}}defeated{{/if}} {{#if turn.hidden}}concealed{{/if}}"
+            data-combatant-id="{{turn.id}}" data-action="pan" title="{{turn.name}}">
+          {{#if turn.img}}<img src="{{turn.img}}" alt="{{turn.name}}" width="48" height="48">{{/if}}
+          <span class="turn-name">{{turn.name}}</span>
+          {{#if turn.health}}
+            <span class="turn-health" title="{{turn.health.value}} / {{turn.health.max}}"><span style="width: {{turn.health.percent}}%"></span></span>
+          {{/if}}
+          {{#if turn.conditions.length}}
+            <span class="turn-conditions">
+              {{#each turn.conditions as |condition|}}
+                <img src="{{condition.img}}" alt="{{localize condition.name}}" title="{{localize condition.name}}" width="16" height="16">
+              {{/each}}
+            </span>
+          {{/if}}
+        </li>
+      {{/each}}
+    </ol>
+    {{#if canAdvance}}
+      <button type="button" class="carousel-next" data-action="next">{{localize "WILDPATH.CAROUSEL.EndTurn"}}</button>
+    {{/if}}
+  {{/if}}
+</div>

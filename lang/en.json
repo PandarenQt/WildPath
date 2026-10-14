@@ -122,6 +122,10 @@
       "Payments": "Payments",
       "Errors": "Errors"
     },
+    "CAROUSEL": {
+      "Round": "Round {round}",
+      "EndTurn": "End Turn"
+    },
     "ACTIONBAR": {
       "NoActions": "No actions",
       "Unavailable": "Not available now",

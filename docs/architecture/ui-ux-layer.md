@@ -65,6 +65,28 @@ The carousel must share the same timeline and resource services as automation. I
 separate authoritative turn order or refresh model, and it should not expose a manual Actor start
 turn command. Advancing real Combat is the player-facing way to reach turn recovery.
 
+**In play (M6, 2026-10-14).** `WildPathCombatCarousel` (`module/applications/combat-carousel.mts`) renders
+the shared view model through `combatCarouselContext` (`helpers/combat-carousel-context.mts`).
+- **Placement:** a frameless strip at the top centre, shown while the viewed combat has started.
+- **Contents:** the round, then each turn in Foundry's order: portrait, name, active turn, and defeated
+  combatants dimmed. Each portrait also shows the creature's active conditions, as its Token already does.
+- **Disclosure:**
+  - A health bar shows only to the GM and to owners of the creature.
+  - A hidden combatant shows to the GM alone. During its turn, players see no active portrait.
+  - Health and conditions come from each combatant's own Token creature, so unlinked Tokens of one Actor
+    stay apart.
+- **Commands:**
+  - A portrait pans to its Token, if the user can see it, and selects it for an owner.
+  - **End Turn** shows to the GM and to the owner of the creature whose turn it is. It calls Foundry's
+    `Combat#nextTurn`, so turn order and WildPath's turn automation stay Foundry's.
+
+Live (two browsers, 14.369):
+- The GM saw all three combatants, including a hidden ambusher.
+- Player1 saw two, with health only on their own hero, and no End Turn button during the goblin's turn.
+- On the hero's turn, Player1 ended it from the carousel.
+- A portrait click panned to the goblin.
+- The carousel closed when the combat was deleted.
+
 ## Concentration Check Prompts
 
 The concentration check prompt view model turns pending concentration check requests into:

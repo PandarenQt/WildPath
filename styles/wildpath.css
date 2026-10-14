@@ -511,3 +511,27 @@
 .wildpath.item .definition-summary { display: grid; grid-template-columns: max-content 1fr; gap: 0 8px; margin: 4px 0; font-size: 0.85rem; }
 .wildpath.item .definition-summary dt { font-weight: bold; }
 .wildpath.item .definition-summary dd { margin: 0; }
+
+/* The in-play combat carousel (M6): the running combat's turn order, top centre. */
+#wildpath-combat-carousel {
+  position: fixed; top: 8px; left: 50%; transform: translateX(-50%); z-index: 70; max-width: 60vw; pointer-events: auto;
+}
+#wildpath-combat-carousel .wildpath-combat-carousel {
+  display: flex; align-items: center; gap: 8px; padding: 4px 8px; border-radius: 6px;
+  background: rgba(20, 20, 24, 0.85); color: #eee; font-size: 0.75rem;
+}
+#wildpath-combat-carousel .carousel-turns { display: flex; gap: 4px; margin: 0; padding: 0; list-style: none; overflow-x: auto; }
+#wildpath-combat-carousel .carousel-turn {
+  display: flex; flex-direction: column; align-items: center; width: 56px; padding: 2px; border: 2px solid transparent;
+  border-radius: 4px; cursor: pointer;
+}
+#wildpath-combat-carousel .carousel-turn.active { border-color: #e0b44c; background: rgba(224, 180, 76, 0.15); }
+#wildpath-combat-carousel .carousel-turn.defeated { opacity: 0.4; }
+#wildpath-combat-carousel .carousel-turn.concealed { opacity: 0.6; font-style: italic; } /* "hidden" is core display: none */
+#wildpath-combat-carousel .carousel-turn img { border: none; }
+#wildpath-combat-carousel .turn-name { max-width: 52px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#wildpath-combat-carousel .turn-health { width: 48px; height: 4px; background: #5a1e1e; border-radius: 2px; }
+#wildpath-combat-carousel .turn-health span { display: block; height: 100%; background: #4caf50; border-radius: 2px; }
+#wildpath-combat-carousel .turn-conditions { display: flex; flex-wrap: wrap; gap: 1px; }
+#wildpath-combat-carousel .carousel-round { white-space: nowrap; font-weight: bold; }
+#wildpath-combat-carousel .carousel-next { white-space: nowrap; width: auto; }
