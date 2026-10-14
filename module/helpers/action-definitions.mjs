@@ -3,10 +3,21 @@ import {computeActivationCost} from "./actions.mjs";
 import {evaluatePredicate, PREDICATE_CODES} from "./predicates.mjs";
 import {evaluateValueExpression} from "./value-expressions.mjs";
 import {
+  DEFAULT_RULE_ELEMENT_REGISTRY,
   RULE_ELEMENT_CODES,
   serializeRuleElementDefinition,
   validateRuleElementDefinition
 } from "./rule-elements.mjs";
+import {WILDPATH} from "../config.mjs";
+
+/** V14's ActiveEffect duration units and expiry events (CONST), for a custom effect's native duration. */
+export const CUSTOM_EFFECT_DURATION_UNITS = Object.freeze(["years", "months", "days", "hours", "minutes", "seconds", "rounds", "turns"]);
+export const CUSTOM_EFFECT_EXPIRY_EVENTS = Object.freeze(["combatStart", "roundStart", "turnStart", "combatEnd", "roundEnd", "turnEnd"]);
+
+/** The status id a custom effect is known by: its `slug` ("raging"), else one unique to this Action and effect. */
+export function customEffectId(definitionId, effect) {
+  return effect.slug ?? `${definitionId}:${effect.id}`;
+}
 
 export const ACTION_DEFINITION_SCHEMA_VERSION = 1;
 
@@ -394,13 +405,17 @@ function resolverRequestFromHealingDefinition(definition, runtimeHealing, evalua
 function resolverRequestFromEffectsDefinition(definition, runtimeEffects) {
   if ( !definition.effects.length ) return runtimeEffects ?? null;
   const conditions = definition.effects
-    .filter(effect => effect.type === "condition")
+    .filter(effect => (effect.type === "condition") || (effect.type === "effect"))
     .map(effect => ({
       id: effect.id,
-      conditionId: effect.conditionId ?? effect.ref,
-      levels: effect.levels,
+      conditionId: (effect.type === "effect") ? customEffectId(definition.id, effect) : (effect.conditionId ?? effect.ref),
+      // A custom effect is a one-off condition: it carries its own definition, and V14 runs its native duration.
+      ...((effect.type === "effect") ? {conditionDefinitions: {[customEffectId(definition.id, effect)]: {
+        id: customEffectId(definition.id, effect), name: effect.name, img: effect.img ?? null, custom: true, stacking: false,
+        ruleElements: clonePlain(effect.ruleElements ?? []), duration: clonePlain(effect.duration ?? null)}}} : {}),
+      levels: (effect.type === "effect") ? 1 : effect.levels,
       saveOutcomePolicy: effect.application?.saveOutcomePolicy ?? effect.saveOutcomePolicy ?? null,
-      duration: effect.duration ?? definition.duration,
+      duration: (effect.type === "effect") ? null : (effect.duration ?? definition.duration),
       concentration: effect.concentration,
       source: effect.source ?? definition.source,
       origin: effect.origin ?? definition.source,
@@ -701,6 +716,7 @@ function validateHealing(components, errors) {
 function validateEffects(effects, errors, {conditionDefinitions=null, effectDefinitions=null}={}) {
   effects.forEach((effect, index) => {
     const path = `effects.${index}`;
+    if ( effect.type === "effect" ) return validateCustomEffect(effect, path, errors);
     if ( effect.type === "condition" ) {
       if ( !effect.conditionId ) {
         errors.push(error(ACTION_DEFINITION_CODES.MISSING_EFFECT_REFERENCE, `${path}.conditionId`, "Condition effect requires a condition id."));
@@ -709,13 +725,34 @@ function validateEffects(effects, errors, {conditionDefinitions=null, effectDefi
       }
       return;
     }
-    const ref = effect.ref ?? effect.effectRef ?? effect.effectId;
-    if ( !ref ) {
-      errors.push(error(ACTION_DEFINITION_CODES.MISSING_EFFECT_REFERENCE, `${path}.ref`, "Effect application requires an EffectRef or typed effect payload."));
-    } else if ( effectDefinitions && !hasDefinitionKey(effectDefinitions, ref) ) {
-      errors.push(error(ACTION_DEFINITION_CODES.MISSING_EFFECT_REFERENCE, `${path}.ref`, `Unknown effect reference: ${ref}`));
+    // An effect by reference is not applied when an Action runs, so it is refused rather than silently dropped.
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_EFFECT, `${path}.type`,
+      `Effects are a condition or a custom effect; "${effect.type}" is not supported.`));
+  });
+}
+
+/** A custom effect (a buff or debuff with its own rules): a name, rules the engine knows, and a V14 duration. */
+function validateCustomEffect(effect, path, errors) {
+  if ( !effect.name ) errors.push(error(ACTION_DEFINITION_CODES.INVALID_EFFECT, `${path}.name`, "A custom effect needs a name."));
+  if ( effect.slug && Object.hasOwn(WILDPATH.CONDITIONS, effect.slug) ) {
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_EFFECT, `${path}.slug`, `"${effect.slug}" is a built-in condition.`));
+  }
+  (effect.ruleElements ?? []).forEach((ruleElement, ruleIndex) => {
+    const validation = validateRuleElementDefinition(ruleElement, {index: ruleIndex});
+    if ( !validation.ok ) {
+      errors.push(error(ACTION_DEFINITION_CODES.INVALID_RULE_ELEMENT, `${path}.ruleElements.${ruleIndex}`, validation.reason ?? validation.code));
+    } else if ( !DEFAULT_RULE_ELEMENT_REGISTRY.has(validation.ruleElement.type) ) {
+      errors.push(error(ACTION_DEFINITION_CODES.INVALID_RULE_ELEMENT, `${path}.ruleElements.${ruleIndex}`,
+        `Unknown RuleElement type: ${ruleElement.type}`));
     }
   });
+  const duration = effect.duration;
+  if ( duration && duration.units && !CUSTOM_EFFECT_DURATION_UNITS.includes(duration.units) ) {
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_EFFECT, `${path}.duration.units`, `Unknown duration unit: ${duration.units}`));
+  }
+  if ( duration && duration.expiry && !CUSTOM_EFFECT_EXPIRY_EVENTS.includes(duration.expiry) ) {
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_EFFECT, `${path}.duration.expiry`, `Unknown duration expiry: ${duration.expiry}`));
+  }
 }
 
 function validateRuleElements(ruleElements, errors) {
@@ -990,6 +1027,8 @@ function normalizeEffectApplicationDefinition(effect={}, index=0) {
     concentration: clonePlain(effect.concentration ?? null),
     saveOutcomePolicy: clonePlain(effect.saveOutcomePolicy ?? effect.savePolicy ?? null),
     checkOutcomePolicy: stringOrNull(effect.checkOutcomePolicy),
+    ...(type === "effect" ? {name: stringOrNull(effect.name), img: stringOrNull(effect.img), slug: stringOrNull(effect.slug),
+      ruleElements: normalizeArray(effect.ruleElements).map(clonePlain)} : {}),
     predicate: clonePlain(effect.predicate ?? null),
     source: clonePlain(effect.source ?? null),
     origin: clonePlain(effect.origin ?? null),

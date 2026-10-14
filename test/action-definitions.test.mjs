@@ -324,9 +324,25 @@ test("ActionDefinition rejects malformed definitions with structured validation"
       code: ACTION_DEFINITION_CODES.INVALID_VALUE_EXPRESSION
     },
     {
+      // An effect by reference would be dropped when the Action runs, so it is refused.
       definition: {...meleeFixture(), effects: [{id: "missing", type: "ref", ref: "effect:missing"}]},
-      options: {effectDefinitions: {}},
-      code: ACTION_DEFINITION_CODES.MISSING_EFFECT_REFERENCE
+      code: ACTION_DEFINITION_CODES.INVALID_EFFECT
+    },
+    {
+      definition: {...meleeFixture(), effects: [{id: "bless", type: "effect", ruleElements: []}]},
+      code: ACTION_DEFINITION_CODES.INVALID_EFFECT
+    },
+    {
+      definition: {...meleeFixture(), effects: [{id: "fake", type: "effect", name: "Fake", slug: "prone"}]},
+      code: ACTION_DEFINITION_CODES.INVALID_EFFECT
+    },
+    {
+      definition: {...meleeFixture(), effects: [{id: "odd", type: "effect", name: "Odd", ruleElements: [{schemaVersion: 1, id: "x", type: "Nope"}]}]},
+      code: ACTION_DEFINITION_CODES.INVALID_RULE_ELEMENT
+    },
+    {
+      definition: {...meleeFixture(), effects: [{id: "long", type: "effect", name: "Long", duration: {value: 1, units: "weeks"}}]},
+      code: ACTION_DEFINITION_CODES.INVALID_EFFECT
     },
     {
       definition: {...meleeFixture(), costs: {allOf: [{capability: "action", amount: -1}]}},

@@ -122,6 +122,22 @@ export function registerFoundryV14MultiplayerResolution({
     if ( !connected && (game.users?.activeGM?.id === game.user?.id) ) void coordinator.releaseRequestsOf(user.id);
   });
   globalThis.Hooks?.on?.("deleteActiveEffect", effect => areas.onEffectDeleted(effect));
+  // V14 tracks an unlinked Token's effects for expiry only once its delta materializes, so after a reload a buff on
+  // such a creature would never expire. The active GM registers them for the viewed Scene and every combat's Scene.
+  const trackTokenEffects = () => {
+    if ( game.users?.activeGM?.id !== game.user?.id ) return;
+    const registry = globalThis.foundry?.documents?.ActiveEffect?.registry;
+    const scenes = new Set([game.scenes?.viewed, ...(game.combats?.contents ?? []).map(combat => combat.scene)].filter(Boolean));
+    for ( const scene of scenes ) for ( const token of scene.tokens ) if ( !token.actorLink && token.actor ) registry?.addFromParent(token.actor);
+  };
+  globalThis.Hooks?.on?.("canvasReady", trackTokenEffects);
+  globalThis.Hooks?.on?.("combatStart", trackTokenEffects);
+  trackTokenEffects();
+  // V14 marks an effect expired when its duration runs out; an Action's custom effect (a buff) is then removed.
+  globalThis.Hooks?.on?.("updateActiveEffect", (effect, changes) => {
+    if ( (changes?.duration?.expired === true) && effect.flags?.wildpath?.conditionEffect?.definition?.custom
+      && (game.users?.activeGM?.id === game.user?.id) ) void effect.delete();
+  });
   globalThis.Hooks?.on?.("deleteRegion", region => areas.onRegionDeleted(region));
   // Items' and effects' automatic triggers: turns and rests reach them from Combat and Actor#rest.
   const automation = createFoundryAutomationDispatcher({game, coordinator, logger, fromUuid: globalThis.fromUuid ?? null,
@@ -577,7 +593,12 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const saveModifiers = {};
   const saveOutcomes = {};
   const ambiguousKeys = new Set();
-  for ( const ref of area.targetRefs ?? normalizeArray(intent.targetRefs ?? intent.targets) ) {
+  // The authority, not the client's selection, decides who a "self" or "no target" Action targets.
+  const targetingType = definition?.targeting?.type;
+  const declaredTargets = (targetingType === "self") ? [{actorRef: actor.uuid ?? null, actorId: actor.id ?? null,
+    tokenId: sourceToken?.id ?? null, sceneId: sourceToken?.parent?.id ?? null}]
+    : (targetingType === "none") ? [] : (area.targetRefs ?? normalizeArray(intent.targetRefs ?? intent.targets));
+  for ( const ref of declaredTargets ) {
     const targetRef = targetActorRefFromIntent(ref);
     const targetActor = await resolveFoundryDocumentRef(targetRef, {game, kind: "actor"});
     if ( !targetActor ) continue;

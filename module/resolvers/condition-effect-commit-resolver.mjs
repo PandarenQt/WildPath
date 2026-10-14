@@ -103,8 +103,8 @@ async function applyStackingConditionDelta(actor, plan, existingEffect, levels, 
 }
 
 async function createConditionEffect(actor, plan, level, persistence) {
-  const data = conditionEffectDocumentData(plan, level);
-  if ( typeof actor.toggleStatusEffect === "function" ) {
+  const data = plan.definition?.custom ? customEffectDocumentData(plan, level) : conditionEffectDocumentData(plan, level);
+  if ( !plan.definition?.custom && (typeof actor.toggleStatusEffect === "function") ) {
     const toggle = await persistence.toggleStatusEffect({
       actor,
       actorRef: actor?.uuid ?? (actor?.id ? `actor:${actor.id}` : null),
@@ -205,6 +205,35 @@ function conditionEffectDocumentData(plan, level) {
   return pruneUndefined(data);
 }
 
+/**
+ * A custom effect (an Action's buff or debuff): an ordinary effect carrying its rules, known by its status id. V14
+ * runs its duration, started on the source's combatant, so "until the start of your next turn" is the caster's turn.
+ */
+function customEffectDocumentData(plan, level) {
+  const definition = plan.definition ?? {};
+  const combatant = sourceCombatant(plan.source);
+  const data = {
+    type: "effect",
+    name: definition.name ?? plan.conditionId,
+    img: definition.img ?? undefined,
+    statuses: [plan.conditionId],
+    system: {ruleElements: clonePlain(definition.ruleElements ?? [])},
+    ...(definition.duration ? {duration: clonePlain(definition.duration)} : {}),
+    ...(combatant ? {start: {combatant: combatant.id}} : {})
+  };
+  applyUpdatesToData(data, lifecycleUpdates(plan, level));
+  data.flags.wildpath.conditionEffect.definition = clonePlain(definition);
+  return pruneUndefined(data);
+}
+
+/** The source creature's Combatant in the running combat, if any (by Token, then by Actor). */
+function sourceCombatant(source) {
+  const combat = globalThis.game?.combat;
+  if ( !combat?.started || !source ) return null;
+  return collectionContents(combat.combatants).find(entry => source.tokenId && (entry.tokenId === source.tokenId))
+    ?? collectionContents(combat.combatants).find(entry => source.actorId && (entry.actorId === source.actorId)) ?? null;
+}
+
 function conditionEffectUpdates(plan, level) {
   return {
     ...(plan.stacking ? {
@@ -234,7 +263,8 @@ function lifecycleUpdates(plan, level) {
 }
 
 function shouldPersistLifecycleMetadata(plan) {
-  return !!(plan.duration || plan.concentration || plan.sourceRef || plan.originRef || Object.keys(plan.metadata ?? {}).length);
+  return !!(plan.definition?.custom || plan.duration || plan.concentration || plan.sourceRef || plan.originRef
+    || Object.keys(plan.metadata ?? {}).length);
 }
 
 function conditionDisplayName(plan, level) {
@@ -279,7 +309,10 @@ function findConditionEffect(actor, planOrSnapshot) {
   return collectionContents(actor?.effects ?? []).find(effect => {
     if ( id && (effect.id === id || effect._id === id) ) return true;
     if ( uuid && effect.uuid === uuid ) return true;
-    return conditionId && effect.type === "condition" && effect.system?.type === conditionId;
+    if ( conditionId && (effect.type === "condition") && (effect.system?.type === conditionId) ) return true;
+    // A custom effect is matched by the status id it was created with, so applying it again refreshes it.
+    return !!conditionId && (effect.flags?.wildpath?.conditionEffect?.definition?.custom === true)
+      && (effect.flags.wildpath.conditionEffect.conditionId === conditionId);
   }) ?? null;
 }
 

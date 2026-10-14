@@ -38,7 +38,7 @@ export function summarizeActionDefinition(definition) {
                 : null],
         ["Damage", d.damage?.length ? d.damage.map(entry => `${amountText(entry.expression)} ${entry.damageType ?? ""}`.trim()).join(", ") : null],
         ["Healing", d.healing?.length ? d.healing.map(entry => amountText(entry.expression)).join(", ") : null],
-        ["Effects", d.effects?.length ? d.effects.map(entry => entry.conditionId ?? entry.type ?? "?").join(", ") : null],
+        ["Effects", d.effects?.length ? d.effects.map(entry => entry.name ?? entry.conditionId ?? entry.type ?? "?").join(", ") : null],
         ["Choices", d.configuration?.length ? String(d.configuration.length) : null],
         ["Transform", d.transform ? (d.transform.revert ? "revert" : d.transform.formRef ?? `choice ${d.transform.choiceId}`) : null],
         ["Summon", d.summon ? `${d.summon.actorRef ?? `choice ${d.summon.choiceId}`} ×${d.summon.count ?? 1}${d.summon.concentration

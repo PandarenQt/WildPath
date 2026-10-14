@@ -129,3 +129,36 @@ test("condition effect commit adapter restores deleted condition snapshots", asy
   assert.equal(actor.effects[0].id, "effect-prone");
   assert.equal(actor.effects[0].system.type, "prone");
 });
+
+test("an Action's custom effect commits as an ordinary effect with its rules and a native duration, and refreshes when reapplied", async () => {
+  const {planStagedActionResolution} = await import("../module/resolvers/action-pipeline-resolver.mjs");
+  const definition = {schemaVersion: 1, id: "action:bless", label: "Bless", costs: {allOf: []},
+    targeting: {type: "single", required: true, count: 1},
+    effects: [{id: "blessed", type: "effect", name: "Blessed", slug: "blessed", img: "icons/bless.svg",
+      ruleElements: [{schemaVersion: 1, id: "bless-attacks", type: "Modifier", data: {domains: ["attack"], value: 2}}],
+      duration: {value: 10, units: "rounds", expiry: "turnStart"}}]};
+  const plan = () => planStagedActionResolution({id: "resolution:bless", actorSystem: {resources: {action: {value: 1, max: 1}}, pools: []},
+    action: {id: definition.id, type: "action", name: "Bless", system: {definition}}, source: {actorId: "cleric"},
+    targets: [{id: "ally", actorId: "actor-ally"}]}).state.mutationPlans.find(entry => entry.type === "conditionEffect");
+  const mutation = plan();
+  assert.equal(mutation.conditionId, "blessed");
+  assert.equal(mutation.definition.custom, true);
+  const actor = actorWithEffects();
+  const committed = await commitConditionEffectMutationPlan(actor, mutation);
+  assert.equal(committed.ok, true, JSON.stringify(committed));
+  assert.equal(actor.effects.length, 1);
+  const [effect] = actor.effects;
+  assert.equal(effect.type, "effect", "an ordinary effect, not a condition status");
+  assert.equal(effect.name, "Blessed");
+  assert.deepEqual(effect.system.ruleElements.map(rule => rule.id), ["bless-attacks"]);
+  assert.deepEqual(effect.duration, {value: 10, units: "rounds", expiry: "turnStart"}, "V14 runs this duration");
+  assert.equal(effect.flags.wildpath.conditionEffect.definition.custom, true);
+  assert.equal(effect.flags.wildpath.conditionEffect.conditionId, "blessed");
+
+  const again = await commitConditionEffectMutationPlan(actor, {...plan(), existingEffectId: null});
+  assert.equal(again.ok, true, JSON.stringify(again));
+  assert.equal(actor.effects.length, 1, "the same effect again refreshes it; it does not stack");
+
+  await rollbackConditionEffectMutationPlan(actor, mutation, null, committed);
+  assert.equal(actor.effects.length, 0, "rolling the first application back removes the effect it created");
+});

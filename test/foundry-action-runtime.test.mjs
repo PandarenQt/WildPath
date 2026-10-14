@@ -1594,3 +1594,15 @@ test("a weapon attack adds the attacker's Might to the attack and its damage; a 
   assert.equal(cast.options.attack.modifierTotal, 6, "the statistic's 4 plus the spellcasting ability's 2");
   assert.equal(cast.options.damage, undefined);
 });
+
+test("a self-targeted Action targets its own creature whatever the Player has targeted; a no-target Action targets nobody", async t => {
+  const self = syntheticRuntimeFixture(t, {...meleeStrikeDefinition(), attack: null, damage: [], targeting: {type: "self"}});
+  const built = await foundryActionIntentToStagedOptions({intent: self.intent, senderUserId: "player-a", game: self.game});
+  assert.equal(built.ok, true, JSON.stringify(built.reason));
+  assert.ok(self.intent.targetRefs?.length, "the Player had the other creature targeted");
+  assert.deepEqual(built.options.targets.map(entry => entry.actorRef), [self.sourceActor.uuid]);
+
+  const none = syntheticRuntimeFixture(t, {...meleeStrikeDefinition(), attack: null, damage: [], targeting: {type: "none"}});
+  const nobody = await foundryActionIntentToStagedOptions({intent: none.intent, senderUserId: "player-a", game: none.game});
+  assert.deepEqual(nobody.options.targets, []);
+});

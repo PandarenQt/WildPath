@@ -31,7 +31,7 @@ export function summarizeActionDefinition(definition: Data | null | undefined): 
     attack?: {type?: string; defenseKey?: string; properties?: string[]}; save?: {ability?: string; dc?: {value?: number}};
     check?: {ability?: string; skill?: string; dc?: {value?: number}};
     damage?: Array<{expression?: DiceLike; damageType?: string}>; healing?: Array<{expression?: DiceLike}>;
-    effects?: Array<{type?: string; conditionId?: string}>; transform?: {formRef?: string; choiceId?: string; revert?: boolean};
+    effects?: Array<{type?: string; conditionId?: string; name?: string}>; transform?: {formRef?: string; choiceId?: string; revert?: boolean};
     summon?: {actorRef?: string; choiceId?: string; count?: number; concentration?: boolean}; configuration?: unknown[];
     stabilize?: boolean};
   const lines: Array<[string, string | null]> = [
@@ -48,7 +48,7 @@ export function summarizeActionDefinition(definition: Data | null | undefined): 
       : null],
     ["Damage", d.damage?.length ? d.damage.map(entry => `${amountText(entry.expression)} ${entry.damageType ?? ""}`.trim()).join(", ") : null],
     ["Healing", d.healing?.length ? d.healing.map(entry => amountText(entry.expression)).join(", ") : null],
-    ["Effects", d.effects?.length ? d.effects.map(entry => entry.conditionId ?? entry.type ?? "?").join(", ") : null],
+    ["Effects", d.effects?.length ? d.effects.map(entry => entry.name ?? entry.conditionId ?? entry.type ?? "?").join(", ") : null],
     ["Choices", d.configuration?.length ? String(d.configuration.length) : null],
     ["Transform", d.transform ? (d.transform.revert ? "revert" : d.transform.formRef ?? `choice ${d.transform.choiceId}`) : null],
     ["Summon", d.summon ? `${d.summon.actorRef ?? `choice ${d.summon.choiceId}`} ×${d.summon.count ?? 1}${d.summon.concentration

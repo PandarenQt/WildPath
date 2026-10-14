@@ -260,3 +260,18 @@ test("lifecycle plans keep a Token's identity, not just the base Actor id its co
   assert.equal(result.mutationPlans[0].target.uuid, "Scene.s.Token.v1.Actor.base");
   assert.equal(result.mutationPlans[0].target.tokenId, "v1");
 });
+
+test("a custom effect (an Action's buff) ends when its concentration breaks, and WildPath leaves its native duration to V14", () => {
+  const definition = {id: "blessed", name: "Blessed", custom: true, stacking: false, ruleElements: [], duration: {value: 10, units: "rounds"}};
+  const effect = {id: "effect-bless", uuid: "Actor.target.ActiveEffect.effect-bless", type: "effect", name: "Blessed",
+    system: {ruleElements: []}, duration: {value: 10, units: "rounds", expiry: "turnStart"},
+    flags: {wildpath: {conditionEffect: {conditionId: "blessed", definition,
+      concentration: {required: true, sourceRef: "actor:caster", breakRemovesEffect: true}}}}};
+  const broken = planEffectLifecycle({actor: {id: "actor-target"}, effects: [effect], concentrationBreaks: ["actor:caster"],
+    conditionDefinitions: CONDITION_DEFINITIONS});
+  assert.equal(broken.ok, true, JSON.stringify(broken.failures));
+  assert.deepEqual(broken.mutationPlans.map(plan => [plan.conditionId, plan.action]), [["blessed", "delete"]]);
+  const turn = planEffectLifecycle({actor: {id: "actor-target"}, effects: [effect], conditionDefinitions: CONDITION_DEFINITIONS,
+    events: [{type: TIMELINE_EVENT_TYPES.TURN_START, actorId: "actor-target"}]});
+  assert.equal(turn.mutationPlans.length, 0, "WildPath's turn ticks never expire it; V14 runs its duration");
+});

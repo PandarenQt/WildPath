@@ -82,7 +82,8 @@ export function planEffectLifecycle({
       levels: -Math.max(entry.level, 1),
       target: entry.target,
       existingConditions: [entry.effect],
-      conditionDefinitions,
+      conditionDefinitions: entry.definition ? {...normalizeDefinitionMap(conditionDefinitions), [entry.conditionId]: entry.definition}
+        : conditionDefinitions,
       duration: entry.lifecycle.duration,
       concentration: entry.lifecycle.concentration,
       source: entry.lifecycle.sourceRef,
@@ -128,6 +129,12 @@ export function planEffectLifecycle({
 
 /* -------------------------------------------- */
 
+/** Condition definitions as an id-keyed object, whether given as a list or an object. */
+function normalizeDefinitionMap(definitions) {
+  if ( Array.isArray(definitions) ) return Object.fromEntries(definitions.filter(entry => entry?.id).map(entry => [entry.id, entry]));
+  return definitions && (typeof definitions === "object") ? definitions : {};
+}
+
 function normalizeConditionLifecycleEntries(effects, fallbackTarget) {
   return collectionContents(effects)
     .map(effect => normalizeConditionLifecycleEntry(effect, fallbackTarget))
@@ -159,8 +166,10 @@ function normalizeConditionLifecycleEntry(effect, fallbackTarget) {
     conditionId,
     level: normalizeConditionLevel(source.system?.level ?? flag.level ?? 1),
     target,
+    // A custom effect's own definition, so ending it (concentration broken) can be planned like a condition.
+    definition: flag.definition?.custom ? clonePlain(flag.definition) : null,
     lifecycle: {
-      duration: clonePlain(flag.duration ?? source.duration ?? null),
+      duration: flag.definition?.custom ? null : clonePlain(flag.duration ?? source.duration ?? null),
       concentration: clonePlain(flag.concentration ?? null),
       sourceRef: flag.sourceRef ?? normalizeRef(flag.source ?? source.source) ?? null,
       originRef: flag.originRef ?? source.origin ?? normalizeRef(flag.origin ?? source.origin) ?? null,

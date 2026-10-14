@@ -93,6 +93,41 @@ The Foundry DataModel stores component arrays as plain objects and delegates sem
 `module/helpers/action-definitions.mjs`. This keeps the Foundry schema stable while the pure domain
 contract evolves.
 
+## Custom effects (2026-10-14)
+
+An effect entry is either a condition (`{type: "condition", conditionId}`) or a **custom effect**: a buff or
+debuff with its own rules.
+
+```js
+{type: "effect", id: "blessed", name: "Blessed", slug?: "blessed", img?,
+ ruleElements: [{type: "Modifier", data: {domains: ["attack"], value: 2}}],
+ duration?: {value: 10, units: "rounds", expiry: "turnStart"}, saveOutcomePolicy?, concentration?}
+```
+
+- **Committing it.** It goes through the same plan and commit as a condition, carrying its own definition. It
+  becomes an ordinary effect (`type: "effect"`) with its rules and the status `slug`. Without a slug the status is
+  `<definition id>:<effect id>`.
+  - A predicate can test it: `{hasCondition: "raging"}` for 2024 Rage.
+  - Applying the same effect again refreshes it instead of stacking.
+  - Its definition is stored in `flags.wildpath.conditionEffect.definition`.
+- **Duration.** It is V14's own `{value, units, expiry}` (units and expiry events from V14 `CONST`). It starts on
+  the source's combatant, so "until the start of your next turn" is the caster's turn, even for a reaction.
+  - When V14 marks it expired, the active GM deletes it.
+  - The active GM also registers unlinked Tokens' effects for expiry after a reload. V14 itself misses them until
+    a Token's delta materializes.
+  - Concentration still ends it. WildPath's own turn-based expiry leaves it alone.
+- **Validation.** A custom effect needs a name, rules the engine knows, a slug that isn't a built-in condition,
+  and V14 duration units. **Effects by reference (`type: "ref"`) are refused**: they used to validate and then be
+  dropped when the Action ran.
+- **Targeting.** A `self` Action targets its own creature and a `none` Action targets nobody, whatever the
+  Player has targeted. The authority sets both.
+
+Live (two browsers, 14.369):
+- Player1's cleric blessed an ally: a "Blessed" effect, +2 to its attacks. It lasted one round and was deleted
+  on the cleric's next turn, including after a GM reload.
+- Player1's barbarian used Rage (a `self` custom effect with slug `raging`). Its feature's
+  `{hasCondition: "raging"}` Modifier on `damage.melee` made the axe roll "1d12 + 2".
+
 ## Ability checks (2026-10-14)
 
 `check` is the acting creature's own ability check against a DC, the 2024 pattern: stabilizing an ally (DC 10
