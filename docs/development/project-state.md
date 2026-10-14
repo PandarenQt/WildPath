@@ -172,11 +172,12 @@ browsers:
 - The general automation dispatcher for Items' and effects' automatic triggers (turns, initiative, rests).
 - `GrantResource` pools, created full when the grant arrives.
 - `area.exited`, for steps out of an area and for creatures an aura leaves behind.
+- Companions, summons and sidekicks: shared control, and controller costs on their Actions
+  ([companions.md](../architecture/companions.md)).
 
 Open:
 
-- Companions and sidekicks, which need the maintainer's decision.
-- Wiring for `GrantMovement`, which needs a rules decision on how several speeds share one move.
+- Movement modes and `GrantMovement` (2024 rules, approved 2026-10-14).
 
 **Authority and disclosure hardening (M0) — CLOSED on 2026-10-13.** A review found that the
 authority trusted more than it could verify: any player could act through an Actor or Item they did

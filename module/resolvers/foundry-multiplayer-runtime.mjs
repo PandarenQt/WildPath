@@ -15,6 +15,7 @@ import {foundryActionReactionServices} from "../adapters/foundry-v14-reaction-se
 import {foundryAreaFootprint, foundryAreaTargetTokens} from "../adapters/foundry-v14-area-placement.mjs";
 import {createFoundryPersistentAreas} from "../adapters/foundry-v14-persistent-areas.mjs";
 import {AUTOMATION_QUERY, createFoundryAutomationDispatcher} from "../adapters/foundry-v14-automation-dispatcher.mjs";
+import {COMPANION_QUERY, createFoundryCompanions} from "../adapters/foundry-v14-companions.mjs";
 import {
   buildFoundryMovementCompletion,
   buildFoundryMovementProgressObservation,
@@ -25,7 +26,7 @@ import {
   MULTIPLAYER_AUTHORITY_CODES,
   clonePlainData
 } from "../helpers/multiplayer-authority.mjs";
-import {actionDefinitionFromAction} from "../helpers/action-definitions.mjs";
+import {actionDefinitionActivationCost, actionDefinitionFromAction} from "../helpers/action-definitions.mjs";
 import {tokenRef} from "../helpers/entity-refs.mjs";
 import {
   resolveActorAttackStatistic,
@@ -116,6 +117,9 @@ export function registerFoundryV14MultiplayerResolution({
   const automation = createFoundryAutomationDispatcher({game, coordinator, logger, fromUuid: globalThis.fromUuid ?? null,
     resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});
   if ( globalThis.CONFIG?.queries ) globalThis.CONFIG.queries[AUTOMATION_QUERY] = automation.handleQuery;
+  // Shared control of companions and summons: ownership follows their controllers (only a GM may change it).
+  const companions = createFoundryCompanions({game, fromUuid: globalThis.fromUuid ?? (() => null)});
+  if ( globalThis.CONFIG?.queries ) globalThis.CONFIG.queries[COMPANION_QUERY] = companions.handleQuery;
   // Whoever rolls, every client sees the Combatant update; the active GM dispatches it.
   globalThis.Hooks?.on?.("updateCombatant", (combatant, changed) => {
     if ( !Number.isFinite(changed?.initiative) ) return;
@@ -168,6 +172,7 @@ export function registerFoundryV14MultiplayerResolution({
     movement,
     areas,
     automation,
+    companions,
     resolutionTransport: transport,
     executeActionIntent: runtime.executeActionIntent,
     executeMovementIntent: runtime.executeMovementIntent
@@ -503,6 +508,14 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     code: MULTIPLAYER_AUTHORITY_CODES.WRONG_USER,
     reason: "The Action sender must own the source Token."
   };
+  // A companion's Action may also cost the controller commanding it; the sender must own that controller.
+  const controller = await foundryActionController({action, actor, intent, sender, game});
+  if ( !controller.ok ) return {ok: false, code: controller.code, reason: controller.reason};
+  let controllerSystem = null;
+  try { controllerSystem = controller.actor ? foundryActorSystemSnapshot(controller.actor) : null; }
+  catch (error) {
+    return {ok: false, code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED, reason: error.message};
+  }
   const area = foundryActionArea({action, actor, intent, sourceToken});
   if ( !area.ok ) return {ok: false, code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED, reason: area.reason};
   const targetActors = {};
@@ -574,6 +587,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       else targetActors[key] = holder;
     }
   }
+  if ( controller.actor ) targetActors[controller.actor.uuid] = controller.actor;
   // Reactors on the Scene (Trigger RuleElements on Action events) and the acting creature they may answer.
   const scene = sourceToken?.parent ?? null;
   const reactions = scene ? foundryActionReactionServices({game, scene, token: sourceToken,
@@ -603,6 +617,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       configuration: clonePlainData(intent.configuration ?? null, "intent.configuration"),
       ...(concentration ? {concentration: concentration.input} : {}),
       ...(area.persistentArea ? {persistentArea: area.persistentArea} : {}),
+      ...(controller.actor ? {controller: {actorRef: controller.actor.uuid, actorSystem: controllerSystem}} : {}),
       persistencePort
     },
     requestContext: {
@@ -614,6 +629,24 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     },
     ...(reactions ? {services: {...reactions.services, targetActors}} : {})
   };
+}
+
+/**
+ * The controller that pays a companion's controller costs: the one the intent names, else the first listed
+ * controller the sender owns (a GM owns every one). An Action without controller costs needs none.
+ */
+async function foundryActionController({action, actor, intent, sender, game}) {
+  const result = actionDefinitionFromAction(action, {actorSystem: actor?.system ?? null});
+  const cost = result.ok ? actionDefinitionActivationCost({costs: result.definition?.controllerCosts}) : {allOf: []};
+  if ( !(cost.allOf?.length || cost.anyOf?.length) ) return {ok: true, actor: null};
+  const controllers = actor.system?.companion?.controllers ?? [];
+  const named = typeof intent.controllerRef === "string" ? [intent.controllerRef] : controllers;
+  for ( const ref of named.filter(entry => controllers.includes(entry)) ) {
+    const candidate = await resolveFoundryDocumentRef(ref, {game, kind: "actor"});
+    if ( candidate && documentOwnedByUser(candidate, sender) ) return {ok: true, actor: candidate};
+  }
+  return {ok: false, code: MULTIPLAYER_AUTHORITY_CODES.WRONG_USER,
+    reason: "This Action costs the companion's controller, and the sender controls none of its controllers."};
 }
 
 /**

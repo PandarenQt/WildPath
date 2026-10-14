@@ -95,7 +95,9 @@ the code. Payment discovery reads only the Actor's stored resources and pools
    the creature".
    - `getStatistic` and the resource snapshot read through the active transformation.
    - Wild Shape, Polymorph and a homebrew form differ only by policy.
-7. **Companions and sidekicks (design decision).**
+7. **Companions and sidekicks: approved and done 2026-10-14** (`companions.md`). Control is shareable
+   (summons too), a companion's Action may cost its controller an Action, a Bonus Action and/or movement,
+   and sidekicks use multiclass class records. Originally proposed:
    - `system.companion: {controllerRef, kind}` links a companion to its controller.
    - A cross-Actor payment option lets the companion's Action cost its controller's Bonus Action.
    - Sidekick progression uses the same class records (item 3), with a non-class progression source.

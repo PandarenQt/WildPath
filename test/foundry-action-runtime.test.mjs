@@ -1175,6 +1175,68 @@ test("target snapshots retain all live-document aliases, serialize once, and det
   assert.equal(f.targetBase.system.resources.health.value, 99);
 });
 
+/** A companion whose Bite costs its own Action and its controller's Bonus Action and 10 ft of movement. */
+function companionFixture(t) {
+  const definition = {schemaVersion: 1, id: "action:companion-bite", label: "Companion Bite",
+    costs: {allOf: [{capability: ECONOMY_CAPABILITIES.ACTION, amount: 1}]},
+    controllerCosts: {allOf: [{capability: ECONOMY_CAPABILITIES.BONUS_ACTION, amount: 1},
+      {capability: ECONOMY_CAPABILITIES.MOVEMENT, amount: 10}]},
+    range: {type: "reach", distance: {value: 5, unit: "ft"}}, targeting: {type: "single", required: true, count: 1},
+    damage: [{id: "bite", expression: {type: "constant", value: 6}, damageType: "piercing", provenance: "weapon-base"}]};
+  const fixture = syntheticRuntimeFixture(t, definition, {targetHealth: 30});
+  const ranger = withFoundryActorSystem(fakeActor("ranger", {system: actorSystem()}));
+  const stranger = withFoundryActorSystem(fakeActor("stranger", {system: actorSystem(), owners: []}));
+  fixture.sourceActor.system.companion = {kind: "companion", controllers: [stranger.uuid, ranger.uuid]};
+  const resolve = globalThis.fromUuid;
+  globalThis.fromUuid = async ref => [ranger, stranger].find(actor => actor.uuid === ref) ?? resolve(ref);
+  const persistencePort = createTestDocumentPersistenceAdapter();
+  const hub = createTestResolutionTransportHub({users: [
+    {id: "gm-a", active: true, isGM: true, isActiveGM: true},
+    {id: "player-a", active: true, isGM: false}
+  ]});
+  const gm = createMultiplayerActionCoordinator({userId: "gm-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
+    transport: hub.createEndpoint({userId: "gm-a"}),
+    actionIntentResolver: ({intent, envelope}) => foundryActionIntentToStagedOptions({intent,
+      senderUserId: envelope.senderUserId, game: fixture.game, persistencePort})});
+  const player = createMultiplayerActionCoordinator({userId: "player-a", users: () => hub.userDirectory(),
+    activeGMUserId: "gm-a", transport: hub.createEndpoint({userId: "player-a"})});
+  gm.register();
+  player.register();
+  return {...fixture, ranger, stranger, gm, player};
+}
+
+test("a companion's Action also costs the controller its sender owns, committed with the rest", async t => {
+  const {sourceActor, targetActor, ranger, stranger, gm, player, intent} = companionFixture(t);
+  const declared = await player.declareActionIntent(intent);
+  const state = gm.getRecord(declared.resolutionId).state;
+  assert.equal(state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(state.errors));
+  assert.equal(targetActor.system.resources.health.value, 24);
+  assert.equal(sourceActor.system.resources.action.value, 0, "the companion pays its own Action");
+  assert.deepEqual([ranger.system.resources.bonus.value, ranger.system.resources.movement.value], [0, 20],
+    "the controller the Player owns pays the Bonus Action and 10 ft");
+  assert.deepEqual([stranger.system.resources.bonus.value, stranger.system.resources.movement.value], [1, 30],
+    "a controller the Player does not own is never charged");
+});
+
+test("a companion's controller cost needs a controller the sender owns, with enough left to pay", async t => {
+  const {sourceActor, targetActor, ranger, stranger, game, intent} = companionFixture(t);
+  const named = await foundryActionIntentToStagedOptions({intent: {...intent, controllerRef: stranger.uuid},
+    senderUserId: "player-a", game});
+  assert.deepEqual([named.ok, named.code], [false, MULTIPLAYER_AUTHORITY_CODES.WRONG_USER], "naming someone else's controller");
+  sourceActor.system.companion.controllers = [stranger.uuid];
+  const none = await foundryActionIntentToStagedOptions({intent, senderUserId: "player-a", game});
+  assert.deepEqual([none.ok, none.code], [false, MULTIPLAYER_AUTHORITY_CODES.WRONG_USER]);
+  sourceActor.system.companion.controllers = [ranger.uuid];
+  ranger.system.resources.movement.value = 5; // 10 ft needed
+  const spent = await foundryActionIntentToStagedOptions({intent, senderUserId: "player-a", game});
+  assert.equal(spent.ok, true);
+  const result = planStagedActionResolution(spent.options);
+  assert.equal(result.state.status, RESOLUTION_STATE_STATUS.FAILED);
+  assert.equal(result.state.errors.at(-1)?.reason, "PAYMENT_UNAVAILABLE");
+  assert.deepEqual([sourceActor.system.resources.action.value, targetActor.system.resources.health.value], [1, 30],
+    "nothing is paid or done when the controller cannot pay");
+});
+
 test("the authority only resolves Actions sent by an owner of the acting Actor, using that Actor's own Item", async t => {
   const f = syntheticRuntimeFixture(t);
   // A player who does not own the acting Actor is refused before any rules input is built.

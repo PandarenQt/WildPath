@@ -582,11 +582,22 @@ export async function executeActionMutationTransaction({result, actor, targetAct
     };
   }
 
+  // A payment naming its payer (a companion's controller) commits on that Actor, in the same transaction.
+  const payers = paymentMutationPlans.map(mutationPlan => (mutationPlan.payerRef ? targetActors?.[mutationPlan.payerRef] ?? null : actor));
+  if ( payers.some(payer => !payer) ) {
+    return {
+      ok: false,
+      stage: ACTION_RESOLUTION_STAGES.RESOURCE_PAYMENT,
+      code: ACTION_RESOLVER_CODES.RESOURCE_COMMIT_FAILED,
+      reason: "A payment names a payer that is not available to commit on.",
+      data: {payerRefs: paymentMutationPlans.map(mutationPlan => mutationPlan.payerRef ?? null)}
+    };
+  }
   const sourceOperations = paymentMutationPlans.map((mutationPlan, index) => createActorUpdateTransactionOperation({
     id: `source:${index}:resourcePayment`,
     type: "resourcePayment",
-    actorRef: actor?.uuid ?? (actor?.id ? `actor:${actor.id}` : null),
-    actor,
+    actorRef: payers[index]?.uuid ?? (payers[index]?.id ? `actor:${payers[index].id}` : null),
+    actor: payers[index],
     mutationPlan: mutationPlan.plan,
     persistencePort,
     metadata: {

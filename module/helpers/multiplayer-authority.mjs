@@ -178,7 +178,7 @@ const ACTION_INTENT_KEYS = Object.freeze([
   "intentId", "resolutionId", "resolutionKind",
   "actorRef", "actorUuid", "actionRef", "actionUuid", "itemRef", "itemId", "tokenId", "tokenRef", "configuration",
   "schemaVersion", "movementId", "sceneRef", "sourceUserId", "origin", "destination", "waypoints", "movementKind",
-  "movementMode", "tokenOperationType", "foundry", "messageMode"
+  "movementMode", "tokenOperationType", "foundry", "messageMode", "controllerRef"
 ]);
 const INTENT_SOURCE_KEYS = Object.freeze(["actorRef", "uuid", "tokenId", "tokenRef", "sceneId"]);
 const INTENT_CONFIGURATION_KEYS = Object.freeze(["choices", "responses", "selectedPaymentOptionId"]);

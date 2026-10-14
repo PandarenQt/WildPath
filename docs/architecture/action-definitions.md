@@ -71,6 +71,7 @@ ActionDefinition
 |- identity/source/origin
 |- activation
 |- costs
+|- controllerCosts   (a companion's Action: what its commanding controller also pays, companions.md)
 |- range?
 |- targeting?
 |- area?

@@ -5,6 +5,7 @@ import {targetLookupRefs} from "../helpers/target-actor-refs.mjs";
 import {footprintDistance} from "../helpers/grid-footprints.mjs";
 import {resolveActorDefense} from "../helpers/combat-statistics.mjs";
 import {
+  actionDefinitionActivationCost,
   actionDefinitionFromAction,
   actionDefinitionToResolverInput
 } from "../helpers/action-definitions.mjs";
@@ -146,6 +147,7 @@ export function createActionResolutionState({
   context={},
   policies={},
   selectedPaymentOptionId=null,
+  controller=null,
   parentId=null,
   relationship=null,
   sourceEvent=null,
@@ -192,7 +194,8 @@ export function createActionResolutionState({
       configurationContributions,
       context,
       policies,
-      selectedPaymentOptionId
+      selectedPaymentOptionId,
+      controller
     },
     validation: definitionResult ? [{
       type: "action-definition",
@@ -1702,6 +1705,29 @@ function createPaymentStage() {
         });
       }
 
+      // A companion's Action may also cost the controller commanding it; that payment commits with the rest.
+      const controllerCost = actionDefinitionActivationCost({costs: state.actionDefinition?.controllerCosts});
+      let controllerPayment = null;
+      if ( controllerCost.allOf?.length || controllerCost.anyOf?.length ) {
+        controllerPayment = input.controller?.actorSystem ? resolveActorResourcePayment({
+          actorSystem: input.controller.actorSystem,
+          cost: controllerCost,
+          action: actionContext.action,
+          policies: actionContext.policies
+        }) : {ok: false, code: "CONTROLLER_REQUIRED"};
+        if ( !controllerPayment.ok ) {
+          return failActionPlanningStage({
+            state,
+            input,
+            actionResult,
+            stage: ACTION_RESOLUTION_STAGES.RESOURCE_PAYMENT,
+            code: ACTION_RESOLVER_CODES.PAYMENT_UNAVAILABLE,
+            reason: controllerPayment.code,
+            data: {payment: controllerPayment, payer: "controller"}
+          });
+        }
+      }
+
       const paymentRequiredEvent = createActionLifecycleEvent(actionContext, {
         type: AUTOMATION_EVENT_TYPES.PAYMENT_REQUIRED,
         phase: AUTOMATION_EVENT_PHASES.BEFORE,
@@ -1722,10 +1748,16 @@ function createPaymentStage() {
           type: "resourcePayment",
           resolver: "ResourceResolver",
           plan: payment.mutationPlan
-        }],
+        }, ...(controllerPayment ? [{
+          type: "resourcePayment",
+          resolver: "ResourceResolver",
+          plan: controllerPayment.mutationPlan,
+          payerRef: input.controller.actorRef
+        }] : [])],
         data: {
           paymentPlan: payment.paymentPlan,
-          discovery: payment.discovery
+          discovery: payment.discovery,
+          ...(controllerPayment ? {controllerPaymentPlan: controllerPayment.paymentPlan} : {})
         }
       });
 

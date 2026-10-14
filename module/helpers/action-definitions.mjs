@@ -96,6 +96,8 @@ export function normalizeActionDefinition(rawDefinition={}, {
     origin: normalizeOriginDefinition(raw.origin),
     activation: normalizeActivationDefinition(raw.activation),
     costs: normalizeCostDefinition(definitionCost),
+    // What a companion's Action also costs the controller commanding it (an Action, Bonus Action, movement...).
+    controllerCosts: normalizeCostDefinition(raw.controllerCosts),
     range: normalizeRangeDefinition(raw.range),
     targeting: normalizeTargetingDefinition(raw.targeting ?? raw.target),
     area: normalizeAreaDefinition(raw.area),
@@ -136,6 +138,7 @@ export function validateActionDefinition(rawDefinition={}, options={}) {
   }
 
   validateCosts(definition.costs, errors);
+  validateCosts(definition.controllerCosts, errors, "controllerCosts");
   validatePredicateCandidates(definition, errors);
   validateTargeting(definition, errors);
   validateArea(definition.area, errors);
@@ -517,8 +520,8 @@ function costRequirementForPayment(requirement) {
   };
 }
 
-function validateCosts(costs, errors) {
-  for ( const {requirement, path} of costRequirementEntries(costs) ) {
+function validateCosts(costs, errors, prefix="costs") {
+  for ( const {requirement, path} of costRequirementEntries(costs, prefix) ) {
     if ( !requirement.capability ) {
       errors.push(error(ACTION_DEFINITION_CODES.INVALID_COST, `${path}.capability`, "Cost requirement needs a capability or resource id."));
     }
@@ -1015,18 +1018,18 @@ function error(code, path, reason) {
   return {code, path, reason};
 }
 
-function costRequirementEntries(costs) {
+function costRequirementEntries(costs, prefix="costs") {
   if ( costs?.anyOf ) {
     return costs.anyOf.flatMap((branch, branchIndex) => {
       return branch.map((requirement, requirementIndex) => ({
         requirement,
-        path: `costs.anyOf.${branchIndex}.${requirementIndex}`
+        path: `${prefix}.anyOf.${branchIndex}.${requirementIndex}`
       }));
     });
   }
   return (costs?.allOf ?? []).map((requirement, index) => ({
     requirement,
-    path: `costs.allOf.${index}`
+    path: `${prefix}.allOf.${index}`
   }));
 }
 

@@ -121,6 +121,17 @@ export default class WildPathActor extends Actor {
     if ( missing.length ) await this.update({"system.pools": [...pools, ...missing]});
   }
 
+  /**
+   * Make this creature a companion, summon or sidekick of `controllers` (Actors or their uuids). Every Player
+   * who owns one of them controls it; an empty list frees it. A Player's change is made by the active GM.
+   * @param {{controllers: Array<Actor|string>, kind?: "companion"|"summon"|"sidekick"}} options
+   */
+  async setCompanion({controllers=[], kind}={}) {
+    const companions = globalThis.game?.wildpath?.companions;
+    if ( !companions ) throw new Error("The WildPath runtime is not ready.");
+    return companions.setControllers(this, {kind, controllers: controllers.map(entry => (typeof entry === "string" ? entry : entry?.uuid))});
+  }
+
   /* -------------------------------------------- */
   /*  Transformations                              */
   /* -------------------------------------------- */

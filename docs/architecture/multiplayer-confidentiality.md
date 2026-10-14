@@ -150,7 +150,9 @@ allow-lists below replace that denylist; the live run below proves the corrected
 
 **`ACTION_INTENT`** (`sanitizeActionIntentPayload`): only the refs, ids and movement facts the
 authority's resolvers read (`actorRef`, `actionRef`, `targetRefs`, `source` refs, configuration,
-movement origin/waypoints/kind/mode, …).
+movement origin/waypoints/kind/mode, `controllerRef` for which of a companion's controllers pays, …).
+`controllerRef` is a ref the sender chooses. The authority accepts it only when it is one of the
+companion's controllers that the sender owns ([companions.md](companions.md)).
 
 **Chooser payloads** (`sanitizePendingRequestForTransport`), per request type:
 

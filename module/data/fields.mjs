@@ -159,6 +159,8 @@ export function actionDefinitionField() {
     origin: new ObjectField({nullable: true, initial: null}),
     activation: new ObjectField({nullable: true, initial: null}),
     costs: new ObjectField({required: true, initial: () => ({})}),
+    // What a companion's Action also costs its commanding controller; empty for any other Action.
+    controllerCosts: new ObjectField({required: true, initial: () => ({})}),
     range: new ObjectField({nullable: true, initial: null}),
     targeting: new ObjectField({nullable: true, initial: null}),
     area: new ObjectField({nullable: true, initial: null}),

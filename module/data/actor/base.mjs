@@ -56,6 +56,12 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
           ability: new StringField({required: true, blank: true})
         })
       })),
+      // A companion, summon or sidekick lists the creatures that control it. Every Player who owns one of
+      // them controls it too, and its Actions may also cost the controller that commands them (companions.md).
+      companion: new SchemaField({
+        kind: new StringField({required: true, initial: "companion", choices: ["companion", "summon", "sidekick"]}),
+        controllers: new ArrayField(new StringField({required: true, blank: false}))
+      }),
       status: new SchemaField({
         turnsTaken: new NumberField({required: true, integer: true, initial: 0, min: 0})
       })

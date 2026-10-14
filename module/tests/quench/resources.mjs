@@ -171,6 +171,25 @@ export function registerResourceTests(quench) {
         assert.isNull(creature.transformation);
       });
 
+      it("a companion's control follows its controllers: their Players own it, and lose it with their controller", async function () {
+        const player = game.users.find(user => !user.isGM);
+        if (!player) this.skip();
+        const summoner = await fixtures.createActor({name:"summoner"});
+        await summoner.update({[`ownership.${player.id}`]:3});
+        const wolf = await fixtures.createActor({name:"wolf",type:"npc"});
+        const owns = () => wolf.testUserPermission(player,"OWNER");
+        assert.isFalse(owns());
+        await wolf.setCompanion({controllers:[summoner],kind:"summon"});
+        assert.deepEqual(wolf.system.companion.toObject?.() ?? {...wolf.system.companion},{kind:"summon",controllers:[summoner.uuid]});
+        assert.isTrue(owns(),"The summoner's Player controls the summon");
+        await wolf.setCompanion({controllers:[]});
+        assert.isFalse(owns(),"Freed from its controller, the summon returns to the default ownership");
+        const controllerCosts = {allOf:[{capability:"bonus-action",amount:1},{capability:"movement",amount:10}]};
+        const bite = await fixtures.createItem(wolf,{name:"bite",type:"action",system:{definition:{schemaVersion:1,
+          id:"action:qa-bite",label:"Bite",costs:{allOf:[]},controllerCosts}}});
+        assert.deepEqual(bite.system.definition.controllerCosts,controllerCosts,"An Action Item stores its controller costs");
+      });
+
       it("applies an Item maximum modifier once across repeated preparation and removes it on deletion", async function () {
         const actor = await fixtures.createActor({name:"modifier preparation",
           system:{resources:{health:{base:10,bonus:2,value:10}}}});
