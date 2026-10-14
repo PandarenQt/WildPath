@@ -93,3 +93,28 @@ test("damage adds the weapon's ability modifier and the creature's damage bonuse
   assert.deepEqual(actionCombatStatistics(actor, firebolt).damage, {modifierTotal: 1}, "a spell bonus, but no ability modifier");
   assert.equal(actionCombatStatistics(actor, {attack: {type: "melee", statistic: "weapon"}}).damage, null, "no damage, no modifier");
 });
+
+test("extra damage rules join a matching attack's damage, and a once-per-turn rule drops out once used this turn", async () => {
+  const {actionCombatStatistics} = await import("../module/helpers/combat-statistics.mjs");
+  const {validateRuleElementDefinition, evaluateRuleElement} = await import("../module/helpers/rule-elements.mjs");
+  const sneak = {schemaVersion: 1, id: "sneak", type: "ExtraDamage",
+    data: {domains: ["damage.melee"], expression: {type: "dice", number: 1, faces: 6}, damageType: "fire", once: "turn"}};
+  assert.equal(validateRuleElementDefinition(sneak).ok, true);
+  assert.equal(evaluateRuleElement({...sneak, data: {...sneak.data, domains: []}}).ok, false, "domains are required");
+  assert.equal(evaluateRuleElement({...sneak, data: {...sneak.data, once: "round"}}).ok, false, "once is per turn only");
+  const feature = {id: "flame-strike", uuid: "Actor.rogue.Item.flame-strike", type: "feature",
+    system: {active: true, modifiers: [], ruleElements: [sneak]}};
+  const actor = Object.assign(Object.create(WildPathActor.prototype), {id: "rogue", uuid: "Actor.rogue", effects: [],
+    items: [feature], statuses: new Set(), flags: {}, system: {}});
+  actor.allApplicableEffects = () => [];
+  const melee = {attack: {type: "melee", statistic: "weapon"}, damage: [{id: "blade", expression: {type: "dice", number: 1, faces: 4},
+    provenance: "weapon-base"}]};
+  const extra = actionCombatStatistics(actor, melee, {turn: "c:1:0"}).damage.extraComponents;
+  assert.deepEqual(extra.map(entry => [entry.damageType, entry.expression.faces, entry.once?.turn]), [["fire", 6, "c:1:0"]]);
+  assert.equal(actionCombatStatistics(actor, {...melee, attack: {type: "ranged", statistic: "weapon"}}, {turn: "c:1:0"}).damage, null,
+    "a ranged attack is not a melee hit");
+  actor.flags = {wildpath: {onceUsed: {[extra[0].once.key]: "c:1:0"}}};
+  assert.equal(actionCombatStatistics(actor, melee, {turn: "c:1:0"}).damage, null, "used this turn");
+  assert.equal(actionCombatStatistics(actor, melee, {turn: "c:1:1"}).damage.extraComponents.length, 1, "the next turn it is back");
+  assert.equal(actionCombatStatistics(actor, melee, {turn: null}).damage.extraComponents[0].once, undefined, "no limit outside combat");
+});

@@ -496,8 +496,10 @@ export async function commitPlannedActionResult({result, actor, targetActors, au
 /* -------------------------------------------- */
 
 export async function executeActionMutationTransaction({result, actor, targetActors, authority, persistencePort=null}={}) {
-  const targetMutationPlans = result.mutationPlans.filter(plan => plan.type !== "resourcePayment");
+  const targetMutationPlans = result.mutationPlans.filter(plan => !["resourcePayment", "sourceUpdate"].includes(plan.type));
   const paymentMutationPlans = result.mutationPlans.filter(plan => plan.type === "resourcePayment");
+  // Small updates to the acting creature itself (a once-per-turn use), committed with its payment.
+  const sourceUpdatePlans = result.mutationPlans.filter(plan => plan.type === "sourceUpdate");
   const unsupportedMutationPlans = targetMutationPlans.filter(plan => !isSupportedTargetMutationPlan(plan));
   if ( unsupportedMutationPlans.length ) {
     return {
@@ -550,8 +552,18 @@ export async function executeActionMutationTransaction({result, actor, targetAct
       mutationPlan
     }
   }));
+  const updateOperations = sourceUpdatePlans.map((mutationPlan, index) => createActorUpdateTransactionOperation({
+    id: `source:${index}:sourceUpdate`,
+    type: "sourceUpdate",
+    actorRef: actor?.uuid ?? (actor?.id ? `actor:${actor.id}` : null),
+    actor,
+    updates: mutationPlan.updates,
+    rollbackUpdates: mutationPlan.rollbackUpdates,
+    persistencePort,
+    metadata: {role: "sourceUpdate", action: result.context?.action ?? null, mutationPlan}
+  }));
   const transaction = await executeResolutionTransaction({
-    operations: [...targetOperations.operations, ...sourceOperations],
+    operations: [...targetOperations.operations, ...updateOperations, ...sourceOperations],
     persistencePort,
     metadata: {action: result.context?.action ?? null}
   });

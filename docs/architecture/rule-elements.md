@@ -342,6 +342,29 @@ own creature stored Ki 3/3 from their own client.
 and interpret it inside their own domain boundary instead of adding item-, spell-, class-, or
 condition-name branches.
 
+## ExtraDamage (2026-10-14)
+
+`{type: "ExtraDamage", data: {domains, expression, damageType, once?: "turn"}}` adds a damage component to an
+Action's own damage in the damage domains (`damage`, `damage.melee`, `damage.weapon`, ...). Its predicates see
+the attack type, the Action's tags, the attack's ability and the creature's conditions.
+
+"When you hit with a melee attack, +1d6 fire, once per turn" is
+`{domains: ["damage.melee"], expression: {type: "dice", number: 1, faces: 6}, damageType: "fire", once: "turn"}`.
+
+- **Same Action, same card.** It is one more component of the Action's damage, so it is its own roll, a critical
+  doubles it, and resistance applies to its own damage type. A separate follow-up Action would count as a second
+  damage instance (a second Concentration save, more death-save failures), which 2024 does not do.
+- **Once per turn.** A hit that dealt damage records the turn in `flags.wildpath.onceUsed.<owner>-<rule>`, on the
+  attacker and in the same transaction (a `sourceUpdate` plan). A miss uses nothing. Each turn counts, not only the
+  attacker's own, so it can apply again on another creature's turn (an opportunity attack). Outside combat there
+  is no limit.
+- `actor.getExtraDamage(domains, {item, tags})` collects these rules, including the acting Action's own.
+  `actionCombatStatistics` adds them for the runtime and for reaction Actions.
+
+Live (two browsers, 14.369): Player1's rogue's dagger with a once-per-turn "+1d6 fire" feature rolled "1d4" and
+"1d6" on its first hit, only "1d4" on its second hit that turn, and "2d4" and "2d6" on a critical in its next
+turn.
+
 ## Future Types
 
 When adding a RuleElement type:

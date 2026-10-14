@@ -102,10 +102,20 @@ export function resolveActorAttackStatistic(actor, attack={}, {item=null, tags=[
  * ability (`{tagsAny: ["might"]}` is "attacks using Might").
  */
 export function resolveActorDamageStatistic(actor, attack=null, {item=null, tags=[]}={}) {
-  const kind = attack?.statistic ?? (tags.includes("spell") ? "spell" : null);
-  const statistic = resolveActorStatisticModifier(actor, [kind ? `damage.${kind}` : null, attack?.type ? `damage.${attack.type}` : null,
-    "damage"].filter(Boolean), {item, tags: uniqueStrings([attack?.type, ...tags])});
+  const statistic = resolveActorStatisticModifier(actor, damageDomains(attack, tags), {item, tags: uniqueStrings([attack?.type, ...tags])});
   return statistic.known ? {domain: statistic.domain, totalModifier: statistic.value, trace: statistic.trace} : null;
+}
+
+/** The damage domains of an Action: `damage.<weapon|spell>`, `damage.<melee|ranged>` and `damage`. */
+function damageDomains(attack, tags=[]) {
+  const kind = attack?.statistic ?? (tags.includes("spell") ? "spell" : null);
+  return [kind ? `damage.${kind}` : null, attack?.type ? `damage.${attack.type}` : null, "damage"].filter(Boolean);
+}
+
+/** The key a once-per-turn rule is recorded under: its owner and its own id (no dots: Foundry would nest them). */
+function onceKey(entry) {
+  const owner = entry.source?.parent ?? entry.source ?? {};
+  return `${owner.id ?? owner.uuid ?? "owner"}-${entry.id}`.replace(/\./g, "_");
 }
 
 /**
@@ -114,9 +124,9 @@ export function resolveActorDamageStatistic(actor, attack=null, {item=null, tags
  * any damage adds the creature's damage bonuses. The runtime and reaction Actions share this.
  * @param {object|null} actor
  * @param {object|null} definition
- * @param {{item?: object|null}} [options]
+ * @param {{item?: object|null, turn?: string|null}} [options] `turn` identifies the current combat turn, for once-per-turn rules.
  */
-export function actionCombatStatistics(actor, definition, {item=null}={}) {
+export function actionCombatStatistics(actor, definition, {item=null, turn=null}={}) {
   const attackDefinition = definition?.attack ?? null;
   const tags = [...(definition?.tags ?? [])];
   const statistic = attackDefinition ? resolveActorAttackStatistic(actor, attackDefinition, {item, tags}) : null;
@@ -126,9 +136,19 @@ export function actionCombatStatistics(actor, definition, {item=null}={}) {
   const bonus = components.length
     ? (resolveActorDamageStatistic(actor, attackDefinition, {item, tags: [...tags, statistic?.ability].filter(Boolean)})?.totalModifier ?? 0) : 0;
   const modifierTotal = (weapon ? statistic.abilityModifier : 0) + bonus;
+  // Extra damage rules ("+1d6 fire on a melee hit"), less any once-per-turn rule already used this turn.
+  const extraTags = [attackDefinition?.type, ...tags, statistic?.ability].filter(Boolean);
+  const extra = (components.length && (typeof actor?.getExtraDamage === "function"))
+    ? actor.getExtraDamage(damageDomains(attackDefinition, tags), {item, tags: extraTags})
+      .filter(entry => !((entry.once === "turn") && turn && (actor.flags?.wildpath?.onceUsed?.[onceKey(entry)] === turn)))
+    : [];
+  const extraComponents = extra.map(entry => ({id: `extra:${onceKey(entry)}`, expression: entry.expression,
+    damageType: entry.damageType, provenance: "additional",
+    ...(((entry.once === "turn") && turn) ? {once: {key: onceKey(entry), turn}} : {})}));
   return {
     defenseKey: attackDefinition ? (attackDefinition.defenseKey ?? "ac") : null,
-    damage: (components.length && (weapon || bonus)) ? {modifierTotal} : null,
+    damage: (components.length && (weapon || bonus || extraComponents.length))
+      ? {modifierTotal, ...(extraComponents.length ? {extraComponents} : {})} : null,
     attack: statistic ? {
       statistic,
       modifierTotal: statistic.totalModifier,

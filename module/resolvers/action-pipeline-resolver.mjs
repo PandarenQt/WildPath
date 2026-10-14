@@ -1474,7 +1474,7 @@ function createDamageStage() {
           damageResolution,
           ...(durabilityResolution ? {durabilityResolution} : {})
         }],
-        mutationPlans: durabilityResolution?.mutationPlans ?? [],
+        mutationPlans: [...(durabilityResolution?.mutationPlans ?? []), ...onceUsePlans(input.damage, damageResolution)],
         data: {
           damageResolution,
           ...(durabilityResolution ? {durabilityResolution} : {})
@@ -2111,6 +2111,18 @@ function componentRollRequestForState(state, input, {kind, rollType, requestId, 
     chooser: values.chooser ?? ROLL_AUTHORITY.SOURCE_CONTROLLER,
     authority: values.authority ?? {kind: ROLL_AUTHORITY.SOURCE_CONTROLLER},
     metadata: {actionDefinitionId: state.actionDefinition?.id ?? null, rollKind: kind, componentId: component.id ?? null}
+  });
+}
+
+/**
+ * Damage dealt with a once-per-turn extra (Sneak Attack-like) records its use on the source for this turn, in the
+ * same transaction. A miss deals none, so it records nothing.
+ */
+function onceUsePlans(damage, damageResolution) {
+  if ( !(damageResolution?.results ?? []).some(result => (Number(result.total) || 0) > 0) ) return [];
+  return (damage?.extraComponents ?? []).filter(component => component.once?.key && component.once?.turn).map(component => {
+    const path = `flags.wildpath.onceUsed.${component.once.key}`;
+    return {type: "sourceUpdate", resolver: "ActionPipeline", updates: {[path]: component.once.turn}, rollbackUpdates: {[path]: null}};
   });
 }
 

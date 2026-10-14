@@ -840,3 +840,29 @@ test("a rolled formula's flat part rolls with its dice, and healing dice are rol
   assert.equal(healed.state.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT, JSON.stringify(healed.state.errors));
   assert.equal(healed.state.mutationPlans.find(entry => entry.type === "durabilityHealing")?.plan?.to, 14);
 });
+
+test("extra damage is its own roll, doubled on a critical, and a hit records its once-per-turn use while a miss does not", () => {
+  const definition = {schemaVersion: 1, id: "action:dagger", label: "Dagger", costs: {allOf: []},
+    targeting: {type: "single", required: true, count: 1}, attack: {type: "melee", statistic: "weapon", defenseKey: "ac"},
+    damage: [{id: "blade", expression: {type: "dice", number: 1, faces: 4}, damageType: "piercing", provenance: "weapon-base"}]};
+  const strike = id => planStagedActionResolution({id, actorSystem: actorSystem(1), action: definitionAction(definition),
+    source: {actorId: "actor-source"}, damage: {extraComponents: [{id: "extra:feat-sneak", expression: {type: "dice", number: 1, faces: 6},
+      damageType: "fire", provenance: "additional", once: {key: "feat-sneak", turn: "c:1:0"}}]},
+    targeting: {required: true, candidates: [{id: "orc", target: target("orc", {defenses: {ac: {value: 12}}}),
+      actor: {id: "actor-orc"}, disposition: "enemy", kind: "creature"}]}});
+  const answer = (result, value) => {
+    const request = result.state.pendingRequests[0];
+    return {formula: rollFormulaForRequest(request.payload.rollRequest).formula,
+      next: resumeStagedActionResolution({state: result.state, response: {resolutionId: result.state.id, requestId: request.id,
+        type: RESOLUTION_REQUEST_TYPES.ROLL, value}})};
+  };
+  let step = answer(strike("resolution:sneak-crit"), {total: 20, die: 20});
+  step = answer(step.next, {total: 5});
+  assert.equal(step.formula, "2d4");
+  step = answer(step.next, {total: 7});
+  assert.equal(step.formula, "2d6", "the extra damage is its own roll, doubled on a critical");
+  const used = step.next.state.mutationPlans.find(entry => entry.type === "sourceUpdate");
+  assert.deepEqual(used?.updates, {"flags.wildpath.onceUsed.feat-sneak": "c:1:0"}, "the hit records the use for this turn");
+  const missed = answer(strike("resolution:sneak-miss"), {total: 3, die: 3}).next;
+  assert.equal(missed.state.mutationPlans.some(entry => entry.type === "sourceUpdate"), false, "a miss uses nothing");
+});

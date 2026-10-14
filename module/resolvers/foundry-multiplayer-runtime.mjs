@@ -14,7 +14,7 @@ import {createFoundryV14ChatCardAdapter} from "../adapters/foundry-v14-chat-card
 import {createFoundryReactionProvider} from "../adapters/foundry-v14-reaction-provider.mjs";
 import {foundryActionReactionServices} from "../adapters/foundry-v14-reaction-services.mjs";
 import {foundryAreaFootprint, foundryAreaTargetTokens} from "../adapters/foundry-v14-area-placement.mjs";
-import {createFoundryPersistentAreas} from "../adapters/foundry-v14-persistent-areas.mjs";
+import {createFoundryPersistentAreas, turnKey} from "../adapters/foundry-v14-persistent-areas.mjs";
 import {AUTOMATION_QUERY, createFoundryAutomationDispatcher} from "../adapters/foundry-v14-automation-dispatcher.mjs";
 import {COMPANION_QUERY, createFoundryCompanions} from "../adapters/foundry-v14-companions.mjs";
 import {createFoundryDying} from "../adapters/foundry-v14-dying.mjs";
@@ -549,7 +549,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     return {ok: false, code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED, reason: error.message};
   }
   const combatStatistics = actionCombatStatistics(actor, actionDefinitionFromAction(action, {actorSystem: actor?.system ?? null})
-    .definition ?? null, {item: action});
+    .definition ?? null, {item: action, turn: game.combat?.started ? turnKey(game.combat) : null});
   const definitionResult = actionDefinitionFromAction(action, {actorSystem: actor?.system ?? null});
   const definition = definitionResult.ok ? definitionResult.definition : null;
   // 2024 Wild Shape and Polymorph: a transformed creature can't cast spells. Spells it already cast (their lasting

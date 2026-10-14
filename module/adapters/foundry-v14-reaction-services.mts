@@ -3,6 +3,7 @@ import {createFoundryV14TacticalGridAdapter} from "./foundry-v14-tactical-grid-a
 import {foundryActorSystemSnapshot} from "./foundry-v14-actor-system-adapter.mjs";
 import {createActionResolutionState, createActionReactionChildState} from "../resolvers/action-pipeline-resolver.mjs";
 import {actionCombatStatistics, resolveActorDefense} from "../helpers/combat-statistics.mjs";
+import {turnKey} from "./foundry-v14-persistent-areas.mjs";
 import {economyResourcesFromActorResources} from "../helpers/action-economy.mjs";
 import {createAutomationEvent} from "../helpers/automation-events.mjs";
 import {movementTransitionRelations} from "../helpers/movement-transition.mjs";
@@ -80,7 +81,9 @@ function reactionChildState({args, reactor, target, targetFootprint, sourceFootp
   const reactionItem = [...(reactor.actor.items ?? [])].find(entry => entry.type === "action"
     && entry.system?.definition?.id === definition.id) ?? null;
   // The same attack and damage statistics as any Action: an opportunity attack adds the ability modifier and bonuses.
-  const statistics = actionCombatStatistics(reactor.actor, definition, {item: reactionItem});
+  const combat = (globalThis as {game?: {combat?: {id: string; round: number; turn: number | null; started?: boolean} | null}}).game?.combat;
+  const statistics = actionCombatStatistics(reactor.actor, definition, {item: reactionItem,
+    turn: combat?.started ? turnKey(combat) : null});
   const targetSystem = foundryActorSystemSnapshot(actor);
   const profile = (actor as {getDamageProfile?(): Data | null}).getDamageProfile?.() ?? null;
   const targetKeys = [actor.id, actor.uuid, `actor:${actor.id}`];

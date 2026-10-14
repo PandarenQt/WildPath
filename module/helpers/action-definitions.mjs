@@ -373,7 +373,10 @@ function resolverRequestFromSaveDefinition(saveDefinition, runtimeSave, evaluati
 function resolverRequestFromDamageDefinition(definition, runtimeDamage, evaluationContext) {
   if ( !definition.damage.length ) return runtimeDamage ?? null;
   const runtimeComponents = normalizeArray(runtimeDamage?.components);
-  const components = definition.damage.map((component, index) => damageComponentForResolver({
+  // Extra damage from the creature's rules (ExtraDamage) follows the Action's own components.
+  const extras = normalizeArray(runtimeDamage?.extraComponents)
+    .map((component, index) => normalizeDamageDefinition(component, definition.damage.length + index));
+  const components = [...definition.damage, ...extras].map((component, index) => damageComponentForResolver({
     component,
     index,
     runtimeComponents,

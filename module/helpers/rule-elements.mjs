@@ -14,6 +14,7 @@ export const RULE_ELEMENT_TYPES = Object.freeze({
   ROLL_MODE: "RollMode",
   RESOURCE_CAP: "ResourceCap",
   ROLL_OUTCOME: "RollOutcome",
+  EXTRA_DAMAGE: "ExtraDamage",
   TRIGGER: "Trigger"
 });
 
@@ -54,6 +55,7 @@ const TYPE_ALIASES = Object.freeze({
   rollmode: RULE_ELEMENT_TYPES.ROLL_MODE,
   resourcecap: RULE_ELEMENT_TYPES.RESOURCE_CAP,
   rolloutcome: RULE_ELEMENT_TYPES.ROLL_OUTCOME,
+  extradamage: RULE_ELEMENT_TYPES.EXTRA_DAMAGE,
   trigger: RULE_ELEMENT_TYPES.TRIGGER
 });
 
@@ -93,6 +95,7 @@ export function createDefaultRuleElementRegistry() {
     [RULE_ELEMENT_TYPES.ROLL_MODE, rollModeRuleElement],
     [RULE_ELEMENT_TYPES.RESOURCE_CAP, resourceCapRuleElement],
     [RULE_ELEMENT_TYPES.ROLL_OUTCOME, rollOutcomeRuleElement],
+    [RULE_ELEMENT_TYPES.EXTRA_DAMAGE, extraDamageRuleElement],
     [RULE_ELEMENT_TYPES.GRANT_RESOURCE, grantResourceRuleElement],
     [RULE_ELEMENT_TYPES.GRANT_ACTION_ECONOMY_RESOURCE, grantActionEconomyResourceRuleElement],
     [RULE_ELEMENT_TYPES.GRANT_RESISTANCE, grantResistanceRuleElement],
@@ -336,6 +339,11 @@ export function rollOutcomesFromRuleElements(owners=[], {domains=[], context={}}
   return contributionsInDomains(owners, "rollOutcomes", domains, context);
 }
 
+/** The extra damage (`ExtraDamage`) a creature's owners add to an Action's damage in any of `domains`. */
+export function extraDamageFromRuleElements(owners=[], {domains=[], context={}}={}) {
+  return contributionsInDomains(owners, "extraDamage", domains, context);
+}
+
 function contributionsInDomains(owners, key, domains, context) {
   const wanted = new Set(domains);
   return owners.flatMap(({ruleElements=[], source=null}) =>
@@ -502,6 +510,28 @@ function grantMovementRuleElement(ruleElement, context) {
  * Advantage or disadvantage on d20 rolls in the named domains: a creature's own (`attack`, `attack.melee`,
  * `save`, `save.agility`, `check`, ...) or attack rolls made against it (`attacked`, `attacked.ranged`, ...).
  */
+/**
+ * Extra damage an Action deals in `domains` (the damage domains: `damage`, `damage.melee`, `damage.weapon`, ...):
+ * "+1d6 fire when you hit with a melee attack" is `{domains: ["damage.melee"], expression: 1d6, damageType: "fire"}`.
+ * It joins the Action's own damage (one roll, doubled on a critical); `once: "turn"` limits it to once per turn.
+ */
+function extraDamageRuleElement(ruleElement) {
+  const data = ruleElement.data;
+  const domains = normalizeStrings(data.domains ?? data.domain);
+  const expression = data.expression ?? data.valueExpression ?? null;
+  if ( !domains.length ) return handlerFailure(RULE_ELEMENT_CODES.INVALID, "ExtraDamage RuleElement requires domains.");
+  if ( !expression || (typeof expression !== "object") ) {
+    return handlerFailure(RULE_ELEMENT_CODES.INVALID, "ExtraDamage RuleElement requires a damage expression.");
+  }
+  if ( (data.once != null) && (data.once !== "turn") ) {
+    return handlerFailure(RULE_ELEMENT_CODES.INVALID, "ExtraDamage RuleElement once must be \"turn\".");
+  }
+  return success({
+    extraDamage: [{id: data.id ?? ruleElement.id, domains, expression: clonePlain(expression), damageType: data.damageType ?? "untyped",
+      once: data.once ?? null, source: ruleElementSource(ruleElement), metadata: contributionMetadata(ruleElement, data.metadata)}]
+  });
+}
+
 function rollModeRuleElement(ruleElement) {
   const data = ruleElement.data;
   const domains = normalizeStrings(data.domains ?? data.domain);
@@ -633,6 +663,7 @@ function emptyContributions() {
     rollModes: [],
     resourceCaps: [],
     rollOutcomes: [],
+    extraDamage: [],
     triggers: []
   };
 }
@@ -651,6 +682,7 @@ function mergeContributions(target, source={}) {
   target.rollModes.push(...(source.rollModes ?? []));
   target.resourceCaps.push(...(source.resourceCaps ?? []));
   target.rollOutcomes.push(...(source.rollOutcomes ?? []));
+  target.extraDamage.push(...(source.extraDamage ?? []));
   target.triggers.push(...(source.triggers ?? []));
 
   const damage = source.damageAdjustments ?? {};
@@ -662,7 +694,7 @@ function mergeContributions(target, source={}) {
 
 function sortContributions(contributions) {
   for ( const key of ["modifiers", "resources", "economyResources", "movement", "rollModes", "resourceCaps", "rollOutcomes",
-    "triggers"] ) {
+    "extraDamage", "triggers"] ) {
     contributions[key].sort(compareContributions);
   }
   for ( const entries of Object.values(contributions.damageAdjustments) ) {

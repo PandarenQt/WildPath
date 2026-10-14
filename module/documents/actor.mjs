@@ -1,7 +1,7 @@
 import {WildPathModifier, WildPathStatistic} from "../helpers/modifiers.mjs";
 import {
   damageProfileFromRuleElements, grantedMovementFromRuleElements, grantedResourcesFromRuleElements, modifiersFromRuleElements,
-  resourceCapsFromRuleElements, rollModesFromRuleElements, rollOutcomesFromRuleElements
+  resourceCapsFromRuleElements, rollModesFromRuleElements, rollOutcomesFromRuleElements, extraDamageFromRuleElements
 } from "../helpers/rule-elements.mjs";
 import {DEFAULT_FORM_STATISTICS, DEFAULT_KEPT_ITEM_TYPES, itemContributesWhileTransformed} from "../helpers/transformations.mjs";
 import WildPathConditionEffect from "../data/active-effect/condition.mjs";
@@ -112,6 +112,17 @@ export default class WildPathActor extends Actor {
     if ( item?.system?.ruleElements?.length ) owners.push({ruleElements: item.system.ruleElements, source: documentRuleElementSource(item, "item")});
     return rollModesFromRuleElements(owners, {domains, context: {actor: this, actorSystem: this.system,
       conditions: [...(this.statuses ?? [])], ...context}});
+  }
+
+  /**
+   * The extra damage this creature's features, gear and effects, plus the acting Action's own rules, add in
+   * `domains` (`ExtraDamage`). Predicates see the roll's tags and the creature's conditions.
+   */
+  getExtraDamage(domains, {item=null, tags=[]}={}) {
+    const owners = grantOwners(this);
+    if ( item?.system?.ruleElements?.length ) owners.push({ruleElements: item.system.ruleElements, source: documentRuleElementSource(item, "item")});
+    return extraDamageFromRuleElements(owners, {domains, context: {actor: this, actorSystem: this.system, item, tags,
+      conditions: [...(this.statuses ?? [])]}});
   }
 
   /** The outcomes forced on this creature's rolls in `domains` (`RollOutcome`), e.g. automatic failure. */
