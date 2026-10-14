@@ -46,6 +46,8 @@ export default class WildPathActor extends Actor {
   getStatistic(domain, {item=null, tags=[]}={}) {
     const domains = [domain].flat().filter(Boolean).map(String);
     const modifiers = [];
+    // What a rule's predicate sees: the roll's tags (attack type, the Action's tags) and the creature's conditions.
+    const seen = {tags: [...new Set(tags.filter(Boolean).map(String))], conditions: [...(this.statuses ?? [])]};
 
     const transformation = this.transformation;
     for ( const owner of this.items ) {
@@ -60,7 +62,7 @@ export default class WildPathActor extends Actor {
         actor: this,
         domain: entry,
         source: documentRuleElementSource(owner, "item"),
-        context: {item: owner}
+        context: {item: owner, ...seen}
       }));
     }
 
@@ -74,7 +76,7 @@ export default class WildPathActor extends Actor {
         actor: this,
         domain: entry,
         source: documentRuleElementSource(effect, "effect"),
-        context: {effect},
+        context: {effect, ...seen},
         // A leveled condition (Exhaustion) scales its modifiers by `effect.system.level`.
         bindings: {effect: {system: {level: effect.system?.level ?? null}}}
       }));
@@ -85,7 +87,7 @@ export default class WildPathActor extends Actor {
         actor: this,
         actorSystem: this.system,
         item,
-        tags: [...new Set(tags.filter(Boolean).map(String))]
+        ...seen
       }
     });
   }
@@ -108,12 +110,14 @@ export default class WildPathActor extends Actor {
   getRollModes(domains, {item=null, context={}}={}) {
     const owners = grantOwners(this);
     if ( item?.system?.ruleElements?.length ) owners.push({ruleElements: item.system.ruleElements, source: documentRuleElementSource(item, "item")});
-    return rollModesFromRuleElements(owners, {domains, context: {actor: this, actorSystem: this.system, ...context}});
+    return rollModesFromRuleElements(owners, {domains, context: {actor: this, actorSystem: this.system,
+      conditions: [...(this.statuses ?? [])], ...context}});
   }
 
   /** The outcomes forced on this creature's rolls in `domains` (`RollOutcome`), e.g. automatic failure. */
   getRollOutcomes(domains, {context={}}={}) {
-    return rollOutcomesFromRuleElements(grantOwners(this), {domains, context: {actor: this, actorSystem: this.system, ...context}});
+    return rollOutcomesFromRuleElements(grantOwners(this), {domains, context: {actor: this, actorSystem: this.system,
+      conditions: [...(this.statuses ?? [])], ...context}});
   }
 
   /** Ceilings on this creature's resource maxima (`ResourceCap`): `{action: 0, movement: 0, ...}`. */

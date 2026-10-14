@@ -100,6 +100,13 @@ Evaluation is ordered by `priority`, then stable id. Each entry emits a trace wi
 - `predicate-failed`
 - `failed`
 
+**What a predicate sees (2026-10-14).** When a creature's statistic, roll mode or roll outcome is read, a
+RuleElement's own predicate sees the roll's `tags` and the creature's current `conditions`, its statuses:
+- `{tagsAny: ["ranged"]}` applies only to ranged attacks, using the attack type and the Action's tags;
+- `{hasCondition: "raging"}` applies only while the creature has that condition.
+
+Before this, these predicates never matched. Data preparation (resource maxima, Speeds) does not pass them yet.
+
 Invalid or unknown RuleElement types fail explicitly in the collector result. Disabled,
 suppressed, or predicate-failed entries fail closed by contributing nothing while remaining visible
 to rules-inspector tooling.

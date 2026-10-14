@@ -134,6 +134,18 @@ export function registerRuleElementTests(quench) {
         assertSource(item,[rule],"Predicate and metadata source after Actor updates");
       });
 
+      it("a RuleElement's own predicate sees the creature's conditions and the roll's tags", async function () {
+        const actor = await fixtures.createActor({name:"conditional rules"});
+        await fixtures.createItem(actor,{system:{ruleElements:[
+          modifierRule({id:"while-prone",value:2,domains:["defense.ac"],predicate:{hasCondition:"prone"}}),
+          modifierRule({id:"at-range",value:1,domains:["attack"],predicate:{tagsAny:["ranged"]}})
+        ]}});
+        assert.equal(actor.getStatistic("defense.ac").totalModifier,0,"not prone");
+        await actor.toggleCondition("prone");
+        assert.equal(actor.getStatistic("defense.ac").totalModifier,2,"prone: the rule applies");
+        assert.equal(actor.getStatistic("attack",{tags:["melee"]}).totalModifier,0);
+        assert.equal(actor.getStatistic("attack",{tags:["ranged"]}).totalModifier,1);
+      });
       it("persisted RuleElement priority selects the winner of equal typed bonuses", async function () {
         const actor = await fixtures.createActor({name:"RuleElement priority"});
         const rules = [modifierRule({id:"quench-priority-late",value:3,modifierType:"status",priority:200}),

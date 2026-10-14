@@ -54,3 +54,19 @@ test("defenses stack their domains too", () => {
     item("ring", "gear", [modifier("ring", ["ac"], 1)]));
   assert.equal(resolveActorDefense(actor, "ac").value, 17, "14 + defense.ac 2 + ac 1");
 });
+
+test("a RuleElement's own predicate sees the attack's tags and the creature's conditions", () => {
+  const rule = (id, domains, value, predicate) => ({schemaVersion: 1, id, type: "Modifier", data: {domains, value}, predicate});
+  const feat = {id: "feat", uuid: "Actor.barbarian.Item.feat", type: "feature", system: {active: true, modifiers: [], ruleElements: [
+    rule("sharpshooter", ["attack"], 1, {tagsAny: ["ranged"]}),
+    rule("rage", ["attack"], 2, {hasCondition: "raging"})
+  ]}};
+  const actor = Object.assign(Object.create(WildPathActor.prototype), {id: "barbarian", uuid: "Actor.barbarian", effects: [],
+    items: [feat], statuses: new Set(), system: {}});
+  actor.allApplicableEffects = () => [];
+  const melee = () => resolveActorAttackStatistic(actor, {type: "melee", statistic: "weapon"}).totalModifier;
+  assert.equal(melee(), 0, "not ranged, not raging");
+  assert.equal(resolveActorAttackStatistic(actor, {type: "ranged", statistic: "weapon"}).totalModifier, 1, "the ranged tag reaches the rule");
+  actor.statuses.add("raging");
+  assert.equal(melee(), 2, "the raging condition reaches the rule");
+});
