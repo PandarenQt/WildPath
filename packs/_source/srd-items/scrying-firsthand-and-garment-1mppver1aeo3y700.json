@@ -1,0 +1,94 @@
+{
+  "_id": "1mppver1aeo3y700",
+  "_key": "!items!1mppver1aeo3y700",
+  "name": "Scrying (Firsthand and Garment)",
+  "type": "action",
+  "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You can see and hear a creature you choose that is on the same plane of existence as you. The target makes a Wisdom saving throw, which is modified (see the tables below) by how well you know the target and the sort of physical connection you have to it. The target doesn't know what it is making the save against, only that it feels uneasy.</p><table><thead><tr><td>Your Knowledge of the Target Is …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Secondhand (heard of the target)</td><td>+5</td></tr><tr><td>Firsthand (met the target)</td><td>+0</td></tr><tr><td>Extensive (know the target well)</td><td>−5</td></tr></tbody></table><table><thead><tr><td>You Have the Target's …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Picture or other likeness</td><td>−2</td></tr><tr><td>Garment or other possession</td><td>−4</td></tr><tr><td>Body part, lock of hair, or bit of nail</td><td>−10</td></tr></tbody></table><p>On a successful save, the target isn't affected, and you can't use this spell on it again for 24 hours.</p><p>On a failed save, the spell creates an Invisible, intangible sensor within 10 feet of the target. You can see and hear through the sensor as if you were there. The sensor moves with the target, remaining within 10 feet of it for the duration. If something can see the sensor, it appears as a luminous orb about the size of your fist.</p><p>Instead of targeting a creature, you can target a location you have seen. When you do so, the sensor appears at that location and doesn't move.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-scrying-firsthand-and-garment",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": []
+      },
+      "configuration": [
+        {
+          "id": "spell-slot",
+          "type": "resource",
+          "label": "Spell slot",
+          "required": true,
+          "cost": {
+            "anyOf": [
+              [
+                {
+                  "capability": "spell-slot.5",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.6",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.7",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.8",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.9",
+                  "amount": 1
+                }
+              ]
+            ]
+          },
+          "levelByResourceId": {
+            "spell-slot.5": 5,
+            "spell-slot.6": 6,
+            "spell-slot.7": 7,
+            "spell-slot.8": 8,
+            "spell-slot.9": 9
+          },
+          "effects": []
+        }
+      ],
+      "label": "Scrying (Firsthand and Garment)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbsplScrying000",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (save): using it spends its cost; its description says the rest",
+          "activation: 10 minute is not an action-economy cost",
+          "save: wis DC (@attributes.spell.dc - 0 + 4) not converted",
+          "activation: 10 minute is not an action-economy cost"
+        ]
+      }
+    }
+  }
+}

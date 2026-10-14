@@ -1,0 +1,148 @@
+{
+  "_id": "phbsumPhantomSte",
+  "_key": "!actors!phbsumPhantomSte",
+  "name": "Phantom Steed",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 16
+      },
+      "agility": {
+        "value": 13
+      },
+      "fortitude": {
+        "value": 12
+      },
+      "intellect": {
+        "value": 2
+      },
+      "wits": {
+        "value": 11
+      },
+      "presence": {
+        "value": 7
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 11
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 13,
+        "value": 13
+      },
+      "movement": {
+        "base": 100,
+        "value": 100
+      }
+    },
+    "details": {
+      "threat": 0
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Phantom Steed",
+    "width": 2,
+    "height": 2,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "phbaoiHooves0000",
+      "_key": "!actors.items!phbsumPhantomSte.phbaoiHooves0000",
+      "name": "Hooves",
+      "type": "action",
+      "img": "icons/magic/control/buff-luck-fortune-green-gold.webp",
+      "system": {
+        "active": true,
+        "description": "<p><em>Melee Attack Roll:</em> +5, reach 5 ft. <em>Hit: </em>7 (1d8 + 3) Bludgeoning damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-hooves",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "properties": [
+              "finesse"
+            ]
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 8
+              },
+              "damageType": "bludgeoning",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Hooves"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbaoiHooves0000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "phbsumPhantomSte",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 0.25
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

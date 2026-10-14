@@ -1,0 +1,131 @@
+{
+  "_id": "dmg4x6CarpetofFl",
+  "_key": "!actors!dmg4x6CarpetofFl",
+  "name": "Carpet of Flying (4 by 6 ft.)",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 27
+      },
+      "agility": {
+        "value": 0
+      },
+      "fortitude": {
+        "value": 0
+      },
+      "intellect": {
+        "value": 0
+      },
+      "wits": {
+        "value": 0
+      },
+      "presence": {
+        "value": 0
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 0
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 1,
+        "value": 1
+      },
+      "movement": {
+        "base": 30,
+        "value": 30
+      }
+    },
+    "details": {
+      "threat": 0
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Carpet of Flying (4 by 6 ft.)",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "cdo7WnGawlzIo3MD",
+      "_key": "!actors.items!dmg4x6CarpetofFl.cdo7WnGawlzIo3MD",
+      "name": "Carry Weight Adjustment",
+      "type": "feature",
+      "img": "icons/skills/social/trading-injustice-scale-gray.webp",
+      "system": {
+        "active": true,
+        "description": "<p>This item serves to offset the carpet's computed carry weight capacity in accordance with the carpet's dimensions.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "cdo7WnGawlzIo3MD",
+            "type": "loot",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "dmg4x6Carpettrts",
+      "_key": "!actors.items!dmg4x6CarpetofFl.dmg4x6Carpettrts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "speed-fly",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "fly",
+              "distance": 60
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "dmg4x6CarpetofFl",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 0
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "_id": "phbwzdSpellMaste",
+  "_key": "!items!phbwzdSpellMaste",
+  "name": "Spell Mastery",
+  "type": "feature",
+  "img": "icons/magic/unholy/beam-impact-purple.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You have achieved such mastery over certain spells that you can cast them at will. Choose a level 1 and a level 2 spell in your spellbook that have a casting time of an action. You always have those spells prepared, and you can cast them at their lowest level without expending a spell slot. To cast either spell at a higher level, you must expend a spell slot.</p><p>Whenever you finish a Long Rest, you can study your spellbook and replace one of those spells with an eligible spell of the same level from the book.</p><section class=\"secret\" id=\"secret-OhEjtOfrcVMJh1qk\"><p><strong>Foundry Note</strong></p><p>The <strong>Master</strong> activity includes an enchantment that marks the spells as \"Always Prepared\" and adds \", Mastered\" to their name for easy identification.</p><p>Uncheck the \"Consumption\" box when casting at the lowest level. You can drag multiple spells to the same chat card.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbwzdSpellMaste",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Master Spell\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

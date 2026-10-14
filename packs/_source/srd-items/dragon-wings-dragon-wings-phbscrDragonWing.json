@@ -1,0 +1,63 @@
+{
+  "_id": "phbscrDragonWing",
+  "_key": "!items!phbscrDragonWing",
+  "name": "Dragon Wings (Dragon Wings)",
+  "type": "action",
+  "img": "icons/creatures/abilities/wing-batlike-white-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p>As a Bonus Action, you can cause draconic wings to appear on your back. The wings last for 1 hour or until you dismiss them (no action required). For the duration, you have a Fly Speed of 60 feet.</p><p>Once you use this feature, you can't use it again until you finish a Long Rest unless you spend 3 Sorcery Points (no action required) to restore your use of it.</p><section class=\"secret\" id=\"secret-sOSBeegnxa98QlIn\"><p><strong>Foundry Note</strong></p><p>The <strong>Dragon Wings</strong> activity includes an Active Effect that grants you a Fly Speed of 60 feet.</p><p>The <strong>Restore Use</strong> activity can be used to expend the Sorcery Points to restore a use of the <strong>Dragon Wings</strong> activity.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-dragon-wings-dragon-wings",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          },
+          {
+            "capability": "dragon-wings",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Dragon Wings (Dragon Wings)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "dragon-wings-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "dragon-wings",
+          "label": "Dragon Wings",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbscrDragonWing",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Winged\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

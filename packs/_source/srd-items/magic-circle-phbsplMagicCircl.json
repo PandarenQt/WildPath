@@ -1,0 +1,108 @@
+{
+  "_id": "phbsplMagicCircl",
+  "_key": "!items!phbsplMagicCircl",
+  "name": "Magic Circle",
+  "type": "action",
+  "img": "icons/magic/symbols/ring-circle-smoke-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You create a 10-foot-radius, 20-foot-tall Cylinder of magical energy centered on a point on the ground that you can see within range. Glowing runes appear wherever the Cylinder intersects with the floor or other surface.</p><p>Choose one or more of the following types of creatures: Celestials, Elementals, Fey, Fiends, or Undead. The circle affects a creature of the chosen type in the following ways:</p><ul><li>The creature can't willingly enter the Cylinder by nonmagical means. If the creature tries to use teleportation or interplanar travel to do so, it must first succeed on a Charisma saving throw.</li><li>The creature has Disadvantage on attack rolls against targets within the Cylinder.</li><li>Targets within the Cylinder can't be possessed by or gain the Charmed or Frightened condition from the creature.</li></ul><p>Each time you cast this spell, you can cause its magic to operate in the reverse direction, preventing a creature of the specified type from leaving the Cylinder and protecting targets outside it.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The duration increases by 1 hour for each spell slot level above 3.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-magic-circle",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": []
+      },
+      "configuration": [
+        {
+          "id": "spell-slot",
+          "type": "resource",
+          "label": "Spell slot",
+          "required": true,
+          "cost": {
+            "anyOf": [
+              [
+                {
+                  "capability": "spell-slot.3",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.4",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.5",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.6",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.7",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.8",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.9",
+                  "amount": 1
+                }
+              ]
+            ]
+          },
+          "levelByResourceId": {
+            "spell-slot.3": 3,
+            "spell-slot.4": 4,
+            "spell-slot.5": 5,
+            "spell-slot.6": 6,
+            "spell-slot.7": 7,
+            "spell-slot.8": 8,
+            "spell-slot.9": 9
+          },
+          "effects": []
+        }
+      ],
+      "label": "Magic Circle"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbsplMagicCircl",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (save): using it spends its cost; its description says the rest",
+          "activation: 1 minute is not an action-economy cost",
+          "area: a cylinder's height is not modeled",
+          "activation: 1 minute is not an action-economy cost"
+        ]
+      }
+    }
+  }
+}

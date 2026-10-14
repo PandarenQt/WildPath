@@ -1,0 +1,252 @@
+{
+  "_id": "mmMagmin00000000",
+  "_key": "!actors!mmMagmin00000000",
+  "name": "Magmin",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 7
+      },
+      "agility": {
+        "value": 15
+      },
+      "fortitude": {
+        "value": 12
+      },
+      "intellect": {
+        "value": 8
+      },
+      "wits": {
+        "value": 11
+      },
+      "presence": {
+        "value": 10
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 14
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 13,
+        "value": 13
+      },
+      "movement": {
+        "base": 30,
+        "value": 30
+      }
+    },
+    "details": {
+      "threat": 0
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Magmin",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmDeathBurst0000",
+      "_key": "!actors.items!mmMagmin00000000.mmDeathBurst0000",
+      "name": "Death Burst",
+      "type": "feature",
+      "img": "icons/magic/death/skull-humanoid-white-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The magmin explodes when it dies.</p><p><em>Dexterity Saving Throw: </em>DC 11, each creature in a 10-foot Emanation originating from the magmin.</p><p><em>Failure: </em>7 (2d6) Fire damage.</p><p><em>Success:</em> Half damage.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmDeathBurst0000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "\"save\" is passive or triggered: not automated"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmTouch000000000",
+      "_key": "!actors.items!mmMagmin00000000.mmTouch000000000",
+      "name": "Touch",
+      "type": "action",
+      "img": "icons/magic/fire/flame-burning-hand-white.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Melee Attack Roll: +4, reach 5 ft. Hit: 7 (2d4 + 2) Fire damage. If the target is a creature or a flammable object that isn't being worn or carried, it starts burning.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-touch",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "agility"
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 4
+              },
+              "damageType": "fire",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Touch"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmTouch000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmIgnitedIllumin",
+      "_key": "!actors.items!mmMagmin00000000.mmIgnitedIllumin",
+      "name": "Ignited Illumination",
+      "type": "action",
+      "img": "icons/magic/fire/explosion-embers-evade-silhouette.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The magmin sets itself ablaze or extinguishes its flames. While ablaze, the magmin sheds Bright Light in a 10-foot radius and Dim Light for an additional 10 feet.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-ignited-illumination-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Ignited Illumination"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmIgnitedIllumin",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmMagmin0000trts",
+      "_key": "!actors.items!mmMagmin00000000.mmMagmin0000trts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "immunities",
+            "type": "GrantImmunity",
+            "data": {
+              "damageTypes": [
+                "fire"
+              ]
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmMagmin00000000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 0.5
+      },
+      "conversion": {
+        "notes": [
+          "Death Burst: \"save\" is passive or triggered: not automated",
+          "Ignited Illumination: not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,155 @@
+{
+  "_id": "mmScorpion000000",
+  "_key": "!actors!mmScorpion000000",
+  "name": "Scorpion",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 2
+      },
+      "agility": {
+        "value": 11
+      },
+      "fortitude": {
+        "value": 8
+      },
+      "intellect": {
+        "value": 1
+      },
+      "wits": {
+        "value": 8
+      },
+      "presence": {
+        "value": 2
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 11
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 1,
+        "value": 1
+      },
+      "movement": {
+        "base": 10,
+        "value": 10
+      }
+    },
+    "details": {
+      "threat": 0
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Scorpion",
+    "width": 0.5,
+    "height": 0.5,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmSting000000000",
+      "_key": "!actors.items!mmScorpion000000.mmSting000000000",
+      "name": "Sting",
+      "type": "action",
+      "img": "icons/creatures/abilities/stinger-poison-green.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +2, reach 5 ft. Hit: 1 Piercing plus 3 (1d6) Poison damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-sting",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "agility"
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "constant",
+                "value": 1
+              },
+              "damageType": "piercing",
+              "provenance": "weapon-base"
+            },
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 6
+              },
+              "damageType": "poison",
+              "provenance": "additional"
+            }
+          ],
+          "label": "Sting"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSting000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmScorpion000000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 0
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

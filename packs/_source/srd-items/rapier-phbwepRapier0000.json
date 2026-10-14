@@ -1,0 +1,74 @@
+{
+  "_id": "phbwepRapier0000",
+  "_key": "!items!phbwepRapier0000",
+  "name": "Rapier",
+  "type": "action",
+  "img": "icons/weapons/swords/sword-guard-bronze.webp",
+  "system": {
+    "active": true,
+    "description": "",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-rapier",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "attack": {
+        "type": "melee",
+        "statistic": "weapon",
+        "defenseKey": "ac",
+        "proficient": true,
+        "properties": [
+          "finesse"
+        ]
+      },
+      "range": {
+        "type": "reach",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "damage": [
+        {
+          "id": "base",
+          "expression": {
+            "type": "dice",
+            "number": 1,
+            "faces": 8
+          },
+          "damageType": "piercing",
+          "provenance": "weapon-base"
+        }
+      ],
+      "label": "Rapier"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbwepRapier0000",
+        "type": "weapon",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

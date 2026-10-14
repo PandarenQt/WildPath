@@ -1,0 +1,28 @@
+{
+  "_id": "phbsptHalflingNi",
+  "_key": "!items!phbsptHalflingNi",
+  "name": "Halfling Nimbleness",
+  "type": "feature",
+  "img": "icons/skills/movement/figure-running-gray.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You can move through the space of any creature that is a size larger than you, but you can't stop in the same space.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "origins24",
+        "id": "phbsptHalflingNi",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

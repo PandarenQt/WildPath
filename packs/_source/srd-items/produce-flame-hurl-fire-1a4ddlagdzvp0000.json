@@ -1,0 +1,76 @@
+{
+  "_id": "1a4ddlagdzvp0000",
+  "_key": "!items!1a4ddlagdzvp0000",
+  "name": "Produce Flame (Hurl Fire)",
+  "type": "action",
+  "img": "icons/magic/light/hand-sparks-glow-yellow.webp",
+  "system": {
+    "active": true,
+    "description": "<p>A flickering flame appears in your hand and remains there for the duration. While there, the flame emits no heat and ignites nothing, and it sheds Bright Light in a 20-foot radius and Dim Light for an additional 20 feet. The spell ends if you cast it again.</p><p>Until the spell ends, you can take a Magic action to hurl fire at a creature or an object within 60 feet of you. Make a ranged spell attack. On a hit, the target takes 1d8 Fire damage.</p><p><strong>Cantrip Upgrade.</strong> The damage increases by 1d8 when you reach levels 5 (2d8), 11 (3d8), and 17 (4d8).</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-produce-flame-hurl-fire",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "attack": {
+        "type": "ranged",
+        "statistic": "spell",
+        "defenseKey": "ac",
+        "proficient": true
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "dice",
+            "number": 1,
+            "faces": 8
+          },
+          "damageType": "fire",
+          "provenance": "spell-base"
+        }
+      ],
+      "label": "Produce Flame (Hurl Fire)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbsplProduceFla",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "damage 1: cantrip damage growing with character level not converted"
+        ]
+      }
+    }
+  }
+}

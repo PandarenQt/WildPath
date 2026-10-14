@@ -1,0 +1,30 @@
+{
+  "_id": "phbrgeSneakAttac",
+  "_key": "!items!phbrgeSneakAttac",
+  "name": "Sneak Attack",
+  "type": "feature",
+  "img": "icons/skills/melee/strike-dagger-white-orange.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You know how to strike subtly and exploit a foe's distraction. Once per turn, you can deal an extra 1d6 damage to one creature you hit with an attack roll if you have Advantage on the roll and the attack uses a Finesse or a Ranged weapon. The extra damage's type is the same as the weapon's type.</p><p>You don't need Advantage on the attack roll if at least one of your allies is within 5 feet of the target, the ally doesn't have the Incapacitated condition, and you don't have Disadvantage on the attack roll.</p><p>The extra damage increases as you gain Rogue levels, as shown in the Sneak Attack column of the Rogue Features table.</p><p><strong>Current Sneak Attack Damage:</strong> (by class level)</p><section class=\"secret\" id=\"secret-ulLpai4CguAExpmN\"><p><strong>Foundry Note</strong></p><p>Your sneak attack damage will automatically scale as you level up. You can select the damage type in the damage roll's dialog box.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbrgeSneakAttac",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"damage\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

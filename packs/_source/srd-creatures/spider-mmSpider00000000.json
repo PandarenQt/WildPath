@@ -1,0 +1,231 @@
+{
+  "_id": "mmSpider00000000",
+  "_key": "!actors!mmSpider00000000",
+  "name": "Spider",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 2
+      },
+      "agility": {
+        "value": 14
+      },
+      "fortitude": {
+        "value": 8
+      },
+      "intellect": {
+        "value": 1
+      },
+      "wits": {
+        "value": 10
+      },
+      "presence": {
+        "value": 2
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 12
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 1,
+        "value": 1
+      },
+      "movement": {
+        "base": 20,
+        "value": 20
+      }
+    },
+    "details": {
+      "threat": 0
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Spider",
+    "width": 0.5,
+    "height": 0.5,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmSpiderClimb000",
+      "_key": "!actors.items!mmSpider00000000.mmSpiderClimb000",
+      "name": "Spider Climb",
+      "type": "feature",
+      "img": "icons/creatures/invertebrates/spider-pink-purple.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The spider can climb difficult surfaces, including along ceilings, without needing to make an ability check.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSpiderClimb000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmWebWalker00000",
+      "_key": "!actors.items!mmSpider00000000.mmWebWalker00000",
+      "name": "Web Walker",
+      "type": "feature",
+      "img": "icons/creatures/webs/web-spider-glowing-purple.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The spider ignores movement restrictions caused by webs, and the spider knows the location of any other creature in contact with the same web.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmWebWalker00000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmBite0000000000",
+      "_key": "!actors.items!mmSpider00000000.mmBite0000000000",
+      "name": "Bite",
+      "type": "action",
+      "img": "icons/creatures/abilities/fangs-teeth-bite.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +4, reach 5 ft. Hit: 2 (1d4) Poison damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-bite",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "agility"
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 4
+              },
+              "damageType": "poison",
+              "provenance": "additional"
+            }
+          ],
+          "label": "Bite"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmBite0000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmSpider0000trts",
+      "_key": "!actors.items!mmSpider00000000.mmSpider0000trts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "speed-climb",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "climb",
+              "distance": 20
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmSpider00000000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 0
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

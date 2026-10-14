@@ -1,0 +1,439 @@
+{
+  "_id": "mmGoblinWarrior0",
+  "_key": "!actors!mmGoblinWarrior0",
+  "name": "Goblin Warrior",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 8
+      },
+      "agility": {
+        "value": 15
+      },
+      "fortitude": {
+        "value": 10
+      },
+      "intellect": {
+        "value": 10
+      },
+      "wits": {
+        "value": 8
+      },
+      "presence": {
+        "value": 8
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 15
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 10,
+        "value": 10
+      },
+      "movement": {
+        "base": 30,
+        "value": 30
+      }
+    },
+    "details": {
+      "threat": 0
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Goblin Warrior",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "9RULzqhnPi3lqw1u",
+      "_key": "!actors.items!mmGoblinWarrior0.9RULzqhnPi3lqw1u",
+      "name": "Scimitar (attack)",
+      "type": "action",
+      "img": "icons/weapons/swords/scimitar-worn-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +4, reach 5 ft. Hit: 5 (1d6 + 2) Slashing damage, plus 5 (1d6 + 2) Slashing damage if the attack roll had Advantage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-scimitar",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "properties": [
+              "finesse"
+            ]
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 6
+              },
+              "damageType": "slashing",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Scimitar (attack)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "9RULzqhnPi3lqw1u",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "11itw3j16wxte700",
+      "_key": "!actors.items!mmGoblinWarrior0.11itw3j16wxte700",
+      "name": "Scimitar (Attack with Advantage)",
+      "type": "action",
+      "img": "icons/weapons/swords/scimitar-worn-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +4, reach 5 ft. Hit: 5 (1d6 + 2) Slashing damage, plus 5 (1d6 + 2) Slashing damage if the attack roll had Advantage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-scimitar-attack-with-advantage",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "properties": [
+              "finesse"
+            ]
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 6
+              },
+              "damageType": "slashing",
+              "provenance": "weapon-base"
+            },
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 4
+              },
+              "damageType": "slashing",
+              "provenance": "additional"
+            }
+          ],
+          "label": "Scimitar (Attack with Advantage)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "9RULzqhnPi3lqw1u",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "wKUi0YkXW5KapyxP",
+      "_key": "!actors.items!mmGoblinWarrior0.wKUi0YkXW5KapyxP",
+      "name": "Shortbow (attack)",
+      "type": "action",
+      "img": "icons/weapons/bows/shortbow-leather.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Ranged Attack Roll: +4, range 80/320 ft. Hit: 5 (1d6 + 2) Piercing damage, plus 5 (1d6 + 2) Piercing damage if the attack roll had Advantage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-shortbow",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "ranged",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 80,
+              "unit": "ft"
+            },
+            "long": {
+              "value": 320,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 6
+              },
+              "damageType": "piercing",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Shortbow (attack)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "wKUi0YkXW5KapyxP",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "lbydlbecfsmn0000",
+      "_key": "!actors.items!mmGoblinWarrior0.lbydlbecfsmn0000",
+      "name": "Shortbow (Attack with Advantage)",
+      "type": "action",
+      "img": "icons/weapons/bows/shortbow-leather.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Ranged Attack Roll: +4, range 80/320 ft. Hit: 5 (1d6 + 2) Piercing damage, plus 5 (1d6 + 2) Piercing damage if the attack roll had Advantage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-shortbow-attack-with-advantage",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "ranged",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 80,
+              "unit": "ft"
+            },
+            "long": {
+              "value": 320,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 6
+              },
+              "damageType": "piercing",
+              "provenance": "weapon-base"
+            },
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 4
+              },
+              "damageType": "piercing",
+              "provenance": "additional"
+            }
+          ],
+          "label": "Shortbow (Attack with Advantage)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "wKUi0YkXW5KapyxP",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmNimbleEscape00",
+      "_key": "!actors.items!mmGoblinWarrior0.mmNimbleEscape00",
+      "name": "Nimble Escape",
+      "type": "action",
+      "img": "icons/skills/movement/ball-spinning-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The goblin warrior takes the Disengage or Hide action.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-nimble-escape-expend-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Nimble Escape"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmNimbleEscape00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "effect: hiding is not a WildPath condition yet"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmGoblinWarrior0",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 0.25
+      },
+      "conversion": {
+        "notes": [
+          "Nimble Escape: not automated (utility): using it spends its cost; its description says the rest",
+          "Nimble Escape: effect: hiding is not a WildPath condition yet"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "_id": "phbrgeStrokeOfLu",
+  "_key": "!items!phbrgeStrokeOfLu",
+  "name": "Stroke of Luck",
+  "type": "feature",
+  "img": "icons/commodities/flowers/clover.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You have a marvelous knack for succeeding when you need to. If you fail a D20 Test, you can turn the roll into a 20.</p><p>Once you use this feature, you can't use it again until you finish a Short or Long Rest.</p>",
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "stroke-of-luck-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "stroke-of-luck",
+          "label": "Stroke of Luck",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "shortRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbrgeStrokeOfLu",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Stroke of Luck\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

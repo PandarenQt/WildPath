@@ -1,0 +1,30 @@
+{
+  "_id": "phbBoonofSpellRe",
+  "_key": "!items!phbBoonofSpellRe",
+  "name": "Boon of Spell Recall",
+  "type": "feature",
+  "img": "icons/sundries/gaming/dice-runed-brown.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You gain the following benefits.</p><p><strong>Ability Score Increase.</strong> Increase your Intelligence, Wisdom, or Charisma score by 1, to a maximum of 30.</p><p><strong>Free Casting.</strong> Whenever you cast a spell with a level 1–4 spell slot, roll 1d4. If the number you roll is the same as the slot's level, the slot isn't expended.</p><section class=\"secret\" id=\"secret-KMAFFZCOzi6Cuemh\"><p><strong>Foundry Note</strong></p><p>If the number is the same, uncheck the Consumption option when using the spell.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "feats24",
+        "id": "phbBoonofSpellRe",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Free Cast Roll\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

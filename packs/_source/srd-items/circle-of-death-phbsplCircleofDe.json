@@ -1,0 +1,153 @@
+{
+  "_id": "phbsplCircleofDe",
+  "_key": "!items!phbsplCircleofDe",
+  "name": "Circle of Death",
+  "type": "action",
+  "img": "icons/magic/death/skull-horned-goat-pentagram-red.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Negative energy ripples out in a 60-foot-radius Sphere from a point you choose within range. Each creature in that area makes a Constitution saving throw, taking 8d8 Necrotic damage on a failed save or half as much damage on a successful one.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The damage increases by 2d8 for each spell slot level above 6.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-circle-of-death",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 150,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "radial",
+        "size": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "save": {
+        "ability": "fortitude",
+        "dc": {
+          "valueExpression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 8
+              },
+              {
+                "type": "proficiency-bonus"
+              },
+              {
+                "type": "spellcasting-modifier"
+              }
+            ]
+          }
+        }
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "dice",
+            "number": 8,
+            "faces": 8
+          },
+          "damageType": "necrotic",
+          "provenance": "spell-base",
+          "saveOutcomePolicy": {
+            "success": "half",
+            "failure": "full"
+          }
+        }
+      ],
+      "configuration": [
+        {
+          "id": "spell-slot",
+          "type": "resource",
+          "label": "Spell slot",
+          "required": true,
+          "cost": {
+            "anyOf": [
+              [
+                {
+                  "capability": "spell-slot.6",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.7",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.8",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.9",
+                  "amount": 1
+                }
+              ]
+            ]
+          },
+          "levelByResourceId": {
+            "spell-slot.6": 6,
+            "spell-slot.7": 7,
+            "spell-slot.8": 8,
+            "spell-slot.9": 9
+          },
+          "effects": [
+            {
+              "type": "scaleDamage",
+              "levelChoiceId": "spell-slot",
+              "baseLevel": 6,
+              "componentIds": [
+                "damage-1"
+              ],
+              "dice": {
+                "number": 2,
+                "faces": 8
+              }
+            }
+          ]
+        }
+      ],
+      "label": "Circle of Death"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbsplCircleofDe",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

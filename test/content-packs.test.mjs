@@ -41,7 +41,7 @@ test("the Foundry CLI compiles the sources into a LevelDB pack that reads back u
   assert.deepEqual(byId(read), byId(sources("actions")));
 });
 
-test("the SRD 5.2 packs hold only CC-BY-4.0 content, mechanics without prose, as valid WildPath Documents", () => {
+test("the SRD 5.2 packs hold only CC-BY-4.0 content as valid WildPath Documents with unique ids", () => {
   const licensed = document => assert.deepEqual([document.flags.wildpath.source.license, document.flags.wildpath.source.book],
     ["CC-BY-4.0", "SRD 5.2"], document.name);
   const items = sources("srd-items");
@@ -50,10 +50,11 @@ test("the SRD 5.2 packs hold only CC-BY-4.0 content, mechanics without prose, as
     assert.match(item._id, /^[a-zA-Z0-9]{16}$/, item.name);
     assert.equal(item._key, `!items!${item._id}`, item.name);
     licensed(item);
-    assert.equal(item.system.description, "", `${item.name} carries no rules prose (AGENTS §22)`);
+    if ( item.type !== "action" ) continue;
     const validation = validateActionDefinition(item.system.definition);
     assert.equal(validation.ok, true, `${item.name}: ${JSON.stringify(validation.errors)}`);
   }
+  assert.equal(new Set(items.map(item => item._id)).size, items.length, "unique Item ids");
   for ( const actor of sources("srd-creatures") ) {
     assert.equal(actor._key, `!actors!${actor._id}`, actor.name);
     assert.equal(actor.type, "npc", actor.name);

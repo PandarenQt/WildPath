@@ -1,0 +1,28 @@
+{
+  "_id": "phbftrThreeExtra",
+  "_key": "!items!phbftrThreeExtra",
+  "name": "Three Extra Attacks",
+  "type": "feature",
+  "img": "icons/skills/melee/strikes-sword-scimitar.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You can attack four times instead of once whenever you take the Attack action on your turn.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbftrThreeExtra",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

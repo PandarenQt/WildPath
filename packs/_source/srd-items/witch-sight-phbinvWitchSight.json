@@ -1,0 +1,28 @@
+{
+  "_id": "phbinvWitchSight",
+  "_key": "!items!phbinvWitchSight",
+  "name": "Witch Sight",
+  "type": "feature",
+  "img": "icons/magic/perception/eye-tendrils-web-purple.webp",
+  "system": {
+    "active": true,
+    "description": "<blockquote><p>Prerequisite: Level 15+ Warlock</p></blockquote><p>You have Truesight with a range of 30 feet.</p><section id=\"secret-yUE0N1X1QX3kZHcx\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect which automatically grants you Truesight.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbinvWitchSight",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

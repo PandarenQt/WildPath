@@ -1,0 +1,30 @@
+{
+  "_id": "phbmmoSubtleSpel",
+  "_key": "!items!phbmmoSubtleSpel",
+  "name": "Subtle Spell",
+  "type": "feature",
+  "img": "icons/creatures/slimes/slime-movement-swirling-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<blockquote><p>Cost: 1 Sorcery Point</p></blockquote><p>When you cast a spell, you can spend 1 Sorcery Point to cast it without any Verbal, Somatic, or Material components, except Material components that are consumed by the spell or that have a cost specified in the spell.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbmmoSubtleSpel",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Subtle Spell\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "_id": "phbscrMetamagic0",
+  "_key": "!items!phbscrMetamagic0",
+  "name": "Metamagic",
+  "type": "feature",
+  "img": "icons/magic/unholy/orb-colllecting-energy-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Because your magic flows from within, you can alter your spells to suit your needs; you gain two Metamagic options of your choice from \"Metamagic Options\". You use the chosen options to temporarily modify spells you cast. To use an option, you must spend the number of Sorcery Points that it costs.</p><p>You can use only one Metamagic option on a spell when you cast it unless otherwise noted in one of those options.</p><p>Whenever you gain a Sorcerer level, you can replace one of your Metamagic options with one you don't know. You gain two more options at Sorcerer level 10 and two more at Sorcerer level 17.</p><section id=\"secret-IKw7Qq4qXvzx5Iqj\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>You will be prompted to choose Metamagic options as you level up.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbscrMetamagic0",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

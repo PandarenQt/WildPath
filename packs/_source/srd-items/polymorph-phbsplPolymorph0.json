@@ -1,0 +1,104 @@
+{
+  "_id": "phbsplPolymorph0",
+  "_key": "!items!phbsplPolymorph0",
+  "name": "Polymorph",
+  "type": "action",
+  "img": "icons/creatures/amphibians/frog-confused-green-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You attempt to transform a creature that you can see within range into a Beast. The target must succeed on a Wisdom saving throw or shape-shift into a Beast form for the duration. That form can be any Beast you choose that has a Challenge Rating equal to or less than the target's (or the target's level if it doesn't have a Challenge Rating). The target's game statistics are replaced by the stat block of the chosen Beast, but the target retains its alignment, personality, creature type, Hit Points, and Hit Point Dice. See appendix B for a sample of Beast stat blocks.</p><p>The target gains a number of Temporary Hit Points equal to the Hit Points of the Beast form. These Temporary Hit Points vanish if any remain when the spell ends. The spell ends early on the target if it has no Temporary Hit Points left.</p><p>The target is limited in the actions it can perform by the anatomy of its new form, and it can't speak or cast spells.</p><p>The target's gear melds into the new form. The creature can't use or otherwise benefit from any of that equipment.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-polymorph",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "configuration": [
+        {
+          "id": "spell-slot",
+          "type": "resource",
+          "label": "Spell slot",
+          "required": true,
+          "cost": {
+            "anyOf": [
+              [
+                {
+                  "capability": "spell-slot.4",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.5",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.6",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.7",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.8",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.9",
+                  "amount": 1
+                }
+              ]
+            ]
+          },
+          "levelByResourceId": {
+            "spell-slot.4": 4,
+            "spell-slot.5": 5,
+            "spell-slot.6": 6,
+            "spell-slot.7": 7,
+            "spell-slot.8": 8,
+            "spell-slot.9": 9
+          },
+          "effects": []
+        }
+      ],
+      "label": "Polymorph"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbsplPolymorph0",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (save): using it spends its cost; its description says the rest",
+          "concentration: nothing it sustains was converted"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,87 @@
+{
+  "_id": "phbsplFindthePat",
+  "_key": "!items!phbsplFindthePat",
+  "name": "Find the Path",
+  "type": "action",
+  "img": "icons/tools/navigation/spyglass-telescope-brass-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You magically sense the most direct physical route to a location you name. You must be familiar with the location, and the spell fails if you name a destination on another plane of existence, a moving destination (such as a mobile fortress), or an unspecific destination (such as \"a green dragon's lair\").</p><p>For the duration, as long as you are on the same plane of existence as the destination, you know how far it is and in what direction it lies. Whenever you face a choice of paths along the way there, you know which path is the most direct.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-find-the-path",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": []
+      },
+      "configuration": [
+        {
+          "id": "spell-slot",
+          "type": "resource",
+          "label": "Spell slot",
+          "required": true,
+          "cost": {
+            "anyOf": [
+              [
+                {
+                  "capability": "spell-slot.6",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.7",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.8",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.9",
+                  "amount": 1
+                }
+              ]
+            ]
+          },
+          "levelByResourceId": {
+            "spell-slot.6": 6,
+            "spell-slot.7": 7,
+            "spell-slot.8": 8,
+            "spell-slot.9": 9
+          },
+          "effects": []
+        }
+      ],
+      "label": "Find the Path"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbsplFindthePat",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "activation: 1 minute is not an action-economy cost",
+          "concentration: nothing it sustains was converted",
+          "activation: 1 minute is not an action-economy cost"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,101 @@
+{
+  "_id": "phbsplSequester0",
+  "_key": "!items!phbsplSequester0",
+  "name": "Sequester",
+  "type": "action",
+  "img": "icons/containers/chest/chest-reinforced-box-brown.webp",
+  "system": {
+    "active": true,
+    "description": "<p>With a touch, you magically sequester an object or a willing creature. For the duration, the target has the Invisible condition and can't be targeted by Divination spells, detected by magic, or viewed remotely with magic.</p><p>If the target is a creature, it enters a state of suspended animation; it has the Unconscious condition, doesn't age, and doesn't need food, water, or air.</p><p>You can set a condition for the spell to end early. The condition can be anything you choose, but it must occur or be visible within 1 mile of the target. Examples include \"after 1,000 years\" or \"when the tarrasque awakens.\" This spell also ends if the target takes any damage.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-sequester",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "touch",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "unconscious"
+        }
+      ],
+      "configuration": [
+        {
+          "id": "spell-slot",
+          "type": "resource",
+          "label": "Spell slot",
+          "required": true,
+          "cost": {
+            "anyOf": [
+              [
+                {
+                  "capability": "spell-slot.7",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.8",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.9",
+                  "amount": 1
+                }
+              ]
+            ]
+          },
+          "levelByResourceId": {
+            "spell-slot.7": 7,
+            "spell-slot.8": 8,
+            "spell-slot.9": 9
+          },
+          "effects": []
+        }
+      ],
+      "label": "Sequester"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbsplSequester0",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "effect: invisible is not a WildPath condition yet"
+        ]
+      }
+    }
+  }
+}

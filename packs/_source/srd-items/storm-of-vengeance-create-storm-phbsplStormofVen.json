@@ -1,0 +1,111 @@
+{
+  "_id": "phbsplStormofVen",
+  "_key": "!items!phbsplStormofVen",
+  "name": "Storm of Vengeance (Create Storm)",
+  "type": "action",
+  "img": "icons/magic/lightning/bolt-cloud-sky-white.webp",
+  "system": {
+    "active": true,
+    "description": "<p>A churning storm cloud forms for the duration, centered on a point within range and spreading to a radius of 300 feet. Each creature under the cloud when it appears must succeed on a Constitution saving throw or take 2d6 Thunder damage and have the Deafened condition for the duration.</p><p>At the start of each of your later turns, the storm produces different effects, as detailed below.</p><p><strong>Turn 2.</strong> Acidic rain falls. Each creature and object under the cloud takes 4d6 Acid damage.</p><p><strong>Turn 3.</strong> You call six bolts of lightning from the cloud to strike six different creatures or objects beneath it. Each target makes a Dexterity saving throw, taking 10d6 Lightning damage on a failed save or half as much damage on a successful one.</p><p><strong>Turn 4.</strong> Hailstones rain down. Each creature under the cloud takes 2d6 Bludgeoning damage.</p><p><strong>Turns 5–10.</strong> Gusts and freezing rain assail the area under the cloud. Each creature there takes 1d6 Cold damage. Until the spell ends, the area is DifficultTerrain and HeavilyObscured, ranged attacks with weapons are impossible there, and strong wind blows through the area.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-storm-of-vengeance-create-storm",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "targeting": {
+        "type": "multiple",
+        "required": true,
+        "count": 20
+      },
+      "save": {
+        "ability": "fortitude",
+        "dc": {
+          "valueExpression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 8
+              },
+              {
+                "type": "proficiency-bonus"
+              },
+              {
+                "type": "spellcasting-modifier"
+              }
+            ]
+          }
+        }
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "dice",
+            "number": 2,
+            "faces": 6
+          },
+          "damageType": "thunder",
+          "provenance": "spell-base",
+          "saveOutcomePolicy": {
+            "success": "none",
+            "failure": "full"
+          }
+        }
+      ],
+      "configuration": [
+        {
+          "id": "spell-slot",
+          "type": "resource",
+          "label": "Spell slot",
+          "required": true,
+          "cost": {
+            "anyOf": [
+              [
+                {
+                  "capability": "spell-slot.9",
+                  "amount": 1
+                }
+              ]
+            ]
+          },
+          "levelByResourceId": {
+            "spell-slot.9": 9
+          },
+          "effects": []
+        }
+      ],
+      "label": "Storm of Vengeance (Create Storm)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbsplStormofVen",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "area: 300-ft circle is not supported; the user picks the targets",
+          "effect: deafened is not a WildPath condition yet",
+          "concentration: nothing it sustains was converted"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "_id": "phbmmoCarefulSpe",
+  "_key": "!items!phbmmoCarefulSpe",
+  "name": "Careful Spell",
+  "type": "feature",
+  "img": "icons/magic/nature/beam-hand-leaves-green.webp",
+  "system": {
+    "active": true,
+    "description": "<blockquote><p>Cost: 1 Sorcery Point</p></blockquote><p>When you cast a spell that forces other creatures to make a saving throw, you can protect some of those creatures from the spell's full force. To do so, spend 1 Sorcery Point and choose a number of those creatures up to your Charisma modifier (minimum of one creature). A chosen creature automatically succeeds on its saving throw against the spell, and it takes no damage if it would normally take half damage on a successful save.</p><p><strong>Creatures You Can Protect:</strong> </p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbmmoCarefulSpe",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Careful Spell\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

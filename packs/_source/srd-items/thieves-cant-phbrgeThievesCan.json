@@ -1,0 +1,28 @@
+{
+  "_id": "phbrgeThievesCan",
+  "_key": "!items!phbrgeThievesCan",
+  "name": "Thieves' Cant",
+  "type": "feature",
+  "img": "icons/sundries/documents/document-symbol-eye.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You picked up various languages in the communities where you plied your roguish talents. You know Thieves' Cant and one other language of your choice, which you choose from the language tables in Character Creation.</p><section class=\"secret\" id=\"secret-xG1Y223QZRsrOTCZ\"><p><strong>Foundry Note</strong></p><p>Thieves' Cant will be added to your sheet automatically and you will be prompted to choose the additional language.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbrgeThievesCan",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

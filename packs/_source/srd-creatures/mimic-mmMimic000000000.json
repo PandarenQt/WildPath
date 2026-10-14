@@ -1,0 +1,443 @@
+{
+  "_id": "mmMimic000000000",
+  "_key": "!actors!mmMimic000000000",
+  "name": "Mimic",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 17
+      },
+      "agility": {
+        "value": 12
+      },
+      "fortitude": {
+        "value": 15
+      },
+      "intellect": {
+        "value": 5
+      },
+      "wits": {
+        "value": 13
+      },
+      "presence": {
+        "value": 8
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 12
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 58,
+        "value": 58
+      },
+      "movement": {
+        "base": 20,
+        "value": 20
+      }
+    },
+    "details": {
+      "threat": 2
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Mimic",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmAdhesive000000",
+      "_key": "!actors.items!mmMimic000000000.mmAdhesive000000",
+      "name": "Adhesive (Object Form Only) (Expend Use)",
+      "type": "action",
+      "img": "icons/creatures/slimes/slime-movement-pseudopods-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The mimic adheres to anything that touches it. A Huge or smaller creature adhered to the mimic has the Grappled condition (escape DC ). Ability checks made to escape this grapple have Disadvantage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-adhesive-object-form-only-expend-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Adhesive (Object Form Only) (Expend Use)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmAdhesive000000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "effect: grappled is not a WildPath condition yet"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmBite0000000000",
+      "_key": "!actors.items!mmMimic000000000.mmBite0000000000",
+      "name": "Bite (attack)",
+      "type": "action",
+      "img": "icons/creatures/abilities/fangs-teeth-bite.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\"><em>Melee Attack Roll:</em> Melee Attack Roll: +5, reach 5 ft (with Advantage if the target is Grappled by the mimic), reach 5 ft. <em>Hit:</em> 7 (1d8 + 3) Piercing damage—or 12 (2d8 + 3) Piercing plus 2 (1d4) Acid damage if the target is Grappled by the mimic.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-bite",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 8
+              },
+              "damageType": "piercing",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Bite (attack)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmBite0000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "2yhunondknwq0000",
+      "_key": "!actors.items!mmMimic000000000.2yhunondknwq0000",
+      "name": "Bite (Attacked if Grappling)",
+      "type": "action",
+      "img": "icons/creatures/abilities/fangs-teeth-bite.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\"><em>Melee Attack Roll:</em> Melee Attack Roll: +5, reach 5 ft (with Advantage if the target is Grappled by the mimic), reach 5 ft. <em>Hit:</em> 7 (1d8 + 3) Piercing damage—or 12 (2d8 + 3) Piercing plus 2 (1d4) Acid damage if the target is Grappled by the mimic.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-bite-attacked-if-grappling",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "might"
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "dice",
+                    "number": 2,
+                    "faces": 8
+                  },
+                  {
+                    "type": "spellcasting-modifier"
+                  }
+                ]
+              },
+              "damageType": "piercing",
+              "provenance": "additional"
+            },
+            {
+              "id": "damage-2",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 4
+              },
+              "damageType": "acid",
+              "provenance": "additional"
+            }
+          ],
+          "label": "Bite (Attacked if Grappling)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmBite0000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmPseudopod00000",
+      "_key": "!actors.items!mmMimic000000000.mmPseudopod00000",
+      "name": "Pseudopod (attack)",
+      "type": "action",
+      "img": "icons/creatures/slimes/slime-movement-pseudopods-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Melee Attack Roll: +5, reach 30 ft. Hit: 7 (1d8 + 3) Bludgeoning plus 2 (1d4) Acid damage. If the target is a Large or smaller creature, it has the Grappled condition (escape DC ). Ability checks made to escape this grapple have Disadvantage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-pseudopod",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 8
+              },
+              "damageType": "bludgeoning",
+              "provenance": "weapon-base"
+            },
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 4
+              },
+              "damageType": "acid",
+              "provenance": "additional"
+            }
+          ],
+          "label": "Pseudopod (attack)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmPseudopod00000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "effect: grappled is not a WildPath condition yet"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmShapeshift0000",
+      "_key": "!actors.items!mmMimic000000000.mmShapeshift0000",
+      "name": "Shape-Shift",
+      "type": "action",
+      "img": "icons/magic/control/silhouette-grow-shrink-tan.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The mimic shape-shifts to resemble a Medium or Small object while retaining its game statistics, or it returns to its true blob form. Any equipment it is wearing or carrying isn't transformed.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-shape-shift-expend-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Shape-Shift"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmShapeshift0000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmMimic00000trts",
+      "_key": "!actors.items!mmMimic000000000.mmMimic00000trts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "immunities",
+            "type": "GrantImmunity",
+            "data": {
+              "damageTypes": [
+                "acid"
+              ]
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmMimic000000000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 2
+      },
+      "conversion": {
+        "notes": [
+          "Adhesive (Object Form Only): not automated (utility): using it spends its cost; its description says the rest",
+          "Adhesive (Object Form Only): effect: grappled is not a WildPath condition yet",
+          "Adhesive (Object Form Only): \"Escape Check\" is passive or triggered: not automated",
+          "Pseudopod: effect: grappled is not a WildPath condition yet",
+          "Pseudopod: \"Escape Check\" is passive or triggered: not automated",
+          "Shape-Shift: not automated (utility): using it spends its cost; its description says the rest",
+          "condition immunities (prone) not converted"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,153 @@
+{
+  "_id": "phbhaoAnimatedOb",
+  "_key": "!actors!phbhaoAnimatedOb",
+  "name": "Huge Animated Object",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 16
+      },
+      "agility": {
+        "value": 10
+      },
+      "fortitude": {
+        "value": 10
+      },
+      "intellect": {
+        "value": 3
+      },
+      "wits": {
+        "value": 3
+      },
+      "presence": {
+        "value": 1
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 15
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 40,
+        "value": 40
+      },
+      "movement": {
+        "base": 30,
+        "value": 30
+      }
+    },
+    "details": {
+      "threat": 0
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Huge Animated Object",
+    "width": 3,
+    "height": 3,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "phbaoiSlam000000",
+      "_key": "!actors.items!phbhaoAnimatedOb.phbaoiSlam000000",
+      "name": "Slam",
+      "type": "action",
+      "img": "icons/skills/melee/unarmed-punch-fist-yellow-red.webp",
+      "system": {
+        "active": true,
+        "description": "<p><em>Melee Attack Roll:</em> Bonus equals your spell attack modifier, reach 5 ft. <em>Hit:</em> Force damage equal to 2d12 + 3 + your spellcasting ability modifier.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-slam",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Slam"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbaoiSlam000000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (attack): using it spends its cost; its description says the rest",
+              "damage 1: custom formula \"(@flags.dnd5e.summon.level - 3)d12 + @mod + @flags.dnd5e.summon.mod\" not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "phbhaoAnimattrts",
+      "_key": "!actors.items!phbhaoAnimatedOb.phbhaoAnimattrts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "immunities",
+            "type": "GrantImmunity",
+            "data": {
+              "damageTypes": [
+                "poison",
+                "psychic"
+              ]
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "phbhaoAnimatedOb",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 0
+      },
+      "conversion": {
+        "notes": [
+          "Slam: not automated (attack): using it spends its cost; its description says the rest",
+          "Slam: damage 1: custom formula \"(@flags.dnd5e.summon.level - 3)d12 + @mod + @flags.dnd5e.summon.mod\" not converted",
+          "condition immunities (charmed, exhaustion, frightened, paralyzed, poisoned) not converted"
+        ]
+      }
+    }
+  }
+}

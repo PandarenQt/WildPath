@@ -1,0 +1,61 @@
+{
+  "_id": "phbsptCloudsJaun",
+  "_key": "!items!phbsptCloudsJaun",
+  "name": "Cloud's Jaunt",
+  "type": "action",
+  "img": "icons/magic/air/weather-clouds.webp",
+  "system": {
+    "active": true,
+    "description": "<p>As a Bonus Action, you magically teleport up to 30 feet to an unoccupied space you can see.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-cloud-s-jaunt-cloud-s-jaunt",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          },
+          {
+            "capability": "cloud-s-jaunt",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Cloud's Jaunt"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "cloud-s-jaunt-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "cloud-s-jaunt",
+          "label": "Cloud's Jaunt",
+          "maximum": {
+            "type": "proficiency-bonus"
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "origins24",
+        "id": "phbsptCloudsJaun",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

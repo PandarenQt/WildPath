@@ -1,0 +1,28 @@
+{
+  "_id": "phbFuryPotentSpe",
+  "_key": "!items!phbFuryPotentSpe",
+  "name": "Elemental Fury: Potent Spellcasting",
+  "type": "feature",
+  "img": "icons/magic/nature/leaf-rune-glow-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Add your Wisdom modifier to the damage you deal with any Druid cantrip (currently, ).</p><section class=\"secret\" id=\"secret-kC2Lr5eZe550Tams\"><p><strong>Foundry Note</strong></p><p>This feature does not automate the addition of the Wisdom modifier to Druid cantrips.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbFuryPotentSpe",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

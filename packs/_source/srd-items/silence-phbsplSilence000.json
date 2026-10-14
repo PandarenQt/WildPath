@@ -1,0 +1,118 @@
+{
+  "_id": "phbsplSilence000",
+  "_key": "!items!phbsplSilence000",
+  "name": "Silence",
+  "type": "action",
+  "img": "icons/magic/control/debuff-chains-orb-movement-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p>For the duration, no sound can be created within or pass through a 20-foot-radius Sphere centered on a point you choose within range. Any creature or object entirely inside the Sphere has Immunity to Thunder damage, and creatures have the Deafened condition while entirely inside it. Casting a spell that includes a Verbal component is impossible there.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-silence-cast",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "configuration": [
+        {
+          "id": "spell-slot",
+          "type": "resource",
+          "label": "Spell slot",
+          "required": true,
+          "cost": {
+            "anyOf": [
+              [
+                {
+                  "capability": "spell-slot.2",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.3",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.4",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.5",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.6",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.7",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.8",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.9",
+                  "amount": 1
+                }
+              ]
+            ]
+          },
+          "levelByResourceId": {
+            "spell-slot.2": 2,
+            "spell-slot.3": 3,
+            "spell-slot.4": 4,
+            "spell-slot.5": 5,
+            "spell-slot.6": 6,
+            "spell-slot.7": 7,
+            "spell-slot.8": 8,
+            "spell-slot.9": 9
+          },
+          "effects": []
+        }
+      ],
+      "label": "Silence"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbsplSilence000",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "concentration: nothing it sustains was converted"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,394 @@
+{
+  "_id": "mmFireElemental0",
+  "_key": "!actors!mmFireElemental0",
+  "name": "Fire Elemental",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 10
+      },
+      "agility": {
+        "value": 17
+      },
+      "fortitude": {
+        "value": 16
+      },
+      "intellect": {
+        "value": 6
+      },
+      "wits": {
+        "value": 10
+      },
+      "presence": {
+        "value": 7
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 13
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 93,
+        "value": 93
+      },
+      "movement": {
+        "base": 50,
+        "value": 50
+      }
+    },
+    "details": {
+      "threat": 5
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Fire Elemental",
+    "width": 2,
+    "height": 2,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmFireAura000000",
+      "_key": "!actors.items!mmFireElemental0.mmFireAura000000",
+      "name": "Fire Aura",
+      "type": "action",
+      "img": "icons/magic/fire/barrier-wall-flame-ring-yellow.webp",
+      "system": {
+        "active": true,
+        "description": "<p>At the end of each of the fire elemental's turns, each creature of the fire elemental's choice in a 10-foot Emanation originating from the fire elemental takes 5 (1d10) Fire damage. <span style=\"font-family:'Roboto Condensed', sans-serif\">Creatures and flammable objects in the Emanation start burning.</span></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-fire-aura",
+          "costs": {
+            "allOf": []
+          },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "emanation",
+            "size": {
+              "value": 10,
+              "unit": "ft"
+            }
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 10
+              },
+              "damageType": "fire",
+              "provenance": "additional"
+            }
+          ],
+          "label": "Fire Aura"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmFireAura000000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "activation: turnEnd is not an action-economy cost"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmFireForm000000",
+      "_key": "!actors.items!mmFireElemental0.mmFireForm000000",
+      "name": "Fire Form",
+      "type": "feature",
+      "img": "icons/magic/fire/flame-burning-embers-yellow.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The fire elemental can move through a space as narrow as 1 inch without expending extra movement to do so, and it can enter a creature's space and stop there. The first time it enters a creature's space on a turn, that creature takes 5 (1d10) Fire damage.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmFireForm000000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "\"damage\" is passive or triggered: not automated"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmIllumination00",
+      "_key": "!actors.items!mmFireElemental0.mmIllumination00",
+      "name": "Illumination",
+      "type": "feature",
+      "img": "icons/magic/light/orb-lightbulb-gray.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The fire elemental sheds Bright Light in a 30-foot radius and Dim Light for an additional 30 feet.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmIllumination00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmWaterSusceptib",
+      "_key": "!actors.items!mmFireElemental0.mmWaterSusceptib",
+      "name": "Water Susceptibility",
+      "type": "feature",
+      "img": "icons/magic/water/orb-water-bubbles-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The fire elemental takes 3 (1d6) Cold damage damage for every 5 feet the fire elemental moves in water or for every gallon of water splashed on it.</p><section class=\"secret\" id=\"secret-8tKSKGttxgiryprr\"><p><strong>Foundry Note</strong></p><p>Scaling is configured to roll the correct number of dice based on the distance traveled through water. 1 is default for 5 feet, 2 is for 10 feet, and so forth.</p></section>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmWaterSusceptib",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "\"Cold Damage\" is passive or triggered: not automated"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmMultiattack000",
+      "_key": "!actors.items!mmFireElemental0.mmMultiattack000",
+      "name": "Multiattack",
+      "type": "action",
+      "img": "icons/skills/melee/strike-weapons-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The fire elemental makes two Burn attacks.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-multiattack-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Multiattack"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMultiattack000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmBurn0000000000",
+      "_key": "!actors.items!mmFireElemental0.mmBurn0000000000",
+      "name": "Burn",
+      "type": "action",
+      "img": "icons/magic/fire/blast-jet-stream-splash.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +6, reach 5 ft. Hit: 10 (2d6 + 3) Fire damage. If the target is a creature or a flammable object, it starts Burning.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-burn",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "properties": [
+              "finesse"
+            ]
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 6
+              },
+              "damageType": "fire",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Burn"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmBurn0000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "effect: burning is not a WildPath condition yet"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmFireElementrts",
+      "_key": "!actors.items!mmFireElemental0.mmFireElementrts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "resistances",
+            "type": "GrantResistance",
+            "data": {
+              "damageTypes": [
+                "bludgeoning",
+                "piercing",
+                "slashing"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "immunities",
+            "type": "GrantImmunity",
+            "data": {
+              "damageTypes": [
+                "fire",
+                "poison"
+              ]
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmFireElemental0",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 5
+      },
+      "conversion": {
+        "notes": [
+          "Fire Aura: activation: turnEnd is not an action-economy cost",
+          "Fire Form: \"damage\" is passive or triggered: not automated",
+          "Water Susceptibility: \"Cold Damage\" is passive or triggered: not automated",
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
+          "Burn: effect: burning is not a WildPath condition yet",
+          "condition immunities (exhaustion, grappled, paralyzed, petrified, poisoned, prone, restrained, unconscious) not converted"
+        ]
+      }
+    }
+  }
+}

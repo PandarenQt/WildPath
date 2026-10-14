@@ -1,0 +1,30 @@
+{
+  "_id": "phbpdnSacredWeap",
+  "_key": "!items!phbpdnSacredWeap",
+  "name": "Sacred Weapon",
+  "type": "feature",
+  "img": "icons/skills/melee/strike-weapons-orange.webp",
+  "system": {
+    "active": true,
+    "description": "<p>When you take the Attack action, you can expend one use of your Channel Divinity to imbue one Melee weapon that you are holding with positive energy. For 10 minutes or until you use this feature again, you add your Charisma modifier to attack rolls you make with that weapon (minimum bonus of +1), and each time you hit with it, you cause it to deal its normal damage type or Radiant damage.</p><p>The weapon also emits Bright Light in a 20-foot radius and Dim Light 20 feet beyond that.</p><p>You can end this effect early (no action required). This effect also ends if you aren't carrying the weapon.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbpdnSacredWeap",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"enchant\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

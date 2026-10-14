@@ -1,0 +1,322 @@
+{
+  "_id": "mmSwarmOfCrawlin",
+  "_key": "!actors!mmSwarmOfCrawlin",
+  "name": "Swarm of Crawling Claws",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 14
+      },
+      "agility": {
+        "value": 14
+      },
+      "fortitude": {
+        "value": 11
+      },
+      "intellect": {
+        "value": 5
+      },
+      "wits": {
+        "value": 10
+      },
+      "presence": {
+        "value": 4
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 12
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 49,
+        "value": 49
+      },
+      "movement": {
+        "base": 30,
+        "value": 30
+      }
+    },
+    "details": {
+      "threat": 3
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Swarm of Crawling Claws",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmSwarm000000000",
+      "_key": "!actors.items!mmSwarmOfCrawlin.mmSwarm000000000",
+      "name": "Swarm",
+      "type": "feature",
+      "img": "icons/creatures/invertebrates/bee-yellow.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The swarm can occupy another creature's space and vice versa, and the swarm can move through any opening large enough for a Tiny creature. The swarm can't regain Hit Points or gain Temporary Hit Points.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSwarm000000000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmSwarmOfGraspin",
+      "_key": "!actors.items!mmSwarmOfCrawlin.mmSwarmOfGraspin",
+      "name": "Swarm of Grasping Hands (attack)",
+      "type": "action",
+      "img": "icons/magic/death/hand-withered-gray.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Melee Attack Roll: +4, reach 5 ft. Hit: 20 (4d8 + 2) Necrotic damage, or 11 (2d8 + 2) Necrotic damage if the swarm is Bloodied. If the target is a Medium or smaller creature, it has the Prone condition.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-swarm-of-grasping-hands",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "agility"
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 4,
+                "faces": 8
+              },
+              "damageType": "necrotic",
+              "provenance": "weapon-base"
+            }
+          ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "prone"
+            }
+          ],
+          "label": "Swarm of Grasping Hands (attack)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSwarmOfGraspin",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "1nvuakdihpiez000",
+      "_key": "!actors.items!mmSwarmOfCrawlin.1nvuakdihpiez000",
+      "name": "Swarm of Grasping Hands (Bloodied Attack)",
+      "type": "action",
+      "img": "icons/magic/death/hand-withered-gray.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Melee Attack Roll: +4, reach 5 ft. Hit: 20 (4d8 + 2) Necrotic damage, or 11 (2d8 + 2) Necrotic damage if the swarm is Bloodied. If the target is a Medium or smaller creature, it has the Prone condition.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-swarm-of-grasping-hands-bloodied-attack",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "agility"
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "dice",
+                    "number": 2,
+                    "faces": 8
+                  },
+                  {
+                    "type": "spellcasting-modifier"
+                  }
+                ]
+              },
+              "damageType": "necrotic",
+              "provenance": "additional"
+            }
+          ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "prone"
+            }
+          ],
+          "label": "Swarm of Grasping Hands (Bloodied Attack)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSwarmOfGraspin",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmSwarmOfCratrts",
+      "_key": "!actors.items!mmSwarmOfCrawlin.mmSwarmOfCratrts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "resistances",
+            "type": "GrantResistance",
+            "data": {
+              "damageTypes": [
+                "bludgeoning",
+                "piercing",
+                "slashing"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "immunities",
+            "type": "GrantImmunity",
+            "data": {
+              "damageTypes": [
+                "necrotic",
+                "poison"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "speed-climb",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "climb",
+              "distance": 30
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmSwarmOfCrawlin",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 3
+      },
+      "conversion": {
+        "notes": [
+          "condition immunities (charmed, exhaustion, frightened, grappled, incapacitated, paralyzed, petrified, poisoned, prone, restrained, stunned) not converted"
+        ]
+      }
+    }
+  }
+}

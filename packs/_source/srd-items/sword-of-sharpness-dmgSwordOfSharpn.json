@@ -1,0 +1,43 @@
+{
+  "_id": "dmgSwordOfSharpn",
+  "_key": "!items!dmgSwordOfSharpn",
+  "name": "Sword of Sharpness",
+  "type": "action",
+  "img": "icons/weapons/swords/scimitar-guard-wood.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Weapon (Glaive, Greatsword, Longsword, or Scimitar), Very Rare (Requires Attunement)</em></p><p>When you attack an object with this magic weapon and hit, maximize your weapon damage dice against the target.</p><p>When you attack a creature with this weapon and roll a 20 on the d20 for the attack roll, that target takes an extra 14 Slashing damage and gains <span class=\"no-break\">1 Exhaustion</span> level.</p><p></p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-sword-of-sharpness-sword-of-sharpness",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Sword of Sharpness"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgSwordOfSharpn",
+        "type": "weapon",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (enchant): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

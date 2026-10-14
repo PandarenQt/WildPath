@@ -1,0 +1,77 @@
+{
+  "_id": "phbsplHolyAura00",
+  "_key": "!items!phbsplHolyAura00",
+  "name": "Holy Aura (Create Aura)",
+  "type": "action",
+  "img": "icons/magic/life/ankh-shadow-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p>For the duration, you emit an aura in a 30-foot Emanation. While in the aura, creatures of your choice have Advantage on all saving throws, and other creatures have Disadvantage on attack rolls against them. In addition, when a Fiend or an Undead hits an affected creature with a melee attack roll, the attacker must succeed on a Constitution saving throw or have the Blinded condition until the end of its next turn.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-holy-aura-create-aura",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "configuration": [
+        {
+          "id": "spell-slot",
+          "type": "resource",
+          "label": "Spell slot",
+          "required": true,
+          "cost": {
+            "anyOf": [
+              [
+                {
+                  "capability": "spell-slot.8",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.9",
+                  "amount": 1
+                }
+              ]
+            ]
+          },
+          "levelByResourceId": {
+            "spell-slot.8": 8,
+            "spell-slot.9": 9
+          },
+          "effects": []
+        }
+      ],
+      "label": "Holy Aura (Create Aura)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbsplHolyAura00",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Holy Protection\" (its own changes) not converted",
+          "concentration: nothing it sustains was converted"
+        ]
+      }
+    }
+  }
+}

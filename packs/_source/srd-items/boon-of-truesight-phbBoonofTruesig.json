@@ -1,0 +1,28 @@
+{
+  "_id": "phbBoonofTruesig",
+  "_key": "!items!phbBoonofTruesig",
+  "name": "Boon of Truesight",
+  "type": "feature",
+  "img": "icons/creatures/eyes/humanoid-single-blind.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You gain the following benefits.</p><p><strong>Ability Score Increase.</strong> Increase one ability score of your choice by 1, to a maximum of 30.</p><p><strong>Truesight.</strong> You have Truesight with a range of 60 feet.</p><section id=\"secret-MmPASAH8hA8METnP\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect which grants you Truesight with a range of 60 feet.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "feats24",
+        "id": "phbBoonofTruesig",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

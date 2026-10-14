@@ -1,0 +1,28 @@
+{
+  "_id": "phbbrbUnarmoredD",
+  "_key": "!items!phbbrbUnarmoredD",
+  "name": "Unarmored Defense",
+  "type": "feature",
+  "img": "icons/magic/control/buff-strength-muscle-damage-orange.webp",
+  "system": {
+    "active": true,
+    "description": "<p>While you aren't wearing any armor, your base Armor Class equals 10 plus your Dexterity and Constitution modifiers. You can use a Shield and still gain this benefit.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbbrbUnarmoredD",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

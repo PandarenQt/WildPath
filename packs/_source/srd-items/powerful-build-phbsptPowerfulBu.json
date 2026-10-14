@@ -1,0 +1,28 @@
+{
+  "_id": "phbsptPowerfulBu",
+  "_key": "!items!phbsptPowerfulBu",
+  "name": "Powerful Build",
+  "type": "feature",
+  "img": "icons/magic/control/buff-strength-muscle-damage-orange.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You have Advantage on any ability check you make to end the Grappled condition. You also count as one size larger when determining your carrying capacity.</p><section class=\"secret\" id=\"secret-7qaTRjmRe4PD41G3\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect which automatically upgrades your size when determining carrying capacity.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "origins24",
+        "id": "phbsptPowerfulBu",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

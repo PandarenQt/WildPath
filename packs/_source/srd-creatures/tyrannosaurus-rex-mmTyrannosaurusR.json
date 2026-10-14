@@ -1,0 +1,281 @@
+{
+  "_id": "mmTyrannosaurusR",
+  "_key": "!actors!mmTyrannosaurusR",
+  "name": "Tyrannosaurus Rex",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 25,
+        "saveProficient": true
+      },
+      "agility": {
+        "value": 10
+      },
+      "fortitude": {
+        "value": 19
+      },
+      "intellect": {
+        "value": 2
+      },
+      "wits": {
+        "value": 12,
+        "saveProficient": true
+      },
+      "presence": {
+        "value": 9
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 13
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 136,
+        "value": 136
+      },
+      "movement": {
+        "base": 50,
+        "value": 50
+      }
+    },
+    "details": {
+      "threat": 8
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Tyrannosaurus Rex",
+    "width": 3,
+    "height": 3,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmMultiattack000",
+      "_key": "!actors.items!mmTyrannosaurusR.mmMultiattack000",
+      "name": "Multiattack",
+      "type": "action",
+      "img": "icons/skills/melee/strike-weapons-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The tyrannosaurus rex makes one Bite attack and one Tail attack.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-multiattack-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Multiattack"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMultiattack000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmBite0000000000",
+      "_key": "!actors.items!mmTyrannosaurusR.mmBite0000000000",
+      "name": "Bite (attack)",
+      "type": "action",
+      "img": "icons/creatures/abilities/fangs-teeth-bite.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +10, reach 10 ft. Hit: 33 (4d12 + 7) Piercing damage. If the target is a Large or smaller creature, it has the Grappled condition (escape DC )). While Grappled, the target has the Restrained condition and can't be targeted by the tyrannosaurus rex's Tail.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-bite",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 10,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 4,
+                "faces": 12
+              },
+              "damageType": "piercing",
+              "provenance": "weapon-base"
+            }
+          ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "restrained"
+            }
+          ],
+          "label": "Bite (attack)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmBite0000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "effect: grappled is not a WildPath condition yet"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmTail0000000000",
+      "_key": "!actors.items!mmTyrannosaurusR.mmTail0000000000",
+      "name": "Tail",
+      "type": "action",
+      "img": "icons/creatures/abilities/tail-swipe-green.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +10, reach 10 ft. Hit: 25 (4d8 + 7) Bludgeoning damage. If the target is a Huge or smaller creature, it has the Prone condition.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-tail",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 10,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 4,
+                "faces": 8
+              },
+              "damageType": "bludgeoning",
+              "provenance": "weapon-base"
+            }
+          ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "prone"
+            }
+          ],
+          "label": "Tail"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmTail0000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmTyrannosaurusR",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 8
+      },
+      "conversion": {
+        "notes": [
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
+          "Bite: effect: grappled is not a WildPath condition yet",
+          "Bite: \"Escape Check\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,2027 @@
+{
+  "_id": "mmAncientBrassDr",
+  "_key": "!actors!mmAncientBrassDr",
+  "name": "Ancient Brass Dragon",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 27
+      },
+      "agility": {
+        "value": 10,
+        "saveProficient": true
+      },
+      "fortitude": {
+        "value": 25
+      },
+      "intellect": {
+        "value": 16
+      },
+      "wits": {
+        "value": 15,
+        "saveProficient": true
+      },
+      "presence": {
+        "value": 22
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 20
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 332,
+        "value": 332
+      },
+      "movement": {
+        "base": 40,
+        "value": 40
+      }
+    },
+    "details": {
+      "threat": 20
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Ancient Brass Dragon",
+    "width": 4,
+    "height": 4,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmLegendaryResis",
+      "_key": "!actors.items!mmAncientBrassDr.mmLegendaryResis",
+      "name": "Legendary Resistance",
+      "type": "feature",
+      "img": "icons/equipment/shield/heater-steel-crystal-red.webp",
+      "system": {
+        "active": true,
+        "description": "<p>If the ancient brass dragon fails a saving throw, it can choose to succeed instead.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmLegendaryResis",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "\"Expend Use\" is passive or triggered: not automated"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmMultiattack000",
+      "_key": "!actors.items!mmAncientBrassDr.mmMultiattack000",
+      "name": "Multiattack",
+      "type": "action",
+      "img": "icons/skills/melee/strike-weapons-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The ancient brass dragon makes three  attacks. It can replace one attack with a use of (A)  or (B)  to cast <em>Scorching Ray</em> (level 3 version).</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-multiattack-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Multiattack"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMultiattack000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmRend0000000000",
+      "_key": "!actors.items!mmAncientBrassDr.mmRend0000000000",
+      "name": "Rend",
+      "type": "action",
+      "img": "icons/skills/melee/shield-damaged-broken-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +14, reach 15 ft. Hit: 19 (2d10 + 8) Slashing plus 7 (2d6) Fire damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-rend",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 15,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 10
+              },
+              "damageType": "slashing",
+              "provenance": "weapon-base"
+            },
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 6
+              },
+              "damageType": "fire",
+              "provenance": "additional"
+            }
+          ],
+          "label": "Rend"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmRend0000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmFireBreath0000",
+      "_key": "!actors.items!mmAncientBrassDr.mmFireBreath0000",
+      "name": "Fire Breath",
+      "type": "action",
+      "img": "icons/creatures/abilities/dragon-fire-breath-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p><em>Dexterity Saving Throw: </em>DC 21, each creature in a 90-foot-long, 5-foot-wide Line.</p><p><em>Failure: </em>58 (13d8) Fire damage.</p><p><em>Success:</em> Half damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-fire-breath",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "fire-breath",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "line",
+            "size": {
+              "value": 90,
+              "unit": "ft"
+            },
+            "width": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "save": {
+            "ability": "agility",
+            "dc": {
+              "value": 21
+            }
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 13,
+                "faces": 8
+              },
+              "damageType": "fire",
+              "provenance": "additional",
+              "saveOutcomePolicy": {
+                "success": "half",
+                "failure": "full"
+              }
+            }
+          ],
+          "label": "Fire Breath"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "fire-breath-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "fire-breath",
+              "label": "Fire Breath",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "none"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmFireBreath0000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "uses: Recharge 5–6 is not rolled; refill the pool by hand"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmSleepBreath000",
+      "_key": "!actors.items!mmAncientBrassDr.mmSleepBreath000",
+      "name": "Sleep Breath (1st Save)",
+      "type": "action",
+      "img": "icons/magic/control/sleep-bubble-purple.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\"><em>Constitution Saving Throw:</em> DC 21, each creature in a 90-foot Cone.</p><p class=\"feature\"><em>Failure:</em> The target has the Incapacitated condition until the end of its next turn, at which point it repeats the save.</p><p class=\"feature\"><em>Second Failure:</em> The target has the Unconscious condition for 1 minute. This effect ends for the target if it takes damage or a creature within 5 feet of it takes an action to wake it.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-sleep-breath-1st-save",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Sleep Breath (1st Save)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSleepBreath000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest",
+              "effect: incapacitated is not a WildPath condition yet"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "5zp0fdnvs5670000",
+      "_key": "!actors.items!mmAncientBrassDr.5zp0fdnvs5670000",
+      "name": "Sleep Breath (2nd Save)",
+      "type": "action",
+      "img": "icons/magic/control/sleep-bubble-purple.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\"><em>Constitution Saving Throw:</em> DC 21, each creature in a 90-foot Cone.</p><p class=\"feature\"><em>Failure:</em> The target has the Incapacitated condition until the end of its next turn, at which point it repeats the save.</p><p class=\"feature\"><em>Second Failure:</em> The target has the Unconscious condition for 1 minute. This effect ends for the target if it takes damage or a creature within 5 feet of it takes an action to wake it.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-sleep-breath-2nd-save",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "save": {
+            "ability": "fortitude",
+            "dc": {
+              "value": 21
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "unconscious",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
+          "label": "Sleep Breath (2nd Save)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSleepBreath000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmSpellcasting00",
+      "_key": "!actors.items!mmAncientBrassDr.mmSpellcasting00",
+      "name": "Spellcasting (cast)",
+      "type": "action",
+      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The ancient brass dragon casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Minor Illusion</em>, <em>Scorching Ray</em> (level 3 version), <em>Shapechange</em> (Beast or Humanoid form only, no Temporary Hit Points gained from the spell, and no Concentration or Temporary Hit Points required to maintain the spell), <em>Speak with Animals</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Control Weather</em>, <em>Detect Thoughts</em></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Spellcasting (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSpellcasting00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "17svfvloelxmr000",
+      "_key": "!actors.items!mmAncientBrassDr.17svfvloelxmr000",
+      "name": "Spellcasting (cast)",
+      "type": "action",
+      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The ancient brass dragon casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Minor Illusion</em>, <em>Scorching Ray</em> (level 3 version), <em>Shapechange</em> (Beast or Humanoid form only, no Temporary Hit Points gained from the spell, and no Concentration or Temporary Hit Points required to maintain the spell), <em>Speak with Animals</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Control Weather</em>, <em>Detect Thoughts</em></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Spellcasting (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSpellcasting00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "16ywmso1mzul9w00",
+      "_key": "!actors.items!mmAncientBrassDr.16ywmso1mzul9w00",
+      "name": "Spellcasting (cast)",
+      "type": "action",
+      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The ancient brass dragon casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Minor Illusion</em>, <em>Scorching Ray</em> (level 3 version), <em>Shapechange</em> (Beast or Humanoid form only, no Temporary Hit Points gained from the spell, and no Concentration or Temporary Hit Points required to maintain the spell), <em>Speak with Animals</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Control Weather</em>, <em>Detect Thoughts</em></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Spellcasting (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSpellcasting00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "178w8hnnsecqh000",
+      "_key": "!actors.items!mmAncientBrassDr.178w8hnnsecqh000",
+      "name": "Spellcasting (cast)",
+      "type": "action",
+      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The ancient brass dragon casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Minor Illusion</em>, <em>Scorching Ray</em> (level 3 version), <em>Shapechange</em> (Beast or Humanoid form only, no Temporary Hit Points gained from the spell, and no Concentration or Temporary Hit Points required to maintain the spell), <em>Speak with Animals</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Control Weather</em>, <em>Detect Thoughts</em></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Spellcasting (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSpellcasting00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "18mu8yi1mdn0dm00",
+      "_key": "!actors.items!mmAncientBrassDr.18mu8yi1mdn0dm00",
+      "name": "Spellcasting (cast)",
+      "type": "action",
+      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The ancient brass dragon casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Minor Illusion</em>, <em>Scorching Ray</em> (level 3 version), <em>Shapechange</em> (Beast or Humanoid form only, no Temporary Hit Points gained from the spell, and no Concentration or Temporary Hit Points required to maintain the spell), <em>Speak with Animals</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Control Weather</em>, <em>Detect Thoughts</em></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Spellcasting (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSpellcasting00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "18wtunhn66ru7000",
+      "_key": "!actors.items!mmAncientBrassDr.18wtunhn66ru7000",
+      "name": "Spellcasting (cast)",
+      "type": "action",
+      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The ancient brass dragon casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Minor Illusion</em>, <em>Scorching Ray</em> (level 3 version), <em>Shapechange</em> (Beast or Humanoid form only, no Temporary Hit Points gained from the spell, and no Concentration or Temporary Hit Points required to maintain the spell), <em>Speak with Animals</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Control Weather</em>, <em>Detect Thoughts</em></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Spellcasting (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSpellcasting00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest",
+              "consumption: activityUses 1 not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "182v1kk1lrffhc00",
+      "_key": "!actors.items!mmAncientBrassDr.182v1kk1lrffhc00",
+      "name": "Spellcasting (cast)",
+      "type": "action",
+      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The ancient brass dragon casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Minor Illusion</em>, <em>Scorching Ray</em> (level 3 version), <em>Shapechange</em> (Beast or Humanoid form only, no Temporary Hit Points gained from the spell, and no Concentration or Temporary Hit Points required to maintain the spell), <em>Speak with Animals</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Control Weather</em>, <em>Detect Thoughts</em></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Spellcasting (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSpellcasting00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest",
+              "consumption: activityUses 1 not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "pGP49eWCVXNRQplJ",
+      "_key": "!actors.items!mmAncientBrassDr.pGP49eWCVXNRQplJ",
+      "name": "Detect Magic",
+      "type": "action",
+      "img": "icons/magic/symbols/runes-carved-stone-green.webp",
+      "system": {
+        "active": true,
+        "description": "<p>For the duration, you sense the presence of magical effects within 30 feet of yourself. If you sense such effects, you can take the Magic action to see a faint aura around any visible creature or object in the area that bears the magic, and if an effect was created by a spell, you learn the spell's school of magic.</p><p>The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-detect-magic-cast",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.1",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.2",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.3",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.4",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.1": 1,
+                "spell-slot.2": 2,
+                "spell-slot.3": 3,
+                "spell-slot.4": 4,
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Detect Magic"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "pGP49eWCVXNRQplJ",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "effect: \"Detect Magic\" (its own changes) not converted",
+              "concentration: nothing it sustains was converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "NXKBuzEfYUqQEtJg",
+      "_key": "!actors.items!mmAncientBrassDr.NXKBuzEfYUqQEtJg",
+      "name": "Minor Illusion",
+      "type": "action",
+      "img": "icons/sundries/gaming/playing-cards.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You create a sound or an image of an object within range that lasts for the duration. See the descriptions below for the effects of each. The illusion ends if you cast this spell again.</p><p>If a creature takes a Study action to examine the sound or image, the creature can determine that it is an illusion with a successful DC @attributes.spell.dc Intelligence (Investigation) check check against your spell save DC. If a creature discerns the illusion for what it is, the illusion becomes faint to the creature.</p><p><strong>Sound.</strong> If you create a sound, its volume can range from a whisper to a scream. It can be your voice, someone else's voice, a lion's roar, a beating of drums, or any other sound you choose. The sound continues unabated throughout the duration, or you can make discrete sounds at different times before the spell ends.</p><p><strong>Image.</strong> If you create an image of an object—such as a chair, muddy footprints, or a small chest—it must be no larger than a 5-foot Cube. The image can't create sound, light, smell, or any other sensory effect. Physical interaction with the image reveals it to be an illusion, since things can pass through it.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-minor-illusion-create-illusion",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Minor Illusion"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "NXKBuzEfYUqQEtJg",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (summon): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "UNBQgzWQHfnUrMrU",
+      "_key": "!actors.items!mmAncientBrassDr.UNBQgzWQHfnUrMrU",
+      "name": "Scorching Ray",
+      "type": "action",
+      "img": "icons/magic/fire/projectiles-salvo-trio-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You hurl three fiery rays. You can hurl them at one target within range or at several. Make a ranged spell attack for each ray. On a hit, the target takes 2d6 Fire damage.</p><p><strong>Using a Higher-Level Spell Slot.</strong> You create one additional ray for each spell slot level above 2.</p><p>Total Rays</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-scorching-ray",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "ranged",
+            "statistic": "spell",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 120,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 6
+              },
+              "damageType": "fire",
+              "provenance": "spell-base"
+            }
+          ],
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.2",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.3",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.4",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.2": 2,
+                "spell-slot.3": 3,
+                "spell-slot.4": 4,
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Scorching Ray"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "UNBQgzWQHfnUrMrU",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "l7t8gpKOgNTYTAOy",
+      "_key": "!actors.items!mmAncientBrassDr.l7t8gpKOgNTYTAOy",
+      "name": "Shapechange",
+      "type": "action",
+      "img": "icons/magic/unholy/hand-fire-skeleton-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You shape-shift into another creature for the duration or until you take a Magic action to shape-shift into a different eligible form. The new form must be of a creature that has a Challenge Rating no higher than your level or Challenge Rating. You must have seen the sort of creature before, and it can't be a Construct or an Undead.</p><p>When you shape-shift, you gain a number of Temporary Hit Points equal to the Hit Points of the form. The spell ends early if you have no Temporary Hit Points left.</p><p>Your game statistics are replaced by the stat block of the chosen form, but you retain your creature type; alignment; personality; Intelligence, Wisdom, and Charisma scores; Hit Points; Hit Point Dice; proficiencies; and ability to communicate. If you have the Spellcasting feature, you retain it too.</p><p>Upon shape-shifting, you determine whether your equipment drops to the ground or changes in size and shape to fit the new form while you're in it.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-shapechange-cast",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Shapechange"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "l7t8gpKOgNTYTAOy",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "concentration: nothing it sustains was converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "8tkbN48WmRilp6OK",
+      "_key": "!actors.items!mmAncientBrassDr.8tkbN48WmRilp6OK",
+      "name": "Speak with Animals",
+      "type": "action",
+      "img": "icons/creatures/mammals/dog-husky-white-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>For the duration, you can comprehend and verbally communicate with Beasts, and you can use any of the Influence action's skill options with them.</p><p>Most Beasts have little to say about topics that don't pertain to survival or companionship, but at minimum, a Beast can give you information about nearby locations and monsters, including whatever it has perceived within the past day.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-speak-with-animals",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.1",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.2",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.3",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.4",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.1": 1,
+                "spell-slot.2": 2,
+                "spell-slot.3": 3,
+                "spell-slot.4": 4,
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Speak with Animals"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "8tkbN48WmRilp6OK",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "effect: \"Bestial Communication\" (its own changes) not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "dlHUUoPvS3KVUvQH",
+      "_key": "!actors.items!mmAncientBrassDr.dlHUUoPvS3KVUvQH",
+      "name": "Control Weather (Cast and Control)",
+      "type": "action",
+      "img": "icons/magic/air/weather-clouds-rainbow.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You take control of the weather within 5 miles of you for the duration. You must be outdoors to cast this spell, and it ends early if you go indoors.</p><p>When you cast the spell, you change the current weather conditions, which are determined by the DM. You can change precipitation, temperature, and wind. It takes 1d4 × 10 minutes for the new conditions to take effect. Once they do so, you can change the conditions again. When the spell ends, the weather gradually returns to normal.</p><p>When you change the weather conditions, find a current condition on the following tables and change its stage by one, up or down. When changing the wind, you can change its direction.</p><details><summary><strong>Precipitation</strong></summary><table><thead><tr><td>Stage</td><td>Condition</td></tr></thead><tbody><tr><td>1</td><td>Clear</td></tr><tr><td>2</td><td>Light clouds</td></tr><tr><td>3</td><td>Overcast or ground fog</td></tr><tr><td>4</td><td>Rain, hail, or snow</td></tr><tr><td>5</td><td>Torrential rain, driving hail, or blizzard</td></tr></tbody></table></details><details><summary><strong>Temperature</strong></summary><table><thead><tr><td>Stage</td><td>Condition</td></tr></thead><tbody><tr><td>1</td><td>Heat wave</td></tr><tr><td>2</td><td>Hot</td></tr><tr><td>3</td><td>Warm</td></tr><tr><td>4</td><td>Cool</td></tr><tr><td>5</td><td>Cold</td></tr><tr><td>6</td><td>Freezing</td></tr></tbody></table></details><details><summary><strong>Wind</strong></summary><table><thead><tr><td>Stage</td><td>Condition</td></tr></thead><tbody><tr><td>1</td><td>Calm</td></tr><tr><td>2</td><td>Moderate wind</td></tr><tr><td>3</td><td>Strong wind</td></tr><tr><td>4</td><td>Gale</td></tr><tr><td>5</td><td>Storm</td></tr></tbody></table></details>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-control-weather-cast-and-control",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": []
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Control Weather (Cast and Control)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "dlHUUoPvS3KVUvQH",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "activation: 10 minute is not an action-economy cost",
+              "concentration: nothing it sustains was converted",
+              "activation: 10 minute is not an action-economy cost"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "kwmfksesw3j20000",
+      "_key": "!actors.items!mmAncientBrassDr.kwmfksesw3j20000",
+      "name": "Control Weather (Change Conditions)",
+      "type": "action",
+      "img": "icons/magic/air/weather-clouds-rainbow.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You take control of the weather within 5 miles of you for the duration. You must be outdoors to cast this spell, and it ends early if you go indoors.</p><p>When you cast the spell, you change the current weather conditions, which are determined by the DM. You can change precipitation, temperature, and wind. It takes 1d4 × 10 minutes for the new conditions to take effect. Once they do so, you can change the conditions again. When the spell ends, the weather gradually returns to normal.</p><p>When you change the weather conditions, find a current condition on the following tables and change its stage by one, up or down. When changing the wind, you can change its direction.</p><details><summary><strong>Precipitation</strong></summary><table><thead><tr><td>Stage</td><td>Condition</td></tr></thead><tbody><tr><td>1</td><td>Clear</td></tr><tr><td>2</td><td>Light clouds</td></tr><tr><td>3</td><td>Overcast or ground fog</td></tr><tr><td>4</td><td>Rain, hail, or snow</td></tr><tr><td>5</td><td>Torrential rain, driving hail, or blizzard</td></tr></tbody></table></details><details><summary><strong>Temperature</strong></summary><table><thead><tr><td>Stage</td><td>Condition</td></tr></thead><tbody><tr><td>1</td><td>Heat wave</td></tr><tr><td>2</td><td>Hot</td></tr><tr><td>3</td><td>Warm</td></tr><tr><td>4</td><td>Cool</td></tr><tr><td>5</td><td>Cold</td></tr><tr><td>6</td><td>Freezing</td></tr></tbody></table></details><details><summary><strong>Wind</strong></summary><table><thead><tr><td>Stage</td><td>Condition</td></tr></thead><tbody><tr><td>1</td><td>Calm</td></tr><tr><td>2</td><td>Moderate wind</td></tr><tr><td>3</td><td>Strong wind</td></tr><tr><td>4</td><td>Gale</td></tr><tr><td>5</td><td>Storm</td></tr></tbody></table></details>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-control-weather-change-conditions",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": []
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Control Weather (Change Conditions)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "dlHUUoPvS3KVUvQH",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "activation: 10 minute is not an action-economy cost",
+              "concentration: nothing it sustains was converted",
+              "activation: 10 minute is not an action-economy cost"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "LXHi0qHTix6IsSdc",
+      "_key": "!actors.items!mmAncientBrassDr.LXHi0qHTix6IsSdc",
+      "name": "Detect Thoughts (Sense Thoughts)",
+      "type": "action",
+      "img": "icons/skills/social/diplomacy-handshake-yellow.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You activate one of the effects below. Until the spell ends, you can activate either effect as a Magic action on your later turns.</p><p><strong>Sense Thoughts.</strong> You sense the presence of thoughts within 30 feet of yourself that belong to creatures that know languages or are telepathic. You don't read the thoughts, but you know that a thinking creature is present.</p><p>The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.</p><p><strong>Read Thoughts.</strong> Target one creature you can see within 30 feet of yourself or one creature within 30 feet of yourself that you detected with the Sense Thoughts option. You learn what is most on the target's mind right now. If the target doesn't know any languages and isn't telepathic, you learn nothing.</p><p>As a Magic action on your next turn, you can try to probe deeper into the target's mind. If you probe deeper, the target makes a Wisdom saving throw. On a failed save, you discern the target's reasoning, emotions, and something that looms large in its mind (such as a worry, love, or hate). On a successful save, the spell ends. Either way, the target knows that you are probing into its mind, and until you shift your attention away from the target's mind, the target can take an action on its turn to make an DC @attributes.spell.dc Intelligence (Arcana) check check against your spell save DC, ending the spell on a success.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-detect-thoughts-sense-thoughts",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.2",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.3",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.4",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.2": 2,
+                "spell-slot.3": 3,
+                "spell-slot.4": 4,
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Detect Thoughts (Sense Thoughts)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "LXHi0qHTix6IsSdc",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "concentration: nothing it sustains was converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "1bvgo7fttw2ft000",
+      "_key": "!actors.items!mmAncientBrassDr.1bvgo7fttw2ft000",
+      "name": "Detect Thoughts (Probe Deeper)",
+      "type": "action",
+      "img": "icons/skills/social/diplomacy-handshake-yellow.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You activate one of the effects below. Until the spell ends, you can activate either effect as a Magic action on your later turns.</p><p><strong>Sense Thoughts.</strong> You sense the presence of thoughts within 30 feet of yourself that belong to creatures that know languages or are telepathic. You don't read the thoughts, but you know that a thinking creature is present.</p><p>The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.</p><p><strong>Read Thoughts.</strong> Target one creature you can see within 30 feet of yourself or one creature within 30 feet of yourself that you detected with the Sense Thoughts option. You learn what is most on the target's mind right now. If the target doesn't know any languages and isn't telepathic, you learn nothing.</p><p>As a Magic action on your next turn, you can try to probe deeper into the target's mind. If you probe deeper, the target makes a Wisdom saving throw. On a failed save, you discern the target's reasoning, emotions, and something that looms large in its mind (such as a worry, love, or hate). On a successful save, the spell ends. Either way, the target knows that you are probing into its mind, and until you shift your attention away from the target's mind, the target can take an action on its turn to make an DC @attributes.spell.dc Intelligence (Arcana) check check against your spell save DC, ending the spell on a success.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-detect-thoughts-probe-deeper",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.2",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.3",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.4",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.2": 2,
+                "spell-slot.3": 3,
+                "spell-slot.4": 4,
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Detect Thoughts (Probe Deeper)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "LXHi0qHTix6IsSdc",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest",
+              "concentration: nothing it sustains was converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmBlazingLight00",
+      "_key": "!actors.items!mmAncientBrassDr.mmBlazingLight00",
+      "name": "Blazing Light",
+      "type": "action",
+      "img": "icons/magic/fire/projectiles-salvo-trio-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The ancient brass dragon uses Spellcasting to cast <em></em> (level 3 version).</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-blazing-light",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "legendary-action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Blazing Light"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmBlazingLight00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "avRQmBHdyL4zmQUU",
+      "_key": "!actors.items!mmAncientBrassDr.avRQmBHdyL4zmQUU",
+      "name": "Scorching Ray",
+      "type": "action",
+      "img": "icons/magic/fire/projectiles-salvo-trio-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You hurl three fiery rays. You can hurl them at one target within range or at several. Make a ranged spell attack for each ray. On a hit, the target takes 2d6 Fire damage.</p><p><strong>Using a Higher-Level Spell Slot.</strong> You create one additional ray for each spell slot level above 2.</p><p>Total Rays</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-scorching-ray",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "ranged",
+            "statistic": "spell",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 120,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 6
+              },
+              "damageType": "fire",
+              "provenance": "spell-base"
+            }
+          ],
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.2",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.3",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.4",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.2": 2,
+                "spell-slot.3": 3,
+                "spell-slot.4": 4,
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Scorching Ray"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "avRQmBHdyL4zmQUU",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmPounce00000000",
+      "_key": "!actors.items!mmAncientBrassDr.mmPounce00000000",
+      "name": "Pounce",
+      "type": "action",
+      "img": "icons/skills/movement/arrow-upward-yellow.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The ancient brass dragon moves up to half its Speed, and it makes one  attack.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-pounce-expend-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "legendary-action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Pounce"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmPounce00000000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "consumption: attribute 1 not converted",
+              "consumption: attribute 1 not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmScorchingSands",
+      "_key": "!actors.items!mmAncientBrassDr.mmScorchingSands",
+      "name": "Scorching Sands",
+      "type": "action",
+      "img": "icons/environment/wilderness/cave-entrance-mountain.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\"><em>Dexterity Saving Throw:</em> DC 20,  the ancient brass dragon can see within 120 feet.</p><p class=\"feature\"><em>Failure:</em> 36 (8d8) Fire damage, and the target's Speed is halved until the end of its next turn.</p><p class=\"feature\"><em>Failure or Success:</em> The ancient brass dragon can't take this action again until the start of its next turn.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-scorching-sands-save",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "legendary-action",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 120,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "agility",
+            "dc": {
+              "value": 20
+            }
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 8,
+                "faces": 8
+              },
+              "damageType": "fire",
+              "provenance": "additional",
+              "saveOutcomePolicy": {
+                "success": "half",
+                "failure": "full"
+              }
+            }
+          ],
+          "label": "Scorching Sands"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmScorchingSands",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "effect: \"1/2 Speed\" (its own changes) not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmAncientBratrts",
+      "_key": "!actors.items!mmAncientBrassDr.mmAncientBratrts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "immunities",
+            "type": "GrantImmunity",
+            "data": {
+              "damageTypes": [
+                "fire"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "speed-fly",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "fly",
+              "distance": 80
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "speed-burrow",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "burrow",
+              "distance": 40
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "legendary-actions",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "legendary-action",
+              "label": "Legendary Actions",
+              "maximum": 3,
+              "recovery": "turn"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmAncientBrassDr",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 20
+      },
+      "conversion": {
+        "notes": [
+          "Legendary Resistance: \"Expend Use\" is passive or triggered: not automated",
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
+          "Fire Breath: uses: Recharge 5–6 is not rolled; refill the pool by hand",
+          "Sleep Breath: not automated (save): using it spends its cost; its description says the rest",
+          "Sleep Breath: effect: incapacitated is not a WildPath condition yet",
+          "Spellcasting: not automated (cast): using it spends its cost; its description says the rest",
+          "Spellcasting: consumption: activityUses 1 not converted",
+          "Detect Magic: not automated (utility): using it spends its cost; its description says the rest",
+          "Detect Magic: effect: \"Detect Magic\" (its own changes) not converted",
+          "Detect Magic: concentration: nothing it sustains was converted",
+          "Minor Illusion: not automated (summon): using it spends its cost; its description says the rest",
+          "Shapechange: not automated (utility): using it spends its cost; its description says the rest",
+          "Shapechange: concentration: nothing it sustains was converted",
+          "Speak with Animals: not automated (utility): using it spends its cost; its description says the rest",
+          "Speak with Animals: effect: \"Bestial Communication\" (its own changes) not converted",
+          "Control Weather: not automated (utility): using it spends its cost; its description says the rest",
+          "Control Weather: activation: 10 minute is not an action-economy cost",
+          "Control Weather: concentration: nothing it sustains was converted",
+          "Detect Thoughts: not automated (utility): using it spends its cost; its description says the rest",
+          "Detect Thoughts: concentration: nothing it sustains was converted",
+          "Detect Thoughts: not automated (save): using it spends its cost; its description says the rest",
+          "Blazing Light: not automated (cast): using it spends its cost; its description says the rest",
+          "Pounce: not automated (utility): using it spends its cost; its description says the rest",
+          "Pounce: consumption: attribute 1 not converted",
+          "Scorching Sands: effect: \"1/2 Speed\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

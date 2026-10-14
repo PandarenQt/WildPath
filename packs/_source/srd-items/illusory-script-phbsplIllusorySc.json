@@ -1,0 +1,121 @@
+{
+  "_id": "phbsplIllusorySc",
+  "_key": "!items!phbsplIllusorySc",
+  "name": "Illusory Script",
+  "type": "action",
+  "img": "icons/sundries/documents/document-letter-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You write on parchment, paper, or another suitable material and imbue it with an illusion that lasts for the duration. To you and any creatures you designate when you cast the spell, the writing appears normal, seems to be written in your hand, and conveys whatever meaning you intended when you wrote the text. To all others, the writing appears as if it were written in an unknown or magical script that is unintelligible. Alternatively, the illusion can alter the meaning, handwriting, and language of the text, though the language must be one you know.</p><p>If the spell is dispelled, the original script and the illusion both disappear.</p><p>A creature that has Truesight can read the hidden message.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-illusory-script",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": []
+      },
+      "configuration": [
+        {
+          "id": "spell-slot",
+          "type": "resource",
+          "label": "Spell slot",
+          "required": true,
+          "cost": {
+            "anyOf": [
+              [
+                {
+                  "capability": "spell-slot.1",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.2",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.3",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.4",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.5",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.6",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.7",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.8",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.9",
+                  "amount": 1
+                }
+              ]
+            ]
+          },
+          "levelByResourceId": {
+            "spell-slot.1": 1,
+            "spell-slot.2": 2,
+            "spell-slot.3": 3,
+            "spell-slot.4": 4,
+            "spell-slot.5": 5,
+            "spell-slot.6": 6,
+            "spell-slot.7": 7,
+            "spell-slot.8": 8,
+            "spell-slot.9": 9
+          },
+          "effects": []
+        }
+      ],
+      "label": "Illusory Script"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbsplIllusorySc",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "activation: 1 minute is not an action-economy cost",
+          "activation: 1 minute is not an action-economy cost"
+        ]
+      }
+    }
+  }
+}

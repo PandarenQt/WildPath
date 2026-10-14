@@ -1,0 +1,46 @@
+{
+  "_id": "phbdrdArchdruid0",
+  "_key": "!items!phbdrdArchdruid0",
+  "name": "Archdruid",
+  "type": "feature",
+  "img": "icons/magic/nature/root-vines-face-glow-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p>The vitality of nature constantly blooms within you, granting you the following benefits.</p><p><strong>Evergreen Wild Shape.</strong> Whenever you roll Initiative and have no uses of Wild Shape left, you regain one expended use of it.</p><p><strong>Nature Magician.</strong> You can convert uses of Wild Shape into a spell slot (no action required). Choose a number of your unexpended uses of Wild Shape and convert them into a single spell slot, with each use contributing 2 spell levels. For example, if you convert two uses of Wild Shape, you produce a level 4 spell slot. Once you use this benefit, you can't do so again until you finish a Long Rest.</p><p><strong>Longevity.</strong> The primal magic that you wield causes you to age more slowly. For every ten years that pass, your body ages only one year.</p><section class=\"secret\" id=\"secret-qKoW7fFZUwKC0IOG\"><p><strong>Foundry Note</strong></p><p>This feature does not automate regaining a use of Wild Shape when rolling initiative but it does include an activity which will restore a use when activated.</p><p>The <strong>Nature Magician</strong> activity can be used to convert Wild Shape uses to spell slots.</p></section>",
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "archdruid-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "archdruid",
+          "label": "Archdruid",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbdrdArchdruid0",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Nature Magician\" is passive or triggered: not automated",
+          "\"Recharge on Initiative\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

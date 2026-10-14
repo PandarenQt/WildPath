@@ -1,0 +1,28 @@
+{
+  "_id": "phbsptNaturallyS",
+  "_key": "!items!phbsptNaturallyS",
+  "name": "Naturally Stealthy",
+  "type": "feature",
+  "img": "icons/magic/perception/silhouette-stealth-shadow.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You can take the Hide action even when you are obscured only by a creature that is at least one size larger than you.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "origins24",
+        "id": "phbsptNaturallyS",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

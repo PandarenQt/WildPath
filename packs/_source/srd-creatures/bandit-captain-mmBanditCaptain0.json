@@ -7,10 +7,12 @@
   "system": {
     "abilities": {
       "might": {
-        "value": 15
+        "value": 15,
+        "saveProficient": true
       },
       "agility": {
-        "value": 16
+        "value": 16,
+        "saveProficient": true
       },
       "fortitude": {
         "value": 14
@@ -19,7 +21,8 @@
         "value": 14
       },
       "wits": {
-        "value": 11
+        "value": 11,
+        "saveProficient": true
       },
       "presence": {
         "value": 14
@@ -61,7 +64,7 @@
       "img": "icons/weapons/swords/scimitar-worn-blue.webp",
       "system": {
         "active": true,
-        "description": "",
+        "description": "<p>Melee Attack Roll: +5, reach 5 ft. Hit: 6 (1d6 + 3) Slashing damage.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-scimitar",
@@ -77,6 +80,7 @@
             "type": "melee",
             "statistic": "weapon",
             "defenseKey": "ac",
+            "proficient": true,
             "properties": [
               "finesse"
             ]
@@ -134,7 +138,7 @@
       "img": "icons/weapons/guns/gun-purple.webp",
       "system": {
         "active": true,
-        "description": "",
+        "description": "<p>Ranged Attack Roll: +5, range 30/90 ft. Hit: 8 (1d10 + 3) Piercing damage.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-pistol",
@@ -149,7 +153,8 @@
           "attack": {
             "type": "ranged",
             "statistic": "weapon",
-            "defenseKey": "ac"
+            "defenseKey": "ac",
+            "proficient": true
           },
           "range": {
             "type": "ranged",
@@ -199,6 +204,92 @@
           }
         }
       }
+    },
+    {
+      "_id": "mmMultiattack000",
+      "_key": "!actors.items!mmBanditCaptain0.mmMultiattack000",
+      "name": "Multiattack",
+      "type": "action",
+      "img": "icons/skills/melee/strike-weapons-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The bandit captain makes two attacks, using Scimitar and Pistol in any combination.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-multiattack-expend-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Multiattack"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMultiattack000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmParry000000000",
+      "_key": "!actors.items!mmBanditCaptain0.mmParry000000000",
+      "name": "Parry",
+      "type": "action",
+      "img": "icons/skills/melee/swords-parry-block-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p><em>Trigger:</em> The bandit captain is hit by a melee attack roll while holding a weapon. <em>Response:</em> The bandit captain adds 2 to its AC against that attack, possibly causing it to miss.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-parry-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "reaction",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Parry"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmParry000000000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
     }
   ],
   "flags": {
@@ -215,9 +306,8 @@
       },
       "conversion": {
         "notes": [
-          "Multiattack: activity \"Expend Use\" does nothing WildPath can run",
-          "Parry: activity \"Use\" does nothing WildPath can run",
-          "attacks and proficient saves: the stat block adds +2 proficiency, which WildPath does not"
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
+          "Parry: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

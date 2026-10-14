@@ -1,0 +1,86 @@
+{
+  "_id": "phbsplForbiddanc",
+  "_key": "!items!phbsplForbiddanc",
+  "name": "Forbiddance (Create Ward)",
+  "type": "action",
+  "img": "icons/magic/symbols/squares-3d-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You create a ward against magical travel that protects up to 40,000 square feet of floor space to a height of 30 feet above the floor. For the duration, creatures can't teleport into the area or use portals, such as those created by the <em>Gate</em> spell, to enter the area. The spell proofs the area against planar travel, and therefore prevents creatures from accessing the area by way of the Astral Plane, the Ethereal Plane, the Feywild, the Shadowfell, or the <em>Plane Shift</em> spell.</p><p>In addition, the spell damages types of creatures that you choose when you cast it. Choose one or more of the following: Aberrations, Celestials, Elementals, Fey, Fiends, and Undead. When a creature of a chosen type enters the spell's area for the first time on a turn or ends its turn there, the creature takes 5d10 Radiant or Necrotic damage (your choice when you cast this spell).</p><p>You can designate a password when you cast the spell. A creature that speaks the password as it enters the area takes no damage from the spell.</p><p>The spell's area can't overlap with the area of another <em>Forbiddance</em> spell. If you cast <em>Forbiddance</em> every day for 30 days in the same location, the spell lasts until it is dispelled, and the Material components are consumed on the last casting.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-forbiddance-create-ward",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": []
+      },
+      "configuration": [
+        {
+          "id": "spell-slot",
+          "type": "resource",
+          "label": "Spell slot",
+          "required": true,
+          "cost": {
+            "anyOf": [
+              [
+                {
+                  "capability": "spell-slot.6",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.7",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.8",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.9",
+                  "amount": 1
+                }
+              ]
+            ]
+          },
+          "levelByResourceId": {
+            "spell-slot.6": 6,
+            "spell-slot.7": 7,
+            "spell-slot.8": 8,
+            "spell-slot.9": 9
+          },
+          "effects": []
+        }
+      ],
+      "label": "Forbiddance (Create Ward)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbsplForbiddanc",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "activation: 10 minute is not an action-economy cost",
+          "activation: 10 minute is not an action-economy cost"
+        ]
+      }
+    }
+  }
+}

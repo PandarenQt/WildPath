@@ -1,0 +1,184 @@
+{
+  "_id": "phbsplMoonbeam00",
+  "_key": "!items!phbsplMoonbeam00",
+  "name": "Moonbeam",
+  "type": "action",
+  "img": "icons/magic/light/beam-rays-yellow-blue-large.webp",
+  "system": {
+    "active": true,
+    "description": "<p>A silvery beam of pale light shines down in a 5-foot-radius, 40-foot-high Cylinder centered on a point within range. Until the spell ends, Dim Light fills the Cylinder, and you can take a Magic action on later turns to move the Cylinder up to 60 feet.</p><p>When the Cylinder appears, each creature in it makes a Constitution saving throw. On a failed save, a creature takes 2d10 Radiant damage, and if the creature is shape-shifted (as a result of the <em>Polymorph</em> spell, for example), it reverts to its true form and can't shape-shift until it leaves the Cylinder. On a successful save, a creature takes half as much damage only. A creature also makes this save when the spell's area moves into its space and when it enters the spell's area or ends its turn there. A creature makes this save only once per turn.</p><p><strong>Using a Higher-Level Spell Slot.</strong>The damage increases by 1d10 for each spell slot level above 2.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-moonbeam",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 120,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "radial",
+        "size": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "save": {
+        "ability": "fortitude",
+        "dc": {
+          "valueExpression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 8
+              },
+              {
+                "type": "proficiency-bonus"
+              },
+              {
+                "type": "spellcasting-modifier"
+              }
+            ]
+          }
+        }
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "dice",
+            "number": 2,
+            "faces": 10
+          },
+          "damageType": "radiant",
+          "provenance": "spell-base",
+          "saveOutcomePolicy": {
+            "success": "half",
+            "failure": "full"
+          }
+        }
+      ],
+      "configuration": [
+        {
+          "id": "spell-slot",
+          "type": "resource",
+          "label": "Spell slot",
+          "required": true,
+          "cost": {
+            "anyOf": [
+              [
+                {
+                  "capability": "spell-slot.2",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.3",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.4",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.5",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.6",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.7",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.8",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.9",
+                  "amount": 1
+                }
+              ]
+            ]
+          },
+          "levelByResourceId": {
+            "spell-slot.2": 2,
+            "spell-slot.3": 3,
+            "spell-slot.4": 4,
+            "spell-slot.5": 5,
+            "spell-slot.6": 6,
+            "spell-slot.7": 7,
+            "spell-slot.8": 8,
+            "spell-slot.9": 9
+          },
+          "effects": [
+            {
+              "type": "scaleDamage",
+              "levelChoiceId": "spell-slot",
+              "baseLevel": 2,
+              "componentIds": [
+                "damage-1"
+              ],
+              "dice": {
+                "number": 1,
+                "faces": 10
+              }
+            }
+          ]
+        }
+      ],
+      "label": "Moonbeam"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbsplMoonbeam00",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "area: a cylinder's height is not modeled",
+          "concentration: nothing it sustains was converted"
+        ]
+      }
+    }
+  }
+}

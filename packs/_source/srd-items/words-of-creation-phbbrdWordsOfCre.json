@@ -1,0 +1,28 @@
+{
+  "_id": "phbbrdWordsOfCre",
+  "_key": "!items!phbbrdWordsOfCre",
+  "name": "Words of Creation",
+  "type": "feature",
+  "img": "icons/magic/life/heart-area-circle-red-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You have mastered two of the Words of Creation: the words of life and death. You therefore always have the Power Word Heal and Power Word Kill spells prepared. When you cast either spell, you can target a second creature with it if that creature is within 10 feet of the first target.</p><section id=\"secret-aHHp3ZnTrWPHHB7j\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>You are automatically granted these spells as you level up.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbbrdWordsOfCre",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

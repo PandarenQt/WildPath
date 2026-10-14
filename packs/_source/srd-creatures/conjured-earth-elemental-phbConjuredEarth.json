@@ -1,0 +1,108 @@
+{
+  "_id": "phbConjuredEarth",
+  "_key": "!actors!phbConjuredEarth",
+  "name": "Conjured Earth Elemental",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 0
+      },
+      "agility": {
+        "value": 0
+      },
+      "fortitude": {
+        "value": 0
+      },
+      "intellect": {
+        "value": 0
+      },
+      "wits": {
+        "value": 0
+      },
+      "presence": {
+        "value": 0
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 0
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 1,
+        "value": 1
+      },
+      "movement": {
+        "base": 30,
+        "value": 30
+      }
+    },
+    "details": {
+      "threat": 0
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Conjured Earth Elemental",
+    "width": 2,
+    "height": 2,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "oJkALZTVLPy8TJSR",
+      "_key": "!actors.items!phbConjuredEarth.oJkALZTVLPy8TJSR",
+      "name": "Earth Element",
+      "type": "feature",
+      "img": "icons/magic/sonic/explosion-impact-shock-wave.webp",
+      "system": {
+        "active": true,
+        "description": "<p></p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "oJkALZTVLPy8TJSR",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "\"Initial Save\" is passive or triggered: not automated",
+              "\"Save while Restrained\" is passive or triggered: not automated"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "phbConjuredEarth",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 0
+      },
+      "conversion": {
+        "notes": [
+          "Earth Element: \"Initial Save\" is passive or triggered: not automated",
+          "Earth Element: \"Save while Restrained\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

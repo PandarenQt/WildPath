@@ -1,0 +1,46 @@
+{
+  "_id": "phbsplLight00000",
+  "_key": "!items!phbsplLight00000",
+  "name": "Light",
+  "type": "action",
+  "img": "icons/sundries/lights/candle-pillar-lit-yellow.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You touch one Large or smaller object that isn't being worn or carried by someone else. Until the spell ends, the object sheds Bright Light in a 20-foot radius and Dim Light for an additional 20 feet. The light can be colored as you like.</p><p>Covering the object with something opaque blocks the light. The spell ends if you cast it again.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-light",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Light"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbsplLight00000",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (summon): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

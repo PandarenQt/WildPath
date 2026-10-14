@@ -1,0 +1,346 @@
+{
+  "_id": "mmGhast000000000",
+  "_key": "!actors!mmGhast000000000",
+  "name": "Ghast",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 16
+      },
+      "agility": {
+        "value": 17
+      },
+      "fortitude": {
+        "value": 10
+      },
+      "intellect": {
+        "value": 11
+      },
+      "wits": {
+        "value": 10,
+        "saveProficient": true
+      },
+      "presence": {
+        "value": 8
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 13
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 36,
+        "value": 36
+      },
+      "movement": {
+        "base": 30,
+        "value": 30
+      }
+    },
+    "details": {
+      "threat": 2
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Ghast",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "5bjPpreGFvealK36",
+      "_key": "!actors.items!mmGhast000000000.5bjPpreGFvealK36",
+      "name": "Stench",
+      "type": "feature",
+      "img": "icons/magic/air/fog-gas-smoke-swirling-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\"><em>Constitution Saving Throw:</em> DC 10, any creature (other than a ghast) that starts its turn in a 5-foot Emanation originating from the ghast.</p><p><em>Failure:</em> The target has the Poisoned condition until the start of its next turn.</p><p><em>Success:</em> The target is immune to the Stench of all ghast for 1 hour.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "5bjPpreGFvealK36",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "\"save\" is passive or triggered: not automated"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "ywBCReF0tJFKe5MO",
+      "_key": "!actors.items!mmGhast000000000.ywBCReF0tJFKe5MO",
+      "name": "Bite",
+      "type": "action",
+      "img": "icons/creatures/abilities/fangs-teeth-bite.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +5, reach 5 ft. Hit: 7 (1d8 + 3) Piercing plus 9 (2d8) Necrotic damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-bite",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 8
+              },
+              "damageType": "piercing",
+              "provenance": "weapon-base"
+            },
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 8
+              },
+              "damageType": "necrotic",
+              "provenance": "additional"
+            }
+          ],
+          "label": "Bite"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "ywBCReF0tJFKe5MO",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "SQ1vT3qHTKj46khh",
+      "_key": "!actors.items!mmGhast000000000.SQ1vT3qHTKj46khh",
+      "name": "Claw (attack)",
+      "type": "action",
+      "img": "icons/skills/melee/blood-slash-foam-red.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +5, reach 5 ft. Hit: 10 (2d6 + 3) Slashing damage. If the target is a non-Undead creature, it is subjected to the following effect.</p><p><em>Constitution Saving Throw:</em> DC 10.</p><p><em>Failure:</em> The target has the Paralyzed condition until the end of its next turn.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-claw",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 6
+              },
+              "damageType": "slashing",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Claw (attack)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "SQ1vT3qHTKj46khh",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "fxora73nd8dv0000",
+      "_key": "!actors.items!mmGhast000000000.fxora73nd8dv0000",
+      "name": "Claw (save)",
+      "type": "action",
+      "img": "icons/skills/melee/blood-slash-foam-red.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +5, reach 5 ft. Hit: 10 (2d6 + 3) Slashing damage. If the target is a non-Undead creature, it is subjected to the following effect.</p><p><em>Constitution Saving Throw:</em> DC 10.</p><p><em>Failure:</em> The target has the Paralyzed condition until the end of its next turn.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-claw",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Claw (save)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "SQ1vT3qHTKj46khh",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest",
+              "effect: paralyzed is not a WildPath condition yet"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmGhast00000trts",
+      "_key": "!actors.items!mmGhast000000000.mmGhast00000trts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "resistances",
+            "type": "GrantResistance",
+            "data": {
+              "damageTypes": [
+                "necrotic"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "immunities",
+            "type": "GrantImmunity",
+            "data": {
+              "damageTypes": [
+                "poison"
+              ]
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmGhast000000000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 2
+      },
+      "conversion": {
+        "notes": [
+          "Stench: \"save\" is passive or triggered: not automated",
+          "Claw: not automated (save): using it spends its cost; its description says the rest",
+          "Claw: effect: paralyzed is not a WildPath condition yet",
+          "condition immunities (charmed, exhaustion, poisoned) not converted"
+        ]
+      }
+    }
+  }
+}

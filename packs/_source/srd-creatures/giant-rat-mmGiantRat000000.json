@@ -1,0 +1,204 @@
+{
+  "_id": "mmGiantRat000000",
+  "_key": "!actors!mmGiantRat000000",
+  "name": "Giant Rat",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 7
+      },
+      "agility": {
+        "value": 16,
+        "saveProficient": true
+      },
+      "fortitude": {
+        "value": 11
+      },
+      "intellect": {
+        "value": 2
+      },
+      "wits": {
+        "value": 10
+      },
+      "presence": {
+        "value": 4
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 13
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 7,
+        "value": 7
+      },
+      "movement": {
+        "base": 30,
+        "value": 30
+      }
+    },
+    "details": {
+      "threat": 0
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Giant Rat",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmPackTactics000",
+      "_key": "!actors.items!mmGiantRat000000.mmPackTactics000",
+      "name": "Pack Tactics",
+      "type": "feature",
+      "img": "icons/creatures/abilities/wolf-heads-swirl-purple.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The giant rat has Advantage on an attack roll against a creature if at least one of the giant rat's allies is within 5 feet of the creature and the ally doesn't have the Incapacitated condition.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmPackTactics000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmBite0000000000",
+      "_key": "!actors.items!mmGiantRat000000.mmBite0000000000",
+      "name": "Bite",
+      "type": "action",
+      "img": "icons/creatures/abilities/fangs-teeth-bite.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +5, reach 5 ft. Hit: 5 (1d4 + 3) Piercing damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-bite",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "agility"
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 4
+              },
+              "damageType": "piercing",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Bite"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmBite0000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmGiantRat00trts",
+      "_key": "!actors.items!mmGiantRat000000.mmGiantRat00trts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "speed-climb",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "climb",
+              "distance": 30
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmGiantRat000000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 0.125
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

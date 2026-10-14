@@ -1,0 +1,28 @@
+{
+  "_id": "phbmnkBodyAndMin",
+  "_key": "!items!phbmnkBodyAndMin",
+  "name": "Body and Mind",
+  "type": "feature",
+  "img": "icons/magic/perception/third-eye-blue-red.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You have developed your body and mind to new heights. Your Dexterity and Wisdom scores increase by 4, to a maximum of 25.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbmnkBodyAndMin",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

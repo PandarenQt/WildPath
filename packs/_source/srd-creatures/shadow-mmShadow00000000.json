@@ -1,0 +1,392 @@
+{
+  "_id": "mmShadow00000000",
+  "_key": "!actors!mmShadow00000000",
+  "name": "Shadow",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 6
+      },
+      "agility": {
+        "value": 14
+      },
+      "fortitude": {
+        "value": 13
+      },
+      "intellect": {
+        "value": 6
+      },
+      "wits": {
+        "value": 10
+      },
+      "presence": {
+        "value": 8
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 12
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 27,
+        "value": 27
+      },
+      "movement": {
+        "base": 40,
+        "value": 40
+      }
+    },
+    "details": {
+      "threat": 0
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Shadow",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmAmorphous00000",
+      "_key": "!actors.items!mmShadow00000000.mmAmorphous00000",
+      "name": "Amorphous",
+      "type": "feature",
+      "img": "icons/creatures/slimes/slime-face-hollow-green.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The shadow can move through a space as narrow as 1 inch without expending extra movement to do so.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmAmorphous00000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmSunlightWeakne",
+      "_key": "!actors.items!mmShadow00000000.mmSunlightWeakne",
+      "name": "Sunlight Weakness",
+      "type": "feature",
+      "img": "icons/magic/light/explosion-star-glow-yellow.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">While in sunlight, the shadow has Disadvantage on D20 Tests.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSunlightWeakne",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmDrainingSwipe0",
+      "_key": "!actors.items!mmShadow00000000.mmDrainingSwipe0",
+      "name": "Draining Swipe (attack)",
+      "type": "action",
+      "img": "icons/magic/unholy/hand-claw-fire-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Melee Attack Roll: +4, reach 5 ft. Hit: 5 (1d6 + 2) Necrotic damage, and the target's Strength score decreases by 1d4. The target dies if this reduces that score to 0. If a Humanoid is slain by this attack, a <strong>Shadow</strong> rises from the corpse 1d4 hours later.</p><section class=\"secret\" id=\"secret-qqwbOYJqDuTP2N5e\"><p><strong>Foundry Note</strong></p><p>This feature also provides an <strong>Active Effect (AE)</strong> to modify the target's <strong>Strength Score</strong>. When the target roll's their d4 to determine the loss, you can apply the respective AE to the target's sheet.</p></section>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-draining-swipe",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "agility"
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 6
+              },
+              "damageType": "necrotic",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Draining Swipe (attack)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmDrainingSwipe0",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "81opwyf6k25c0000",
+      "_key": "!actors.items!mmShadow00000000.81opwyf6k25c0000",
+      "name": "Draining Swipe (STR Score -1d4)",
+      "type": "action",
+      "img": "icons/magic/unholy/hand-claw-fire-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Melee Attack Roll: +4, reach 5 ft. Hit: 5 (1d6 + 2) Necrotic damage, and the target's Strength score decreases by 1d4. The target dies if this reduces that score to 0. If a Humanoid is slain by this attack, a <strong>Shadow</strong> rises from the corpse 1d4 hours later.</p><section class=\"secret\" id=\"secret-qqwbOYJqDuTP2N5e\"><p><strong>Foundry Note</strong></p><p>This feature also provides an <strong>Active Effect (AE)</strong> to modify the target's <strong>Strength Score</strong>. When the target roll's their d4 to determine the loss, you can apply the respective AE to the target's sheet.</p></section>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-draining-swipe-str-score-1d4",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Draining Swipe (STR Score -1d4)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmDrainingSwipe0",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "effect: \"Hit: STR Score -1\" (its own changes) not converted",
+              "effect: \"Hit: STR Score -2\" (its own changes) not converted",
+              "effect: \"Hit: STR Score -3\" (its own changes) not converted",
+              "effect: \"Hit: STR Score -4\" (its own changes) not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "7rp47z1fmfghb000",
+      "_key": "!actors.items!mmShadow00000000.7rp47z1fmfghb000",
+      "name": "Draining Swipe (Shadow Rises)",
+      "type": "action",
+      "img": "icons/magic/unholy/hand-claw-fire-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Melee Attack Roll: +4, reach 5 ft. Hit: 5 (1d6 + 2) Necrotic damage, and the target's Strength score decreases by 1d4. The target dies if this reduces that score to 0. If a Humanoid is slain by this attack, a <strong>Shadow</strong> rises from the corpse 1d4 hours later.</p><section class=\"secret\" id=\"secret-qqwbOYJqDuTP2N5e\"><p><strong>Foundry Note</strong></p><p>This feature also provides an <strong>Active Effect (AE)</strong> to modify the target's <strong>Strength Score</strong>. When the target roll's their d4 to determine the loss, you can apply the respective AE to the target's sheet.</p></section>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-draining-swipe-shadow-rises",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Draining Swipe (Shadow Rises)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmDrainingSwipe0",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (summon): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmShadowStealth0",
+      "_key": "!actors.items!mmShadow00000000.mmShadowStealth0",
+      "name": "Shadow Stealth",
+      "type": "action",
+      "img": "icons/magic/control/silhouette-hold-change-green.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">While in Dim Light or Darkness, the shadow takes the Hide action.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-shadow-stealth-expend-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Shadow Stealth"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmShadowStealth0",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "effect: hiding is not a WildPath condition yet"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmShadow0000trts",
+      "_key": "!actors.items!mmShadow00000000.mmShadow0000trts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "resistances",
+            "type": "GrantResistance",
+            "data": {
+              "damageTypes": [
+                "acid",
+                "cold",
+                "fire",
+                "lightning",
+                "thunder"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "immunities",
+            "type": "GrantImmunity",
+            "data": {
+              "damageTypes": [
+                "necrotic",
+                "poison"
+              ]
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmShadow00000000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 0.5
+      },
+      "conversion": {
+        "notes": [
+          "Draining Swipe: not automated (utility): using it spends its cost; its description says the rest",
+          "Draining Swipe: effect: \"Hit: STR Score -1\" (its own changes) not converted",
+          "Draining Swipe: effect: \"Hit: STR Score -2\" (its own changes) not converted",
+          "Draining Swipe: effect: \"Hit: STR Score -3\" (its own changes) not converted",
+          "Draining Swipe: effect: \"Hit: STR Score -4\" (its own changes) not converted",
+          "Draining Swipe: not automated (summon): using it spends its cost; its description says the rest",
+          "Shadow Stealth: not automated (utility): using it spends its cost; its description says the rest",
+          "Shadow Stealth: effect: hiding is not a WildPath condition yet",
+          "vulnerabilities (radiant) not converted",
+          "condition immunities (exhaustion, frightened, grappled, paralyzed, petrified, poisoned, prone, restrained, unconscious) not converted"
+        ]
+      }
+    }
+  }
+}

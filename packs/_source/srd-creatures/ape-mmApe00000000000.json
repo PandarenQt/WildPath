@@ -1,0 +1,313 @@
+{
+  "_id": "mmApe00000000000",
+  "_key": "!actors!mmApe00000000000",
+  "name": "Ape",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 16
+      },
+      "agility": {
+        "value": 14
+      },
+      "fortitude": {
+        "value": 14
+      },
+      "intellect": {
+        "value": 6
+      },
+      "wits": {
+        "value": 12
+      },
+      "presence": {
+        "value": 7
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 12
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 19,
+        "value": 19
+      },
+      "movement": {
+        "base": 30,
+        "value": 30
+      }
+    },
+    "details": {
+      "threat": 0
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Ape",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmMultiattack000",
+      "_key": "!actors.items!mmApe00000000000.mmMultiattack000",
+      "name": "Multiattack",
+      "type": "action",
+      "img": "icons/skills/melee/strike-weapons-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The ape makes two Fist attacks.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-multiattack-expend-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Multiattack"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMultiattack000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmFist0000000000",
+      "_key": "!actors.items!mmApe00000000000.mmFist0000000000",
+      "name": "Fist",
+      "type": "action",
+      "img": "icons/skills/melee/unarmed-punch-fist.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Melee Attack Roll: +5, reach 5 ft. Hit: 5 (1d4 + 3) Bludgeoning damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-fist",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 4
+              },
+              "damageType": "bludgeoning",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Fist"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmFist0000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmRock0000000000",
+      "_key": "!actors.items!mmApe00000000000.mmRock0000000000",
+      "name": "Rock",
+      "type": "action",
+      "img": "icons/commodities/stone/rock-chunk-brown.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Ranged Attack Roll: +5, range 25/50 ft. Hit: 10 (2d6 + 3) Bludgeoning damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-rock",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "ranged",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "might"
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 25,
+              "unit": "ft"
+            },
+            "long": {
+              "value": 50,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 6
+              },
+              "damageType": "bludgeoning",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Rock"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "rock-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "rock",
+              "label": "Rock",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "none"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmRock0000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "uses: Recharge 6 is not rolled; refill the pool by hand"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmApe0000000trts",
+      "_key": "!actors.items!mmApe00000000000.mmApe0000000trts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "speed-climb",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "climb",
+              "distance": 30
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmApe00000000000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 0.5
+      },
+      "conversion": {
+        "notes": [
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
+          "Rock: uses: Recharge 6 is not rolled; refill the pool by hand"
+        ]
+      }
+    }
+  }
+}

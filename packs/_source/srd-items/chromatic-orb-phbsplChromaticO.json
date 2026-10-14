@@ -1,0 +1,167 @@
+{
+  "_id": "phbsplChromaticO",
+  "_key": "!items!phbsplChromaticO",
+  "name": "Chromatic Orb",
+  "type": "action",
+  "img": "icons/magic/light/explosion-star-small-teal-purple.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You hurl an orb of energy at a target within range. Choose Acid, Cold, Fire, Lightning, Poison, or Thunder for the type of orb you create, and then make a ranged spell attack against the target. On a hit, the target takes 3d8 damage of the chosen type.</p><p>If you roll the same number on two or more of the d8s, the orb leaps to a different target of your choice within 30 feet of the target. Make an attack roll against the new target, and make a new damage roll. The orb can't leap again unless you cast the spell with a level 2+ spell slot. Number of leaps</p><p><strong>Using a Higher-Level Spell Slot.</strong> The damage increases by 1d8 for each spell slot level above 1. The orb can leap a maximum number of times equal to the level of the slot expended, and a creature can be targeted only once by each casting of this spell.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-chromatic-orb",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "attack": {
+        "type": "ranged",
+        "statistic": "spell",
+        "defenseKey": "ac",
+        "proficient": true
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 90,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "dice",
+            "number": 3,
+            "faces": 8
+          },
+          "damageType": "acid",
+          "provenance": "spell-base"
+        }
+      ],
+      "configuration": [
+        {
+          "id": "spell-slot",
+          "type": "resource",
+          "label": "Spell slot",
+          "required": true,
+          "cost": {
+            "anyOf": [
+              [
+                {
+                  "capability": "spell-slot.1",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.2",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.3",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.4",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.5",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.6",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.7",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.8",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.9",
+                  "amount": 1
+                }
+              ]
+            ]
+          },
+          "levelByResourceId": {
+            "spell-slot.1": 1,
+            "spell-slot.2": 2,
+            "spell-slot.3": 3,
+            "spell-slot.4": 4,
+            "spell-slot.5": 5,
+            "spell-slot.6": 6,
+            "spell-slot.7": 7,
+            "spell-slot.8": 8,
+            "spell-slot.9": 9
+          },
+          "effects": [
+            {
+              "type": "scaleDamage",
+              "levelChoiceId": "spell-slot",
+              "baseLevel": 1,
+              "componentIds": [
+                "damage-1"
+              ],
+              "dice": {
+                "number": 1,
+                "faces": 8
+              }
+            }
+          ]
+        }
+      ],
+      "label": "Chromatic Orb"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbsplChromaticO",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "damage 1: a choice of acid/cold/fire/lightning/poison/thunder uses acid"
+        ]
+      }
+    }
+  }
+}

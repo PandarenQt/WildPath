@@ -1,0 +1,28 @@
+{
+  "_id": "phbftrStudiedAtt",
+  "_key": "!items!phbftrStudiedAtt",
+  "name": "Studied Attacks",
+  "type": "feature",
+  "img": "icons/skills/melee/sword-engraved-glow-purple.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You study your opponents and learn from each attack you make. If you make an attack roll against a creature and miss, you have Advantage on your next attack roll against that creature before the end of your next turn.</p><section class=\"secret\" id=\"secret-JB6LwCHybmUrbihQ\"><p><strong>Foundry Note</strong></p><p>This feature does not automate the Advantage on your next attack roll.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbftrStudiedAtt",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

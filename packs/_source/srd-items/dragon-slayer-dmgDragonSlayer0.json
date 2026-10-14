@@ -1,0 +1,43 @@
+{
+  "_id": "dmgDragonSlayer0",
+  "_key": "!items!dmgDragonSlayer0",
+  "name": "Dragon Slayer",
+  "type": "action",
+  "img": "icons/weapons/swords/sword-jeweled-red.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Weapon (Any Simple or Martial), Rare</em></p><p>You gain a +1 bonus to attack rolls and damage rolls made with this magic weapon.</p><p>The weapon deals an extra 3d6 damage of the weapon's type if the target is a Dragon.</p><p></p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-dragon-slayer-dragon-slayer",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Dragon Slayer"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgDragonSlayer0",
+        "type": "weapon",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (enchant): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

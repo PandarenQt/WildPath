@@ -1,0 +1,325 @@
+{
+  "_id": "mmSwarmOfPiranha",
+  "_key": "!actors!mmSwarmOfPiranha",
+  "name": "Swarm of Piranhas",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 13
+      },
+      "agility": {
+        "value": 16
+      },
+      "fortitude": {
+        "value": 9
+      },
+      "intellect": {
+        "value": 1
+      },
+      "wits": {
+        "value": 7
+      },
+      "presence": {
+        "value": 2
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 13
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 28,
+        "value": 28
+      },
+      "movement": {
+        "base": 5,
+        "value": 5
+      }
+    },
+    "details": {
+      "threat": 1
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Swarm of Piranhas",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmSwarm000000000",
+      "_key": "!actors.items!mmSwarmOfPiranha.mmSwarm000000000",
+      "name": "Swarm",
+      "type": "feature",
+      "img": "icons/creatures/invertebrates/bee-yellow.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The swarm can occupy another creature's space and vice versa, and the swarm can move through any opening large enough for a Tiny piranha. The swarm can't regain Hit Points or gain Temporary Hit Points.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSwarm000000000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmWaterBreathing",
+      "_key": "!actors.items!mmSwarmOfPiranha.mmWaterBreathing",
+      "name": "Water Breathing",
+      "type": "feature",
+      "img": "icons/creatures/fish/fish-bluefin-yellow-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The swarm of piranhas can breathe only underwater. It can hold its breath for 1 hour outside water.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmWaterBreathing",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmBites000000000",
+      "_key": "!actors.items!mmSwarmOfPiranha.mmBites000000000",
+      "name": "Bites (attack)",
+      "type": "action",
+      "img": "icons/creatures/abilities/mouth-teeth-rows-white.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +5, reach 5 ft (with Advantage if the target doesn't have all its Hit Points), reach 5 ft. Hit: 8 (2d4 + 3) Piercing damage, or 5 (1d4 + 3) Piercing if the swarm is Bloodied</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-bites",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "agility"
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 4
+              },
+              "damageType": "piercing",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Bites (attack)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmBites000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "pq291zw2equp0000",
+      "_key": "!actors.items!mmSwarmOfPiranha.pq291zw2equp0000",
+      "name": "Bites (Bloodied Attack)",
+      "type": "action",
+      "img": "icons/creatures/abilities/mouth-teeth-rows-white.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +5, reach 5 ft (with Advantage if the target doesn't have all its Hit Points), reach 5 ft. Hit: 8 (2d4 + 3) Piercing damage, or 5 (1d4 + 3) Piercing if the swarm is Bloodied</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-bites-bloodied-attack",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "agility"
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "dice",
+                    "number": 1,
+                    "faces": 4
+                  },
+                  {
+                    "type": "spellcasting-modifier"
+                  }
+                ]
+              },
+              "damageType": "piercing",
+              "provenance": "additional"
+            }
+          ],
+          "label": "Bites (Bloodied Attack)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmBites000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmSwarmOfPirtrts",
+      "_key": "!actors.items!mmSwarmOfPiranha.mmSwarmOfPirtrts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "resistances",
+            "type": "GrantResistance",
+            "data": {
+              "damageTypes": [
+                "bludgeoning",
+                "piercing",
+                "slashing"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "speed-swim",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "swim",
+              "distance": 40
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmSwarmOfPiranha",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 1
+      },
+      "conversion": {
+        "notes": [
+          "condition immunities (charmed, frightened, grappled, paralyzed, petrified, prone, restrained, stunned) not converted"
+        ]
+      }
+    }
+  }
+}

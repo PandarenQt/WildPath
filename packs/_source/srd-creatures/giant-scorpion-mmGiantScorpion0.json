@@ -1,0 +1,276 @@
+{
+  "_id": "mmGiantScorpion0",
+  "_key": "!actors!mmGiantScorpion0",
+  "name": "Giant Scorpion",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 16
+      },
+      "agility": {
+        "value": 13
+      },
+      "fortitude": {
+        "value": 15
+      },
+      "intellect": {
+        "value": 1
+      },
+      "wits": {
+        "value": 9
+      },
+      "presence": {
+        "value": 3
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 15
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 52,
+        "value": 52
+      },
+      "movement": {
+        "base": 40,
+        "value": 40
+      }
+    },
+    "details": {
+      "threat": 3
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Giant Scorpion",
+    "width": 2,
+    "height": 2,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmMultiattack000",
+      "_key": "!actors.items!mmGiantScorpion0.mmMultiattack000",
+      "name": "Multiattack",
+      "type": "action",
+      "img": "icons/skills/melee/strike-weapons-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The giant scorpion makes two Claw attacks and one Sting attack.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-multiattack-expend-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Multiattack"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMultiattack000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmClaw0000000000",
+      "_key": "!actors.items!mmGiantScorpion0.mmClaw0000000000",
+      "name": "Claw (attack)",
+      "type": "action",
+      "img": "icons/creatures/claws/pincer-crab-brown.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +5, reach 5 ft. Hit: 6 (1d6 + 3) Bludgeoning damage.  If the target is a Large or smaller creature, it has the Grappled condition (escape DC ) from one of two claws.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-claw",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 6
+              },
+              "damageType": "bludgeoning",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Claw (attack)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmClaw0000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "effect: grappled is not a WildPath condition yet"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmSting000000000",
+      "_key": "!actors.items!mmGiantScorpion0.mmSting000000000",
+      "name": "Sting",
+      "type": "action",
+      "img": "icons/creatures/abilities/stinger-poison-green.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +5, reach 5 ft. Hit: 7 (1d8 + 3) Piercing plus 11 (2d10) Poison damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-sting",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "might"
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 8
+              },
+              "damageType": "piercing",
+              "provenance": "weapon-base"
+            },
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 10
+              },
+              "damageType": "poison",
+              "provenance": "additional"
+            }
+          ],
+          "label": "Sting"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSting000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmGiantScorpion0",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 3
+      },
+      "conversion": {
+        "notes": [
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
+          "Claw: effect: grappled is not a WildPath condition yet",
+          "Claw: \"Escape Check\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

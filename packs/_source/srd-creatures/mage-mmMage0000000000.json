@@ -1,0 +1,2098 @@
+{
+  "_id": "mmMage0000000000",
+  "_key": "!actors!mmMage0000000000",
+  "name": "Mage",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 9
+      },
+      "agility": {
+        "value": 14
+      },
+      "fortitude": {
+        "value": 11
+      },
+      "intellect": {
+        "value": 17,
+        "saveProficient": true
+      },
+      "wits": {
+        "value": 12,
+        "saveProficient": true
+      },
+      "presence": {
+        "value": 11
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 12
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 81,
+        "value": 81
+      },
+      "movement": {
+        "base": 30,
+        "value": 30
+      }
+    },
+    "details": {
+      "threat": 6
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Mage",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmMultiattack000",
+      "_key": "!actors.items!mmMage0000000000.mmMultiattack000",
+      "name": "Multiattack",
+      "type": "action",
+      "img": "icons/skills/melee/strike-weapons-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The mage makes three Arcane Burst attacks.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-multiattack-expend-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Multiattack"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMultiattack000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmArcaneBurst000",
+      "_key": "!actors.items!mmMage0000000000.mmArcaneBurst000",
+      "name": "Arcane Burst",
+      "type": "action",
+      "img": "icons/magic/unholy/hands-cloud-light-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +6, reach 5 ft. Hit: 16 (3d8 + 3) Force damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-arcane-burst",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "intellect"
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 3,
+                "faces": 8
+              },
+              "damageType": "force",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Arcane Burst"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmArcaneBurst000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmSpellcasting00",
+      "_key": "!actors.items!mmMage0000000000.mmSpellcasting00",
+      "name": "Spellcasting (cast)",
+      "type": "action",
+      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The mage casts one of the following spells, using Intelligence as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Light</em>, <em>Mage Armor</em> (included in AC), <em>Mage Hand</em>, <em>Prestidigitation</em></p><p class=\"feature-trait\"><strong>2/Day Each:</strong> <em>Fireball</em> (level 4 version), <em>Invisibility</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Cone of Cold</em>, <em>Fly</em></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Spellcasting (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSpellcasting00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "17svfvloelxmr000",
+      "_key": "!actors.items!mmMage0000000000.17svfvloelxmr000",
+      "name": "Spellcasting (cast)",
+      "type": "action",
+      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The mage casts one of the following spells, using Intelligence as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Light</em>, <em>Mage Armor</em> (included in AC), <em>Mage Hand</em>, <em>Prestidigitation</em></p><p class=\"feature-trait\"><strong>2/Day Each:</strong> <em>Fireball</em> (level 4 version), <em>Invisibility</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Cone of Cold</em>, <em>Fly</em></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Spellcasting (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSpellcasting00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "16ywmso1mzul9w00",
+      "_key": "!actors.items!mmMage0000000000.16ywmso1mzul9w00",
+      "name": "Spellcasting (cast)",
+      "type": "action",
+      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The mage casts one of the following spells, using Intelligence as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Light</em>, <em>Mage Armor</em> (included in AC), <em>Mage Hand</em>, <em>Prestidigitation</em></p><p class=\"feature-trait\"><strong>2/Day Each:</strong> <em>Fireball</em> (level 4 version), <em>Invisibility</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Cone of Cold</em>, <em>Fly</em></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Spellcasting (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSpellcasting00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "178w8hnnsecqh000",
+      "_key": "!actors.items!mmMage0000000000.178w8hnnsecqh000",
+      "name": "Spellcasting (cast)",
+      "type": "action",
+      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The mage casts one of the following spells, using Intelligence as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Light</em>, <em>Mage Armor</em> (included in AC), <em>Mage Hand</em>, <em>Prestidigitation</em></p><p class=\"feature-trait\"><strong>2/Day Each:</strong> <em>Fireball</em> (level 4 version), <em>Invisibility</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Cone of Cold</em>, <em>Fly</em></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Spellcasting (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSpellcasting00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "18mu8yi1mdn0dm00",
+      "_key": "!actors.items!mmMage0000000000.18mu8yi1mdn0dm00",
+      "name": "Spellcasting (cast)",
+      "type": "action",
+      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The mage casts one of the following spells, using Intelligence as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Light</em>, <em>Mage Armor</em> (included in AC), <em>Mage Hand</em>, <em>Prestidigitation</em></p><p class=\"feature-trait\"><strong>2/Day Each:</strong> <em>Fireball</em> (level 4 version), <em>Invisibility</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Cone of Cold</em>, <em>Fly</em></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Spellcasting (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSpellcasting00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "18wtunhn66ru7000",
+      "_key": "!actors.items!mmMage0000000000.18wtunhn66ru7000",
+      "name": "Spellcasting (cast)",
+      "type": "action",
+      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The mage casts one of the following spells, using Intelligence as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Light</em>, <em>Mage Armor</em> (included in AC), <em>Mage Hand</em>, <em>Prestidigitation</em></p><p class=\"feature-trait\"><strong>2/Day Each:</strong> <em>Fireball</em> (level 4 version), <em>Invisibility</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Cone of Cold</em>, <em>Fly</em></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Spellcasting (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSpellcasting00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest",
+              "consumption: activityUses 1 not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "182v1kk1lrffhc00",
+      "_key": "!actors.items!mmMage0000000000.182v1kk1lrffhc00",
+      "name": "Spellcasting (cast)",
+      "type": "action",
+      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The mage casts one of the following spells, using Intelligence as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Light</em>, <em>Mage Armor</em> (included in AC), <em>Mage Hand</em>, <em>Prestidigitation</em></p><p class=\"feature-trait\"><strong>2/Day Each:</strong> <em>Fireball</em> (level 4 version), <em>Invisibility</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Cone of Cold</em>, <em>Fly</em></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Spellcasting (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSpellcasting00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest",
+              "consumption: activityUses 1 not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "18cun9jmjz6xx000",
+      "_key": "!actors.items!mmMage0000000000.18cun9jmjz6xx000",
+      "name": "Spellcasting (cast)",
+      "type": "action",
+      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The mage casts one of the following spells, using Intelligence as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Light</em>, <em>Mage Armor</em> (included in AC), <em>Mage Hand</em>, <em>Prestidigitation</em></p><p class=\"feature-trait\"><strong>2/Day Each:</strong> <em>Fireball</em> (level 4 version), <em>Invisibility</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Cone of Cold</em>, <em>Fly</em></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Spellcasting (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSpellcasting00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest",
+              "consumption: activityUses 1 not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "15az0mu1q2whra00",
+      "_key": "!actors.items!mmMage0000000000.15az0mu1q2whra00",
+      "name": "Spellcasting (cast)",
+      "type": "action",
+      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The mage casts one of the following spells, using Intelligence as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Light</em>, <em>Mage Armor</em> (included in AC), <em>Mage Hand</em>, <em>Prestidigitation</em></p><p class=\"feature-trait\"><strong>2/Day Each:</strong> <em>Fireball</em> (level 4 version), <em>Invisibility</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Cone of Cold</em>, <em>Fly</em></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Spellcasting (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSpellcasting00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest",
+              "consumption: activityUses 1 not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmMistyStep00000",
+      "_key": "!actors.items!mmMage0000000000.mmMistyStep00000",
+      "name": "Misty Step",
+      "type": "action",
+      "img": "icons/magic/lightning/orb-ball-spiral-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The mage casts <em>Misty Step</em>, using the same spellcasting ability as Spellcasting.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-misty-step",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              },
+              {
+                "capability": "misty-step",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Misty Step"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "misty-step-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "misty-step",
+              "label": "Misty Step",
+              "maximum": {
+                "type": "constant",
+                "value": 3
+              },
+              "recovery": "none"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMistyStep00000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "BtkwckQJktc8hRh0",
+      "_key": "!actors.items!mmMage0000000000.BtkwckQJktc8hRh0",
+      "name": "Misty Step",
+      "type": "action",
+      "img": "icons/magic/lightning/orb-ball-spiral-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Briefly surrounded by silvery mist, you teleport up to 30 feet to an unoccupied space you can see.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-misty-step",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              }
+            ]
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.2",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.3",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.4",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.2": 2,
+                "spell-slot.3": 3,
+                "spell-slot.4": 4,
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Misty Step"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "BtkwckQJktc8hRh0",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmProtectiveMagi",
+      "_key": "!actors.items!mmMage0000000000.mmProtectiveMagi",
+      "name": "Protective Magic (cast)",
+      "type": "action",
+      "img": "icons/magic/defensive/barrier-shield-dome-blue-purple.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The mage casts <em>Counterspell</em> or <em>Shield</em> in response to the spell's trigger, using the same spellcasting ability as Spellcasting.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-protective-magic",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "reaction",
+                "amount": 1
+              },
+              {
+                "capability": "protective-magic",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Protective Magic (cast)"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "protective-magic-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "protective-magic",
+              "label": "Protective Magic",
+              "maximum": {
+                "type": "constant",
+                "value": 3
+              },
+              "recovery": "none"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmProtectiveMagi",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "dusvzzddynrr0000",
+      "_key": "!actors.items!mmMage0000000000.dusvzzddynrr0000",
+      "name": "Protective Magic (cast)",
+      "type": "action",
+      "img": "icons/magic/defensive/barrier-shield-dome-blue-purple.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The mage casts <em>Counterspell</em> or <em>Shield</em> in response to the spell's trigger, using the same spellcasting ability as Spellcasting.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-protective-magic",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "reaction",
+                "amount": 1
+              },
+              {
+                "capability": "protective-magic",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Protective Magic (cast)"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "protective-magic-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "protective-magic",
+              "label": "Protective Magic",
+              "maximum": {
+                "type": "constant",
+                "value": 3
+              },
+              "recovery": "none"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmProtectiveMagi",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "AlYAtKsfv1ecczpO",
+      "_key": "!actors.items!mmMage0000000000.AlYAtKsfv1ecczpO",
+      "name": "Counterspell",
+      "type": "action",
+      "img": "icons/magic/unholy/hands-circle-light-green.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You attempt to interrupt a creature in the process of casting a spell. The creature makes a Constitution saving throw. On a failed save, the spell dissipates with no effect, and the action, Bonus Action, or Reaction used to cast it is wasted. If that spell was cast with a spell slot, the slot isn't expended.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-counterspell",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "reaction",
+                "amount": 1
+              }
+            ]
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.3",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.4",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.3": 3,
+                "spell-slot.4": 4,
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Counterspell"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "AlYAtKsfv1ecczpO",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "YmZroxEDsVyUTwxp",
+      "_key": "!actors.items!mmMage0000000000.YmZroxEDsVyUTwxp",
+      "name": "Shield",
+      "type": "action",
+      "img": "icons/equipment/shield/heater-crystal-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>An imperceptible barrier of magical force protects you. Until the start of your next turn, you have a +5 bonus to AC, including against the triggering attack, and you take no damage from <em>Magic Missile</em>.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-shield-cast",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "reaction",
+                "amount": 1
+              }
+            ]
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.1",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.2",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.3",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.4",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.1": 1,
+                "spell-slot.2": 2,
+                "spell-slot.3": 3,
+                "spell-slot.4": 4,
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Shield"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "YmZroxEDsVyUTwxp",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "effect: \"Imperceptible Barrier\" (its own changes) not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "jdJ9mSsHzJRBSwJK",
+      "_key": "!actors.items!mmMage0000000000.jdJ9mSsHzJRBSwJK",
+      "name": "Detect Magic",
+      "type": "action",
+      "img": "icons/magic/symbols/runes-carved-stone-green.webp",
+      "system": {
+        "active": true,
+        "description": "<p>For the duration, you sense the presence of magical effects within 30 feet of yourself. If you sense such effects, you can take the Magic action to see a faint aura around any visible creature or object in the area that bears the magic, and if an effect was created by a spell, you learn the spell's school of magic.</p><p>The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-detect-magic-cast",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.1",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.2",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.3",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.4",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.1": 1,
+                "spell-slot.2": 2,
+                "spell-slot.3": 3,
+                "spell-slot.4": 4,
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Detect Magic"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "jdJ9mSsHzJRBSwJK",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "effect: \"Detect Magic\" (its own changes) not converted",
+              "concentration: nothing it sustains was converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "bX7FoTCn4c1G1k5F",
+      "_key": "!actors.items!mmMage0000000000.bX7FoTCn4c1G1k5F",
+      "name": "Light",
+      "type": "action",
+      "img": "icons/sundries/lights/candle-pillar-lit-yellow.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You touch one Large or smaller object that isn't being worn or carried by someone else. Until the spell ends, the object sheds Bright Light in a 20-foot radius and Dim Light for an additional 20 feet. The light can be colored as you like.</p><p>Covering the object with something opaque blocks the light. The spell ends if you cast it again.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-light-cast",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Light"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "bX7FoTCn4c1G1k5F",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (summon): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "kJxdj680Yr2u1vqp",
+      "_key": "!actors.items!mmMage0000000000.kJxdj680Yr2u1vqp",
+      "name": "Mage Armor",
+      "type": "action",
+      "img": "icons/equipment/head/hat-pointed-buckle-leather-purple.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You touch a willing creature who isn't wearing armor. Until the spell ends, the target's base AC becomes 13 plus its Dexterity modifier. The spell ends early if the target dons armor.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-mage-armor-cast",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.1",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.2",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.3",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.4",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.1": 1,
+                "spell-slot.2": 2,
+                "spell-slot.3": 3,
+                "spell-slot.4": 4,
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Mage Armor"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "kJxdj680Yr2u1vqp",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "effect: \"Mage Armor\" (its own changes) not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "yBlKwkM3UNW4t3z0",
+      "_key": "!actors.items!mmMage0000000000.yBlKwkM3UNW4t3z0",
+      "name": "Mage Hand",
+      "type": "action",
+      "img": "icons/magic/light/hand-sparks-smoke-teal.webp",
+      "system": {
+        "active": true,
+        "description": "<p>A spectral, floating hand appears at a point you choose within range. The hand lasts for the duration. The hand vanishes if it is ever more than 30 feet away from you or if you cast this spell again.</p><p>When you cast the spell, you can use the hand to manipulate an object, open an unlocked door or container, stow or retrieve an item from an open container, or pour the contents out of a vial.</p><p>As a Magic action on your later turns, you can control the hand thus again. As part of that action, you can move the hand up to 30 feet.</p><p>The hand can't attack, activate magic items, or carry more than 10 pounds.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-mage-hand",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Mage Hand"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "yBlKwkM3UNW4t3z0",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (summon): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "NBBMY4cvPDELwanu",
+      "_key": "!actors.items!mmMage0000000000.NBBMY4cvPDELwanu",
+      "name": "Prestidigitation",
+      "type": "action",
+      "img": "icons/weapons/wands/wand-star-white.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You create a magical effect within range. Choose the effect from the options below. If you cast this spell multiple times, you can have up to three of its non-instantaneous effects active at a time.</p><p><strong>Sensory Effect.</strong> You create an instantaneous, harmless sensory effect, such as a shower of sparks, a puff of wind, faint musical notes, or an odd odor.</p><p><strong>Fire Play.</strong> You instantaneously light or snuff out a candle, a torch, or a small campfire.</p><p><strong>Clean or Soil.</strong> You instantaneously clean or soil an object no larger than 1 cubic foot.</p><p><strong>Minor Sensation.</strong> You chill, warm, or flavor up to 1 cubic foot of nonliving material for 1 hour.</p><p><strong>Magic Mark.</strong> You make a color, a small mark, or a symbol appear on an object or a surface for 1 hour.</p><p><strong>Minor Creation.</strong> You create a nonmagical trinket or an illusory image that can fit in your hand. It lasts until the end of your next turn. A trinket can deal no damage and has no monetary worth.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-prestidigitation-cast",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Prestidigitation"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "NBBMY4cvPDELwanu",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "7jrIuiiNO4BRkRCO",
+      "_key": "!actors.items!mmMage0000000000.7jrIuiiNO4BRkRCO",
+      "name": "Fireball",
+      "type": "action",
+      "img": "icons/magic/fire/barrier-shield-explosion-yellow.webp",
+      "system": {
+        "active": true,
+        "description": "<p>A bright streak flashes from you to a point you choose within range and then blossoms with a low roar into a fiery explosion. Each creature in a 20-foot-radius Sphere centered on that point makes a Dexterity saving throw, taking 8d6 Fire damage on a failed save or half as much damage on a successful one.</p><p>Flammable objects in the area that aren't being worn or carried start burning.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The damage increases by 1d6 for each spell slot level above 3.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-fireball",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 150,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "radial",
+            "size": {
+              "value": 20,
+              "unit": "ft"
+            }
+          },
+          "save": {
+            "ability": "agility",
+            "dc": {
+              "valueExpression": {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "constant",
+                    "value": 8
+                  },
+                  {
+                    "type": "proficiency-bonus"
+                  },
+                  {
+                    "type": "spellcasting-modifier"
+                  }
+                ]
+              }
+            }
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 8,
+                "faces": 6
+              },
+              "damageType": "fire",
+              "provenance": "spell-base",
+              "saveOutcomePolicy": {
+                "success": "half",
+                "failure": "full"
+              }
+            }
+          ],
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.3",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.4",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.3": 3,
+                "spell-slot.4": 4,
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": [
+                {
+                  "type": "scaleDamage",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 3,
+                  "componentIds": [
+                    "damage-1"
+                  ],
+                  "dice": {
+                    "number": 1,
+                    "faces": 6
+                  }
+                }
+              ]
+            }
+          ],
+          "label": "Fireball"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "7jrIuiiNO4BRkRCO",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "gYeuuG0rUMIaWuTJ",
+      "_key": "!actors.items!mmMage0000000000.gYeuuG0rUMIaWuTJ",
+      "name": "Invisibility",
+      "type": "action",
+      "img": "icons/creatures/magical/spirit-undead-ghost-purple.webp",
+      "system": {
+        "active": true,
+        "description": "<p>A creature you touch has the Invisible condition until the spell ends. The spell ends early immediately after the target makes an attack roll, deals damage, or casts a spell.</p><p><strong>Using a Higher-Level Spell Slot.</strong> You can target one additional creature for each spell slot level above 2.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-invisibility",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.2",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.3",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.4",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.2": 2,
+                "spell-slot.3": 3,
+                "spell-slot.4": 4,
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Invisibility"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "gYeuuG0rUMIaWuTJ",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "targets: count \"@item.level - 1\" not converted",
+              "effect: invisible is not a WildPath condition yet",
+              "concentration: nothing it sustains was converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "Kcbgq6wAMhP5M8dq",
+      "_key": "!actors.items!mmMage0000000000.Kcbgq6wAMhP5M8dq",
+      "name": "Cone of Cold",
+      "type": "action",
+      "img": "icons/magic/air/wind-tornado-wall-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You unleash a blast of cold air. Each creature in a 60-foot Cone originating from you makes a Constitution saving throw, taking 8d8 Cold damage on a failed save or half as much damage on a successful one. A creature killed by this spell becomes a frozen statue until it thaws.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The damage increases by 1d8 for each spell slot level above 5.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-cone-of-cold",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "cone",
+            "size": {
+              "value": 60,
+              "unit": "ft"
+            }
+          },
+          "save": {
+            "ability": "fortitude",
+            "dc": {
+              "valueExpression": {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "constant",
+                    "value": 8
+                  },
+                  {
+                    "type": "proficiency-bonus"
+                  },
+                  {
+                    "type": "spellcasting-modifier"
+                  }
+                ]
+              }
+            }
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 8,
+                "faces": 8
+              },
+              "damageType": "cold",
+              "provenance": "spell-base",
+              "saveOutcomePolicy": {
+                "success": "half",
+                "failure": "full"
+              }
+            }
+          ],
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": [
+                {
+                  "type": "scaleDamage",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 5,
+                  "componentIds": [
+                    "damage-1"
+                  ],
+                  "dice": {
+                    "number": 1,
+                    "faces": 8
+                  }
+                }
+              ]
+            }
+          ],
+          "label": "Cone of Cold"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "Kcbgq6wAMhP5M8dq",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "1hWmQp1lkTFED6qg",
+      "_key": "!actors.items!mmMage0000000000.1hWmQp1lkTFED6qg",
+      "name": "Fly",
+      "type": "action",
+      "img": "icons/creatures/birds/songbird-yellow-flying.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You touch a willing creature. For the duration, the target gains a Fly Speed of 60 feet and can hover. When the spell ends, the target falls if it is still aloft unless it can stop the fall.</p><p><strong>Using a Higher-Level Spell Slot.</strong> You can target one additional creature for each spell slot level above 3.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-fly",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.3",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.4",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.3": 3,
+                "spell-slot.4": 4,
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Fly"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "1hWmQp1lkTFED6qg",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "targets: count \"@item.level - 2\" not converted",
+              "effect: \"Flight\" (its own changes) not converted",
+              "concentration: nothing it sustains was converted"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmMage0000000000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 6
+      },
+      "conversion": {
+        "notes": [
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
+          "Spellcasting: not automated (cast): using it spends its cost; its description says the rest",
+          "Spellcasting: consumption: activityUses 1 not converted",
+          "Misty Step: not automated (cast): using it spends its cost; its description says the rest",
+          "Misty Step: not automated (utility): using it spends its cost; its description says the rest",
+          "Protective Magic: not automated (cast): using it spends its cost; its description says the rest",
+          "Counterspell: not automated (save): using it spends its cost; its description says the rest",
+          "Shield: not automated (utility): using it spends its cost; its description says the rest",
+          "Shield: effect: \"Imperceptible Barrier\" (its own changes) not converted",
+          "Detect Magic: not automated (utility): using it spends its cost; its description says the rest",
+          "Detect Magic: effect: \"Detect Magic\" (its own changes) not converted",
+          "Detect Magic: concentration: nothing it sustains was converted",
+          "Light: not automated (summon): using it spends its cost; its description says the rest",
+          "Mage Armor: not automated (utility): using it spends its cost; its description says the rest",
+          "Mage Armor: effect: \"Mage Armor\" (its own changes) not converted",
+          "Mage Hand: not automated (summon): using it spends its cost; its description says the rest",
+          "Prestidigitation: not automated (utility): using it spends its cost; its description says the rest",
+          "Invisibility: not automated (utility): using it spends its cost; its description says the rest",
+          "Invisibility: targets: count \"@item.level - 1\" not converted",
+          "Invisibility: effect: invisible is not a WildPath condition yet",
+          "Invisibility: concentration: nothing it sustains was converted",
+          "Fly: not automated (utility): using it spends its cost; its description says the rest",
+          "Fly: targets: count \"@item.level - 2\" not converted",
+          "Fly: effect: \"Flight\" (its own changes) not converted",
+          "Fly: concentration: nothing it sustains was converted"
+        ]
+      }
+    }
+  }
+}

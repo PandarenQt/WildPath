@@ -1,0 +1,155 @@
+{
+  "_id": "phbsplWallofIce0",
+  "_key": "!items!phbsplWallofIce0",
+  "name": "Wall of Ice (Create Globe)",
+  "type": "action",
+  "img": "icons/magic/water/barrier-ice-wall-snow.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You create a wall of ice on a solid surface within range. You can form it into a hemispherical dome or a globe with a radius of up to 10 feet, or you can shape a flat surface made up of ten 10-foot-square panels. Each panel must be contiguous with another panel. In any form, the wall is 1 foot thick and lasts for the duration.</p><p>If the wall cuts through a creature's space when it appears, the creature is pushed to one side of the wall (you choose which side) and makes a Dexterity saving throw, taking 10d6 Cold damage on a failed save or half as much damage on a successful one.</p><p>The wall is an object that can be damaged and thus breached. It has AC 12 and 30 Hit Points per 10-foot section, and it has Immunity to Cold, Poison, and Psychic damage and Vulnerability to Fire damage. Reducing a 10-foot section of wall to 0 Hit Points destroys it and leaves behind a sheet of frigid air in the space the wall occupied.</p><p>A creature moving through the sheet of frigid air for the first time on a turn makes a Constitution saving throw, taking 5d6 Cold damage on a failed save or half as much damage on a successful one.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The damage the wall deals when it appears increases by 2d6 and the damage from passing through the sheet of frigid air increases by 1d6 for each spell slot level above 6.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-wall-of-ice-create-globe",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 120,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "radial",
+        "size": {
+          "value": 10,
+          "unit": "ft"
+        }
+      },
+      "save": {
+        "ability": "agility",
+        "dc": {
+          "valueExpression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 8
+              },
+              {
+                "type": "proficiency-bonus"
+              },
+              {
+                "type": "spellcasting-modifier"
+              }
+            ]
+          }
+        }
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "dice",
+            "number": 10,
+            "faces": 6
+          },
+          "damageType": "cold",
+          "provenance": "spell-base",
+          "saveOutcomePolicy": {
+            "success": "half",
+            "failure": "full"
+          }
+        }
+      ],
+      "configuration": [
+        {
+          "id": "spell-slot",
+          "type": "resource",
+          "label": "Spell slot",
+          "required": true,
+          "cost": {
+            "anyOf": [
+              [
+                {
+                  "capability": "spell-slot.6",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.7",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.8",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.9",
+                  "amount": 1
+                }
+              ]
+            ]
+          },
+          "levelByResourceId": {
+            "spell-slot.6": 6,
+            "spell-slot.7": 7,
+            "spell-slot.8": 8,
+            "spell-slot.9": 9
+          },
+          "effects": [
+            {
+              "type": "scaleDamage",
+              "levelChoiceId": "spell-slot",
+              "baseLevel": 6,
+              "componentIds": [
+                "damage-1"
+              ],
+              "dice": {
+                "number": 2,
+                "faces": 6
+              }
+            }
+          ]
+        }
+      ],
+      "label": "Wall of Ice (Create Globe)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbsplWallofIce0",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "concentration: nothing it sustains was converted"
+        ]
+      }
+    }
+  }
+}

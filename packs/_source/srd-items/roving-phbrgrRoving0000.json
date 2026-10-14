@@ -1,0 +1,28 @@
+{
+  "_id": "phbrgrRoving0000",
+  "_key": "!items!phbrgrRoving0000",
+  "name": "Roving",
+  "type": "feature",
+  "img": "icons/skills/movement/feet-winged-sandals-tan.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Your Speed increases by 10 feet while you aren't wearing Heavy armor. You also have a Climb Speed and a Swim Speed equal to your Speed.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbrgrRoving0000",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

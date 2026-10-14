@@ -1,0 +1,30 @@
+{
+  "_id": "phbmmoSeekingSpe",
+  "_key": "!items!phbmmoSeekingSpe",
+  "name": "Seeking Spell",
+  "type": "feature",
+  "img": "icons/tools/navigation/compass-brass-blue-red.webp",
+  "system": {
+    "active": true,
+    "description": "<blockquote><p>Cost: 1 Sorcery Point</p></blockquote><p>If you make an attack roll for a spell and miss, you can spend 1 Sorcery Point to reroll the d20, and you must use the new roll.</p><p>You can use Seeking Spell even if you've already used a different Metamagic option during the casting of the spell.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbmmoSeekingSpe",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Seeking Spell\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

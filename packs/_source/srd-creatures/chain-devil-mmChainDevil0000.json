@@ -1,0 +1,450 @@
+{
+  "_id": "mmChainDevil0000",
+  "_key": "!actors!mmChainDevil0000",
+  "name": "Chain Devil",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 18
+      },
+      "agility": {
+        "value": 15
+      },
+      "fortitude": {
+        "value": 18,
+        "saveProficient": true
+      },
+      "intellect": {
+        "value": 11
+      },
+      "wits": {
+        "value": 12,
+        "saveProficient": true
+      },
+      "presence": {
+        "value": 14
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 15
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 85,
+        "value": 85
+      },
+      "movement": {
+        "base": 30,
+        "value": 30
+      }
+    },
+    "details": {
+      "threat": 8
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Chain Devil",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmDiabolicalRest",
+      "_key": "!actors.items!mmChainDevil0000.mmDiabolicalRest",
+      "name": "Diabolical Restoration",
+      "type": "feature",
+      "img": "icons/magic/fire/blast-jet-stream-embers-yellow.webp",
+      "system": {
+        "active": true,
+        "description": "<p>If the chain devil dies outside the Nine Hells, its body disappears in sulfurous smoke, and it gains a new body instantly, reviving with all its Hit Points somewhere in the Nine Hells.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmDiabolicalRest",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmMagicResistanc",
+      "_key": "!actors.items!mmChainDevil0000.mmMagicResistanc",
+      "name": "Magic Resistance",
+      "type": "feature",
+      "img": "icons/magic/light/orbs-hand-gray.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The chain devil has Advantage on saving throws against spells and other magical effects.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMagicResistanc",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmMultiattack000",
+      "_key": "!actors.items!mmChainDevil0000.mmMultiattack000",
+      "name": "Multiattack",
+      "type": "action",
+      "img": "icons/skills/melee/strike-weapons-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The chain devil makes two Chain attacks and uses Conjure Infernal Chain.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-multiattack-expand-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Multiattack"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMultiattack000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmConjureInferna",
+      "_key": "!actors.items!mmChainDevil0000.mmConjureInferna",
+      "name": "Conjure Infernal Chain",
+      "type": "action",
+      "img": "icons/tools/fasteners/chain-brass-yellow.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The devil conjures a fiery chain to bind a creature.</p><p class=\"feature\"><em>Dexterity Saving Throw:</em> DC 15,  the chain devil can see within 60 feet.</p><p class=\"feature\"><em>Failure:</em> 9 (2d4 + 4) Fire damage, and the target has the Restrained condition until the end of the chain devil's next turn, at which point the chain disappears. If the target is Large or smaller, the devil moves the target up to 30 feet straight toward itself.</p><p class=\"feature\"><em>Success:</em> The chain disappears.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-conjure-infernal-chain-save",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 60,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "line",
+            "size": {
+              "value": 30,
+              "unit": "ft"
+            },
+            "width": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "save": {
+            "ability": "agility",
+            "dc": {
+              "value": 15
+            }
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "dice",
+                    "number": 2,
+                    "faces": 4
+                  },
+                  {
+                    "type": "spellcasting-modifier"
+                  }
+                ]
+              },
+              "damageType": "fire",
+              "provenance": "additional",
+              "saveOutcomePolicy": {
+                "success": "none",
+                "failure": "full"
+              }
+            }
+          ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "restrained",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
+          "label": "Conjure Infernal Chain"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmConjureInferna",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmUnnervingGaze0",
+      "_key": "!actors.items!mmChainDevil0000.mmUnnervingGaze0",
+      "name": "Unnerving Gaze",
+      "type": "action",
+      "img": "icons/magic/perception/eye-slit-red-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\"><em>Trigger:</em> A creature the chain devil can see starts its turn within 30 feet of the chain devil and can see the chain devil.</p><p class=\"feature\"><em>Response—Wisdom Saving Throw:</em> DC 15, the triggering creature.</p><p class=\"feature\"><em>Failure:</em> The target has the Frightened condition until the end of its turn.</p><p class=\"feature\"><em>Success:</em> The target is immune to this chain devil's Unnerving Gaze for 24 hours.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-unnerving-gaze-save",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "reaction",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Unnerving Gaze"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmUnnervingGaze0",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest",
+              "effect: frightened is not a WildPath condition yet"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmChain000000000",
+      "_key": "!actors.items!mmChainDevil0000.mmChain000000000",
+      "name": "Chain (attack)",
+      "type": "action",
+      "img": "icons/tools/fasteners/chain-steel-grey.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Melee Attack Roll: +7, reach 10 ft. Hit: 11 (2d6 + 4) Slashing damage. If the target is a Large or smaller creature, it has the Grappled condition (escape DC ) from one of two chains, and it has the Restrained condition until the grapple ends.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-chain",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 10,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 6
+              },
+              "damageType": "slashing",
+              "provenance": "weapon-base"
+            }
+          ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "restrained"
+            }
+          ],
+          "label": "Chain (attack)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmChain000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "effect: grappled is not a WildPath condition yet"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmChainDeviltrts",
+      "_key": "!actors.items!mmChainDevil0000.mmChainDeviltrts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "resistances",
+            "type": "GrantResistance",
+            "data": {
+              "damageTypes": [
+                "bludgeoning",
+                "cold",
+                "piercing",
+                "slashing"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "immunities",
+            "type": "GrantImmunity",
+            "data": {
+              "damageTypes": [
+                "fire",
+                "poison"
+              ]
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmChainDevil0000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 8
+      },
+      "conversion": {
+        "notes": [
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
+          "Unnerving Gaze: not automated (save): using it spends its cost; its description says the rest",
+          "Unnerving Gaze: effect: frightened is not a WildPath condition yet",
+          "Chain: effect: grappled is not a WildPath condition yet",
+          "Chain: \"Escape Check\" is passive or triggered: not automated",
+          "condition immunities (poisoned) not converted"
+        ]
+      }
+    }
+  }
+}

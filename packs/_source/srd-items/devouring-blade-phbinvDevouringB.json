@@ -1,0 +1,28 @@
+{
+  "_id": "phbinvDevouringB",
+  "_key": "!items!phbinvDevouringB",
+  "name": "Devouring Blade",
+  "type": "feature",
+  "img": "icons/skills/melee/blood-slash-foam-red.webp",
+  "system": {
+    "active": true,
+    "description": "<blockquote><p>Prerequisite: Level 12+ Warlock, Thirsting Blade Invocation</p></blockquote><p>The Extra Attack of your Thirsting Blade invocation confers two extra attacks rather than one.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbinvDevouringB",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "_id": "phbwzdPotentCant",
+  "_key": "!items!phbwzdPotentCant",
+  "name": "Potent Cantrip",
+  "type": "feature",
+  "img": "icons/magic/earth/projectiles-fire-stone-salvo.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Your damaging cantrips affect even creatures that avoid the brunt of the effect. When you cast a cantrip at a creature and you miss with the attack roll or the target succeeds on a saving throw against the cantrip, the target takes half the cantrip's damage (if any) but suffers no additional effect from the cantrip.</p><section id=\"secret-fJby40y1vz8RXGG4\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>With their token selected you can either right click on the damage roll's chat card and select <span class=\"reference\"><em class=\"fas fa-user-shield\"> </em>Apply Half Damage</span> or click the \"1/2\" button and then the <span class=\"reference\"><em class=\"fa-solid fa-reply-all\"> </em>Apply</span> button.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbwzdPotentCant",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "_id": "phbwlkMagicalCun",
+  "_key": "!items!phbwlkMagicalCun",
+  "name": "Magical Cunning",
+  "type": "action",
+  "img": "icons/magic/unholy/hands-circle-light-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You can perform an esoteric rite for 1 minute. At the end of it, you regain expended Pact Magic spell slots but no more than a number equal to half your maximum (round up). Once you use this feature, you can't do so again until you finish a Long Rest.</p><section id=\"secret-uXJIaDc9mWHsrILV\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This feature includes one free use and will restore the correct number of Pact Magic spell slots.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-magical-cunning-regain-pact-spell-slots",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "magical-cunning",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Magical Cunning"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "magical-cunning-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "magical-cunning",
+          "label": "Magical Cunning",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbwlkMagicalCun",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "activation: 1 minute is not an action-economy cost",
+          "consumption: attribute -(ceil(@spells.pact.max / 2)) not converted",
+          "activation: 1 minute is not an action-economy cost",
+          "consumption: attribute -(ceil(@spells.pact.max / 2)) not converted"
+        ]
+      }
+    }
+  }
+}

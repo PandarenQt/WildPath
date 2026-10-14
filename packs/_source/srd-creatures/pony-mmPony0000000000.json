@@ -1,0 +1,146 @@
+{
+  "_id": "mmPony0000000000",
+  "_key": "!actors!mmPony0000000000",
+  "name": "Pony",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 15,
+        "saveProficient": true
+      },
+      "agility": {
+        "value": 10
+      },
+      "fortitude": {
+        "value": 13
+      },
+      "intellect": {
+        "value": 2
+      },
+      "wits": {
+        "value": 11
+      },
+      "presence": {
+        "value": 7
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 10
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 11,
+        "value": 11
+      },
+      "movement": {
+        "base": 40,
+        "value": 40
+      }
+    },
+    "details": {
+      "threat": 0
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Pony",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmHooves00000000",
+      "_key": "!actors.items!mmPony0000000000.mmHooves00000000",
+      "name": "Hooves",
+      "type": "action",
+      "img": "icons/commodities/bones/hooves-cloven-brown.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +4, reach 5 ft. Hit: 4 (1d4 + 2) Bludgeoning damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-hooves",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 4
+              },
+              "damageType": "bludgeoning",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Hooves"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmHooves00000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmPony0000000000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 0.125
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

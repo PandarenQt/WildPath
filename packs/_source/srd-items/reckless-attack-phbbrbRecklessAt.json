@@ -1,0 +1,28 @@
+{
+  "_id": "phbbrbRecklessAt",
+  "_key": "!items!phbbrbRecklessAt",
+  "name": "Reckless Attack",
+  "type": "feature",
+  "img": "icons/skills/melee/blade-tips-triple-bent-white.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You can throw aside all concern for defense to attack with increased ferocity. When you make your first attack roll on your turn, you can decide to attack recklessly. Doing so gives you Advantage on attack rolls using Strength until the start of your next turn, but attack rolls against you have Advantage during that time.</p><section id=\"secret-W7MI2ZVKsMQcSW6d\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect for tracking whether you are reckless or not but it does not automate Advantage on your attacks or attacks against you.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbbrbRecklessAt",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

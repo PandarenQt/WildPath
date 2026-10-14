@@ -1,0 +1,104 @@
+{
+  "_id": "phbsplHeroesFeas",
+  "_key": "!items!phbsplHeroesFeas",
+  "name": "Heroes' Feast (Conjure Feast)",
+  "type": "action",
+  "img": "icons/consumables/food/cooked-hock-glowing-orange.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You conjure a feast that appears on a surface in an unoccupied 10-foot Cube next to you. The feast takes 1 hour to consume and disappears at the end of that time, and the beneficial effects don't set in until this hour is over. Up to twelve creatures can partake of the feast.</p><p>A creature that partakes gains several benefits, which last for 24 hours. The creature has Resistance to Poison damage, and it has Immunity to the Frightened and Poisoned conditions. Its Hit Point maximum also increases by 2d10, and it gains the same number of Hit Points.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-heroes-feast-conjure-feast",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": []
+      },
+      "configuration": [
+        {
+          "id": "spell-slot",
+          "type": "resource",
+          "label": "Spell slot",
+          "required": true,
+          "cost": {
+            "anyOf": [
+              [
+                {
+                  "capability": "spell-slot.6",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.7",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.8",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.9",
+                  "amount": 1
+                }
+              ]
+            ]
+          },
+          "levelByResourceId": {
+            "spell-slot.6": 6,
+            "spell-slot.7": 7,
+            "spell-slot.8": 8,
+            "spell-slot.9": 9
+          },
+          "effects": []
+        }
+      ],
+      "label": "Heroes' Feast (Conjure Feast)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "heroes-feast-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "heroes-feast",
+          "label": "Heroes' Feast",
+          "maximum": {
+            "type": "constant",
+            "value": 12
+          },
+          "recovery": "shortRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbsplHeroesFeas",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "activation: 10 minute is not an action-economy cost",
+          "consumption: itemUses -12 not converted",
+          "area: 10-ft cube is not supported; the user picks the targets",
+          "activation: 10 minute is not an action-economy cost",
+          "consumption: itemUses -12 not converted"
+        ]
+      }
+    }
+  }
+}

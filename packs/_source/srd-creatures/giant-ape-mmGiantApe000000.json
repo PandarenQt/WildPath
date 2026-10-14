@@ -1,0 +1,365 @@
+{
+  "_id": "mmGiantApe000000",
+  "_key": "!actors!mmGiantApe000000",
+  "name": "Giant Ape",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 23
+      },
+      "agility": {
+        "value": 14
+      },
+      "fortitude": {
+        "value": 18
+      },
+      "intellect": {
+        "value": 5
+      },
+      "wits": {
+        "value": 12
+      },
+      "presence": {
+        "value": 7
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 12
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 168,
+        "value": 168
+      },
+      "movement": {
+        "base": 40,
+        "value": 40
+      }
+    },
+    "details": {
+      "threat": 7
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Giant Ape",
+    "width": 3,
+    "height": 3,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmMultiattack000",
+      "_key": "!actors.items!mmGiantApe000000.mmMultiattack000",
+      "name": "Multiattack",
+      "type": "action",
+      "img": "icons/skills/melee/strike-weapons-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The giant ape makes two Fist attacks.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-multiattack-expend-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Multiattack"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMultiattack000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmFist0000000000",
+      "_key": "!actors.items!mmGiantApe000000.mmFist0000000000",
+      "name": "Fist",
+      "type": "action",
+      "img": "icons/skills/melee/unarmed-punch-fist.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Melee Attack Roll: +9, reach 10 ft. Hit: 22 (3d10 + 6) Bludgeoning damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-fist",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 10,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 3,
+                "faces": 10
+              },
+              "damageType": "bludgeoning",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Fist"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmFist0000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmBoulderToss000",
+      "_key": "!actors.items!mmGiantApe000000.mmBoulderToss000",
+      "name": "Boulder Toss",
+      "type": "action",
+      "img": "icons/commodities/stone/boulder-black.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The giant ape hurls a boulder at a point it can see within 90 feet.</p><p><em>Dexterity Saving Throw:</em> DC 17, each creature in a 5-foot-radius Sphere centered on that point.</p><p><em>Failure:</em> 24 (7d6) Bludgeoning. If the target is a Large or smaller creature, it has the Prone condition.</p><p><em>Success:</em> Half damage only.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-boulder-toss",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "boulder-toss",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 90,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "radial",
+            "size": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "save": {
+            "ability": "agility",
+            "dc": {
+              "value": 17
+            }
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 7,
+                "faces": 6
+              },
+              "damageType": "bludgeoning",
+              "provenance": "additional",
+              "saveOutcomePolicy": {
+                "success": "half",
+                "failure": "full"
+              }
+            }
+          ],
+          "label": "Boulder Toss"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "boulder-toss-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "boulder-toss",
+              "label": "Boulder Toss",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "none"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmBoulderToss000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "uses: Recharge 6 is not rolled; refill the pool by hand"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmLeap0000000000",
+      "_key": "!actors.items!mmGiantApe000000.mmLeap0000000000",
+      "name": "Leap",
+      "type": "action",
+      "img": "icons/skills/movement/arrows-up-trio-red.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The giant ape jumps up to 30 feet by spending 10 feet of movement.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-leap-expend-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Leap"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmLeap0000000000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmGiantApe00trts",
+      "_key": "!actors.items!mmGiantApe000000.mmGiantApe00trts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "speed-climb",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "climb",
+              "distance": 40
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmGiantApe000000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 7
+      },
+      "conversion": {
+        "notes": [
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
+          "Boulder Toss: uses: Recharge 6 is not rolled; refill the pool by hand",
+          "Leap: not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

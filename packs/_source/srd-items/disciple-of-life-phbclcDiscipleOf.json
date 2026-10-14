@@ -1,0 +1,30 @@
+{
+  "_id": "phbclcDiscipleOf",
+  "_key": "!items!phbclcDiscipleOf",
+  "name": "Disciple of Life",
+  "type": "feature",
+  "img": "icons/magic/life/cross-beam-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p>When a spell you cast with a spell slot restores Hit Points to a creature, that creature regains additional Hit Points on the turn you cast the spell. The additional Hit Points equal 2 plus the spell slot's level.</p><section class=\"secret\" id=\"secret-Gy6bYP3AKuabnUlQ\"><p><strong>Foundry Note</strong></p><p>This feature includes a healing activity. Set the scale to the spell slot level you cast and it will provide a healing roll for you.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbclcDiscipleOf",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"heal\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

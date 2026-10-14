@@ -1,0 +1,71 @@
+{
+  "_id": "phbwepGreatclub0",
+  "_key": "!items!phbwepGreatclub0",
+  "name": "Greatclub",
+  "type": "action",
+  "img": "icons/weapons/clubs/club-heavy-barbed-grey.webp",
+  "system": {
+    "active": true,
+    "description": "",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-greatclub",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "attack": {
+        "type": "melee",
+        "statistic": "weapon",
+        "defenseKey": "ac",
+        "proficient": true
+      },
+      "range": {
+        "type": "reach",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "damage": [
+        {
+          "id": "base",
+          "expression": {
+            "type": "dice",
+            "number": 1,
+            "faces": 8
+          },
+          "damageType": "bludgeoning",
+          "provenance": "weapon-base"
+        }
+      ],
+      "label": "Greatclub"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbwepGreatclub0",
+        "type": "weapon",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

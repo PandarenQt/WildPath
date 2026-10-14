@@ -1,0 +1,223 @@
+{
+  "_id": "mmHarpy000000000",
+  "_key": "!actors!mmHarpy000000000",
+  "name": "Harpy",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 12
+      },
+      "agility": {
+        "value": 13
+      },
+      "fortitude": {
+        "value": 12
+      },
+      "intellect": {
+        "value": 7
+      },
+      "wits": {
+        "value": 10
+      },
+      "presence": {
+        "value": 13
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 11
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 38,
+        "value": 38
+      },
+      "movement": {
+        "base": 20,
+        "value": 20
+      }
+    },
+    "details": {
+      "threat": 1
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Harpy",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmClaw0000000000",
+      "_key": "!actors.items!mmHarpy000000000.mmClaw0000000000",
+      "name": "Claw",
+      "type": "action",
+      "img": "icons/skills/melee/blood-slash-foam-red.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +3, reach 5 ft. Hit: 6 (2d4 + 1) Slashing damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-claw",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 4
+              },
+              "damageType": "slashing",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Claw"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmClaw0000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmLuringSong0000",
+      "_key": "!actors.items!mmHarpy000000000.mmLuringSong0000",
+      "name": "Luring Song",
+      "type": "action",
+      "img": "icons/skills/trades/music-singing-voice-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The harpy sings a magical melody, which lasts until the harpy's Concentration ends on it.</p><p class=\"feature\"><em>Wisdom Saving Throw:</em> DC 11, each Humanoid and Giant in a 300-foot Emanation originating from the harpy when the song starts.</p><p class=\"feature\"><em>Failure:</em> The target has the Charmed condition until the song ends and repeats the save at the end of each of its turns. While Charmed, the target has the Incapacitated condition and ignores the Luring Song of other harpies.</p><p class=\"feature\">If the target is more than 5 feet from the harpy, the target moves on its turn toward the harpy by the most direct route, trying to get within 5 feet of the harpy. It doesn't avoid OpportunityAttacks; however, before moving into damaging terrain (such as lava or a pit) and whenever it takes damage from a source other than the harpy, the target repeats the save.</p><p class=\"feature\"><em>Success:</em> The target is immune to this harpy's Luring Song for 24 hours.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-luring-song-save",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Luring Song"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmLuringSong0000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest",
+              "effect: charmed is not a WildPath condition yet",
+              "effect: incapacitated is not a WildPath condition yet"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmHarpy00000trts",
+      "_key": "!actors.items!mmHarpy000000000.mmHarpy00000trts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "speed-fly",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "fly",
+              "distance": 40
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmHarpy000000000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 1
+      },
+      "conversion": {
+        "notes": [
+          "Luring Song: not automated (save): using it spends its cost; its description says the rest",
+          "Luring Song: effect: charmed is not a WildPath condition yet",
+          "Luring Song: effect: incapacitated is not a WildPath condition yet"
+        ]
+      }
+    }
+  }
+}

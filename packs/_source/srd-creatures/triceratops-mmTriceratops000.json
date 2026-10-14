@@ -1,0 +1,278 @@
+{
+  "_id": "mmTriceratops000",
+  "_key": "!actors!mmTriceratops000",
+  "name": "Triceratops",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 22
+      },
+      "agility": {
+        "value": 9
+      },
+      "fortitude": {
+        "value": 17
+      },
+      "intellect": {
+        "value": 2
+      },
+      "wits": {
+        "value": 11
+      },
+      "presence": {
+        "value": 5
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 14
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 114,
+        "value": 114
+      },
+      "movement": {
+        "base": 50,
+        "value": 50
+      }
+    },
+    "details": {
+      "threat": 5
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Triceratops",
+    "width": 3,
+    "height": 3,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmMultiattack000",
+      "_key": "!actors.items!mmTriceratops000.mmMultiattack000",
+      "name": "Multiattack",
+      "type": "action",
+      "img": "icons/skills/melee/strike-weapons-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p> The triceratops makes two Gore attacks.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-multiattack-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Multiattack"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMultiattack000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmGore0000000000",
+      "_key": "!actors.items!mmTriceratops000.mmGore0000000000",
+      "name": "Gore (Attack)",
+      "type": "action",
+      "img": "icons/skills/wounds/bone-broken-tooth-fang-red.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +9, reach 5 ft. Hit: 19 (2d12 + 6) Piercing damage. If the target is a Medium or smaller creature and the triceratops moved 20+ feet straight toward it immediately before the hit, the target takes an extra 19 (2d12 + 6) Piercing damage and has the Prone condition.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-gore-attack",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 12
+              },
+              "damageType": "piercing",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Gore (Attack)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmGore0000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "1k50nf18n13c7000",
+      "_key": "!actors.items!mmTriceratops000.1k50nf18n13c7000",
+      "name": "Gore (Moving Attack)",
+      "type": "action",
+      "img": "icons/skills/wounds/bone-broken-tooth-fang-red.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +9, reach 5 ft. Hit: 19 (2d12 + 6) Piercing damage. If the target is a Medium or smaller creature and the triceratops moved 20+ feet straight toward it immediately before the hit, the target takes an extra 19 (2d12 + 6) Piercing damage and has the Prone condition.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-gore-moving-attack",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 12
+              },
+              "damageType": "piercing",
+              "provenance": "weapon-base"
+            },
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 8
+              },
+              "damageType": "piercing",
+              "provenance": "additional"
+            }
+          ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "prone"
+            }
+          ],
+          "label": "Gore (Moving Attack)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmGore0000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmTriceratops000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 5
+      },
+      "conversion": {
+        "notes": [
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

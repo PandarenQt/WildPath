@@ -1,0 +1,232 @@
+{
+  "_id": "mmStirge00000000",
+  "_key": "!actors!mmStirge00000000",
+  "name": "Stirge",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 4
+      },
+      "agility": {
+        "value": 16
+      },
+      "fortitude": {
+        "value": 11
+      },
+      "intellect": {
+        "value": 2
+      },
+      "wits": {
+        "value": 8
+      },
+      "presence": {
+        "value": 6
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 13
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 5,
+        "value": 5
+      },
+      "movement": {
+        "base": 10,
+        "value": 10
+      }
+    },
+    "details": {
+      "threat": 0
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Stirge",
+    "width": 0.5,
+    "height": 0.5,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmProboscis00000",
+      "_key": "!actors.items!mmStirge00000000.mmProboscis00000",
+      "name": "Proboscis (attack)",
+      "type": "action",
+      "img": "icons/commodities/bones/tooth-spiked-brown.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Melee Attack Roll: +5, reach 5 ft. Hit: 6 (1d6 + 3) Piercing damage. If the target is a creature<span style=\"font-family:'Roboto Condensed', sans-serif\">, and the </span>stirge<span style=\"font-family:'Roboto Condensed', sans-serif\"> attaches to the target. While attached, the </span>stirge<span style=\"font-family:'Roboto Condensed', sans-serif\"> can't make Proboscis attacks, and the target takes 5 (2d4) Necrotic damage at the start of each of the </span>stirge's<span style=\"font-family:'Roboto Condensed', sans-serif\"> turns.</span></p><p class=\"feature\"><span style=\"font-family:'Roboto Condensed', sans-serif\">The </span>stirge<span style=\"font-family:'Roboto Condensed', sans-serif\"> can detach itself by spending 5 feet of its movement. The target or a creature within 5 feet of it can detach the </span>stirge<span style=\"font-family:'Roboto Condensed', sans-serif\"> as an action.</span></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-proboscis",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "agility"
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 6
+              },
+              "damageType": "piercing",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Proboscis (attack)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmProboscis00000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "13igpaojng9h6000",
+      "_key": "!actors.items!mmStirge00000000.13igpaojng9h6000",
+      "name": "Proboscis (Attached: Damage)",
+      "type": "action",
+      "img": "icons/commodities/bones/tooth-spiked-brown.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Melee Attack Roll: +5, reach 5 ft. Hit: 6 (1d6 + 3) Piercing damage. If the target is a creature<span style=\"font-family:'Roboto Condensed', sans-serif\">, and the </span>stirge<span style=\"font-family:'Roboto Condensed', sans-serif\"> attaches to the target. While attached, the </span>stirge<span style=\"font-family:'Roboto Condensed', sans-serif\"> can't make Proboscis attacks, and the target takes 5 (2d4) Necrotic damage at the start of each of the </span>stirge's<span style=\"font-family:'Roboto Condensed', sans-serif\"> turns.</span></p><p class=\"feature\"><span style=\"font-family:'Roboto Condensed', sans-serif\">The </span>stirge<span style=\"font-family:'Roboto Condensed', sans-serif\"> can detach itself by spending 5 feet of its movement. The target or a creature within 5 feet of it can detach the </span>stirge<span style=\"font-family:'Roboto Condensed', sans-serif\"> as an action.</span></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-proboscis-attached-damage",
+          "costs": {
+            "allOf": []
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 4
+              },
+              "damageType": "necrotic",
+              "provenance": "additional"
+            }
+          ],
+          "label": "Proboscis (Attached: Damage)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmProboscis00000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "activation: turnStart is not an action-economy cost"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmStirge0000trts",
+      "_key": "!actors.items!mmStirge00000000.mmStirge0000trts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "speed-fly",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "fly",
+              "distance": 40
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmStirge00000000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 0.125
+      },
+      "conversion": {
+        "notes": [
+          "Proboscis: activation: turnStart is not an action-economy cost"
+        ]
+      }
+    }
+  }
+}

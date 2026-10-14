@@ -1,0 +1,75 @@
+{
+  "_id": "phbsplMaze000000",
+  "_key": "!items!phbsplMaze000000",
+  "name": "Maze",
+  "type": "action",
+  "img": "icons/creatures/mammals/bull-horns-eyes-glowin-orange.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You banish a creature that you can see within range into a labyrinthine demiplane. The target remains there for the duration or until it escapes the maze.</p><p>The target can take a Study action to try to escape. When it does so, it makes a DC 20 Intelligence (Investigation) check. If it succeeds, it escapes, and the spell ends.</p><p>When the spell ends, the target reappears in the space it left or, if that space is occupied, in the nearest unoccupied space.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-maze-banish-to-maze",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "configuration": [
+        {
+          "id": "spell-slot",
+          "type": "resource",
+          "label": "Spell slot",
+          "required": true,
+          "cost": {
+            "anyOf": [
+              [
+                {
+                  "capability": "spell-slot.8",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.9",
+                  "amount": 1
+                }
+              ]
+            ]
+          },
+          "levelByResourceId": {
+            "spell-slot.8": 8,
+            "spell-slot.9": 9
+          },
+          "effects": []
+        }
+      ],
+      "label": "Maze"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbsplMaze000000",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (check): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

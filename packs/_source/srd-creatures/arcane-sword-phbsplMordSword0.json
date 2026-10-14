@@ -1,0 +1,145 @@
+{
+  "_id": "phbsplMordSword0",
+  "_key": "!actors!phbsplMordSword0",
+  "name": "Arcane Sword",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 0
+      },
+      "agility": {
+        "value": 0
+      },
+      "fortitude": {
+        "value": 0
+      },
+      "intellect": {
+        "value": 0
+      },
+      "wits": {
+        "value": 0
+      },
+      "presence": {
+        "value": 0
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 0
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 1,
+        "value": 1
+      },
+      "movement": {
+        "base": 30,
+        "value": 30
+      }
+    },
+    "details": {
+      "threat": 0
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Arcane Sword",
+    "width": 0.5,
+    "height": 0.5,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "phbftMordenkaine",
+      "_key": "!actors.items!phbsplMordSword0.phbftMordenkaine",
+      "name": "Move and Attack",
+      "type": "action",
+      "img": "icons/skills/melee/strike-dagger-white-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>On your later turns, you can take a Bonus Action to move the sword up to 30 feet to a spot you can see and repeat the attack against the same target or a different one. On a hit, the target takes Force damage equal to 4d12 plus your spellcasting ability modifier.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-move-and-attack",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "spell",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 4,
+                "faces": 12
+              },
+              "damageType": "force",
+              "provenance": "additional"
+            }
+          ],
+          "label": "Move and Attack"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbftMordenkaine",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "phbsplMordSword0",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 0
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

@@ -1,0 +1,586 @@
+{
+  "_id": "mmDoppelganger00",
+  "_key": "!actors!mmDoppelganger00",
+  "name": "Doppelganger",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 11
+      },
+      "agility": {
+        "value": 18
+      },
+      "fortitude": {
+        "value": 14
+      },
+      "intellect": {
+        "value": 11
+      },
+      "wits": {
+        "value": 12
+      },
+      "presence": {
+        "value": 14
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 14
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 52,
+        "value": 52
+      },
+      "movement": {
+        "base": 30,
+        "value": 30
+      }
+    },
+    "details": {
+      "threat": 3
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Doppelganger",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmMultiattack000",
+      "_key": "!actors.items!mmDoppelganger00.mmMultiattack000",
+      "name": "Multiattack",
+      "type": "action",
+      "img": "icons/skills/melee/strike-weapons-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The doppelganger makes two Slam attacks and uses Unsettling Visage if available.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-multiattack-expend-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Multiattack"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMultiattack000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmSlam0000000000",
+      "_key": "!actors.items!mmDoppelganger00.mmSlam0000000000",
+      "name": "Slam",
+      "type": "action",
+      "img": "icons/magic/sonic/explosion-impact-shock-wave.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +6, reach 5 ft (with Advantage during the first round of each combat), reach 5 ft. Hit: 11 (2d6 + 4) Bludgeoning damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-slam",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "agility"
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 6
+              },
+              "damageType": "bludgeoning",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Slam"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSlam0000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmReadThoughts00",
+      "_key": "!actors.items!mmDoppelganger00.mmReadThoughts00",
+      "name": "Read Thoughts",
+      "type": "action",
+      "img": "icons/skills/social/diplomacy-handshake-yellow.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The doppelganger casts <em>Detect Thoughts</em>, requiring no spell components and using Charisma as the spellcasting ability (spell save DC ).</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-read-thoughts",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Read Thoughts"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmReadThoughts00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "JzXf0s9NH8nAxwh4",
+      "_key": "!actors.items!mmDoppelganger00.JzXf0s9NH8nAxwh4",
+      "name": "Detect Thoughts (Sense Thoughts)",
+      "type": "action",
+      "img": "icons/skills/social/diplomacy-handshake-yellow.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You activate one of the effects below. Until the spell ends, you can activate either effect as a Magic action on your later turns.</p><p><strong>Sense Thoughts.</strong> You sense the presence of thoughts within 30 feet of yourself that belong to creatures that know languages or are telepathic. You don't read the thoughts, but you know that a thinking creature is present.</p><p>The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.</p><p><strong>Read Thoughts.</strong> Target one creature you can see within 30 feet of yourself or one creature within 30 feet of yourself that you detected with the Sense Thoughts option. You learn what is most on the target's mind right now. If the target doesn't know any languages and isn't telepathic, you learn nothing.</p><p>As a Magic action on your next turn, you can try to probe deeper into the target's mind. If you probe deeper, the target makes a Wisdom saving throw. On a failed save, you discern the target's reasoning, emotions, and something that looms large in its mind (such as a worry, love, or hate). On a successful save, the spell ends. Either way, the target knows that you are probing into its mind, and until you shift your attention away from the target's mind, the target can take an action on its turn to make an DC @attributes.spell.dc Intelligence (Arcana) check check against your spell save DC, ending the spell on a success.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-detect-thoughts-sense-thoughts",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.2",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.3",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.4",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.2": 2,
+                "spell-slot.3": 3,
+                "spell-slot.4": 4,
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Detect Thoughts (Sense Thoughts)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "JzXf0s9NH8nAxwh4",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "concentration: nothing it sustains was converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "1lrqub0nq6zum000",
+      "_key": "!actors.items!mmDoppelganger00.1lrqub0nq6zum000",
+      "name": "Detect Thoughts (Probe Deeper)",
+      "type": "action",
+      "img": "icons/skills/social/diplomacy-handshake-yellow.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You activate one of the effects below. Until the spell ends, you can activate either effect as a Magic action on your later turns.</p><p><strong>Sense Thoughts.</strong> You sense the presence of thoughts within 30 feet of yourself that belong to creatures that know languages or are telepathic. You don't read the thoughts, but you know that a thinking creature is present.</p><p>The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.</p><p><strong>Read Thoughts.</strong> Target one creature you can see within 30 feet of yourself or one creature within 30 feet of yourself that you detected with the Sense Thoughts option. You learn what is most on the target's mind right now. If the target doesn't know any languages and isn't telepathic, you learn nothing.</p><p>As a Magic action on your next turn, you can try to probe deeper into the target's mind. If you probe deeper, the target makes a Wisdom saving throw. On a failed save, you discern the target's reasoning, emotions, and something that looms large in its mind (such as a worry, love, or hate). On a successful save, the spell ends. Either way, the target knows that you are probing into its mind, and until you shift your attention away from the target's mind, the target can take an action on its turn to make an DC @attributes.spell.dc Intelligence (Arcana) check check against your spell save DC, ending the spell on a success.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-detect-thoughts-probe-deeper",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.2",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.3",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.4",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.2": 2,
+                "spell-slot.3": 3,
+                "spell-slot.4": 4,
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Detect Thoughts (Probe Deeper)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "JzXf0s9NH8nAxwh4",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest",
+              "concentration: nothing it sustains was converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmUnsettlingVisa",
+      "_key": "!actors.items!mmDoppelganger00.mmUnsettlingVisa",
+      "name": "Unsettling Visage",
+      "type": "action",
+      "img": "icons/magic/control/silhouette-hold-change-green.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\"><em>Wisdom Saving Throw:</em> DC 12, each creature in a 15-foot Emanation originating from the doppelganger that can see the doppelganger.</p><p class=\"feature\"><em>Failure:</em> The target has the Frightened condition and repeats the save at the end of each of its turns, ending the effect on itself on a success. After 1 minute, it succeeds automatically.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-unsettling-visage-save",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "unsettling-visage",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Unsettling Visage"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "unsettling-visage-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "unsettling-visage",
+              "label": "Unsettling Visage",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "none"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmUnsettlingVisa",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest",
+              "uses: Recharge 6 is not rolled; refill the pool by hand",
+              "effect: frightened is not a WildPath condition yet"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmShapeshift0000",
+      "_key": "!actors.items!mmDoppelganger00.mmShapeshift0000",
+      "name": "Shape-Shift",
+      "type": "action",
+      "img": "icons/magic/control/silhouette-grow-shrink-tan.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The doppelganger shape-shifts into a Medium or smaller, or it returns to its true form. Its game statistics, other than its size, are the same in each form. Any equipment it is wearing or carrying isn't transformed.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-shape-shift-expend-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Shape-Shift"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmShapeshift0000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmDoppelganger00",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 3
+      },
+      "conversion": {
+        "notes": [
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
+          "Read Thoughts: not automated (cast): using it spends its cost; its description says the rest",
+          "Detect Thoughts: not automated (utility): using it spends its cost; its description says the rest",
+          "Detect Thoughts: concentration: nothing it sustains was converted",
+          "Detect Thoughts: not automated (save): using it spends its cost; its description says the rest",
+          "Unsettling Visage: not automated (save): using it spends its cost; its description says the rest",
+          "Unsettling Visage: uses: Recharge 6 is not rolled; refill the pool by hand",
+          "Unsettling Visage: effect: frightened is not a WildPath condition yet",
+          "Shape-Shift: not automated (utility): using it spends its cost; its description says the rest",
+          "condition immunities (charmed) not converted"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "_id": "phbsptDwarvenTou",
+  "_key": "!items!phbsptDwarvenTou",
+  "name": "Dwarven Toughness",
+  "type": "feature",
+  "img": "icons/magic/life/heart-cross-strong-purple-orange.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Your Hit Point maximum increases by 1, and it increases by 1 again whenever you gain a level.</p><section class=\"secret\" id=\"secret-FK9DFLudP5EzEss9\"><p><strong>Foundry Note</strong></p><p>The Hit Point maximum increase is handled automatically each level.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "origins24",
+        "id": "phbsptDwarvenTou",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

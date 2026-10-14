@@ -1,0 +1,61 @@
+{
+  "_id": "phbpdnLayOnHands",
+  "_key": "!items!phbpdnLayOnHands",
+  "name": "Lay on Hands (heal)",
+  "type": "action",
+  "img": "icons/magic/light/orbs-firefly-hand-yellow.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Your blessed touch can heal wounds. You have a pool of healing power that replenishes when you finish a Long Rest. With that pool, you can restore a total number of Hit Points equal to five times your Paladin level.</p><p>As a Bonus Action, you can touch a creature (which could be yourself) and draw power from the pool of healing to restore a number of Hit Points to that creature, up to the maximum amount remaining in the pool.</p><p>You can also expend 5 Hit Points from the pool of healing power to remove the Poisoned condition from the creature; those points don't also restore Hit Points to the creature.</p><section id=\"secret-CgxYFHh5PcKwwbwk\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>The <strong>Heal</strong> activity allows you to select the number of Hit Points you would like to restore and reduces your Lay on Hands pool by that amount.</p><p>The <strong>Remove Poison</strong> activity reduces your pool by 5 but does not automatically remove the Poisoned condition.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-lay-on-hands",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          },
+          {
+            "capability": "lay-on-hands",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Lay on Hands (heal)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "lay-on-hands-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "lay-on-hands",
+          "label": "Lay on Hands",
+          "maximum": 1,
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbpdnLayOnHands",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (heal): using it spends its cost; its description says the rest",
+          "uses: maximum \"5 * @classes.paladin.levels\" not converted",
+          "healing: custom formula \"@scaling\" not converted"
+        ]
+      }
+    }
+  }
+}

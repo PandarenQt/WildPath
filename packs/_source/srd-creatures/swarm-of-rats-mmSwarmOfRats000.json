@@ -1,0 +1,290 @@
+{
+  "_id": "mmSwarmOfRats000",
+  "_key": "!actors!mmSwarmOfRats000",
+  "name": "Swarm of Rats",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 9
+      },
+      "agility": {
+        "value": 11,
+        "saveProficient": true
+      },
+      "fortitude": {
+        "value": 9
+      },
+      "intellect": {
+        "value": 2
+      },
+      "wits": {
+        "value": 10
+      },
+      "presence": {
+        "value": 3
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 10
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 14,
+        "value": 14
+      },
+      "movement": {
+        "base": 30,
+        "value": 30
+      }
+    },
+    "details": {
+      "threat": 0
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Swarm of Rats",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmSwarm000000000",
+      "_key": "!actors.items!mmSwarmOfRats000.mmSwarm000000000",
+      "name": "Swarm",
+      "type": "feature",
+      "img": "icons/creatures/invertebrates/bee-yellow.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The swarm can occupy another creature's space and vice versa, and the swarm can move through any opening large enough for a Tiny rat. The swarm can't regain Hit Points or gain Temporary Hit Points.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSwarm000000000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmBites000000000",
+      "_key": "!actors.items!mmSwarmOfRats000.mmBites000000000",
+      "name": "Bites (attack)",
+      "type": "action",
+      "img": "icons/creatures/abilities/mouth-teeth-rows-white.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +2, reach 5 ft. Hit: 5 (2d4) Piercing damage, or 2 (1d4) Piercing if the swarm is Bloodied</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-bites",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "agility"
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 4
+              },
+              "damageType": "piercing",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Bites (attack)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmBites000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "pq291zw2equp0000",
+      "_key": "!actors.items!mmSwarmOfRats000.pq291zw2equp0000",
+      "name": "Bites (Bloodied Attack)",
+      "type": "action",
+      "img": "icons/creatures/abilities/mouth-teeth-rows-white.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +2, reach 5 ft. Hit: 5 (2d4) Piercing damage, or 2 (1d4) Piercing if the swarm is Bloodied</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-bites-bloodied-attack",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "agility"
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 4
+              },
+              "damageType": "piercing",
+              "provenance": "additional"
+            }
+          ],
+          "label": "Bites (Bloodied Attack)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmBites000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmSwarmOfRattrts",
+      "_key": "!actors.items!mmSwarmOfRats000.mmSwarmOfRattrts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "resistances",
+            "type": "GrantResistance",
+            "data": {
+              "damageTypes": [
+                "bludgeoning",
+                "piercing",
+                "slashing"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "speed-climb",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "climb",
+              "distance": 30
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmSwarmOfRats000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 0.25
+      },
+      "conversion": {
+        "notes": [
+          "condition immunities (charmed, frightened, grappled, paralyzed, petrified, prone, restrained, stunned) not converted"
+        ]
+      }
+    }
+  }
+}

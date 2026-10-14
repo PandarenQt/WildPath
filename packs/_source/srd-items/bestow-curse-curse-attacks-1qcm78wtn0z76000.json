@@ -1,0 +1,112 @@
+{
+  "_id": "1qcm78wtn0z76000",
+  "_key": "!items!1qcm78wtn0z76000",
+  "name": "Bestow Curse (Curse Attacks)",
+  "type": "action",
+  "img": "icons/magic/unholy/hands-praying-fire-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You touch a creature, which must succeed on a Wisdom saving throw or become cursed for the duration. Until the curse ends, the target suffers one of the following effects of your choice:</p><ul><li>Choose one ability. The target has Disadvantage on ability checks and saving throws made with that ability (<strong>Curse Ability</strong> activity).</li><li>The target has Disadvantage on attack rolls against you (<strong>Curse Attacks</strong> activity).</li><li>In combat, the target must succeed on a Wisdom saving throw at the start of each of its turns or be forced to take the Dodge action on that turn (<strong>Curse Actions</strong> activity).</li><li>If you deal damage to the target with an attack roll or a spell, the target takes an extra 1d8 Necrotic damage (<strong>Curse Resilience</strong> activity).</li></ul><p><strong>Using a Higher-Level Spell Slot.</strong> If you cast this spell using a level 4 spell slot, you can maintain Concentration on it for up to 10 minutes. If you use a level 5+ spell slot, the spell doesn't require Concentration, and the duration becomes 8 hours (level 5–6 slot) or 24 hours (level 7–8 slot). If you use a level 9 spell slot, the spell lasts until dispelled.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-bestow-curse-curse-attacks",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "configuration": [
+        {
+          "id": "spell-slot",
+          "type": "resource",
+          "label": "Spell slot",
+          "required": true,
+          "cost": {
+            "anyOf": [
+              [
+                {
+                  "capability": "spell-slot.3",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.4",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.5",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.6",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.7",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.8",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.9",
+                  "amount": 1
+                }
+              ]
+            ]
+          },
+          "levelByResourceId": {
+            "spell-slot.3": 3,
+            "spell-slot.4": 4,
+            "spell-slot.5": 5,
+            "spell-slot.6": 6,
+            "spell-slot.7": 7,
+            "spell-slot.8": 8,
+            "spell-slot.9": 9
+          },
+          "effects": []
+        }
+      ],
+      "label": "Bestow Curse (Curse Attacks)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbsplBestowCurs",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (save): using it spends its cost; its description says the rest",
+          "effect: cursed is not a WildPath condition yet",
+          "concentration: nothing it sustains was converted"
+        ]
+      }
+    }
+  }
+}

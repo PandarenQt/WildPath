@@ -1,0 +1,377 @@
+{
+  "_id": "mmHalfdragon0000",
+  "_key": "!actors!mmHalfdragon0000",
+  "name": "Half-Dragon",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 19
+      },
+      "agility": {
+        "value": 14,
+        "saveProficient": true
+      },
+      "fortitude": {
+        "value": 16
+      },
+      "intellect": {
+        "value": 10
+      },
+      "wits": {
+        "value": 15,
+        "saveProficient": true
+      },
+      "presence": {
+        "value": 14
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 18
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 105,
+        "value": 105
+      },
+      "movement": {
+        "base": 40,
+        "value": 40
+      }
+    },
+    "details": {
+      "threat": 5
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Half-Dragon",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmDraconicOrigin",
+      "_key": "!actors.items!mmHalfdragon0000.mmDraconicOrigin",
+      "name": "Draconic Origin",
+      "type": "feature",
+      "img": "icons/creatures/abilities/dragon-breath-purple.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The half-dragon is related to a type of dragon associated with one of the following damage types (DM's choice): Acid, Cold, Fire, Lightning, or Poison. This choice affects other aspects of the stat block.</p><section class=\"secret\" id=\"secret-9qS4XvlccQjIsypM\"><p><strong>Foundry Note</strong></p><p>This feature provides an Active Effect to manage <strong>Damage Resistances</strong> in the character sheet's Effects tab. The resistances outlined will need to be manually enabled/disabled.</p></section>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmDraconicOrigin",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmMultiattack000",
+      "_key": "!actors.items!mmHalfdragon0000.mmMultiattack000",
+      "name": "Multiattack",
+      "type": "action",
+      "img": "icons/skills/melee/strike-weapons-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The half-dragon makes two Claw attacks.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-multiattack-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Multiattack"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMultiattack000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmClaw0000000000",
+      "_key": "!actors.items!mmHalfdragon0000.mmClaw0000000000",
+      "name": "Claw",
+      "type": "action",
+      "img": "icons/skills/melee/blood-slash-foam-red.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +7, reach 10 ft. Hit: 6 (1d4 + 4) Slashing plus 7 (2d6) Acid or Cold or Fire or Lightning or Poison damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-claw",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 10,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 4
+              },
+              "damageType": "slashing",
+              "provenance": "weapon-base"
+            },
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 6
+              },
+              "damageType": "acid",
+              "provenance": "additional"
+            }
+          ],
+          "label": "Claw"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmClaw0000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "damage 1: a choice of acid/cold/fire/lightning/poison uses acid"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmDragonsBreath0",
+      "_key": "!actors.items!mmHalfdragon0000.mmDragonsBreath0",
+      "name": "Dragon's Breath",
+      "type": "action",
+      "img": "icons/creatures/abilities/dragon-fire-breath-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\"><em>Dexterity Saving Throw:</em> DC 14, each creature in a 30-foot Cone.</p><p class=\"feature\"><em>Failure:</em> 28 (8d6) Acid or Cold or Fire or Lightning or Poison damage of the type chosen for the Draconic Origin trait.</p><p class=\"feature\"><em>Success:</em> Half damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-dragon-s-breath-save",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "dragon-s-breath",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "cone",
+            "size": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "save": {
+            "ability": "agility",
+            "dc": {
+              "value": 14
+            }
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 8,
+                "faces": 6
+              },
+              "damageType": "acid",
+              "provenance": "additional",
+              "saveOutcomePolicy": {
+                "success": "half",
+                "failure": "full"
+              }
+            }
+          ],
+          "label": "Dragon's Breath"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "dragon-s-breath-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "dragon-s-breath",
+              "label": "Dragon's Breath",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "none"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmDragonsBreath0",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "uses: Recharge 5–6 is not rolled; refill the pool by hand",
+              "damage 1: a choice of acid/cold/fire/lightning/poison uses acid"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmLeap0000000000",
+      "_key": "!actors.items!mmHalfdragon0000.mmLeap0000000000",
+      "name": "Leap",
+      "type": "action",
+      "img": "icons/skills/movement/arrows-up-trio-red.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The half-dragon jumps up to 30 feet by spending 10 feet of movement.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-leap-expend-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Leap"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmLeap0000000000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmHalfdragon0000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 5
+      },
+      "conversion": {
+        "notes": [
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
+          "Claw: damage 1: a choice of acid/cold/fire/lightning/poison uses acid",
+          "Dragon's Breath: uses: Recharge 5–6 is not rolled; refill the pool by hand",
+          "Dragon's Breath: damage 1: a choice of acid/cold/fire/lightning/poison uses acid",
+          "Leap: not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

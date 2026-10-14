@@ -1,0 +1,93 @@
+{
+  "_id": "phbsplCommunewit",
+  "_key": "!items!phbsplCommunewit",
+  "name": "Commune with Nature",
+  "type": "action",
+  "img": "icons/magic/nature/tree-spirit-glow-black-yellow.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You commune with nature spirits and gain knowledge of the surrounding area. In the outdoors, the spell gives you knowledge of the area within 3 miles of you. In caves and other natural underground settings, the radius is limited to 300 feet. The spell doesn't function where nature has been replaced by construction, such as in castles and settlements.</p><p>Choose three of the following facts; you learn those facts as they pertain to the spell's area:</p><ul><li>Locations of settlements</li><li>Locations of portals to other planes of existence</li><li>Location of one Challenge Rating 10+ creature (DM's choice) that is a Celestial, an Elemental, a Fey, a Fiend, or an Undead</li><li>The most prevalent kind of plant, mineral, or Beast (you choose which to learn)</li><li>Locations of bodies of water</li></ul><p>For example, you could determine the location of a powerful monster in the area, the locations of bodies of water, and the locations of any towns.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-commune-with-nature",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": []
+      },
+      "configuration": [
+        {
+          "id": "spell-slot",
+          "type": "resource",
+          "label": "Spell slot",
+          "required": true,
+          "cost": {
+            "anyOf": [
+              [
+                {
+                  "capability": "spell-slot.5",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.6",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.7",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.8",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.9",
+                  "amount": 1
+                }
+              ]
+            ]
+          },
+          "levelByResourceId": {
+            "spell-slot.5": 5,
+            "spell-slot.6": 6,
+            "spell-slot.7": 7,
+            "spell-slot.8": 8,
+            "spell-slot.9": 9
+          },
+          "effects": []
+        }
+      ],
+      "label": "Commune with Nature"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbsplCommunewit",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "activation: 1 minute is not an action-economy cost",
+          "activation: 1 minute is not an action-economy cost"
+        ]
+      }
+    }
+  }
+}

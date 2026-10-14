@@ -1,0 +1,203 @@
+{
+  "_id": "mmVulture0000000",
+  "_key": "!actors!mmVulture0000000",
+  "name": "Vulture",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 7
+      },
+      "agility": {
+        "value": 10
+      },
+      "fortitude": {
+        "value": 13
+      },
+      "intellect": {
+        "value": 2
+      },
+      "wits": {
+        "value": 12
+      },
+      "presence": {
+        "value": 4
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 10
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 5,
+        "value": 5
+      },
+      "movement": {
+        "base": 10,
+        "value": 10
+      }
+    },
+    "details": {
+      "threat": 0
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Vulture",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmPackTactics000",
+      "_key": "!actors.items!mmVulture0000000.mmPackTactics000",
+      "name": "Pack Tactics",
+      "type": "feature",
+      "img": "icons/creatures/abilities/wolf-heads-swirl-purple.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The vulture has Advantage on an attack roll against a creature if at least one of the vulture's allies is within 5 feet of the creature and the ally doesn't have the Incapacitated condition.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmPackTactics000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmBeak0000000000",
+      "_key": "!actors.items!mmVulture0000000.mmBeak0000000000",
+      "name": "Beak",
+      "type": "action",
+      "img": "icons/commodities/bones/beak-hooked-red.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +2, reach 5 ft. Hit: 2 (1d4) Piercing damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-beak",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "agility"
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 4
+              },
+              "damageType": "piercing",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Beak"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmBeak0000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmVulture000trts",
+      "_key": "!actors.items!mmVulture0000000.mmVulture000trts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "speed-fly",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "fly",
+              "distance": 50
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmVulture0000000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 0
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

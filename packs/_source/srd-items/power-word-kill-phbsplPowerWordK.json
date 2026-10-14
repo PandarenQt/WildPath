@@ -1,0 +1,90 @@
+{
+  "_id": "phbsplPowerWordK",
+  "_key": "!items!phbsplPowerWordK",
+  "name": "Power Word Kill",
+  "type": "action",
+  "img": "icons/magic/death/projectile-skull-flaming-yellow.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You compel one creature you can see within range to die. If the target has 100 Hit Points or fewer, it dies. Otherwise, it takes 12d12 Psychic damage.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-power-word-kill-compel-to-die",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "dice",
+            "number": 12,
+            "faces": 12
+          },
+          "damageType": "psychic",
+          "provenance": "spell-base"
+        }
+      ],
+      "configuration": [
+        {
+          "id": "spell-slot",
+          "type": "resource",
+          "label": "Spell slot",
+          "required": true,
+          "cost": {
+            "anyOf": [
+              [
+                {
+                  "capability": "spell-slot.9",
+                  "amount": 1
+                }
+              ]
+            ]
+          },
+          "levelByResourceId": {
+            "spell-slot.9": 9
+          },
+          "effects": []
+        }
+      ],
+      "label": "Power Word Kill"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbsplPowerWordK",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

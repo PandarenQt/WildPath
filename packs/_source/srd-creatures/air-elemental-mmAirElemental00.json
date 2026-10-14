@@ -1,0 +1,380 @@
+{
+  "_id": "mmAirElemental00",
+  "_key": "!actors!mmAirElemental00",
+  "name": "Air Elemental",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 14
+      },
+      "agility": {
+        "value": 20
+      },
+      "fortitude": {
+        "value": 14
+      },
+      "intellect": {
+        "value": 6
+      },
+      "wits": {
+        "value": 10
+      },
+      "presence": {
+        "value": 6
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 15
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 90,
+        "value": 90
+      },
+      "movement": {
+        "base": 10,
+        "value": 10
+      }
+    },
+    "details": {
+      "threat": 5
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Air Elemental",
+    "width": 2,
+    "height": 2,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmAirForm0000000",
+      "_key": "!actors.items!mmAirElemental00.mmAirForm0000000",
+      "name": "Air Form",
+      "type": "feature",
+      "img": "icons/magic/air/weather-wind-gust.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The air elemental can enter a creature's space and stop there. It can move through a space as narrow as 1 inch without expending extra movement to do so.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmAirForm0000000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmThunderousSlam",
+      "_key": "!actors.items!mmAirElemental00.mmThunderousSlam",
+      "name": "Thunderous Slam",
+      "type": "action",
+      "img": "icons/skills/wounds/injury-pain-body-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Melee Attack Roll: +8, reach 10 ft. Hit: 14 (2d8 + 5) Thunder damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-thunderous-slam",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "agility"
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 10,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 8
+              },
+              "damageType": "thunder",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Thunderous Slam"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmThunderousSlam",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmMultiattack000",
+      "_key": "!actors.items!mmAirElemental00.mmMultiattack000",
+      "name": "Multiattack",
+      "type": "action",
+      "img": "icons/skills/melee/strike-weapons-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The air elemental makes two Thunderous Slam attacks.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-multiattack-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Multiattack"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMultiattack000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmWhirlwind00000",
+      "_key": "!actors.items!mmAirElemental00.mmWhirlwind00000",
+      "name": "Whirlwind",
+      "type": "action",
+      "img": "icons/magic/air/wind-tornado-wall-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\"><em>Strength Saving Throw:</em> DC 13, each Medium or smaller creature in the air elemental's space.</p><p><em>Failure:</em> 24 (4d10 + 2) Thunder damage, and the target is pushed up to 20 feet straight away from the air elemental and has the Prone condition.</p><p><em>Success:</em> Half damage only.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-whirlwind-save",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "whirlwind",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "save": {
+            "ability": "might",
+            "dc": {
+              "value": 13
+            }
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "dice",
+                    "number": 4,
+                    "faces": 10
+                  },
+                  {
+                    "type": "spellcasting-modifier"
+                  }
+                ]
+              },
+              "damageType": "thunder",
+              "provenance": "additional",
+              "saveOutcomePolicy": {
+                "success": "half",
+                "failure": "full"
+              }
+            }
+          ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "prone",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
+          "label": "Whirlwind"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "whirlwind-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "whirlwind",
+              "label": "Whirlwind",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "none"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmWhirlwind00000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "uses: Recharge 4–6 is not rolled; refill the pool by hand"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmAirElementtrts",
+      "_key": "!actors.items!mmAirElemental00.mmAirElementtrts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "resistances",
+            "type": "GrantResistance",
+            "data": {
+              "damageTypes": [
+                "bludgeoning",
+                "lightning",
+                "piercing",
+                "slashing"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "immunities",
+            "type": "GrantImmunity",
+            "data": {
+              "damageTypes": [
+                "poison",
+                "thunder"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "speed-fly",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "fly",
+              "distance": 90
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmAirElemental00",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 5
+      },
+      "conversion": {
+        "notes": [
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
+          "Whirlwind: uses: Recharge 4–6 is not rolled; refill the pool by hand",
+          "condition immunities (exhaustion, grappled, paralyzed, petrified, poisoned, prone, restrained, unconscious) not converted"
+        ]
+      }
+    }
+  }
+}

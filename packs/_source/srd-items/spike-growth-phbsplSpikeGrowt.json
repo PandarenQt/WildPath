@@ -1,0 +1,146 @@
+{
+  "_id": "phbsplSpikeGrowt",
+  "_key": "!items!phbsplSpikeGrowt",
+  "name": "Spike Growth",
+  "type": "action",
+  "img": "icons/creatures/abilities/stinger-spine-horn-blood.webp",
+  "system": {
+    "active": true,
+    "description": "<p>The ground in a 20-foot-radius Sphere centered on a point within range sprouts hard spikes and thorns. The area becomes Difficult for the duration. When a creature moves into or within the area, it takes 2d4 Piercing damage for every 5 feet it travels.</p><p>The transformation of the ground is camouflaged to look natural. Any creature that can't see the area when the spell is cast must take a Search action and succeed on a DC @attributes.spell.dc Wisdom (Perception) check or DC @attributes.spell.dc Wisdom (Survival) check check against your spell save DC to recognize the terrain as hazardous before entering it.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-spike-growth",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 150,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "radial",
+        "size": {
+          "value": 20,
+          "unit": "ft"
+        }
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "dice",
+            "number": 2,
+            "faces": 4
+          },
+          "damageType": "piercing",
+          "provenance": "spell-base"
+        }
+      ],
+      "configuration": [
+        {
+          "id": "spell-slot",
+          "type": "resource",
+          "label": "Spell slot",
+          "required": true,
+          "cost": {
+            "anyOf": [
+              [
+                {
+                  "capability": "spell-slot.2",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.3",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.4",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.5",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.6",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.7",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.8",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.9",
+                  "amount": 1
+                }
+              ]
+            ]
+          },
+          "levelByResourceId": {
+            "spell-slot.2": 2,
+            "spell-slot.3": 3,
+            "spell-slot.4": 4,
+            "spell-slot.5": 5,
+            "spell-slot.6": 6,
+            "spell-slot.7": 7,
+            "spell-slot.8": 8,
+            "spell-slot.9": 9
+          },
+          "effects": []
+        }
+      ],
+      "label": "Spike Growth"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbsplSpikeGrowt",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "concentration: nothing it sustains was converted"
+        ]
+      }
+    }
+  }
+}

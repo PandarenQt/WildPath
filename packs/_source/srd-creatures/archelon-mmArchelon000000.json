@@ -1,0 +1,247 @@
+{
+  "_id": "mmArchelon000000",
+  "_key": "!actors!mmArchelon000000",
+  "name": "Archelon",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 18
+      },
+      "agility": {
+        "value": 16
+      },
+      "fortitude": {
+        "value": 13
+      },
+      "intellect": {
+        "value": 4
+      },
+      "wits": {
+        "value": 14
+      },
+      "presence": {
+        "value": 6
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 17
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 90,
+        "value": 90
+      },
+      "movement": {
+        "base": 20,
+        "value": 20
+      }
+    },
+    "details": {
+      "threat": 4
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Archelon",
+    "width": 3,
+    "height": 3,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmAmphibious0000",
+      "_key": "!actors.items!mmArchelon000000.mmAmphibious0000",
+      "name": "Amphibious",
+      "type": "feature",
+      "img": "icons/creatures/amphibians/bullfrog-glass-teal.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The archelon can breathe air and water.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmAmphibious0000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmMultiattack000",
+      "_key": "!actors.items!mmArchelon000000.mmMultiattack000",
+      "name": "Multiattack",
+      "type": "action",
+      "img": "icons/skills/melee/strike-weapons-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The archelon makes two Bite attacks.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-multiattack-expend-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Multiattack"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMultiattack000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmBite0000000000",
+      "_key": "!actors.items!mmArchelon000000.mmBite0000000000",
+      "name": "Bite",
+      "type": "action",
+      "img": "icons/creatures/abilities/fangs-teeth-bite.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +6, reach 5 ft. Hit: 14 (3d6 + 4) Piercing damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-bite",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 3,
+                "faces": 6
+              },
+              "damageType": "piercing",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Bite"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmBite0000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmArchelon00trts",
+      "_key": "!actors.items!mmArchelon000000.mmArchelon00trts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "speed-swim",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "swim",
+              "distance": 80
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmArchelon000000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 4
+      },
+      "conversion": {
+        "notes": [
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "_id": "phbsptDraconicFl",
+  "_key": "!items!phbsptDraconicFl",
+  "name": "Draconic Flight",
+  "type": "action",
+  "img": "icons/magic/holy/angel-wings-gray.webp",
+  "system": {
+    "active": true,
+    "description": "<p>When you reach character level 5, you can channel draconic magic to give yourself temporary flight. As a Bonus Action, you sprout spectral wings on your back that last for 10 minutes or until you retract the wings (no action required) or have the Incapacitated condition. During that time, you have a Fly Speed equal to your Speed. Your wings appear to be made of the same energy as your Breath Weapon. Once you use this trait, you can't use it again until you finish a Long Rest.</p><section id=\"secret-pP4PH5jVYBp1OEa3\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect for tracking but it does not automatically grant the Fly Speed.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-draconic-flight-draconic-flight",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          },
+          {
+            "capability": "draconic-flight",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Draconic Flight"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "draconic-flight-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "draconic-flight",
+          "label": "Draconic Flight",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "origins24",
+        "id": "phbsptDraconicFl",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Draconic Flight\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

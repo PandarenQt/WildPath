@@ -1,0 +1,73 @@
+{
+  "_id": "phbiluSensory000",
+  "_key": "!actors!phbiluSensory000",
+  "name": "Illusory Phenomenon",
+  "type": "npc",
+  "img": "icons/magic/light/explosion-star-glow-blue-purple.webp",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 0
+      },
+      "agility": {
+        "value": 0
+      },
+      "fortitude": {
+        "value": 0
+      },
+      "intellect": {
+        "value": 0
+      },
+      "wits": {
+        "value": 0
+      },
+      "presence": {
+        "value": 0
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 0
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 1,
+        "value": 1
+      },
+      "movement": {
+        "base": 30,
+        "value": 30
+      }
+    },
+    "details": {
+      "threat": 0
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Illusory Phenomenon",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "phbiluSensory000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 0
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

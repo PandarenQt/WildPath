@@ -1,0 +1,28 @@
+{
+  "_id": "phbsptVersatile0",
+  "_key": "!items!phbsptVersatile0",
+  "name": "Versatile",
+  "type": "feature",
+  "img": "icons/skills/trades/academics-investigation-puzzles.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You gain an Origin feat of your choice. Skilled is recommended.</p><section id=\"secret-9E1yve6WHohyBage\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>You will be prompted for your choice when you select this Species.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "origins24",
+        "id": "phbsptVersatile0",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

@@ -1,0 +1,348 @@
+{
+  "_id": "mmGibberingMouth",
+  "_key": "!actors!mmGibberingMouth",
+  "name": "Gibbering Mouther",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 10
+      },
+      "agility": {
+        "value": 8
+      },
+      "fortitude": {
+        "value": 16
+      },
+      "intellect": {
+        "value": 3
+      },
+      "wits": {
+        "value": 10
+      },
+      "presence": {
+        "value": 6
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 9
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 52,
+        "value": 52
+      },
+      "movement": {
+        "base": 20,
+        "value": 20
+      }
+    },
+    "details": {
+      "threat": 2
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Gibbering Mouther",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmAberrantGround",
+      "_key": "!actors.items!mmGibberingMouth.mmAberrantGround",
+      "name": "Aberrant Ground",
+      "type": "feature",
+      "img": "icons/magic/earth/barrier-stone-explosion-red.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The ground in a 10-foot Emanation originating from the Gibbering Mouther is Difficult.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmAberrantGround",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "\"Place Emanation\" is passive or triggered: not automated"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmGibbering00000",
+      "_key": "!actors.items!mmGibberingMouth.mmGibbering00000",
+      "name": "Gibbering",
+      "type": "feature",
+      "img": "icons/creatures/slimes/slime-face-teeth-purple.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The gibbering mouther babbles incoherently while it doesn't have the Incapacitated condition.</p><p><em>Wisdom Saving Throw:</em> DC 10, any creature that starts its turn within 20 feet of the gibbering mouther while it is babbling.</p><p><em>Failure:</em> The target rolls 1d8 to determine what it does during the current turn:</p><p class=\"feature-trait\"><strong>1–4.</strong> The target does nothing.</p><p class=\"feature-trait\"><strong>5–6.</strong> The target takes no action or Bonus Action and uses all its movement to move in a random direction.</p><p class=\"feature-trait\"><strong>7–8.</strong> The target makes a melee attack against a randomly determined creature within its reach or does nothing if it can't make such an attack.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmGibbering00000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "\"save\" is passive or triggered: not automated",
+              "\"Roll d8\" is passive or triggered: not automated"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmBite0000000000",
+      "_key": "!actors.items!mmGibberingMouth.mmBite0000000000",
+      "name": "Bite",
+      "type": "action",
+      "img": "icons/creatures/abilities/fangs-teeth-bite.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +2, reach 5 ft. Hit: 7 (2d6) Piercing damage. If the target is a Medium or smaller creature, it has the Prone condition. The target dies if it is reduced to 0 Hit Points by this attack. Its body is then absorbed into the Gibbering Mouther, leaving only equipment behind.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-bite",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 6
+              },
+              "damageType": "piercing",
+              "provenance": "weapon-base"
+            }
+          ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "prone"
+            }
+          ],
+          "label": "Bite"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmBite0000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmBlindingSpittl",
+      "_key": "!actors.items!mmGibberingMouth.mmBlindingSpittl",
+      "name": "Blinding Spittle",
+      "type": "action",
+      "img": "icons/magic/light/projectile-smoke-yellow.webp",
+      "system": {
+        "active": true,
+        "description": "<p><em>Dexterity Saving Throw:</em> DC 10, each creature in a 10-foot-radius Sphere centered on a point within 30 feet.</p><p><em>Failure:</em> 7 (2d6) Radiant damage, and the target has the Blinded condition until the end of the gibbering mouther's next turn.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-blinding-spittle",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "blinding-spittle",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "radial",
+            "size": {
+              "value": 10,
+              "unit": "ft"
+            }
+          },
+          "save": {
+            "ability": "agility",
+            "dc": {
+              "value": 10
+            }
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 6
+              },
+              "damageType": "radiant",
+              "provenance": "additional",
+              "saveOutcomePolicy": {
+                "success": "none",
+                "failure": "full"
+              }
+            }
+          ],
+          "label": "Blinding Spittle"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "blinding-spittle-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "blinding-spittle",
+              "label": "Blinding Spittle",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "none"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmBlindingSpittl",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "uses: Recharge 5–6 is not rolled; refill the pool by hand"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmGibberingMtrts",
+      "_key": "!actors.items!mmGibberingMouth.mmGibberingMtrts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "speed-swim",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "swim",
+              "distance": 20
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmGibberingMouth",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 2
+      },
+      "conversion": {
+        "notes": [
+          "Aberrant Ground: \"Place Emanation\" is passive or triggered: not automated",
+          "Gibbering: \"save\" is passive or triggered: not automated",
+          "Gibbering: \"Roll d8\" is passive or triggered: not automated",
+          "Blinding Spittle: uses: Recharge 5–6 is not rolled; refill the pool by hand"
+        ]
+      }
+    }
+  }
+}

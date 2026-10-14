@@ -1,0 +1,28 @@
+{
+  "_id": "phbwlkFiendishRe",
+  "_key": "!items!phbwlkFiendishRe",
+  "name": "Fiendish Resilience",
+  "type": "feature",
+  "img": "icons/magic/defensive/armor-stone-skin.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Choose one damage type, other than Force, whenever you finish a Short or Long Rest. You have Resistance to that damage type until you choose a different one with this feature.</p><section class=\"secret\" id=\"secret-MG3loWptcg4gpsdG\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect for each type of damage which will grant you the correct Resistance. Apply and disable the effects as necessary when you change types.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbwlkFiendishRe",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "_id": "phbsptChthonicLe",
+  "_key": "!items!phbsptChthonicLe",
+  "name": "Fiendish Legacy, Chthonic",
+  "type": "feature",
+  "img": "icons/creatures/eyes/humanoid-single-yellow.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You are the recipient of a legacy that grants you supernatural abilities.</p><p>When you reach character levels 3 and 5, you learn a higher-level spell, as shown on the table. You always have that spell prepared. You can cast it once without a spell slot, and you regain the ability to cast it in that way when you finish a Long Rest. You can also cast the spell using any spell slots you have of the appropriate level. Intelligence, Wisdom, or Charisma is your spellcasting ability for the spells you cast with this trait (choose the ability when you select the legacy).</p><h3 data-anchor=\"chthonic\">Chthonic</h3><p>Tieflings who have the chthonic legacy feel not only the tug of Carceri but also the greed of Gehenna and the gloom of Hades. Some of these tieflings look cadaverous. Others possess the unearthly beauty of a succubus, or they have physical features in common with a night hag, a yugoloth, or some other Neutral Evil fiendish ancestor.</p><table><caption>Chthonic Legacy Traits</caption><thead><tr><td>Level 1</td><td>Level 3</td><td>Level 5</td></tr></thead><tbody><tr><td>You have Resistance to Necrotic damage.You also know the Chill Touch cantrip.</td><td>False Life</td><td>Ray of Enfeeblement</td></tr></tbody></table><section class=\"secret\" id=\"secret-GmBAOZVbkBYItbCL\"><p><strong>Foundry Note</strong></p><p>The Resistance and spells are granted to you automatically and you will be prompted to choose the spellcasting ability during advancement.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "origins24",
+        "id": "phbsptChthonicLe",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "_id": "phbpdnSmiteOfPro",
+  "_key": "!items!phbpdnSmiteOfPro",
+  "name": "Smite of Protection",
+  "type": "feature",
+  "img": "icons/magic/symbols/cog-shield-white-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Your magical smite now radiates protective energy. Whenever you cast Divine Smite, you and your allies have Half Cover while in your Aura of Protection. The aura has this benefit until the start of your next turn.</p><section class=\"secret\" id=\"secret-zaNpOup6oPMC6RtV\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect which provides the Half Cover status but it is not automatically granted as creatures enter/exit your aura.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbpdnSmiteOfPro",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

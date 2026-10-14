@@ -1,0 +1,30 @@
+{
+  "_id": "phbclcBlessedHea",
+  "_key": "!items!phbclcBlessedHea",
+  "name": "Blessed Healer",
+  "type": "feature",
+  "img": "icons/magic/life/heart-cross-strong-flame-purple-orange.webp",
+  "system": {
+    "active": true,
+    "description": "<p>The healing spells you cast on others heal you as well. Immediately after you cast a spell with a spell slot that restores Hit Points to one or more creatures other than yourself, you regain Hit Points equal to 2 plus the spell slot's level.</p><section class=\"secret\" id=\"secret-B3oOPhBUFT9dOwUQ\"><p><strong>Foundry Note</strong></p><p>This feature includes a healing activity. Set the scale to the spell slot level you cast and it will provide a healing roll for you.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbclcBlessedHea",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"heal\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

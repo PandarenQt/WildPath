@@ -1,0 +1,28 @@
+{
+  "_id": "phbrgrPreciseHun",
+  "_key": "!items!phbrgrPreciseHun",
+  "name": "Precise Hunter",
+  "type": "feature",
+  "img": "icons/skills/targeting/target-strike-triple-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You have Advantage on attack rolls against the creature currently marked by your Hunter's Mark.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbrgrPreciseHun",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

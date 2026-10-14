@@ -1,0 +1,60 @@
+{
+  "_id": "phbwzdArcaneReco",
+  "_key": "!items!phbwzdArcaneReco",
+  "name": "Arcane Recovery",
+  "type": "action",
+  "img": "icons/magic/earth/explosion-lava-stone-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You can regain some of your magical energy by studying your spellbook. When you finish a Short Rest, you can choose expended spell slots to recover. The spell slots can have a combined level equal to no more than half your Wizard level (round up), and none of the slots can be level 6 or higher. For example, if you're a level 4 Wizard, you can recover up to two levels' worth of spell slots, regaining either one level 2 spell slot or two level 1 spell slots.</p><p>Once you use this feature, you can't do so again until you finish a Long Rest.</p><p><strong>Combined Level Available:</strong> ceil(@classes.wizard.levels / 2)</p><section class=\"secret\" id=\"secret-cO6X083GFJ1W4071\"><p><strong>Foundry Note</strong></p><p>Since you can select the slots you will have to manually adjust your available slots. This feature can be used to track the one-time use though.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-arcane-recovery-recover",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "arcane-recovery",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Arcane Recovery"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "arcane-recovery-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "arcane-recovery",
+          "label": "Arcane Recovery",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbwzdArcaneReco",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "activation: shortRest is not an action-economy cost",
+          "activation: shortRest is not an action-economy cost"
+        ]
+      }
+    }
+  }
+}

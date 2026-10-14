@@ -1,0 +1,468 @@
+{
+  "_id": "mmErinyes0000000",
+  "_key": "!actors!mmErinyes0000000",
+  "name": "Erinyes",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 18
+      },
+      "agility": {
+        "value": 16,
+        "saveProficient": true
+      },
+      "fortitude": {
+        "value": 18,
+        "saveProficient": true
+      },
+      "intellect": {
+        "value": 14
+      },
+      "wits": {
+        "value": 14
+      },
+      "presence": {
+        "value": 18,
+        "saveProficient": true
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 18
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 178,
+        "value": 178
+      },
+      "movement": {
+        "base": 30,
+        "value": 30
+      }
+    },
+    "details": {
+      "threat": 12
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Erinyes",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmDiabolicalRest",
+      "_key": "!actors.items!mmErinyes0000000.mmDiabolicalRest",
+      "name": "Diabolical Restoration",
+      "type": "feature",
+      "img": "icons/magic/fire/blast-jet-stream-embers-yellow.webp",
+      "system": {
+        "active": true,
+        "description": "<p>If the erinyes dies outside the Nine Hells, its body disappears in sulfurous smoke, and it gains a new body instantly, reviving with all its Hit Points somewhere in the Nine Hells.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmDiabolicalRest",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmMagicResistanc",
+      "_key": "!actors.items!mmErinyes0000000.mmMagicResistanc",
+      "name": "Magic Resistance",
+      "type": "feature",
+      "img": "icons/magic/light/orbs-hand-gray.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The erinyes has Advantage on saving throws against spells and other magical effects.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMagicResistanc",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmMagicRope00000",
+      "_key": "!actors.items!mmErinyes0000000.mmMagicRope00000",
+      "name": "Magic Rope",
+      "type": "feature",
+      "img": "icons/sundries/survival/rope-wrapped-purple.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The erinyes has a magic rope. While bearing it, the erinyes can use the Entangling Rope action. The rope has AC 20, HP 90, and Immunity to Poison and Psychic damage. The rope turns to dust if reduced to 0 Hit Points, if it is 5+ feet away from the erinyes for 1 hour or more, or if the erinyes dies. If the rope is damaged or destroyed, the erinyes can fully restore it when finishing a Short or Long Rest.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMagicRope00000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmMultiattack000",
+      "_key": "!actors.items!mmErinyes0000000.mmMultiattack000",
+      "name": "Multiattack",
+      "type": "action",
+      "img": "icons/skills/melee/strike-weapons-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The erinyes makes three Withering Sword attacks and can use Entangling Rope.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-multiattack-expend-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Multiattack"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMultiattack000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmParry000000000",
+      "_key": "!actors.items!mmErinyes0000000.mmParry000000000",
+      "name": "Parry",
+      "type": "action",
+      "img": "icons/skills/melee/swords-parry-block-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p><em>Trigger:</em> The erinyes is hit by a melee attack roll while holding a weapon. <em>Response:</em> The erinyes adds 4 to its AC against that attack, possibly causing it to miss.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-parry-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "reaction",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Parry"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmParry000000000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmWitheringSword",
+      "_key": "!actors.items!mmErinyes0000000.mmWitheringSword",
+      "name": "Withering Sword",
+      "type": "action",
+      "img": "icons/weapons/swords/sword-flanged-lightning.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +8, reach 5 ft. Hit: 13 (2d8 + 4) Slashing plus 11 (2d10) Necrotic damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-withering-sword",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 8
+              },
+              "damageType": "slashing",
+              "provenance": "weapon-base"
+            },
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 10
+              },
+              "damageType": "necrotic",
+              "provenance": "additional"
+            }
+          ],
+          "label": "Withering Sword"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmWitheringSword",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "damage: versatile two-handed damage not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmEntanglingRope",
+      "_key": "!actors.items!mmErinyes0000000.mmEntanglingRope",
+      "name": "Entangling Rope",
+      "type": "action",
+      "img": "icons/magic/control/debuff-chains-ropes-net-red-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\"><em>Strength Saving Throw:</em> DC 16, one creature the erinyes can see within 120 feet. </p><p class=\"feature\"><em>Failure:</em> 14 (4d6) Force damage, and the target has the Restrained condition until the rope is destroyed, the erinyes uses a Bonus Action to release the target, or the erinyes uses Entangling Rope again.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-entangling-rope",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 120,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "might",
+            "dc": {
+              "value": 16
+            }
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 4,
+                "faces": 6
+              },
+              "damageType": "force",
+              "provenance": "additional",
+              "saveOutcomePolicy": {
+                "success": "none",
+                "failure": "full"
+              }
+            }
+          ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "restrained",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
+          "label": "Entangling Rope"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmEntanglingRope",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmErinyes000trts",
+      "_key": "!actors.items!mmErinyes0000000.mmErinyes000trts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "resistances",
+            "type": "GrantResistance",
+            "data": {
+              "damageTypes": [
+                "cold"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "immunities",
+            "type": "GrantImmunity",
+            "data": {
+              "damageTypes": [
+                "fire",
+                "poison"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "speed-fly",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "fly",
+              "distance": 60
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmErinyes0000000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 12
+      },
+      "conversion": {
+        "notes": [
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
+          "Parry: not automated (utility): using it spends its cost; its description says the rest",
+          "Withering Sword: damage: versatile two-handed damage not converted",
+          "condition immunities (poisoned) not converted"
+        ]
+      }
+    }
+  }
+}

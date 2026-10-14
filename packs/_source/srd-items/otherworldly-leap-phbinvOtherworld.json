@@ -1,0 +1,44 @@
+{
+  "_id": "phbinvOtherworld",
+  "_key": "!items!phbinvOtherworld",
+  "name": "Otherworldly Leap",
+  "type": "action",
+  "img": "icons/creatures/mammals/deer-movement-leap-green.webp",
+  "system": {
+    "active": true,
+    "description": "<blockquote><p>Prerequisite: Level 2+ Warlock</p></blockquote><p>You can cast Jump on yourself without expending a spell slot.</p><section id=\"secret-JpQyXOJAkEKVXxff\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This feature can be used in place of the Jump spell and includes an Active Effect for tracking.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-otherworldly-leap",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Otherworldly Leap"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbinvOtherworld",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Jump\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

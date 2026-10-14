@@ -1,0 +1,43 @@
+{
+  "_id": "dmgSwordOfLifeSt",
+  "_key": "!items!dmgSwordOfLifeSt",
+  "name": "Sword of Life Stealing",
+  "type": "action",
+  "img": "icons/weapons/swords/sword-guard-worn.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Weapon (Glaive, Greatsword, Longsword, Rapier, Scimitar, or Shortsword), Rare (Requires Attunement)</em></p><p>When you attack a creature with this magic weapon and roll a 20 on the d20 for the attack roll, that target takes an extra 15 Necrotic damage if it isn't a Construct or an Undead, and you gain Temporary Hit Points equal to the amount of Necrotic damage taken.</p><p></p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-sword-of-life-stealing-sword-of-life-stealing",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Sword of Life Stealing"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgSwordOfLifeSt",
+        "type": "weapon",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (enchant): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

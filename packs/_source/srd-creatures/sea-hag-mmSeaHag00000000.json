@@ -1,0 +1,2232 @@
+{
+  "_id": "mmSeaHag00000000",
+  "_key": "!actors!mmSeaHag00000000",
+  "name": "Sea Hag",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 16
+      },
+      "agility": {
+        "value": 13
+      },
+      "fortitude": {
+        "value": 16
+      },
+      "intellect": {
+        "value": 12
+      },
+      "wits": {
+        "value": 12
+      },
+      "presence": {
+        "value": 13
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 14
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 52,
+        "value": 52
+      },
+      "movement": {
+        "base": 30,
+        "value": 30
+      }
+    },
+    "details": {
+      "threat": 2
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Sea Hag",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmAmphibious0000",
+      "_key": "!actors.items!mmSeaHag00000000.mmAmphibious0000",
+      "name": "Amphibious",
+      "type": "feature",
+      "img": "icons/creatures/amphibians/bullfrog-glass-teal.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The sea hag can breathe air and water.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmAmphibious0000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmCovenMagic0000",
+      "_key": "!actors.items!mmSeaHag00000000.mmCovenMagic0000",
+      "name": "Coven Magic (cast)",
+      "type": "action",
+      "img": "icons/skills/toxins/cauldron-bubbles-overflow-green.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">While within 30 feet of at least two hag allies, the sea hag can cast one of the following spells, requiring no Material components, using the spell's normal casting time, and using Intelligence as the spellcasting ability (spell save DC ): <em>Augury</em>, <em>Find Familiar</em>, <em>Identify</em>, <em>Locate Object</em>, <em>Scrying</em>, or <em>Unseen Servant</em>. The sea hag must finish a Long Rest before using this trait to cast that spell again.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-coven-magic",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Coven Magic (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmCovenMagic0000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest",
+              "consumption: activityUses 1 not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "1nyubkgw6fd7w000",
+      "_key": "!actors.items!mmSeaHag00000000.1nyubkgw6fd7w000",
+      "name": "Coven Magic (cast)",
+      "type": "action",
+      "img": "icons/skills/toxins/cauldron-bubbles-overflow-green.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">While within 30 feet of at least two hag allies, the sea hag can cast one of the following spells, requiring no Material components, using the spell's normal casting time, and using Intelligence as the spellcasting ability (spell save DC ): <em>Augury</em>, <em>Find Familiar</em>, <em>Identify</em>, <em>Locate Object</em>, <em>Scrying</em>, or <em>Unseen Servant</em>. The sea hag must finish a Long Rest before using this trait to cast that spell again.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-coven-magic",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Coven Magic (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmCovenMagic0000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest",
+              "consumption: activityUses 1 not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "1ost4nd1wmarjv00",
+      "_key": "!actors.items!mmSeaHag00000000.1ost4nd1wmarjv00",
+      "name": "Coven Magic (cast)",
+      "type": "action",
+      "img": "icons/skills/toxins/cauldron-bubbles-overflow-green.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">While within 30 feet of at least two hag allies, the sea hag can cast one of the following spells, requiring no Material components, using the spell's normal casting time, and using Intelligence as the spellcasting ability (spell save DC ): <em>Augury</em>, <em>Find Familiar</em>, <em>Identify</em>, <em>Locate Object</em>, <em>Scrying</em>, or <em>Unseen Servant</em>. The sea hag must finish a Long Rest before using this trait to cast that spell again.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-coven-magic",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Coven Magic (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmCovenMagic0000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest",
+              "consumption: activityUses 1 not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "1oitiyewsmy46000",
+      "_key": "!actors.items!mmSeaHag00000000.1oitiyewsmy46000",
+      "name": "Coven Magic (cast)",
+      "type": "action",
+      "img": "icons/skills/toxins/cauldron-bubbles-overflow-green.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">While within 30 feet of at least two hag allies, the sea hag can cast one of the following spells, requiring no Material components, using the spell's normal casting time, and using Intelligence as the spellcasting ability (spell save DC ): <em>Augury</em>, <em>Find Familiar</em>, <em>Identify</em>, <em>Locate Object</em>, <em>Scrying</em>, or <em>Unseen Servant</em>. The sea hag must finish a Long Rest before using this trait to cast that spell again.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-coven-magic",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Coven Magic (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmCovenMagic0000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest",
+              "consumption: activityUses 1 not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "1pcsc1b1uro0v100",
+      "_key": "!actors.items!mmSeaHag00000000.1pcsc1b1uro0v100",
+      "name": "Coven Magic (cast)",
+      "type": "action",
+      "img": "icons/skills/toxins/cauldron-bubbles-overflow-green.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">While within 30 feet of at least two hag allies, the sea hag can cast one of the following spells, requiring no Material components, using the spell's normal casting time, and using Intelligence as the spellcasting ability (spell save DC ): <em>Augury</em>, <em>Find Familiar</em>, <em>Identify</em>, <em>Locate Object</em>, <em>Scrying</em>, or <em>Unseen Servant</em>. The sea hag must finish a Long Rest before using this trait to cast that spell again.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-coven-magic",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Coven Magic (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmCovenMagic0000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest",
+              "consumption: activityUses 1 not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "1p2sqccuy07fc000",
+      "_key": "!actors.items!mmSeaHag00000000.1p2sqccuy07fc000",
+      "name": "Coven Magic (cast)",
+      "type": "action",
+      "img": "icons/skills/toxins/cauldron-bubbles-overflow-green.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">While within 30 feet of at least two hag allies, the sea hag can cast one of the following spells, requiring no Material components, using the spell's normal casting time, and using Intelligence as the spellcasting ability (spell save DC ): <em>Augury</em>, <em>Find Familiar</em>, <em>Identify</em>, <em>Locate Object</em>, <em>Scrying</em>, or <em>Unseen Servant</em>. The sea hag must finish a Long Rest before using this trait to cast that spell again.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-coven-magic",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Coven Magic (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmCovenMagic0000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest",
+              "consumption: activityUses 1 not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "KBCnYF6BOwsvdFXq",
+      "_key": "!actors.items!mmSeaHag00000000.KBCnYF6BOwsvdFXq",
+      "name": "Augury",
+      "type": "action",
+      "img": "icons/sundries/gaming/playing-cards-black.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You receive an omen from an otherworldly entity about the results of a course of action that you plan to take within the next 30 minutes. The DM chooses the omen from the Omens table.</p><table><thead><tr><td>Omen</td><td>For Results That Will Be …</td></tr></thead><tbody><tr><td>Weal</td><td>Good</td></tr><tr><td>Woe</td><td>Bad</td></tr><tr><td>Weal and woe</td><td>Good and bad</td></tr><tr><td>Indifference</td><td>Neither good nor bad</td></tr></tbody></table><p>The spell doesn't account for circumstances, such as other spells, that might change the results.</p><p>If you cast the spell more than once before finishing a Long Rest, there is a cumulative 25 percent chance for each casting after the first that you get no answer.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-augury",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": []
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.2",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.3",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.4",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.2": 2,
+                "spell-slot.3": 3,
+                "spell-slot.4": 4,
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Augury"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "KBCnYF6BOwsvdFXq",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "activation: 1 minute is not an action-economy cost",
+              "activation: 1 minute is not an action-economy cost"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "6jQZZ1nlbvBOQtYl",
+      "_key": "!actors.items!mmSeaHag00000000.6jQZZ1nlbvBOQtYl",
+      "name": "Find Familiar",
+      "type": "action",
+      "img": "icons/creatures/mammals/spirit-deer-herd-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You gain the service of a familiar, a spirit that takes an animal form you choose: <strong>Bat</strong>, <strong>Cat</strong>, <strong>Frog</strong>, <strong>Hawk</strong>, <strong>Lizard</strong>, <strong>Octopus</strong>, <strong>Owl</strong>, <strong>Rat</strong>, <strong>Raven</strong>, <strong>Spider</strong>, <strong>Weasel</strong>, or another Beast that has a Challenge Rating of 0. Appearing in an unoccupied space within range, the familiar has the statistics of the chosen form (see appendix B), though it is a Celestial, Fey, or Fiend (your choice) instead of a Beast. Your familiar acts independently of you, but it obeys your commands.</p><p><strong>Telepathic Connection.</strong> While your familiar is within 100 feet of you, you can communicate with it telepathically. Additionally, as a Bonus Action, you can see through the familiar's eyes and hear what it hears until the start of your next turn, gaining the benefits of any special senses it has.</p><p>Finally, when you cast a spell with a range of touch, your familiar can deliver the touch. Your familiar must be within 100 feet of you, and it must take a Reaction to deliver the touch when you cast the spell.</p><p><strong>Combat.</strong> The familiar is an ally to you and your allies. It rolls its own Initiative and acts on its own turn. A familiar can't attack, but it can take other actions as normal.</p><p><strong>Disappearance of the Familiar.</strong> When the familiar drops to 0 Hit Points, it disappears. It reappears after you cast this spell again. As a Magic action, you can temporarily dismiss the familiar to a pocket dimension. Alternatively, you can dismiss it forever. As a Magic action while it is temporarily dismissed, you can cause it to reappear in an unoccupied space within 30 feet of you. Whenever the familiar drops to 0 Hit Points or disappears into the pocket dimension, it leaves behind in its space anything it was wearing or carrying.</p><p><strong>One Familiar Only.</strong> You can't have more than one familiar at a time. If you cast this spell while you have a familiar, you instead cause it to adopt a new eligible form.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-find-familiar",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": []
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.1",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.2",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.3",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.4",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.1": 1,
+                "spell-slot.2": 2,
+                "spell-slot.3": 3,
+                "spell-slot.4": 4,
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Find Familiar"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "6jQZZ1nlbvBOQtYl",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (summon): using it spends its cost; its description says the rest",
+              "activation: 1 hour is not an action-economy cost"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "WyHL8BgJUYrQT6hV",
+      "_key": "!actors.items!mmSeaHag00000000.WyHL8BgJUYrQT6hV",
+      "name": "Identify",
+      "type": "action",
+      "img": "icons/tools/scribal/magnifying-glass.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You touch an object throughout the spell's casting. If the object is a magic item or some other magical object, you learn its properties and how to use them, whether it requires Attunement, and how many charges it has, if any. You learn whether any ongoing spells are affecting the item and what they are. If the item was created by a spell, you learn that spell's name.</p><p>If you instead touch a creature throughout the casting, you learn which ongoing spells, if any, are currently affecting it.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-identify",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": []
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.1",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.2",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.3",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.4",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.1": 1,
+                "spell-slot.2": 2,
+                "spell-slot.3": 3,
+                "spell-slot.4": 4,
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Identify"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "WyHL8BgJUYrQT6hV",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "activation: 1 minute is not an action-economy cost",
+              "activation: 1 minute is not an action-economy cost"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "3AiNvzLZE9VHnK9H",
+      "_key": "!actors.items!mmSeaHag00000000.3AiNvzLZE9VHnK9H",
+      "name": "Locate Object",
+      "type": "action",
+      "img": "icons/tools/navigation/map-marked-gold.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Describe or name an object that is familiar to you. You sense the direction to the object's location if that object is within 1,000 feet of you. If the object is in motion, you know the direction of its movement.</p><p>The spell can locate a specific object known to you if you have seen it up close—within 30 feet—at least once. Alternatively, the spell can locate the nearest object of a particular kind, such as a certain kind of apparel, jewelry, furniture, tool, or weapon.</p><p>This spell can't locate an object if any thickness of lead blocks a direct path between you and the object.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-locate-object-cast",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.2",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.3",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.4",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.2": 2,
+                "spell-slot.3": 3,
+                "spell-slot.4": 4,
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Locate Object"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "3AiNvzLZE9VHnK9H",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "concentration: nothing it sustains was converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "hmnIRrpaFhjOgdUE",
+      "_key": "!actors.items!mmSeaHag00000000.hmnIRrpaFhjOgdUE",
+      "name": "Scrying (Secondhand and Picture)",
+      "type": "action",
+      "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You can see and hear a creature you choose that is on the same plane of existence as you. The target makes a Wisdom saving throw, which is modified (see the tables below) by how well you know the target and the sort of physical connection you have to it. The target doesn't know what it is making the save against, only that it feels uneasy.</p><table><thead><tr><td>Your Knowledge of the Target Is …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Secondhand (heard of the target)</td><td>+5</td></tr><tr><td>Firsthand (met the target)</td><td>+0</td></tr><tr><td>Extensive (know the target well)</td><td>−5</td></tr></tbody></table><table><thead><tr><td>You Have the Target's …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Picture or other likeness</td><td>−2</td></tr><tr><td>Garment or other possession</td><td>−4</td></tr><tr><td>Body part, lock of hair, or bit of nail</td><td>−10</td></tr></tbody></table><p>On a successful save, the target isn't affected, and you can't use this spell on it again for 24 hours.</p><p>On a failed save, the spell creates an Invisible, intangible sensor within 10 feet of the target. You can see and hear through the sensor as if you were there. The sensor moves with the target, remaining within 10 feet of it for the duration. If something can see the sensor, it appears as a luminous orb about the size of your fist.</p><p>Instead of targeting a creature, you can target a location you have seen. When you do so, the sensor appears at that location and doesn't move.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-scrying-secondhand-and-picture",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": []
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Scrying (Secondhand and Picture)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "hmnIRrpaFhjOgdUE",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest",
+              "activation: 10 minute is not an action-economy cost",
+              "save: wis DC (@attributes.spell.dc - 5 + 2) not converted",
+              "activation: 10 minute is not an action-economy cost"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "zhuy7914aioaz000",
+      "_key": "!actors.items!mmSeaHag00000000.zhuy7914aioaz000",
+      "name": "Scrying (Secondhand and Garment)",
+      "type": "action",
+      "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You can see and hear a creature you choose that is on the same plane of existence as you. The target makes a Wisdom saving throw, which is modified (see the tables below) by how well you know the target and the sort of physical connection you have to it. The target doesn't know what it is making the save against, only that it feels uneasy.</p><table><thead><tr><td>Your Knowledge of the Target Is …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Secondhand (heard of the target)</td><td>+5</td></tr><tr><td>Firsthand (met the target)</td><td>+0</td></tr><tr><td>Extensive (know the target well)</td><td>−5</td></tr></tbody></table><table><thead><tr><td>You Have the Target's …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Picture or other likeness</td><td>−2</td></tr><tr><td>Garment or other possession</td><td>−4</td></tr><tr><td>Body part, lock of hair, or bit of nail</td><td>−10</td></tr></tbody></table><p>On a successful save, the target isn't affected, and you can't use this spell on it again for 24 hours.</p><p>On a failed save, the spell creates an Invisible, intangible sensor within 10 feet of the target. You can see and hear through the sensor as if you were there. The sensor moves with the target, remaining within 10 feet of it for the duration. If something can see the sensor, it appears as a luminous orb about the size of your fist.</p><p>Instead of targeting a creature, you can target a location you have seen. When you do so, the sensor appears at that location and doesn't move.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-scrying-secondhand-and-garment",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": []
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Scrying (Secondhand and Garment)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "hmnIRrpaFhjOgdUE",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest",
+              "activation: 10 minute is not an action-economy cost",
+              "save: wis DC (@attributes.spell.dc - 5 + 4) not converted",
+              "activation: 10 minute is not an action-economy cost"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "ynw54c3un9z00000",
+      "_key": "!actors.items!mmSeaHag00000000.ynw54c3un9z00000",
+      "name": "Scrying (Secondhand and Body Part)",
+      "type": "action",
+      "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You can see and hear a creature you choose that is on the same plane of existence as you. The target makes a Wisdom saving throw, which is modified (see the tables below) by how well you know the target and the sort of physical connection you have to it. The target doesn't know what it is making the save against, only that it feels uneasy.</p><table><thead><tr><td>Your Knowledge of the Target Is …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Secondhand (heard of the target)</td><td>+5</td></tr><tr><td>Firsthand (met the target)</td><td>+0</td></tr><tr><td>Extensive (know the target well)</td><td>−5</td></tr></tbody></table><table><thead><tr><td>You Have the Target's …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Picture or other likeness</td><td>−2</td></tr><tr><td>Garment or other possession</td><td>−4</td></tr><tr><td>Body part, lock of hair, or bit of nail</td><td>−10</td></tr></tbody></table><p>On a successful save, the target isn't affected, and you can't use this spell on it again for 24 hours.</p><p>On a failed save, the spell creates an Invisible, intangible sensor within 10 feet of the target. You can see and hear through the sensor as if you were there. The sensor moves with the target, remaining within 10 feet of it for the duration. If something can see the sensor, it appears as a luminous orb about the size of your fist.</p><p>Instead of targeting a creature, you can target a location you have seen. When you do so, the sensor appears at that location and doesn't move.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-scrying-secondhand-and-body-part",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": []
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Scrying (Secondhand and Body Part)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "hmnIRrpaFhjOgdUE",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest",
+              "activation: 10 minute is not an action-economy cost",
+              "save: wis DC (@attributes.spell.dc - 5 + 10) not converted",
+              "activation: 10 minute is not an action-economy cost"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "yxvqtb13ob3ep000",
+      "_key": "!actors.items!mmSeaHag00000000.yxvqtb13ob3ep000",
+      "name": "Scrying (Firsthand and Picture)",
+      "type": "action",
+      "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You can see and hear a creature you choose that is on the same plane of existence as you. The target makes a Wisdom saving throw, which is modified (see the tables below) by how well you know the target and the sort of physical connection you have to it. The target doesn't know what it is making the save against, only that it feels uneasy.</p><table><thead><tr><td>Your Knowledge of the Target Is …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Secondhand (heard of the target)</td><td>+5</td></tr><tr><td>Firsthand (met the target)</td><td>+0</td></tr><tr><td>Extensive (know the target well)</td><td>−5</td></tr></tbody></table><table><thead><tr><td>You Have the Target's …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Picture or other likeness</td><td>−2</td></tr><tr><td>Garment or other possession</td><td>−4</td></tr><tr><td>Body part, lock of hair, or bit of nail</td><td>−10</td></tr></tbody></table><p>On a successful save, the target isn't affected, and you can't use this spell on it again for 24 hours.</p><p>On a failed save, the spell creates an Invisible, intangible sensor within 10 feet of the target. You can see and hear through the sensor as if you were there. The sensor moves with the target, remaining within 10 feet of it for the duration. If something can see the sensor, it appears as a luminous orb about the size of your fist.</p><p>Instead of targeting a creature, you can target a location you have seen. When you do so, the sensor appears at that location and doesn't move.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-scrying-firsthand-and-picture",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": []
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Scrying (Firsthand and Picture)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "hmnIRrpaFhjOgdUE",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest",
+              "activation: 10 minute is not an action-economy cost",
+              "save: wis DC (@attributes.spell.dc - 0 + 2) not converted",
+              "activation: 10 minute is not an action-economy cost"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "y3wxqe38fp2q0000",
+      "_key": "!actors.items!mmSeaHag00000000.y3wxqe38fp2q0000",
+      "name": "Scrying (Firsthand and Garment)",
+      "type": "action",
+      "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You can see and hear a creature you choose that is on the same plane of existence as you. The target makes a Wisdom saving throw, which is modified (see the tables below) by how well you know the target and the sort of physical connection you have to it. The target doesn't know what it is making the save against, only that it feels uneasy.</p><table><thead><tr><td>Your Knowledge of the Target Is …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Secondhand (heard of the target)</td><td>+5</td></tr><tr><td>Firsthand (met the target)</td><td>+0</td></tr><tr><td>Extensive (know the target well)</td><td>−5</td></tr></tbody></table><table><thead><tr><td>You Have the Target's …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Picture or other likeness</td><td>−2</td></tr><tr><td>Garment or other possession</td><td>−4</td></tr><tr><td>Body part, lock of hair, or bit of nail</td><td>−10</td></tr></tbody></table><p>On a successful save, the target isn't affected, and you can't use this spell on it again for 24 hours.</p><p>On a failed save, the spell creates an Invisible, intangible sensor within 10 feet of the target. You can see and hear through the sensor as if you were there. The sensor moves with the target, remaining within 10 feet of it for the duration. If something can see the sensor, it appears as a luminous orb about the size of your fist.</p><p>Instead of targeting a creature, you can target a location you have seen. When you do so, the sensor appears at that location and doesn't move.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-scrying-firsthand-and-garment",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": []
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Scrying (Firsthand and Garment)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "hmnIRrpaFhjOgdUE",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest",
+              "activation: 10 minute is not an action-economy cost",
+              "save: wis DC (@attributes.spell.dc - 0 + 4) not converted",
+              "activation: 10 minute is not an action-economy cost"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "ydwjfd1323iif000",
+      "_key": "!actors.items!mmSeaHag00000000.ydwjfd1323iif000",
+      "name": "Scrying (Firsthand and Body Part)",
+      "type": "action",
+      "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You can see and hear a creature you choose that is on the same plane of existence as you. The target makes a Wisdom saving throw, which is modified (see the tables below) by how well you know the target and the sort of physical connection you have to it. The target doesn't know what it is making the save against, only that it feels uneasy.</p><table><thead><tr><td>Your Knowledge of the Target Is …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Secondhand (heard of the target)</td><td>+5</td></tr><tr><td>Firsthand (met the target)</td><td>+0</td></tr><tr><td>Extensive (know the target well)</td><td>−5</td></tr></tbody></table><table><thead><tr><td>You Have the Target's …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Picture or other likeness</td><td>−2</td></tr><tr><td>Garment or other possession</td><td>−4</td></tr><tr><td>Body part, lock of hair, or bit of nail</td><td>−10</td></tr></tbody></table><p>On a successful save, the target isn't affected, and you can't use this spell on it again for 24 hours.</p><p>On a failed save, the spell creates an Invisible, intangible sensor within 10 feet of the target. You can see and hear through the sensor as if you were there. The sensor moves with the target, remaining within 10 feet of it for the duration. If something can see the sensor, it appears as a luminous orb about the size of your fist.</p><p>Instead of targeting a creature, you can target a location you have seen. When you do so, the sensor appears at that location and doesn't move.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-scrying-firsthand-and-body-part",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": []
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Scrying (Firsthand and Body Part)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "hmnIRrpaFhjOgdUE",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest",
+              "activation: 10 minute is not an action-economy cost",
+              "save: wis DC (@attributes.spell.dc - 0 + 10) not converted",
+              "activation: 10 minute is not an action-economy cost"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "xjxqcg2m846g0000",
+      "_key": "!actors.items!mmSeaHag00000000.xjxqcg2m846g0000",
+      "name": "Scrying (Extensive and Picture)",
+      "type": "action",
+      "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You can see and hear a creature you choose that is on the same plane of existence as you. The target makes a Wisdom saving throw, which is modified (see the tables below) by how well you know the target and the sort of physical connection you have to it. The target doesn't know what it is making the save against, only that it feels uneasy.</p><table><thead><tr><td>Your Knowledge of the Target Is …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Secondhand (heard of the target)</td><td>+5</td></tr><tr><td>Firsthand (met the target)</td><td>+0</td></tr><tr><td>Extensive (know the target well)</td><td>−5</td></tr></tbody></table><table><thead><tr><td>You Have the Target's …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Picture or other likeness</td><td>−2</td></tr><tr><td>Garment or other possession</td><td>−4</td></tr><tr><td>Body part, lock of hair, or bit of nail</td><td>−10</td></tr></tbody></table><p>On a successful save, the target isn't affected, and you can't use this spell on it again for 24 hours.</p><p>On a failed save, the spell creates an Invisible, intangible sensor within 10 feet of the target. You can see and hear through the sensor as if you were there. The sensor moves with the target, remaining within 10 feet of it for the duration. If something can see the sensor, it appears as a luminous orb about the size of your fist.</p><p>Instead of targeting a creature, you can target a location you have seen. When you do so, the sensor appears at that location and doesn't move.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-scrying-extensive-and-picture",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": []
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Scrying (Extensive and Picture)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "hmnIRrpaFhjOgdUE",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest",
+              "activation: 10 minute is not an action-economy cost",
+              "save: wis DC (@attributes.spell.dc + 5 + 2) not converted",
+              "activation: 10 minute is not an action-economy cost"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "xtxc1f12fvxm5000",
+      "_key": "!actors.items!mmSeaHag00000000.xtxc1f12fvxm5000",
+      "name": "Scrying (Extensive and Garment)",
+      "type": "action",
+      "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You can see and hear a creature you choose that is on the same plane of existence as you. The target makes a Wisdom saving throw, which is modified (see the tables below) by how well you know the target and the sort of physical connection you have to it. The target doesn't know what it is making the save against, only that it feels uneasy.</p><table><thead><tr><td>Your Knowledge of the Target Is …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Secondhand (heard of the target)</td><td>+5</td></tr><tr><td>Firsthand (met the target)</td><td>+0</td></tr><tr><td>Extensive (know the target well)</td><td>−5</td></tr></tbody></table><table><thead><tr><td>You Have the Target's …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Picture or other likeness</td><td>−2</td></tr><tr><td>Garment or other possession</td><td>−4</td></tr><tr><td>Body part, lock of hair, or bit of nail</td><td>−10</td></tr></tbody></table><p>On a successful save, the target isn't affected, and you can't use this spell on it again for 24 hours.</p><p>On a failed save, the spell creates an Invisible, intangible sensor within 10 feet of the target. You can see and hear through the sensor as if you were there. The sensor moves with the target, remaining within 10 feet of it for the duration. If something can see the sensor, it appears as a luminous orb about the size of your fist.</p><p>Instead of targeting a creature, you can target a location you have seen. When you do so, the sensor appears at that location and doesn't move.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-scrying-extensive-and-garment",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": []
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Scrying (Extensive and Garment)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "hmnIRrpaFhjOgdUE",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest",
+              "activation: 10 minute is not an action-economy cost",
+              "save: wis DC (@attributes.spell.dc + 5 + 4) not converted",
+              "activation: 10 minute is not an action-economy cost"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "11fs622200ja6000",
+      "_key": "!actors.items!mmSeaHag00000000.11fs622200ja6000",
+      "name": "Scrying (Extensive and Body Part)",
+      "type": "action",
+      "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You can see and hear a creature you choose that is on the same plane of existence as you. The target makes a Wisdom saving throw, which is modified (see the tables below) by how well you know the target and the sort of physical connection you have to it. The target doesn't know what it is making the save against, only that it feels uneasy.</p><table><thead><tr><td>Your Knowledge of the Target Is …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Secondhand (heard of the target)</td><td>+5</td></tr><tr><td>Firsthand (met the target)</td><td>+0</td></tr><tr><td>Extensive (know the target well)</td><td>−5</td></tr></tbody></table><table><thead><tr><td>You Have the Target's …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Picture or other likeness</td><td>−2</td></tr><tr><td>Garment or other possession</td><td>−4</td></tr><tr><td>Body part, lock of hair, or bit of nail</td><td>−10</td></tr></tbody></table><p>On a successful save, the target isn't affected, and you can't use this spell on it again for 24 hours.</p><p>On a failed save, the spell creates an Invisible, intangible sensor within 10 feet of the target. You can see and hear through the sensor as if you were there. The sensor moves with the target, remaining within 10 feet of it for the duration. If something can see the sensor, it appears as a luminous orb about the size of your fist.</p><p>Instead of targeting a creature, you can target a location you have seen. When you do so, the sensor appears at that location and doesn't move.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-scrying-extensive-and-body-part",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": []
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Scrying (Extensive and Body Part)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "hmnIRrpaFhjOgdUE",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest",
+              "activation: 10 minute is not an action-economy cost",
+              "save: wis DC (@attributes.spell.dc + 5 + 10) not converted",
+              "activation: 10 minute is not an action-economy cost"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "GPfGPa68QrAt1JIl",
+      "_key": "!actors.items!mmSeaHag00000000.GPfGPa68QrAt1JIl",
+      "name": "Unseen Servant",
+      "type": "action",
+      "img": "icons/creatures/magical/humanoid-silhouette-aliens-green.webp",
+      "system": {
+        "active": true,
+        "description": "<p>This spell creates an Invisible, mindless, shapeless, Medium force that performs simple tasks at your command until the spell ends. The servant springs into existence in an unoccupied space on the ground within range. It has AC 10, 1 Hit Point, and a Strength of 2, and it can't attack. If it drops to 0 Hit Points, the spell ends.</p><p>Once on each of your turns as a Bonus Action, you can mentally command the servant to move up to 15 feet and interact with an object. The servant can perform simple tasks that a human could do, such as fetching things, cleaning, mending, folding clothes, lighting fires, serving food, and pouring drinks. Once you give the command, the servant performs the task to the best of its ability until it completes the task, then waits for your next command.</p><p>If you command the servant to perform a task that would move it more than 60 feet away from you, the spell ends.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-unseen-servant",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.1",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.2",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.3",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.4",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.1": 1,
+                "spell-slot.2": 2,
+                "spell-slot.3": 3,
+                "spell-slot.4": 4,
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Unseen Servant"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "GPfGPa68QrAt1JIl",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (summon): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmVileAppearance",
+      "_key": "!actors.items!mmSeaHag00000000.mmVileAppearance",
+      "name": "Vile Appearance",
+      "type": "feature",
+      "img": "icons/magic/control/fear-fright-monster-purple-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\"><em>Wisdom Saving Throw:</em> DC 11, any Beast or Humanoid that starts its turn within 30 feet of the sea hag and can see the sea hag's true form.</p><p class=\"feature\"><em>Failure:</em> The target has the Frightened condition until the start of its next turn.</p><p class=\"feature\"><em>Success:</em> The target is immune to this sea hag's Horrific Appearance for 24 hours.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmVileAppearance",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "\"save\" is passive or triggered: not automated"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmClaw0000000000",
+      "_key": "!actors.items!mmSeaHag00000000.mmClaw0000000000",
+      "name": "Claw",
+      "type": "action",
+      "img": "icons/skills/melee/blood-slash-foam-red.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +5, reach 5 ft. Hit: 10 (2d6 + 3) Slashing damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-claw",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 6
+              },
+              "damageType": "slashing",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Claw"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmClaw0000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmDeathGlare0000",
+      "_key": "!actors.items!mmSeaHag00000000.mmDeathGlare0000",
+      "name": "Death Glare",
+      "type": "action",
+      "img": "icons/magic/death/skull-energy-light-white.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\"><em>Wisdom Saving Throw:</em> DC 11, one Frightened creature the sea hag can see within 30 feet.</p><p class=\"feature\"><em>Failure:</em> If the target has 20 Hit Points or fewer, it drops to 0 Hit Points. Otherwise, the target takes 13 (3d8) Psychic damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-death-glare-save",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "death-glare",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "value": 11
+            }
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 3,
+                "faces": 8
+              },
+              "damageType": "psychic",
+              "provenance": "additional",
+              "saveOutcomePolicy": {
+                "success": "none",
+                "failure": "full"
+              }
+            }
+          ],
+          "label": "Death Glare"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "death-glare-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "death-glare",
+              "label": "Death Glare",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "none"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmDeathGlare0000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "uses: Recharge 5–6 is not rolled; refill the pool by hand"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmIllusoryAppear",
+      "_key": "!actors.items!mmSeaHag00000000.mmIllusoryAppear",
+      "name": "Illusory Appearance",
+      "type": "action",
+      "img": "icons/equipment/head/mask-carved-bird-grey-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The sea hag casts <em>Disguise Self</em>, using Constitution as the spellcasting ability (spell save DC ). The spell's duration is 24 hours.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-illusory-appearance",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Illusory Appearance"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmIllusoryAppear",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "xFcYJfM0OoEYYQns",
+      "_key": "!actors.items!mmSeaHag00000000.xFcYJfM0OoEYYQns",
+      "name": "Disguise Self",
+      "type": "action",
+      "img": "icons/equipment/head/mask-carved-bird-grey-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You make yourself—including your clothing, armor, weapons, and other belongings on your person—look different until the spell ends. You can seem 1 foot shorter or taller and can appear heavier or lighter. You must adopt a form that has the same basic arrangement of limbs as you have. Otherwise, the extent of the illusion is up to you.</p><p>The changes wrought by this spell fail to hold up to physical inspection. For example, if you use this spell to add a hat to your outfit, objects pass through the hat, and anyone who touches it would feel nothing.</p><p>To discern that you are disguised, a creature must take the Study action to inspect your appearance and succeed on an DC @attributes.spell.dc Intelligence (Investigation) check check against your spell save DC.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-disguise-self-cast",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.1",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.2",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.3",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.4",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.1": 1,
+                "spell-slot.2": 2,
+                "spell-slot.3": 3,
+                "spell-slot.4": 4,
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Disguise Self"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "xFcYJfM0OoEYYQns",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "effect: \"Disguised\" (its own changes) not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmSeaHag0000trts",
+      "_key": "!actors.items!mmSeaHag00000000.mmSeaHag0000trts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "speed-swim",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "swim",
+              "distance": 40
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmSeaHag00000000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 2
+      },
+      "conversion": {
+        "notes": [
+          "Coven Magic: not automated (cast): using it spends its cost; its description says the rest",
+          "Coven Magic: consumption: activityUses 1 not converted",
+          "Augury: not automated (utility): using it spends its cost; its description says the rest",
+          "Augury: activation: 1 minute is not an action-economy cost",
+          "Find Familiar: not automated (summon): using it spends its cost; its description says the rest",
+          "Find Familiar: activation: 1 hour is not an action-economy cost",
+          "Identify: not automated (utility): using it spends its cost; its description says the rest",
+          "Identify: activation: 1 minute is not an action-economy cost",
+          "Locate Object: not automated (utility): using it spends its cost; its description says the rest",
+          "Locate Object: concentration: nothing it sustains was converted",
+          "Scrying: not automated (save): using it spends its cost; its description says the rest",
+          "Scrying: activation: 10 minute is not an action-economy cost",
+          "Scrying: save: wis DC (@attributes.spell.dc - 5 + 2) not converted",
+          "Scrying: save: wis DC (@attributes.spell.dc - 5 + 4) not converted",
+          "Scrying: save: wis DC (@attributes.spell.dc - 5 + 10) not converted",
+          "Scrying: save: wis DC (@attributes.spell.dc - 0 + 2) not converted",
+          "Scrying: save: wis DC (@attributes.spell.dc - 0 + 4) not converted",
+          "Scrying: save: wis DC (@attributes.spell.dc - 0 + 10) not converted",
+          "Scrying: save: wis DC (@attributes.spell.dc + 5 + 2) not converted",
+          "Scrying: save: wis DC (@attributes.spell.dc + 5 + 4) not converted",
+          "Scrying: save: wis DC (@attributes.spell.dc + 5 + 10) not converted",
+          "Scrying: \"Create Sensor\" is passive or triggered: not automated",
+          "Unseen Servant: not automated (summon): using it spends its cost; its description says the rest",
+          "Vile Appearance: \"save\" is passive or triggered: not automated",
+          "Death Glare: uses: Recharge 5–6 is not rolled; refill the pool by hand",
+          "Illusory Appearance: not automated (cast): using it spends its cost; its description says the rest",
+          "Disguise Self: not automated (utility): using it spends its cost; its description says the rest",
+          "Disguise Self: effect: \"Disguised\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

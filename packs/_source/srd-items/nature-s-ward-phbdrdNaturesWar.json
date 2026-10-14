@@ -1,0 +1,28 @@
+{
+  "_id": "phbdrdNaturesWar",
+  "_key": "!items!phbdrdNaturesWar",
+  "name": "Nature's Ward",
+  "type": "feature",
+  "img": "icons/magic/nature/root-vine-caduceus-healing.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You are immune to the Poisoned condition, and you have Resistance to a damage type associated with your current land choice in the Circle Spells feature, as shown in the Nature's Ward table.</p><table><caption>Nature's Ward</caption><thead><tr><td>Land Type</td><td>Resistance</td></tr></thead><tbody><tr><td>Arid</td><td>Fire</td></tr><tr><td>Polar</td><td>Cold</td></tr><tr><td>Temperate</td><td>Lightning</td></tr><tr><td>Tropical</td><td>Poison</td></tr></tbody></table><section class=\"secret\" id=\"secret-0muLLDjt1zqXptme\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect for the Poison condition immunity and an Active Effect for each land type. You can activate the Active Effect for your chosen land type.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbdrdNaturesWar",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

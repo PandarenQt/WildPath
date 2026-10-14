@@ -1,0 +1,28 @@
+{
+  "_id": "phbDivineOrderPr",
+  "_key": "!items!phbDivineOrderPr",
+  "name": "Divine Order: Protector",
+  "type": "feature",
+  "img": "icons/magic/holy/barrier-shield-winged-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You have dedicated yourself to the following sacred role:</p><p><strong>Protector.</strong> Trained for battle, you gain proficiency with Martial weapons and training with Heavy armor.</p><section id=\"secret-Tsm148wTyiFWlMFv\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect which grants the proficiency and training.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbDivineOrderPr",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

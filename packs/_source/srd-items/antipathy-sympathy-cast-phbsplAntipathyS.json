@@ -1,0 +1,74 @@
+{
+  "_id": "phbsplAntipathyS",
+  "_key": "!items!phbsplAntipathyS",
+  "name": "Antipathy/Sympathy (Cast)",
+  "type": "action",
+  "img": "icons/magic/control/control-influence-rally-purple.webp",
+  "system": {
+    "active": true,
+    "description": "<p>As you cast the spell, choose whether it creates antipathy or sympathy, and target one creature or object that is Huge or smaller. Then specify a kind of creature, such as red dragons, goblins, or vampires. A creature of the chosen kind makes a Wisdom saving throw when it comes within 120 feet of the target. Your choice of antipathy or sympathy determines what happens to a creature when it fails that save:</p><p><strong>Antipathy.</strong> The creature has the Frightened condition. The Frightened creature must use its movement on its turns to get as far away as possible from the target, moving by the safest route.</p><p><strong>Sympathy.</strong> The creature has the Charmed condition. The Charmed creature must use its movement on its turns to get as close as possible to the target, moving by the safest route. If the creature is within 5 feet of the target, the creature can't willingly move away. If the target damages the Charmed creature, that creature can make a Wisdom saving throw to end the effect, as described below.</p><p><strong>Ending the Effect.</strong> If the Frightened or Charmed creature ends its turn more than 120 feet away from the target, the creature makes a Wisdom saving throw. On a successful save, the creature is no longer affected by the target. A creature that successfully saves against this effect is immune to it for 1 minute, after which it can be affected again.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-antipathy-sympathy-cast",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": []
+      },
+      "configuration": [
+        {
+          "id": "spell-slot",
+          "type": "resource",
+          "label": "Spell slot",
+          "required": true,
+          "cost": {
+            "anyOf": [
+              [
+                {
+                  "capability": "spell-slot.8",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.9",
+                  "amount": 1
+                }
+              ]
+            ]
+          },
+          "levelByResourceId": {
+            "spell-slot.8": 8,
+            "spell-slot.9": 9
+          },
+          "effects": []
+        }
+      ],
+      "label": "Antipathy/Sympathy (Cast)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbsplAntipathyS",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "activation: 1 hour is not an action-economy cost",
+          "effect: \"Antipathy\" (its own changes) not converted",
+          "effect: \"Sympathy\" (its own changes) not converted",
+          "activation: 1 hour is not an action-economy cost"
+        ]
+      }
+    }
+  }
+}

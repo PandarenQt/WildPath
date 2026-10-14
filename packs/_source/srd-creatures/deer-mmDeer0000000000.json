@@ -1,0 +1,181 @@
+{
+  "_id": "mmDeer0000000000",
+  "_key": "!actors!mmDeer0000000000",
+  "name": "Deer",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 11
+      },
+      "agility": {
+        "value": 16
+      },
+      "fortitude": {
+        "value": 11
+      },
+      "intellect": {
+        "value": 2
+      },
+      "wits": {
+        "value": 14
+      },
+      "presence": {
+        "value": 5
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 13
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 4,
+        "value": 4
+      },
+      "movement": {
+        "base": 50,
+        "value": 50
+      }
+    },
+    "details": {
+      "threat": 0
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Deer",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmAgile000000000",
+      "_key": "!actors.items!mmDeer0000000000.mmAgile000000000",
+      "name": "Agile",
+      "type": "feature",
+      "img": "icons/creatures/mammals/deer-movement-leap-green.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The deer doesn't provoke an Opportunity Attack when it moves out of an enemy's reach.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmAgile000000000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmRam00000000000",
+      "_key": "!actors.items!mmDeer0000000000.mmRam00000000000",
+      "name": "Ram",
+      "type": "action",
+      "img": "icons/creatures/mammals/elk-moose-marked-green.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Melee Attack Roll: +2, reach 5 ft. Hit: 2 (1d4) Bludgeoning damage. If the target is a Medium or smaller creature, it has the Prone condition.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-ram",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "might"
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 4
+              },
+              "damageType": "bludgeoning",
+              "provenance": "weapon-base"
+            }
+          ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "prone"
+            }
+          ],
+          "label": "Ram"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmRam00000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmDeer0000000000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 0
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

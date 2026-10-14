@@ -1,0 +1,122 @@
+{
+  "_id": "phbsplAlarm00000",
+  "_key": "!items!phbsplAlarm00000",
+  "name": "Alarm (Cast over Area)",
+  "type": "action",
+  "img": "icons/tools/instruments/bell-gold.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You set an alarm against intrusion. Choose a door, a window, or an area within range that is no larger than a 20-foot Cube. Until the spell ends, an alarm alerts you whenever a creature touches or enters the warded area. When you cast the spell, you can designate creatures that won't set off the alarm. You also choose whether the alarm is audible or mental:</p><p><strong>Audible Alarm.</strong> The alarm produces the sound of a handbell for 10 seconds within 60 feet of the warded area.</p><p><strong>Mental Alarm.</strong> You are alerted by a mental ping if you are within 1 mile of the warded area. This ping awakens you if you're asleep.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-alarm-cast-over-area",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": []
+      },
+      "configuration": [
+        {
+          "id": "spell-slot",
+          "type": "resource",
+          "label": "Spell slot",
+          "required": true,
+          "cost": {
+            "anyOf": [
+              [
+                {
+                  "capability": "spell-slot.1",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.2",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.3",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.4",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.5",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.6",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.7",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.8",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.9",
+                  "amount": 1
+                }
+              ]
+            ]
+          },
+          "levelByResourceId": {
+            "spell-slot.1": 1,
+            "spell-slot.2": 2,
+            "spell-slot.3": 3,
+            "spell-slot.4": 4,
+            "spell-slot.5": 5,
+            "spell-slot.6": 6,
+            "spell-slot.7": 7,
+            "spell-slot.8": 8,
+            "spell-slot.9": 9
+          },
+          "effects": []
+        }
+      ],
+      "label": "Alarm (Cast over Area)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbsplAlarm00000",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "activation: 1 minute is not an action-economy cost",
+          "area: 20-ft cube is not supported; the user picks the targets",
+          "activation: 1 minute is not an action-economy cost"
+        ]
+      }
+    }
+  }
+}

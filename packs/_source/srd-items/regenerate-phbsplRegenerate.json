@@ -1,0 +1,111 @@
+{
+  "_id": "phbsplRegenerate",
+  "_key": "!items!phbsplRegenerate",
+  "name": "Regenerate",
+  "type": "action",
+  "img": "icons/magic/life/cross-explosion-burst-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p>A creature you touch regains 4d8 + 15 Hit Points. For the duration, the target regains 1 Hit Point at the start of each of its turns, and any severed body parts regrow after 2 minutes.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-regenerate",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": []
+      },
+      "range": {
+        "type": "touch",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "healing": [
+        {
+          "id": "healing-1",
+          "expression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "dice",
+                "number": 4,
+                "faces": 8
+              },
+              {
+                "type": "constant",
+                "value": 15
+              }
+            ]
+          },
+          "healingType": "healing"
+        }
+      ],
+      "configuration": [
+        {
+          "id": "spell-slot",
+          "type": "resource",
+          "label": "Spell slot",
+          "required": true,
+          "cost": {
+            "anyOf": [
+              [
+                {
+                  "capability": "spell-slot.7",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.8",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.9",
+                  "amount": 1
+                }
+              ]
+            ]
+          },
+          "levelByResourceId": {
+            "spell-slot.7": 7,
+            "spell-slot.8": 8,
+            "spell-slot.9": 9
+          },
+          "effects": []
+        }
+      ],
+      "label": "Regenerate"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbsplRegenerate",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "activation: 1 minute is not an action-economy cost",
+          "healing: more healing at higher levels not converted",
+          "effect: \"Regenerating\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

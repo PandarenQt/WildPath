@@ -1,0 +1,28 @@
+{
+  "_id": "phbwlkFiendSpell",
+  "_key": "!items!phbwlkFiendSpell",
+  "name": "Fiend Spells",
+  "type": "feature",
+  "img": "icons/magic/control/encase-creature-monster-hold.webp",
+  "system": {
+    "active": true,
+    "description": "<p>The magic of your patron ensures you always have certain spells ready; when you reach a Warlock level specified in the Fiend Spells table, you thereafter always have the listed spells prepared.</p><table><caption>Fiend Spells</caption><thead><tr><td>Warlock Level</td><td>Spells</td></tr></thead><tbody><tr><td>3</td><td>Burning Hands, Command, Scorching Ray, Suggestion</td></tr><tr><td>5</td><td>Fireball, Stinking Cloud</td></tr><tr><td>7</td><td>Fire Shield, Wall of Fire</td></tr><tr><td>9</td><td>Geas, Insect Plague</td></tr></tbody></table><section class=\"secret\" id=\"secret-Az5JbDGwh8PLTt7g\"><p><strong>Foundry Note</strong></p><p>As you level up these spells will be granted to you automatically.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbwlkFiendSpell",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

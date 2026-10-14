@@ -1,0 +1,306 @@
+{
+  "_id": "mmWraith00000000",
+  "_key": "!actors!mmWraith00000000",
+  "name": "Wraith",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 6
+      },
+      "agility": {
+        "value": 16
+      },
+      "fortitude": {
+        "value": 16
+      },
+      "intellect": {
+        "value": 12
+      },
+      "wits": {
+        "value": 14
+      },
+      "presence": {
+        "value": 15
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 13
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 67,
+        "value": 67
+      },
+      "movement": {
+        "base": 5,
+        "value": 5
+      }
+    },
+    "details": {
+      "threat": 5
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Wraith",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmIncorporealMov",
+      "_key": "!actors.items!mmWraith00000000.mmIncorporealMov",
+      "name": "Incorporeal Movement",
+      "type": "feature",
+      "img": "icons/magic/death/undead-ghost-scream-teal.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The wraith can move through other creatures and objects as if they were Difficult. It takes  damage if it ends its turn inside an object.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmIncorporealMov",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmSunlightSensit",
+      "_key": "!actors.items!mmWraith00000000.mmSunlightSensit",
+      "name": "Sunlight Sensitivity",
+      "type": "feature",
+      "img": "icons/creatures/eyes/humanoid-single-blind.webp",
+      "system": {
+        "active": true,
+        "description": "<p>While in sunlight, the wraith has Disadvantage on ability checks and attack rolls.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSunlightSensit",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmLifeDrain00000",
+      "_key": "!actors.items!mmWraith00000000.mmLifeDrain00000",
+      "name": "Life Drain",
+      "type": "action",
+      "img": "icons/skills/wounds/injury-pain-body-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Melee Attack Roll: +6, reach 5 ft. Hit: 18 (4d8) Necrotic damage. If the target is a creature, its Hit Point maximum decreases by an amount equal to the damage taken.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-life-drain",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "agility"
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 4,
+                "faces": 8
+              },
+              "damageType": "necrotic",
+              "provenance": "additional"
+            }
+          ],
+          "label": "Life Drain"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmLifeDrain00000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "damage 1: bonus \"@abilities.dex.mod\" not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmCreateSpecter0",
+      "_key": "!actors.items!mmWraith00000000.mmCreateSpecter0",
+      "name": "Create Specter",
+      "type": "action",
+      "img": "icons/magic/death/undead-skeleton-lich-armor.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The wraith targets a Humanoid corpse within 10 feet of itself that has been dead for no longer than 1 minute. The target's spirit rises as a <strong>Specter</strong> in the space of its corpse or in the nearest unoccupied space. The specter is under the wraith's control. The wraith can have no more than seven specters under its control at a time.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-create-specter-spirit-rises",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Create Specter"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmCreateSpecter0",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (summon): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmWraith0000trts",
+      "_key": "!actors.items!mmWraith00000000.mmWraith0000trts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "resistances",
+            "type": "GrantResistance",
+            "data": {
+              "damageTypes": [
+                "acid",
+                "bludgeoning",
+                "cold",
+                "fire",
+                "piercing",
+                "slashing"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "immunities",
+            "type": "GrantImmunity",
+            "data": {
+              "damageTypes": [
+                "necrotic",
+                "poison"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "speed-fly",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "fly",
+              "distance": 60
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmWraith00000000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 5
+      },
+      "conversion": {
+        "notes": [
+          "Life Drain: damage 1: bonus \"@abilities.dex.mod\" not converted",
+          "Create Specter: not automated (summon): using it spends its cost; its description says the rest",
+          "condition immunities (charmed, exhaustion, grappled, paralyzed, petrified, poisoned, prone, restrained, unconscious) not converted"
+        ]
+      }
+    }
+  }
+}

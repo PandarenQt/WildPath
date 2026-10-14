@@ -1,0 +1,326 @@
+{
+  "_id": "mmGelatinousCube",
+  "_key": "!actors!mmGelatinousCube",
+  "name": "Gelatinous Cube",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 14
+      },
+      "agility": {
+        "value": 3
+      },
+      "fortitude": {
+        "value": 20
+      },
+      "intellect": {
+        "value": 1
+      },
+      "wits": {
+        "value": 6
+      },
+      "presence": {
+        "value": 1
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 6
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 63,
+        "value": 63
+      },
+      "movement": {
+        "base": 15,
+        "value": 15
+      }
+    },
+    "details": {
+      "threat": 2
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Gelatinous Cube",
+    "width": 2,
+    "height": 2,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmOozeCube000000",
+      "_key": "!actors.items!mmGelatinousCube.mmOozeCube000000",
+      "name": "Ooze Cube",
+      "type": "feature",
+      "img": "icons/commodities/materials/glass-cube.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The gelatinous cube fills its entire space and is transparent. Other creatures can enter that space, but a creature that does so is subjected to the gelatinous cube's Engulf and has Disadvantage on the saving throw.</p><p class=\"feature\">Creatures inside the gelatinous cube have Total, and the gelatinous cube can hold one Large creature or up to four Medium or Small creatures inside itself at a time.</p><p class=\"feature\">As an action, a creature within 5 ft. of the gelatinous cube can pull a creature or an object out of the gelatinous cube by succeeding on a DC 12 Strength (Athletics) check, and the puller takes 10 (3d6) Acid damage.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmOozeCube000000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "\"Total Cover\" is passive or triggered: not automated",
+              "\"Pull Check\" is passive or triggered: not automated",
+              "\"Puller Damage\" is passive or triggered: not automated"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmTransparent000",
+      "_key": "!actors.items!mmGelatinousCube.mmTransparent000",
+      "name": "Transparent",
+      "type": "feature",
+      "img": "icons/magic/water/orb-water-transparent.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Even when the gelatinous cube is in plain sight, a creature must succeed on a DC 15 Wisdom (Perception) check to notice the gelatinous cube if the creature hasn't witnessed the gelatinous cube move or otherwise act.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmTransparent000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "\"check\" is passive or triggered: not automated"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmPseudopod00000",
+      "_key": "!actors.items!mmGelatinousCube.mmPseudopod00000",
+      "name": "Pseudopod",
+      "type": "action",
+      "img": "icons/creatures/slimes/slime-movement-pseudopods-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Melee Attack Roll: +4, reach 5 ft. Hit: 12 (3d6 + 2) Acid damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-pseudopod",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 3,
+                "faces": 6
+              },
+              "damageType": "acid",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Pseudopod"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmPseudopod00000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmEngulf00000000",
+      "_key": "!actors.items!mmGelatinousCube.mmEngulf00000000",
+      "name": "Engulf (Save)",
+      "type": "action",
+      "img": "icons/creatures/slimes/slime-face-skull-green.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The gelatinous cube moves up to its Speed without provoking Opportunity Attacks. The gelatinous cube can move through the spaces of Large or smaller creatures if it has room inside itself to contain them (see the Ooze Cube trait).</p><p class=\"feature\"><em>Dexterity Saving Throw:</em> DC 12, each creature whose space the gelatinous cube enters for the first time during this move.</p><p class=\"feature\"><em>Failure:</em> 10 (3d6) Acid damage, and the target is engulfed. An engulfed target is Suffocating, can't cast spells with a Verbal component, has the Restrained condition, and takes 10 (3d6) Acid damage at the start of each of the gelatinous cube's turns. When the gelatinous cube moves, the engulfed target moves with it. An engulfed target can try to escape by taking an action to make a DC @abilities.str.dc Strength (Athletics) check check. On a successful check, the target escapes and enters the nearest unoccupied space.</p><p class=\"feature\"><em>Success:</em> Half damage, and the target moves to an unoccupied space within 5 feet of the gelatinous cube's. If there is no unoccupied space, the target fails the save instead.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-engulf-save",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "save": {
+            "ability": "agility",
+            "dc": {
+              "value": 12
+            }
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 3,
+                "faces": 6
+              },
+              "damageType": "acid",
+              "provenance": "additional",
+              "saveOutcomePolicy": {
+                "success": "none",
+                "failure": "full"
+              }
+            }
+          ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "restrained",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
+          "label": "Engulf (Save)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmEngulf00000000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "effect: coverTotal is not a WildPath condition yet",
+              "effect: suffocation is not a WildPath condition yet"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmGelatinoustrts",
+      "_key": "!actors.items!mmGelatinousCube.mmGelatinoustrts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "immunities",
+            "type": "GrantImmunity",
+            "data": {
+              "damageTypes": [
+                "acid"
+              ]
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmGelatinousCube",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 2
+      },
+      "conversion": {
+        "notes": [
+          "Ooze Cube: \"Total Cover\" is passive or triggered: not automated",
+          "Ooze Cube: \"Pull Check\" is passive or triggered: not automated",
+          "Ooze Cube: \"Puller Damage\" is passive or triggered: not automated",
+          "Transparent: \"check\" is passive or triggered: not automated",
+          "Engulf: effect: coverTotal is not a WildPath condition yet",
+          "Engulf: effect: suffocation is not a WildPath condition yet",
+          "Engulf: \"Escape Check\" is passive or triggered: not automated",
+          "condition immunities (blinded, charmed, deafened, exhaustion, frightened, prone) not converted"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,1724 @@
+{
+  "_id": "mmAdultSilverDra",
+  "_key": "!actors!mmAdultSilverDra",
+  "name": "Adult Silver Dragon",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 27
+      },
+      "agility": {
+        "value": 10,
+        "saveProficient": true
+      },
+      "fortitude": {
+        "value": 25
+      },
+      "intellect": {
+        "value": 16
+      },
+      "wits": {
+        "value": 13,
+        "saveProficient": true
+      },
+      "presence": {
+        "value": 22
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 19
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 216,
+        "value": 216
+      },
+      "movement": {
+        "base": 40,
+        "value": 40
+      }
+    },
+    "details": {
+      "threat": 16
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Adult Silver Dragon",
+    "width": 3,
+    "height": 3,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmLegendaryResis",
+      "_key": "!actors.items!mmAdultSilverDra.mmLegendaryResis",
+      "name": "Legendary Resistance",
+      "type": "feature",
+      "img": "icons/equipment/shield/heater-steel-crystal-red.webp",
+      "system": {
+        "active": true,
+        "description": "<p>If the adult silver dragon fails a saving throw, it can choose to succeed instead.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmLegendaryResis",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "\"Expend Use\" is passive or triggered: not automated"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmMultiattack000",
+      "_key": "!actors.items!mmAdultSilverDra.mmMultiattack000",
+      "name": "Multiattack",
+      "type": "action",
+      "img": "icons/skills/melee/strike-weapons-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The adult silver dragon makes three  attacks. It can replace one attack with a use of (A)  or (B)  to cast <em>Ice Knife</em>.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-multiattack-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Multiattack"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMultiattack000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmRend0000000000",
+      "_key": "!actors.items!mmAdultSilverDra.mmRend0000000000",
+      "name": "Rend",
+      "type": "action",
+      "img": "icons/skills/melee/shield-damaged-broken-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +13, reach 5 ft. Hit: 17 (2d8 + 8) Slashing plus 4 (1d8) Cold damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-rend",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 8
+              },
+              "damageType": "slashing",
+              "provenance": "weapon-base"
+            },
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 8
+              },
+              "damageType": "cold",
+              "provenance": "additional"
+            }
+          ],
+          "label": "Rend"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmRend0000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmColdBreath0000",
+      "_key": "!actors.items!mmAdultSilverDra.mmColdBreath0000",
+      "name": "Cold Breath",
+      "type": "action",
+      "img": "icons/creatures/abilities/dragon-ice-breath-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p><em>Constitution Saving Throw: </em>DC 20, each creature in a 60-foot Cone.</p><p><em>Failure: </em>54 (12d8) Cold damage.</p><p><em>Success:</em> Half damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-cold-breath",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "cold-breath",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "cone",
+            "size": {
+              "value": 60,
+              "unit": "ft"
+            }
+          },
+          "save": {
+            "ability": "fortitude",
+            "dc": {
+              "value": 20
+            }
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 12,
+                "faces": 8
+              },
+              "damageType": "cold",
+              "provenance": "additional",
+              "saveOutcomePolicy": {
+                "success": "half",
+                "failure": "full"
+              }
+            }
+          ],
+          "label": "Cold Breath"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "cold-breath-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "cold-breath",
+              "label": "Cold Breath",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "none"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmColdBreath0000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "uses: Recharge 5–6 is not rolled; refill the pool by hand"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmParalyzingBrea",
+      "_key": "!actors.items!mmAdultSilverDra.mmParalyzingBrea",
+      "name": "Paralyzing Breath",
+      "type": "action",
+      "img": "icons/magic/unholy/energy-smoke-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\"><em>Constitution Saving Throw:</em> DC 20, each creature in a 60-foot Cone.</p><p class=\"feature\"><em>First Failure:</em> The target has the Incapacitated condition until the end of its next turn, when it repeats the save.</p><p class=\"feature\"><em>Second Failure:</em> The target has the Paralyzed condition, and it repeats the save at the end of each of its turns, ending the effect on itself on a success. After 1 minute, it succeeds automatically.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-paralyzing-breath-save",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Paralyzing Breath"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmParalyzingBrea",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest",
+              "effect: incapacitated is not a WildPath condition yet",
+              "effect: paralyzed is not a WildPath condition yet"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmSpellcasting00",
+      "_key": "!actors.items!mmAdultSilverDra.mmSpellcasting00",
+      "name": "Spellcasting (cast)",
+      "type": "action",
+      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The adult silver dragon casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC , +11 to hit with spell attacks):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Hold Monster</em>, <em>Ice Knife</em>, <em>Shapechange</em> (Beast or Humanoid form only, no Temporary Hit Points gained from the spell, and no Concentration or Temporary Hit Points required to maintain the spell)</p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Ice Storm</em> (level 5 version), <em>Zone of Truth</em></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Spellcasting (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSpellcasting00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "17svfvloelxmr000",
+      "_key": "!actors.items!mmAdultSilverDra.17svfvloelxmr000",
+      "name": "Spellcasting (cast)",
+      "type": "action",
+      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The adult silver dragon casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC , +11 to hit with spell attacks):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Hold Monster</em>, <em>Ice Knife</em>, <em>Shapechange</em> (Beast or Humanoid form only, no Temporary Hit Points gained from the spell, and no Concentration or Temporary Hit Points required to maintain the spell)</p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Ice Storm</em> (level 5 version), <em>Zone of Truth</em></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Spellcasting (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSpellcasting00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "16ywmso1mzul9w00",
+      "_key": "!actors.items!mmAdultSilverDra.16ywmso1mzul9w00",
+      "name": "Spellcasting (cast)",
+      "type": "action",
+      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The adult silver dragon casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC , +11 to hit with spell attacks):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Hold Monster</em>, <em>Ice Knife</em>, <em>Shapechange</em> (Beast or Humanoid form only, no Temporary Hit Points gained from the spell, and no Concentration or Temporary Hit Points required to maintain the spell)</p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Ice Storm</em> (level 5 version), <em>Zone of Truth</em></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Spellcasting (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSpellcasting00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "178w8hnnsecqh000",
+      "_key": "!actors.items!mmAdultSilverDra.178w8hnnsecqh000",
+      "name": "Spellcasting (cast)",
+      "type": "action",
+      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The adult silver dragon casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC , +11 to hit with spell attacks):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Hold Monster</em>, <em>Ice Knife</em>, <em>Shapechange</em> (Beast or Humanoid form only, no Temporary Hit Points gained from the spell, and no Concentration or Temporary Hit Points required to maintain the spell)</p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Ice Storm</em> (level 5 version), <em>Zone of Truth</em></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Spellcasting (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSpellcasting00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "18mu8yi1mdn0dm00",
+      "_key": "!actors.items!mmAdultSilverDra.18mu8yi1mdn0dm00",
+      "name": "Spellcasting (cast)",
+      "type": "action",
+      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The adult silver dragon casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC , +11 to hit with spell attacks):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Hold Monster</em>, <em>Ice Knife</em>, <em>Shapechange</em> (Beast or Humanoid form only, no Temporary Hit Points gained from the spell, and no Concentration or Temporary Hit Points required to maintain the spell)</p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Ice Storm</em> (level 5 version), <em>Zone of Truth</em></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Spellcasting (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSpellcasting00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest",
+              "consumption: activityUses 1 not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "18wtunhn66ru7000",
+      "_key": "!actors.items!mmAdultSilverDra.18wtunhn66ru7000",
+      "name": "Spellcasting (cast)",
+      "type": "action",
+      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The adult silver dragon casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC , +11 to hit with spell attacks):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Hold Monster</em>, <em>Ice Knife</em>, <em>Shapechange</em> (Beast or Humanoid form only, no Temporary Hit Points gained from the spell, and no Concentration or Temporary Hit Points required to maintain the spell)</p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Ice Storm</em> (level 5 version), <em>Zone of Truth</em></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Spellcasting (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSpellcasting00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "xM689Lh3r7eqGpAY",
+      "_key": "!actors.items!mmAdultSilverDra.xM689Lh3r7eqGpAY",
+      "name": "Detect Magic",
+      "type": "action",
+      "img": "icons/magic/symbols/runes-carved-stone-green.webp",
+      "system": {
+        "active": true,
+        "description": "<p>For the duration, you sense the presence of magical effects within 30 feet of yourself. If you sense such effects, you can take the Magic action to see a faint aura around any visible creature or object in the area that bears the magic, and if an effect was created by a spell, you learn the spell's school of magic.</p><p>The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-detect-magic-cast",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.1",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.2",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.3",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.4",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.1": 1,
+                "spell-slot.2": 2,
+                "spell-slot.3": 3,
+                "spell-slot.4": 4,
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Detect Magic"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "xM689Lh3r7eqGpAY",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "effect: \"Detect Magic\" (its own changes) not converted",
+              "concentration: nothing it sustains was converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "FGKQ5cIUuEwLPYE3",
+      "_key": "!actors.items!mmAdultSilverDra.FGKQ5cIUuEwLPYE3",
+      "name": "Hold Monster",
+      "type": "action",
+      "img": "icons/magic/control/encase-creature-monster-hold.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Choose a creature that you can see within range. The target must succeed on a Wisdom saving throw or have the Paralyzed condition for the duration. At the end of each of its turns, the target repeats the save, ending the spell on itself on a success.</p><p><strong>Using a Higher-Level Spell Slot.</strong> You can target one additional creature for each spell slot level above 5.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-hold-monster",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Hold Monster"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "FGKQ5cIUuEwLPYE3",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest",
+              "targets: count \"@item.level - 4\" not converted",
+              "effect: paralyzed is not a WildPath condition yet",
+              "concentration: nothing it sustains was converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "hVcbJwtsvzfFPmZO",
+      "_key": "!actors.items!mmAdultSilverDra.hVcbJwtsvzfFPmZO",
+      "name": "Ice Knife (attack)",
+      "type": "action",
+      "img": "icons/magic/water/projectile-ice-shard.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You create a shard of ice and fling it at one creature within range. Make a ranged spell attack against the target. On a hit, the target takes 1d10 Piercing damage. Hit or miss, the shard then explodes. The target and each creature within 5 feet of it must succeed on a Dexterity saving throw or take 2d6 Cold damage.</p><p><strong>Using a Higher-Level Spell Slot. </strong>The Cold damage increases by 1d6 for each spell slot level above 1.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-ice-knife",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "ranged",
+            "statistic": "spell",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 60,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 10
+              },
+              "damageType": "piercing",
+              "provenance": "spell-base"
+            }
+          ],
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.1",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.2",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.3",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.4",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.1": 1,
+                "spell-slot.2": 2,
+                "spell-slot.3": 3,
+                "spell-slot.4": 4,
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Ice Knife (attack)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "hVcbJwtsvzfFPmZO",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "zLAU5o1agGKxqPYb",
+      "_key": "!actors.items!mmAdultSilverDra.zLAU5o1agGKxqPYb",
+      "name": "Shapechange",
+      "type": "action",
+      "img": "icons/magic/unholy/hand-fire-skeleton-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You shape-shift into another creature for the duration or until you take a Magic action to shape-shift into a different eligible form. The new form must be of a creature that has a Challenge Rating no higher than your level or Challenge Rating. You must have seen the sort of creature before, and it can't be a Construct or an Undead.</p><p>When you shape-shift, you gain a number of Temporary Hit Points equal to the Hit Points of the form. The spell ends early if you have no Temporary Hit Points left.</p><p>Your game statistics are replaced by the stat block of the chosen form, but you retain your creature type; alignment; personality; Intelligence, Wisdom, and Charisma scores; Hit Points; Hit Point Dice; proficiencies; and ability to communicate. If you have the Spellcasting feature, you retain it too.</p><p>Upon shape-shifting, you determine whether your equipment drops to the ground or changes in size and shape to fit the new form while you're in it.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-shapechange-cast",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Shapechange"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "zLAU5o1agGKxqPYb",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "concentration: nothing it sustains was converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "SivIEpMZpBnAAlI3",
+      "_key": "!actors.items!mmAdultSilverDra.SivIEpMZpBnAAlI3",
+      "name": "Ice Storm",
+      "type": "action",
+      "img": "icons/magic/water/projectile-ice-chunks-salvo.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Hail falls in a 20-foot-radius, 40-foot-high Cylinder centered on a point within range. Each creature in the Cylinder makes a Dexterity saving throw. A creature takes 2d10 Bludgeoning damage and 4d6 Cold damage on a failed save or half as much damage on a successful one.</p><p>Hailstones turn ground in the Cylinder into DifficultTerrain until the end of your next turn.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The Bludgeoning damage increases by 1d10 for each spell slot level above 4.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-ice-storm",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 300,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "radial",
+            "size": {
+              "value": 20,
+              "unit": "ft"
+            }
+          },
+          "save": {
+            "ability": "agility",
+            "dc": {
+              "valueExpression": {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "constant",
+                    "value": 8
+                  },
+                  {
+                    "type": "proficiency-bonus"
+                  },
+                  {
+                    "type": "spellcasting-modifier"
+                  }
+                ]
+              }
+            }
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 10
+              },
+              "damageType": "bludgeoning",
+              "provenance": "spell-base",
+              "saveOutcomePolicy": {
+                "success": "half",
+                "failure": "full"
+              }
+            },
+            {
+              "id": "damage-2",
+              "expression": {
+                "type": "dice",
+                "number": 4,
+                "faces": 6
+              },
+              "damageType": "cold",
+              "provenance": "spell-base",
+              "saveOutcomePolicy": {
+                "success": "half",
+                "failure": "full"
+              }
+            }
+          ],
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.4",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.4": 4,
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": [
+                {
+                  "type": "scaleDamage",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 4,
+                  "componentIds": [
+                    "damage-1"
+                  ],
+                  "dice": {
+                    "number": 1,
+                    "faces": 10
+                  }
+                }
+              ]
+            }
+          ],
+          "label": "Ice Storm"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "SivIEpMZpBnAAlI3",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "area: a cylinder's height is not modeled"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "Tgz7wo84W1pSb5UE",
+      "_key": "!actors.items!mmAdultSilverDra.Tgz7wo84W1pSb5UE",
+      "name": "Zone of Truth",
+      "type": "action",
+      "img": "icons/skills/social/diplomacy-unity-alliance.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You create a magical zone that guards against deception in a 15-foot-radius Sphere centered on a point within range. Until the spell ends, a creature that enters the spell's area for the first time on a turn or starts its turn there makes a Charisma saving throw. On a failed save, a creature can't speak a deliberate lie while in the radius. You know whether a creature succeeds or fails on this save.</p><p>An affected creature is aware of the spell and can avoid answering questions to which it would normally respond with a lie. Such a creature can be evasive yet must be truthful.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-zone-of-truth",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.2",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.3",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.4",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.2": 2,
+                "spell-slot.3": 3,
+                "spell-slot.4": 4,
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Zone of Truth"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "Tgz7wo84W1pSb5UE",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest",
+              "effect: \"Cannot Lie\" (its own changes) not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmChill000000000",
+      "_key": "!actors.items!mmAdultSilverDra.mmChill000000000",
+      "name": "Chill",
+      "type": "action",
+      "img": "icons/magic/water/ice-snowman.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The adult silver dragon uses  to cast <em>Hold Monster</em>. The dragon can't take this action again until the start of its next turn.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-chill",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "legendary-action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Chill"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmChill000000000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmColdGale000000",
+      "_key": "!actors.items!mmAdultSilverDra.mmColdGale000000",
+      "name": "Cold Gale",
+      "type": "action",
+      "img": "icons/magic/water/projectile-icecicle-glowing.webp",
+      "system": {
+        "active": true,
+        "description": "<p><em>Dexterity Saving Throw:</em> DC 19, each creature in a 60-foot-long, 10-foot-wide Line.</p><p><em>Failure:</em> 14 (4d6) Cold damage, and the target is pushed up to 30 feet straight away from the adult silver dragon.</p><p><em>Success:</em> Half damage only.</p><p><em>Failure or Success:</em> The adult silver dragon can't take this action again until the start of its next turn.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-cold-gale",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "legendary-action",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "line",
+            "size": {
+              "value": 60,
+              "unit": "ft"
+            },
+            "width": {
+              "value": 10,
+              "unit": "ft"
+            }
+          },
+          "save": {
+            "ability": "agility",
+            "dc": {
+              "value": 19
+            }
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 4,
+                "faces": 6
+              },
+              "damageType": "cold",
+              "provenance": "additional",
+              "saveOutcomePolicy": {
+                "success": "half",
+                "failure": "full"
+              }
+            }
+          ],
+          "label": "Cold Gale"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmColdGale000000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmPounce00000000",
+      "_key": "!actors.items!mmAdultSilverDra.mmPounce00000000",
+      "name": "Pounce",
+      "type": "action",
+      "img": "icons/skills/movement/arrow-upward-yellow.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The adult silver dragon moves up to half its Speed, and it makes one  attack.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-pounce-expend-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "legendary-action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Pounce"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmPounce00000000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "consumption: attribute 1 not converted",
+              "consumption: attribute 1 not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "gjsupslJSKQGlNdY",
+      "_key": "!actors.items!mmAdultSilverDra.gjsupslJSKQGlNdY",
+      "name": "Hold Monster",
+      "type": "action",
+      "img": "icons/magic/control/encase-creature-monster-hold.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Choose a creature that you can see within range. The target must succeed on a Wisdom saving throw or have the Paralyzed condition for the duration. At the end of each of its turns, the target repeats the save, ending the spell on itself on a success.</p><p><strong>Using a Higher-Level Spell Slot.</strong> You can target one additional creature for each spell slot level above 5.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-hold-monster",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Hold Monster"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "gjsupslJSKQGlNdY",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest",
+              "targets: count \"@item.level - 4\" not converted",
+              "effect: paralyzed is not a WildPath condition yet",
+              "concentration: nothing it sustains was converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmAdultSilvetrts",
+      "_key": "!actors.items!mmAdultSilverDra.mmAdultSilvetrts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "immunities",
+            "type": "GrantImmunity",
+            "data": {
+              "damageTypes": [
+                "cold"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "speed-fly",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "fly",
+              "distance": 80
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "legendary-actions",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "legendary-action",
+              "label": "Legendary Actions",
+              "maximum": 3,
+              "recovery": "turn"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmAdultSilverDra",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 16
+      },
+      "conversion": {
+        "notes": [
+          "Legendary Resistance: \"Expend Use\" is passive or triggered: not automated",
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
+          "Cold Breath: uses: Recharge 5–6 is not rolled; refill the pool by hand",
+          "Paralyzing Breath: not automated (save): using it spends its cost; its description says the rest",
+          "Paralyzing Breath: effect: incapacitated is not a WildPath condition yet",
+          "Paralyzing Breath: effect: paralyzed is not a WildPath condition yet",
+          "Spellcasting: not automated (cast): using it spends its cost; its description says the rest",
+          "Spellcasting: consumption: activityUses 1 not converted",
+          "Detect Magic: not automated (utility): using it spends its cost; its description says the rest",
+          "Detect Magic: effect: \"Detect Magic\" (its own changes) not converted",
+          "Detect Magic: concentration: nothing it sustains was converted",
+          "Hold Monster: not automated (save): using it spends its cost; its description says the rest",
+          "Hold Monster: targets: count \"@item.level - 4\" not converted",
+          "Hold Monster: effect: paralyzed is not a WildPath condition yet",
+          "Hold Monster: concentration: nothing it sustains was converted",
+          "Ice Knife: \"Shard Explosion\" is passive or triggered: not automated",
+          "Shapechange: not automated (utility): using it spends its cost; its description says the rest",
+          "Shapechange: concentration: nothing it sustains was converted",
+          "Ice Storm: area: a cylinder's height is not modeled",
+          "Zone of Truth: not automated (save): using it spends its cost; its description says the rest",
+          "Zone of Truth: effect: \"Cannot Lie\" (its own changes) not converted",
+          "Chill: not automated (cast): using it spends its cost; its description says the rest",
+          "Pounce: not automated (utility): using it spends its cost; its description says the rest",
+          "Pounce: consumption: attribute 1 not converted",
+          "Hold Monster: not automated (save): using it spends its cost; its description says the rest",
+          "Hold Monster: targets: count \"@item.level - 4\" not converted",
+          "Hold Monster: effect: paralyzed is not a WildPath condition yet",
+          "Hold Monster: concentration: nothing it sustains was converted"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "_id": "phbwzdRitualAdep",
+  "_key": "!items!phbwzdRitualAdep",
+  "name": "Ritual Adept",
+  "type": "feature",
+  "img": "icons/sundries/scrolls/scroll-yellow-teal.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You can cast any spell as a Ritual if that spell has the Ritual tag and the spell is in your spellbook. You needn't have the spell prepared, but you must read from the book to cast a spell in this way.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbwzdRitualAdep",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

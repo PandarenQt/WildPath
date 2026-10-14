@@ -1,0 +1,71 @@
+{
+  "_id": "phbpdnChannelDiv",
+  "_key": "!items!phbpdnChannelDiv",
+  "name": "Channel Divinity",
+  "type": "action",
+  "img": "icons/magic/fire/projectile-wave-arrow.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You can channel divine energy directly from the Outer Planes, using it to fuel magical effects. You start with one such effect: Divine Sense, which is described below. Other Paladin features give additional Channel Divinity effect options. Each time you use this class's Channel Divinity, you choose which effect from this class to create.</p><p>You can use this class's Channel Divinity twice. You regain one of its expended uses when you finish a Short Rest, and you regain all expended uses when you finish a Long Rest. You gain an additional use when you reach Paladin level 11.</p><p>If a Channel Divinity effect requires a saving throw, the DC equals the spell save DC from this class's Spellcasting feature.</p><p><strong>Divine Sense.</strong> As a Bonus Action, you can open your awareness to detect Celestials, Fiends, and Undead. For the next 10 minutes or until you have the Incapacitated condition, you know the location of any creature of those types within 60 feet of yourself, and you know its creature type. Within the same radius, you also detect the presence of any place or object that has been consecrated or desecrated, as with the Hallow spell.</p><section class=\"secret\" id=\"secret-lIHCt32JLE7PAUbn\"><p><strong>Foundry Note</strong></p><p>The uses of your Channel Divinity increase automatically as you level up. It automatically regains the correct uses after Short and Long Rests.</p><p>The <strong>Divine Sense</strong> activity includes an Active Effect but it does not automatically reveal the given creatures.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-channel-divinity-divine-sense",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          },
+          {
+            "capability": "channel-divinity",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Channel Divinity"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "channel-divinity-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "channel-divinity",
+          "label": "Channel Divinity",
+          "maximum": {
+            "type": "table",
+            "key": {
+              "type": "class-level",
+              "class": "paladin"
+            },
+            "rows": {
+              "3": 2,
+              "11": 3
+            }
+          },
+          "recovery": "shortRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbpdnChannelDiv",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "uses: a partial recovery refills the whole pool",
+          "effect: \"Divine Sense\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

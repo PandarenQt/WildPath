@@ -1,0 +1,28 @@
+{
+  "_id": "phbsptKeenSenses",
+  "_key": "!items!phbsptKeenSenses",
+  "name": "Keen Senses",
+  "type": "feature",
+  "img": "icons/creatures/eyes/human-single-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You have proficiency in the Insight, Perception, or Survival skill.</p><section id=\"secret-Tecxufp7EFDVqTEY\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>You will be prompted for your choice after selecting this species.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "origins24",
+        "id": "phbsptKeenSenses",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

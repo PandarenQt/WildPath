@@ -1,0 +1,364 @@
+{
+  "_id": "mmShieldGuardian",
+  "_key": "!actors!mmShieldGuardian",
+  "name": "Shield Guardian",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 18
+      },
+      "agility": {
+        "value": 8
+      },
+      "fortitude": {
+        "value": 18
+      },
+      "intellect": {
+        "value": 7
+      },
+      "wits": {
+        "value": 10
+      },
+      "presence": {
+        "value": 3
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 17
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 142,
+        "value": 142
+      },
+      "movement": {
+        "base": 30,
+        "value": 30
+      }
+    },
+    "details": {
+      "threat": 7
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Shield Guardian",
+    "width": 2,
+    "height": 2,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmBound000000000",
+      "_key": "!actors.items!mmShieldGuardian.mmBound000000000",
+      "name": "Bound",
+      "type": "feature",
+      "img": "icons/creatures/magical/humanoid-silhouette-glowing-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The shield guardian is magically bound to an amulet. While the shield guardian and its amulet are on the same plane of existence, the amulet's wearer can telepathically call the shield guardian to travel to it, and the shield guardian knows the distance and direction to the amulet. If the shield guardian is within 60 feet of the amulet's wearer, half of any damage the wearer takes (round up) is transferred to the shield guardian.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmBound000000000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmRegeneration00",
+      "_key": "!actors.items!mmShieldGuardian.mmRegeneration00",
+      "name": "Regeneration",
+      "type": "feature",
+      "img": "icons/skills/wounds/injury-stitched-flesh-red.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The shield guardian regains  Hit Points at the start of each of its turns if it has at least 1 Hit Point.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmRegeneration00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "\"heal\" is passive or triggered: not automated"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmSpellStoring00",
+      "_key": "!actors.items!mmShieldGuardian.mmSpellStoring00",
+      "name": "Spell Storing",
+      "type": "feature",
+      "img": "icons/magic/light/orb-container-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">A spellcaster who wears the shield guardian's amulet can cause the shield guardian to store one spell of level 4 or lower. To do so, the wearer must cast the spell on the shield guardian while within 5 feet of it. The spell has no effect but is stored within the shield guardian. Any previously stored spell is lost when a new spell is stored. The shield guardian can cast the spell stored with any parameters set by the original caster, requiring no spell components and using the caster's spellcasting ability. The stored spell is then lost.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSpellStoring00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmMultiattack000",
+      "_key": "!actors.items!mmShieldGuardian.mmMultiattack000",
+      "name": "Multiattack",
+      "type": "action",
+      "img": "icons/skills/melee/strike-weapons-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The shield guardian makes two  attacks.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-multiattack-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Multiattack"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMultiattack000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmFist0000000000",
+      "_key": "!actors.items!mmShieldGuardian.mmFist0000000000",
+      "name": "Fist",
+      "type": "action",
+      "img": "icons/skills/melee/unarmed-punch-fist.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Melee Attack Roll: +7, reach 10 ft. Hit: 11 (2d6 + 4) Bludgeoning plus 7 (2d6) Force damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-fist",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 10,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 6
+              },
+              "damageType": "bludgeoning",
+              "provenance": "weapon-base"
+            },
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 6
+              },
+              "damageType": "force",
+              "provenance": "additional"
+            }
+          ],
+          "label": "Fist"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmFist0000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmProtection0000",
+      "_key": "!actors.items!mmShieldGuardian.mmProtection0000",
+      "name": "Protection",
+      "type": "action",
+      "img": "icons/magic/defensive/barrier-shield-dome-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\"><em>Trigger:</em> An attack roll hits the wearer of the shield guardian's amulet while the wearer is within 5 feet of the shield guardian.</p><p class=\"feature\"><em>Response:</em> The wearer gains a +5 bonus to AC, including against the triggering attack and possibly causing it to miss, until the start of the shield guardian's next turn.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-protection",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "reaction",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Protection"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmProtection0000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "effect: \"Protected\" (its own changes) not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmShieldGuartrts",
+      "_key": "!actors.items!mmShieldGuardian.mmShieldGuartrts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "immunities",
+            "type": "GrantImmunity",
+            "data": {
+              "damageTypes": [
+                "poison"
+              ]
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmShieldGuardian",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 7
+      },
+      "conversion": {
+        "notes": [
+          "Regeneration: \"heal\" is passive or triggered: not automated",
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
+          "Protection: not automated (utility): using it spends its cost; its description says the rest",
+          "Protection: effect: \"Protected\" (its own changes) not converted",
+          "condition immunities (charmed, exhaustion, frightened, paralyzed, petrified, poisoned) not converted"
+        ]
+      }
+    }
+  }
+}

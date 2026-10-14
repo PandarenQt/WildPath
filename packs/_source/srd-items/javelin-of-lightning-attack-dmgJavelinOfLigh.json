@@ -1,0 +1,75 @@
+{
+  "_id": "dmgJavelinOfLigh",
+  "_key": "!items!dmgJavelinOfLigh",
+  "name": "Javelin of Lightning (attack)",
+  "type": "action",
+  "img": "icons/weapons/polearms/spear-barbed-silver.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Each time you make an attack roll with this magic weapon and hit, you can have it deal Lightning damage instead of Piercing damage.</p><p><em><strong>Lightning Bolt.</strong></em> When you throw this weapon at a target no farther than 120 feet from you, you can forgo making a ranged attack roll and instead turn the weapon into a bolt of lightning. This bolt forms a 5-foot-wide Line between you and the target. The target and each other creature in the Line (excluding you) makes a DC 13 Dexterity saving throw, taking 4d6 Lightning damage on a failed save or half as much damage on a successful one. Immediately after dealing this damage, the weapon reappears in your hand. This property can't be used again until the next dawn.</p><section id=\"secret-606LeZVVMHWwmeln\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>The <strong>Attack</strong> activity allows you to choose between Lightning and Piercing when rolling damage and will remember your last choice.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-javelin-of-lightning",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "attack": {
+        "type": "ranged",
+        "statistic": "weapon",
+        "defenseKey": "ac",
+        "proficient": true
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 30,
+          "unit": "ft"
+        },
+        "long": {
+          "value": 120,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "damage": [
+        {
+          "id": "base",
+          "expression": {
+            "type": "dice",
+            "number": 1,
+            "faces": 6
+          },
+          "damageType": "lightning",
+          "provenance": "weapon-base"
+        }
+      ],
+      "label": "Javelin of Lightning (attack)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgJavelinOfLigh",
+        "type": "weapon",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

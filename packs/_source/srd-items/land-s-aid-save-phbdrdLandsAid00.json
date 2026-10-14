@@ -1,0 +1,46 @@
+{
+  "_id": "phbdrdLandsAid00",
+  "_key": "!items!phbdrdLandsAid00",
+  "name": "Land's Aid (save)",
+  "type": "action",
+  "img": "icons/magic/nature/root-vines-grow-brown.webp",
+  "system": {
+    "active": true,
+    "description": "<p>As a Magic action, you can expend a use of your Wild Shape and choose a point within 60 feet of yourself. Vitality-giving flowers and life-draining thorns appear for a moment in a 10-foot-radius Sphere centered on that point. Each creature of your choice in the Sphere must make a Constitution saving throw against your spell save DC, taking 2d6 Necrotic damage on a failed save or half as much damage on a successful one. One creature of your choice in that area regains (by class level) Hit Points.</p><p>The damage and healing increase by 1d6 when you reach Druid levels 10 (3d6) and 14 (4d6).</p><section class=\"secret\" id=\"secret-T1DFK6QJjzeJsysz\"><p><strong>Foundry Note</strong></p><p>This feature includes an activity for the saving throw and the healing.</p><p>The healing/damage values automatically scale as you level up.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-land-s-aid",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Land's Aid (save)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbdrdLandsAid00",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (save): using it spends its cost; its description says the rest",
+          "consumption: itemUses 1 not converted",
+          "damage 1: custom formula \"@scale.land.lands-aid\" not converted",
+          "consumption: itemUses 1 not converted"
+        ]
+      }
+    }
+  }
+}

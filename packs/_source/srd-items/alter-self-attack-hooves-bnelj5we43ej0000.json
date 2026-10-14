@@ -1,0 +1,153 @@
+{
+  "_id": "bnelj5we43ej0000",
+  "_key": "!items!bnelj5we43ej0000",
+  "name": "Alter Self (Attack: Hooves)",
+  "type": "action",
+  "img": "icons/magic/control/silhouette-hold-change-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You alter your physical form. Choose one of the following options. Its effects last for the duration, during which you can take a Magic action to replace the option you chose with a different one.</p><p><strong>Aquatic Adaptation.</strong> You sprout gills and grow webs between your fingers. You can breathe underwater and gain a Swim Speed equal to your Speed.</p><p><strong>Change Appearance.</strong> You alter your appearance. You decide what you look like, including your height, weight, facial features, sound of your voice, hair length, coloration, and other distinguishing characteristics. You can make yourself appear as a member of another species, though none of your statistics change. You can't appear as a creature of a different size, and your basic shape stays the same; if you're bipedal, you can't use this spell to become quadrupedal, for instance. For the duration, you can take a Magic action to change your appearance in this way again.</p><p><strong>Natural Weapons. </strong>You grow claws (Slashing), fangs (Piercing), horns (Piercing), or hooves (Bludgeoning). When you use your Unarmed Strike to deal damage with that new growth, it deals 1d6 damage of the type in parentheses instead of dealing the normal damage for your Unarmed Strike, and you use your spellcasting ability modifier for the attack and damage rolls rather than using Strength.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-alter-self-attack-hooves",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "attack": {
+        "type": "melee",
+        "statistic": "spell",
+        "defenseKey": "ac",
+        "proficient": true
+      },
+      "range": {
+        "type": "reach",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "dice",
+                "number": 1,
+                "faces": 6
+              },
+              {
+                "type": "spellcasting-modifier"
+              }
+            ]
+          },
+          "damageType": "bludgeoning",
+          "provenance": "spell-base"
+        }
+      ],
+      "configuration": [
+        {
+          "id": "spell-slot",
+          "type": "resource",
+          "label": "Spell slot",
+          "required": true,
+          "cost": {
+            "anyOf": [
+              [
+                {
+                  "capability": "spell-slot.2",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.3",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.4",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.5",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.6",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.7",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.8",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.9",
+                  "amount": 1
+                }
+              ]
+            ]
+          },
+          "levelByResourceId": {
+            "spell-slot.2": 2,
+            "spell-slot.3": 3,
+            "spell-slot.4": 4,
+            "spell-slot.5": 5,
+            "spell-slot.6": 6,
+            "spell-slot.7": 7,
+            "spell-slot.8": 8,
+            "spell-slot.9": 9
+          },
+          "effects": []
+        }
+      ],
+      "label": "Alter Self (Attack: Hooves)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbsplAlterSelf0",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "concentration: nothing it sustains was converted"
+        ]
+      }
+    }
+  }
+}

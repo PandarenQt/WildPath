@@ -1,0 +1,28 @@
+{
+  "_id": "phbsptForestGnom",
+  "_key": "!items!phbsptForestGnom",
+  "name": "Gnomish Lineage, Forest",
+  "type": "feature",
+  "img": "icons/environment/wilderness/tree-oak.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You know the Minor Illusion cantrip. You also always have the Speak with Animals spell prepared. You can cast it without a spell slot a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest. You can also use any spell slots you have to cast the spell.</p><section id=\"secret-CwVBuqSGI27gl6R9\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>The free castings are included in the spell.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "origins24",
+        "id": "phbsptForestGnom",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

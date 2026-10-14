@@ -1,0 +1,48 @@
+{
+  "_id": "phbclcSearUndead",
+  "_key": "!items!phbclcSearUndead",
+  "name": "Sear Undead",
+  "type": "action",
+  "img": "icons/magic/fire/flame-burning-skeleton-explosion.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Whenever you use Turn Undead, you can roll a number of d8s equal to your Wisdom modifier (minimum of 1d8, currently ) and add the rolls together. Each Undead that fails its saving throw against that use of Turn Undead takes Radiant damage equal to the roll's total. This damage doesn't end the turn effect.</p><section class=\"secret\" id=\"secret-VJPPRFTlu1fFg8XB\"><p><strong>Foundry Note</strong></p><p>This feature can be used in place of Turn Undead. It consumes a use of Channel Divinity, includes the Save, Active Effects for the conditions, and this feature's damage roll.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-sear-undead-channel-divinity-turn-undead",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Sear Undead"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbclcSearUndead",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (save): using it spends its cost; its description says the rest",
+          "consumption: itemUses 1 not converted",
+          "damage 1: custom formula \"(@abilities.wis.mod)d8\" not converted",
+          "effect: frightened is not a WildPath condition yet",
+          "effect: incapacitated is not a WildPath condition yet",
+          "consumption: itemUses 1 not converted"
+        ]
+      }
+    }
+  }
+}

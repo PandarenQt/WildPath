@@ -1,0 +1,28 @@
+{
+  "_id": "phbftrExtraAttac",
+  "_key": "!items!phbftrExtraAttac",
+  "name": "Extra Attack",
+  "type": "feature",
+  "img": "icons/skills/melee/strike-sword-gray.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You can attack twice instead of once whenever you take the Attack action on your turn.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbftrExtraAttac",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

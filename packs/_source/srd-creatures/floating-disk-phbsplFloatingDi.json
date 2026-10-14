@@ -1,0 +1,102 @@
+{
+  "_id": "phbsplFloatingDi",
+  "_key": "!actors!phbsplFloatingDi",
+  "name": "Floating Disk",
+  "type": "npc",
+  "img": "icons/magic/light/circle-window-clock-blue.webp",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 17
+      },
+      "agility": {
+        "value": 10
+      },
+      "fortitude": {
+        "value": 10
+      },
+      "intellect": {
+        "value": 10
+      },
+      "wits": {
+        "value": 10
+      },
+      "presence": {
+        "value": 10
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 0
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 1,
+        "value": 1
+      },
+      "movement": {
+        "base": 30,
+        "value": 30
+      }
+    },
+    "details": {
+      "threat": 0
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Floating Disk",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "KTWQy1Nv101ubAeN",
+      "_key": "!actors.items!phbsplFloatingDi.KTWQy1Nv101ubAeN",
+      "name": "Carry Weight Adjustment",
+      "type": "feature",
+      "img": "icons/skills/social/trading-injustice-scale-gray.webp",
+      "system": {
+        "active": true,
+        "description": "<section id=\"secret-xvPfZzVKWfhDyIwx\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This item serves to offset the disk's computed carry weight capacity from 510 lbs. to 500 lbs. in accordance with the spell's description.</p></section>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "KTWQy1Nv101ubAeN",
+            "type": "loot",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "phbsplFloatingDi",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 0
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

@@ -1,0 +1,348 @@
+{
+  "_id": "mmGiantToad00000",
+  "_key": "!actors!mmGiantToad00000",
+  "name": "Giant Toad",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 15
+      },
+      "agility": {
+        "value": 13
+      },
+      "fortitude": {
+        "value": 13
+      },
+      "intellect": {
+        "value": 2
+      },
+      "wits": {
+        "value": 10
+      },
+      "presence": {
+        "value": 3
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 11
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 39,
+        "value": 39
+      },
+      "movement": {
+        "base": 30,
+        "value": 30
+      }
+    },
+    "details": {
+      "threat": 1
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Giant Toad",
+    "width": 2,
+    "height": 2,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmAmphibious0000",
+      "_key": "!actors.items!mmGiantToad00000.mmAmphibious0000",
+      "name": "Amphibious",
+      "type": "feature",
+      "img": "icons/creatures/amphibians/bullfrog-glass-teal.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The giant toad can breathe air and water.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmAmphibious0000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmStandingLeap00",
+      "_key": "!actors.items!mmGiantToad00000.mmStandingLeap00",
+      "name": "Standing Leap",
+      "type": "feature",
+      "img": "icons/skills/movement/arrow-upward-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The giant toad's Long Jump is up to 20 feet and its High Jump is up to 10 feet with or without a running start.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmStandingLeap00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmBite0000000000",
+      "_key": "!actors.items!mmGiantToad00000.mmBite0000000000",
+      "name": "Bite",
+      "type": "action",
+      "img": "icons/creatures/abilities/fangs-teeth-bite.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +4, reach 5 ft. Hit: 5 (1d6 + 2) Piercing plus 5 (2d4) Poison damage. If the target is a Medium or smaller creature, it has the Grappled condition (escape DC ).</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-bite",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 6
+              },
+              "damageType": "piercing",
+              "provenance": "weapon-base"
+            },
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 4
+              },
+              "damageType": "poison",
+              "provenance": "additional"
+            }
+          ],
+          "label": "Bite"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmBite0000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "effect: grappled is not a WildPath condition yet"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmSwallow0000000",
+      "_key": "!actors.items!mmGiantToad00000.mmSwallow0000000",
+      "name": "Swallow (Expend Use)",
+      "type": "action",
+      "img": "icons/creatures/abilities/mouth-teeth-rows-needles-purple.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The giant toad swallows a Medium or smaller target it is grappling.</p><p>While swallowed, the target isn't Grappled but has the Blinded and Restrained conditions, and it has Total against attacks and other effects outside the giant toad.</p><p>In addition, the target takes 10 (3d6) Acid damage at the end of each of the giant toad's turns. The giant toad can have only one target swallowed at a time, and it can't use Bite while it has a swallowed target.</p><p>If the giant toad dies, a swallowed creature is no longer Restrained and can escape from the corpse using 5 feet of movement, exiting with the Prone condition.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-swallow-expend-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Swallow (Expend Use)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSwallow0000000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "s5kjurrjvued0000",
+      "_key": "!actors.items!mmGiantToad00000.s5kjurrjvued0000",
+      "name": "Swallow (Damage: Swallowed)",
+      "type": "action",
+      "img": "icons/creatures/abilities/mouth-teeth-rows-needles-purple.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The giant toad swallows a Medium or smaller target it is grappling.</p><p>While swallowed, the target isn't Grappled but has the Blinded and Restrained conditions, and it has Total against attacks and other effects outside the giant toad.</p><p>In addition, the target takes 10 (3d6) Acid damage at the end of each of the giant toad's turns. The giant toad can have only one target swallowed at a time, and it can't use Bite while it has a swallowed target.</p><p>If the giant toad dies, a swallowed creature is no longer Restrained and can escape from the corpse using 5 feet of movement, exiting with the Prone condition.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-swallow-damage-swallowed",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 3,
+                "faces": 6
+              },
+              "damageType": "acid",
+              "provenance": "additional"
+            }
+          ],
+          "label": "Swallow (Damage: Swallowed)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSwallow0000000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmGiantToad0trts",
+      "_key": "!actors.items!mmGiantToad00000.mmGiantToad0trts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "speed-swim",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "swim",
+              "distance": 30
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmGiantToad00000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 1
+      },
+      "conversion": {
+        "notes": [
+          "Bite: effect: grappled is not a WildPath condition yet",
+          "Swallow: not automated (utility): using it spends its cost; its description says the rest",
+          "Swallow: \"Escape Corpse\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

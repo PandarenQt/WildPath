@@ -1,0 +1,45 @@
+{
+  "_id": "phbbrdCuttingWor",
+  "_key": "!items!phbbrdCuttingWor",
+  "name": "Cutting Words",
+  "type": "action",
+  "img": "icons/magic/sonic/scream-wail-shout-teal.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You learn to use your wit to supernaturally distract, confuse, and otherwise sap the confidence and competence of others. When a creature that you can see within 60 feet of yourself makes a damage roll or succeeds on an ability check or attack roll, you can take a Reaction to expend one use of your Bardic Inspiration; roll your Bardic Inspiration die, and subtract the number rolled from the creature's roll, reducing the damage or potentially turning the success into a failure.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-cutting-words-cut-with-words",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "reaction",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Cutting Words"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbbrdCuttingWor",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "consumption: itemUses 1 not converted",
+          "consumption: itemUses 1 not converted"
+        ]
+      }
+    }
+  }
+}

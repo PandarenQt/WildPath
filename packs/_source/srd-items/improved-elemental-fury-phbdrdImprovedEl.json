@@ -1,0 +1,28 @@
+{
+  "_id": "phbdrdImprovedEl",
+  "_key": "!items!phbdrdImprovedEl",
+  "name": "Improved Elemental Fury",
+  "type": "feature",
+  "img": "icons/magic/nature/leaf-arrowheads-glow-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p>The option you chose for Elemental Fury grows more powerful, as detailed below.</p><p><strong>Potent Spellcasting.</strong> When you cast a Druid cantrip with a range of 10 feet or greater, the spell's range increases by 300 feet.</p><p><strong>Primal Strike.</strong> The extra damage of your Primal Strike increases to 2d8.</p><section id=\"secret-7G1qK3zQ41zJONSd\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>The damage for Primal Strike is automatically increased at this level. This feature does not automate the range changes.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbdrdImprovedEl",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

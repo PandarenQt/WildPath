@@ -1,0 +1,30 @@
+{
+  "_id": "dmgScimitarOfSpe",
+  "_key": "!items!dmgScimitarOfSpe",
+  "name": "Scimitar of Speed",
+  "type": "feature",
+  "img": "icons/weapons/swords/scimitar-guard-red.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Weapon (Scimitar), Very Rare (Requires Attunement)</em></p><p>You gain a +2 bonus to attack rolls and damage rolls made with this magic weapon. In addition, you can make one attack with it as a Bonus Action on each of your turns.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgScimitarOfSpe",
+        "type": "weapon",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"attack\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

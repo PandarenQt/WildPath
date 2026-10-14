@@ -1,0 +1,112 @@
+{
+  "_id": "phbsplRaiseDead0",
+  "_key": "!items!phbsplRaiseDead0",
+  "name": "Raise Dead",
+  "type": "action",
+  "img": "icons/magic/death/skull-fire-white-yellow.webp",
+  "system": {
+    "active": true,
+    "description": "<p>With a touch, you revive a dead creature if it has been dead no longer than 10 days and it wasn't Undead when it died.</p><p>The creature returns to life with 1 Hit Point. This spell also neutralizes any poisons that affected the creature at the time of death.</p><p>This spell closes all mortal wounds, but it doesn't restore missing body parts. If the creature is lacking body parts or organs integral for its survival—its head, for instance—the spell automatically fails.</p><p>Coming back from the dead is an ordeal. The target takes a −4 penalty to D20 Tests. Every time the target finishes a Long Rest, the penalty is reduced by 1 until it becomes 0.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-raise-dead-revive",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": []
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "healing": [
+        {
+          "id": "healing-1",
+          "expression": {
+            "type": "constant",
+            "value": 1
+          },
+          "healingType": "healing"
+        }
+      ],
+      "configuration": [
+        {
+          "id": "spell-slot",
+          "type": "resource",
+          "label": "Spell slot",
+          "required": true,
+          "cost": {
+            "anyOf": [
+              [
+                {
+                  "capability": "spell-slot.5",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.6",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.7",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.8",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.9",
+                  "amount": 1
+                }
+              ]
+            ]
+          },
+          "levelByResourceId": {
+            "spell-slot.5": 5,
+            "spell-slot.6": 6,
+            "spell-slot.7": 7,
+            "spell-slot.8": 8,
+            "spell-slot.9": 9
+          },
+          "effects": []
+        }
+      ],
+      "label": "Raise Dead"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbsplRaiseDead0",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "activation: 1 hour is not an action-economy cost",
+          "healing: more healing at higher levels not converted",
+          "effect: \"Resurrection Sickness (Day 1)\" (its own changes) not converted",
+          "effect: \"Resurrection Sickness (Day 2)\" (its own changes) not converted",
+          "effect: \"Resurrection Sickness (Day 3)\" (its own changes) not converted",
+          "effect: \"Resurrection Sickness (Day 4)\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,100 @@
+{
+  "_id": "phbsplDelayedBla",
+  "_key": "!items!phbsplDelayedBla",
+  "name": "Delayed Blast Fireball (Create Bead)",
+  "type": "action",
+  "img": "icons/magic/fire/explosion-flame-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p>A beam of yellow light flashes from you, then condenses at a chosen point within range as a glowing bead for the duration. When the spell ends, the bead explodes, and each creature in a 20-foot-radius Sphere centered on that point makes a Dexterity saving throw. A creature takes Fire damage equal to the total accumulated damage on a failed save or half as much damage on a successful one.</p><p>The spell's base damage is 12d6, and the damage increases by 1d6 whenever your turn ends and the spell hasn't ended.</p><p>If a creature touches the glowing bead before the spell ends, that creature makes a Dexterity saving throw. On a failed save, the spell ends, causing the bead to explode. On a successful save, the creature can throw the bead up to 40 feet. If the thrown bead enters a creature's space or collides with a solid object, the spell ends, and the bead explodes.</p><p>When the bead explodes, flammable objects in the explosion that aren't being worn or carried start burning.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The base damage increases by 1d6 for each spell slot level above 7.</p><section class=\"secret\" id=\"secret-8FSRYhwywI2O3Qgb\"><p><strong>Foundry Note</strong></p><p>The limited uses value of this spell tracks the number of rounds that have passed since the initial casting and starts at 0.</p><p>The <strong>Turn End Damage Increase</strong> activity will increase that value by 1.</p><p>The <strong>Trigger Explosion</strong> activity calculates the total damage based on the limited uses.</p><p>If you would prefer manual tracking, you can use <strong>Trigger Explosion's</strong> Situational Bonus dialog to add the extra d6s and ignore the <strong>Turn End Damage</strong> Increase activity.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-delayed-blast-fireball-create-bead",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "configuration": [
+        {
+          "id": "spell-slot",
+          "type": "resource",
+          "label": "Spell slot",
+          "required": true,
+          "cost": {
+            "anyOf": [
+              [
+                {
+                  "capability": "spell-slot.7",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.8",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.9",
+                  "amount": 1
+                }
+              ]
+            ]
+          },
+          "levelByResourceId": {
+            "spell-slot.7": 7,
+            "spell-slot.8": 8,
+            "spell-slot.9": 9
+          },
+          "effects": []
+        }
+      ],
+      "label": "Delayed Blast Fireball (Create Bead)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "delayed-blast-fireball-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "delayed-blast-fireball",
+          "label": "Delayed Blast Fireball",
+          "maximum": {
+            "type": "constant",
+            "value": 10
+          },
+          "recovery": "shortRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbsplDelayedBla",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "consumption: itemUses @item.uses.value not converted",
+          "concentration: nothing it sustains was converted",
+          "consumption: itemUses @item.uses.value not converted"
+        ]
+      }
+    }
+  }
+}

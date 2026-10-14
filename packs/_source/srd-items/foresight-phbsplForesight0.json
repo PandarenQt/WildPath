@@ -1,0 +1,66 @@
+{
+  "_id": "phbsplForesight0",
+  "_key": "!items!phbsplForesight0",
+  "name": "Foresight",
+  "type": "action",
+  "img": "icons/magic/symbols/circle-ouroboros.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You touch a willing creature and bestow a limited ability to see into the immediate future. For the duration, the target has Advantage on D20 Tests, and other creatures have Disadvantage on attack rolls against it. The spell ends early if you cast it again.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-foresight-bestow-foresight",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": []
+      },
+      "configuration": [
+        {
+          "id": "spell-slot",
+          "type": "resource",
+          "label": "Spell slot",
+          "required": true,
+          "cost": {
+            "anyOf": [
+              [
+                {
+                  "capability": "spell-slot.9",
+                  "amount": 1
+                }
+              ]
+            ]
+          },
+          "levelByResourceId": {
+            "spell-slot.9": 9
+          },
+          "effects": []
+        }
+      ],
+      "label": "Foresight"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbsplForesight0",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "activation: 1 minute is not an action-economy cost",
+          "effect: \"Foresight\" (its own changes) not converted",
+          "activation: 1 minute is not an action-economy cost"
+        ]
+      }
+    }
+  }
+}

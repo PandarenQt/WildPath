@@ -1,0 +1,121 @@
+{
+  "_id": "mmShriekerFungus",
+  "_key": "!actors!mmShriekerFungus",
+  "name": "Shrieker Fungus",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 1
+      },
+      "agility": {
+        "value": 1
+      },
+      "fortitude": {
+        "value": 10
+      },
+      "intellect": {
+        "value": 1
+      },
+      "wits": {
+        "value": 3
+      },
+      "presence": {
+        "value": 1
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 5
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 13,
+        "value": 13
+      },
+      "movement": {
+        "base": 5,
+        "value": 5
+      }
+    },
+    "details": {
+      "threat": 0
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Shrieker Fungus",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmShriek00000000",
+      "_key": "!actors.items!mmShriekerFungus.mmShriek00000000",
+      "name": "Shriek",
+      "type": "action",
+      "img": "icons/magic/sonic/explosion-shock-sound-wave.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\"><em>Trigger:</em> A creature or a source of Bright Light moves within 30 feet of the shrieker fungus. <em>Response:</em> The shrieker fungus emits a shriek audible within 300 feet of itself for 1 minute or until the shrieker fungus dies.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-shriek-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "reaction",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Shriek"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmShriek00000000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "area: 300-ft circle is not supported; the user picks the targets"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmShriekerFungus",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 0
+      },
+      "conversion": {
+        "notes": [
+          "Shriek: not automated (utility): using it spends its cost; its description says the rest",
+          "Shriek: area: 300-ft circle is not supported; the user picks the targets"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "_id": "108nz1fdau4cz000",
+  "_key": "!items!108nz1fdau4cz000",
+  "name": "Flame Tongue (Engulf in Flames)",
+  "type": "action",
+  "img": "icons/weapons/swords/greatsword-crossguard-flanged-red.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Weapon (Any Melee Weapon), Rare (Requires Attunement)</em></p><p>While holding this magic weapon, you can take a Bonus Action and use a command word to cause flames to engulf the <span class=\"no-break\">damage</span>-dealing part of the weapon. These flames shed Bright Light in a 40-foot radius and Dim Light for an additional 40 feet. While the weapon is ablaze, it deals an extra 2d6 Fire damage on a hit. The flames last until you take a Bonus Action to issue the command again or until you drop, stow, or sheathe the weapon.</p><p></p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-flame-tongue-engulf-in-flames",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Flame Tongue (Engulf in Flames)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgFlameTongue00",
+        "type": "weapon",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (enchant): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

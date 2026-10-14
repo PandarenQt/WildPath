@@ -1,0 +1,1784 @@
+{
+  "_id": "mmSphinxOfValor0",
+  "_key": "!actors!mmSphinxOfValor0",
+  "name": "Sphinx of Valor",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 22
+      },
+      "agility": {
+        "value": 10,
+        "saveProficient": true
+      },
+      "fortitude": {
+        "value": 20,
+        "saveProficient": true
+      },
+      "intellect": {
+        "value": 16,
+        "saveProficient": true
+      },
+      "wits": {
+        "value": 23,
+        "saveProficient": true
+      },
+      "presence": {
+        "value": 18
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 17
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 199,
+        "value": 199
+      },
+      "movement": {
+        "base": 40,
+        "value": 40
+      }
+    },
+    "details": {
+      "threat": 17
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Sphinx of Valor",
+    "width": 2,
+    "height": 2,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmInscrutable000",
+      "_key": "!actors.items!mmSphinxOfValor0.mmInscrutable000",
+      "name": "Inscrutable",
+      "type": "feature",
+      "img": "icons/magic/control/fear-fright-white.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">No magic can observe the sphinx of valor remotely or detect its thoughts without its permission. Wisdom (Insight) checks made to ascertain its intentions or sincerity are made with Disadvantage.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmInscrutable000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmLegendaryResis",
+      "_key": "!actors.items!mmSphinxOfValor0.mmLegendaryResis",
+      "name": "Legendary Resistance",
+      "type": "feature",
+      "img": "icons/equipment/shield/heater-steel-crystal-red.webp",
+      "system": {
+        "active": true,
+        "description": "<p>If the sphinx of valor fails a saving throw, it can choose to succeed instead.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmLegendaryResis",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "\"Expend Use\" is passive or triggered: not automated"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmMultiattack000",
+      "_key": "!actors.items!mmSphinxOfValor0.mmMultiattack000",
+      "name": "Multiattack",
+      "type": "action",
+      "img": "icons/skills/melee/strike-weapons-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The sphinx of valor makes two  attacks and uses .</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-multiattack-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Multiattack"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMultiattack000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmClaw0000000000",
+      "_key": "!actors.items!mmSphinxOfValor0.mmClaw0000000000",
+      "name": "Claw",
+      "type": "action",
+      "img": "icons/skills/melee/blood-slash-foam-red.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +12, reach 5 ft. Hit: 20 (4d6 + 6) Slashing damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-claw",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 4,
+                "faces": 6
+              },
+              "damageType": "slashing",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Claw"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmClaw0000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmRoar0000000000",
+      "_key": "!actors.items!mmSphinxOfValor0.mmRoar0000000000",
+      "name": "Roar (First Roar: Save)",
+      "type": "action",
+      "img": "icons/creatures/abilities/lion-roar-yellow.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The sphinx emits a magical roar. Whenever it roars, the roar has a different effect, as detailed below (the sequence resets when it takes a Long Rest):</p><p class=\"feature-trait\"><strong>First Roar.</strong></p><p><em>Wisdom Saving Throw:</em> DC 20, each enemy in a 500-foot Emanation originating from the sphinx of valor.</p><p><em>Failure:</em> The target has the Frightened condition for 1 minute.</p><p class=\"feature-trait\"><strong>Second Roar.</strong></p><p><em>Wisdom Saving Throw:</em> DC 20, each enemy in a 500-foot Emanation originating from the sphinx of valor.</p><p><em>Failure:</em> The target has the Paralyzed condition, and it repeats the save at the end of each of its turns, ending the effect on itself on a success. After 1 minute, it succeeds automatically.</p><p class=\"feature-trait\"><strong>Third Roar.</strong></p><p><em>Constitution Saving Throw:</em> DC 20, each enemy in a 500-foot Emanation originating from the sphinx of valor.</p><p><em>Failure:</em> 44 (8d10) Thunder damage, and the target has the Prone condition.</p><p><em>Success:</em> Half damage only.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-roar-first-roar-save",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Roar (First Roar: Save)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmRoar0000000000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest",
+              "consumption: activityUses 1 not converted",
+              "effect: frightened is not a WildPath condition yet",
+              "consumption: activityUses 1 not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "1ts6yim196ee0i00",
+      "_key": "!actors.items!mmSphinxOfValor0.1ts6yim196ee0i00",
+      "name": "Roar (Second Roar: Save)",
+      "type": "action",
+      "img": "icons/creatures/abilities/lion-roar-yellow.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The sphinx emits a magical roar. Whenever it roars, the roar has a different effect, as detailed below (the sequence resets when it takes a Long Rest):</p><p class=\"feature-trait\"><strong>First Roar.</strong></p><p><em>Wisdom Saving Throw:</em> DC 20, each enemy in a 500-foot Emanation originating from the sphinx of valor.</p><p><em>Failure:</em> The target has the Frightened condition for 1 minute.</p><p class=\"feature-trait\"><strong>Second Roar.</strong></p><p><em>Wisdom Saving Throw:</em> DC 20, each enemy in a 500-foot Emanation originating from the sphinx of valor.</p><p><em>Failure:</em> The target has the Paralyzed condition, and it repeats the save at the end of each of its turns, ending the effect on itself on a success. After 1 minute, it succeeds automatically.</p><p class=\"feature-trait\"><strong>Third Roar.</strong></p><p><em>Constitution Saving Throw:</em> DC 20, each enemy in a 500-foot Emanation originating from the sphinx of valor.</p><p><em>Failure:</em> 44 (8d10) Thunder damage, and the target has the Prone condition.</p><p><em>Success:</em> Half damage only.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-roar-second-roar-save",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Roar (Second Roar: Save)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmRoar0000000000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest",
+              "consumption: activityUses 1 not converted",
+              "effect: paralyzed is not a WildPath condition yet",
+              "consumption: activityUses 1 not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "1ti7ctn9cqkkt000",
+      "_key": "!actors.items!mmSphinxOfValor0.1ti7ctn9cqkkt000",
+      "name": "Roar (Third Roar: Save)",
+      "type": "action",
+      "img": "icons/creatures/abilities/lion-roar-yellow.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The sphinx emits a magical roar. Whenever it roars, the roar has a different effect, as detailed below (the sequence resets when it takes a Long Rest):</p><p class=\"feature-trait\"><strong>First Roar.</strong></p><p><em>Wisdom Saving Throw:</em> DC 20, each enemy in a 500-foot Emanation originating from the sphinx of valor.</p><p><em>Failure:</em> The target has the Frightened condition for 1 minute.</p><p class=\"feature-trait\"><strong>Second Roar.</strong></p><p><em>Wisdom Saving Throw:</em> DC 20, each enemy in a 500-foot Emanation originating from the sphinx of valor.</p><p><em>Failure:</em> The target has the Paralyzed condition, and it repeats the save at the end of each of its turns, ending the effect on itself on a success. After 1 minute, it succeeds automatically.</p><p class=\"feature-trait\"><strong>Third Roar.</strong></p><p><em>Constitution Saving Throw:</em> DC 20, each enemy in a 500-foot Emanation originating from the sphinx of valor.</p><p><em>Failure:</em> 44 (8d10) Thunder damage, and the target has the Prone condition.</p><p><em>Success:</em> Half damage only.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-roar-third-roar-save",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "emanation",
+            "size": {
+              "value": 500,
+              "unit": "ft"
+            }
+          },
+          "save": {
+            "ability": "fortitude",
+            "dc": {
+              "value": 20
+            }
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 8,
+                "faces": 10
+              },
+              "damageType": "thunder",
+              "provenance": "additional",
+              "saveOutcomePolicy": {
+                "success": "half",
+                "failure": "full"
+              }
+            }
+          ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "prone",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
+          "label": "Roar (Third Roar: Save)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmRoar0000000000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "consumption: activityUses 1 not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmSpellcasting00",
+      "_key": "!actors.items!mmSphinxOfValor0.mmSpellcasting00",
+      "name": "Spellcasting (cast)",
+      "type": "action",
+      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The sphinx of valor casts one of the following spells, requiring no Material components and using Wisdom as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Evil and Good</em>, <em>Thaumaturgy</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Detect Magic</em>, <em>Dispel Magic</em>, <em>Greater Restoration</em>, <em>Heroes' Feast</em>, <em>Zone of Truth</em></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Spellcasting (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSpellcasting00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "17svfvloelxmr000",
+      "_key": "!actors.items!mmSphinxOfValor0.17svfvloelxmr000",
+      "name": "Spellcasting (cast)",
+      "type": "action",
+      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The sphinx of valor casts one of the following spells, requiring no Material components and using Wisdom as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Evil and Good</em>, <em>Thaumaturgy</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Detect Magic</em>, <em>Dispel Magic</em>, <em>Greater Restoration</em>, <em>Heroes' Feast</em>, <em>Zone of Truth</em></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Spellcasting (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSpellcasting00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "16ywmso1mzul9w00",
+      "_key": "!actors.items!mmSphinxOfValor0.16ywmso1mzul9w00",
+      "name": "Spellcasting (cast)",
+      "type": "action",
+      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The sphinx of valor casts one of the following spells, requiring no Material components and using Wisdom as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Evil and Good</em>, <em>Thaumaturgy</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Detect Magic</em>, <em>Dispel Magic</em>, <em>Greater Restoration</em>, <em>Heroes' Feast</em>, <em>Zone of Truth</em></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Spellcasting (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSpellcasting00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest",
+              "consumption: activityUses 1 not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "178w8hnnsecqh000",
+      "_key": "!actors.items!mmSphinxOfValor0.178w8hnnsecqh000",
+      "name": "Spellcasting (cast)",
+      "type": "action",
+      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The sphinx of valor casts one of the following spells, requiring no Material components and using Wisdom as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Evil and Good</em>, <em>Thaumaturgy</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Detect Magic</em>, <em>Dispel Magic</em>, <em>Greater Restoration</em>, <em>Heroes' Feast</em>, <em>Zone of Truth</em></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Spellcasting (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSpellcasting00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest",
+              "consumption: activityUses 1 not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "18mu8yi1mdn0dm00",
+      "_key": "!actors.items!mmSphinxOfValor0.18mu8yi1mdn0dm00",
+      "name": "Spellcasting (cast)",
+      "type": "action",
+      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The sphinx of valor casts one of the following spells, requiring no Material components and using Wisdom as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Evil and Good</em>, <em>Thaumaturgy</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Detect Magic</em>, <em>Dispel Magic</em>, <em>Greater Restoration</em>, <em>Heroes' Feast</em>, <em>Zone of Truth</em></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Spellcasting (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSpellcasting00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest",
+              "consumption: activityUses 1 not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "18wtunhn66ru7000",
+      "_key": "!actors.items!mmSphinxOfValor0.18wtunhn66ru7000",
+      "name": "Spellcasting (cast)",
+      "type": "action",
+      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The sphinx of valor casts one of the following spells, requiring no Material components and using Wisdom as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Evil and Good</em>, <em>Thaumaturgy</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Detect Magic</em>, <em>Dispel Magic</em>, <em>Greater Restoration</em>, <em>Heroes' Feast</em>, <em>Zone of Truth</em></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Spellcasting (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSpellcasting00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest",
+              "consumption: activityUses 1 not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "182v1kk1lrffhc00",
+      "_key": "!actors.items!mmSphinxOfValor0.182v1kk1lrffhc00",
+      "name": "Spellcasting (cast)",
+      "type": "action",
+      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The sphinx of valor casts one of the following spells, requiring no Material components and using Wisdom as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Evil and Good</em>, <em>Thaumaturgy</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Detect Magic</em>, <em>Dispel Magic</em>, <em>Greater Restoration</em>, <em>Heroes' Feast</em>, <em>Zone of Truth</em></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Spellcasting (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSpellcasting00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest",
+              "consumption: activityUses 1 not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "2ndWwKbQG28cUDsw",
+      "_key": "!actors.items!mmSphinxOfValor0.2ndWwKbQG28cUDsw",
+      "name": "Detect Evil and Good",
+      "type": "action",
+      "img": "icons/magic/perception/eye-ringed-green.webp",
+      "system": {
+        "active": true,
+        "description": "<p>For the duration, you sense the location of any Aberration, Celestial, Elemental, Fey, Fiend, or Undead within 30 feet of yourself. You also sense whether the <em>Hallow</em> spell is active there and, if so, where.</p><p>The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-detect-evil-and-good-cast",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.1",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.2",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.3",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.4",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.1": 1,
+                "spell-slot.2": 2,
+                "spell-slot.3": 3,
+                "spell-slot.4": 4,
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Detect Evil and Good"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "2ndWwKbQG28cUDsw",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "effect: \"Detect Evil and Good\" (its own changes) not converted",
+              "concentration: nothing it sustains was converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "fK99FtV5a8VoCNTl",
+      "_key": "!actors.items!mmSphinxOfValor0.fK99FtV5a8VoCNTl",
+      "name": "Thaumaturgy",
+      "type": "action",
+      "img": "icons/environment/people/cleric-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You manifest a minor wonder within range. You create one of the effects below within range. If you cast this spell multiple times, you can have up to three of its 1-minute effects active at a time.</p><p><strong>Altered Eyes.</strong> You alter the appearance of your eyes for 1 minute.</p><p><strong>Booming Voice.</strong> Your voice booms up to three times as loud as normal for 1 minute. For the duration, you have Advantage on Charisma (Intimidation) check checks.</p><p><strong>Fire Play.</strong> You cause flames to flicker, brighten, dim, or change color for 1 minute.</p><p><strong>Invisible Hand.</strong> You instantaneously cause an unlocked door or window to fly open or slam shut.</p><p><strong>Phantom Sound.</strong> You create an instantaneous sound that originates from a point of your choice within range, such as a rumble of thunder, the cry of a raven, or ominous whispers.</p><p><strong>Tremors.</strong> You cause harmless tremors in the ground for 1 minute.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-thaumaturgy-cast",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Thaumaturgy"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "fK99FtV5a8VoCNTl",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "DfCLvZVa4EKzFByM",
+      "_key": "!actors.items!mmSphinxOfValor0.DfCLvZVa4EKzFByM",
+      "name": "Detect Magic",
+      "type": "action",
+      "img": "icons/magic/symbols/runes-carved-stone-green.webp",
+      "system": {
+        "active": true,
+        "description": "<p>For the duration, you sense the presence of magical effects within 30 feet of yourself. If you sense such effects, you can take the Magic action to see a faint aura around any visible creature or object in the area that bears the magic, and if an effect was created by a spell, you learn the spell's school of magic.</p><p>The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-detect-magic-cast",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.1",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.2",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.3",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.4",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.1": 1,
+                "spell-slot.2": 2,
+                "spell-slot.3": 3,
+                "spell-slot.4": 4,
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Detect Magic"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "DfCLvZVa4EKzFByM",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "effect: \"Detect Magic\" (its own changes) not converted",
+              "concentration: nothing it sustains was converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "w3fU9CJNOK5kJtrb",
+      "_key": "!actors.items!mmSphinxOfValor0.w3fU9CJNOK5kJtrb",
+      "name": "Dispel Magic",
+      "type": "action",
+      "img": "icons/skills/melee/sword-damaged-broken-purple.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Choose one creature, object, or magical effect within range. Any ongoing spell of level 3 or lower on the target ends. For each ongoing spell of level 4 or higher on the target, make an ability check using your spellcasting ability (DC 10 plus that spell's level). On a successful check, the spell ends.</p><p><strong>Using a Higher-Level Spell Slot.</strong> You automatically end a spell on the target if the spell's level is equal to or less than the level of the spell slot you use.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-dispel-magic",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.3",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.4",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.3": 3,
+                "spell-slot.4": 4,
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Dispel Magic"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "w3fU9CJNOK5kJtrb",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "BXk2z10EMxnzvN4W",
+      "_key": "!actors.items!mmSphinxOfValor0.BXk2z10EMxnzvN4W",
+      "name": "Greater Restoration",
+      "type": "action",
+      "img": "icons/magic/life/heart-hand-gold-green-light.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You touch a creature and magically remove one of the following effects from it:</p><ul><li>1 Exhaustion level</li><li>The Charmed or Petrified condition</li><li>A curse, including the target's Attunement to a cursed magic item</li><li>Any reduction to one of the target's ability scores</li><li>Any reduction to the target's Hit Point maximum</li></ul>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-greater-restoration",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Greater Restoration"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "BXk2z10EMxnzvN4W",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "sDcBqPl7Y7t7OD6n",
+      "_key": "!actors.items!mmSphinxOfValor0.sDcBqPl7Y7t7OD6n",
+      "name": "Heroes' Feast (Conjure Feast)",
+      "type": "action",
+      "img": "icons/consumables/food/cooked-hock-glowing-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You conjure a feast that appears on a surface in an unoccupied 10-foot Cube next to you. The feast takes 1 hour to consume and disappears at the end of that time, and the beneficial effects don't set in until this hour is over. Up to twelve creatures can partake of the feast.</p><p>A creature that partakes gains several benefits, which last for 24 hours. The creature has Resistance to Poison damage, and it has Immunity to the Frightened and Poisoned conditions. Its Hit Point maximum also increases by 2d10, and it gains the same number of Hit Points.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-heroes-feast-conjure-feast",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": []
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Heroes' Feast (Conjure Feast)"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "heroes-feast-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "heroes-feast",
+              "label": "Heroes' Feast",
+              "maximum": {
+                "type": "constant",
+                "value": 12
+              },
+              "recovery": "shortRest"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "sDcBqPl7Y7t7OD6n",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "activation: 10 minute is not an action-economy cost",
+              "consumption: itemUses -12 not converted",
+              "area: 10-ft cube is not supported; the user picks the targets",
+              "activation: 10 minute is not an action-economy cost",
+              "consumption: itemUses -12 not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "1tgd85sfbeyoq000",
+      "_key": "!actors.items!mmSphinxOfValor0.1tgd85sfbeyoq000",
+      "name": "Heroes' Feast (Consume Feast)",
+      "type": "action",
+      "img": "icons/consumables/food/cooked-hock-glowing-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You conjure a feast that appears on a surface in an unoccupied 10-foot Cube next to you. The feast takes 1 hour to consume and disappears at the end of that time, and the beneficial effects don't set in until this hour is over. Up to twelve creatures can partake of the feast.</p><p>A creature that partakes gains several benefits, which last for 24 hours. The creature has Resistance to Poison damage, and it has Immunity to the Frightened and Poisoned conditions. Its Hit Point maximum also increases by 2d10, and it gains the same number of Hit Points.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-heroes-feast-consume-feast",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "heroes-feast",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "healing": [
+            {
+              "id": "healing-1",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 10
+              },
+              "healingType": "healing"
+            }
+          ],
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Heroes' Feast (Consume Feast)"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "heroes-feast-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "heroes-feast",
+              "label": "Heroes' Feast",
+              "maximum": {
+                "type": "constant",
+                "value": 12
+              },
+              "recovery": "shortRest"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "sDcBqPl7Y7t7OD6n",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "activation: 1 hour is not an action-economy cost",
+              "healing: more healing at higher levels not converted",
+              "effect: \"Feast's Benefits\" (its own changes) not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "PsTixp9srIi2sCpI",
+      "_key": "!actors.items!mmSphinxOfValor0.PsTixp9srIi2sCpI",
+      "name": "Zone of Truth",
+      "type": "action",
+      "img": "icons/skills/social/diplomacy-unity-alliance.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You create a magical zone that guards against deception in a 15-foot-radius Sphere centered on a point within range. Until the spell ends, a creature that enters the spell's area for the first time on a turn or starts its turn there makes a Charisma saving throw. On a failed save, a creature can't speak a deliberate lie while in the radius. You know whether a creature succeeds or fails on this save.</p><p>An affected creature is aware of the spell and can avoid answering questions to which it would normally respond with a lie. Such a creature can be evasive yet must be truthful.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-zone-of-truth",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.2",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.3",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.4",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.2": 2,
+                "spell-slot.3": 3,
+                "spell-slot.4": 4,
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Zone of Truth"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "PsTixp9srIi2sCpI",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest",
+              "effect: \"Cannot Lie\" (its own changes) not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmArcaneProwl000",
+      "_key": "!actors.items!mmSphinxOfValor0.mmArcaneProwl000",
+      "name": "Arcane Prowl",
+      "type": "action",
+      "img": "icons/creatures/magical/humanoid-silhouette-dashing-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The sphinx of valor can teleport up to 30 feet to an unoccupied space it can see, and it makes one  attack.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-arcane-prowl-expend-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "legendary-action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Arcane Prowl"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmArcaneProwl000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmWeightOfYears0",
+      "_key": "!actors.items!mmSphinxOfValor0.mmWeightOfYears0",
+      "name": "Weight of Years (Save)",
+      "type": "action",
+      "img": "icons/magic/death/hand-withered-gray.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\"><em>Constitution Saving Throw:</em> DC 16, one creature the sphinx of valor can see within 120 feet.</p><p><em>Failure:</em> The target gains 1 Exhaustion level. While the target has any Exhaustion levels, it appears 3d10 years older.</p><p><em>Failure or Success:</em> The sphinx of valor can't take this action again until the start of its next turn.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-weight-of-years-save",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "legendary-action",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 120,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "fortitude",
+            "dc": {
+              "value": 16
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "exhaustion",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
+          "label": "Weight of Years (Save)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmWeightOfYears0",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmSphinxOfVatrts",
+      "_key": "!actors.items!mmSphinxOfValor0.mmSphinxOfVatrts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "resistances",
+            "type": "GrantResistance",
+            "data": {
+              "damageTypes": [
+                "necrotic",
+                "radiant"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "immunities",
+            "type": "GrantImmunity",
+            "data": {
+              "damageTypes": [
+                "psychic"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "speed-fly",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "fly",
+              "distance": 60
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "legendary-actions",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "legendary-action",
+              "label": "Legendary Actions",
+              "maximum": 3,
+              "recovery": "turn"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmSphinxOfValor0",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 17
+      },
+      "conversion": {
+        "notes": [
+          "Legendary Resistance: \"Expend Use\" is passive or triggered: not automated",
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
+          "Roar: not automated (save): using it spends its cost; its description says the rest",
+          "Roar: consumption: activityUses 1 not converted",
+          "Roar: effect: frightened is not a WildPath condition yet",
+          "Roar: effect: paralyzed is not a WildPath condition yet",
+          "Spellcasting: not automated (cast): using it spends its cost; its description says the rest",
+          "Spellcasting: consumption: activityUses 1 not converted",
+          "Detect Evil and Good: not automated (utility): using it spends its cost; its description says the rest",
+          "Detect Evil and Good: effect: \"Detect Evil and Good\" (its own changes) not converted",
+          "Detect Evil and Good: concentration: nothing it sustains was converted",
+          "Thaumaturgy: not automated (utility): using it spends its cost; its description says the rest",
+          "Detect Magic: not automated (utility): using it spends its cost; its description says the rest",
+          "Detect Magic: effect: \"Detect Magic\" (its own changes) not converted",
+          "Detect Magic: concentration: nothing it sustains was converted",
+          "Dispel Magic: not automated (utility): using it spends its cost; its description says the rest",
+          "Greater Restoration: not automated (utility): using it spends its cost; its description says the rest",
+          "Heroes' Feast: not automated (utility): using it spends its cost; its description says the rest",
+          "Heroes' Feast: activation: 10 minute is not an action-economy cost",
+          "Heroes' Feast: consumption: itemUses -12 not converted",
+          "Heroes' Feast: area: 10-ft cube is not supported; the user picks the targets",
+          "Heroes' Feast: activation: 1 hour is not an action-economy cost",
+          "Heroes' Feast: healing: more healing at higher levels not converted",
+          "Heroes' Feast: effect: \"Feast's Benefits\" (its own changes) not converted",
+          "Zone of Truth: not automated (save): using it spends its cost; its description says the rest",
+          "Zone of Truth: effect: \"Cannot Lie\" (its own changes) not converted",
+          "Arcane Prowl: not automated (utility): using it spends its cost; its description says the rest",
+          "Weight of Years: \"Years Older\" is passive or triggered: not automated",
+          "condition immunities (charmed, frightened) not converted"
+        ]
+      }
+    }
+  }
+}

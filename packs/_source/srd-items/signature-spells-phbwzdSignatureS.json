@@ -1,0 +1,32 @@
+{
+  "_id": "phbwzdSignatureS",
+  "_key": "!items!phbwzdSignatureS",
+  "name": "Signature Spells",
+  "type": "feature",
+  "img": "icons/magic/fire/projectile-wave-arrow.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Choose two level 3 spells in your spellbook as your signature spells. You always have these spells prepared, and you can cast each of them once at level 3 without expending a spell slot. When you do so, you can't cast them in this way again until you finish a Short or Long Rest. To cast either spell at a higher level, you must expend a spell slot.</p><section class=\"secret\" id=\"secret-fzEf6z2A0SKM0qHw\"><p><strong>Foundry Note</strong></p><p>The <strong>Make Signature</strong> activity can be used to enchant two spells which marks them as \"Always Prepared\" and adds \", Signature\" to their title for easy identification.</p><p>The <strong>Expend First Spell</strong> and <strong>Expend Second Spell</strong> activities can be used for tracking your free use of each spell and refresh on a Short and Long Rest.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbwzdSignatureS",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Make Signature\" is passive or triggered: not automated",
+          "\"Expend First Spell\" is passive or triggered: not automated",
+          "\"Expend Second Spell\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

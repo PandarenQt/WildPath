@@ -1,0 +1,206 @@
+{
+  "_id": "mmZombie00000000",
+  "_key": "!actors!mmZombie00000000",
+  "name": "Zombie",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 13
+      },
+      "agility": {
+        "value": 6
+      },
+      "fortitude": {
+        "value": 16
+      },
+      "intellect": {
+        "value": 3
+      },
+      "wits": {
+        "value": 6,
+        "saveProficient": true
+      },
+      "presence": {
+        "value": 5
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 8
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 15,
+        "value": 15
+      },
+      "movement": {
+        "base": 20,
+        "value": 20
+      }
+    },
+    "details": {
+      "threat": 0
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Zombie",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmUndeadFortitud",
+      "_key": "!actors.items!mmZombie00000000.mmUndeadFortitud",
+      "name": "Undead Fortitude",
+      "type": "feature",
+      "img": "icons/magic/death/skull-flames-white-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">If damage reduces the zombie to 0 Hit Points, it makes a Constitution saving throw (DC 5 plus the damage taken) unless the damage is Radiant or from a Critical Hit. On a successful save, the zombie drops to 1 Hit Point instead.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmUndeadFortitud",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmSlam0000000000",
+      "_key": "!actors.items!mmZombie00000000.mmSlam0000000000",
+      "name": "Slam",
+      "type": "action",
+      "img": "icons/magic/sonic/explosion-impact-shock-wave.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +3, reach 5 ft. Hit: 5 (1d8 + 1) Bludgeoning damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-slam",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 8
+              },
+              "damageType": "bludgeoning",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Slam"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSlam0000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmZombie0000trts",
+      "_key": "!actors.items!mmZombie00000000.mmZombie0000trts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "immunities",
+            "type": "GrantImmunity",
+            "data": {
+              "damageTypes": [
+                "poison"
+              ]
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmZombie00000000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 0.25
+      },
+      "conversion": {
+        "notes": [
+          "condition immunities (exhaustion, poisoned) not converted"
+        ]
+      }
+    }
+  }
+}

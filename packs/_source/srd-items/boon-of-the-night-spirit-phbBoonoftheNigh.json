@@ -1,0 +1,44 @@
+{
+  "_id": "phbBoonoftheNigh",
+  "_key": "!items!phbBoonoftheNigh",
+  "name": "Boon of the Night Spirit",
+  "type": "action",
+  "img": "icons/magic/unholy/silhouette-robe-evil-power.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You gain the following benefits.</p><p><strong>Ability Score Increase.</strong> Increase one ability score of your choice by 1, to a maximum of 30.</p><p><strong>Merge with Shadows.</strong> While within Dim Light or Darkness, you can give yourself the Invisible condition as a Bonus Action. The condition ends on you immediately after you take an action, a Bonus Action, or a Reaction.</p><p><strong>Shadowy Form.</strong> While within Dim Light or Darkness, you have Resistance to all damage except Psychic and Radiant.</p><section id=\"secret-fpWHPSTNYUeGtg0w\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This feature's <strong>Boon of the Night Spirit</strong> Active Effect includes the Resistances but must be toggled on/off in the Effects tab of your sheet.</p><p>The <strong>Merge with Shadows</strong> activity includes an Active Effect that applies the Invisible condition.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-boon-of-the-night-spirit-merge-with-the-shadows",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Boon of the Night Spirit"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "feats24",
+        "id": "phbBoonoftheNigh",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: invisible is not a WildPath condition yet"
+        ]
+      }
+    }
+  }
+}

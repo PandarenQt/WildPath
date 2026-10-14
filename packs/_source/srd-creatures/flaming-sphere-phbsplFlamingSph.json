@@ -1,0 +1,150 @@
+{
+  "_id": "phbsplFlamingSph",
+  "_key": "!actors!phbsplFlamingSph",
+  "name": "Flaming Sphere",
+  "type": "npc",
+  "img": "icons/magic/fire/flame-burning-earth-yellow.webp",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 0
+      },
+      "agility": {
+        "value": 0
+      },
+      "fortitude": {
+        "value": 0
+      },
+      "intellect": {
+        "value": 0
+      },
+      "wits": {
+        "value": 0
+      },
+      "presence": {
+        "value": 0
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 5
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 10,
+        "value": 10
+      },
+      "movement": {
+        "base": 30,
+        "value": 30
+      }
+    },
+    "details": {
+      "threat": 0
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Flaming Sphere",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "phbftFlamingSphe",
+      "_key": "!actors.items!phbsplFlamingSph.phbftFlamingSphe",
+      "name": "Flames",
+      "type": "feature",
+      "img": "icons/magic/fire/barrier-wall-explosion-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You create a 5-foot-diameter sphere of fire in an unoccupied space on the ground within range. It lasts for the duration. Any creature that ends its turn within 5 feet of the sphere makes a Dexterity saving throw, taking 2d6 Fire damage on a failed save or half as much damage on a successful one.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbftFlamingSphe",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "\"save\" is passive or triggered: not automated"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "phbaoiFlamingSph",
+      "_key": "!actors.items!phbsplFlamingSph.phbaoiFlamingSph",
+      "name": "Roll",
+      "type": "action",
+      "img": "icons/magic/fire/explosion-embers-evade-silhouette.webp",
+      "system": {
+        "active": true,
+        "description": "<p>As a Bonus Action, you can move the sphere up to 30 feet, rolling it along the ground. If you move the sphere into a creature's space, that creature makes the save against the sphere, and the sphere stops moving for the turn.</p><p>When you move the sphere, you can direct it over barriers up to 5 feet tall and jump it across pits up to 10 feet wide. Flammable objects that aren't being worn or carried start burning if touched by the sphere.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-roll-move-and-save",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Roll"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbaoiFlamingSph",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "phbsplFlamingSph",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 0
+      },
+      "conversion": {
+        "notes": [
+          "Flames: \"save\" is passive or triggered: not automated",
+          "Roll: not automated (save): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

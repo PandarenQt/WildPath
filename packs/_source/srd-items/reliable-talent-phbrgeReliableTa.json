@@ -1,0 +1,28 @@
+{
+  "_id": "phbrgeReliableTa",
+  "_key": "!items!phbrgeReliableTa",
+  "name": "Reliable Talent",
+  "type": "feature",
+  "img": "icons/skills/ranged/target-bullseye-arrow-glowing.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Whenever you make an ability check that uses one of your skill or tool proficiencies, you can treat a d20 roll of 9 or lower as a 10.</p><section class=\"secret\" id=\"secret-FOATC0HOce35kD20\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect which automates the minimum roll of 10 on your skill and tool proficiencies.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbrgeReliableTa",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

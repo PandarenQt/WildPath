@@ -1,0 +1,83 @@
+{
+  "_id": "phbsptStormsThun",
+  "_key": "!items!phbsptStormsThun",
+  "name": "Storm's Thunder",
+  "type": "action",
+  "img": "icons/magic/lightning/bolts-salvo-clouds-sky.webp",
+  "system": {
+    "active": true,
+    "description": "<p>When you take damage from a creature within 60 feet of you, you can take a Reaction to deal 1d8 Thunder damage to that creature.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-storm-s-thunder-storm-s-thunder",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "reaction",
+            "amount": 1
+          },
+          {
+            "capability": "storm-s-thunder",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "dice",
+            "number": 1,
+            "faces": 8
+          },
+          "damageType": "thunder",
+          "provenance": "additional"
+        }
+      ],
+      "label": "Storm's Thunder"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "storm-s-thunder-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "storm-s-thunder",
+          "label": "Storm's Thunder",
+          "maximum": {
+            "type": "proficiency-bonus"
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "origins24",
+        "id": "phbsptStormsThun",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

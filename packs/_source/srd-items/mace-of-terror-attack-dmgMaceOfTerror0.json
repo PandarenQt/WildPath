@@ -1,0 +1,88 @@
+{
+  "_id": "dmgMaceOfTerror0",
+  "_key": "!items!dmgMaceOfTerror0",
+  "name": "Mace of Terror (attack)",
+  "type": "action",
+  "img": "icons/weapons/maces/mace-spiked-skull.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Weapon (Mace). Rare (Requires Attunement)</em></p><p>This magic weapon has 3 charges and regains 1d3 expended charges daily at dawn. While holding the weapon, you can take a Magic action and expend 1 charge to release a wave of terror from it. Each creature of your choice within 30 feet of you must succeed on a DC 15 Wisdom saving throw or have the Frightened condition for 1 minute. While Frightened in this way, a creature must spend its turns trying to move as far away from you as it can, and it can't make Opportunity Attacks. For its action, it can use only the Dash action or try to escape from an effect that prevents it from moving. If it has nowhere it can move, the creature can take the Dodge action. At the end of each of its turns, a creature repeats the save, ending the effect on itself on a success.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-mace-of-terror",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "attack": {
+        "type": "melee",
+        "statistic": "weapon",
+        "defenseKey": "ac",
+        "proficient": true
+      },
+      "range": {
+        "type": "reach",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "damage": [
+        {
+          "id": "base",
+          "expression": {
+            "type": "dice",
+            "number": 1,
+            "faces": 6
+          },
+          "damageType": "bludgeoning",
+          "provenance": "weapon-base"
+        }
+      ],
+      "label": "Mace of Terror (attack)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "mace-of-terror-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "mace-of-terror",
+          "label": "Mace of Terror",
+          "maximum": {
+            "type": "constant",
+            "value": 3
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgMaceOfTerror0",
+        "type": "weapon",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool"
+        ]
+      }
+    }
+  }
+}

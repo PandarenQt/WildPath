@@ -1,0 +1,383 @@
+{
+  "_id": "phbmobDraconicSp",
+  "_key": "!actors!phbmobDraconicSp",
+  "name": "Draconic Spirit",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 19
+      },
+      "agility": {
+        "value": 14
+      },
+      "fortitude": {
+        "value": 17
+      },
+      "intellect": {
+        "value": 10
+      },
+      "wits": {
+        "value": 14
+      },
+      "presence": {
+        "value": 14
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 14
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 50,
+        "value": 50
+      },
+      "movement": {
+        "base": 30,
+        "value": 30
+      }
+    },
+    "details": {
+      "threat": 0
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Draconic Spirit",
+    "width": 2,
+    "height": 2,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "phbaoiSharedResi",
+      "_key": "!actors.items!phbmobDraconicSp.phbaoiSharedResi",
+      "name": "Shared Resistances",
+      "type": "feature",
+      "img": "icons/magic/symbols/triangle-glowing-green.webp",
+      "system": {
+        "active": true,
+        "description": "<p>When you summon the spirit, choose one of its Resistances. You have Resistance to the chosen damage type until the spell ends.</p><section id=\"secret-FlNLM1mGXlBLAFfA\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>Active effects and activities applying those effects on this item are provided for optional application of the chosen resistance.</p></section>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbaoiSharedResi",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "\"Share Acid Resistance\" is passive or triggered: not automated",
+              "\"Share Cold Resistance\" is passive or triggered: not automated",
+              "\"Share Fire Resistance\" is passive or triggered: not automated",
+              "\"Share Lightning Resistance\" is passive or triggered: not automated",
+              "\"Share Poison Resistance\" is passive or triggered: not automated"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "phbaoiMultiattac",
+      "_key": "!actors.items!phbmobDraconicSp.phbaoiMultiattac",
+      "name": "Multiattack",
+      "type": "action",
+      "img": "icons/magic/movement/abstract-ribbons-red-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The spirit makes a number of  attacks equal to half the spell's level (round down), and it uses .</p><p class=\"hide-in-embed\">Number of attacks</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-multiattack-activate",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Multiattack"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbaoiMultiattac",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "phbaoiRend000000",
+      "_key": "!actors.items!phbmobDraconicSp.phbaoiRend000000",
+      "name": "Rend",
+      "type": "action",
+      "img": "icons/skills/melee/blood-slash-foam-red.webp",
+      "system": {
+        "active": true,
+        "description": "<p><em>Melee Attack: </em>Bonus equals your spell attack modifier, reach 10 feet. <em>Hit: </em>1d6 + 4 + the spell's level Piercing damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-rend",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 10,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "dice",
+                    "number": 1,
+                    "faces": 6
+                  },
+                  {
+                    "type": "spellcasting-modifier"
+                  }
+                ]
+              },
+              "damageType": "piercing",
+              "provenance": "additional"
+            }
+          ],
+          "label": "Rend"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbaoiRend000000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "phbaoiBreathWeap",
+      "_key": "!actors.items!phbmobDraconicSp.phbaoiBreathWeap",
+      "name": "Breath Weapon",
+      "type": "action",
+      "img": "icons/creatures/abilities/dragon-fire-breath-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p><em>Dexterity Saving Throw: </em>DC equals your spell save DC, each creature in a 30-foot Cone. <em>Failure: </em>2d6 damage of a type this spirit has Resistance to (your choice when you cast the spell). <em>Success: </em>Half damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-breath-weapon",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "cone",
+            "size": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "save": {
+            "ability": "agility",
+            "dc": {
+              "valueExpression": {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "constant",
+                    "value": 8
+                  },
+                  {
+                    "type": "proficiency-bonus"
+                  },
+                  {
+                    "type": "spellcasting-modifier"
+                  }
+                ]
+              }
+            }
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 6
+              },
+              "damageType": "acid",
+              "provenance": "additional",
+              "saveOutcomePolicy": {
+                "success": "half",
+                "failure": "full"
+              }
+            }
+          ],
+          "label": "Breath Weapon"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbaoiBreathWeap",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "damage 1: a choice of acid/cold/fire/lightning/poison uses acid"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "phbmobDracontrts",
+      "_key": "!actors.items!phbmobDraconicSp.phbmobDracontrts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "resistances",
+            "type": "GrantResistance",
+            "data": {
+              "damageTypes": [
+                "acid",
+                "cold",
+                "fire",
+                "lightning",
+                "poison"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "speed-fly",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "fly",
+              "distance": 60
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "speed-swim",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "swim",
+              "distance": 30
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "phbmobDraconicSp",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 0
+      },
+      "conversion": {
+        "notes": [
+          "Shared Resistances: \"Share Acid Resistance\" is passive or triggered: not automated",
+          "Shared Resistances: \"Share Cold Resistance\" is passive or triggered: not automated",
+          "Shared Resistances: \"Share Fire Resistance\" is passive or triggered: not automated",
+          "Shared Resistances: \"Share Lightning Resistance\" is passive or triggered: not automated",
+          "Shared Resistances: \"Share Poison Resistance\" is passive or triggered: not automated",
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
+          "Breath Weapon: damage 1: a choice of acid/cold/fire/lightning/poison uses acid",
+          "condition immunities (charmed, frightened, poisoned) not converted"
+        ]
+      }
+    }
+  }
+}

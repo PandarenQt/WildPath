@@ -1,0 +1,982 @@
+{
+  "_id": "mmDrider00000000",
+  "_key": "!actors!mmDrider00000000",
+  "name": "Drider",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 16
+      },
+      "agility": {
+        "value": 19
+      },
+      "fortitude": {
+        "value": 18
+      },
+      "intellect": {
+        "value": 13
+      },
+      "wits": {
+        "value": 16
+      },
+      "presence": {
+        "value": 12
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 19
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 123,
+        "value": 123
+      },
+      "movement": {
+        "base": 30,
+        "value": 30
+      }
+    },
+    "details": {
+      "threat": 6
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Drider",
+    "width": 2,
+    "height": 2,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmSpiderClimb000",
+      "_key": "!actors.items!mmDrider00000000.mmSpiderClimb000",
+      "name": "Spider Climb",
+      "type": "feature",
+      "img": "icons/creatures/invertebrates/spider-pink-purple.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The drider can climb difficult surfaces, including along ceilings, without needing to make an ability check.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSpiderClimb000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmSunlightSensit",
+      "_key": "!actors.items!mmDrider00000000.mmSunlightSensit",
+      "name": "Sunlight Sensitivity",
+      "type": "feature",
+      "img": "icons/creatures/eyes/humanoid-single-blind.webp",
+      "system": {
+        "active": true,
+        "description": "<p>While in sunlight, the drider has Disadvantage on ability checks and attack rolls.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSunlightSensit",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmWebWalker00000",
+      "_key": "!actors.items!mmDrider00000000.mmWebWalker00000",
+      "name": "Web Walker",
+      "type": "feature",
+      "img": "icons/creatures/webs/web-spider-glowing-purple.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The drider ignores movement restrictions caused by webs, and the drider knows the location of any other creature in contact with the same web.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmWebWalker00000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmMultiattack000",
+      "_key": "!actors.items!mmDrider00000000.mmMultiattack000",
+      "name": "Multiattack",
+      "type": "action",
+      "img": "icons/skills/melee/strike-weapons-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p><span style=\"font-family:'Roboto Condensed', sans-serif\">The </span>drider<span style=\"font-family:'Roboto Condensed', sans-serif\"> makes three attacks, using </span>Foreleg <span style=\"font-family:'Roboto Condensed', sans-serif\">or </span>Poison Burst <span style=\"font-family:'Roboto Condensed', sans-serif\">in any combination.</span></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-multiattack-expend-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Multiattack"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMultiattack000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmForeleg0000000",
+      "_key": "!actors.items!mmDrider00000000.mmForeleg0000000",
+      "name": "Foreleg",
+      "type": "action",
+      "img": "icons/creatures/claws/claw-curved-poison-purple.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Melee Attack Roll: +7, reach 10 ft. Hit: 13 (2d8 + 4) Piercing damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-foreleg",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "agility"
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 10,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 8
+              },
+              "damageType": "piercing",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Foreleg"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmForeleg0000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmPoisonBurst000",
+      "_key": "!actors.items!mmDrider00000000.mmPoisonBurst000",
+      "name": "Poison Burst",
+      "type": "action",
+      "img": "icons/magic/acid/projectile-faceted-glob.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Ranged Attack Roll: +6, range 120 ft. Hit: 13 (3d6 + 3) Poison damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-poison-burst",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "ranged",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "might"
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 120,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 3,
+                "faces": 6
+              },
+              "damageType": "poison",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Poison Burst"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmPoisonBurst000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmMagicOfTheSpid",
+      "_key": "!actors.items!mmDrider00000000.mmMagicOfTheSpid",
+      "name": "Magic of the Spider Queen (cast)",
+      "type": "action",
+      "img": "icons/magic/light/hand-sparks-glow-yellow.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The drider casts <em>Darkness</em>, <em>Faerie Fire</em>, or <em>Web</em>, requiring no Material components and using Wisdom as the spellcasting ability (spell save DC ).</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-magic-of-the-spider-queen",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              },
+              {
+                "capability": "magic-of-the-spider-queen",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Magic of the Spider Queen (cast)"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "magic-of-the-spider-queen-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "magic-of-the-spider-queen",
+              "label": "Magic of the Spider Queen",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "none"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMagicOfTheSpid",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest",
+              "uses: Recharge 5–6 is not rolled; refill the pool by hand"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "ttvcot6ikf6n0000",
+      "_key": "!actors.items!mmDrider00000000.ttvcot6ikf6n0000",
+      "name": "Magic of the Spider Queen (cast)",
+      "type": "action",
+      "img": "icons/magic/light/hand-sparks-glow-yellow.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The drider casts <em>Darkness</em>, <em>Faerie Fire</em>, or <em>Web</em>, requiring no Material components and using Wisdom as the spellcasting ability (spell save DC ).</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-magic-of-the-spider-queen",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              },
+              {
+                "capability": "magic-of-the-spider-queen",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Magic of the Spider Queen (cast)"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "magic-of-the-spider-queen-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "magic-of-the-spider-queen",
+              "label": "Magic of the Spider Queen",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "none"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMagicOfTheSpid",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest",
+              "uses: Recharge 5–6 is not rolled; refill the pool by hand"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "szwjlw153t2ts000",
+      "_key": "!actors.items!mmDrider00000000.szwjlw153t2ts000",
+      "name": "Magic of the Spider Queen (cast)",
+      "type": "action",
+      "img": "icons/magic/light/hand-sparks-glow-yellow.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The drider casts <em>Darkness</em>, <em>Faerie Fire</em>, or <em>Web</em>, requiring no Material components and using Wisdom as the spellcasting ability (spell save DC ).</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-magic-of-the-spider-queen",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              },
+              {
+                "capability": "magic-of-the-spider-queen",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Magic of the Spider Queen (cast)"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "magic-of-the-spider-queen-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "magic-of-the-spider-queen",
+              "label": "Magic of the Spider Queen",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "none"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMagicOfTheSpid",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest",
+              "uses: Recharge 5–6 is not rolled; refill the pool by hand"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "OMFNXlIWcvgZPTwl",
+      "_key": "!actors.items!mmDrider00000000.OMFNXlIWcvgZPTwl",
+      "name": "Darkness",
+      "type": "action",
+      "img": "icons/magic/unholy/orb-rays-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>For the duration, magical Darkness spreads from a point within range and fills a 15-foot-radius Sphere. Darkvision can't see through it, and nonmagical light can't illuminate it.</p><p>Alternatively, you cast the spell on an object that isn't being worn or carried, causing the Darkness to fill a 15-foot Emanation originating from that object. Covering that object with something opaque, such as a bowl or helm, blocks the Darkness.</p><p>If any of this spell's area overlaps with an area of Bright Light or Dim Light created by a spell of level 2 or lower, that other spell is dispelled.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-darkness",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.2",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.3",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.4",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.2": 2,
+                "spell-slot.3": 3,
+                "spell-slot.4": 4,
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Darkness"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "OMFNXlIWcvgZPTwl",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "concentration: nothing it sustains was converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "cTOigW9T4CgF7fb5",
+      "_key": "!actors.items!mmDrider00000000.cTOigW9T4CgF7fb5",
+      "name": "Faerie Fire",
+      "type": "action",
+      "img": "icons/magic/fire/projectile-meteor-salvo-strong-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Objects in a 20-foot Cube within range are outlined in blue, green, or violet light (your choice). Each creature in the Cube is also outlined if it fails a Dexterity saving throw. For the duration, objects and affected creatures shed Dimlight in a 10-foot radius and can't benefit from the Invisible condition.</p><p>Attack rolls against an affected creature or object have Advantage if the attacker can see it.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-faerie-fire",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.1",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.2",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.3",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.4",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.1": 1,
+                "spell-slot.2": 2,
+                "spell-slot.3": 3,
+                "spell-slot.4": 4,
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Faerie Fire"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "cTOigW9T4CgF7fb5",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest",
+              "area: 20-ft cube is not supported; the user picks the targets",
+              "effect: \"Outlined\" (its own changes) not converted",
+              "concentration: nothing it sustains was converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "gAdVTIyqf9DLBQT4",
+      "_key": "!actors.items!mmDrider00000000.gAdVTIyqf9DLBQT4",
+      "name": "Web",
+      "type": "action",
+      "img": "icons/creatures/webs/web-spider-casting-caught-purple.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You conjure a mass of sticky webbing at a point within range. The webs fill a 20-foot Cube there for the duration. The webs are Difficultterrain, and the area within them is Lightlyobscured.</p><p>If the webs aren't anchored between two solid masses (such as walls or trees) or layered across a floor, wall, or ceiling, the web collapses on itself, and the spell ends at the start of your next turn. Webs layered over a flat surface have a depth of 5 feet.</p><p>The first time a creature enters the webs on a turn or starts its turn there, it must succeed on a Dexterity saving throw or have the Restrained condition while in the webs or until it breaks free.</p><p>A creature Restrained by the webs can take an action to make a DC @attributes.spell.dc Strength (Athletics) check check against your spell save DC. If it succeeds, it is no longer Restrained.</p><p>The webs are flammable. Any 5-foot Cube of webs exposed to fire burns away in 1 round, dealing 2d4 Fire damage to any creature that starts its turn in the fire.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-web",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 60,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "multiple",
+            "required": true,
+            "count": 20
+          },
+          "save": {
+            "ability": "agility",
+            "dc": {
+              "valueExpression": {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "constant",
+                    "value": 8
+                  },
+                  {
+                    "type": "proficiency-bonus"
+                  },
+                  {
+                    "type": "spellcasting-modifier"
+                  }
+                ]
+              }
+            }
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 4
+              },
+              "damageType": "fire",
+              "provenance": "spell-base"
+            }
+          ],
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.2",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.3",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.4",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.2": 2,
+                "spell-slot.3": 3,
+                "spell-slot.4": 4,
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Web"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "gAdVTIyqf9DLBQT4",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "area: 20-ft cube is not supported; the user picks the targets",
+              "concentration: nothing it sustains was converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmDrider0000trts",
+      "_key": "!actors.items!mmDrider00000000.mmDrider0000trts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "speed-climb",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "climb",
+              "distance": 30
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmDrider00000000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 6
+      },
+      "conversion": {
+        "notes": [
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
+          "Magic of the Spider Queen: not automated (cast): using it spends its cost; its description says the rest",
+          "Magic of the Spider Queen: uses: Recharge 5–6 is not rolled; refill the pool by hand",
+          "Darkness: not automated (utility): using it spends its cost; its description says the rest",
+          "Darkness: concentration: nothing it sustains was converted",
+          "Faerie Fire: not automated (save): using it spends its cost; its description says the rest",
+          "Faerie Fire: area: 20-ft cube is not supported; the user picks the targets",
+          "Faerie Fire: effect: \"Outlined\" (its own changes) not converted",
+          "Faerie Fire: concentration: nothing it sustains was converted",
+          "Web: area: 20-ft cube is not supported; the user picks the targets",
+          "Web: concentration: nothing it sustains was converted"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "_id": "phbinvMistyVisio",
+  "_key": "!items!phbinvMistyVisio",
+  "name": "Misty Visions",
+  "type": "action",
+  "img": "icons/magic/air/air-burst-spiral-teal-green.webp",
+  "system": {
+    "active": true,
+    "description": "<blockquote><p>Prerequisite: Level 2+ Warlock</p></blockquote><p>You can cast Silent Image without expending a spell slot.</p><section class=\"secret\" id=\"secret-zbni49FP84e1UILg\"><p><strong>Foundry Note</strong></p><p>This feature includes Silent Image's activities and can be used in its place.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-misty-visions",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Misty Visions"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbinvMistyVisio",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (summon): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

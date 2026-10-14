@@ -1,0 +1,28 @@
+{
+  "_id": "phbscrDraconicRe",
+  "_key": "!items!phbscrDraconicRe",
+  "name": "Draconic Resilience",
+  "type": "feature",
+  "img": "icons/creatures/claws/claw-scaled-red.webp",
+  "system": {
+    "active": true,
+    "description": "<p>The magic in your body manifests physical traits of your draconic gift. Your Hit Point maximum increases by 3, and it increases by 1 whenever you gain another Sorcerer level.</p><p>Parts of you are also covered by dragon-like scales. While you aren't wearing armor, your base Armor Class equals 10 plus your Dexterity and Charisma modifiers.</p><section class=\"secret\" id=\"secret-uBlQVhOqmjWWiLc4\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect that automatically increases your Hit Point maximum and sets up your Unarmored Defense which can be disabled if you would prefer to use armor.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbscrDraconicRe",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

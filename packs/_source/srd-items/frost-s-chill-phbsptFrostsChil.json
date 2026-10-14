@@ -1,0 +1,44 @@
+{
+  "_id": "phbsptFrostsChil",
+  "_key": "!items!phbsptFrostsChil",
+  "name": "Frost's Chill",
+  "type": "feature",
+  "img": "icons/magic/water/heart-ice-freeze.webp",
+  "system": {
+    "active": true,
+    "description": "<p>When you hit a target with an attack roll and deal damage to it, you can also deal 1d6 Cold damage to that target and reduce its Speed by 10 feet until the start of your next turn.</p><section id=\"secret-jxuUuY0r33aiP0zL\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect which can be used for tracking and reduces their Speed by 10.</p></section>",
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "frost-s-chill-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "frost-s-chill",
+          "label": "Frost's Chill",
+          "maximum": {
+            "type": "proficiency-bonus"
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "origins24",
+        "id": "phbsptFrostsChil",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Chill\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "_id": "phbclcLifeSpells",
+  "_key": "!items!phbclcLifeSpells",
+  "name": "Life Domain Spells",
+  "type": "feature",
+  "img": "icons/magic/life/cross-flared-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Your connection to this divine domain ensures you always have certain spells ready. When you reach a Cleric level specified in the Life Domain Spells table, you thereafter always have the listed spells prepared.</p><table><caption>Life Domain Spells</caption><thead><tr><td>Cleric Level</td><td>Prepared Spells</td></tr></thead><tbody><tr><td>3</td><td><p>Aid, Bless, Cure Wounds,<br />Lesser Restoration</p></td></tr><tr><td>5</td><td>Mass Healing Word, Revivify</td></tr><tr><td>7</td><td>Aura of Life, Death Ward</td></tr><tr><td>9</td><td>Greater Restoration, Mass Cure Wounds</td></tr></tbody></table><section class=\"secret\" id=\"secret-Z9pAhvumQlf7onuP\"><p><strong>Foundry Note</strong></p><p>These spells are granted automatically as you advance.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbclcLifeSpells",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

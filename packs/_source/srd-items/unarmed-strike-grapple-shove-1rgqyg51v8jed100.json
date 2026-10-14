@@ -1,0 +1,45 @@
+{
+  "_id": "1rgqyg51v8jed100",
+  "_key": "!items!1rgqyg51v8jed100",
+  "name": "Unarmed Strike (Grapple/Shove)",
+  "type": "action",
+  "img": "icons/skills/melee/unarmed-punch-fist-yellow-red.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Unarmed Strike Rules</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-unarmed-strike-grapple-shove",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Unarmed Strike (Grapple/Shove)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbbrbUnarmedStr",
+        "type": "weapon",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (save): using it spends its cost; its description says the rest",
+          "save: a choice of str/dex uses str",
+          "save: str/dex DC (str) not converted"
+        ]
+      }
+    }
+  }
+}

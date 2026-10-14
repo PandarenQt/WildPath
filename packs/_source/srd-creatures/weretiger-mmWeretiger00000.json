@@ -1,0 +1,515 @@
+{
+  "_id": "mmWeretiger00000",
+  "_key": "!actors!mmWeretiger00000",
+  "name": "Weretiger",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 17
+      },
+      "agility": {
+        "value": 15
+      },
+      "fortitude": {
+        "value": 16
+      },
+      "intellect": {
+        "value": 10
+      },
+      "wits": {
+        "value": 13
+      },
+      "presence": {
+        "value": 11
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 12
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 120,
+        "value": 120
+      },
+      "movement": {
+        "base": 30,
+        "value": 30
+      }
+    },
+    "details": {
+      "threat": 4
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Weretiger",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "Spw5gbTlI2AKsGWd",
+      "_key": "!actors.items!mmWeretiger00000.Spw5gbTlI2AKsGWd",
+      "name": "Longbow (Humanoid or Hybrid Form Only)",
+      "type": "action",
+      "img": "icons/weapons/bows/longbow-recurve-leather-brown.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Ranged Attack Roll: +4, range 150/600 ft. Hit: 11 (2d8 + 2) Piercing damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-longbow-humanoid-or-hybrid-form-only",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "ranged",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 150,
+              "unit": "ft"
+            },
+            "long": {
+              "value": 600,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 8
+              },
+              "damageType": "piercing",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Longbow (Humanoid or Hybrid Form Only)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "Spw5gbTlI2AKsGWd",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmMultiattack000",
+      "_key": "!actors.items!mmWeretiger00000.mmMultiattack000",
+      "name": "Multiattack",
+      "type": "action",
+      "img": "icons/skills/melee/strike-weapons-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The weretiger two attacks, using Scratch or Longbow in any combination. It can replace one attack with a Bite attack.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-multiattack-expend-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Multiattack"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMultiattack000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmBite0000000000",
+      "_key": "!actors.items!mmWeretiger00000.mmBite0000000000",
+      "name": "Bite (Tiger or Hybrid Form Only) (attack)",
+      "type": "action",
+      "img": "icons/creatures/abilities/fangs-teeth-bite.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +5, reach 5 ft. Hit: 12 (2d8 + 3) Piercing damage. If the target is a Humanoid, it is subjected to the following effect.</p><p><em>Constitution Saving Throw:</em> DC .</p><p><em>Failure:</em> The target is cursed. If the cursed target drops to 0 Hit Points, it instead becomes a <strong>Weretiger</strong> under the DM's control and has 10 Hit Points.</p><p><em>Success:</em> The target is immune to this weretiger's' curse for 24 hours.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-bite-tiger-or-hybrid-form-only",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 8
+              },
+              "damageType": "piercing",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Bite (Tiger or Hybrid Form Only) (attack)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmBite0000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "2yhunondknwq0000",
+      "_key": "!actors.items!mmWeretiger00000.2yhunondknwq0000",
+      "name": "Bite (Tiger or Hybrid Form Only) (save)",
+      "type": "action",
+      "img": "icons/creatures/abilities/fangs-teeth-bite.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +5, reach 5 ft. Hit: 12 (2d8 + 3) Piercing damage. If the target is a Humanoid, it is subjected to the following effect.</p><p><em>Constitution Saving Throw:</em> DC .</p><p><em>Failure:</em> The target is cursed. If the cursed target drops to 0 Hit Points, it instead becomes a <strong>Weretiger</strong> under the DM's control and has 10 Hit Points.</p><p><em>Success:</em> The target is immune to this weretiger's' curse for 24 hours.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-bite-tiger-or-hybrid-form-only",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Bite (Tiger or Hybrid Form Only) (save)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmBite0000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest",
+              "save: con DC (8 + @mod + @prof) not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "3sgnql1ml0wg5000",
+      "_key": "!actors.items!mmWeretiger00000.3sgnql1ml0wg5000",
+      "name": "Bite (Tiger or Hybrid Form Only) (Become Weretiger)",
+      "type": "action",
+      "img": "icons/creatures/abilities/fangs-teeth-bite.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +5, reach 5 ft. Hit: 12 (2d8 + 3) Piercing damage. If the target is a Humanoid, it is subjected to the following effect.</p><p><em>Constitution Saving Throw:</em> DC .</p><p><em>Failure:</em> The target is cursed. If the cursed target drops to 0 Hit Points, it instead becomes a <strong>Weretiger</strong> under the DM's control and has 10 Hit Points.</p><p><em>Success:</em> The target is immune to this weretiger's' curse for 24 hours.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-bite-tiger-or-hybrid-form-only-become-weretiger",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Bite (Tiger or Hybrid Form Only) (Become Weretiger)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmBite0000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (summon): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmScratch0000000",
+      "_key": "!actors.items!mmWeretiger00000.mmScratch0000000",
+      "name": "Scratch",
+      "type": "action",
+      "img": "icons/skills/melee/blood-slash-foam-red.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Melee Attack Roll: +5, reach 5 ft. Hit: 10 (2d6 + 3) Slashing damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-scratch",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "might"
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 6
+              },
+              "damageType": "slashing",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Scratch"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmScratch0000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmShapeshift0000",
+      "_key": "!actors.items!mmWeretiger00000.mmShapeshift0000",
+      "name": "Shape-Shift",
+      "type": "action",
+      "img": "icons/magic/control/silhouette-grow-shrink-tan.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The weretiger shape-shifts into a Large tiger-humanoid hybrid form or a Large tiger, or it returns to its true humanoid form, or it returns to its true form. Its game statistics, other than its size, are the same in each form. Any equipment it is wearing or carrying isn't transformed.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-shape-shift-expend-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Shape-Shift"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmShapeshift0000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "4XnVTvvmrKKbIP8n",
+      "_key": "!actors.items!mmWeretiger00000.4XnVTvvmrKKbIP8n",
+      "name": "Prowl (Tiger or Hybrid Form Only)",
+      "type": "action",
+      "img": "icons/creatures/abilities/cougar-pounce-stalk-black.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The weretiger moves up to its Speed without provoking OpportunityAttacks. At the end of this movement, the weretiger can take the Hide action.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-prowl-tiger-or-hybrid-form-only-expend-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Prowl (Tiger or Hybrid Form Only)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "4XnVTvvmrKKbIP8n",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmWeretiger00000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 4
+      },
+      "conversion": {
+        "notes": [
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
+          "Bite (Tiger or Hybrid Form Only): not automated (save): using it spends its cost; its description says the rest",
+          "Bite (Tiger or Hybrid Form Only): save: con DC (8 + @mod + @prof) not converted",
+          "Bite (Tiger or Hybrid Form Only): not automated (summon): using it spends its cost; its description says the rest",
+          "Shape-Shift: not automated (utility): using it spends its cost; its description says the rest",
+          "Prowl (Tiger or Hybrid Form Only): not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

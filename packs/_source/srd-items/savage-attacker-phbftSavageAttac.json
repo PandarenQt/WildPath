@@ -1,0 +1,28 @@
+{
+  "_id": "phbftSavageAttac",
+  "_key": "!items!phbftSavageAttac",
+  "name": "Savage Attacker",
+  "type": "feature",
+  "img": "icons/skills/wounds/bone-broken-knee-beam.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You've trained to deal particularly damaging strikes. Once per turn when you hit a target with a weapon, you can roll the weapon's damage dice twice and use either roll against the target.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "feats24",
+        "id": "phbftSavageAttac",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

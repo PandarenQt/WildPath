@@ -1,0 +1,28 @@
+{
+  "_id": "phbPrimalOrderWa",
+  "_key": "!items!phbPrimalOrderWa",
+  "name": "Primal Order: Warden",
+  "type": "feature",
+  "img": "icons/magic/nature/barrier-shield-wood-vines.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Trained for battle, you gain proficiency with Martial weapons and training with Medium armor.</p><section id=\"secret-hVQSjHcU93Zpf54G\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect which automates the addition of your Martial weapons proficiency and Medium armor training.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbPrimalOrderWa",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

@@ -1,0 +1,559 @@
+{
+  "_id": "mmCloaker0000000",
+  "_key": "!actors!mmCloaker0000000",
+  "name": "Cloaker",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 17
+      },
+      "agility": {
+        "value": 15
+      },
+      "fortitude": {
+        "value": 12
+      },
+      "intellect": {
+        "value": 13
+      },
+      "wits": {
+        "value": 14
+      },
+      "presence": {
+        "value": 7
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 14
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 91,
+        "value": 91
+      },
+      "movement": {
+        "base": 10,
+        "value": 10
+      }
+    },
+    "details": {
+      "threat": 8
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Cloaker",
+    "width": 2,
+    "height": 2,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmLightSensitivi",
+      "_key": "!actors.items!mmCloaker0000000.mmLightSensitivi",
+      "name": "Light Sensitivity",
+      "type": "feature",
+      "img": "icons/magic/light/explosion-star-glow-yellow.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">While in Bright Light, the cloaker has Disadvantage on attack rolls.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmLightSensitivi",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmMultiattack000",
+      "_key": "!actors.items!mmCloaker0000000.mmMultiattack000",
+      "name": "Multiattack",
+      "type": "action",
+      "img": "icons/skills/melee/strike-weapons-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The cloaker makes one  attack and two  attacks.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-multiattack-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Multiattack"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMultiattack000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmAttach00000000",
+      "_key": "!actors.items!mmCloaker0000000.mmAttach00000000",
+      "name": "Attach (attack)",
+      "type": "action",
+      "img": "icons/magic/control/orb-web-hold.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +6, reach 5 ft. Hit: 13 (3d6 + 3) Piercing damage. If the target is a Large or smaller creature, the cloaker attaches to it. While the cloaker is attached, the target has the Blinded condition, and the cloaker can't make Attach attacks against other targets. In addition, the cloaker halves the damage it takes (round down), and the target takes the same amount of damage.</p><p>The cloaker can detach itself by spending 5 feet of movement. The target or a creature within 5 feet of it can take an action to try to detach the cloaker, doing so by succeeding on a DC  Strength (Athletics) check.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-attach",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 3,
+                "faces": 6
+              },
+              "damageType": "piercing",
+              "provenance": "weapon-base"
+            }
+          ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "blinded"
+            }
+          ],
+          "label": "Attach (attack)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmAttach00000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmTail0000000000",
+      "_key": "!actors.items!mmCloaker0000000.mmTail0000000000",
+      "name": "Tail",
+      "type": "action",
+      "img": "icons/creatures/abilities/tail-swipe-green.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +6, reach 10 ft. Hit: 8 (1d10 + 3) Slashing damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-tail",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 10,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 10
+              },
+              "damageType": "slashing",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Tail"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmTail0000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmPhantasms00000",
+      "_key": "!actors.items!mmCloaker0000000.mmPhantasms00000",
+      "name": "Phantasms",
+      "type": "action",
+      "img": "icons/magic/defensive/illusion-evasion-echo-purple.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The cloaker casts the <em>Mirror Image</em> spell, requiring no spell components and using Wisdom as the spellcasting ability. The spell ends early if the cloaker starts or ends its turn in Bright Light.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-phantasms",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              },
+              {
+                "capability": "phantasms",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Phantasms"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "phantasms-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "phantasms",
+              "label": "Phantasms",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "shortRest"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmPhantasms00000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "jluXgJ7dG39ONk0R",
+      "_key": "!actors.items!mmCloaker0000000.jluXgJ7dG39ONk0R",
+      "name": "Mirror Image",
+      "type": "action",
+      "img": "icons/magic/defensive/illusion-evasion-echo-purple.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Three illusory duplicates of yourself appear in your space. Until the spell ends, the duplicates move with you and mimic your actions, shifting position so it's impossible to track which image is real.</p><p>Each time a creature hits you with an attack roll during the spell's duration, roll a d6 for each of your remaining duplicates. If any of the d6s rolls a 3 or higher, one of the duplicates is hit instead of you, and the duplicate is destroyed. The duplicates otherwise ignore all other damage and effects. The spell ends when all three duplicates are destroyed.</p><p>A creature is unaffected by this spell if it has the Blinded condition, Blindsight, or Truesight.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-mirror-image",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.2",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.3",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.4",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.2": 2,
+                "spell-slot.3": 3,
+                "spell-slot.4": 4,
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Mirror Image"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "jluXgJ7dG39ONk0R",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "effect: \"Duplicate A\" (its own changes) not converted",
+              "effect: \"Duplicate B\" (its own changes) not converted",
+              "effect: \"Duplicate C\" (its own changes) not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmMoan0000000000",
+      "_key": "!actors.items!mmCloaker0000000.mmMoan0000000000",
+      "name": "Moan",
+      "type": "action",
+      "img": "icons/magic/control/fear-fright-white.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\"><em>Wisdom Saving Throw:</em> DC 13, each creature in a 60-ft. Emanation originating from the cloaker.</p><p><em>Failure:</em> The target has the Frightened condition until the end of the cloaker's next turn.</p><p><em>Success:</em> The target is immune to this cloaker's Moan for the next 24 hours.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-moan-save",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Moan"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMoan0000000000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest",
+              "effect: frightened is not a WildPath condition yet"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmCloaker000trts",
+      "_key": "!actors.items!mmCloaker0000000.mmCloaker000trts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "speed-fly",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "fly",
+              "distance": 40
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmCloaker0000000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 8
+      },
+      "conversion": {
+        "notes": [
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
+          "Attach: \"Detach Attempt\" is passive or triggered: not automated",
+          "Phantasms: not automated (cast): using it spends its cost; its description says the rest",
+          "Mirror Image: not automated (utility): using it spends its cost; its description says the rest",
+          "Mirror Image: effect: \"Duplicate A\" (its own changes) not converted",
+          "Mirror Image: effect: \"Duplicate B\" (its own changes) not converted",
+          "Mirror Image: effect: \"Duplicate C\" (its own changes) not converted",
+          "Moan: not automated (save): using it spends its cost; its description says the rest",
+          "Moan: effect: frightened is not a WildPath condition yet"
+        ]
+      }
+    }
+  }
+}

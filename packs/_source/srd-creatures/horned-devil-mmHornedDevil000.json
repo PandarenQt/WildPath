@@ -1,0 +1,469 @@
+{
+  "_id": "mmHornedDevil000",
+  "_key": "!actors!mmHornedDevil000",
+  "name": "Horned Devil",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 22,
+        "saveProficient": true
+      },
+      "agility": {
+        "value": 17,
+        "saveProficient": true
+      },
+      "fortitude": {
+        "value": 21
+      },
+      "intellect": {
+        "value": 12
+      },
+      "wits": {
+        "value": 16,
+        "saveProficient": true
+      },
+      "presence": {
+        "value": 18,
+        "saveProficient": true
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 18
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 199,
+        "value": 199
+      },
+      "movement": {
+        "base": 30,
+        "value": 30
+      }
+    },
+    "details": {
+      "threat": 11
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Horned Devil",
+    "width": 2,
+    "height": 2,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmDiabolicalRest",
+      "_key": "!actors.items!mmHornedDevil000.mmDiabolicalRest",
+      "name": "Diabolical Restoration",
+      "type": "feature",
+      "img": "icons/magic/fire/blast-jet-stream-embers-yellow.webp",
+      "system": {
+        "active": true,
+        "description": "<p>If the horned devil dies outside the Nine Hells, its body disappears in sulfurous smoke, and it gains a new body instantly, reviving with all its Hit Points somewhere in the Nine Hells.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmDiabolicalRest",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmMagicResistanc",
+      "_key": "!actors.items!mmHornedDevil000.mmMagicResistanc",
+      "name": "Magic Resistance",
+      "type": "feature",
+      "img": "icons/magic/light/orbs-hand-gray.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The horned devil has Advantage on saving throws against spells and other magical effects.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMagicResistanc",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmMultiattack000",
+      "_key": "!actors.items!mmHornedDevil000.mmMultiattack000",
+      "name": "Multiattack",
+      "type": "action",
+      "img": "icons/skills/melee/strike-weapons-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The horned devil makes three attacks, using Searing Fork or Hurl Flame in any combination. It can replace one attack with a use of Infernal Tail.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-multiattack-expend-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Multiattack"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMultiattack000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmSearingFork000",
+      "_key": "!actors.items!mmHornedDevil000.mmSearingFork000",
+      "name": "Searing Fork",
+      "type": "action",
+      "img": "icons/weapons/polearms/trident-ice-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Melee Attack Roll: +10, reach 10 ft. Hit: 15 (2d8 + 6) Piercing plus 9 (2d8) Fire damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-searing-fork",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "might"
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 10,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 8
+              },
+              "damageType": "piercing",
+              "provenance": "weapon-base"
+            },
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 8
+              },
+              "damageType": "fire",
+              "provenance": "additional"
+            }
+          ],
+          "label": "Searing Fork"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSearingFork000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmHurlFlame00000",
+      "_key": "!actors.items!mmHornedDevil000.mmHurlFlame00000",
+      "name": "Hurl Flame",
+      "type": "action",
+      "img": "icons/magic/fire/flame-burning-earth-yellow.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Ranged Attack Roll: +8, range 150 ft. Hit: 26 (5d8 + 4) Fire damage. If the target is a flammable object that isn't being worn or carried, it starts burning.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-hurl-flame",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "ranged",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "presence"
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 150,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 5,
+                "faces": 8
+              },
+              "damageType": "fire",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Hurl Flame"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmHurlFlame00000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmInfernalTail00",
+      "_key": "!actors.items!mmHornedDevil000.mmInfernalTail00",
+      "name": "Infernal Tail (Save)",
+      "type": "action",
+      "img": "icons/creatures/abilities/tail-strike-bone-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\"><em>Dexterity Saving Throw:</em> DC 17, one creature the horned devil can see within 10 ft.</p><p class=\"feature\"><em>Failure:</em> 10 (1d8 + 6) Necrotic damage, and the target receives an infernal wound if it doesn't have one. While wounded, the target loses 10 (3d6) Hit Points at the start of each of its turns. The wound closes after 1 minute, after a spell restores Hit Points to the target, or after the target or a creature within 5 feet of it takes an action to stanch the wound, doing so by succeeding on a DC 17 Wisdom (Medicine) check.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-infernal-tail-save",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 10,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "agility",
+            "dc": {
+              "value": 17
+            }
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "dice",
+                    "number": 1,
+                    "faces": 8
+                  },
+                  {
+                    "type": "spellcasting-modifier"
+                  }
+                ]
+              },
+              "damageType": "necrotic",
+              "provenance": "additional",
+              "saveOutcomePolicy": {
+                "success": "none",
+                "failure": "full"
+              }
+            }
+          ],
+          "label": "Infernal Tail (Save)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmInfernalTail00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmHornedDevitrts",
+      "_key": "!actors.items!mmHornedDevil000.mmHornedDevitrts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "resistances",
+            "type": "GrantResistance",
+            "data": {
+              "damageTypes": [
+                "cold"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "immunities",
+            "type": "GrantImmunity",
+            "data": {
+              "damageTypes": [
+                "fire",
+                "poison"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "speed-fly",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "fly",
+              "distance": 60
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmHornedDevil000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 11
+      },
+      "conversion": {
+        "notes": [
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
+          "Infernal Tail: \"Target: HP Loss\" is passive or triggered: not automated",
+          "Infernal Tail: \"Stanch Wound Check\" is passive or triggered: not automated",
+          "condition immunities (poisoned) not converted"
+        ]
+      }
+    }
+  }
+}

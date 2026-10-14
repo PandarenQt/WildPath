@@ -1,0 +1,385 @@
+{
+  "_id": "mmYoungWhiteDrag",
+  "_key": "!actors!mmYoungWhiteDrag",
+  "name": "Young White Dragon",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 18
+      },
+      "agility": {
+        "value": 10,
+        "saveProficient": true
+      },
+      "fortitude": {
+        "value": 18
+      },
+      "intellect": {
+        "value": 6
+      },
+      "wits": {
+        "value": 11,
+        "saveProficient": true
+      },
+      "presence": {
+        "value": 12
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 17
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 123,
+        "value": 123
+      },
+      "movement": {
+        "base": 40,
+        "value": 40
+      }
+    },
+    "details": {
+      "threat": 6
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Young White Dragon",
+    "width": 2,
+    "height": 2,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmIceWalk0000000",
+      "_key": "!actors.items!mmYoungWhiteDrag.mmIceWalk0000000",
+      "name": "Ice Walk",
+      "type": "feature",
+      "img": "icons/magic/water/water-iceberg-bubbles.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The young white dragon can move across and climb icy surfaces without needing to make an ability check. Additionally, Difficult composed of ice or snow doesn't cost it extra movement.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmIceWalk0000000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmMultiattack000",
+      "_key": "!actors.items!mmYoungWhiteDrag.mmMultiattack000",
+      "name": "Multiattack",
+      "type": "action",
+      "img": "icons/skills/melee/strike-weapons-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The young white dragon makes three Rend attacks.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-multiattack-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Multiattack"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMultiattack000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmRend0000000000",
+      "_key": "!actors.items!mmYoungWhiteDrag.mmRend0000000000",
+      "name": "Rend",
+      "type": "action",
+      "img": "icons/skills/melee/shield-damaged-broken-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +7, reach 10 ft. Hit: 9 (2d4 + 4) Slashing plus 2 (1d4) Cold damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-rend",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 10,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 4
+              },
+              "damageType": "slashing",
+              "provenance": "weapon-base"
+            },
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 4
+              },
+              "damageType": "cold",
+              "provenance": "additional"
+            }
+          ],
+          "label": "Rend"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmRend0000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmColdBreath0000",
+      "_key": "!actors.items!mmYoungWhiteDrag.mmColdBreath0000",
+      "name": "Cold Breath",
+      "type": "action",
+      "img": "icons/creatures/abilities/dragon-ice-breath-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p><em>Constitution Saving Throw: </em>DC 15, each creature in a 30-foot Cone.</p><p><em>Failure: </em>40 (9d8) Cold damage.</p><p><em>Success:</em> Half damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-cold-breath",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "cold-breath",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "cone",
+            "size": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "save": {
+            "ability": "fortitude",
+            "dc": {
+              "value": 15
+            }
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 9,
+                "faces": 8
+              },
+              "damageType": "cold",
+              "provenance": "additional",
+              "saveOutcomePolicy": {
+                "success": "half",
+                "failure": "full"
+              }
+            }
+          ],
+          "label": "Cold Breath"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "cold-breath-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "cold-breath",
+              "label": "Cold Breath",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "none"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmColdBreath0000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "uses: Recharge 5–6 is not rolled; refill the pool by hand"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmYoungWhitetrts",
+      "_key": "!actors.items!mmYoungWhiteDrag.mmYoungWhitetrts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "immunities",
+            "type": "GrantImmunity",
+            "data": {
+              "damageTypes": [
+                "cold"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "speed-fly",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "fly",
+              "distance": 80
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "speed-swim",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "swim",
+              "distance": 40
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "speed-burrow",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "burrow",
+              "distance": 20
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmYoungWhiteDrag",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 6
+      },
+      "conversion": {
+        "notes": [
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
+          "Cold Breath: uses: Recharge 5–6 is not rolled; refill the pool by hand"
+        ]
+      }
+    }
+  }
+}

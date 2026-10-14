@@ -1,0 +1,44 @@
+{
+  "_id": "dmgUnarmedStrike",
+  "_key": "!items!dmgUnarmedStrike",
+  "name": "Unarmed Strike",
+  "type": "action",
+  "img": "icons/skills/melee/unarmed-punch-fist-yellow-red.webp",
+  "system": {
+    "active": true,
+    "description": "",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-unarmed-strike",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Unarmed Strike"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgUnarmedStrike",
+        "type": "weapon",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (attack): using it spends its cost; its description says the rest",
+          "base damage: custom formula \"@mod + @prof\" not converted"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "_id": "u3g70po4cbcd0000",
+  "_key": "!items!u3g70po4cbcd0000",
+  "name": "Staff of Swarming Insects (cast)",
+  "type": "action",
+  "img": "icons/weapons/staves/staff-spiked.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Staff, Rare (Requires Attunement by a Bard, Cleric, Druid, Sorcerer, Warlock, or Wizard)</em></p><p>This staff has 10 charges.</p><p><em><strong>Insect Cloud.</strong></em> While holding the staff, you can take a Magic action and expend 1 charge to cause a swarm of harmless flying insects to fill a 30-foot Emanation originating from you. The insects remain for 10 minutes, making the area Heavily for creatures other than you. A strong wind (like that created by Gust of Wind) disperses the swarm and ends the effect.</p><p><em><strong>Spells.</strong></em> While holding the staff, you can cast one of the spells on the following table from it, using your spell save DC and spell attack modifier. The table indicates how many charges you must expend to cast the spell.</p><table><thead><tr><th><p>Spell</p></th><th><p>Charge Cost</p></th><th></th></tr></thead><tbody><tr><td><p>Giant Insect</p></td><td><p>4</p></td><td></td></tr><tr><td><p>Insect Plague</p></td><td><p>5</p></td><td></td></tr></tbody></table><p><em><strong>Regaining Charges.</strong></em> The staff regains 1d6 + 4 expended charges daily at dawn. If you expend the last charge, roll 1d20. On a 1, a swarm of insects consumes and destroys the staff, then disperses.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-staff-of-swarming-insects",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "staff-of-swarming-insects",
+            "amount": 4
+          }
+        ]
+      },
+      "label": "Staff of Swarming Insects (cast)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "staff-of-swarming-insects-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "staff-of-swarming-insects",
+          "label": "Staff of Swarming Insects",
+          "maximum": {
+            "type": "constant",
+            "value": 10
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgStaffOfSwarmi",
+        "type": "weapon",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (cast): using it spends its cost; its description says the rest",
+          "uses: a partial recovery refills the whole pool"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,150 @@
+{
+  "_id": "phbsplConjuredFe",
+  "_key": "!actors!phbsplConjuredFe",
+  "name": "Conjured Fey",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 0
+      },
+      "agility": {
+        "value": 0
+      },
+      "fortitude": {
+        "value": 0
+      },
+      "intellect": {
+        "value": 0
+      },
+      "wits": {
+        "value": 0
+      },
+      "presence": {
+        "value": 0
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 5
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 1,
+        "value": 1
+      },
+      "movement": {
+        "base": 30,
+        "value": 30
+      }
+    },
+    "details": {
+      "threat": 0
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Conjured Fey",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "1u49kcbdc02ul000",
+      "_key": "!actors.items!phbsplConjuredFe.1u49kcbdc02ul000",
+      "name": "Command (Teleport and Attack)",
+      "type": "action",
+      "img": "icons/magic/control/fear-fright-mask-yellow.webp",
+      "system": {
+        "active": true,
+        "description": "<p></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-command-teleport-and-attack",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "spell",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 35,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 3,
+                "faces": 12
+              },
+              "damageType": "psychic",
+              "provenance": "additional"
+            }
+          ],
+          "label": "Command (Teleport and Attack)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbaoiAttackAtta",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "effect: frightened is not a WildPath condition yet"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "phbsplConjuredFe",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 0
+      },
+      "conversion": {
+        "notes": [
+          "Command: \"attack\" is passive or triggered: not automated",
+          "Command: effect: frightened is not a WildPath condition yet"
+        ]
+      }
+    }
+  }
+}

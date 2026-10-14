@@ -1,0 +1,183 @@
+{
+  "_id": "phbsplIceStorm00",
+  "_key": "!items!phbsplIceStorm00",
+  "name": "Ice Storm",
+  "type": "action",
+  "img": "icons/magic/water/projectile-ice-chunks-salvo.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Hail falls in a 20-foot-radius, 40-foot-high Cylinder centered on a point within range. Each creature in the Cylinder makes a Dexterity saving throw. A creature takes 2d10 Bludgeoning damage and 4d6 Cold damage on a failed save or half as much damage on a successful one.</p><p>Hailstones turn ground in the Cylinder into DifficultTerrain until the end of your next turn.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The Bludgeoning damage increases by 1d10 for each spell slot level above 4.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-ice-storm",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 300,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "radial",
+        "size": {
+          "value": 20,
+          "unit": "ft"
+        }
+      },
+      "save": {
+        "ability": "agility",
+        "dc": {
+          "valueExpression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 8
+              },
+              {
+                "type": "proficiency-bonus"
+              },
+              {
+                "type": "spellcasting-modifier"
+              }
+            ]
+          }
+        }
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "dice",
+            "number": 2,
+            "faces": 10
+          },
+          "damageType": "bludgeoning",
+          "provenance": "spell-base",
+          "saveOutcomePolicy": {
+            "success": "half",
+            "failure": "full"
+          }
+        },
+        {
+          "id": "damage-2",
+          "expression": {
+            "type": "dice",
+            "number": 4,
+            "faces": 6
+          },
+          "damageType": "cold",
+          "provenance": "spell-base",
+          "saveOutcomePolicy": {
+            "success": "half",
+            "failure": "full"
+          }
+        }
+      ],
+      "configuration": [
+        {
+          "id": "spell-slot",
+          "type": "resource",
+          "label": "Spell slot",
+          "required": true,
+          "cost": {
+            "anyOf": [
+              [
+                {
+                  "capability": "spell-slot.4",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.5",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.6",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.7",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.8",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.9",
+                  "amount": 1
+                }
+              ]
+            ]
+          },
+          "levelByResourceId": {
+            "spell-slot.4": 4,
+            "spell-slot.5": 5,
+            "spell-slot.6": 6,
+            "spell-slot.7": 7,
+            "spell-slot.8": 8,
+            "spell-slot.9": 9
+          },
+          "effects": [
+            {
+              "type": "scaleDamage",
+              "levelChoiceId": "spell-slot",
+              "baseLevel": 4,
+              "componentIds": [
+                "damage-1"
+              ],
+              "dice": {
+                "number": 1,
+                "faces": 10
+              }
+            }
+          ]
+        }
+      ],
+      "label": "Ice Storm"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbsplIceStorm00",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "area: a cylinder's height is not modeled"
+        ]
+      }
+    }
+  }
+}

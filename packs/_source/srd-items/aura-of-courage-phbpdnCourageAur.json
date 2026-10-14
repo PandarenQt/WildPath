@@ -1,0 +1,30 @@
+{
+  "_id": "phbpdnCourageAur",
+  "_key": "!items!phbpdnCourageAur",
+  "name": "Aura of Courage",
+  "type": "feature",
+  "img": "icons/magic/light/explosion-beam-impact-silhouette.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You and your allies have Immunity to the Frightened condition while in your Aura of Protection. If a Frightened ally enters the aura, that condition has no effect on that ally while there.</p><section id=\"secret-equ8xnC2DFxkcJAn\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect for tracking who is within your aura but it is not automatically added/removed nor does it remove the Frightened condition.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbpdnCourageAur",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Aura of Courage\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

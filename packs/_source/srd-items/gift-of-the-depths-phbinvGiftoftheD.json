@@ -1,0 +1,63 @@
+{
+  "_id": "phbinvGiftoftheD",
+  "_key": "!items!phbinvGiftoftheD",
+  "name": "Gift of the Depths",
+  "type": "action",
+  "img": "icons/magic/water/water-elemental-blue-teeth.webp",
+  "system": {
+    "active": true,
+    "description": "<blockquote><p>Prerequisite: Level 5+ Warlock</p></blockquote><p>You can breathe underwater, and you gain a Swim Speed equal to your Speed.</p><p>You can also cast Water Breathing once without expending a spell slot. You regain the ability to cast it in this way again when you finish a Long Rest.</p><section id=\"secret-aH09PLbY0nXMKypM\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>The <strong>Gift Water Breathing</strong> activity consumes a limited use and includes an Active Effect for tracking the chosen creatures.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-gift-of-the-depths-gift-water-breathing",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "gift-of-the-depths",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Gift of the Depths"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "gift-of-the-depths-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "gift-of-the-depths",
+          "label": "Gift of the Depths",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbinvGiftoftheD",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Water Breathing\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

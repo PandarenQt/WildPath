@@ -1,0 +1,1505 @@
+{
+  "_id": "mmAncientGreenDr",
+  "_key": "!actors!mmAncientGreenDr",
+  "name": "Ancient Green Dragon",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 27
+      },
+      "agility": {
+        "value": 12,
+        "saveProficient": true
+      },
+      "fortitude": {
+        "value": 25
+      },
+      "intellect": {
+        "value": 20
+      },
+      "wits": {
+        "value": 17,
+        "saveProficient": true
+      },
+      "presence": {
+        "value": 22
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 21
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 402,
+        "value": 402
+      },
+      "movement": {
+        "base": 40,
+        "value": 40
+      }
+    },
+    "details": {
+      "threat": 22
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Ancient Green Dragon",
+    "width": 4,
+    "height": 4,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmAmphibious0000",
+      "_key": "!actors.items!mmAncientGreenDr.mmAmphibious0000",
+      "name": "Amphibious",
+      "type": "feature",
+      "img": "icons/creatures/amphibians/bullfrog-glass-teal.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The ancient green dragon can breathe air and water.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmAmphibious0000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmLegendaryResis",
+      "_key": "!actors.items!mmAncientGreenDr.mmLegendaryResis",
+      "name": "Legendary Resistance",
+      "type": "feature",
+      "img": "icons/equipment/shield/heater-steel-crystal-red.webp",
+      "system": {
+        "active": true,
+        "description": "<p>If the ancient green dragon fails a saving throw, it can choose to succeed instead.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmLegendaryResis",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "\"Expend Use\" is passive or triggered: not automated"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmMultiattack000",
+      "_key": "!actors.items!mmAncientGreenDr.mmMultiattack000",
+      "name": "Multiattack",
+      "type": "action",
+      "img": "icons/skills/melee/strike-weapons-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p><span style=\"font-family:'Roboto Condensed', sans-serif\">The </span>ancient green dragon<span style=\"font-family:'Roboto Condensed', sans-serif\"> makes three </span><span class=\"Apple-converted-space\"> </span>Rend<span style=\"font-family:'Roboto Condensed', sans-serif\"> attacks. It can replace one attack with a use of Spellcasting to cast </span><em></em><span style=\"font-family:'Roboto Condensed', sans-serif\"> (level 5 version).</span></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-multiattack-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Multiattack"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMultiattack000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmRend0000000000",
+      "_key": "!actors.items!mmAncientGreenDr.mmRend0000000000",
+      "name": "Rend",
+      "type": "action",
+      "img": "icons/skills/melee/shield-damaged-broken-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +15, reach 5 ft. Hit: 17 (2d8 + 8) Slashing plus 10 (3d6) Poison damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-rend",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 8
+              },
+              "damageType": "slashing",
+              "provenance": "weapon-base"
+            },
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 3,
+                "faces": 6
+              },
+              "damageType": "poison",
+              "provenance": "additional"
+            }
+          ],
+          "label": "Rend"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmRend0000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmPoisonBreath00",
+      "_key": "!actors.items!mmAncientGreenDr.mmPoisonBreath00",
+      "name": "Poison Breath",
+      "type": "action",
+      "img": "icons/magic/light/beam-rays-green-large.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\"><em>Constitution Saving Throw:</em> DC 22, each creature in a 15-foot Cone.</p><p class=\"feature\"><em>Failure:</em> 77 (22d6) Poison damage.</p><p class=\"feature\"><em>Success:</em> Half damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-poison-breath-save",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "poison-breath",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "cone",
+            "size": {
+              "value": 15,
+              "unit": "ft"
+            }
+          },
+          "save": {
+            "ability": "fortitude",
+            "dc": {
+              "value": 22
+            }
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 22,
+                "faces": 6
+              },
+              "damageType": "poison",
+              "provenance": "additional",
+              "saveOutcomePolicy": {
+                "success": "half",
+                "failure": "full"
+              }
+            }
+          ],
+          "label": "Poison Breath"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "poison-breath-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "poison-breath",
+              "label": "Poison Breath",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "none"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmPoisonBreath00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "uses: Recharge undefined–6 is not rolled; refill the pool by hand"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmSpellcasting00",
+      "_key": "!actors.items!mmAncientGreenDr.mmSpellcasting00",
+      "name": "Spellcasting (cast)",
+      "type": "action",
+      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The ancient green dragon casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Mind Spike</em> (level 5 version)</p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Geas</em>, <em>Modify Memory</em></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Spellcasting (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSpellcasting00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "17svfvloelxmr000",
+      "_key": "!actors.items!mmAncientGreenDr.17svfvloelxmr000",
+      "name": "Spellcasting (cast)",
+      "type": "action",
+      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The ancient green dragon casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Mind Spike</em> (level 5 version)</p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Geas</em>, <em>Modify Memory</em></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Spellcasting (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSpellcasting00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "16ywmso1mzul9w00",
+      "_key": "!actors.items!mmAncientGreenDr.16ywmso1mzul9w00",
+      "name": "Spellcasting (cast)",
+      "type": "action",
+      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The ancient green dragon casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Mind Spike</em> (level 5 version)</p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Geas</em>, <em>Modify Memory</em></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Spellcasting (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSpellcasting00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest",
+              "consumption: activityUses 1 not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "178w8hnnsecqh000",
+      "_key": "!actors.items!mmAncientGreenDr.178w8hnnsecqh000",
+      "name": "Spellcasting (cast)",
+      "type": "action",
+      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The ancient green dragon casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Mind Spike</em> (level 5 version)</p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Geas</em>, <em>Modify Memory</em></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Spellcasting (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSpellcasting00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest",
+              "consumption: activityUses 1 not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmMindInvasion00",
+      "_key": "!actors.items!mmAncientGreenDr.mmMindInvasion00",
+      "name": "Mind Invasion",
+      "type": "action",
+      "img": "icons/magic/unholy/beam-ringed-impact-purple.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The dragon uses  to cast <em></em> (level 3 version).</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-mind-invasion",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "legendary-action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Mind Invasion"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMindInvasion00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "AnuzCEpfFtXuG3W7",
+      "_key": "!actors.items!mmAncientGreenDr.AnuzCEpfFtXuG3W7",
+      "name": "Mind Spike",
+      "type": "action",
+      "img": "icons/magic/unholy/beam-ringed-impact-purple.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You drive a spike of psionic energy into the mind of one creature you can see within range. The target makes a Wisdom saving throw, taking 3d8 Psychic damage on a failed save or half as much damage on a successful one. On a failed save, you also always know the target's location until the spell ends, but only while the two of you are on the same plane of existence. While you have this knowledge, the target can't become hidden from you, and if it has the Invisible condition, it gains no benefit from that condition against you.</p><p><strong>Using a Higher-Level Spell Slot. </strong>The damage increases by 1d8 for each spell slot level above 2.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-mind-spike",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 120,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "valueExpression": {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "constant",
+                    "value": 8
+                  },
+                  {
+                    "type": "proficiency-bonus"
+                  },
+                  {
+                    "type": "spellcasting-modifier"
+                  }
+                ]
+              }
+            }
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 3,
+                "faces": 8
+              },
+              "damageType": "psychic",
+              "provenance": "spell-base",
+              "saveOutcomePolicy": {
+                "success": "half",
+                "failure": "full"
+              }
+            }
+          ],
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.2",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.3",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.4",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.2": 2,
+                "spell-slot.3": 3,
+                "spell-slot.4": 4,
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": [
+                {
+                  "type": "scaleDamage",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 2,
+                  "componentIds": [
+                    "damage-1"
+                  ],
+                  "dice": {
+                    "number": 1,
+                    "faces": 8
+                  }
+                }
+              ]
+            }
+          ],
+          "label": "Mind Spike"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "AnuzCEpfFtXuG3W7",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "effect: \"Spiked\" (its own changes) not converted",
+              "concentration: nothing it sustains was converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmNoxiousMiasma0",
+      "_key": "!actors.items!mmAncientGreenDr.mmNoxiousMiasma0",
+      "name": "Noxious Miasma",
+      "type": "action",
+      "img": "icons/magic/air/fog-gas-smoke-dense-green.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\"><em>Constitution Saving Throw:</em> DC 21, each creature in a 30-foot-radius Sphere centered on a point the ancient green dragon can see within 90 feet.</p><p class=\"feature\"><em>Failure:</em> 17 (5d6) Poison damage, and the target takes a −2 penalty to AC until the end of its next turn.</p><p class=\"feature\"><em>Failure or Success:</em> The ancient green dragon can't take this action again until the start of its next turn.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-noxious-miasma-save",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "legendary-action",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 90,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "radial",
+            "size": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "save": {
+            "ability": "fortitude",
+            "dc": {
+              "value": 21
+            }
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 5,
+                "faces": 6
+              },
+              "damageType": "poison",
+              "provenance": "additional",
+              "saveOutcomePolicy": {
+                "success": "none",
+                "failure": "full"
+              }
+            }
+          ],
+          "label": "Noxious Miasma"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmNoxiousMiasma0",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "effect: \"Damaged: −2 AC\" (its own changes) not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmPounce00000000",
+      "_key": "!actors.items!mmAncientGreenDr.mmPounce00000000",
+      "name": "Pounce",
+      "type": "action",
+      "img": "icons/skills/movement/arrow-upward-yellow.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The ancient green dragon moves up to half its Speed, and it makes one  attack.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-pounce-expend-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "legendary-action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Pounce"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmPounce00000000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "consumption: attribute 1 not converted",
+              "consumption: attribute 1 not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "jQJwpCjrh2Svg36q",
+      "_key": "!actors.items!mmAncientGreenDr.jQJwpCjrh2Svg36q",
+      "name": "Detect Magic",
+      "type": "action",
+      "img": "icons/magic/symbols/runes-carved-stone-green.webp",
+      "system": {
+        "active": true,
+        "description": "<p>For the duration, you sense the presence of magical effects within 30 feet of yourself. If you sense such effects, you can take the Magic action to see a faint aura around any visible creature or object in the area that bears the magic, and if an effect was created by a spell, you learn the spell's school of magic.</p><p>The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-detect-magic-cast",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.1",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.2",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.3",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.4",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.1": 1,
+                "spell-slot.2": 2,
+                "spell-slot.3": 3,
+                "spell-slot.4": 4,
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Detect Magic"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "jQJwpCjrh2Svg36q",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "effect: \"Detect Magic\" (its own changes) not converted",
+              "concentration: nothing it sustains was converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "5hVmOPSU4TtlM3Dq",
+      "_key": "!actors.items!mmAncientGreenDr.5hVmOPSU4TtlM3Dq",
+      "name": "Mind Spike",
+      "type": "action",
+      "img": "icons/magic/unholy/beam-ringed-impact-purple.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You drive a spike of psionic energy into the mind of one creature you can see within range. The target makes a Wisdom saving throw, taking 3d8 Psychic damage on a failed save or half as much damage on a successful one. On a failed save, you also always know the target's location until the spell ends, but only while the two of you are on the same plane of existence. While you have this knowledge, the target can't become hidden from you, and if it has the Invisible condition, it gains no benefit from that condition against you.</p><p><strong>Using a Higher-Level Spell Slot. </strong>The damage increases by 1d8 for each spell slot level above 2.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-mind-spike",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 120,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "valueExpression": {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "constant",
+                    "value": 8
+                  },
+                  {
+                    "type": "proficiency-bonus"
+                  },
+                  {
+                    "type": "spellcasting-modifier"
+                  }
+                ]
+              }
+            }
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 3,
+                "faces": 8
+              },
+              "damageType": "psychic",
+              "provenance": "spell-base",
+              "saveOutcomePolicy": {
+                "success": "half",
+                "failure": "full"
+              }
+            }
+          ],
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.2",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.3",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.4",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.2": 2,
+                "spell-slot.3": 3,
+                "spell-slot.4": 4,
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": [
+                {
+                  "type": "scaleDamage",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 2,
+                  "componentIds": [
+                    "damage-1"
+                  ],
+                  "dice": {
+                    "number": 1,
+                    "faces": 8
+                  }
+                }
+              ]
+            }
+          ],
+          "label": "Mind Spike"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "5hVmOPSU4TtlM3Dq",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "effect: \"Spiked\" (its own changes) not converted",
+              "concentration: nothing it sustains was converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "xS0qNh6JLxK7c7tU",
+      "_key": "!actors.items!mmAncientGreenDr.xS0qNh6JLxK7c7tU",
+      "name": "Geas",
+      "type": "action",
+      "img": "icons/equipment/head/hat-pointed-leather-black-glowing.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You give a verbal command to a creature that you can see within range, ordering it to carry out some service or refrain from an action or a course of activity as you decide. The target must succeed on a Wisdom saving throw or have the Charmed condition for the duration. The target automatically succeeds if it can't understand your command.</p><p>While Charmed, the creature takes 5d10 Psychic damage if it acts in a manner directly counter to your command. It takes this damage no more than once each day.</p><p>You can issue any command you choose, short of an activity that would result in certain death. Should you issue a suicidal command, the spell ends.</p><p>A <em>Remove Curse</em>, <em>Greater Restoration</em>, or <em>Wish</em> spell ends this spell.</p><p><strong>Using a Higher-Level Spell Slot.</strong> If you use a level 7 or 8 spell slot, the duration is 365 days. If you use a level 9 spell slot, the spell lasts until it is ended by one of the spells mentioned above.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-geas",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": []
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 60,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "valueExpression": {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "constant",
+                    "value": 8
+                  },
+                  {
+                    "type": "proficiency-bonus"
+                  },
+                  {
+                    "type": "spellcasting-modifier"
+                  }
+                ]
+              }
+            }
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 5,
+                "faces": 10
+              },
+              "damageType": "psychic",
+              "provenance": "spell-base",
+              "saveOutcomePolicy": {
+                "success": "none",
+                "failure": "full"
+              }
+            }
+          ],
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Geas"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "xS0qNh6JLxK7c7tU",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "activation: 1 minute is not an action-economy cost",
+              "effect: charmed is not a WildPath condition yet"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "LKsjPtvevuO1j4M6",
+      "_key": "!actors.items!mmAncientGreenDr.LKsjPtvevuO1j4M6",
+      "name": "Modify Memory",
+      "type": "action",
+      "img": "icons/sundries/documents/document-letter-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You attempt to reshape another creature's memories. One creature that you can see within range makes a Wisdom saving throw. If you are fighting the creature, it has Advantage on the save. On a failed save, the target has the Charmed condition for the duration. While Charmed in this way, the target also has the Incapacitated condition and is unaware of its surroundings, though it can hear you. If it takes any damage or is targeted by another spell, this spell ends, and no memories are modified.</p><p>While this charm lasts, you can affect the target's memory of an event that it experienced within the last 24 hours and that lasted no more than 10 minutes. You can permanently eliminate all memory of the event, allow the target to recall the event with perfect clarity, change its memory of the event's details, or create a memory of some other event.</p><p>You must speak to the target to describe how its memories are affected, and it must be able to understand your language for the modified memories to take root. Its mind fills in any gaps in the details of your description. If the spell ends before you finish describing the modified memories, the creature's memory isn't altered. Otherwise, the modified memories take hold when the spell ends.</p><p>A modified memory doesn't necessarily affect how a creature behaves, particularly if the memory contradicts the creature's natural inclinations, alignment, or beliefs. An illogical modified memory, such as a false memory of how much the creature enjoyed swimming in acid, is dismissed as a bad dream. The DM might deem a modified memory too nonsensical to affect a creature.</p><p>A <em>Remove Curse</em> or <em>Greater Restoration</em> spell cast on the target restores the creature's true memory.</p><p><strong>Using a Higher-Level Spell Slot.</strong> You can alter the target's memories of an event that took place up to 7 days ago (level 6 spell slot), 30 days ago (level 7 spell slot), 365 days ago (level 8 spell slot), or any time in the creature's past (level 9 spell slot).</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-modify-memory",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Modify Memory"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "LKsjPtvevuO1j4M6",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest",
+              "effect: charmed is not a WildPath condition yet",
+              "effect: incapacitated is not a WildPath condition yet",
+              "concentration: nothing it sustains was converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmAncientGretrts",
+      "_key": "!actors.items!mmAncientGreenDr.mmAncientGretrts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "immunities",
+            "type": "GrantImmunity",
+            "data": {
+              "damageTypes": [
+                "poison"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "speed-fly",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "fly",
+              "distance": 80
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "speed-swim",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "swim",
+              "distance": 40
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "legendary-actions",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "legendary-action",
+              "label": "Legendary Actions",
+              "maximum": 3,
+              "recovery": "turn"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmAncientGreenDr",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 22
+      },
+      "conversion": {
+        "notes": [
+          "Legendary Resistance: \"Expend Use\" is passive or triggered: not automated",
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
+          "Poison Breath: uses: Recharge undefined–6 is not rolled; refill the pool by hand",
+          "Spellcasting: not automated (cast): using it spends its cost; its description says the rest",
+          "Spellcasting: consumption: activityUses 1 not converted",
+          "Mind Invasion: not automated (cast): using it spends its cost; its description says the rest",
+          "Mind Spike: effect: \"Spiked\" (its own changes) not converted",
+          "Mind Spike: concentration: nothing it sustains was converted",
+          "Noxious Miasma: effect: \"Damaged: −2 AC\" (its own changes) not converted",
+          "Pounce: not automated (utility): using it spends its cost; its description says the rest",
+          "Pounce: consumption: attribute 1 not converted",
+          "Detect Magic: not automated (utility): using it spends its cost; its description says the rest",
+          "Detect Magic: effect: \"Detect Magic\" (its own changes) not converted",
+          "Detect Magic: concentration: nothing it sustains was converted",
+          "Mind Spike: effect: \"Spiked\" (its own changes) not converted",
+          "Mind Spike: concentration: nothing it sustains was converted",
+          "Geas: activation: 1 minute is not an action-economy cost",
+          "Geas: effect: charmed is not a WildPath condition yet",
+          "Modify Memory: not automated (save): using it spends its cost; its description says the rest",
+          "Modify Memory: effect: charmed is not a WildPath condition yet",
+          "Modify Memory: effect: incapacitated is not a WildPath condition yet",
+          "Modify Memory: concentration: nothing it sustains was converted",
+          "condition immunities (poisoned) not converted"
+        ]
+      }
+    }
+  }
+}

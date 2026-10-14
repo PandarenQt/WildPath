@@ -1,0 +1,63 @@
+{
+  "_id": "k50hk33w0m350000",
+  "_key": "!items!k50hk33w0m350000",
+  "name": "Staff of Fire (cast)",
+  "type": "action",
+  "img": "icons/weapons/staves/staff-ornate-red.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Staff, Very Rare (Requires Attunement by a Druid, Sorcerer, Warlock, or Wizard)</em></p><p>You have Resistance to Fire damage while you hold this staff.</p><p><em><strong>Spells.</strong></em> The staff has 10 charges. While holding the staff, you can cast one of the spells on the following table from it, using your spell save DC. The table indicates how many charges you must expend to cast the spell.</p><table><thead><tr><th>Spell</th><th>Charge Cost</th></tr></thead><tbody><tr><td>Burning Hands</td><td>1</td></tr><tr><td>Fireball</td><td>3</td></tr><tr><td>Wall of Fire</td><td>4</td></tr></tbody></table><p><em><strong>Regaining Charges.</strong></em> The staff regains 1d6 + 4 expended charges daily at dawn. If you expend the last charge, roll 1d20. On a 1, the staff crumbles into cinders and is destroyed.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-staff-of-fire",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "staff-of-fire",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Staff of Fire (cast)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "staff-of-fire-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "staff-of-fire",
+          "label": "Staff of Fire",
+          "maximum": {
+            "type": "constant",
+            "value": 10
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgStaffOfFire00",
+        "type": "weapon",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (cast): using it spends its cost; its description says the rest",
+          "uses: a partial recovery refills the whole pool"
+        ]
+      }
+    }
+  }
+}

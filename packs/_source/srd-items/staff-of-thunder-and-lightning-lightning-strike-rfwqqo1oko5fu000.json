@@ -1,0 +1,94 @@
+{
+  "_id": "rfwqqo1oko5fu000",
+  "_key": "!items!rfwqqo1oko5fu000",
+  "name": "Staff of Thunder and Lightning (Lightning Strike)",
+  "type": "action",
+  "img": "icons/weapons/staves/staff-ornate-teal.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Staff, Very Rare (Requires Attunement)</em></p><p>This staff can be wielded as a magic Quarterstaff that grants a +2 bonus to attack rolls and damage rolls made with it. It also has the following additional properties. Once one of these properties is used, it can't be used again until the next dawn.</p><p><em><strong>Lightning.</strong></em> When you hit with a melee attack using the staff, you can cause the target to take an extra 2d6 Lightning damage (no action required).</p><p><em><strong>Thunder.</strong></em> When you hit with a melee attack using the staff, you can cause the staff to emit a crack of thunder audible out to 300 feet (no action required). The target you hit must succeed on a DC 17 Constitution saving throw or have the Stunned condition until the end of your next turn.</p><p><em><strong>Thunder and Lightning.</strong></em> Immediately after you hit with a melee attack using the staff, you can take a Bonus Action to use the Lightning and Thunder properties (see above) at the same time. Doing so doesn't expend the daily use of those properties, only the use of this one.</p><p><em><strong>Lightning Strike.</strong></em> You can take a Magic action to cause a bolt of lightning to leap from the staff's tip in a Line that is 5 feet wide and 120 feet long. Each creature in that Line makes a DC 17 Dexterity saving throw, taking 9d6 Lightning damage on a failed save or half as much damage on a successful one.</p><p><em><strong>Thunderclap.</strong></em> You can take a Magic action to cause the staff to produce a thunderclap audible out to 600 feet. Every creature within a 60-foot Emanation originating from you makes a DC 17 Constitution saving throw. On a failed save, a creature takes 2d6 Thunder damage and has the Deafened condition for 1 minute. On a successful save, a creature takes half as much damage only.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-staff-of-thunder-and-lightning-lightning-strike",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "line",
+        "size": {
+          "value": 120,
+          "unit": "ft"
+        },
+        "width": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "save": {
+        "ability": "agility",
+        "dc": {
+          "value": 17
+        }
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "dice",
+            "number": 9,
+            "faces": 6
+          },
+          "damageType": "lightning",
+          "provenance": "additional",
+          "saveOutcomePolicy": {
+            "success": "half",
+            "failure": "full"
+          }
+        }
+      ],
+      "label": "Staff of Thunder and Lightning (Lightning Strike)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "staff-of-thunder-and-lightning-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "staff-of-thunder-and-lightning",
+          "label": "Staff of Thunder and Lightning",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgStaffOfThunde",
+        "type": "weapon",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "consumption: activityUses 1 not converted"
+        ]
+      }
+    }
+  }
+}

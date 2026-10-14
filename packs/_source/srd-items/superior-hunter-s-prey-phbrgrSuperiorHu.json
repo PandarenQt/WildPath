@@ -1,0 +1,30 @@
+{
+  "_id": "phbrgrSuperiorHu",
+  "_key": "!items!phbrgrSuperiorHu",
+  "name": "Superior Hunter's Prey",
+  "type": "feature",
+  "img": "icons/skills/ranged/arrows-flying-triple-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Once per turn when you deal damage to a creature marked by your <em>Hunter's Mark</em>, you can also deal that spell's extra damage to a different creature that you can see within 30 feet of the first creature.</p><section id=\"secret-AuiRnxdHXs9cXvQV\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>You can apply the damage from Hunter's Mark or use the <strong>Damage</strong> activity on this feature.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbrgrSuperiorHu",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"damage\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

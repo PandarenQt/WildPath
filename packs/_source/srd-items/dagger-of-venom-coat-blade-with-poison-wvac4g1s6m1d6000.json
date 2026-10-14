@@ -1,0 +1,62 @@
+{
+  "_id": "wvac4g1s6m1d6000",
+  "_key": "!items!wvac4g1s6m1d6000",
+  "name": "Dagger of Venom (Coat Blade with Poison)",
+  "type": "action",
+  "img": "icons/weapons/daggers/dagger-double-skull-pink.webp",
+  "system": {
+    "active": true,
+    "description": "<div><p><em>Weapon (Dagger), Rare</em></p></div><p>You gain a +1 bonus to attack rolls and damage rolls made with this magic weapon.</p><p>You can take a Bonus Action to magically coat the blade with poison. The poison remains for 1 minute or until an attack using this weapon hits a creature. That creature must succeed on a DC 15 Constitution saving throw or take 2d10 Poison damage and have the Poisoned condition for 1 minute. The weapon can't be used this way again until the next dawn.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-dagger-of-venom-coat-blade-with-poison",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          },
+          {
+            "capability": "dagger-of-venom",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Dagger of Venom (Coat Blade with Poison)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "dagger-of-venom-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "dagger-of-venom",
+          "label": "Dagger of Venom",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgDaggerOfVenom",
+        "type": "weapon",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (enchant): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

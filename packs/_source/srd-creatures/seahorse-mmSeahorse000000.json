@@ -1,0 +1,176 @@
+{
+  "_id": "mmSeahorse000000",
+  "_key": "!actors!mmSeahorse000000",
+  "name": "Seahorse",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 1
+      },
+      "agility": {
+        "value": 12
+      },
+      "fortitude": {
+        "value": 8
+      },
+      "intellect": {
+        "value": 1
+      },
+      "wits": {
+        "value": 10
+      },
+      "presence": {
+        "value": 2
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 12
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 1,
+        "value": 1
+      },
+      "movement": {
+        "base": 5,
+        "value": 5
+      }
+    },
+    "details": {
+      "threat": 0
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Seahorse",
+    "width": 0.5,
+    "height": 0.5,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmWaterBreathing",
+      "_key": "!actors.items!mmSeahorse000000.mmWaterBreathing",
+      "name": "Water Breathing",
+      "type": "feature",
+      "img": "icons/creatures/fish/fish-bluefin-yellow-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The seahorse can breathe only underwater. </p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmWaterBreathing",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmBubbleDash0000",
+      "_key": "!actors.items!mmSeahorse000000.mmBubbleDash0000",
+      "name": "Bubble Dash",
+      "type": "action",
+      "img": "icons/magic/water/orb-water-bubbles-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>While underwater, the seahorse moves up to its Swim Speed without provoking Opportunity.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-bubble-dash",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Bubble Dash"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmBubbleDash0000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmSeahorse00trts",
+      "_key": "!actors.items!mmSeahorse000000.mmSeahorse00trts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "speed-swim",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "swim",
+              "distance": 20
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmSeahorse000000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 0
+      },
+      "conversion": {
+        "notes": [
+          "Bubble Dash: not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

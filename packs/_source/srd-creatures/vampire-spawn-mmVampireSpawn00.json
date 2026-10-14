@@ -1,0 +1,430 @@
+{
+  "_id": "mmVampireSpawn00",
+  "_key": "!actors!mmVampireSpawn00",
+  "name": "Vampire Spawn",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 16
+      },
+      "agility": {
+        "value": 16,
+        "saveProficient": true
+      },
+      "fortitude": {
+        "value": 16
+      },
+      "intellect": {
+        "value": 11
+      },
+      "wits": {
+        "value": 10,
+        "saveProficient": true
+      },
+      "presence": {
+        "value": 12
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 16
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 90,
+        "value": 90
+      },
+      "movement": {
+        "base": 30,
+        "value": 30
+      }
+    },
+    "details": {
+      "threat": 5
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Vampire Spawn",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmSpiderClimb000",
+      "_key": "!actors.items!mmVampireSpawn00.mmSpiderClimb000",
+      "name": "Spider Climb",
+      "type": "feature",
+      "img": "icons/creatures/invertebrates/spider-pink-purple.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The vampire spawn can climb difficult surfaces, including along ceilings, without needing to make an ability check.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSpiderClimb000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmMultiattack000",
+      "_key": "!actors.items!mmVampireSpawn00.mmMultiattack000",
+      "name": "Multiattack",
+      "type": "action",
+      "img": "icons/skills/melee/strike-weapons-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The vampire spawn makes two Claw attacks and uses Bite.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-multiattack-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Multiattack"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMultiattack000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmClaw0000000000",
+      "_key": "!actors.items!mmVampireSpawn00.mmClaw0000000000",
+      "name": "Claw (attack)",
+      "type": "action",
+      "img": "icons/skills/melee/blood-slash-foam-red.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +6, reach 5 ft. Hit: 8 (2d4 + 3) Slashing damage. If the target is a Medium or smaller creature, it has the Grappled condition (escape DC ) from one of two claws.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-claw",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 4
+              },
+              "damageType": "slashing",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Claw (attack)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmClaw0000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "effect: grappled is not a WildPath condition yet"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmBite0000000000",
+      "_key": "!actors.items!mmVampireSpawn00.mmBite0000000000",
+      "name": "Bite",
+      "type": "action",
+      "img": "icons/creatures/abilities/fangs-teeth-bite.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\"><em>Constitution Saving Throw:</em> DC 14, one creature within 5 feet that is willing or that has the Grappled, Incapacitated, or Restrained condition. </p><p class=\"feature\"><em>Failure:</em> 5 (1d4 + 3) Piercing plus 10 (3d6) Necrotic damage. The target's Hit Point maximum decreases by an amount equal to the Necrotic damage taken, and the vampire regains Hit Points equal to that amount.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-bite",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "fortitude",
+            "dc": {
+              "value": 14
+            }
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "dice",
+                    "number": 1,
+                    "faces": 4
+                  },
+                  {
+                    "type": "spellcasting-modifier"
+                  }
+                ]
+              },
+              "damageType": "piercing",
+              "provenance": "additional",
+              "saveOutcomePolicy": {
+                "success": "none",
+                "failure": "full"
+              }
+            },
+            {
+              "id": "damage-2",
+              "expression": {
+                "type": "dice",
+                "number": 3,
+                "faces": 6
+              },
+              "damageType": "necrotic",
+              "provenance": "additional",
+              "saveOutcomePolicy": {
+                "success": "none",
+                "failure": "full"
+              }
+            }
+          ],
+          "label": "Bite"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmBite0000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmDeathlessAgili",
+      "_key": "!actors.items!mmVampireSpawn00.mmDeathlessAgili",
+      "name": "Deathless Agility",
+      "type": "action",
+      "img": "icons/skills/movement/figure-running-gray.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The vampire spawn takes the Dash or Disengage action.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-deathless-agility-expend-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Deathless Agility"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmDeathlessAgili",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmVampireWeaknes",
+      "_key": "!actors.items!mmVampireSpawn00.mmVampireWeaknes",
+      "name": "Vampire Weakness",
+      "type": "feature",
+      "img": "icons/sundries/survival/stake-rough-heavy-brown.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The vampire spawn has these weaknesses:</p><p class=\"feature-trait\"><strong>Forbiddance.</strong> The vampire spawn can't enter a residence without an invitation from an occupant.</p><p class=\"feature-trait\"><strong>Running Water.</strong> The vampire spawn takes 20 Acid damage if it ends its turn in running water.</p><p class=\"feature-trait\"><strong>Stake to the Heart.</strong> The vampire spawn is destroyed if a weapon that deals Piercing damage is driven into the vampire spawn's heart while the vampire spawn has the Incapacitated condition.</p><p class=\"feature-trait\"><strong>Sunlight.</strong> The vampire spawn takes 20 Radiant damage if it starts its turn in sunlight. While in sunlight, it has Disadvantage on attack rolls and ability checks.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmVampireWeaknes",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "\"Damage: Running Water\" is passive or triggered: not automated",
+              "\"Staked to the Heart\" is passive or triggered: not automated",
+              "\"Damage: Sunlight\" is passive or triggered: not automated"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmVampireSpatrts",
+      "_key": "!actors.items!mmVampireSpawn00.mmVampireSpatrts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "resistances",
+            "type": "GrantResistance",
+            "data": {
+              "damageTypes": [
+                "necrotic"
+              ]
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmVampireSpawn00",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 5
+      },
+      "conversion": {
+        "notes": [
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
+          "Claw: effect: grappled is not a WildPath condition yet",
+          "Claw: \"Escape Check\" is passive or triggered: not automated",
+          "Deathless Agility: not automated (utility): using it spends its cost; its description says the rest",
+          "Vampire Weakness: \"Damage: Running Water\" is passive or triggered: not automated",
+          "Vampire Weakness: \"Staked to the Heart\" is passive or triggered: not automated",
+          "Vampire Weakness: \"Damage: Sunlight\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,300 @@
+{
+  "_id": "mmOctopus0000000",
+  "_key": "!actors!mmOctopus0000000",
+  "name": "Octopus",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 4
+      },
+      "agility": {
+        "value": 15
+      },
+      "fortitude": {
+        "value": 11
+      },
+      "intellect": {
+        "value": 3
+      },
+      "wits": {
+        "value": 10
+      },
+      "presence": {
+        "value": 4
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 12
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 3,
+        "value": 3
+      },
+      "movement": {
+        "base": 5,
+        "value": 5
+      }
+    },
+    "details": {
+      "threat": 0
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Octopus",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "phbaoiInkCloud1D",
+      "_key": "!actors.items!mmOctopus0000000.phbaoiInkCloud1D",
+      "name": "Ink Cloud",
+      "type": "action",
+      "img": "icons/creatures/fish/octopus-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p><em>Trigger:</em> A creature ends its turn within 5 feet of the octopus while underwater. <em>Response:</em> The octopus releases ink that fills a 5-foot Cube centered on itself, and the octopus moves up to its Swim Speed. The Cube is Heavilyobscured for 1 minute or until a strong current or similar effect disperses the ink.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-ink-cloud-obscure-area",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "reaction",
+                "amount": 1
+              },
+              {
+                "capability": "ink-cloud",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Ink Cloud"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "ink-cloud-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "ink-cloud",
+              "label": "Ink Cloud",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "none"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbaoiInkCloud1D",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "area: 5-ft cube is not supported; the user picks the targets"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmCompression000",
+      "_key": "!actors.items!mmOctopus0000000.mmCompression000",
+      "name": "Compression",
+      "type": "feature",
+      "img": "icons/creatures/tentacles/tentacles-octopus-black-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The octopus can move through a space as narrow as 1 inch without expending extra movement to do so.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmCompression000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmWaterBreathing",
+      "_key": "!actors.items!mmOctopus0000000.mmWaterBreathing",
+      "name": "Water Breathing",
+      "type": "feature",
+      "img": "icons/creatures/fish/fish-bluefin-yellow-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The octopus can breathe only underwater.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmWaterBreathing",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmTentacles00000",
+      "_key": "!actors.items!mmOctopus0000000.mmTentacles00000",
+      "name": "Tentacles (attack)",
+      "type": "action",
+      "img": "icons/creatures/tentacles/tentacles-suctioncups-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Melee Attack Roll: +4, reach 5 ft. Hit: 1 Bludgeoning damage. If the target is a Medium or smaller creature, it has the Grappled condition (escape DC ) from all four tentacles.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-tentacles",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "agility"
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "constant",
+                "value": 1
+              },
+              "damageType": "bludgeoning",
+              "provenance": "additional"
+            }
+          ],
+          "label": "Tentacles (attack)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmTentacles00000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "effect: grappled is not a WildPath condition yet"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmOctopus000trts",
+      "_key": "!actors.items!mmOctopus0000000.mmOctopus000trts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "speed-swim",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "swim",
+              "distance": 30
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmOctopus0000000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 0
+      },
+      "conversion": {
+        "notes": [
+          "Ink Cloud: not automated (utility): using it spends its cost; its description says the rest",
+          "Ink Cloud: area: 5-ft cube is not supported; the user picks the targets",
+          "Tentacles: effect: grappled is not a WildPath condition yet",
+          "Tentacles: \"Escape Check\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,487 @@
+{
+  "_id": "mmIronGolem00000",
+  "_key": "!actors!mmIronGolem00000",
+  "name": "Iron Golem",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 24
+      },
+      "agility": {
+        "value": 9
+      },
+      "fortitude": {
+        "value": 20
+      },
+      "intellect": {
+        "value": 3
+      },
+      "wits": {
+        "value": 11
+      },
+      "presence": {
+        "value": 1
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 20
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 252,
+        "value": 252
+      },
+      "movement": {
+        "base": 30,
+        "value": 30
+      }
+    },
+    "details": {
+      "threat": 16
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Iron Golem",
+    "width": 2,
+    "height": 2,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmFireAbsorption",
+      "_key": "!actors.items!mmIronGolem00000.mmFireAbsorption",
+      "name": "Fire Absorption",
+      "type": "feature",
+      "img": "icons/magic/fire/flame-burning-earth-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Whenever the iron golem is subjected to Fire damage, it regains a number of Hit Points equal to the Fire damage dealt.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmFireAbsorption",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmImmutableForm0",
+      "_key": "!actors.items!mmIronGolem00000.mmImmutableForm0",
+      "name": "Immutable Form",
+      "type": "feature",
+      "img": "icons/magic/unholy/orb-hands-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The iron golem can't shape-shift.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmImmutableForm0",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmMagicResistanc",
+      "_key": "!actors.items!mmIronGolem00000.mmMagicResistanc",
+      "name": "Magic Resistance",
+      "type": "feature",
+      "img": "icons/magic/light/orbs-hand-gray.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The iron golem has Advantage on saving throws against spells and other magical effects.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMagicResistanc",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmMultiattack000",
+      "_key": "!actors.items!mmIronGolem00000.mmMultiattack000",
+      "name": "Multiattack",
+      "type": "action",
+      "img": "icons/skills/melee/strike-weapons-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The iron golem makes two attack, using  or  in any combination.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-multiattack-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Multiattack"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMultiattack000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmFieryBolt00000",
+      "_key": "!actors.items!mmIronGolem00000.mmFieryBolt00000",
+      "name": "Fiery Bolt",
+      "type": "action",
+      "img": "icons/magic/fire/projectile-fireball-orange-yellow.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Ranged Attack Roll: +12, range 120 ft. Hit: 36 (8d8) Fire damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-fiery-bolt",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "ranged",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "might"
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 120,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 8,
+                "faces": 8
+              },
+              "damageType": "fire",
+              "provenance": "additional"
+            }
+          ],
+          "label": "Fiery Bolt"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmFieryBolt00000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmBladedArm00000",
+      "_key": "!actors.items!mmIronGolem00000.mmBladedArm00000",
+      "name": "Bladed Arm",
+      "type": "action",
+      "img": "icons/commodities/metal/fragments-steel-barbed.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +12, reach 10 ft. Hit: 20 (3d8 + 7) Slashing plus 10 (3d6) Fire damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-bladed-arm",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 10,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 3,
+                "faces": 8
+              },
+              "damageType": "slashing",
+              "provenance": "weapon-base"
+            },
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 3,
+                "faces": 6
+              },
+              "damageType": "fire",
+              "provenance": "additional"
+            }
+          ],
+          "label": "Bladed Arm"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmBladedArm00000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmPoisonBreath00",
+      "_key": "!actors.items!mmIronGolem00000.mmPoisonBreath00",
+      "name": "Poison Breath",
+      "type": "action",
+      "img": "icons/magic/light/beam-rays-green-large.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\"><em>Constitution Saving Throw:</em> DC 18, each creature in a 60-foot Cone.</p><p class=\"feature\"><em>Failure:</em> 55 (10d10) Poison damage.</p><p class=\"feature\"><em>Success:</em> Half damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-poison-breath-save",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "poison-breath",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "cone",
+            "size": {
+              "value": 60,
+              "unit": "ft"
+            }
+          },
+          "save": {
+            "ability": "fortitude",
+            "dc": {
+              "value": 18
+            }
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 10,
+                "faces": 10
+              },
+              "damageType": "poison",
+              "provenance": "additional",
+              "saveOutcomePolicy": {
+                "success": "half",
+                "failure": "full"
+              }
+            }
+          ],
+          "label": "Poison Breath"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "poison-breath-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "poison-breath",
+              "label": "Poison Breath",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "none"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmPoisonBreath00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "uses: Recharge 6 is not rolled; refill the pool by hand"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmIronGolem0trts",
+      "_key": "!actors.items!mmIronGolem00000.mmIronGolem0trts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "immunities",
+            "type": "GrantImmunity",
+            "data": {
+              "damageTypes": [
+                "fire",
+                "poison",
+                "psychic"
+              ]
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmIronGolem00000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 16
+      },
+      "conversion": {
+        "notes": [
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
+          "Poison Breath: uses: Recharge 6 is not rolled; refill the pool by hand",
+          "condition immunities (charmed, exhaustion, frightened, paralyzed, petrified, poisoned) not converted"
+        ]
+      }
+    }
+  }
+}

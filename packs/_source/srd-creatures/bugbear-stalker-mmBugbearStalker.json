@@ -1,0 +1,342 @@
+{
+  "_id": "mmBugbearStalker",
+  "_key": "!actors!mmBugbearStalker",
+  "name": "Bugbear Stalker",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 17
+      },
+      "agility": {
+        "value": 14
+      },
+      "fortitude": {
+        "value": 14,
+        "saveProficient": true
+      },
+      "intellect": {
+        "value": 11
+      },
+      "wits": {
+        "value": 12,
+        "saveProficient": true
+      },
+      "presence": {
+        "value": 11
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 15
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 65,
+        "value": 65
+      },
+      "movement": {
+        "base": 30,
+        "value": 30
+      }
+    },
+    "details": {
+      "threat": 3
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Bugbear Stalker",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "dN1CML4smcRrUkzD",
+      "_key": "!actors.items!mmBugbearStalker.dN1CML4smcRrUkzD",
+      "name": "Javelin",
+      "type": "action",
+      "img": "icons/weapons/polearms/javelin-flared.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +5, reach 10 ft. Hit: 13 (3d6 + 3) Piercing damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-javelin",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "ranged",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 30,
+              "unit": "ft"
+            },
+            "long": {
+              "value": 120,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 3,
+                "faces": 6
+              },
+              "damageType": "piercing",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Javelin"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "dN1CML4smcRrUkzD",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "YFpjAATelvlz5oyb",
+      "_key": "!actors.items!mmBugbearStalker.YFpjAATelvlz5oyb",
+      "name": "Morningstar",
+      "type": "action",
+      "img": "icons/weapons/maces/mace-cube-spiked-steel.webp",
+      "system": {
+        "active": true,
+        "description": "<p><em>Melee Attack Roll:</em> Melee Attack Roll: +5, reach 10 ft (with Advantage if the target is Grappled by the bugbear), reach 10 ft. Hit: 12 (2d8 + 3) Piercing damage</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-morningstar",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 8
+              },
+              "damageType": "piercing",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Morningstar"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "YFpjAATelvlz5oyb",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmAbduct00000000",
+      "_key": "!actors.items!mmBugbearStalker.mmAbduct00000000",
+      "name": "Abduct",
+      "type": "feature",
+      "img": "icons/magic/movement/portal-vortex-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The bugbear stalker needn't spend extra movement to move a creature it is grappling.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmAbduct00000000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmMultiattack000",
+      "_key": "!actors.items!mmBugbearStalker.mmMultiattack000",
+      "name": "Multiattack",
+      "type": "action",
+      "img": "icons/skills/melee/strike-weapons-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The bugbear stalker makes two Javelin or Morningstar attacks.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-multiattack-expend-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Multiattack"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMultiattack000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmQuickGrapple00",
+      "_key": "!actors.items!mmBugbearStalker.mmQuickGrapple00",
+      "name": "Quick Grapple (Save)",
+      "type": "action",
+      "img": "icons/skills/melee/hand-grip-staff-yellow-brown.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\"><em>Dexterity Saving Throw:</em> DC 12, one Medium or smaller creature the bugbear stalker can see within 10 ft.</p><p><em>Failure:</em> The target has the Grappled condition (escape DC ).</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-quick-grapple-save",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Quick Grapple (Save)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmQuickGrapple00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest",
+              "effect: grappled is not a WildPath condition yet"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmBugbearStalker",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 3
+      },
+      "conversion": {
+        "notes": [
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
+          "Quick Grapple: not automated (save): using it spends its cost; its description says the rest",
+          "Quick Grapple: effect: grappled is not a WildPath condition yet",
+          "Quick Grapple: \"Escape Check\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

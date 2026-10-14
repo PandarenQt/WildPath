@@ -1,0 +1,52 @@
+{
+  "_id": "phbftrActionSurg",
+  "_key": "!items!phbftrActionSurg",
+  "name": "Action Surge",
+  "type": "feature",
+  "img": "icons/magic/control/buff-strength-muscle-damage-orange.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You can push yourself beyond your normal limits for a moment. On your turn, you can take one additional action, except the Magic action.</p><p>Once you use this feature, you can't do so again until you finish a Short or Long Rest. Starting at level 17, you can use it twice before a rest but only once on a turn.</p><section id=\"secret-nYOY8k3V38g8mZIS\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This feature includes a limited use that increases automatically at level 17.</p></section>",
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "action-surge-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "action-surge",
+          "label": "Action Surge",
+          "maximum": {
+            "type": "table",
+            "key": {
+              "type": "class-level",
+              "class": "fighter"
+            },
+            "rows": {
+              "2": 1,
+              "17": 2
+            }
+          },
+          "recovery": "shortRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbftrActionSurg",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"utility\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

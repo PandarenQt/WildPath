@@ -1,0 +1,84 @@
+{
+  "_id": "1ocjd2n1nxys9t00",
+  "_key": "!items!1ocjd2n1nxys9t00",
+  "name": "Monk's Focus (Patient Defense)",
+  "type": "action",
+  "img": "icons/creatures/eyes/human-single-brown.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Your focus and martial training allow you to harness a well of extraordinary energy within yourself. This energy is represented by Focus Points. Your Monk level determines the number of points you have, as shown in the Focus Points column of the Monk Features table.</p><p>You can expend these points to enhance or fuel certain Monk features. You start knowing three such features: Flurry of Blows, Patient Defense, and Step of the Wind, each of which is detailed below.</p><p>When you expend a Focus Point, it is unavailable until you finish a Short or Long Rest, at the end of which you regain all your expended points.</p><p>Some features that use Focus Points require your target to make a saving throw. The save DC equals 8 plus your Wisdom modifier and Proficiency Bonus.</p><p><strong>Flurry of Blows.</strong> You can expend 1 Focus Point to make two Unarmed Strikes as a Bonus Action.</p><p><strong>Patient Defense.</strong> You can take the Disengage action as a Bonus Action. Alternatively, you can expend 1 Focus Point to take both the Disengage and the Dodge actions as a Bonus Action.</p><p><strong>Step of the Wind.</strong> You can take the Dash action as a Bonus Action. Alternatively, you can expend 1 Focus Point to take both the Disengage and Dash actions as a Bonus Action, and your jump distance is doubled for the turn.</p><section class=\"secret\" id=\"secret-Kb8gEVefEUz6IHer\"><p><strong>Foundry Note</strong></p><p>The <strong>Flurry of Blows</strong> activity is a Bonus Action which expends a Focus Point and includes the Attack Roll and Damage for an Unarmored Strike using your Martial Arts Die which automatically scales as you level up.</p><p>The <strong>Patient Defense</strong> Bonus Action activity includes an Active Effect for tracking that you're Disengaged. The <strong>Patient Defense (Focus Point)</strong> activity expends a Focus Point and includes an Active Effect that adds the Dodging status.</p><p>The <strong>Step of the Wind</strong> Bonus Action activity expends 1 Focus Point and includes an Active Effect for tracking that you're Disengaged.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-monk-s-focus-patient-defense",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Monk's Focus (Patient Defense)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "monk-s-focus-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "monk-s-focus",
+          "label": "Monk's Focus",
+          "maximum": {
+            "type": "table",
+            "key": {
+              "type": "class-level",
+              "class": "monk"
+            },
+            "rows": {
+              "1": 1,
+              "2": 2,
+              "3": 3,
+              "4": 4,
+              "5": 5,
+              "6": 6,
+              "7": 7,
+              "8": 8,
+              "9": 9,
+              "10": 10,
+              "11": 11,
+              "12": 12,
+              "13": 13,
+              "14": 14,
+              "15": 15,
+              "16": 16,
+              "17": 17,
+              "18": 18,
+              "19": 19,
+              "20": 20
+            }
+          },
+          "recovery": "shortRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbmnkMonksFocus",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Disengaged\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

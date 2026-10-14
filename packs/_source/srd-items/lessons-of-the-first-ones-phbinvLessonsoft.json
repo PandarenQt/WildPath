@@ -1,0 +1,28 @@
+{
+  "_id": "phbinvLessonsoft",
+  "_key": "!items!phbinvLessonsoft",
+  "name": "Lessons of the First Ones",
+  "type": "feature",
+  "img": "icons/creatures/magical/humanoid-giant-forest-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<blockquote><p>Prerequisite: Level 2+ Warlock</p></blockquote><p>You have received knowledge from an elder entity of the multiverse, allowing you to gain one Origin feat of your choice.</p><p><strong>Repeatable. </strong>You can gain this invocation more than once. Each time you do so, choose a different Origin feat.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbinvLessonsoft",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

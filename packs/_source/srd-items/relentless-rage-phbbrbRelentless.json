@@ -1,0 +1,46 @@
+{
+  "_id": "phbbrbRelentless",
+  "_key": "!items!phbbrbRelentless",
+  "name": "Relentless Rage",
+  "type": "feature",
+  "img": "icons/skills/wounds/injury-pain-body-orange.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Your Rage can keep you fighting despite grievous wounds. If you drop to 0 Hit Points while your Rage is active and don't die outright, you can make a DC 10 Constitution saving throw. If you succeed, your Hit Points instead change to a number equal to twice your Barbarian level.</p><p>Each time you use this feature after the first, the DC increases by 5. When you finish a Short or Long Rest, the DC resets to 10.</p><section class=\"secret\" id=\"secret-GTpuSHXh1ZobcQYd\"><p><strong>Foundry Note</strong></p><p>This feature will automatically increase the DC by 5 if you consume the resource when activating it. It will also automatically reset to 10 after a Short or Long Rest.</p></section>",
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "relentless-rage-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "relentless-rage",
+          "label": "Relentless Rage",
+          "maximum": {
+            "type": "constant",
+            "value": 20
+          },
+          "recovery": "shortRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbbrbRelentless",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"save\" is passive or triggered: not automated",
+          "\"heal\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

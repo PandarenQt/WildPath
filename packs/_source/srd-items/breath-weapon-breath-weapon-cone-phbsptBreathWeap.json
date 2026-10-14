@@ -1,0 +1,62 @@
+{
+  "_id": "phbsptBreathWeap",
+  "_key": "!items!phbsptBreathWeap",
+  "name": "Breath Weapon (Breath Weapon (Cone))",
+  "type": "action",
+  "img": "icons/creatures/reptiles/lizard-mouth-glowing-red.webp",
+  "system": {
+    "active": true,
+    "description": "<p>When you take the Attack action on your turn, you can replace one of your attacks with an exhalation of magical energy in either a 15-foot Cone or a 30-foot Line that is 5 feet wide (choose the shape each time). Each creature in that area must make a Dexterity saving throw (DC 8 plus your Constitution modifier and Proficiency Bonus). On a failed save, a creature takes 1d10 damage of the type determined by your Draconic Ancestry trait. On a successful save, a creature takes half as much damage. This damage increases by 1d10 when you reach character levels 5 (2d10), 11 (3d10), and 17 (4d10).You can use this Breath Weapon a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest.</p><section class=\"secret\" id=\"secret-iuhfGfxgl8GeYWBf\"><p><strong>Foundry Note</strong></p><p>The <strong>Breath Weapon (Cone)</strong> and <strong>Breath Weapon (Line)</strong> activities are both configured for their template type and include each type of damage. The damage also scales as you level up.</p><p>You can select the damage type in the damage roll's dialog box. It will remember your damage choice afterwards. You can edit the activities to remove the other damage types to skip this.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-breath-weapon-breath-weapon-cone",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "breath-weapon",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Breath Weapon (Breath Weapon (Cone))"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "breath-weapon-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "breath-weapon",
+          "label": "Breath Weapon",
+          "maximum": {
+            "type": "proficiency-bonus"
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "origins24",
+        "id": "phbsptBreathWeap",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (save): using it spends its cost; its description says the rest",
+          "save: dex DC (con) not converted"
+        ]
+      }
+    }
+  }
+}

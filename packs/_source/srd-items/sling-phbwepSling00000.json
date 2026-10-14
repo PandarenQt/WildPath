@@ -1,0 +1,75 @@
+{
+  "_id": "phbwepSling00000",
+  "_key": "!items!phbwepSling00000",
+  "name": "Sling",
+  "type": "action",
+  "img": "icons/weapons/slings/slingshot-wood.webp",
+  "system": {
+    "active": true,
+    "description": "",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-sling",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "attack": {
+        "type": "ranged",
+        "statistic": "weapon",
+        "defenseKey": "ac",
+        "proficient": true
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 30,
+          "unit": "ft"
+        },
+        "long": {
+          "value": 120,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "damage": [
+        {
+          "id": "base",
+          "expression": {
+            "type": "dice",
+            "number": 1,
+            "faces": 4
+          },
+          "damageType": "bludgeoning",
+          "provenance": "weapon-base"
+        }
+      ],
+      "label": "Sling"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbwepSling00000",
+        "type": "weapon",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

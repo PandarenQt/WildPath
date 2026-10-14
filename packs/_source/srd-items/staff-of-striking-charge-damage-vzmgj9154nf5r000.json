@@ -1,0 +1,64 @@
+{
+  "_id": "vzmgj9154nf5r000",
+  "_key": "!items!vzmgj9154nf5r000",
+  "name": "Staff of Striking (Charge Damage)",
+  "type": "action",
+  "img": "icons/weapons/staves/staff-ornate-purple.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Staff, Very Rare (Requires Attunement)</em></p><p>This staff can be wielded as a magic Quarterstaff that grants a +3 bonus to attack rolls and damage rolls made with it.</p><p>The staff has 10 charges. When you hit with a melee attack using it, you can expend up to 3 charges. For each charge you expend, the target takes an extra 1d6 Force damage.</p><p><em><strong>Regaining Charges.</strong></em> The staff regains 1d6 + 4 expended charges daily at dawn. If you expend the last charge, roll 1d20. On a 1, the staff becomes a nonmagical Quarterstaff.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-staff-of-striking-charge-damage",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "staff-of-striking",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Staff of Striking (Charge Damage)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "staff-of-striking-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "staff-of-striking",
+          "label": "Staff of Striking",
+          "maximum": {
+            "type": "constant",
+            "value": 10
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgStaffOfStriki",
+        "type": "weapon",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (damage): using it spends its cost; its description says the rest",
+          "uses: a partial recovery refills the whole pool",
+          "damage 1: custom formula \"(@scaling)d6\" not converted"
+        ]
+      }
+    }
+  }
+}

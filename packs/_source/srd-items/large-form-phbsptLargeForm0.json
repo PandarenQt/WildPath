@@ -1,0 +1,63 @@
+{
+  "_id": "phbsptLargeForm0",
+  "_key": "!items!phbsptLargeForm0",
+  "name": "Large Form",
+  "type": "action",
+  "img": "icons/magic/control/silhouette-grow-shrink-tan.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Starting at character level 5, you can change your size to Large as a Bonus Action if you're in a big enough space. This transformation lasts for 10 minutes or until you end it (no action required). For that duration, you have Advantage on Strength checks, and your Speed increases by 10 feet. Once you use this trait, you can't use it again until you finish a Long Rest.</p><section class=\"secret\" id=\"secret-MnS2QCGjgh6nXxEa\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect which automates the increase to your Speed and the Advantage on Strength checks.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-large-form-enlarge",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          },
+          {
+            "capability": "large-form",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Large Form"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "large-form-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "large-form",
+          "label": "Large Form",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "origins24",
+        "id": "phbsptLargeForm0",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Large Form\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

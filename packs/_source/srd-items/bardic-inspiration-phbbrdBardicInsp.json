@@ -1,0 +1,61 @@
+{
+  "_id": "phbbrdBardicInsp",
+  "_key": "!items!phbbrdBardicInsp",
+  "name": "Bardic Inspiration",
+  "type": "action",
+  "img": "icons/magic/light/orbs-firefly-hand-yellow.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You can supernaturally inspire others through words, music, or dance. This inspiration is represented by your Bardic Inspiration die, which starts as a d6 (currently, (by class level)).</p><p><strong>Using Bardic Inspiration.</strong> As a Bonus Action, you can inspire another creature within 60 feet of yourself who can see or hear you. That creature gains one of your Bardic Inspiration dice. A creature can have only one Bardic Inspiration die at a time.</p><p>Once within the next hour when the creature fails a D20 Test, the creature can roll the Bardic Inspiration die and add the number rolled to the d20, potentially turning the failure into a success. A Bardic Inspiration die is expended when it's rolled.</p><p><strong>Number of Uses.</strong> You can confer a Bardic Inspiration die a number of times equal to your Charisma modifier (minimum of once), and you regain all expended uses when you finish a Long Rest.</p><p><strong>At Higher Levels. </strong>Your Bardic Inspiration die changes when you reach certain Bard levels, as shown in the Bardic Die column of the Bard Features table. The die becomes a d8 at level 5, a d10 at level 10, and a d12 at level 15.</p><section class=\"secret\" id=\"secret-PtUXhUXS84HSdaew\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect for tracking when a character has Bardic Inspiration to use.</p><p>Recovery is set to long rest (for levels before Font of Inspiration is gained). Please manually adjust as required.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-bardic-inspiration-inspire",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          },
+          {
+            "capability": "bardic-inspiration",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Bardic Inspiration"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "bardic-inspiration-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "bardic-inspiration",
+          "label": "Bardic Inspiration",
+          "maximum": 1,
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbbrdBardicInsp",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "uses: maximum \"max(1, @abilities.cha.mod)\" not converted",
+          "effect: \"Inspired\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

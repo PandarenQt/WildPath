@@ -1,0 +1,75 @@
+{
+  "_id": "phbwepJavelin000",
+  "_key": "!items!phbwepJavelin000",
+  "name": "Javelin",
+  "type": "action",
+  "img": "icons/weapons/polearms/javelin-flared.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Melee Attack Roll: reach 30 ft. Hit: 1d6 Piercing damage.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-javelin",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "attack": {
+        "type": "ranged",
+        "statistic": "weapon",
+        "defenseKey": "ac",
+        "proficient": true
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 30,
+          "unit": "ft"
+        },
+        "long": {
+          "value": 120,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "damage": [
+        {
+          "id": "base",
+          "expression": {
+            "type": "dice",
+            "number": 1,
+            "faces": 6
+          },
+          "damageType": "piercing",
+          "provenance": "weapon-base"
+        }
+      ],
+      "label": "Javelin"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbwepJavelin000",
+        "type": "weapon",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

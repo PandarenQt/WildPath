@@ -1,0 +1,28 @@
+{
+  "_id": "phbDivineOrderTh",
+  "_key": "!items!phbDivineOrderTh",
+  "name": "Divine Order: Thaumaturge",
+  "type": "feature",
+  "img": "icons/magic/life/ankh-shadow-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You have dedicated yourself to the following sacred role:</p><p><strong>Thaumaturge.</strong> You know one extra cantrip from the Cleric spell list. In addition, your mystical connection to the divine gives you a bonus to your Intelligence (Arcana or Religion) checks. The bonus equals your Wisdom modifier (minimum of +1, currently ).</p><section id=\"secret-9NLpq7kfc33QLf8I\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect which increases the number of cantrips you can know and grants the bonus to your Intelligence (Arcana or Religion) checks.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbDivineOrderTh",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

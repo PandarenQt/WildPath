@@ -1,0 +1,146 @@
+{
+  "_id": "phbsplAid0000000",
+  "_key": "!items!phbsplAid0000000",
+  "name": "Aid",
+  "type": "action",
+  "img": "icons/magic/life/cross-flared-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Choose up to three creatures within range. Each target's Hit Point maximum and current Hit Points increase by 5 for the duration.</p><p><strong>Using a Higher-Level Spell Slot. </strong>Each target's Hit Points increase by 5 for each spell slot level above 2.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-aid",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 30,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "multiple",
+        "required": true,
+        "count": 3
+      },
+      "healing": [
+        {
+          "id": "healing-1",
+          "expression": {
+            "type": "constant",
+            "value": 5
+          },
+          "healingType": "healing"
+        }
+      ],
+      "configuration": [
+        {
+          "id": "spell-slot",
+          "type": "resource",
+          "label": "Spell slot",
+          "required": true,
+          "cost": {
+            "anyOf": [
+              [
+                {
+                  "capability": "spell-slot.2",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.3",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.4",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.5",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.6",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.7",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.8",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.9",
+                  "amount": 1
+                }
+              ]
+            ]
+          },
+          "levelByResourceId": {
+            "spell-slot.2": 2,
+            "spell-slot.3": 3,
+            "spell-slot.4": 4,
+            "spell-slot.5": 5,
+            "spell-slot.6": 6,
+            "spell-slot.7": 7,
+            "spell-slot.8": 8,
+            "spell-slot.9": 9
+          },
+          "effects": []
+        }
+      ],
+      "label": "Aid"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbsplAid0000000",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "effect: \"Level 2: +5 Max HP\" (its own changes) not converted",
+          "effect: \"Level 3: +10 Max HP\" (its own changes) not converted",
+          "effect: \"Level 4: +15 Max HP\" (its own changes) not converted",
+          "effect: \"Level 5: +20 Max HP\" (its own changes) not converted",
+          "effect: \"Level 6: +25 Max HP\" (its own changes) not converted",
+          "effect: \"Level 7: +30 Max HP\" (its own changes) not converted",
+          "effect: \"Level 8: +35 Max HP\" (its own changes) not converted",
+          "effect: \"Level 9: +40 Max HP\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

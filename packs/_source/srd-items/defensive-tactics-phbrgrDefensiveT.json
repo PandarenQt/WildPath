@@ -1,0 +1,30 @@
+{
+  "_id": "phbrgrDefensiveT",
+  "_key": "!items!phbrgrDefensiveT",
+  "name": "Defensive Tactics",
+  "type": "feature",
+  "img": "icons/skills/melee/shield-block-gray-yellow.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You gain one of the following feature options of your choice. Whenever you finish a Short or Long Rest, you can replace the chosen option with the other one.</p><p><strong>Escape the Horde.</strong> Opportunity Attacks have Disadvantage against you.</p><p><strong>Multiattack Defense.</strong> When a creature hits you with an attack roll, that creature has Disadvantage on all other attack rolls against you this turn.</p><section class=\"secret\" id=\"secret-5BXeADNIjwRdwzBf\"><p><strong>Foundry Note</strong></p><p>This feature includes a <strong>Multiattack Defense</strong> activity with an Active Effect which can be used to track a creature that has Disadvantage against you but it does not automate the effect.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbrgrDefensiveT",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Multiattack Defense\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

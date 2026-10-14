@@ -1,0 +1,2543 @@
+{
+  "_id": "mmAncientBlueDra",
+  "_key": "!actors!mmAncientBlueDra",
+  "name": "Ancient Blue Dragon",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 29
+      },
+      "agility": {
+        "value": 10,
+        "saveProficient": true
+      },
+      "fortitude": {
+        "value": 27
+      },
+      "intellect": {
+        "value": 18
+      },
+      "wits": {
+        "value": 17,
+        "saveProficient": true
+      },
+      "presence": {
+        "value": 25
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 22
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 481,
+        "value": 481
+      },
+      "movement": {
+        "base": 40,
+        "value": 40
+      }
+    },
+    "details": {
+      "threat": 23
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Ancient Blue Dragon",
+    "width": 4,
+    "height": 4,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmLegendaryResis",
+      "_key": "!actors.items!mmAncientBlueDra.mmLegendaryResis",
+      "name": "Legendary Resistance",
+      "type": "feature",
+      "img": "icons/equipment/shield/heater-steel-crystal-red.webp",
+      "system": {
+        "active": true,
+        "description": "<p>If the ancient blue dragon fails a saving throw, it can choose to succeed instead.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmLegendaryResis",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "\"Expend Use\" is passive or triggered: not automated"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmMultiattack000",
+      "_key": "!actors.items!mmAncientBlueDra.mmMultiattack000",
+      "name": "Multiattack",
+      "type": "action",
+      "img": "icons/skills/melee/strike-weapons-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The ancient blue dragon makes three  attacks. It can replace one attack with a use of  to cast Shatter (level 3 version).</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-multiattack-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Multiattack"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMultiattack000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmRend0000000000",
+      "_key": "!actors.items!mmAncientBlueDra.mmRend0000000000",
+      "name": "Rend",
+      "type": "action",
+      "img": "icons/skills/melee/shield-damaged-broken-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +16, reach 15 ft. Hit: 18 (2d8 + 9) Slashing plus 11 (2d10) Lightning damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-rend",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 15,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 8
+              },
+              "damageType": "slashing",
+              "provenance": "weapon-base"
+            },
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 10
+              },
+              "damageType": "lightning",
+              "provenance": "additional"
+            }
+          ],
+          "label": "Rend"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmRend0000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmLightningBreat",
+      "_key": "!actors.items!mmAncientBlueDra.mmLightningBreat",
+      "name": "Lightning Breath",
+      "type": "action",
+      "img": "icons/magic/lightning/bolt-strike-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p><em>Dexterity Saving Throw: </em>DC 23, each creature in a 120-foot-long, 10-foot-wide Line</p><p><em>Failure: </em>88 (16d10) Lightning damage.</p><p><em>Success:</em> Half damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-lightning-breath",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "lightning-breath",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "line",
+            "size": {
+              "value": 120,
+              "unit": "ft"
+            },
+            "width": {
+              "value": 10,
+              "unit": "ft"
+            }
+          },
+          "save": {
+            "ability": "agility",
+            "dc": {
+              "value": 23
+            }
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 16,
+                "faces": 10
+              },
+              "damageType": "lightning",
+              "provenance": "additional",
+              "saveOutcomePolicy": {
+                "success": "half",
+                "failure": "full"
+              }
+            }
+          ],
+          "label": "Lightning Breath"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "lightning-breath-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "lightning-breath",
+              "label": "Lightning Breath",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "none"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmLightningBreat",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "uses: Recharge 5–6 is not rolled; refill the pool by hand"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmSpellcasting00",
+      "_key": "!actors.items!mmAncientBlueDra.mmSpellcasting00",
+      "name": "Spellcasting (cast)",
+      "type": "action",
+      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The ancient blue dragon casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Invisibility</em>, <em>Mage Hand</em>, <em>Shatter</em> (level 3 version)</p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Scrying</em>, <em>Sending</em></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Spellcasting (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSpellcasting00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "17svfvloelxmr000",
+      "_key": "!actors.items!mmAncientBlueDra.17svfvloelxmr000",
+      "name": "Spellcasting (cast)",
+      "type": "action",
+      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The ancient blue dragon casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Invisibility</em>, <em>Mage Hand</em>, <em>Shatter</em> (level 3 version)</p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Scrying</em>, <em>Sending</em></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Spellcasting (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSpellcasting00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "16ywmso1mzul9w00",
+      "_key": "!actors.items!mmAncientBlueDra.16ywmso1mzul9w00",
+      "name": "Spellcasting (cast)",
+      "type": "action",
+      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The ancient blue dragon casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Invisibility</em>, <em>Mage Hand</em>, <em>Shatter</em> (level 3 version)</p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Scrying</em>, <em>Sending</em></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Spellcasting (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSpellcasting00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "178w8hnnsecqh000",
+      "_key": "!actors.items!mmAncientBlueDra.178w8hnnsecqh000",
+      "name": "Spellcasting (cast)",
+      "type": "action",
+      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The ancient blue dragon casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Invisibility</em>, <em>Mage Hand</em>, <em>Shatter</em> (level 3 version)</p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Scrying</em>, <em>Sending</em></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Spellcasting (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSpellcasting00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "18mu8yi1mdn0dm00",
+      "_key": "!actors.items!mmAncientBlueDra.18mu8yi1mdn0dm00",
+      "name": "Spellcasting (cast)",
+      "type": "action",
+      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The ancient blue dragon casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Invisibility</em>, <em>Mage Hand</em>, <em>Shatter</em> (level 3 version)</p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Scrying</em>, <em>Sending</em></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Spellcasting (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSpellcasting00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest",
+              "consumption: activityUses 1 not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "18wtunhn66ru7000",
+      "_key": "!actors.items!mmAncientBlueDra.18wtunhn66ru7000",
+      "name": "Spellcasting (cast)",
+      "type": "action",
+      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The ancient blue dragon casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Invisibility</em>, <em>Mage Hand</em>, <em>Shatter</em> (level 3 version)</p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Scrying</em>, <em>Sending</em></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Spellcasting (cast)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSpellcasting00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest",
+              "consumption: activityUses 1 not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "2UciHazQvhCx7CPp",
+      "_key": "!actors.items!mmAncientBlueDra.2UciHazQvhCx7CPp",
+      "name": "Detect Magic",
+      "type": "action",
+      "img": "icons/magic/symbols/runes-carved-stone-green.webp",
+      "system": {
+        "active": true,
+        "description": "<p>For the duration, you sense the presence of magical effects within 30 feet of yourself. If you sense such effects, you can take the Magic action to see a faint aura around any visible creature or object in the area that bears the magic, and if an effect was created by a spell, you learn the spell's school of magic.</p><p>The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-detect-magic-cast",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.1",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.2",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.3",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.4",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.1": 1,
+                "spell-slot.2": 2,
+                "spell-slot.3": 3,
+                "spell-slot.4": 4,
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Detect Magic"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "2UciHazQvhCx7CPp",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "effect: \"Detect Magic\" (its own changes) not converted",
+              "concentration: nothing it sustains was converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "FlUeG3M3TNcZ4aNj",
+      "_key": "!actors.items!mmAncientBlueDra.FlUeG3M3TNcZ4aNj",
+      "name": "Invisibility",
+      "type": "action",
+      "img": "icons/creatures/magical/spirit-undead-ghost-purple.webp",
+      "system": {
+        "active": true,
+        "description": "<p>A creature you touch has the Invisible condition until the spell ends. The spell ends early immediately after the target makes an attack roll, deals damage, or casts a spell.</p><p><strong>Using a Higher-Level Spell Slot.</strong> You can target one additional creature for each spell slot level above 2.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-invisibility",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.2",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.3",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.4",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.2": 2,
+                "spell-slot.3": 3,
+                "spell-slot.4": 4,
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Invisibility"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "FlUeG3M3TNcZ4aNj",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "targets: count \"@item.level - 1\" not converted",
+              "effect: invisible is not a WildPath condition yet",
+              "concentration: nothing it sustains was converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "nx98etdOuNlIWdf6",
+      "_key": "!actors.items!mmAncientBlueDra.nx98etdOuNlIWdf6",
+      "name": "Mage Hand",
+      "type": "action",
+      "img": "icons/magic/light/hand-sparks-smoke-teal.webp",
+      "system": {
+        "active": true,
+        "description": "<p>A spectral, floating hand appears at a point you choose within range. The hand lasts for the duration. The hand vanishes if it is ever more than 30 feet away from you or if you cast this spell again.</p><p>When you cast the spell, you can use the hand to manipulate an object, open an unlocked door or container, stow or retrieve an item from an open container, or pour the contents out of a vial.</p><p>As a Magic action on your later turns, you can control the hand thus again. As part of that action, you can move the hand up to 30 feet.</p><p>The hand can't attack, activate magic items, or carry more than 10 pounds.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-mage-hand",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Mage Hand"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "nx98etdOuNlIWdf6",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (summon): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "LFH0YeP80unYWTS8",
+      "_key": "!actors.items!mmAncientBlueDra.LFH0YeP80unYWTS8",
+      "name": "Shatter",
+      "type": "action",
+      "img": "icons/magic/sonic/projectile-shock-wave-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>A loud noise erupts from a point of your choice within range. Each creature in a 10-foot-radius Sphere centered there makes a Constitution saving throw, taking 3d8 Thunder damage on a failed save or half as much damage on a successful one. A Construct has Disadvantage on the save.</p><p>A nonmagical object that isn't being worn or carried also takes the damage if it's in the spell's area.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The damage increases by 1d8 for each spell slot level above 2.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-shatter",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 60,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "radial",
+            "size": {
+              "value": 10,
+              "unit": "ft"
+            }
+          },
+          "save": {
+            "ability": "fortitude",
+            "dc": {
+              "valueExpression": {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "constant",
+                    "value": 8
+                  },
+                  {
+                    "type": "proficiency-bonus"
+                  },
+                  {
+                    "type": "spellcasting-modifier"
+                  }
+                ]
+              }
+            }
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 3,
+                "faces": 8
+              },
+              "damageType": "thunder",
+              "provenance": "spell-base",
+              "saveOutcomePolicy": {
+                "success": "half",
+                "failure": "full"
+              }
+            }
+          ],
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.2",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.3",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.4",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.2": 2,
+                "spell-slot.3": 3,
+                "spell-slot.4": 4,
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": [
+                {
+                  "type": "scaleDamage",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 2,
+                  "componentIds": [
+                    "damage-1"
+                  ],
+                  "dice": {
+                    "number": 1,
+                    "faces": 8
+                  }
+                }
+              ]
+            }
+          ],
+          "label": "Shatter"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "LFH0YeP80unYWTS8",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "MKxlhPzwrIKZRWqY",
+      "_key": "!actors.items!mmAncientBlueDra.MKxlhPzwrIKZRWqY",
+      "name": "Scrying (Secondhand and Picture)",
+      "type": "action",
+      "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You can see and hear a creature you choose that is on the same plane of existence as you. The target makes a Wisdom saving throw, which is modified (see the tables below) by how well you know the target and the sort of physical connection you have to it. The target doesn't know what it is making the save against, only that it feels uneasy.</p><table><thead><tr><td>Your Knowledge of the Target Is …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Secondhand (heard of the target)</td><td>+5</td></tr><tr><td>Firsthand (met the target)</td><td>+0</td></tr><tr><td>Extensive (know the target well)</td><td>−5</td></tr></tbody></table><table><thead><tr><td>You Have the Target's …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Picture or other likeness</td><td>−2</td></tr><tr><td>Garment or other possession</td><td>−4</td></tr><tr><td>Body part, lock of hair, or bit of nail</td><td>−10</td></tr></tbody></table><p>On a successful save, the target isn't affected, and you can't use this spell on it again for 24 hours.</p><p>On a failed save, the spell creates an Invisible, intangible sensor within 10 feet of the target. You can see and hear through the sensor as if you were there. The sensor moves with the target, remaining within 10 feet of it for the duration. If something can see the sensor, it appears as a luminous orb about the size of your fist.</p><p>Instead of targeting a creature, you can target a location you have seen. When you do so, the sensor appears at that location and doesn't move.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-scrying-secondhand-and-picture",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": []
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Scrying (Secondhand and Picture)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "MKxlhPzwrIKZRWqY",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest",
+              "activation: 10 minute is not an action-economy cost",
+              "save: wis DC (@attributes.spell.dc - 5 + 2) not converted",
+              "activation: 10 minute is not an action-economy cost"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "b38g5mx02m200000",
+      "_key": "!actors.items!mmAncientBlueDra.b38g5mx02m200000",
+      "name": "Scrying (Secondhand and Garment)",
+      "type": "action",
+      "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You can see and hear a creature you choose that is on the same plane of existence as you. The target makes a Wisdom saving throw, which is modified (see the tables below) by how well you know the target and the sort of physical connection you have to it. The target doesn't know what it is making the save against, only that it feels uneasy.</p><table><thead><tr><td>Your Knowledge of the Target Is …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Secondhand (heard of the target)</td><td>+5</td></tr><tr><td>Firsthand (met the target)</td><td>+0</td></tr><tr><td>Extensive (know the target well)</td><td>−5</td></tr></tbody></table><table><thead><tr><td>You Have the Target's …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Picture or other likeness</td><td>−2</td></tr><tr><td>Garment or other possession</td><td>−4</td></tr><tr><td>Body part, lock of hair, or bit of nail</td><td>−10</td></tr></tbody></table><p>On a successful save, the target isn't affected, and you can't use this spell on it again for 24 hours.</p><p>On a failed save, the spell creates an Invisible, intangible sensor within 10 feet of the target. You can see and hear through the sensor as if you were there. The sensor moves with the target, remaining within 10 feet of it for the duration. If something can see the sensor, it appears as a luminous orb about the size of your fist.</p><p>Instead of targeting a creature, you can target a location you have seen. When you do so, the sensor appears at that location and doesn't move.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-scrying-secondhand-and-garment",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": []
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Scrying (Secondhand and Garment)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "MKxlhPzwrIKZRWqY",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest",
+              "activation: 10 minute is not an action-economy cost",
+              "save: wis DC (@attributes.spell.dc - 5 + 4) not converted",
+              "activation: 10 minute is not an action-economy cost"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "at8ugn1xfy0dz000",
+      "_key": "!actors.items!mmAncientBlueDra.at8ugn1xfy0dz000",
+      "name": "Scrying (Secondhand and Body Part)",
+      "type": "action",
+      "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You can see and hear a creature you choose that is on the same plane of existence as you. The target makes a Wisdom saving throw, which is modified (see the tables below) by how well you know the target and the sort of physical connection you have to it. The target doesn't know what it is making the save against, only that it feels uneasy.</p><table><thead><tr><td>Your Knowledge of the Target Is …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Secondhand (heard of the target)</td><td>+5</td></tr><tr><td>Firsthand (met the target)</td><td>+0</td></tr><tr><td>Extensive (know the target well)</td><td>−5</td></tr></tbody></table><table><thead><tr><td>You Have the Target's …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Picture or other likeness</td><td>−2</td></tr><tr><td>Garment or other possession</td><td>−4</td></tr><tr><td>Body part, lock of hair, or bit of nail</td><td>−10</td></tr></tbody></table><p>On a successful save, the target isn't affected, and you can't use this spell on it again for 24 hours.</p><p>On a failed save, the spell creates an Invisible, intangible sensor within 10 feet of the target. You can see and hear through the sensor as if you were there. The sensor moves with the target, remaining within 10 feet of it for the duration. If something can see the sensor, it appears as a luminous orb about the size of your fist.</p><p>Instead of targeting a creature, you can target a location you have seen. When you do so, the sensor appears at that location and doesn't move.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-scrying-secondhand-and-body-part",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": []
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Scrying (Secondhand and Body Part)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "MKxlhPzwrIKZRWqY",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest",
+              "activation: 10 minute is not an action-economy cost",
+              "save: wis DC (@attributes.spell.dc - 5 + 10) not converted",
+              "activation: 10 minute is not an action-economy cost"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "aj98roxma6ya0000",
+      "_key": "!actors.items!mmAncientBlueDra.aj98roxma6ya0000",
+      "name": "Scrying (Firsthand and Picture)",
+      "type": "action",
+      "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You can see and hear a creature you choose that is on the same plane of existence as you. The target makes a Wisdom saving throw, which is modified (see the tables below) by how well you know the target and the sort of physical connection you have to it. The target doesn't know what it is making the save against, only that it feels uneasy.</p><table><thead><tr><td>Your Knowledge of the Target Is …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Secondhand (heard of the target)</td><td>+5</td></tr><tr><td>Firsthand (met the target)</td><td>+0</td></tr><tr><td>Extensive (know the target well)</td><td>−5</td></tr></tbody></table><table><thead><tr><td>You Have the Target's …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Picture or other likeness</td><td>−2</td></tr><tr><td>Garment or other possession</td><td>−4</td></tr><tr><td>Body part, lock of hair, or bit of nail</td><td>−10</td></tr></tbody></table><p>On a successful save, the target isn't affected, and you can't use this spell on it again for 24 hours.</p><p>On a failed save, the spell creates an Invisible, intangible sensor within 10 feet of the target. You can see and hear through the sensor as if you were there. The sensor moves with the target, remaining within 10 feet of it for the duration. If something can see the sensor, it appears as a luminous orb about the size of your fist.</p><p>Instead of targeting a creature, you can target a location you have seen. When you do so, the sensor appears at that location and doesn't move.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-scrying-firsthand-and-picture",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": []
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Scrying (Firsthand and Picture)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "MKxlhPzwrIKZRWqY",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest",
+              "activation: 10 minute is not an action-economy cost",
+              "save: wis DC (@attributes.spell.dc - 0 + 2) not converted",
+              "activation: 10 minute is not an action-economy cost"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "a99n2p1y25la9000",
+      "_key": "!actors.items!mmAncientBlueDra.a99n2p1y25la9000",
+      "name": "Scrying (Firsthand and Garment)",
+      "type": "action",
+      "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You can see and hear a creature you choose that is on the same plane of existence as you. The target makes a Wisdom saving throw, which is modified (see the tables below) by how well you know the target and the sort of physical connection you have to it. The target doesn't know what it is making the save against, only that it feels uneasy.</p><table><thead><tr><td>Your Knowledge of the Target Is …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Secondhand (heard of the target)</td><td>+5</td></tr><tr><td>Firsthand (met the target)</td><td>+0</td></tr><tr><td>Extensive (know the target well)</td><td>−5</td></tr></tbody></table><table><thead><tr><td>You Have the Target's …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Picture or other likeness</td><td>−2</td></tr><tr><td>Garment or other possession</td><td>−4</td></tr><tr><td>Body part, lock of hair, or bit of nail</td><td>−10</td></tr></tbody></table><p>On a successful save, the target isn't affected, and you can't use this spell on it again for 24 hours.</p><p>On a failed save, the spell creates an Invisible, intangible sensor within 10 feet of the target. You can see and hear through the sensor as if you were there. The sensor moves with the target, remaining within 10 feet of it for the duration. If something can see the sensor, it appears as a luminous orb about the size of your fist.</p><p>Instead of targeting a creature, you can target a location you have seen. When you do so, the sensor appears at that location and doesn't move.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-scrying-firsthand-and-garment",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": []
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Scrying (Firsthand and Garment)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "MKxlhPzwrIKZRWqY",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest",
+              "activation: 10 minute is not an action-economy cost",
+              "save: wis DC (@attributes.spell.dc - 0 + 4) not converted",
+              "activation: 10 minute is not an action-economy cost"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "9za1dqy8hruk0000",
+      "_key": "!actors.items!mmAncientBlueDra.9za1dqy8hruk0000",
+      "name": "Scrying (Firsthand and Body Part)",
+      "type": "action",
+      "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You can see and hear a creature you choose that is on the same plane of existence as you. The target makes a Wisdom saving throw, which is modified (see the tables below) by how well you know the target and the sort of physical connection you have to it. The target doesn't know what it is making the save against, only that it feels uneasy.</p><table><thead><tr><td>Your Knowledge of the Target Is …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Secondhand (heard of the target)</td><td>+5</td></tr><tr><td>Firsthand (met the target)</td><td>+0</td></tr><tr><td>Extensive (know the target well)</td><td>−5</td></tr></tbody></table><table><thead><tr><td>You Have the Target's …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Picture or other likeness</td><td>−2</td></tr><tr><td>Garment or other possession</td><td>−4</td></tr><tr><td>Body part, lock of hair, or bit of nail</td><td>−10</td></tr></tbody></table><p>On a successful save, the target isn't affected, and you can't use this spell on it again for 24 hours.</p><p>On a failed save, the spell creates an Invisible, intangible sensor within 10 feet of the target. You can see and hear through the sensor as if you were there. The sensor moves with the target, remaining within 10 feet of it for the duration. If something can see the sensor, it appears as a luminous orb about the size of your fist.</p><p>Instead of targeting a creature, you can target a location you have seen. When you do so, the sensor appears at that location and doesn't move.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-scrying-firsthand-and-body-part",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": []
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Scrying (Firsthand and Body Part)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "MKxlhPzwrIKZRWqY",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest",
+              "activation: 10 minute is not an action-economy cost",
+              "save: wis DC (@attributes.spell.dc - 0 + 10) not converted",
+              "activation: 10 minute is not an action-economy cost"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "9pafor1yod66j000",
+      "_key": "!actors.items!mmAncientBlueDra.9pafor1yod66j000",
+      "name": "Scrying (Extensive and Picture)",
+      "type": "action",
+      "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You can see and hear a creature you choose that is on the same plane of existence as you. The target makes a Wisdom saving throw, which is modified (see the tables below) by how well you know the target and the sort of physical connection you have to it. The target doesn't know what it is making the save against, only that it feels uneasy.</p><table><thead><tr><td>Your Knowledge of the Target Is …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Secondhand (heard of the target)</td><td>+5</td></tr><tr><td>Firsthand (met the target)</td><td>+0</td></tr><tr><td>Extensive (know the target well)</td><td>−5</td></tr></tbody></table><table><thead><tr><td>You Have the Target's …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Picture or other likeness</td><td>−2</td></tr><tr><td>Garment or other possession</td><td>−4</td></tr><tr><td>Body part, lock of hair, or bit of nail</td><td>−10</td></tr></tbody></table><p>On a successful save, the target isn't affected, and you can't use this spell on it again for 24 hours.</p><p>On a failed save, the spell creates an Invisible, intangible sensor within 10 feet of the target. You can see and hear through the sensor as if you were there. The sensor moves with the target, remaining within 10 feet of it for the duration. If something can see the sensor, it appears as a luminous orb about the size of your fist.</p><p>Instead of targeting a creature, you can target a location you have seen. When you do so, the sensor appears at that location and doesn't move.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-scrying-extensive-and-picture",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": []
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Scrying (Extensive and Picture)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "MKxlhPzwrIKZRWqY",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest",
+              "activation: 10 minute is not an action-economy cost",
+              "save: wis DC (@attributes.spell.dc + 5 + 2) not converted",
+              "activation: 10 minute is not an action-economy cost"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "9fatzsyupcqu0000",
+      "_key": "!actors.items!mmAncientBlueDra.9fatzsyupcqu0000",
+      "name": "Scrying (Extensive and Garment)",
+      "type": "action",
+      "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You can see and hear a creature you choose that is on the same plane of existence as you. The target makes a Wisdom saving throw, which is modified (see the tables below) by how well you know the target and the sort of physical connection you have to it. The target doesn't know what it is making the save against, only that it feels uneasy.</p><table><thead><tr><td>Your Knowledge of the Target Is …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Secondhand (heard of the target)</td><td>+5</td></tr><tr><td>Firsthand (met the target)</td><td>+0</td></tr><tr><td>Extensive (know the target well)</td><td>−5</td></tr></tbody></table><table><thead><tr><td>You Have the Target's …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Picture or other likeness</td><td>−2</td></tr><tr><td>Garment or other possession</td><td>−4</td></tr><tr><td>Body part, lock of hair, or bit of nail</td><td>−10</td></tr></tbody></table><p>On a successful save, the target isn't affected, and you can't use this spell on it again for 24 hours.</p><p>On a failed save, the spell creates an Invisible, intangible sensor within 10 feet of the target. You can see and hear through the sensor as if you were there. The sensor moves with the target, remaining within 10 feet of it for the duration. If something can see the sensor, it appears as a luminous orb about the size of your fist.</p><p>Instead of targeting a creature, you can target a location you have seen. When you do so, the sensor appears at that location and doesn't move.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-scrying-extensive-and-garment",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": []
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Scrying (Extensive and Garment)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "MKxlhPzwrIKZRWqY",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest",
+              "activation: 10 minute is not an action-economy cost",
+              "save: wis DC (@attributes.spell.dc + 5 + 4) not converted",
+              "activation: 10 minute is not an action-economy cost"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "95b8at1ucw3wl000",
+      "_key": "!actors.items!mmAncientBlueDra.95b8at1ucw3wl000",
+      "name": "Scrying (Extensive and Body Part)",
+      "type": "action",
+      "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You can see and hear a creature you choose that is on the same plane of existence as you. The target makes a Wisdom saving throw, which is modified (see the tables below) by how well you know the target and the sort of physical connection you have to it. The target doesn't know what it is making the save against, only that it feels uneasy.</p><table><thead><tr><td>Your Knowledge of the Target Is …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Secondhand (heard of the target)</td><td>+5</td></tr><tr><td>Firsthand (met the target)</td><td>+0</td></tr><tr><td>Extensive (know the target well)</td><td>−5</td></tr></tbody></table><table><thead><tr><td>You Have the Target's …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Picture or other likeness</td><td>−2</td></tr><tr><td>Garment or other possession</td><td>−4</td></tr><tr><td>Body part, lock of hair, or bit of nail</td><td>−10</td></tr></tbody></table><p>On a successful save, the target isn't affected, and you can't use this spell on it again for 24 hours.</p><p>On a failed save, the spell creates an Invisible, intangible sensor within 10 feet of the target. You can see and hear through the sensor as if you were there. The sensor moves with the target, remaining within 10 feet of it for the duration. If something can see the sensor, it appears as a luminous orb about the size of your fist.</p><p>Instead of targeting a creature, you can target a location you have seen. When you do so, the sensor appears at that location and doesn't move.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-scrying-extensive-and-body-part",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": []
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Scrying (Extensive and Body Part)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "MKxlhPzwrIKZRWqY",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest",
+              "activation: 10 minute is not an action-economy cost",
+              "save: wis DC (@attributes.spell.dc + 5 + 10) not converted",
+              "activation: 10 minute is not an action-economy cost"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "i85zlI8RmuI6xYw5",
+      "_key": "!actors.items!mmAncientBlueDra.i85zlI8RmuI6xYw5",
+      "name": "Sending",
+      "type": "action",
+      "img": "icons/skills/social/diplomacy-writing-letter.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You send a short message of 25 words or fewer to a creature you have met or a creature described to you by someone who has met it. The target hears the message in its mind, recognizes you as the sender if it knows you, and can answer in a like manner immediately. The spell enables targets to understand the meaning of your message.</p><p>You can send the message across any distance and even to other planes of existence, but if the target is on a different plane than you, there is a 5 percent chance that the message doesn't arrive. You know if the delivery fails.</p><p>Upon receiving your message, a creature can block your ability to reach it again with this spell for 8 hours. If you try to send another message during that time, you learn that you are blocked, and the spell fails.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-sending",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.3",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.4",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.3": 3,
+                "spell-slot.4": 4,
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Sending"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "i85zlI8RmuI6xYw5",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmCloakedFlight0",
+      "_key": "!actors.items!mmAncientBlueDra.mmCloakedFlight0",
+      "name": "Cloaked Flight",
+      "type": "action",
+      "img": "icons/magic/holy/angel-wings-gray.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The ancient blue dragon uses  to cast <em>Invisibility</em> on itself, and it can fly up to half its Fly Speed. The dragon can't take this action again until the start of its next turn.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-cloaked-flight",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "legendary-action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Cloaked Flight"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmCloakedFlight0",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "j529u2kIzgwyFvaW",
+      "_key": "!actors.items!mmAncientBlueDra.j529u2kIzgwyFvaW",
+      "name": "Invisibility",
+      "type": "action",
+      "img": "icons/creatures/magical/spirit-undead-ghost-purple.webp",
+      "system": {
+        "active": true,
+        "description": "<p>A creature you touch has the Invisible condition until the spell ends. The spell ends early immediately after the target makes an attack roll, deals damage, or casts a spell.</p><p><strong>Using a Higher-Level Spell Slot.</strong> You can target one additional creature for each spell slot level above 2.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-invisibility",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.2",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.3",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.4",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.2": 2,
+                "spell-slot.3": 3,
+                "spell-slot.4": 4,
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Invisibility"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "j529u2kIzgwyFvaW",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "targets: count \"@item.level - 1\" not converted",
+              "effect: invisible is not a WildPath condition yet",
+              "concentration: nothing it sustains was converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmSonicBoom00000",
+      "_key": "!actors.items!mmAncientBlueDra.mmSonicBoom00000",
+      "name": "Sonic Boom",
+      "type": "action",
+      "img": "icons/magic/sonic/explosion-shock-wave-teal.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The ancient blue dragon uses Spellcasting to cast <em>Shatter</em> (level 3 version). The ancient blue dragon can't take this action again until the start of its next turn.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-sonic-boom",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "legendary-action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Sonic Boom"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSonicBoom00000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "7qttG6d39UUsh2ni",
+      "_key": "!actors.items!mmAncientBlueDra.7qttG6d39UUsh2ni",
+      "name": "Shatter",
+      "type": "action",
+      "img": "icons/magic/sonic/projectile-shock-wave-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>A loud noise erupts from a point of your choice within range. Each creature in a 10-foot-radius Sphere centered there makes a Constitution saving throw, taking 3d8 Thunder damage on a failed save or half as much damage on a successful one. A Construct has Disadvantage on the save.</p><p>A nonmagical object that isn't being worn or carried also takes the damage if it's in the spell's area.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The damage increases by 1d8 for each spell slot level above 2.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-shatter",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 60,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "radial",
+            "size": {
+              "value": 10,
+              "unit": "ft"
+            }
+          },
+          "save": {
+            "ability": "fortitude",
+            "dc": {
+              "valueExpression": {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "constant",
+                    "value": 8
+                  },
+                  {
+                    "type": "proficiency-bonus"
+                  },
+                  {
+                    "type": "spellcasting-modifier"
+                  }
+                ]
+              }
+            }
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 3,
+                "faces": 8
+              },
+              "damageType": "thunder",
+              "provenance": "spell-base",
+              "saveOutcomePolicy": {
+                "success": "half",
+                "failure": "full"
+              }
+            }
+          ],
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.2",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.3",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.4",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.2": 2,
+                "spell-slot.3": 3,
+                "spell-slot.4": 4,
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": [
+                {
+                  "type": "scaleDamage",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 2,
+                  "componentIds": [
+                    "damage-1"
+                  ],
+                  "dice": {
+                    "number": 1,
+                    "faces": 8
+                  }
+                }
+              ]
+            }
+          ],
+          "label": "Shatter"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "7qttG6d39UUsh2ni",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmTailSwipe00000",
+      "_key": "!actors.items!mmAncientBlueDra.mmTailSwipe00000",
+      "name": "Tail Swipe",
+      "type": "action",
+      "img": "icons/creatures/abilities/tail-swipe-green.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The ancient blue dragon makes one  attack.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-tail-swipe-expend-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "legendary-action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Tail Swipe"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmTailSwipe00000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmAncientBlutrts",
+      "_key": "!actors.items!mmAncientBlueDra.mmAncientBlutrts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "immunities",
+            "type": "GrantImmunity",
+            "data": {
+              "damageTypes": [
+                "lightning"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "speed-fly",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "fly",
+              "distance": 80
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "speed-burrow",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "burrow",
+              "distance": 40
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "legendary-actions",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "legendary-action",
+              "label": "Legendary Actions",
+              "maximum": 3,
+              "recovery": "turn"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmAncientBlueDra",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 23
+      },
+      "conversion": {
+        "notes": [
+          "Legendary Resistance: \"Expend Use\" is passive or triggered: not automated",
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
+          "Lightning Breath: uses: Recharge 5–6 is not rolled; refill the pool by hand",
+          "Spellcasting: not automated (cast): using it spends its cost; its description says the rest",
+          "Spellcasting: consumption: activityUses 1 not converted",
+          "Detect Magic: not automated (utility): using it spends its cost; its description says the rest",
+          "Detect Magic: effect: \"Detect Magic\" (its own changes) not converted",
+          "Detect Magic: concentration: nothing it sustains was converted",
+          "Invisibility: not automated (utility): using it spends its cost; its description says the rest",
+          "Invisibility: targets: count \"@item.level - 1\" not converted",
+          "Invisibility: effect: invisible is not a WildPath condition yet",
+          "Invisibility: concentration: nothing it sustains was converted",
+          "Mage Hand: not automated (summon): using it spends its cost; its description says the rest",
+          "Scrying: not automated (save): using it spends its cost; its description says the rest",
+          "Scrying: activation: 10 minute is not an action-economy cost",
+          "Scrying: save: wis DC (@attributes.spell.dc - 5 + 2) not converted",
+          "Scrying: save: wis DC (@attributes.spell.dc - 5 + 4) not converted",
+          "Scrying: save: wis DC (@attributes.spell.dc - 5 + 10) not converted",
+          "Scrying: save: wis DC (@attributes.spell.dc - 0 + 2) not converted",
+          "Scrying: save: wis DC (@attributes.spell.dc - 0 + 4) not converted",
+          "Scrying: save: wis DC (@attributes.spell.dc - 0 + 10) not converted",
+          "Scrying: save: wis DC (@attributes.spell.dc + 5 + 2) not converted",
+          "Scrying: save: wis DC (@attributes.spell.dc + 5 + 4) not converted",
+          "Scrying: save: wis DC (@attributes.spell.dc + 5 + 10) not converted",
+          "Scrying: \"Create Sensor\" is passive or triggered: not automated",
+          "Sending: not automated (utility): using it spends its cost; its description says the rest",
+          "Cloaked Flight: not automated (cast): using it spends its cost; its description says the rest",
+          "Invisibility: not automated (utility): using it spends its cost; its description says the rest",
+          "Invisibility: targets: count \"@item.level - 1\" not converted",
+          "Invisibility: effect: invisible is not a WildPath condition yet",
+          "Invisibility: concentration: nothing it sustains was converted",
+          "Sonic Boom: not automated (cast): using it spends its cost; its description says the rest",
+          "Tail Swipe: not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "_id": "phbftSkilled0000",
+  "_key": "!items!phbftSkilled0000",
+  "name": "Skilled",
+  "type": "feature",
+  "img": "icons/commodities/treasure/medal-ribbon-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You gain proficiency in any combination of three skills or tools of your choice.</p><p><strong>Repeatable.</strong> You can take this feat more than once.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "feats24",
+        "id": "phbftSkilled0000",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

@@ -1,0 +1,323 @@
+{
+  "_id": "mmBlackPudding00",
+  "_key": "!actors!mmBlackPudding00",
+  "name": "Black Pudding",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 16
+      },
+      "agility": {
+        "value": 5
+      },
+      "fortitude": {
+        "value": 16
+      },
+      "intellect": {
+        "value": 1
+      },
+      "wits": {
+        "value": 6
+      },
+      "presence": {
+        "value": 1
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 7
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 68,
+        "value": 68
+      },
+      "movement": {
+        "base": 20,
+        "value": 20
+      }
+    },
+    "details": {
+      "threat": 4
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Black Pudding",
+    "width": 2,
+    "height": 2,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmAmorphous00000",
+      "_key": "!actors.items!mmBlackPudding00.mmAmorphous00000",
+      "name": "Amorphous",
+      "type": "feature",
+      "img": "icons/creatures/slimes/slime-face-hollow-green.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The black pudding can move through a space as narrow as 1 inch without expending extra movement to do so.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmAmorphous00000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmCorrosiveForm0",
+      "_key": "!actors.items!mmBlackPudding00.mmCorrosiveForm0",
+      "name": "Corrosive Form",
+      "type": "feature",
+      "img": "icons/skills/melee/sword-damaged-broken-purple.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">A creature that hits the black pudding with a melee attack roll takes 4 (1d8) Acid damage. Nonmagical ammunition is destroyed immediately after hitting the black pudding and dealing any damage. Any nonmagical weapon takes a cumulative −1 penalty to attack rolls immediately after dealing damage to the black pudding and coming into contact with it. The weapon is destroyed if the penalty reaches −5. The penalty can be removed by casting the <em>Mending</em> spell on the weapon.</p><p class=\"feature\">In 1 minute, the black pudding can eat through 2 feet of nonmagical wood or metal.</p><section id=\"secret-NtgKYdQoCuiAaxOa\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This feature provides an <strong>Attack Penalty</strong> active effect that will modify a targeted weapon. Since this penalty can be applied multiple times to multiple nonmagical weapons, this active effect needs to be dragged from this item's Effect tab onto the target Item's weapons.</p></section>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmCorrosiveForm0",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "\"damage\" is passive or triggered: not automated"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmSpiderClimb000",
+      "_key": "!actors.items!mmBlackPudding00.mmSpiderClimb000",
+      "name": "Spider Climb",
+      "type": "feature",
+      "img": "icons/creatures/invertebrates/spider-pink-purple.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The black pudding can climb difficult surfaces, including along ceilings, without needing to make an ability check.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSpiderClimb000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmSplit000000000",
+      "_key": "!actors.items!mmBlackPudding00.mmSplit000000000",
+      "name": "Split",
+      "type": "action",
+      "img": "icons/creatures/slimes/slime-movement-pseudopod-green.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\"><em>Trigger:</em> While the black pudding is Large or Medium and has 10+ Hit Points, it becomes Bloodied or is subjected to Lightning or Slashing damage. <em>Response:</em> The black pudding splits into two new <strong>Black Pudding</strong>. Each new black pudding is one size smaller than the original black pudding and acts on its Initiative. The original black pudding's Hit Points are divided evenly between the new black puddings (round down).</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-split-split",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "reaction",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Split"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSplit000000000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (summon): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmDissolvingPseu",
+      "_key": "!actors.items!mmBlackPudding00.mmDissolvingPseu",
+      "name": "Dissolving Pseudopod",
+      "type": "action",
+      "img": "icons/creatures/slimes/slime-movement-dripping-purple.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Melee Attack Roll: +5, reach 10 ft. Hit: 17 (4d6 + 3) Acid damage. Nonmagical armor worn by the target takes a -1 penalty to the AC it offers. The armor is destroyed if the penalty reduces its AC to 10. The penalty can be removed by casting the <em>Mending</em> spell on the armor.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-dissolving-pseudopod",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 10,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 4,
+                "faces": 6
+              },
+              "damageType": "acid",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Dissolving Pseudopod"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmDissolvingPseu",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "effect: \"Damaged: -1 AC\" (its own changes) not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmBlackPudditrts",
+      "_key": "!actors.items!mmBlackPudding00.mmBlackPudditrts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "immunities",
+            "type": "GrantImmunity",
+            "data": {
+              "damageTypes": [
+                "acid",
+                "cold",
+                "lightning",
+                "slashing"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "speed-climb",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "climb",
+              "distance": 20
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmBlackPudding00",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 4
+      },
+      "conversion": {
+        "notes": [
+          "Corrosive Form: \"damage\" is passive or triggered: not automated",
+          "Split: not automated (summon): using it spends its cost; its description says the rest",
+          "Dissolving Pseudopod: effect: \"Damaged: -1 AC\" (its own changes) not converted",
+          "condition immunities (charmed, deafened, exhaustion, frightened, grappled, prone, restrained) not converted"
+        ]
+      }
+    }
+  }
+}

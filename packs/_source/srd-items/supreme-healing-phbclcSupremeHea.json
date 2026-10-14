@@ -1,0 +1,28 @@
+{
+  "_id": "phbclcSupremeHea",
+  "_key": "!items!phbclcSupremeHea",
+  "name": "Supreme Healing",
+  "type": "feature",
+  "img": "icons/magic/life/heart-area-circle-red-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p>When you would normally roll one or more dice to restore Hit Points to a creature with a spell or Channel Divinity, don't roll those dice for the healing; instead use the highest number possible for each die. For example, instead of restoring 2d6 Hit Points to a creature with a spell, you restore 12.</p><section id=\"secret-1Bw7MOem4xyPO17q\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This feature does not automate the maximizing of all of your rolls.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbclcSupremeHea",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

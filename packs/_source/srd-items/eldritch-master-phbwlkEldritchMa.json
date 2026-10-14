@@ -1,0 +1,30 @@
+{
+  "_id": "phbwlkEldritchMa",
+  "_key": "!items!phbwlkEldritchMa",
+  "name": "Eldritch Master",
+  "type": "feature",
+  "img": "icons/magic/lightning/orb-ball-purple.webp",
+  "system": {
+    "active": true,
+    "description": "<p>When you use your Magical Cunning feature, you regain all your expended Pact Magic spell slots.</p><section id=\"secret-Ei3yWRJ5hdPjWIH0\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>Use this feature to restore all expended Pact Magic spell slots. It will consume the free use from your Magical Cunning feature.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbwlkEldritchMa",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Eldritch Master\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

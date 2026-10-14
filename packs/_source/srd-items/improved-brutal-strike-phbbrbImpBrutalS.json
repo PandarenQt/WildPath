@@ -1,0 +1,31 @@
+{
+  "_id": "phbbrbImpBrutalS",
+  "_key": "!items!phbbrbImpBrutalS",
+  "name": "Improved Brutal Strike",
+  "type": "feature",
+  "img": "icons/skills/melee/strike-axe-blood-red.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You have honed new ways to attack furiously. The following effects are now among your Brutal Strike options.</p><p><strong>Staggering Blow.</strong> The target has Disadvantage on the next saving throw it makes, and it can't make Opportunity Attacks until the start of your next turn.</p><p><strong>Sundering Blow.</strong> Before the start of your next turn, the next attack roll made by another creature against the target gains a +5 bonus to the roll. An attack roll can gain only one Sundering Blow bonus.</p><section class=\"secret\" id=\"secret-5KFPx8fyh5NldmJp\"><p><strong>Foundry Note</strong></p><p>This feature includes an activity for each option which includes an Active Effect for tracking the Staggering and Sundering Blows but does not automate their effects.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbbrbImpBrutalS",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Staggering Blow\" is passive or triggered: not automated",
+          "\"Sundering Blow\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,257 @@
+{
+  "_id": "mmSatyr000000000",
+  "_key": "!actors!mmSatyr000000000",
+  "name": "Satyr",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 12
+      },
+      "agility": {
+        "value": 16
+      },
+      "fortitude": {
+        "value": 11
+      },
+      "intellect": {
+        "value": 12
+      },
+      "wits": {
+        "value": 10
+      },
+      "presence": {
+        "value": 14
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 13
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 31,
+        "value": 31
+      },
+      "movement": {
+        "base": 40,
+        "value": 40
+      }
+    },
+    "details": {
+      "threat": 0
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Satyr",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmMagicResistanc",
+      "_key": "!actors.items!mmSatyr000000000.mmMagicResistanc",
+      "name": "Magic Resistance",
+      "type": "feature",
+      "img": "icons/magic/light/orbs-hand-gray.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The satyr has Advantage on saving throws against spells and other magical effects.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMagicResistanc",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmHooves00000000",
+      "_key": "!actors.items!mmSatyr000000000.mmHooves00000000",
+      "name": "Hooves",
+      "type": "action",
+      "img": "icons/commodities/bones/hooves-cloven-brown.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +5, reach 5 ft. Hit: 5 (1d4 + 3) Bludgeoning damage.  If the target is a Medium or smaller creature, the satyr pushes the target up to 10 feet straight away from itself.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-hooves",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "agility"
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 4
+              },
+              "damageType": "bludgeoning",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Hooves"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmHooves00000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmMockery0000000",
+      "_key": "!actors.items!mmSatyr000000000.mmMockery0000000",
+      "name": "Mockery",
+      "type": "action",
+      "img": "icons/magic/control/mouth-smile-deception-purple.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\"><em>Wisdom Saving Throw:</em> DC 12,  the satyr can see within 90 <span style=\"font-family:'Roboto Condensed', sans-serif\">feet.</span></p><p><em>Failure:</em> 4 (1d6 + 1) Psychic damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-mockery-save",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 90,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "value": 12
+            }
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "dice",
+                    "number": 1,
+                    "faces": 6
+                  },
+                  {
+                    "type": "spellcasting-modifier"
+                  }
+                ]
+              },
+              "damageType": "psychic",
+              "provenance": "additional",
+              "saveOutcomePolicy": {
+                "success": "none",
+                "failure": "full"
+              }
+            }
+          ],
+          "label": "Mockery"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMockery0000000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmSatyr000000000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 0.5
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

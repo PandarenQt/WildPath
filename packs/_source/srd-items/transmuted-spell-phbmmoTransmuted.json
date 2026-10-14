@@ -1,0 +1,30 @@
+{
+  "_id": "phbmmoTransmuted",
+  "_key": "!items!phbmmoTransmuted",
+  "name": "Transmuted Spell",
+  "type": "feature",
+  "img": "icons/magic/symbols/elements-air-earth-fire-water.webp",
+  "system": {
+    "active": true,
+    "description": "<blockquote><p>Cost: 1 Sorcery Point</p></blockquote><p>When you cast a spell that deals a type of damage from the following list, you can spend 1 Sorcery Point to change that damage type to one of the other listed types: Acid, Cold, Fire, Lightning, Poison, Thunder.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbmmoTransmuted",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Transmuted Spell\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

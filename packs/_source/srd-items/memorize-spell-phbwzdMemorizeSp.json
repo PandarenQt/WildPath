@@ -1,0 +1,28 @@
+{
+  "_id": "phbwzdMemorizeSp",
+  "_key": "!items!phbwzdMemorizeSp",
+  "name": "Memorize Spell",
+  "type": "feature",
+  "img": "icons/sundries/documents/blueprint-magical.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Whenever you finish a Short Rest, you can study your spellbook and replace one of the level 1+ Wizard spells you have prepared for your Spellcasting feature with another level 1+ spell from the book.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbwzdMemorizeSp",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

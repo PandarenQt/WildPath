@@ -1,0 +1,28 @@
+{
+  "_id": "phbrgrDeftExplor",
+  "_key": "!items!phbrgrDeftExplor",
+  "name": "Deft Explorer",
+  "type": "feature",
+  "img": "icons/tools/navigation/map-chart-tan.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Thanks to your travels, you gain the following benefits.</p><p><strong>Expertise.</strong> Choose one of your skill proficiencies with which you lack Expertise. You gain Expertise in that skill.</p><p><strong>Languages.</strong> You know two languages of your choice from the language tables in chapter 2.</p><section class=\"secret\" id=\"secret-MKYXod5Sdpyj2x7V\"><p><strong>Foundry Note</strong></p><p>You will be prompted for choices when you add the Ranger class to your character sheet.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbrgrDeftExplor",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

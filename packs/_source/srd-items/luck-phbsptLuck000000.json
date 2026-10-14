@@ -1,0 +1,28 @@
+{
+  "_id": "phbsptLuck000000",
+  "_key": "!items!phbsptLuck000000",
+  "name": "Luck",
+  "type": "feature",
+  "img": "icons/commodities/flowers/clover.webp",
+  "system": {
+    "active": true,
+    "description": "<p>When you roll a 1 on the d20 of a D20 Test, you can reroll the die, and you must use the new roll.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "origins24",
+        "id": "phbsptLuck000000",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

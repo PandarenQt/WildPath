@@ -1,0 +1,328 @@
+{
+  "_id": "mmGiantSeahorse0",
+  "_key": "!actors!mmGiantSeahorse0",
+  "name": "Giant Seahorse",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 15
+      },
+      "agility": {
+        "value": 12
+      },
+      "fortitude": {
+        "value": 11
+      },
+      "intellect": {
+        "value": 2
+      },
+      "wits": {
+        "value": 12
+      },
+      "presence": {
+        "value": 5
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 14
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 16,
+        "value": 16
+      },
+      "movement": {
+        "base": 5,
+        "value": 5
+      }
+    },
+    "details": {
+      "threat": 0
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Giant Seahorse",
+    "width": 2,
+    "height": 2,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmRam00000000000",
+      "_key": "!actors.items!mmGiantSeahorse0.mmRam00000000000",
+      "name": "Ram (attack)",
+      "type": "action",
+      "img": "icons/creatures/fish/jellyfish-swarm-eyed-teal.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Melee Attack Roll: +4, reach 5 ft. Hit: 9 (2d6 + 2) Bludgeoning damage, or 11 (2d8 + 2) damage if the seahorse moved 20+ feet straight toward the target immediately before the hit.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-ram",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "might"
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 6
+              },
+              "damageType": "bludgeoning",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Ram (attack)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmRam00000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "jpnuvedr78420000",
+      "_key": "!actors.items!mmGiantSeahorse0.jpnuvedr78420000",
+      "name": "Ram (Moving Attack)",
+      "type": "action",
+      "img": "icons/creatures/fish/jellyfish-swarm-eyed-teal.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Melee Attack Roll: +4, reach 5 ft. Hit: 9 (2d6 + 2) Bludgeoning damage, or 11 (2d8 + 2) damage if the seahorse moved 20+ feet straight toward the target immediately before the hit.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-ram-moving-attack",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "might"
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "dice",
+                    "number": 2,
+                    "faces": 8
+                  },
+                  {
+                    "type": "spellcasting-modifier"
+                  }
+                ]
+              },
+              "damageType": "untyped",
+              "provenance": "additional"
+            }
+          ],
+          "label": "Ram (Moving Attack)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmRam00000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmBubbleDash0000",
+      "_key": "!actors.items!mmGiantSeahorse0.mmBubbleDash0000",
+      "name": "Bubble Dash",
+      "type": "action",
+      "img": "icons/magic/water/orb-water-bubbles-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>While underwater, the giant seahorse moves up to half its Swim Speed without provoking Opportunity.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-bubble-dash-expand-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Bubble Dash"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmBubbleDash0000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmWaterBreathing",
+      "_key": "!actors.items!mmGiantSeahorse0.mmWaterBreathing",
+      "name": "Water Breathing",
+      "type": "feature",
+      "img": "icons/creatures/fish/fish-bluefin-yellow-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The giant seahorse can breathe only underwater.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmWaterBreathing",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmGiantSeahotrts",
+      "_key": "!actors.items!mmGiantSeahorse0.mmGiantSeahotrts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "speed-swim",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "swim",
+              "distance": 40
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmGiantSeahorse0",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 0.5
+      },
+      "conversion": {
+        "notes": [
+          "Bubble Dash: not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

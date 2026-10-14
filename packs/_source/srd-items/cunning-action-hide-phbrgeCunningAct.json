@@ -1,0 +1,44 @@
+{
+  "_id": "phbrgeCunningAct",
+  "_key": "!items!phbrgeCunningAct",
+  "name": "Cunning Action (Hide)",
+  "type": "action",
+  "img": "icons/skills/movement/figure-running-gray.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Your quick thinking and agility allow you to move and act quickly. On your turn, you can take one of the following actions as a Bonus Action: Dash, Disengage, or Hide.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-cunning-action-hide",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Cunning Action (Hide)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbrgeCunningAct",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: hiding is not a WildPath condition yet"
+        ]
+      }
+    }
+  }
+}

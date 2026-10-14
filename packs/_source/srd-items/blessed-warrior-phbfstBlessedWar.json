@@ -1,0 +1,28 @@
+{
+  "_id": "phbfstBlessedWar",
+  "_key": "!items!phbfstBlessedWar",
+  "name": "Blessed Warrior",
+  "type": "feature",
+  "img": "icons/skills/melee/sword-winged-holy-orange.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You learn two Cleric cantrips of your choice. <em>Guidance</em> and <em>Sacred Flame</em> are recommended. The chosen cantrips count as Paladin spells for you, and Charisma is your spellcasting ability for them. Whenever you gain a Paladin level, you can replace one of these cantrips with another Cleric cantrip.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbfstBlessedWar",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

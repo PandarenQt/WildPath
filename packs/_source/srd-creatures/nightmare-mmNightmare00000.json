@@ -1,0 +1,295 @@
+{
+  "_id": "mmNightmare00000",
+  "_key": "!actors!mmNightmare00000",
+  "name": "Nightmare",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 18
+      },
+      "agility": {
+        "value": 15
+      },
+      "fortitude": {
+        "value": 16
+      },
+      "intellect": {
+        "value": 10
+      },
+      "wits": {
+        "value": 13
+      },
+      "presence": {
+        "value": 15
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 13
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 68,
+        "value": 68
+      },
+      "movement": {
+        "base": 60,
+        "value": 60
+      }
+    },
+    "details": {
+      "threat": 3
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Nightmare",
+    "width": 2,
+    "height": 2,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmConferFireResi",
+      "_key": "!actors.items!mmNightmare00000.mmConferFireResi",
+      "name": "Confer Fire Resistance",
+      "type": "feature",
+      "img": "icons/magic/fire/barrier-shield-explosion-yellow.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The nightmare can grant Resistance to Fire damage to a rider while it is on the nightmare.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmConferFireResi",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmIllumination00",
+      "_key": "!actors.items!mmNightmare00000.mmIllumination00",
+      "name": "Illumination",
+      "type": "feature",
+      "img": "icons/magic/light/orb-lightbulb-gray.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The nightmare sheds Bright Light in a 10-foot radius and Dim Light for an additional 10 feet.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmIllumination00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmHooves00000000",
+      "_key": "!actors.items!mmNightmare00000.mmHooves00000000",
+      "name": "Hooves",
+      "type": "action",
+      "img": "icons/commodities/bones/hooves-cloven-brown.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +6, reach 5 ft. Hit: 13 (2d8 + 4) Bludgeoning plus 10 (3d6) Fire damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-hooves",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 8
+              },
+              "damageType": "bludgeoning",
+              "provenance": "weapon-base"
+            },
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 3,
+                "faces": 6
+              },
+              "damageType": "fire",
+              "provenance": "additional"
+            }
+          ],
+          "label": "Hooves"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmHooves00000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmEtherealStride",
+      "_key": "!actors.items!mmNightmare00000.mmEtherealStride",
+      "name": "Ethereal Stride",
+      "type": "action",
+      "img": "icons/magic/control/silhouette-hold-change-green.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The nightmare and up to  within 5 ft. of it teleport to the Ethereal Plane from the Material Plane or vice versa.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-ethereal-stride-expend-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Ethereal Stride"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmEtherealStride",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmNightmare0trts",
+      "_key": "!actors.items!mmNightmare00000.mmNightmare0trts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "immunities",
+            "type": "GrantImmunity",
+            "data": {
+              "damageTypes": [
+                "fire"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "speed-fly",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "fly",
+              "distance": 90
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmNightmare00000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 3
+      },
+      "conversion": {
+        "notes": [
+          "Ethereal Stride: not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

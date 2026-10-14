@@ -1,0 +1,28 @@
+{
+  "_id": "phbbrdBonusProfi",
+  "_key": "!items!phbbrdBonusProfi",
+  "name": "Bonus Proficiencies",
+  "type": "feature",
+  "img": "icons/commodities/tech/cog-bronze.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You gain proficiency with three skills of your choice.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbbrdBonusProfi",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

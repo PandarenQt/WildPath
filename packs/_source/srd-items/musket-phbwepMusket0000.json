@@ -1,0 +1,75 @@
+{
+  "_id": "phbwepMusket0000",
+  "_key": "!items!phbwepMusket0000",
+  "name": "Musket",
+  "type": "action",
+  "img": "icons/weapons/guns/gun-blunderbuss-gold.webp",
+  "system": {
+    "active": true,
+    "description": "",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-musket",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "attack": {
+        "type": "ranged",
+        "statistic": "weapon",
+        "defenseKey": "ac",
+        "proficient": true
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 40,
+          "unit": "ft"
+        },
+        "long": {
+          "value": 120,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "damage": [
+        {
+          "id": "base",
+          "expression": {
+            "type": "dice",
+            "number": 1,
+            "faces": 12
+          },
+          "damageType": "piercing",
+          "provenance": "weapon-base"
+        }
+      ],
+      "label": "Musket"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbwepMusket0000",
+        "type": "weapon",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

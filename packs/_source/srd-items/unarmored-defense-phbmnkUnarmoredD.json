@@ -1,0 +1,28 @@
+{
+  "_id": "phbmnkUnarmoredD",
+  "_key": "!items!phbmnkUnarmoredD",
+  "name": "Unarmored Defense",
+  "type": "feature",
+  "img": "icons/magic/control/silhouette-hold-change-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p>While you aren't wearing armor or wielding a Shield, your base Armor Class equals 10 plus your Dexterity and Wisdom modifiers.</p><section class=\"secret\" id=\"secret-yjsIRRlbUz035Dnj\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect which updates your Armor Class.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbmnkUnarmoredD",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

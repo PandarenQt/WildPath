@@ -1,0 +1,32 @@
+{
+  "_id": "phbinvLifedrinke",
+  "_key": "!items!phbinvLifedrinke",
+  "name": "Lifedrinker",
+  "type": "feature",
+  "img": "icons/skills/melee/strike-sword-blood-red.webp",
+  "system": {
+    "active": true,
+    "description": "<blockquote><p>Prerequisite: Level 9+ Warlock, Pact of the Blade Invocation</p></blockquote><p>Once per turn when you hit a creature with your pact weapon, you can deal an extra 1d6 Necrotic, Psychic, or Radiant damage (your choice) to the creature, and you can expend one of your Hit Point Dice to roll it and regain a number of Hit Points equal to the roll plus your Constitution modifier (minimum of 1 Hit Point).</p><section class=\"secret\" id=\"secret-1Hta9I4donszrwIQ\"><p><strong>Foundry Note</strong></p><p>The <strong>Damage</strong> activity allows you to choose the type of damage in the roll's dialog. It will remember your choice going forward.</p><p>The <strong>Heal (Largest Hit Die)</strong> and <strong>Smallest Hit Die</strong> activities expends the relevant Hit Die and provides a healing roll with your Constitution modifier included. Which you choose only matters if you are multi-classed with multiple hit die types.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbinvLifedrinke",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"damage\" is passive or triggered: not automated",
+          "\"Heal (Largest Hit Die)\" is passive or triggered: not automated",
+          "\"Heal (Smallest Hit Die)\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

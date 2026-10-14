@@ -1,0 +1,45 @@
+{
+  "_id": "phbclcGreaterDiv",
+  "_key": "!items!phbclcGreaterDiv",
+  "name": "Greater Divine Intervention",
+  "type": "action",
+  "img": "icons/magic/light/beam-rays-yellow-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You can call on even more powerful divine intervention. When you use your Divine Intervention feature, you can choose Wish when you select a spell. If you do so, you can't use Divine Intervention again until you finish 2d4 Long Rests.</p><section class=\"secret\" id=\"secret-LP9WqNdaJevppYeM\"><p><strong>Foundry Note</strong></p><p>This feature will consume a use of your Divine Intervention but it can not automatically recharge the usage after the rolled number of Long Rests.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-greater-divine-intervention",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Greater Divine Intervention"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbclcGreaterDiv",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "consumption: itemUses 1 not converted",
+          "consumption: itemUses 1 not converted"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "_id": "phbrgrFoeSlayer0",
+  "_key": "!items!phbrgrFoeSlayer0",
+  "name": "Foe Slayer",
+  "type": "feature",
+  "img": "icons/skills/targeting/crosshair-triple-strike-orange.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Hunter's Mark is a d10 rather than a d6.</p><section id=\"secret-GUET2urq4zcuitcV\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>You may use this feature in place of the <strong>Bonus Mark Damage</strong> activity on the <em>Hunter's Mark</em> spell.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbrgrFoeSlayer0",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Improved Hunter's Mark Damage\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

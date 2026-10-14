@@ -1,0 +1,257 @@
+{
+  "_id": "mmAnimatedRugOfS",
+  "_key": "!actors!mmAnimatedRugOfS",
+  "name": "Animated Rug of Smothering",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 17
+      },
+      "agility": {
+        "value": 14
+      },
+      "fortitude": {
+        "value": 10
+      },
+      "intellect": {
+        "value": 1
+      },
+      "wits": {
+        "value": 3
+      },
+      "presence": {
+        "value": 1
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 12
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 27,
+        "value": 27
+      },
+      "movement": {
+        "base": 10,
+        "value": 10
+      }
+    },
+    "details": {
+      "threat": 2
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Animated Rug of Smothering",
+    "width": 2,
+    "height": 2,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmSmother0000000",
+      "_key": "!actors.items!mmAnimatedRugOfS.mmSmother0000000",
+      "name": "Smother (attack)",
+      "type": "action",
+      "img": "icons/commodities/cloth/cloth-bolt-embroidered-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Melee Attack Roll: +5, reach 5 ft. Hit: 10 (2d6 + 3) Bludgeoning damage. If the target is a Medium or smaller creature, the animated rug of smothering can give it the Grappled condition (escape DC ) instead of dealing damage. Until the grapple ends, the target has the Blinded and Restrained conditions, is suffocating, and takes 10 (2d6 + 3) Bludgeoning damage at the start of each of its turns. animated rug of smothering rug can smother only one creature at a time.</p><p class=\"feature\">While grappling the target, the animated rug of smothering can't take this action, the animated rug of smothering halves the damage it takes (round down), and the target takes the same amount of damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-smother",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "might"
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 6
+              },
+              "damageType": "bludgeoning",
+              "provenance": "weapon-base"
+            }
+          ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "blinded"
+            },
+            {
+              "id": "effect-2",
+              "type": "condition",
+              "conditionId": "restrained"
+            }
+          ],
+          "label": "Smother (attack)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSmother0000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "effect: grappled is not a WildPath condition yet",
+              "effect: suffocation is not a WildPath condition yet"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "1k2igmk6m28u2000",
+      "_key": "!actors.items!mmAnimatedRugOfS.1k2igmk6m28u2000",
+      "name": "Smother (Grappled: Damage)",
+      "type": "action",
+      "img": "icons/commodities/cloth/cloth-bolt-embroidered-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Melee Attack Roll: +5, reach 5 ft. Hit: 10 (2d6 + 3) Bludgeoning damage. If the target is a Medium or smaller creature, the animated rug of smothering can give it the Grappled condition (escape DC ) instead of dealing damage. Until the grapple ends, the target has the Blinded and Restrained conditions, is suffocating, and takes 10 (2d6 + 3) Bludgeoning damage at the start of each of its turns. animated rug of smothering rug can smother only one creature at a time.</p><p class=\"feature\">While grappling the target, the animated rug of smothering can't take this action, the animated rug of smothering halves the damage it takes (round down), and the target takes the same amount of damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-smother-grappled-damage",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 6
+              },
+              "damageType": "untyped",
+              "provenance": "additional"
+            }
+          ],
+          "label": "Smother (Grappled: Damage)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSmother0000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "damage 1: bonus \"@abilities.str.mod\" not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmAnimatedRutrts",
+      "_key": "!actors.items!mmAnimatedRugOfS.mmAnimatedRutrts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "immunities",
+            "type": "GrantImmunity",
+            "data": {
+              "damageTypes": [
+                "poison",
+                "psychic"
+              ]
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmAnimatedRugOfS",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 2
+      },
+      "conversion": {
+        "notes": [
+          "Smother: effect: grappled is not a WildPath condition yet",
+          "Smother: effect: suffocation is not a WildPath condition yet",
+          "Smother: damage 1: bonus \"@abilities.str.mod\" not converted",
+          "condition immunities (charmed, deafened, exhaustion, frightened, paralyzed, petrified, poisoned) not converted"
+        ]
+      }
+    }
+  }
+}

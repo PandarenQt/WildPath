@@ -1,0 +1,261 @@
+{
+  "_id": "mmSpecter0000000",
+  "_key": "!actors!mmSpecter0000000",
+  "name": "Specter",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 1
+      },
+      "agility": {
+        "value": 14
+      },
+      "fortitude": {
+        "value": 11
+      },
+      "intellect": {
+        "value": 10
+      },
+      "wits": {
+        "value": 10
+      },
+      "presence": {
+        "value": 11
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 12
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 22,
+        "value": 22
+      },
+      "movement": {
+        "base": 30,
+        "value": 30
+      }
+    },
+    "details": {
+      "threat": 1
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Specter",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmIncorporealMov",
+      "_key": "!actors.items!mmSpecter0000000.mmIncorporealMov",
+      "name": "Incorporeal Movement",
+      "type": "feature",
+      "img": "icons/magic/death/undead-ghost-scream-teal.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The specter can move through other creatures and objects as if they were Difficult. It takes  damage if it ends its turn inside an object.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmIncorporealMov",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmSunlightSensit",
+      "_key": "!actors.items!mmSpecter0000000.mmSunlightSensit",
+      "name": "Sunlight Sensitivity",
+      "type": "feature",
+      "img": "icons/creatures/eyes/humanoid-single-blind.webp",
+      "system": {
+        "active": true,
+        "description": "<p>While in sunlight, the specter has Disadvantage on ability checks and attack rolls.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSunlightSensit",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmLifeDrain00000",
+      "_key": "!actors.items!mmSpecter0000000.mmLifeDrain00000",
+      "name": "Life Drain",
+      "type": "action",
+      "img": "icons/skills/wounds/injury-pain-body-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Melee Attack Roll: +4, reach 5 ft. Hit: 7 (2d6) Necrotic damage. If the target is a creature, its Hit Point maximum decreases by an amount equal to the damage taken.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-life-drain",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "agility"
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 6
+              },
+              "damageType": "necrotic",
+              "provenance": "additional"
+            }
+          ],
+          "label": "Life Drain"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmLifeDrain00000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmSpecter000trts",
+      "_key": "!actors.items!mmSpecter0000000.mmSpecter000trts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "resistances",
+            "type": "GrantResistance",
+            "data": {
+              "damageTypes": [
+                "acid",
+                "bludgeoning",
+                "cold",
+                "fire",
+                "lightning",
+                "piercing",
+                "slashing",
+                "thunder"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "immunities",
+            "type": "GrantImmunity",
+            "data": {
+              "damageTypes": [
+                "necrotic",
+                "poison"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "speed-fly",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "fly",
+              "distance": 50
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmSpecter0000000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 1
+      },
+      "conversion": {
+        "notes": [
+          "condition immunities (charmed, exhaustion, grappled, paralyzed, petrified, poisoned, prone, restrained, unconscious) not converted"
+        ]
+      }
+    }
+  }
+}

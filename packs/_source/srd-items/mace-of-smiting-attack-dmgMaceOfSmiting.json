@@ -1,0 +1,73 @@
+{
+  "_id": "dmgMaceOfSmiting",
+  "_key": "!items!dmgMaceOfSmiting",
+  "name": "Mace of Smiting (attack)",
+  "type": "action",
+  "img": "icons/weapons/maces/mace-studded-steel.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Weapon (Mace), Rare</em></p><p>You gain a +1 bonus to attack rolls and damage rolls made with this magic weapon. The bonus increases to +3 when you use the weapon to attack a Construct.</p><p>When you roll a 20 on an attack roll made with this weapon, the target takes an extra 7 Bludgeoning damage, or 14 Bludgeoning damage if it's a Construct. If a Construct has 25 Hit Points or fewer after taking this damage, it is destroyed.</p><section class=\"secret\" id=\"secret-9gH19qmKr4AEgExV\"><p><strong>Foundry Note</strong></p><p>The <strong>Attack Construct</strong> activity automatically includes the additional bonuses.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-mace-of-smiting",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "attack": {
+        "type": "melee",
+        "statistic": "weapon",
+        "defenseKey": "ac",
+        "proficient": true
+      },
+      "range": {
+        "type": "reach",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "damage": [
+        {
+          "id": "base",
+          "expression": {
+            "type": "dice",
+            "number": 1,
+            "faces": 6
+          },
+          "damageType": "bludgeoning",
+          "provenance": "weapon-base"
+        }
+      ],
+      "label": "Mace of Smiting (attack)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgMaceOfSmiting",
+        "type": "weapon",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "attack: +1 magic bonus not converted"
+        ]
+      }
+    }
+  }
+}

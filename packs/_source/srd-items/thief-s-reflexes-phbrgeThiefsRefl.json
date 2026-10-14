@@ -1,0 +1,28 @@
+{
+  "_id": "phbrgeThiefsRefl",
+  "_key": "!items!phbrgeThiefsRefl",
+  "name": "Thief's Reflexes",
+  "type": "feature",
+  "img": "icons/magic/symbols/symbol-lightning-bolt.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You are adept at laying ambushes and quickly escaping danger. You can take two turns during the first round of any combat. You take your first turn at your normal Initiative and your second turn at your Initiative minus 10.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbrgeThiefsRefl",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

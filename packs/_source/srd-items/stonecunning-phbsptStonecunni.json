@@ -1,0 +1,62 @@
+{
+  "_id": "phbsptStonecunni",
+  "_key": "!items!phbsptStonecunni",
+  "name": "Stonecunning",
+  "type": "action",
+  "img": "icons/skills/trades/construction-mason-stonecutter-sculpture.webp",
+  "system": {
+    "active": true,
+    "description": "<p>As a Bonus Action, you gain Tremorsense with a range of 60 feet for 10 minutes. You must be on a stone surface or touching a stone surface to use this Tremorsense. The stone can be natural or worked. You can use this Bonus Action a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest.</p><section class=\"secret\" id=\"secret-7BtT80083mC3Eavg\"><p><strong>Foundry Note</strong></p><p>This feature includes the limited uses and an Active Effect that grants you the 60 feet of Tremorsense. It does not automatically update your Token's vision settings.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-stonecunning-stonecunning",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          },
+          {
+            "capability": "stonecunning",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Stonecunning"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "stonecunning-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "stonecunning",
+          "label": "Stonecunning",
+          "maximum": {
+            "type": "proficiency-bonus"
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "origins24",
+        "id": "phbsptStonecunni",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Stonecunning\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

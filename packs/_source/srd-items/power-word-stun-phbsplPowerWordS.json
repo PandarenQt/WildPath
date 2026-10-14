@@ -1,0 +1,94 @@
+{
+  "_id": "phbsplPowerWordS",
+  "_key": "!items!phbsplPowerWordS",
+  "name": "Power Word Stun",
+  "type": "action",
+  "img": "icons/magic/unholy/strike-body-life-soul-purple.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You overwhelm the mind of one creature you can see within range. If the target has 150 Hit Points or fewer, it has the Stunned condition. Otherwise, its Speed is 0 until the start of your next turn.</p><p>The Stunned target makes a Constitution saving throw saving throw at the end of each of its turns, ending the condition on itself on a success.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-power-word-stun",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "stunned"
+        }
+      ],
+      "configuration": [
+        {
+          "id": "spell-slot",
+          "type": "resource",
+          "label": "Spell slot",
+          "required": true,
+          "cost": {
+            "anyOf": [
+              [
+                {
+                  "capability": "spell-slot.8",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.9",
+                  "amount": 1
+                }
+              ]
+            ]
+          },
+          "levelByResourceId": {
+            "spell-slot.8": 8,
+            "spell-slot.9": 9
+          },
+          "effects": []
+        }
+      ],
+      "label": "Power Word Stun"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbsplPowerWordS",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "effect: \"No Movement\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

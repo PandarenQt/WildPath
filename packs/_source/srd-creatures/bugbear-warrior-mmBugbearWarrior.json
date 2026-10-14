@@ -1,0 +1,253 @@
+{
+  "_id": "mmBugbearWarrior",
+  "_key": "!actors!mmBugbearWarrior",
+  "name": "Bugbear Warrior",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 15
+      },
+      "agility": {
+        "value": 14
+      },
+      "fortitude": {
+        "value": 13
+      },
+      "intellect": {
+        "value": 8
+      },
+      "wits": {
+        "value": 11
+      },
+      "presence": {
+        "value": 9
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 14
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 33,
+        "value": 33
+      },
+      "movement": {
+        "base": 30,
+        "value": 30
+      }
+    },
+    "details": {
+      "threat": 1
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Bugbear Warrior",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "ST0XpSUdRn52jAF0",
+      "_key": "!actors.items!mmBugbearWarrior.ST0XpSUdRn52jAF0",
+      "name": "Light Hammer",
+      "type": "action",
+      "img": "icons/weapons/hammers/shorthammer-double-stone-engraved.webp",
+      "system": {
+        "active": true,
+        "description": "<p><em>Melee or Ranged Attack Roll:</em> Melee Attack Roll: +4, reach 10 ft (with Advantage if the target is Grappled by the bugbear), reach 10 ft. or range 20/60 ft. Hit: 9 (3d4 + 2) Bludgeoning damage</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-light-hammer",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "ranged",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 20,
+              "unit": "ft"
+            },
+            "long": {
+              "value": 60,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 3,
+                "faces": 4
+              },
+              "damageType": "bludgeoning",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Light Hammer"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "ST0XpSUdRn52jAF0",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmAbduct00000000",
+      "_key": "!actors.items!mmBugbearWarrior.mmAbduct00000000",
+      "name": "Abduct",
+      "type": "feature",
+      "img": "icons/magic/movement/portal-vortex-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The bugbear warrior needn't spend extra movement to move a creature it is grappling.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmAbduct00000000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmGrab0000000000",
+      "_key": "!actors.items!mmBugbearWarrior.mmGrab0000000000",
+      "name": "Grab (attack)",
+      "type": "action",
+      "img": "icons/magic/unholy/hand-claw-glow-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Melee Attack Roll: +4, reach 10 ft. Hit: 9 (2d6 + 2) Bludgeoning damage. If the target is a Medium or smaller creature, it has the Grappled condition (escape DC ).</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-grab",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 10,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 6
+              },
+              "damageType": "bludgeoning",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Grab (attack)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmGrab0000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "effect: grappled is not a WildPath condition yet"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmBugbearWarrior",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 1
+      },
+      "conversion": {
+        "notes": [
+          "Grab: effect: grappled is not a WildPath condition yet",
+          "Grab: \"Escape Check\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

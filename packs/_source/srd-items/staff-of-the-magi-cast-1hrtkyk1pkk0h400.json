@@ -1,0 +1,59 @@
+{
+  "_id": "1hrtkyk1pkk0h400",
+  "_key": "!items!1hrtkyk1pkk0h400",
+  "name": "Staff of the Magi (cast)",
+  "type": "action",
+  "img": "icons/weapons/staves/staff-ornate-eye.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Staff, Legendary (Requires Attunement by a Sorcerer, Warlock, or Wizard)</em></p><p>This staff has 50 charges and can be wielded as a magic Quarterstaff that grants a +2 bonus to attack rolls and damage rolls made with it. While you hold it, you gain a +2 bonus to spell attack rolls.</p><p><em><strong>Spell Absorption.</strong></em> While holding the staff, you have Advantage on saving throws against spells. In addition, you can take a Reaction when another creature casts a spell that targets only you. If you do, the staff absorbs the magic of the spell, canceling its effect and gaining a number of charges equal to the absorbed spell's level. However, if doing so brings the staff's total number of charges above 50, the staff explodes as if you activated its Retributive Strike (see below).</p><p><em><strong>Spells.</strong></em> While holding the staff, you can cast one of the spells on the following table from it, using your spell save DC. The table indicates how many charges you must expend to cast the spell.</p><details><summary>Spell Cost Table</summary><table><thead><tr><th><p>Spell</p></th><th><p>Charge Cost</p></th><th></th></tr></thead><tbody><tr><td><p>Arcane Lock</p></td><td><p>0</p></td><td></td></tr><tr><td><p>Conjure Elemental</p></td><td><p>7</p></td><td></td></tr><tr><td><p>Detect Magic</p></td><td><p>0</p></td><td></td></tr><tr><td><p>Dispel Magic</p></td><td><p>3</p></td><td></td></tr><tr><td><p>Enlarge/Reduce</p></td><td><p>0</p></td><td></td></tr><tr><td><p>Fireball (level 7 version)</p></td><td><p>7</p></td><td></td></tr><tr><td><p>Flaming Sphere</p></td><td><p>2</p></td><td></td></tr><tr><td><p>Ice Storm</p></td><td><p>4</p></td><td></td></tr><tr><td><p>Invisibility</p></td><td><p>2</p></td><td></td></tr><tr><td><p>Knock</p></td><td><p>2</p></td><td></td></tr><tr><td><p>Light</p></td><td><p>0</p></td><td></td></tr><tr><td><p>Lightning Bolt (level 7 version)</p></td><td><p>7</p></td><td></td></tr><tr><td><p>Mage Hand</p></td><td><p>0</p></td><td></td></tr><tr><td><p>Passwall</p></td><td><p>5</p></td><td></td></tr><tr><td><p>Plane Shift</p></td><td><p>7</p></td><td></td></tr><tr><td><p>Protection from Evil and Good</p></td><td><p>0</p></td><td></td></tr><tr><td><p>Telekinesis</p></td><td><p>5</p></td><td></td></tr><tr><td><p>Wall of Fire</p></td><td><p>4</p></td><td></td></tr><tr><td><p>Web</p></td><td><p>2</p></td><td></td></tr></tbody></table></details><p><em><strong>Regaining Charges.</strong></em> The staff regains 4d6 + 2 expended charges daily at dawn. If you expend the last charge, roll 1d20. On a 20, the staff regains 1d12 + 1 charges.</p><p><em><strong>Retributive Strike.</strong></em> You can take a Magic action to break the staff over your knee or against a solid surface. The staff is destroyed and releases its magic in an explosion that fills a 30-foot Emanation originating from itself. You have a 50 percent chance to instantly travel to a random plane of existence, avoiding the explosion (1d2, teleported on a 1). If you fail to avoid the effect, you take Force damage equal to 16 times the number of charges in the staff. Each other creature in the area makes a DC 17 Dexterity saving throw. On a failed save, a creature takes Force damage equal to 6 times the number of charges in the staff. On a successful save, a creature takes half as much damage.</p><section class=\"secret\" id=\"secret-aWlDNImPrAgu7dbv\"><p><strong>Foundry Note</strong></p><p>The <strong>Spell Absorption</strong> activity allows you to select the level of the cast spell and restores that number of charges.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-staff-of-the-magi",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Staff of the Magi (cast)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "staff-of-the-magi-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "staff-of-the-magi",
+          "label": "Staff of the Magi",
+          "maximum": {
+            "type": "constant",
+            "value": 50
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgStaffOfTheMag",
+        "type": "weapon",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (cast): using it spends its cost; its description says the rest",
+          "uses: a partial recovery refills the whole pool"
+        ]
+      }
+    }
+  }
+}

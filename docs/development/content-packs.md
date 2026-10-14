@@ -54,25 +54,40 @@ itself is `dnd5e-to-wildpath.mjs`.
   - A creature keeps its abilities, Hit Points, AC (natural, or worn armor and shield), Speeds and size.
     Resistances, immunities and Legendary Actions go on a Traits feature, and an ability-based save DC is fixed
     from its Challenge Rating.
-- **Never approximated.** What WildPath cannot express is left out and listed in
-  `flags.wildpath.conversion.notes` and in `docs/content/srd-conversion.md`. Examples:
+- **Three kinds of Item.** Each converted Item is one of these:
+  - **Automated:** an Action that resolves fully.
+  - **Manual:** something the creature uses that WildPath cannot automate, such as Multiattack, Parry, or a spell
+    whose condition WildPath lacks. Using it spends its cost (an Action, a Reaction, a spell slot), and its
+    description says the rest.
+  - **Feature:** a passive ability, carrying its text.
+- **Never approximated.** What is not automated is listed in `flags.wildpath.conversion.notes` and in
+  `docs/content/srd-conversion.md`. Examples:
   - cantrip damage growing with level, and more healing at higher levels;
   - versatile damage;
   - a cube area (the user picks the targets instead);
   - conditions WildPath lacks (Paralyzed, Grappled, Frightened...);
-  - passive or triggered abilities, and Multiattack.
-  - An Action that would roll for nothing is left out.
-- **Proficiency.** WildPath adds no proficiency bonus to attack rolls or saves, so converted attacks roll lower
-  than their stat blocks. This is noted on each creature, and it is the maintainer's open decision.
-- **No descriptions** (AGENTS §22). Whether to copy the SRD's own CC-BY text is the maintainer's decision.
-- **Representative first** (CODEX §28). The first conversion is one of each kind: Longsword, Fireball, Fire Bolt,
-  Cure Wounds, Second Wind and the Bandit Captain. Volume comes after the open decisions.
+  - Recharge (the pool is refilled by hand).
+- **Proficiency.** Converted attacks are proficient (`attack.proficient`), and a creature's proficient saves carry
+  over (`saveProficient`). So a stat block's to-hit matches: the Bandit Captain's Scimitar is +5.
+- **Descriptions** are the SRD's own text, copied as placeholders (maintainer decision; AGENTS §22 forbids only
+  generated prose). dnd5e's enrichers are resolved against the document's own data:
+  - links become their labels;
+  - a stat block's `[[/attack]]` and `[[/damage]]` become "Melee Attack Roll: +5, reach 5 ft. Hit: 6 (1d6 + 3)
+    Slashing damage";
+  - saves, checks and lookups such as `@save.dc.value` become plain text.
+- **Volume (2026-10-14).** All of the SRD's spells, weapons and features, and its creatures, from 1,110 documents:
+  918 Items (209 automated, 464 manual, 245 features) and 375 creatures. Every Action validates.
+  - Armor is not converted yet; worn armor counts toward a creature's AC.
+  - Characters, vehicles and the "Free Rules" documents are skipped.
 
-Live (14.369, created from the pack sources because the packs load only after a world relaunch):
+Live (14.369). First, the representative slice was created straight from the pack sources:
 - A 5th-level wizard's Fireball, cast by Player1, asked for a slot and spent a 3rd-level one. It rolled 8d6
   (25): a failed save took 25 and a successful one 12.
 - The Bandit Captain's Scimitar hit with Agility (finesse): 12 + 3 against AC 10, for 1d6 + 3 damage. That is
   without its +2 proficiency.
+- After the relaunch, the full packs were filled through Foundry's own API, and all 1,293 documents passed its data
+  validation. The Bandit Captain, imported from the pack, hit with its Scimitar at 15 + 5. It kept its Might,
+  Agility and Wits save proficiencies, and its manual Multiattack spent its Action and showed its text.
 - Converting these found an engine bug, fixed with them. The authority's source snapshot evaluated `prof` from the
   stored `details.level` rather than the class levels, and had no `spellmod` at all, so a class caster's spell
   save DC failed. Both now derive from the class records (value-expressions.mjs).

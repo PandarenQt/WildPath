@@ -1,0 +1,44 @@
+{
+  "_id": "phbinvAscendantS",
+  "_key": "!items!phbinvAscendantS",
+  "name": "Ascendant Step",
+  "type": "action",
+  "img": "icons/magic/light/explosion-beam-impact-silhouette.webp",
+  "system": {
+    "active": true,
+    "description": "<blockquote><p>Prerequisite: Level 5+ Warlock</p></blockquote><p>You can cast Levitate on yourself without expending a spell slot.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-ascendant-step",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Ascendant Step"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbinvAscendantS",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Levitating\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "_id": "phbinvEldritchSm",
+  "_key": "!items!phbinvEldritchSm",
+  "name": "Eldritch Smite",
+  "type": "feature",
+  "img": "icons/skills/melee/strike-axe-energy-pink.webp",
+  "system": {
+    "active": true,
+    "description": "<blockquote><p>Prerequisite: Level 5+ Warlock, Pact of the Blade Invocation</p></blockquote><p>Once per turn when you hit a creature with your pact weapon, you can expend a Pact Magic spell slot to deal an extra 1d8 Force damage to the target, plus another 1d8 per level of the spell slot, and you can give the target the Prone condition if it is Huge or smaller.</p><section class=\"secret\" id=\"secret-AoE71IXdo0xg5OKe\"><p><strong>Foundry Note</strong></p><p>The <strong>Smite</strong> activity consumes a Pact Magic spell slot and increases the damage based on your pact spell level.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbinvEldritchSm",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Smite\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

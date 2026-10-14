@@ -1,0 +1,60 @@
+{
+  "_id": "phbmnkDeflectEne",
+  "_key": "!items!phbmnkDeflectEne",
+  "name": "Deflect Energy (Reduce)",
+  "type": "action",
+  "img": "icons/magic/defensive/shield-barrier-deflect-teal.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You can now use your Deflect Attacks feature against attacks that deal any damage type, not just Bludgeoning, Piercing, or Slashing.</p><section class=\"secret\" id=\"secret-XAQmFmc4TpSF2Oh1\"><p>The <strong>Reduce</strong> activity can be used to heal yourself to reduce the total damage if it's not enough to reduce it to 0.</p><p>The <strong>Redirect</strong> activity can be used to roll damage and consume a use of your Focus Points if you can reduce it to 0. You can select the type of damage in the roll dialog. The dice increase automatically as you level up.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-deflect-energy-reduce",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "reaction",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "healing": [
+        {
+          "id": "healing-1",
+          "expression": {
+            "type": "dice",
+            "number": 1,
+            "faces": 10
+          },
+          "healingType": "healing"
+        }
+      ],
+      "label": "Deflect Energy (Reduce)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbmnkDeflectEne",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "healing: bonus \"@abilities.dex.mod + @classes.monk.levels\" not converted"
+        ]
+      }
+    }
+  }
+}

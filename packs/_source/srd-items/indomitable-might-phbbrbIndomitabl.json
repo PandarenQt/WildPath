@@ -1,0 +1,28 @@
+{
+  "_id": "phbbrbIndomitabl",
+  "_key": "!items!phbbrbIndomitabl",
+  "name": "Indomitable Might",
+  "type": "feature",
+  "img": "icons/skills/melee/unarmed-punch-fist-yellow-red.webp",
+  "system": {
+    "active": true,
+    "description": "<p>If your total for a Strength check or Strength saving throw is less than your Strength score, you can use that score in place of the total.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbbrbIndomitabl",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

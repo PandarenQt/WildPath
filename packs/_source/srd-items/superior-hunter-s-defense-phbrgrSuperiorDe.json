@@ -1,0 +1,56 @@
+{
+  "_id": "phbrgrSuperiorDe",
+  "_key": "!items!phbrgrSuperiorDe",
+  "name": "Superior Hunter's Defense",
+  "type": "action",
+  "img": "icons/magic/lightning/fist-unarmed-strike-blue-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p>When you take damage, you can take a Reaction to give yourself Resistance to that damage and any other damage of the same type until the end of the current turn.</p><section class=\"secret\" id=\"secret-9xLaYNr0fhUQLYuZ\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect for resisting each type of damage which can be applied to get the relevant resistance. Be sure you disable/delete the previous Active Effect in the \"Effects\" tab of your sheet when you change Resistances.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-superior-hunter-s-defense-resistances",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "reaction",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Superior Hunter's Defense"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbrgrSuperiorDe",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Hunter's Defense: Acid\" (its own changes) not converted",
+          "effect: \"Hunter's Defense: Bludgeoning\" (its own changes) not converted",
+          "effect: \"Hunter's Defense: Cold\" (its own changes) not converted",
+          "effect: \"Hunter's Defense: Fire\" (its own changes) not converted",
+          "effect: \"Hunter's Defense: Force\" (its own changes) not converted",
+          "effect: \"Hunter's Defense: Lightning\" (its own changes) not converted",
+          "effect: \"Hunter's Defense: Necrotic\" (its own changes) not converted",
+          "effect: \"Hunter's Defense: Piercing\" (its own changes) not converted",
+          "effect: \"Hunter's Defense: Poison\" (its own changes) not converted",
+          "effect: \"Hunter's Defense: Psychic\" (its own changes) not converted",
+          "effect: \"Hunter's Defense: Radiant\" (its own changes) not converted",
+          "effect: \"Hunter's Defense: Slashing\" (its own changes) not converted",
+          "effect: \"Hunter's Defense: Thunder\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,399 @@
+{
+  "_id": "phbmobGiantInsec",
+  "_key": "!actors!phbmobGiantInsec",
+  "name": "Giant Insect",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 17
+      },
+      "agility": {
+        "value": 13
+      },
+      "fortitude": {
+        "value": 15
+      },
+      "intellect": {
+        "value": 4
+      },
+      "wits": {
+        "value": 14
+      },
+      "presence": {
+        "value": 3
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 11
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 30,
+        "value": 30
+      },
+      "movement": {
+        "base": 30,
+        "value": 30
+      }
+    },
+    "details": {
+      "threat": 0
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Giant Insect",
+    "width": 2,
+    "height": 2,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "phbaoiSpiderClim",
+      "_key": "!actors.items!phbmobGiantInsec.phbaoiSpiderClim",
+      "name": "Spider Climb",
+      "type": "feature",
+      "img": "icons/creatures/invertebrates/spider-large-white-green.webp",
+      "system": {
+        "active": true,
+        "description": "<p> The insect can climb difficult surfaces, including along ceilings, without needing to make an ability check.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbaoiSpiderClim",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "phbaoiMultiattac",
+      "_key": "!actors.items!phbmobGiantInsec.phbaoiMultiattac",
+      "name": "Multiattack",
+      "type": "action",
+      "img": "icons/magic/movement/abstract-ribbons-red-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The insect makes a number of attacks equal to half this spell's level (round down).</p><p class=\"hide-in-embed\">Number of attacks</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-multiattack-activate",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Multiattack"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbaoiMultiattac",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "phbaoiPoisonJab0",
+      "_key": "!actors.items!phbmobGiantInsec.phbaoiPoisonJab0",
+      "name": "Poison Jab",
+      "type": "action",
+      "img": "icons/creatures/abilities/stinger-poison-green.webp",
+      "system": {
+        "active": true,
+        "description": "<p> <em>Melee Attack Roll:</em> Bonus equals your spell attack modifier, reach 10 ft. <em>Hit:</em> 1d6 + 3 plus the spell's level Piercing damage plus 1d4 Poison damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-poison-jab",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 10,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "dice",
+                    "number": 1,
+                    "faces": 6
+                  },
+                  {
+                    "type": "spellcasting-modifier"
+                  }
+                ]
+              },
+              "damageType": "piercing",
+              "provenance": "additional"
+            },
+            {
+              "id": "damage-2",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 4
+              },
+              "damageType": "poison",
+              "provenance": "additional"
+            }
+          ],
+          "label": "Poison Jab"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbaoiPoisonJab0",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "phbaoiWebBoltSpi",
+      "_key": "!actors.items!phbmobGiantInsec.phbaoiWebBoltSpi",
+      "name": "Web Bolt (Spider Only)",
+      "type": "action",
+      "img": "icons/creatures/webs/web-spider-moving-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p> <em>Ranged Attack Roll:</em> Bonus equals your spell attack modifier, range 60 ft. <em>Hit:</em> 1d10 + 3 plus the spell's level Bludgeoning damage, and the target's Speed is reduced to 0 until the start of the insect's next turn.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-web-bolt-spider-only",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "ranged",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 60,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "dice",
+                    "number": 1,
+                    "faces": 10
+                  },
+                  {
+                    "type": "spellcasting-modifier"
+                  }
+                ]
+              },
+              "damageType": "bludgeoning",
+              "provenance": "additional"
+            }
+          ],
+          "label": "Web Bolt (Spider Only)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbaoiWebBoltSpi",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "effect: \"Webbed\" (its own changes) not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "phbaoiVenomousSp",
+      "_key": "!actors.items!phbmobGiantInsec.phbaoiVenomousSp",
+      "name": "Venomous Spew (Centipede Only)",
+      "type": "action",
+      "img": "icons/magic/acid/projectile-flame-smoke-green.webp",
+      "system": {
+        "active": true,
+        "description": "<p><em>Constitution Saving Throw:</em> Your spell save DC, one creature the insect can see within 10 feet. <em>Failure:</em> The target has the Poisoned condition until the start of the insect's next turn.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-venomous-spew-centipede-only",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 10,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "fortitude",
+            "dc": {
+              "valueExpression": {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "constant",
+                    "value": 8
+                  },
+                  {
+                    "type": "proficiency-bonus"
+                  },
+                  {
+                    "type": "spellcasting-modifier"
+                  }
+                ]
+              }
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "poisoned",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
+          "label": "Venomous Spew (Centipede Only)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbaoiVenomousSp",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "phbmobGiantInsec",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 0
+      },
+      "conversion": {
+        "notes": [
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
+          "Web Bolt (Spider Only): effect: \"Webbed\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}
