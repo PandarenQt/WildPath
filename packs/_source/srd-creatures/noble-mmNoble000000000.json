@@ -1,0 +1,193 @@
+{
+  "_id": "mmNoble000000000",
+  "_key": "!actors!mmNoble000000000",
+  "name": "Noble",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 11
+      },
+      "agility": {
+        "value": 12
+      },
+      "fortitude": {
+        "value": 11
+      },
+      "intellect": {
+        "value": 12
+      },
+      "wits": {
+        "value": 14
+      },
+      "presence": {
+        "value": 16
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 15
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 9,
+        "value": 9
+      },
+      "movement": {
+        "base": 30,
+        "value": 30
+      }
+    },
+    "details": {
+      "threat": 0
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Noble",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "H6tdFfNcvLwgZx0I",
+      "_key": "!actors.items!mmNoble000000000.H6tdFfNcvLwgZx0I",
+      "name": "Rapier",
+      "type": "action",
+      "img": "icons/weapons/swords/sword-guard-bronze.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +3, reach 5 ft. Hit: 5 (1d8 + 1) Piercing damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-rapier",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "properties": [
+              "finesse"
+            ]
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 8
+              },
+              "damageType": "piercing",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Rapier"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "H6tdFfNcvLwgZx0I",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmParry000000000",
+      "_key": "!actors.items!mmNoble000000000.mmParry000000000",
+      "name": "Parry",
+      "type": "action",
+      "img": "icons/skills/melee/swords-parry-block-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p><em>Trigger:</em> The noble is hit by a melee attack roll while holding a weapon. <em>Response:</em> The noble adds 2 to its AC against that attack, possibly causing it to miss.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-parry-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "reaction",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Parry"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmParry000000000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmNoble000000000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 0.125
+      },
+      "conversion": {
+        "notes": [
+          "Parry: not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

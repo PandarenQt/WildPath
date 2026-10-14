@@ -1,0 +1,357 @@
+{
+  "_id": "mmRustMonster000",
+  "_key": "!actors!mmRustMonster000",
+  "name": "Rust Monster",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 13
+      },
+      "agility": {
+        "value": 12
+      },
+      "fortitude": {
+        "value": 13
+      },
+      "intellect": {
+        "value": 2
+      },
+      "wits": {
+        "value": 13
+      },
+      "presence": {
+        "value": 6
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 14
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 33,
+        "value": 33
+      },
+      "movement": {
+        "base": 40,
+        "value": 40
+      }
+    },
+    "details": {
+      "threat": 0
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Rust Monster",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmIronScent00000",
+      "_key": "!actors.items!mmRustMonster000.mmIronScent00000",
+      "name": "Iron Scent",
+      "type": "feature",
+      "img": "icons/magic/air/fog-gas-smoke-dense-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The rust monster can pinpoint the location of ferrous metal within 30 feet of itself.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmIronScent00000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "\"Expend Use\" is passive or triggered: not automated"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmMultiattack000",
+      "_key": "!actors.items!mmRustMonster000.mmMultiattack000",
+      "name": "Multiattack",
+      "type": "action",
+      "img": "icons/skills/melee/strike-weapons-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p><span style=\"font-family:'Roboto Condensed', sans-serif\">The </span>rust monster<span style=\"font-family:'Roboto Condensed', sans-serif\"> makes one </span>Bite<span style=\"font-family:'Roboto Condensed', sans-serif\"> attack and uses </span>Antennae<span style=\"font-family:'Roboto Condensed', sans-serif\"> twice.</span></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-multiattack-expend-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Multiattack"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMultiattack000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmBite0000000000",
+      "_key": "!actors.items!mmRustMonster000.mmBite0000000000",
+      "name": "Bite",
+      "type": "action",
+      "img": "icons/creatures/abilities/fangs-teeth-bite.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +3, reach 5 ft. Hit: 5 (1d8 + 1) Piercing damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-bite",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 8
+              },
+              "damageType": "piercing",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Bite"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmBite0000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmAntennae000000",
+      "_key": "!actors.items!mmRustMonster000.mmAntennae000000",
+      "name": "Antennae",
+      "type": "action",
+      "img": "icons/commodities/materials/feather-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The rust monster targets one nonmagical metal object—armor or a weapon—worn or carried by a creature within 5 feet of itself.</p><p><em>Dexterity Saving Throw:</em> DC , the creature with the object.</p><p><em>Failure:</em> The object takes a -1 penalty to the AC it offers (armor) or to its attack rolls (weapon). Armor is destroyed if the penalty reduces its AC to 10, and a weapon is destroyed if its penalty reaches -5. The penalty can be removed by casting the <em>Mending</em> spell on the armor or weapon.</p><section class=\"secret\" id=\"secret-4QbvfWBnYI6ImcGC\"><p><strong>Foundry Note</strong></p><p>This feature also provides a <strong>Damaged</strong> Enchantment effect that will modify the targeted object. Due to the fact that the equipment penalty can be applied multiple times, the enchantment needs to be dragged from this item's Effects tab onto the target Item's sheet.</p></section>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-antennae",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Antennae"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmAntennae000000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest",
+              "save: dex DC (8 + @mod + @prof) not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmDestroyMetal00",
+      "_key": "!actors.items!mmRustMonster000.mmDestroyMetal00",
+      "name": "Destroy Metal",
+      "type": "action",
+      "img": "icons/tools/smithing/furnace-fire-metal-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The rust monster touches a nonmagical metal object within 5 feet of itself that isn’t being worn or carried. The touch destroys a 1-ft Cube of the object.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-destroy-metal-expend-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Destroy Metal"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmDestroyMetal00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "area: 1-ft cube is not supported; the user picks the targets"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmReflexiveAnten",
+      "_key": "!actors.items!mmRustMonster000.mmReflexiveAnten",
+      "name": "Reflexive Antennae",
+      "type": "action",
+      "img": "icons/commodities/biological/antenna-yellow.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\"><em>Trigger:</em> An attack roll hits the rust monster. <em>Response:</em> The rust monster uses Antennae.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-reflexive-antennae-expend-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "reaction",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Reflexive Antennae"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmReflexiveAnten",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmRustMonster000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 0.5
+      },
+      "conversion": {
+        "notes": [
+          "Iron Scent: \"Expend Use\" is passive or triggered: not automated",
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
+          "Antennae: not automated (save): using it spends its cost; its description says the rest",
+          "Antennae: save: dex DC (8 + @mod + @prof) not converted",
+          "Destroy Metal: not automated (utility): using it spends its cost; its description says the rest",
+          "Destroy Metal: area: 1-ft cube is not supported; the user picks the targets",
+          "Reflexive Antennae: not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,121 @@
+{
+  "_id": "phbsplSpiritualW",
+  "_key": "!actors!phbsplSpiritualW",
+  "name": "Spiritual Weapon",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 0
+      },
+      "agility": {
+        "value": 0
+      },
+      "fortitude": {
+        "value": 0
+      },
+      "intellect": {
+        "value": 0
+      },
+      "wits": {
+        "value": 0
+      },
+      "presence": {
+        "value": 0
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 0
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 1,
+        "value": 1
+      },
+      "movement": {
+        "base": 30,
+        "value": 30
+      }
+    },
+    "details": {
+      "threat": 0
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Spiritual Weapon",
+    "width": 0.5,
+    "height": 0.5,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "phbaoiAttackSpir",
+      "_key": "!actors.items!phbsplSpiritualW.phbaoiAttackSpir",
+      "name": "Move and Attack",
+      "type": "action",
+      "img": "icons/skills/melee/strike-dagger-white-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>As a Bonus Action on your later turns, you can move the force up to 20 feet and repeat the attack against a creature within 5 feet of it. On a hit, the target takes Force damage equal to 1d8 plus your spellcasting ability modifier.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The damage increases by 1d8 for every slot level above 2.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-move-and-attack",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Move and Attack"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbaoiAttackSpir",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (attack): using it spends its cost; its description says the rest",
+              "damage 1: custom formula \"(@flags.dnd5e.summon.level - 1)d8 + @flags.dnd5e.summon.mod\" not converted"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "phbsplSpiritualW",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 0
+      },
+      "conversion": {
+        "notes": [
+          "Move and Attack: not automated (attack): using it spends its cost; its description says the rest",
+          "Move and Attack: damage 1: custom formula \"(@flags.dnd5e.summon.level - 1)d8 + @flags.dnd5e.summon.mod\" not converted"
+        ]
+      }
+    }
+  }
+}

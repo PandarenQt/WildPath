@@ -1,0 +1,77 @@
+{
+  "_id": "phbsplChillTouch",
+  "_key": "!items!phbsplChillTouch",
+  "name": "Chill Touch",
+  "type": "action",
+  "img": "icons/magic/unholy/strike-hand-glow-pink.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Channeling the chill of the grave, make a melee spell attack against a target within reach. On a hit, the target takes 1d10 Necrotic damage, and it can't regain Hit Points until the end of your next turn.</p><p><strong>Cantrip Upgrade.</strong> The damage increases by 1d10 when you reach levels 5 (2d10), 11 (3d10), and 17 (4d10).</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-chill-touch",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "attack": {
+        "type": "melee",
+        "statistic": "spell",
+        "defenseKey": "ac",
+        "proficient": true
+      },
+      "range": {
+        "type": "touch",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "dice",
+            "number": 1,
+            "faces": 10
+          },
+          "damageType": "necrotic",
+          "provenance": "spell-base"
+        }
+      ],
+      "label": "Chill Touch"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbsplChillTouch",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "damage 1: cantrip damage growing with character level not converted",
+          "effect: \"Blocked Healing\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

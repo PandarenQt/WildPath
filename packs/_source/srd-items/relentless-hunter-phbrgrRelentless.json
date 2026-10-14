@@ -1,0 +1,28 @@
+{
+  "_id": "phbrgrRelentless",
+  "_key": "!items!phbrgrRelentless",
+  "name": "Relentless Hunter",
+  "type": "feature",
+  "img": "icons/skills/wounds/injury-pain-body-orange.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Taking damage can't break your Concentration on Hunter's Mark.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbrgrRelentless",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

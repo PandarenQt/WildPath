@@ -1,0 +1,65 @@
+{
+  "_id": "phbsplGuidance00",
+  "_key": "!items!phbsplGuidance00",
+  "name": "Guidance",
+  "type": "action",
+  "img": "icons/sundries/lights/candle-lit-angelic.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You touch a willing creature and choose a skill. Until the spell ends, the creature adds 1d4 to any ability check using the chosen skill.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-guidance",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Guidance"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbsplGuidance00",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Acrobatic Guidance\" (its own changes) not converted",
+          "effect: \"Animal Handling Guidance\" (its own changes) not converted",
+          "effect: \"Arcana Guidance\" (its own changes) not converted",
+          "effect: \"Athletic Guidance\" (its own changes) not converted",
+          "effect: \"Deception Guidance\" (its own changes) not converted",
+          "effect: \"History Guidance\" (its own changes) not converted",
+          "effect: \"Insight Guidance\" (its own changes) not converted",
+          "effect: \"Investigation Guidance\" (its own changes) not converted",
+          "effect: \"Intimidation Guidance\" (its own changes) not converted",
+          "effect: \"Medicine Guidance\" (its own changes) not converted",
+          "effect: \"Nature Guidance\" (its own changes) not converted",
+          "effect: \"Persuasion Guidance\" (its own changes) not converted",
+          "effect: \"Perception Guidance\" (its own changes) not converted",
+          "effect: \"Performance Guidance\" (its own changes) not converted",
+          "effect: \"Religion Guidance\" (its own changes) not converted",
+          "effect: \"Sleight of Hand Guidance\" (its own changes) not converted",
+          "effect: \"Stealth Guidance\" (its own changes) not converted",
+          "effect: \"Survival Guidance\" (its own changes) not converted",
+          "concentration: nothing it sustains was converted"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "_id": "phbdrdElementalF",
+  "_key": "!items!phbdrdElementalF",
+  "name": "Elemental Fury",
+  "type": "feature",
+  "img": "icons/magic/symbols/elements-air-earth-fire-water.webp",
+  "system": {
+    "active": true,
+    "description": "<p>The might of the elements flows through you. You gain one of the following options of your choice.</p><p><strong>Potent Spellcasting.</strong> Add your Wisdom modifier to the damage you deal with any Druid cantrip.</p><p><strong>Primal Strike.</strong> Once on each of your turns when you hit a creature with an attack roll using a weapon or a Beast form's attack in Wild Shape, you can cause the target to take an extra 1d8 cold, fire, lightning, or thunder damage (choose when you hit).</p><section id=\"secret-kkxN7n7UL9XB7kWf\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>You will be prompted to choose during advancement.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbdrdElementalF",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "_id": "phbsplSparetheDy",
+  "_key": "!items!phbsplSparetheDy",
+  "name": "Spare the Dying",
+  "type": "action",
+  "img": "icons/magic/death/hand-undead-skeleton-fire-pink.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Choose a creature within range that has 0 Hit Points and isn't dead. The creature becomes Stable.</p><p><strong>Cantrip Upgrade.</strong> The range doubles when you reach levels 5 (30 feet), 11 (60 feet), and 17 (120 feet).</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-spare-the-dying",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Spare the Dying"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbsplSparetheDy",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: stable is not a WildPath condition yet"
+        ]
+      }
+    }
+  }
+}

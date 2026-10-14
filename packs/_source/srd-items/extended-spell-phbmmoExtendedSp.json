@@ -1,0 +1,30 @@
+{
+  "_id": "phbmmoExtendedSp",
+  "_key": "!items!phbmmoExtendedSp",
+  "name": "Extended Spell",
+  "type": "feature",
+  "img": "icons/magic/time/hourglass-brown-orange.webp",
+  "system": {
+    "active": true,
+    "description": "<blockquote><p>Cost: 1 Sorcery Point</p></blockquote><p>When you cast a spell that has a duration of 1 minute or longer, you can spend 1 Sorcery Point to double its duration to a maximum duration of 24 hours.</p><p>If the affected spell requires Concentration, you have Advantage on any saving throw you make to maintain that Concentration.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbmmoExtendedSp",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Extended Spell\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

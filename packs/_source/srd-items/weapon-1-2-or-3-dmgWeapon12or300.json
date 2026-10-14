@@ -1,0 +1,30 @@
+{
+  "_id": "dmgWeapon12or300",
+  "_key": "!items!dmgWeapon12or300",
+  "name": "Weapon, +1, +2, or +3",
+  "type": "feature",
+  "img": "icons/weapons/swords/greatsword-crossguard-engraved-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Weapon (Any Simple or Martial), Uncommon (+1), Rare (+2), or Very Rare (+3)</em></p><p>You have a bonus to attack rolls and damage rolls made with this magic weapon. The bonus is determined by the weapon's rarity.</p><p></p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgWeapon12or300",
+        "type": "weapon",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Weapon, +1, +2, or +3\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

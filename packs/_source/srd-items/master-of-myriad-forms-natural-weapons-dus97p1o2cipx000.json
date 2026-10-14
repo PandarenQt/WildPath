@@ -1,0 +1,44 @@
+{
+  "_id": "dus97p1o2cipx000",
+  "_key": "!items!dus97p1o2cipx000",
+  "name": "Master of Myriad Forms (Natural Weapons)",
+  "type": "action",
+  "img": "icons/creatures/abilities/cougar-pounce-stalk-black.webp",
+  "system": {
+    "active": true,
+    "description": "<blockquote><p>Prerequisite: Level 5+ Warlock</p></blockquote><p>You can cast Alter Self without expending a spell slot.</p><section class=\"secret\" id=\"secret-x7wmXuFqGaXQspxB\"><p><strong>Foundry Note</strong></p><p>This feature includes Alter Self's activities.</p><p>The <strong>Aquatic Adaptation</strong>, <strong>Change Appearance</strong>, and <strong>Natural Weapons</strong> activities include Active Effects for tracking your choice and require Concentration.</p><p>The <strong>Attack</strong> activities can be used for your attack/damage rolls when you choose the <strong>Natural Weapons</strong> option.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-master-of-myriad-forms-natural-weapons",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Master of Myriad Forms (Natural Weapons)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbinvMasterofMy",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Natural Weapon\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

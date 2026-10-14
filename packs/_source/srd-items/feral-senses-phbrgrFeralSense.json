@@ -1,0 +1,28 @@
+{
+  "_id": "phbrgrFeralSense",
+  "_key": "!items!phbrgrFeralSense",
+  "name": "Feral Senses",
+  "type": "feature",
+  "img": "icons/creatures/mammals/wolf-howl-moon-forest-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Your connection to the forces of nature grants you Blindsight with a range of 30 feet.</p><section class=\"secret\" id=\"secret-g31kKSDLrDEpbpbo\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect which upgrades your Blindsight to 30 feet if you do not already have it.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbrgrFeralSense",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "_id": "phbsptStonesEndu",
+  "_key": "!items!phbsptStonesEndu",
+  "name": "Stone's Endurance",
+  "type": "action",
+  "img": "icons/magic/defensive/armor-stone-skin.webp",
+  "system": {
+    "active": true,
+    "description": "<p>When you take damage, you can take a Reaction to roll 1d12. Add your Constitution modifier to the number rolled and reduce the damage by that total.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-stone-s-endurance",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "reaction",
+            "amount": 1
+          },
+          {
+            "capability": "stone-s-endurance",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "healing": [
+        {
+          "id": "healing-1",
+          "expression": {
+            "type": "dice",
+            "number": 1,
+            "faces": 12
+          },
+          "healingType": "healing"
+        }
+      ],
+      "label": "Stone's Endurance"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "stone-s-endurance-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "stone-s-endurance",
+          "label": "Stone's Endurance",
+          "maximum": {
+            "type": "proficiency-bonus"
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "origins24",
+        "id": "phbsptStonesEndu",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "healing: bonus \"@abilities.con.mod\" not converted"
+        ]
+      }
+    }
+  }
+}

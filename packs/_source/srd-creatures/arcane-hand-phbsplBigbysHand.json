@@ -1,0 +1,303 @@
+{
+  "_id": "phbsplBigbysHand",
+  "_key": "!actors!phbsplBigbysHand",
+  "name": "Arcane Hand",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 0
+      },
+      "agility": {
+        "value": 0
+      },
+      "fortitude": {
+        "value": 0
+      },
+      "intellect": {
+        "value": 0
+      },
+      "wits": {
+        "value": 0
+      },
+      "presence": {
+        "value": 0
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 20
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 0,
+        "value": 0
+      },
+      "movement": {
+        "base": 60,
+        "value": 60
+      }
+    },
+    "details": {
+      "threat": 0
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Arcane Hand",
+    "width": 2,
+    "height": 2,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "phbaoiClenchedFi",
+      "_key": "!actors.items!phbsplBigbysHand.phbaoiClenchedFi",
+      "name": "Clenched Fist",
+      "type": "action",
+      "img": "icons/magic/earth/strike-fist-stone.webp",
+      "system": {
+        "active": true,
+        "description": "<p> The hand strikes a target within 5 feet of it. Make a melee spell attack. On a hit, the target takes 5d8 Force damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-clenched-fist",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Clenched Fist"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbaoiClenchedFi",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (attack): using it spends its cost; its description says the rest",
+              "damage 1: custom formula \"(2 * @flags.dnd5e.summon.level - 5)d8\" not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "phbaoiForcefulHa",
+      "_key": "!actors.items!phbsplBigbysHand.phbaoiForcefulHa",
+      "name": "Forceful Hand",
+      "type": "action",
+      "img": "icons/magic/earth/strike-fist-stone-gray.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The hand attempts to push a Huge or smaller creature within 5 feet of it. The target must succeed on a Strength saving throw, or the hand pushes the target up to 5 feet plus a number of feet equal to five times your spellcasting ability modifier. The hand moves with the target, remaining within 5 feet of it.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-forceful-hand",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Forceful Hand"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbaoiForcefulHa",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "phbaoiGraspingHa",
+      "_key": "!actors.items!phbsplBigbysHand.phbaoiGraspingHa",
+      "name": "Grasping Hand (Grapple)",
+      "type": "action",
+      "img": "icons/magic/earth/strike-fist-stone-light.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The hand attempts to grapple a Huge or smaller creature within 5 feet of it. The target must succeed on a Dexterity saving throw, or the target has the Grappled condition, with an escape DC equal to your spell save DC. While the hand grapples the target, you can take a Bonus Action to cause the hand to crush it, dealing Bludgeoning damage to the target equal to 4d6 plus your spellcasting ability modifier.</p><h3>Grapple Escape Tests</h3><p>Strength (Athletics) Dexterity (Acrobatics)</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-grasping-hand-grapple",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Grasping Hand (Grapple)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbaoiGraspingHa",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "ep3qnrb9m84n0000",
+      "_key": "!actors.items!phbsplBigbysHand.ep3qnrb9m84n0000",
+      "name": "Grasping Hand (Crush)",
+      "type": "action",
+      "img": "icons/magic/earth/strike-fist-stone-light.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The hand attempts to grapple a Huge or smaller creature within 5 feet of it. The target must succeed on a Dexterity saving throw, or the target has the Grappled condition, with an escape DC equal to your spell save DC. While the hand grapples the target, you can take a Bonus Action to cause the hand to crush it, dealing Bludgeoning damage to the target equal to 4d6 plus your spellcasting ability modifier.</p><h3>Grapple Escape Tests</h3><p>Strength (Athletics) Dexterity (Acrobatics)</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-grasping-hand-crush",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Grasping Hand (Crush)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbaoiGraspingHa",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (damage): using it spends its cost; its description says the rest",
+              "damage 1: custom formula \"(2 * @flags.dnd5e.summon.level - 6)d6 + @flags.dnd5e.summon.mod\" not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "phbaoiInterposin",
+      "_key": "!actors.items!phbsplBigbysHand.phbaoiInterposin",
+      "name": "Interposing Hand",
+      "type": "action",
+      "img": "icons/magic/earth/barrier-stone-explosion-debris.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The hand grants you HalfCover against attacks and other effects that originate from its space or that pass through it. In addition, its space counts as DifficultTerrain for your enemies.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-interposing-hand-interpose",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Interposing Hand"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbaoiInterposin",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "effect: \"Half Cover\" (its own changes) not converted",
+              "effect: \"Interposed\" (its own changes) not converted"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "phbsplBigbysHand",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 0
+      },
+      "conversion": {
+        "notes": [
+          "Clenched Fist: not automated (attack): using it spends its cost; its description says the rest",
+          "Clenched Fist: damage 1: custom formula \"(2 * @flags.dnd5e.summon.level - 5)d8\" not converted",
+          "Forceful Hand: not automated (save): using it spends its cost; its description says the rest",
+          "Grasping Hand: not automated (save): using it spends its cost; its description says the rest",
+          "Grasping Hand: not automated (damage): using it spends its cost; its description says the rest",
+          "Grasping Hand: damage 1: custom formula \"(2 * @flags.dnd5e.summon.level - 6)d6 + @flags.dnd5e.summon.mod\" not converted",
+          "Interposing Hand: not automated (utility): using it spends its cost; its description says the rest",
+          "Interposing Hand: effect: \"Half Cover\" (its own changes) not converted",
+          "Interposing Hand: effect: \"Interposed\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

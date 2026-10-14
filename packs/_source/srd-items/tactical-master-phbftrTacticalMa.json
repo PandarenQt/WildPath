@@ -1,0 +1,28 @@
+{
+  "_id": "phbftrTacticalMa",
+  "_key": "!items!phbftrTacticalMa",
+  "name": "Tactical Master",
+  "type": "feature",
+  "img": "icons/sundries/documents/blueprint-axe.webp",
+  "system": {
+    "active": true,
+    "description": "<p>When you attack with a weapon whose mastery property you can use, you can replace that property with the Push, Sap, or Slow property for that attack.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbftrTacticalMa",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "_id": "18nbrb81fbubve00",
+  "_key": "!items!18nbrb81fbubve00",
+  "name": "Cunning Action (Dash)",
+  "type": "action",
+  "img": "icons/skills/movement/figure-running-gray.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Your quick thinking and agility allow you to move and act quickly. On your turn, you can take one of the following actions as a Bonus Action: Dash, Disengage, or Hide.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-cunning-action-dash",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Cunning Action (Dash)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbrgeCunningAct",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

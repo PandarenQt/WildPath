@@ -1,0 +1,43 @@
+{
+  "_id": "dmgViciousWeapon",
+  "_key": "!items!dmgViciousWeapon",
+  "name": "Vicious Weapon",
+  "type": "action",
+  "img": "icons/weapons/sickles/sickle-hooked-silver.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Weapon (Any Simple or Martial), Rare</em></p><p>This magic weapon deals an extra 2d6 damage to any creature it hits. This extra damage is of the same type as the weapon's normal damage.</p><p></p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-vicious-weapon-vicious-weapon",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Vicious Weapon"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgViciousWeapon",
+        "type": "weapon",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (enchant): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

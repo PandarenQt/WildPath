@@ -1,0 +1,90 @@
+{
+  "_id": "phbsplPowerWordH",
+  "_key": "!items!phbsplPowerWordH",
+  "name": "Power Word Heal",
+  "type": "action",
+  "img": "icons/magic/life/heart-red-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p>A wave of healing energy washes over one creature you can see within range. The target regains all its Hit Points. If the creature has the Charmed, Frightened, Paralyzed, Poisoned, or Stunned condition, the condition ends. If the creature has the Prone condition, it can use its Reaction to stand up.</p><section id=\"secret-TZTRxIEOucKFdjFi\" class=\"secret\"><p>Foundry Note</p><p>The <strong>Heal Fully</strong> activity is configured to heal 1,000 Hit Points such that any single creature can be healed fully.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-power-word-heal-heal-fully",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "healing": [
+        {
+          "id": "healing-1",
+          "expression": {
+            "type": "constant",
+            "value": 1000
+          },
+          "healingType": "healing"
+        }
+      ],
+      "configuration": [
+        {
+          "id": "spell-slot",
+          "type": "resource",
+          "label": "Spell slot",
+          "required": true,
+          "cost": {
+            "anyOf": [
+              [
+                {
+                  "capability": "spell-slot.9",
+                  "amount": 1
+                }
+              ]
+            ]
+          },
+          "levelByResourceId": {
+            "spell-slot.9": 9
+          },
+          "effects": []
+        }
+      ],
+      "label": "Power Word Heal"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbsplPowerWordH",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "healing: more healing at higher levels not converted"
+        ]
+      }
+    }
+  }
+}

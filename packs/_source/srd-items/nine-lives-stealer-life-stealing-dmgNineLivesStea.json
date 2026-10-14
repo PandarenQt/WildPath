@@ -1,0 +1,60 @@
+{
+  "_id": "dmgNineLivesStea",
+  "_key": "!items!dmgNineLivesStea",
+  "name": "Nine Lives Stealer (Life Stealing)",
+  "type": "action",
+  "img": "icons/weapons/swords/greatsword-flamberge.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Weapon (Any Simple or Martial), Very Rare (Requires Attunement)</em></p><p>You gain a +2 bonus to attack rolls and damage rolls made with this magic weapon.</p><p><strong>Life Stealing.</strong> The weapon has 1d8 + 1 charges. When you attack a creature that has fewer than 100 Hit Points with this weapon and roll a 20 on the d20 for the attack roll, the creature must succeed on a DC 15 Constitution saving throw or be slain instantly as the sword tears its life force from its body. Constructs and Undead succeed on the save automatically. The weapon loses 1 charge if the creature is slain. When the weapon has no charges remaining, it loses this property.</p><section class=\"secret\" id=\"secret-vSYC0gYqNiDynkjf\"><p><strong>Foundry Note</strong></p><p>The <strong>Life Stealing</strong> activity should be updated with its max uses set to the number of charges rolled.</p></section> <p></p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-nine-lives-stealer-life-stealing",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Nine Lives Stealer (Life Stealing)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "nine-lives-stealer-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "nine-lives-stealer",
+          "label": "Nine Lives Stealer",
+          "maximum": {
+            "type": "constant",
+            "value": 9
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgNineLivesStea",
+        "type": "weapon",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (save): using it spends its cost; its description says the rest",
+          "consumption: activityUses 1 not converted",
+          "consumption: activityUses 1 not converted"
+        ]
+      }
+    }
+  }
+}

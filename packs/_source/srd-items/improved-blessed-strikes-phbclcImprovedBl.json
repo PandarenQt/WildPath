@@ -1,0 +1,30 @@
+{
+  "_id": "phbclcImprovedBl",
+  "_key": "!items!phbclcImprovedBl",
+  "name": "Improved Blessed Strikes",
+  "type": "feature",
+  "img": "icons/magic/holy/prayer-hands-glowing-yellow-white.webp",
+  "system": {
+    "active": true,
+    "description": "<p>The option you chose for Blessed Strikes grows more powerful.</p><p><strong>Divine Strike.</strong> The extra damage of your Divine Strike increases to 2d8.</p><p><strong>Potent Spellcasting.</strong> When you cast a Cleric cantrip and deal damage to a creature with it, you can give vitality to yourself or another creature within 60 feet of yourself, granting a number of Temporary Hit Points equal to twice your Wisdom modifier.</p><section class=\"secret\" id=\"secret-UW0So7XcJyHUaivE\"><p><strong>Foundry Note</strong></p><p>If you chose <strong>Divine Strike</strong> the damage is automatically increased. If you chose <strong>Potent Spellcasting</strong> you can use the Potent Spellcasting activity on this feature.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbclcImprovedBl",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Potent Spellcasting: Heal\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

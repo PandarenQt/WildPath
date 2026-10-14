@@ -1,0 +1,47 @@
+{
+  "_id": "phbrgrTireless00",
+  "_key": "!items!phbrgrTireless00",
+  "name": "Tireless (Temporary Hit Points)",
+  "type": "action",
+  "img": "icons/magic/life/cross-worn-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Primal forces now help fuel you on your journeys, granting you the following benefits.</p><p><strong>Temporary Hit Points.</strong> As a Magic action, you can give yourself a number of Temporary Hit Points equal to 1d8 plus your Wisdom modifier (minimum of 1). You can use this action a number of times equal to your Wisdom modifier (minimum of once), and you regain all expended uses when you finish a Long Rest.</p><p><strong>Decrease Exhaustion.</strong> Whenever you finish a Short Rest, your Exhaustion level, if any, decreases by 1.</p><section id=\"secret-wlhwV2MDwGKQ8plw\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>The <strong>Temporary Hit Points</strong> activity can apply the Temporary Hit Points to you.</p><p>The <strong>Decrease Exhaustion</strong> activity will decrease your Exhaustion.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-tireless-temporary-hit-points",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Tireless (Temporary Hit Points)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbrgrTireless00",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (heal): using it spends its cost; its description says the rest",
+          "consumption: activityUses 1 not converted",
+          "healing: bonus \"(max(1,@abilities.wis.mod))\" not converted",
+          "healing: temporary Hit Points not converted",
+          "consumption: activityUses 1 not converted"
+        ]
+      }
+    }
+  }
+}

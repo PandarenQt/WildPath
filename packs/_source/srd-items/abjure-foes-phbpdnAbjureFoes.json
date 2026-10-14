@@ -1,0 +1,47 @@
+{
+  "_id": "phbpdnAbjureFoes",
+  "_key": "!items!phbpdnAbjureFoes",
+  "name": "Abjure Foes",
+  "type": "action",
+  "img": "icons/magic/holy/projectiles-blades-salvo-yellow.webp",
+  "system": {
+    "active": true,
+    "description": "<p>As a Magic action, you can expend one use of this class's Channel Divinity to overwhelm foes with awe. As you present your Holy Symbol or weapon, you can target a number of creatures equal to your Charisma modifier (minimum of one creature) that you can see within 60 feet of yourself. Each target must succeed on a Wisdom saving throw or have the Frightened condition for 1 minute or until it takes any damage. While Frightened in this way, a target can do only one of the following on its turns: move, take an action, or take a Bonus Action.</p><section class=\"secret\" id=\"secret-lu2BuwFj2pnJ367b\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect which applies the Frightened condition.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-abjure-foes",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Abjure Foes"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbpdnAbjureFoes",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (save): using it spends its cost; its description says the rest",
+          "consumption: itemUses 1 not converted",
+          "targets: count \"(max(1,@abilities.cha.mod))\" not converted",
+          "effect: frightened is not a WildPath condition yet",
+          "consumption: itemUses 1 not converted"
+        ]
+      }
+    }
+  }
+}

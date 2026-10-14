@@ -1,0 +1,63 @@
+{
+  "_id": "phbscrInnateSorc",
+  "_key": "!items!phbscrInnateSorc",
+  "name": "Innate Sorcery",
+  "type": "action",
+  "img": "icons/magic/control/silhouette-hold-change-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p>An event in your past left an indelible mark on you, infusing you with simmering magic. As a Bonus Action, you can unleash that magic for 1 minute, during which you gain the following benefits:</p><ul><li>The spell save DC of your Sorcerer spells increases by 1.</li><li>You have Advantage on the attack rolls of Sorcerer spells you cast.</li></ul><p>You can use this feature twice, and you regain all expended uses of it when you finish a Long Rest.</p><section id=\"secret-nB2j1T08cVjrcuAj\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect which will increase your spell save DC. The Advantage on attack rolls is not automated.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-innate-sorcery-innate-sorcery",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          },
+          {
+            "capability": "innate-sorcery",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Innate Sorcery"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "innate-sorcery-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "innate-sorcery",
+          "label": "Innate Sorcery",
+          "maximum": {
+            "type": "constant",
+            "value": 2
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbscrInnateSorc",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Innate Sorcery\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "_id": "phbwlkDarkOnesBl",
+  "_key": "!items!phbwlkDarkOnesBl",
+  "name": "Dark One's Blessing",
+  "type": "feature",
+  "img": "icons/magic/life/heart-cross-strong-purple-orange.webp",
+  "system": {
+    "active": true,
+    "description": "<p>When you reduce an enemy to 0 Hit Points, you gain Temporary Hit Points equal to your Charisma modifier plus your Warlock level (minimum of 1 Temporary Hit Point). You also gain this benefit if someone else reduces an enemy within 10 feet of you to 0 Hit Points.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbwlkDarkOnesBl",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"heal\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

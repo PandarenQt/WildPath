@@ -1,0 +1,42 @@
+{
+  "_id": "phbwlkDarkOnesOw",
+  "_key": "!items!phbwlkDarkOnesOw",
+  "name": "Dark One's Own Luck",
+  "type": "feature",
+  "img": "icons/magic/unholy/silhouette-robe-evil-glow.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You can call on your fiendish patron to alter fate in your favor. When you make an ability check or a saving throw, you can use this feature to add 1d10 to your roll. You can do so after seeing the roll but before any of the roll's effects occur.</p><p>You can use this feature a number of times equal to your Charisma modifier (minimum of once), but you can use it no more than once per roll. You regain all expended uses when you finish a Long Rest.</p>",
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "dark-one-s-own-luck-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "dark-one-s-own-luck",
+          "label": "Dark One's Own Luck",
+          "maximum": 1,
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbwlkDarkOnesOw",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Luck\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

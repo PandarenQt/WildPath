@@ -1,0 +1,58 @@
+{
+  "_id": "phbsplResistance",
+  "_key": "!items!phbsplResistance",
+  "name": "Resistance",
+  "type": "action",
+  "img": "icons/magic/defensive/shield-barrier-deflect-teal.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You touch a willing creature and choose a damage type: Acid, Bludgeoning, Cold, Fire, Lightning, Necrotic, Piercing, Poison, Radiant, Slashing, or Thunder. When the creature takes damage of the chosen type before the spell ends, the creature reduces the total damage taken by 1d4. A creature can benefit from this spell only once per turn.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-resistance",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Resistance"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbsplResistance",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Acid Protection\" (its own changes) not converted",
+          "effect: \"Bludgeoning Protection\" (its own changes) not converted",
+          "effect: \"Cold Protection\" (its own changes) not converted",
+          "effect: \"Fire Protection\" (its own changes) not converted",
+          "effect: \"Lightning Protection\" (its own changes) not converted",
+          "effect: \"Necrotic Protection\" (its own changes) not converted",
+          "effect: \"Piercing Protection\" (its own changes) not converted",
+          "effect: \"Poison Protection\" (its own changes) not converted",
+          "effect: \"Radiant Protection\" (its own changes) not converted",
+          "effect: \"Slashing Protection\" (its own changes) not converted",
+          "effect: \"Thunder Protection\" (its own changes) not converted",
+          "concentration: nothing it sustains was converted"
+        ]
+      }
+    }
+  }
+}

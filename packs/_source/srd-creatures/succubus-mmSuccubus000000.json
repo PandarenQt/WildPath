@@ -1,0 +1,558 @@
+{
+  "_id": "mmSuccubus000000",
+  "_key": "!actors!mmSuccubus000000",
+  "name": "Succubus",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 8
+      },
+      "agility": {
+        "value": 17
+      },
+      "fortitude": {
+        "value": 13
+      },
+      "intellect": {
+        "value": 15
+      },
+      "wits": {
+        "value": 12
+      },
+      "presence": {
+        "value": 20
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 15
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 71,
+        "value": 71
+      },
+      "movement": {
+        "base": 30,
+        "value": 30
+      }
+    },
+    "details": {
+      "threat": 4
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Succubus",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmIncubusForm000",
+      "_key": "!actors.items!mmSuccubus000000.mmIncubusForm000",
+      "name": "Incubus Form",
+      "type": "action",
+      "img": "icons/creatures/unholy/demon-horned-winged-laughing.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">When the succubus finishes a Long Rest, it can shape-shift into an <strong>Incubus</strong>, using that stat block instead of this one.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-incubus-form-incubus",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Incubus Form"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmIncubusForm000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (summon): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmMultiattack000",
+      "_key": "!actors.items!mmSuccubus000000.mmMultiattack000",
+      "name": "Multiattack",
+      "type": "action",
+      "img": "icons/skills/melee/strike-weapons-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The succubus makes one Fiendish Touch attack and uses Charm or Draining Kiss.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-multiattack-expend-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Multiattack"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMultiattack000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmFiendishTouch0",
+      "_key": "!actors.items!mmSuccubus000000.mmFiendishTouch0",
+      "name": "Fiendish Touch",
+      "type": "action",
+      "img": "icons/magic/unholy/hand-grasping-green.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Melee Attack Roll: +7, reach 5 ft. Hit: 16 (2d10 + 5) Psychic damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-fiendish-touch",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "presence"
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 10
+              },
+              "damageType": "psychic",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Fiendish Touch"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmFiendishTouch0",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmCharm000000000",
+      "_key": "!actors.items!mmSuccubus000000.mmCharm000000000",
+      "name": "Charm",
+      "type": "action",
+      "img": "icons/magic/control/control-influence-puppet.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The succubus casts <em>Dominate Person</em> (level 8 version), requiring no spell components and using Charisma as the spellcasting ability (spell save DC ).</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-charm",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Charm"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "charm-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "charm",
+              "label": "Charm",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "none"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmCharm000000000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (cast): using it spends its cost; its description says the rest",
+              "uses: Recharge 5–6 is not rolled; refill the pool by hand"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmDrainingKiss00",
+      "_key": "!actors.items!mmSuccubus000000.mmDrainingKiss00",
+      "name": "Draining Kiss",
+      "type": "action",
+      "img": "icons/magic/control/mouth-smile-deception-purple.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\"><em>Constitution Saving Throw:</em> DC 15, one creature Charmed by the succubus within 5 feet.</p><p class=\"feature\"><em>Failure:</em> 13 (3d8) Psychic damage.</p><p class=\"feature\"><em>Success:</em> Half damage.</p><p class=\"feature\"><em>Failure or Success:</em> The target's Hit Point maximum decreases by an amount equal to the damage taken.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-draining-kiss-save",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "fortitude",
+            "dc": {
+              "value": 15
+            }
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 3,
+                "faces": 8
+              },
+              "damageType": "psychic",
+              "provenance": "additional",
+              "saveOutcomePolicy": {
+                "success": "half",
+                "failure": "full"
+              }
+            }
+          ],
+          "label": "Draining Kiss"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmDrainingKiss00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmShapeshift0000",
+      "_key": "!actors.items!mmSuccubus000000.mmShapeshift0000",
+      "name": "Shape-Shift",
+      "type": "action",
+      "img": "icons/magic/control/silhouette-grow-shrink-tan.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The succubus shape-shifts into a Medium or Small Humanoid, or it returns to its true form. Its game statistics are the same in each form, except its Fly Speed is available only in its true form. Any equipment it is wearing or carrying isn't transformed.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-shape-shift-expend-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Shape-Shift"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmShapeshift0000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "ngMn9mjUa63VWbHY",
+      "_key": "!actors.items!mmSuccubus000000.ngMn9mjUa63VWbHY",
+      "name": "Dominate Person",
+      "type": "action",
+      "img": "icons/magic/control/control-influence-puppet.webp",
+      "system": {
+        "active": true,
+        "description": "<p>One Humanoid you can see within range must succeed on a Wisdom saving throw or have the Charmed condition for the duration. The target has Advantage on the save if you or your allies are fighting it. Whenever the target takes damage, it repeats the save, ending the spell on itself on a success.</p><p>You have a telepathic link with the Charmed target while the two of you are on the same plane of existence. On your turn, you can use this link to issue commands to the target (no action required), such as \"Attack that creature,\" \"Move over there,\" or \"Fetch that object.\" The target does its best to obey on its turn. If it completes an order and doesn't receive further direction from you, it acts and moves as it likes, focusing on protecting itself.</p><p>You can command the target to take a Reaction but must take your own Reaction to do so.</p><p><strong>Using a Higher-Level Spell Slot.</strong> Your Concentration can last longer with a spell slot of level 6 (up to 10 minutes), 7 (up to 1 hour), or 8+ (up to 8 hours).</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-dominate-person",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "resource",
+              "label": "Spell slot",
+              "required": true,
+              "cost": {
+                "anyOf": [
+                  [
+                    {
+                      "capability": "spell-slot.5",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.6",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.7",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.8",
+                      "amount": 1
+                    }
+                  ],
+                  [
+                    {
+                      "capability": "spell-slot.9",
+                      "amount": 1
+                    }
+                  ]
+                ]
+              },
+              "levelByResourceId": {
+                "spell-slot.5": 5,
+                "spell-slot.6": 6,
+                "spell-slot.7": 7,
+                "spell-slot.8": 8,
+                "spell-slot.9": 9
+              },
+              "effects": []
+            }
+          ],
+          "label": "Dominate Person"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "ngMn9mjUa63VWbHY",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest",
+              "effect: charmed is not a WildPath condition yet",
+              "concentration: nothing it sustains was converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmSuccubus00trts",
+      "_key": "!actors.items!mmSuccubus000000.mmSuccubus00trts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "resistances",
+            "type": "GrantResistance",
+            "data": {
+              "damageTypes": [
+                "cold",
+                "fire",
+                "poison",
+                "psychic"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "speed-fly",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "fly",
+              "distance": 60
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmSuccubus000000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 4
+      },
+      "conversion": {
+        "notes": [
+          "Incubus Form: not automated (summon): using it spends its cost; its description says the rest",
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
+          "Charm: not automated (cast): using it spends its cost; its description says the rest",
+          "Charm: uses: Recharge 5–6 is not rolled; refill the pool by hand",
+          "Shape-Shift: not automated (utility): using it spends its cost; its description says the rest",
+          "Dominate Person: not automated (save): using it spends its cost; its description says the rest",
+          "Dominate Person: effect: charmed is not a WildPath condition yet",
+          "Dominate Person: concentration: nothing it sustains was converted"
+        ]
+      }
+    }
+  }
+}

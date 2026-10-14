@@ -1,0 +1,192 @@
+{
+  "_id": "mmHomunculus0000",
+  "_key": "!actors!mmHomunculus0000",
+  "name": "Homunculus",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 4
+      },
+      "agility": {
+        "value": 15
+      },
+      "fortitude": {
+        "value": 14
+      },
+      "intellect": {
+        "value": 10
+      },
+      "wits": {
+        "value": 10,
+        "saveProficient": true
+      },
+      "presence": {
+        "value": 7,
+        "saveProficient": true
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 13
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 4,
+        "value": 4
+      },
+      "movement": {
+        "base": 20,
+        "value": 20
+      }
+    },
+    "details": {
+      "threat": 0
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Homunculus",
+    "width": 0.5,
+    "height": 0.5,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmTelepathicBond",
+      "_key": "!actors.items!mmHomunculus0000.mmTelepathicBond",
+      "name": "Telepathic Bond",
+      "type": "feature",
+      "img": "icons/magic/control/energy-stream-link-teal.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">While the homunculus is on the same plane of existence as its master, the two of them can communicate telepathically with each other.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmTelepathicBond",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmBite0000000000",
+      "_key": "!actors.items!mmHomunculus0000.mmBite0000000000",
+      "name": "Bite (attack)",
+      "type": "action",
+      "img": "icons/creatures/abilities/fangs-teeth-bite.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +4, reach 5 ft. <em>Hit:</em>  damage, and the target is subjected to the following effect.</p><p><em>Constitution Saving Throw:</em> DC 12.</p><p><em>Failure:</em> The target has the Poisoned condition until the end of the homunculus's next turn.</p><p><em>Failure by 5 or More:</em> The target has the Poisoned condition for 1 minute. While Poisoned, the target has the Unconscious condition, which ends early if the target takes any damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-bite",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Bite (attack)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmBite0000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (attack): using it spends its cost; its description says the rest",
+              "base damage: custom formula \"1\" not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmHomunculustrts",
+      "_key": "!actors.items!mmHomunculus0000.mmHomunculustrts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "immunities",
+            "type": "GrantImmunity",
+            "data": {
+              "damageTypes": [
+                "poison"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "speed-fly",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "fly",
+              "distance": 40
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmHomunculus0000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 0
+      },
+      "conversion": {
+        "notes": [
+          "Bite: not automated (attack): using it spends its cost; its description says the rest",
+          "Bite: base damage: custom formula \"1\" not converted",
+          "Bite: \"save\" is passive or triggered: not automated",
+          "condition immunities (charmed, poisoned) not converted"
+        ]
+      }
+    }
+  }
+}

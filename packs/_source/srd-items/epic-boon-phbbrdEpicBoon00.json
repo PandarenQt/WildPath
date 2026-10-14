@@ -1,0 +1,28 @@
+{
+  "_id": "phbbrdEpicBoon00",
+  "_key": "!items!phbbrdEpicBoon00",
+  "name": "Epic Boon",
+  "type": "feature",
+  "img": "icons/magic/control/debuff-energy-hold-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You gain an Epic Boon feat or another feat of your choice for which you qualify. Boon of Spell Recall is recommended.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbbrdEpicBoon00",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

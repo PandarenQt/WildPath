@@ -1,0 +1,28 @@
+{
+  "_id": "phbpdnDevotionAu",
+  "_key": "!items!phbpdnDevotionAu",
+  "name": "Aura of Devotion",
+  "type": "feature",
+  "img": "icons/magic/life/heart-glowing-red.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You and your allies have Immunity to the Charmed condition while in your Aura of Protection. If a Charmed ally enters the aura, that condition has no effect on that ally while there.</p><section id=\"secret-FUisOAkgNW9r118u\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect for tracking characters impacted by your aura but does not automate the effects.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbpdnDevotionAu",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

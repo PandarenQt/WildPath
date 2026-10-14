@@ -1,0 +1,28 @@
+{
+  "_id": "phbpdnRadiantStr",
+  "_key": "!items!phbpdnRadiantStr",
+  "name": "Radiant Strikes",
+  "type": "feature",
+  "img": "icons/skills/melee/strike-sword-dagger-runes-yellow.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Your strikes now carry supernatural power. When you hit a target with an attack roll using a Melee weapon or an Unarmed Strike, the target takes an extra 1d8 Radiant damage.</p><section class=\"secret\" id=\"secret-fSg1MH5IBJqfecX2\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect which automatically adds the Radiant damage to all Damage Rolls made with your Melee Weapon Attacks and Unarmed Strikes.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbpdnRadiantStr",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "_id": "phbwzdEvocationS",
+  "_key": "!items!phbwzdEvocationS",
+  "name": "Evocation Savant",
+  "type": "feature",
+  "img": "icons/magic/fire/barrier-wall-explosion-orange.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Choose two Wizard spells from the Evocation school (change the Grouping mode to \"School\" for easier selection), each of which must be no higher than level 2, and add them to your spellbook for free.</p><p>In addition, whenever you gain access to a new level of spell slots in this class, you can add one Wizard spell from the Evocation school to your spellbook for free. The chosen spell must be of a level for which you have spell slots.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbwzdEvocationS",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

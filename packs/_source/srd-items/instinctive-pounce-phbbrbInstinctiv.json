@@ -1,0 +1,28 @@
+{
+  "_id": "phbbrbInstinctiv",
+  "_key": "!items!phbbrbInstinctiv",
+  "name": "Instinctive Pounce",
+  "type": "feature",
+  "img": "icons/creatures/mammals/wolf-shadow-black.webp",
+  "system": {
+    "active": true,
+    "description": "<p>As part of the Bonus Action you take to enter your Rage, you can move up to half your Speed.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbbrbInstinctiv",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

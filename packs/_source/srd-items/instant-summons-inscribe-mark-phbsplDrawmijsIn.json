@@ -1,0 +1,103 @@
+{
+  "_id": "phbsplDrawmijsIn",
+  "_key": "!items!phbsplDrawmijsIn",
+  "name": "Instant Summons (Inscribe Mark)",
+  "type": "action",
+  "img": "icons/commodities/gems/gem-fragments-turquoise.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You touch the sapphire used in the casting and an object weighing 10 pounds or less whose longest dimension is 6 feet or less. The spell leaves an Invisible mark on that object and invisibly inscribes the object's name on the sapphire. Each time you cast this spell, you must use a different sapphire.</p><p>Thereafter, you can take a Magic action to speak the object's name and crush the sapphire. The object instantly appears in your hand regardless of physical or planar distances, and the spell ends.</p><p>If another creature is holding or carrying the object, crushing the sapphire doesn't transport it, but instead you learn who that creature is and where that creature is currently located.</p><section id=\"secret-px4JJQv7QxLmPdka\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This spell's Limited Uses are configured to track the number of inscribed objects, with the \"Inscribe\" and \"Recall\" activities restoring and consuming uses as appropriate.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-instant-summons-inscribe-mark",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": []
+      },
+      "configuration": [
+        {
+          "id": "spell-slot",
+          "type": "resource",
+          "label": "Spell slot",
+          "required": true,
+          "cost": {
+            "anyOf": [
+              [
+                {
+                  "capability": "spell-slot.6",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.7",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.8",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.9",
+                  "amount": 1
+                }
+              ]
+            ]
+          },
+          "levelByResourceId": {
+            "spell-slot.6": 6,
+            "spell-slot.7": 7,
+            "spell-slot.8": 8,
+            "spell-slot.9": 9
+          },
+          "effects": []
+        }
+      ],
+      "label": "Instant Summons (Inscribe Mark)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "instant-summons-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "instant-summons",
+          "label": "Instant Summons",
+          "maximum": {
+            "type": "constant",
+            "value": 9
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbsplDrawmijsIn",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "activation: 1 minute is not an action-economy cost",
+          "consumption: itemUses -1 not converted",
+          "activation: 1 minute is not an action-economy cost",
+          "consumption: itemUses -1 not converted"
+        ]
+      }
+    }
+  }
+}

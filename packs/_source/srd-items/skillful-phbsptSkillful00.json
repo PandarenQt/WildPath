@@ -1,0 +1,28 @@
+{
+  "_id": "phbsptSkillful00",
+  "_key": "!items!phbsptSkillful00",
+  "name": "Skillful",
+  "type": "feature",
+  "img": "icons/commodities/treasure/medal-ribbon-silver-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You gain proficiency in one skill of your choice.</p><section id=\"secret-lvP62g2xTxkz2VN3\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>You will be prompted for this choice when you select this Species.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "origins24",
+        "id": "phbsptSkillful00",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

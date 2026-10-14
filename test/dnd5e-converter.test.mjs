@@ -1,6 +1,6 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import {convertItem, formulaExpression, isSrd2024, scaleTables} from "../scripts/content/dnd5e-to-wildpath.mjs";
+import {convertActor, convertItem, describe, formulaExpression, isSrd2024, scaleTables} from "../scripts/content/dnd5e-to-wildpath.mjs";
 import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
 
 // Synthetic documents in dnd5e 6.x's shape (mechanics only), not copies of its compendium.
@@ -57,7 +57,8 @@ test("a weapon becomes its attack: finesse, reach, and its own damage that the a
   const {items, notes} = convertItem(weapon);
   assert.equal(items.length, 1);
   valid(items[0]);
-  assert.deepEqual(items[0].system.definition.attack, {type: "melee", statistic: "weapon", defenseKey: "ac", properties: ["finesse"]});
+  assert.deepEqual(items[0].system.definition.attack, {type: "melee", statistic: "weapon", defenseKey: "ac", proficient: true,
+    properties: ["finesse"]});
   assert.deepEqual(items[0].system.definition.range, {type: "reach", distance: {value: 5, unit: "ft"}});
   assert.deepEqual(items[0].system.definition.damage, [{id: "base", expression: {type: "dice", number: 1, faces: 8}, damageType: "slashing",
     provenance: "weapon-base"}]);
@@ -105,11 +106,16 @@ test("an attack cantrip, a healing spell and a class feature with uses", () => {
   assert.deepEqual(wind.notes, ["uses: a partial recovery refills the whole pool"]);
 });
 
-test("what WildPath cannot run is left out and named, never approximated", () => {
+test("what WildPath cannot automate is a manual Action that spends its cost, named, never approximated", () => {
   const held = convertItem(hold);
-  assert.deepEqual(held.items, [], "a save with nothing converted on it is not an Action");
+  const [manual] = held.items;
+  assert.equal(manual.type, "action");
+  assert.deepEqual(manual.system.definition.costs, {allOf: [{capability: "action", amount: 1}]}, "it still costs an Action");
+  assert.equal(manual.system.definition.configuration[0].id, "spell-slot", "and spends its slot");
+  assert.equal(manual.system.definition.save, undefined, "but rolls nothing it cannot resolve");
+  assert.equal(validateActionDefinition(manual.system.definition).ok, true);
+  assert.match(held.notes[0], /^not automated/);
   assert.ok(held.notes.includes("effect: paralyzed is not a WildPath condition yet"));
-  assert.ok(held.notes.some(note => note.startsWith("activity")));
 
   const tripped = convertItem(trip);
   valid(tripped.items[0]);
@@ -120,4 +126,37 @@ test("what WildPath cannot run is left out and named, never approximated", () =>
   assert.equal(formulaExpression("@abilities.str.mod"), null);
   assert.deepEqual(formulaExpression("@prof"), {type: "proficiency-bonus"});
   assert.deepEqual(formulaExpression("@mod", {ability: "might"}), {type: "ability-modifier", ability: "might"});
+});
+
+test("descriptions are the source's own text with dnd5e's enrichers resolved", () => {
+  const names = {pageId: "Conditions"};
+  const text = describe({system: {description: {value: "<p>[[lookup @labels.description.affects capitalize]] in a [[lookup @labels.description.template]] "
+    + "makes a [[/save dex]]; see @UUID[Compendium.dnd5e.content24.JournalEntry.x.JournalEntryPage.pageId] and &Reference[prone]. "
+    + "@Embed[Compendium.dnd5e.content24.JournalEntry.x]Roll [[/r 1d4]] or @UUID[Item.y]{the wand}.</p>"},
+  target: {template: {type: "sphere", size: "20"}, affects: {type: "creature"}}, activities: {}}}, {names});
+  assert.equal(text, "<p>Each creature in a 20-foot-radius Sphere makes a Dexterity saving throw; see Conditions and Prone. Roll 1d4 or the wand.</p>");
+});
+
+test("a creature: proficient saves, its stat block's text with its numbers, and its passive and manual abilities", () => {
+  const scimitar = {...weapon, _id: "scimitar00000001", name: "Scimitar", system: {...weapon.system, properties: ["fin"],
+    damage: {base: {number: 1, denomination: 6, types: ["slashing"]}},
+    description: {value: "<p>[[/attack extended]]. [[/damage average extended]].</p>"}}};
+  const multiattack = {_id: "multiattack00001", name: "Multiattack", type: "feat", system: {source: SRD,
+    description: {value: "<p>The [[lookup @name lowercase]]{monster} makes two attacks, using [[/item .scimitar00000001]].</p>"},
+    activities: {a: activity("utility")}}};
+  const pack = {_id: "packTactics00001", name: "Pack Tactics", type: "feat", system: {source: SRD, description: {value: "<p>Advantage.</p>"},
+    activities: {}}};
+  const captain = {_id: "captain000000001", name: "Bandit Captain", type: "npc", system: {source: SRD, details: {cr: 2},
+    abilities: {str: {value: 15, proficient: 1}, dex: {value: 16, proficient: 1}, con: {value: 14}, int: {value: 14}, wis: {value: 11, proficient: 1},
+      cha: {value: 14}}, attributes: {hp: {max: 52}, movement: {walk: "30"}, ac: {calc: "natural", flat: 15}}, traits: {size: "med"}},
+    items: [scimitar, multiattack, pack]};
+  const {actor} = convertActor(captain);
+  assert.deepEqual(Object.entries(actor.system.abilities).filter(([, ability]) => ability.saveProficient).map(([key]) => key),
+    ["might", "agility", "wits"]);
+  const byName = name => actor.items.find(item => item.name === name);
+  assert.equal(byName("Scimitar").system.description, "<p>Melee Attack Roll: +5, reach 5 ft. Hit: 6 (1d6 + 3) Slashing damage.</p>");
+  assert.equal(byName("Multiattack").type, "action", "Multiattack is used: a manual Action costing an Action");
+  assert.equal(byName("Multiattack").system.description, "<p>The bandit captain makes two attacks, using Scimitar.</p>");
+  assert.equal(byName("Pack Tactics").type, "feature", "a passive ability is a feature with its text");
+  assert.equal(byName("Pack Tactics").system.description, "<p>Advantage.</p>");
 });

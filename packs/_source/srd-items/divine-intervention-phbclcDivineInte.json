@@ -1,0 +1,62 @@
+{
+  "_id": "phbclcDivineInte",
+  "_key": "!items!phbclcDivineInte",
+  "name": "Divine Intervention",
+  "type": "action",
+  "img": "icons/magic/light/beam-rays-yellow-blue-small.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You can call on your deity or pantheon to intervene on your behalf. As a Magic action, choose any Cleric spell of level 5 or lower that doesn't require a Reaction to cast. As part of the same action, you cast that spell without expending a spell slot or needing Material components. You can't use this feature again until you finish a Long Rest.</p><section id=\"secret-LP7yqqobTjOqeswv\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>Uncheck the \"Consumption\" box when casting the spell for the free use. This feature can be used to track available uses.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-divine-intervention",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "divine-intervention",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Divine Intervention"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "divine-intervention-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "divine-intervention",
+          "label": "Divine Intervention",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbclcDivineInte",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

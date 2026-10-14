@@ -1,0 +1,31 @@
+{
+  "_id": "phbdrdNaturalRec",
+  "_key": "!items!phbdrdNaturalRec",
+  "name": "Natural Recovery",
+  "type": "feature",
+  "img": "icons/magic/control/sihouette-hold-beam-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You can cast one of the level 1+ spells that you have prepared from your Circle Spells feature without expending a spell slot, and you must finish a Long Rest before you do so again.</p><p>In addition, when you finish a Short Rest, you can choose expended spell slots to recover. The spell slots can have a combined level that is equal to or less than half your Druid level (round up, currently ), and none of them can be level 6+. For example, if you're a level 6 Druid, you can recover up to three levels' worth of spell slots. You can recover a level 3 spell slot, a level 2 and a level 1 spell slot, or three level 1 spell slots. Once you recover spell slots with this feature, you can't do so again until you finish a Long Rest.</p><section class=\"secret\" id=\"secret-xLFXthYlJ7wwFlSS\"><p><strong>Foundry Note</strong></p><p>The <strong>Cast Spell</strong> activity can be used to track its single free use.</p><p>The <strong>Recover Spell Slot</strong> activity does not automate the restoration of spell slots but can be used for tracking its own single use.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbdrdNaturalRec",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Cast Spell\" is passive or triggered: not automated",
+          "\"Recover Spell Slots\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

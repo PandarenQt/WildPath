@@ -1,0 +1,237 @@
+{
+  "_id": "phbostFey0000000",
+  "_key": "!actors!phbostFey0000000",
+  "name": "Fey Steed",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 18
+      },
+      "agility": {
+        "value": 12
+      },
+      "fortitude": {
+        "value": 14
+      },
+      "intellect": {
+        "value": 6
+      },
+      "wits": {
+        "value": 12
+      },
+      "presence": {
+        "value": 8
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 11
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 5,
+        "value": 5
+      },
+      "movement": {
+        "base": 30,
+        "value": 30
+      }
+    },
+    "details": {
+      "threat": 0
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Fey Steed",
+    "width": 2,
+    "height": 2,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "phbaoiLifeBond00",
+      "_key": "!actors.items!phbostFey0000000.phbaoiLifeBond00",
+      "name": "Life Bond",
+      "type": "feature",
+      "img": "icons/magic/life/cross-beam-green.webp",
+      "system": {
+        "active": true,
+        "description": "<p> When you regain Hit Points from a level 1+ spell, the steed regains the same number of Hit Points if you're within 5 feet of it.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbaoiLifeBond00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "phbaoiOtherworld",
+      "_key": "!actors.items!phbostFey0000000.phbaoiOtherworld",
+      "name": "Otherworldly Slam",
+      "type": "action",
+      "img": "icons/magic/sonic/explosion-shock-wave-teal.webp",
+      "system": {
+        "active": true,
+        "description": "<p><em>Melee Attack Roll:</em> Bonus equals your spell attack modifier, reach 5 ft. <em>Hit:</em> 1d8 plus the spell's level of Psychic damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-otherworldly-slam",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 8
+              },
+              "damageType": "psychic",
+              "provenance": "additional"
+            }
+          ],
+          "label": "Otherworldly Slam"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbaoiOtherworld",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "phbaoiFeyStepFey",
+      "_key": "!actors.items!phbostFey0000000.phbaoiFeyStepFey",
+      "name": "Fey Step",
+      "type": "action",
+      "img": "icons/creatures/magical/humanoid-silhouette-dashing-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p> The steed teleports, along with its rider, to an unoccupied space of your choice up to 60 feet away from itself.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-fey-step-teleport",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              },
+              {
+                "capability": "fey-step",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Fey Step"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "fey-step-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "fey-step",
+              "label": "Fey Step",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbaoiFeyStepFey",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "phbostFey0000000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 0
+      },
+      "conversion": {
+        "notes": [
+          "Fey Step: not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

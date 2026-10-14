@@ -1,0 +1,45 @@
+{
+  "_id": "phbinvFiendishVi",
+  "_key": "!items!phbinvFiendishVi",
+  "name": "Fiendish Vigor",
+  "type": "action",
+  "img": "icons/magic/death/undead-zombie-grave-green.webp",
+  "system": {
+    "active": true,
+    "description": "<blockquote><p>Prerequisite: Level 2+ Warlock</p></blockquote><p>You can cast False Life on yourself without expending a spell slot. When you cast the spell with this feature, you don't roll the die for the Temporary Hit Points; you automatically get the highest number on the die.</p><section class=\"secret\" id=\"secret-9kRkRSKEmbOaga6L\"><p><strong>Foundry Note</strong></p><p>The <strong>False Life</strong> activity includes the maximum amount of healing.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-fiendish-vigor-false-life",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Fiendish Vigor"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbinvFiendishVi",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (heal): using it spends its cost; its description says the rest",
+          "healing: custom formula \"8 + 4\" not converted",
+          "healing: temporary Hit Points not converted"
+        ]
+      }
+    }
+  }
+}

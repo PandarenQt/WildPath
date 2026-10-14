@@ -1,0 +1,242 @@
+{
+  "_id": "mmGrayOoze000000",
+  "_key": "!actors!mmGrayOoze000000",
+  "name": "Gray Ooze",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 12
+      },
+      "agility": {
+        "value": 6
+      },
+      "fortitude": {
+        "value": 16
+      },
+      "intellect": {
+        "value": 1
+      },
+      "wits": {
+        "value": 6
+      },
+      "presence": {
+        "value": 2
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 9
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 22,
+        "value": 22
+      },
+      "movement": {
+        "base": 10,
+        "value": 10
+      }
+    },
+    "details": {
+      "threat": 0
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Gray Ooze",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmAmorphous00000",
+      "_key": "!actors.items!mmGrayOoze000000.mmAmorphous00000",
+      "name": "Amorphous",
+      "type": "feature",
+      "img": "icons/creatures/slimes/slime-face-hollow-green.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The gray ooze can move through a space as narrow as 1 inch without expending extra movement to do so.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmAmorphous00000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmCorrosiveForm0",
+      "_key": "!actors.items!mmGrayOoze000000.mmCorrosiveForm0",
+      "name": "Corrosive Form",
+      "type": "feature",
+      "img": "icons/skills/melee/sword-damaged-broken-purple.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Nonmagical ammunition is destroyed immediately after hitting the gray ooze and dealing any damage. Any nonmagical weapon takes a cumulative −1 penalty to attack rolls immediately after dealing damage to the gray ooze and coming into contact with it. The weapon is destroyed if the penalty reaches −5. The penalty can be removed by casting the <em>Mending</em> spell on the weapon.</p><p class=\"feature\">The gray ooze can eat through 2-inch-thick, nonmagical metal or wood in 1 round.</p><section class=\"secret\" id=\"secret-NtgKYdQoCuiAaxOa\"><p><strong>Foundry Note</strong></p><p>This feature provides an <strong>Attack Penalty</strong> active effect that will modify a targeted weapon. Since this penalty can be applied multiple times to multiple nonmagical weapons, this active effect needs to be dragged from this item's Effect tab onto the target Item's weapons.</p></section>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmCorrosiveForm0",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmPseudopod00000",
+      "_key": "!actors.items!mmGrayOoze000000.mmPseudopod00000",
+      "name": "Pseudopod",
+      "type": "action",
+      "img": "icons/creatures/slimes/slime-movement-pseudopods-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Melee Attack Roll: +3, reach 5 ft. Hit: 10 (2d8 + 1) Acid damage. Nonmagical armor worn by the target takes a −1 penalty to the AC it offers. The armor is destroyed if the penalty reduces its AC to 10. The penalty can be removed by casting the <em>Mending</em> spell on the armor.</p><section class=\"secret\" id=\"secret-RpEIbnL6lqJ2F9gS\"><p><strong>Foundry Note</strong></p><p>This feature provides an <strong>AC Penalty</strong> enchantment that will modify a targeted armor. Since this penalty can be applied multiple times, this enchantment needs to be dragged from this item's Effect tab onto the target armor item.</p></section>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-pseudopod",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 8
+              },
+              "damageType": "acid",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Pseudopod"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmPseudopod00000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmGrayOoze00trts",
+      "_key": "!actors.items!mmGrayOoze000000.mmGrayOoze00trts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "resistances",
+            "type": "GrantResistance",
+            "data": {
+              "damageTypes": [
+                "acid",
+                "cold",
+                "fire"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "speed-climb",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "climb",
+              "distance": 10
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmGrayOoze000000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 0.5
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

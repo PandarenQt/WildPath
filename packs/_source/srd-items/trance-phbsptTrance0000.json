@@ -1,0 +1,28 @@
+{
+  "_id": "phbsptTrance0000",
+  "_key": "!items!phbsptTrance0000",
+  "name": "Trance",
+  "type": "feature",
+  "img": "icons/magic/holy/meditation-chi-focus-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You don't need to sleep, and magic can't put you to sleep. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "origins24",
+        "id": "phbsptTrance0000",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

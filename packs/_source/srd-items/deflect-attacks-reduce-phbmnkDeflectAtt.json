@@ -1,0 +1,60 @@
+{
+  "_id": "phbmnkDeflectAtt",
+  "_key": "!items!phbmnkDeflectAtt",
+  "name": "Deflect Attacks (Reduce)",
+  "type": "action",
+  "img": "icons/skills/ranged/arrow-flying-white-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p>When an attack roll hits you and its damage includes Bludgeoning, Piercing, or Slashing damage, you can take a Reaction to reduce the attack's total damage against you. The reduction equals 1d10 plus your Dexterity modifier and Monk level.</p><p>If you reduce the damage to 0, you can expend 1 Focus Point to redirect some of the attack's force. If you do so, choose a creature you can see within 5 feet of yourself if the attack was a melee attack or a creature you can see within 60 feet of yourself that isn't behind Total Cover if the attack was a ranged attack. That creature must succeed on a Dexterity saving throw or take damage equal to two rolls of your Martial Arts die plus your Dexterity modifier. The damage is the same type dealt by the attack.</p><section class=\"secret\" id=\"secret-zWGu1AEB09UqQ21D\"><p><strong>Foundry Note</strong></p><p>The <strong>Reduce</strong> activity can be used to heal yourself to reduce the total damage if it's not enough to reduce it to 0.</p><p>The <strong>Redirect</strong> activity can be used to roll damage and consume a use of your Focus Points if you can reduce it to 0. You can select the type of damage in the roll dialog. The dice increase automatically as you level up.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-deflect-attacks-reduce",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "reaction",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "healing": [
+        {
+          "id": "healing-1",
+          "expression": {
+            "type": "dice",
+            "number": 1,
+            "faces": 10
+          },
+          "healingType": "healing"
+        }
+      ],
+      "label": "Deflect Attacks (Reduce)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbmnkDeflectAtt",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "healing: bonus \"@abilities.dex.mod + @classes.monk.levels\" not converted"
+        ]
+      }
+    }
+  }
+}

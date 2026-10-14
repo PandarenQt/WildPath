@@ -1,0 +1,44 @@
+{
+  "_id": "phbmnkEmpoweredS",
+  "_key": "!items!phbmnkEmpoweredS",
+  "name": "Empowered Strikes",
+  "type": "action",
+  "img": "icons/magic/control/buff-strength-muscle-damage-orange.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Whenever you deal damage with your Unarmed Strike, it can deal your choice of Force damage or its normal damage type.</p><section class=\"secret\" id=\"secret-Hg8UeaCyLgncM7iJ\"><p><strong>Foundry Note</strong></p><p>The <strong>Empowered Strike</strong> activity on this feature can allows you to choose between Force and Bludgeoning damage in the roll dialog. It will remember your choice going forward.</p><p>It uses your Martial Arts Die (currently (by class level) for damage and will automatically update as you level up.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-empowered-strikes-empowered-strike",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Empowered Strikes"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbmnkEmpoweredS",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (attack): using it spends its cost; its description says the rest",
+          "damage 1: custom formula \"@scale.monk.die + @mod\" not converted"
+        ]
+      }
+    }
+  }
+}

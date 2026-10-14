@@ -1,0 +1,28 @@
+{
+  "_id": "phbmnkUnarmoredM",
+  "_key": "!items!phbmnkUnarmoredM",
+  "name": "Unarmored Movement",
+  "type": "feature",
+  "img": "icons/skills/movement/figure-running-gray.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Your speed increases by 10 feet while you aren't wearing armor or wielding a Shield. This bonus increases when you reach certain Monk levels, as shown on the Monk Features table.</p><p><strong>Current Increase:</strong> (by class level)</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbmnkUnarmoredM",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

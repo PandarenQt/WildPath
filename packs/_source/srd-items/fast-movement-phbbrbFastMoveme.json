@@ -1,0 +1,28 @@
+{
+  "_id": "phbbrbFastMoveme",
+  "_key": "!items!phbbrbFastMoveme",
+  "name": "Fast Movement",
+  "type": "feature",
+  "img": "icons/skills/movement/feet-winged-boots-brown.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Your speed increases by 10 feet while you aren't wearing Heavy armor.</p><section id=\"secret-6cmMiIJhUk5cpOGz\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect which will automatically increase your movement speed. Disable the Fast Movement Active Effect if you're wearing Heavy armor.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbbrbFastMoveme",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

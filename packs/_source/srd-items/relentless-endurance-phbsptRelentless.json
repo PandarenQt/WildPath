@@ -1,0 +1,45 @@
+{
+  "_id": "phbsptRelentless",
+  "_key": "!items!phbsptRelentless",
+  "name": "Relentless Endurance",
+  "type": "feature",
+  "img": "icons/magic/life/cross-area-circle-green-white.webp",
+  "system": {
+    "active": true,
+    "description": "<p>When you are reduced to 0 Hit Points but not killed outright, you can drop to 1 Hit Point instead. Once you use this trait, you can't do so again until you finish a Long Rest.</p>",
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "relentless-endurance-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "relentless-endurance",
+          "label": "Relentless Endurance",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "origins24",
+        "id": "phbsptRelentless",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Relentlessly Endure\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

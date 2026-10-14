@@ -1,0 +1,43 @@
+{
+  "_id": "phbbrdCountercha",
+  "_key": "!items!phbbrdCountercha",
+  "name": "Countercharm",
+  "type": "action",
+  "img": "icons/skills/trades/music-singing-voice-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You can use musical notes or words of power to disrupt mind-influencing effects. If you or a creature within 30 feet of you fails a saving throw against an effect that applies the Charmed or Frightened condition, you can take a Reaction to cause the save to be rerolled, and the new roll has Advantage.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-countercharm",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "reaction",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Countercharm"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbbrdCountercha",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

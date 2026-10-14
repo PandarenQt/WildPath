@@ -1,0 +1,44 @@
+{
+  "_id": "phbinvArmorofSha",
+  "_key": "!items!phbinvArmorofSha",
+  "name": "Armor of Shadows",
+  "type": "action",
+  "img": "icons/magic/control/control-influence-rally-purple.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You can cast Mage Armor on yourself without expending a spell slot.</p><section id=\"secret-G6Bmiw5YEqEfBh2e\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>The <strong>Mage Armor</strong> activity is configured with the spell's effect and duration, including an Active Effect to set the spell's provided AC formula.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-armor-of-shadows-mage-armor",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Armor of Shadows"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbinvArmorofSha",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Mage Armor\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "_id": "phbftrFightingSt",
+  "_key": "!items!phbftrFightingSt",
+  "name": "Fighting Style",
+  "type": "feature",
+  "img": "icons/skills/melee/hand-grip-staff-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You have honed your martial prowess and gain a Fighting Style feat of your choice. Defense is recommended.</p><p>Whenever you gain a Fighter level, you can replace the feat you chose with a different Fighting Style feat.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbftrFightingSt",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

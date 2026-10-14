@@ -1,0 +1,30 @@
+{
+  "_id": "phbbrdPeerlessSk",
+  "_key": "!items!phbbrdPeerlessSk",
+  "name": "Peerless Skill",
+  "type": "feature",
+  "img": "icons/commodities/treasure/medal-ribbon-gold-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p>When you make an ability check or attack roll and fail, you can expend one use of Bardic Inspiration; roll the Bardic Inspiration die, and add the number rolled to the d20, potentially turning a failure into a success. On a failure, the Bardic Inspiration isn't expended.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbbrdPeerlessSk",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"utility\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

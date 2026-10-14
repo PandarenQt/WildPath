@@ -1,0 +1,28 @@
+{
+  "_id": "phbinvAgonizingB",
+  "_key": "!items!phbinvAgonizingB",
+  "name": "Agonizing Blast",
+  "type": "feature",
+  "img": "icons/magic/acid/projectile-stream-bubbles.webp",
+  "system": {
+    "active": true,
+    "description": "<blockquote><p>Prerequisite: Level 2+ Warlock, a Warlock Cantrip That Deals Damage</p></blockquote><p>Choose one of your known Warlock cantrips that deals damage. You can add your Charisma modifier to that spell's damage rolls.</p><p><strong>Repeatable. </strong>You can gain this invocation more than once. Each time you do so, choose a different eligible cantrip.</p><section class=\"secret\" id=\"secret-e2JfbLoZ7SLiWlcU\"><p><strong>Foundry Note</strong></p><p>The change to your cantrip will have to be made manually by adding \"@abilities.cha.mod\" to the \"Bonus\" field of your spell's damage.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbinvAgonizingB",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "_id": "9zbw9g180ixkk000",
+  "_key": "!items!9zbw9g180ixkk000",
+  "name": "Dwarven Thrower (Throw)",
+  "type": "action",
+  "img": "icons/weapons/hammers/hammer-double-engraved-gold.webp",
+  "system": {
+    "active": true,
+    "description": "<div><p><em>Weapon (Warhammer), Very Rare (Requires Attunement by a Dwarf or a Creature Attuned to a Belt of Dwarvenkind)</em></p></div><p>You gain a +3 bonus to attack rolls and damage rolls made with this magic weapon. It has the Thrown property with a normal range of 20 feet and a long range of 60 feet. When you hit with a ranged attack using this weapon, it deals an extra 1d8 Bludgeoning plus 1d8 Force damage, or an extra 1d8 Bludgeoning plus 1d8 Force damage if the target is a Giant. Immediately after hitting or missing, the weapon flies back to your hand.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-dwarven-thrower-throw",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "attack": {
+        "type": "ranged",
+        "statistic": "weapon",
+        "defenseKey": "ac",
+        "proficient": true
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 20,
+          "unit": "ft"
+        },
+        "long": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "damage": [
+        {
+          "id": "base",
+          "expression": {
+            "type": "dice",
+            "number": 1,
+            "faces": 8
+          },
+          "damageType": "bludgeoning",
+          "provenance": "weapon-base"
+        },
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "dice",
+            "number": 1,
+            "faces": 8
+          },
+          "damageType": "force",
+          "provenance": "additional"
+        }
+      ],
+      "label": "Dwarven Thrower (Throw)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgDwarvenThrowe",
+        "type": "weapon",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "attack: +3 magic bonus not converted",
+          "damage: versatile two-handed damage not converted"
+        ]
+      }
+    }
+  }
+}

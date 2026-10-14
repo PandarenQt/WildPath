@@ -1,0 +1,28 @@
+{
+  "_id": "phbbrbDangerSens",
+  "_key": "!items!phbbrbDangerSens",
+  "name": "Danger Sense",
+  "type": "feature",
+  "img": "icons/skills/wounds/injury-face-impact-orange.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You gain an uncanny sense of when things aren't as they should be, giving you an edge when you dodge perils. You have Advantage on Dexterity saving throws unless you have the Incapacitated condition.</p><section id=\"secret-gIJELszWrIqRFCxF\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This feature automates the Advantage on Dexterity saving throws but is not automatically disabled when Incapacitated. It can be temporarily deactivated in the Effects tab.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbbrbDangerSens",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

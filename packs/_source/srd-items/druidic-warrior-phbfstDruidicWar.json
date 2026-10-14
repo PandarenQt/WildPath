@@ -1,0 +1,28 @@
+{
+  "_id": "phbfstDruidicWar",
+  "_key": "!items!phbfstDruidicWar",
+  "name": "Druidic Warrior",
+  "type": "feature",
+  "img": "icons/magic/nature/root-vines-face-glow-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You learn two Druid cantrips of your choice. Guidance and Starry Wisp are recommended. The chosen cantrips count as Ranger spells for you, and Wisdom is your spellcasting ability for them. Whenever you gain a Ranger level, you can replace one of these cantrips with another Druid cantrip.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbfstDruidicWar",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

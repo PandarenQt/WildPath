@@ -4,9 +4,11 @@
  * - Only a document whose own `system.source` says `license: "CC-BY-4.0"` and `rules: "2024"` is converted.
  * - Spells, weapons and features become Action Items, one per activity. An item's uses become a resource pool its
  *   Action spends (`GrantResource`).
- * - Mechanics only: names, numbers and rules, no descriptions (AGENTS §22).
- * - What WildPath cannot express yet is listed in `flags.wildpath.conversion.notes` and left out. It is never
- *   approximated.
+ * - Something a creature uses that WildPath cannot automate is a manual Action: using it spends its cost (an
+ *   Action, a Reaction, a spell slot) and its description says the rest. A passive ability is a feature item.
+ * - Descriptions are the source's own text, copied as placeholders (maintainer decision; AGENTS §22 forbids only
+ *   generated prose), with dnd5e's enrichers resolved against the document's data.
+ * - What WildPath cannot automate is listed in `flags.wildpath.conversion.notes`. It is never approximated.
  */
 
 /** dnd5e ability keys to WildPath's. */
@@ -24,6 +26,16 @@ const SLOT_MODES = new Set(["prepared", "always", "spell", "pact", "ritual"]);
 export function isSrd2024(document) {
   const source = document?.system?.source ?? {};
   return (source.license === "CC-BY-4.0") && (source.rules === "2024");
+}
+
+/** A 16-character Document id derived from `seed` (FNV-1a), the same on every run. */
+export function stableId(seed) {
+  let a = 0x811c9dc5, b = 0x01000193;
+  for ( const char of String(seed) ) {
+    a = Math.imul(a ^ char.charCodeAt(0), 0x01000193) >>> 0;
+    b = Math.imul(b ^ char.charCodeAt(0), 0x811c9dc5) >>> 0;
+  }
+  return `${a.toString(36)}${b.toString(36)}`.padEnd(16, "0").slice(0, 16);
 }
 
 export const slugify = text => String(text ?? "").toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -68,8 +80,11 @@ function partExpression(part, {spell, ability, scales, notes, label}) {
   return terms.length ? add(terms) : null;
 }
 
-/** The activity's own value for `key` when it overrides the item's, else the item's. */
-const pick = (activity, system, key) => ((activity?.[key]?.override || !system?.[key]) ? activity?.[key] : system[key]) ?? {};
+/** Whether a range, target or activation says anything (an item may carry an empty one its activities fill). */
+const says = value => Boolean(value?.units || value?.type || value?.value || value?.template?.type || value?.affects?.type);
+
+/** The activity's own value for `key` when it overrides the item's or the item's says nothing, else the item's. */
+const pick = (activity, system, key) => ((activity?.[key]?.override || !says(system?.[key])) ? activity?.[key] : system[key]) ?? {};
 
 function rangeOf({activity, system, document, attack}) {
   const range = pick(activity, system, "range");
@@ -93,8 +108,8 @@ function rangeOf({activity, system, document, attack}) {
 /** Targeting and area; an unsupported shape leaves the targets to the user and is noted. */
 function targetingOf({activity, system, notes}) {
   const target = pick(activity, system, "target");
-  const template = {...(system.target?.template ?? {}), ...(activity?.target?.override ? target.template : {})};
-  const affects = {...(system.target?.affects ?? {}), ...(activity?.target?.override ? target.affects : {})};
+  const template = target.template ?? {};
+  const affects = target.affects ?? {};
   const size = number(template.size);
   const rangeUnits = pick(activity, system, "range").units ?? system.range?.units;
   if ( template.type ) {
@@ -119,45 +134,60 @@ function targetingOf({activity, system, notes}) {
  * `scales` maps `<class>.<scale>` to `{level: value}` rows (from the class's ScaleValue advancements).
  * @returns {{ok: true, items: object[], notes: string[]} | {ok: false, reason: string}}
  */
-export function convertItem(document, {scales={}, pack=null, saveDC=null}={}) {
-  if ( !isSrd2024(document) ) return {ok: false, reason: "not SRD 5.2 (CC-BY-4.0)"};
+export function convertItem(document, {scales={}, pack=null, saveDC=null, names={}, creature=null, licensed=isSrd2024, book="SRD 5.2"}={}) {
+  if ( !licensed(document) ) return {ok: false, reason: "not SRD 5.2 (CC-BY-4.0)"};
   const system = document.system ?? {};
   const activities = Object.values(system.activities ?? {}).sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0));
   const spell = document.type === "spell";
   const level = number(system.level) ?? 0;
   const pool = usesPool({document, scales});
+  const description = describe(document, {names, creature});
+  const source = {system: "dnd5e", pack, id: document._id, type: document.type, book,
+    license: document.system?.source?.license || null, rules: document.system?.source?.rules || "2024"};
+  const img = String(document.img ?? "").startsWith("icons/") ? document.img : "icons/svg/item-bag.svg";
   const items = [];
   const allNotes = [];
-  for ( const [index, activity] of activities.entries() ) {
+  // A spell without activities is still cast: it spends its slot like any other.
+  const usable = activities.length ? activities : (spell ? [{type: "manual", activation: {override: false}}] : []);
+  for ( const [index, activity] of usable.entries() ) {
     const notes = [...(pool?.notes ?? [])];
-    if ( !ACTIVITIES.has(activity.type) ) {
-      allNotes.push(`activity "${activity.name || activity.type}" (${activity.type}) not converted`);
-      continue;
-    }
-    // A passive or triggered activity (no activation, or "special") is not something a creature uses on its turn.
+    const label = activity.name || activity.type;
+    // A passive or triggered ability is not something a creature uses on its turn; its feature carries its text.
     const activation = pick(activity, system, "activation").type ?? "";
     if ( ["", "none", "special"].includes(activation) ) {
-      allNotes.push(`activity "${activity.name || activity.type}" is passive or triggered; not converted`);
+      allNotes.push(`"${label}" is passive or triggered: not automated`);
       continue;
     }
-    const definition = convertActivity({document, activity, system, spell, level, scales, notes, pool, saveDC});
+    let definition = ACTIVITIES.has(activity.type) ? convertActivity({document, activity, system, spell, level, scales, notes, pool, saveDC}) : null;
     if ( !definition ) {
-      allNotes.push(...notes, `activity "${activity.name || activity.type}" does nothing WildPath can run`);
-      continue;
+      // Used but not automated: using it spends its cost (and a spell's slot); its description says the rest.
+      notes.unshift(`not automated${activity.type === "manual" ? "" : ` (${activity.type})`}: using it spends its cost; its description says the rest`);
+      definition = manualDefinition({document, activity, system, spell, level, notes, pool});
     }
-    const suffix = activities.length > 1 ? ` (${activity.name || activity.type})` : "";
-    const id = index ? `${String(document._id).slice(0, 13)}a${String(index).padStart(2, "0")}` : document._id;
+    const suffix = usable.length > 1 ? ` (${label})` : "";
+    const id = index ? stableId(`${document._id}:${index}`) : document._id;
     items.push({
-      _id: id, _key: `!items!${id}`, name: `${document.name}${suffix}`, type: "action",
-      img: String(document.img ?? "").startsWith("icons/") ? document.img : "icons/svg/item-bag.svg",
-      system: {active: true, description: "", definition: {...definition, label: `${document.name}${suffix}`},
+      _id: id, _key: `!items!${id}`, name: `${document.name}${suffix}`, type: "action", img,
+      system: {active: true, description, definition: {...definition, label: `${document.name}${suffix}`},
         ruleElements: pool ? [pool.rule] : []},
-      flags: {wildpath: {source: {system: "dnd5e", pack, id: document._id, type: document.type, book: "SRD 5.2",
-        license: "CC-BY-4.0", rules: "2024"}, conversion: {notes}}}
+      flags: {wildpath: {source, conversion: {notes}}}
     });
     allNotes.push(...notes);
   }
+  // Nothing to use: a passive ability is a feature carrying its text (and any uses its other Actions spend).
+  if ( !items.length ) {
+    items.push({_id: document._id, _key: `!items!${document._id}`, name: document.name, type: "feature", img,
+      system: {active: true, description, ruleElements: pool ? [pool.rule] : []},
+      flags: {wildpath: {source, conversion: {notes: [...new Set(allNotes)]}}}});
+  }
   return {ok: true, items, notes: [...new Set(allNotes)]};
+}
+
+/** The Action of something used but not automated: its cost, its uses and, for a spell, its slot. */
+function manualDefinition({document, activity, system, spell, level, notes, pool}) {
+  const definition = baseDefinition({document, activity, system, spell, notes, pool});
+  if ( spell && level && SLOT_MODES.has(system.preparation?.mode ?? "prepared") ) definition.configuration = slotConfiguration(level, []);
+  return definition;
 }
 
 /** An item's limited uses as a resource pool its Actions spend, with the dnd5e recovery. */
@@ -171,12 +201,15 @@ function usesPool({document, scales}) {
   // 2024 often recovers one use on a short rest and all on a long one; WildPath pools refill whole.
   const recovery = RECOVERY[periods.includes("sr") ? "sr" : periods[0]] ?? "none";
   if ( (uses.recovery ?? []).some(entry => entry.type === "formula") ) notes.push("uses: a partial recovery refills the whole pool");
+  const recharge = (uses.recovery ?? []).find(entry => entry.period === "recharge");
+  if ( recharge ) notes.push(`uses: Recharge ${recharge.formula}${recharge.formula === "6" ? "" : "–6"} is not rolled; refill the pool by hand`);
   const id = slugify(document.name);
   return {id, notes, rule: {schemaVersion: 1, id: `${id}-uses`, type: "GrantResource",
     data: {resourceId: id, label: document.name, maximum: maximum ?? 1, recovery}}};
 }
 
-function convertActivity({document, activity, system, spell, level, scales, notes, pool, saveDC}) {
+/** An Action's identity and costs: its activation in the action economy and the uses it spends. */
+function baseDefinition({document, activity, system, spell, notes, pool}) {
   const activation = pick(activity, system, "activation");
   const definition = {schemaVersion: 1, id: `action:srd-${slugify(document.name)}${activity.name ? `-${slugify(activity.name)}` : ""}`,
     ...(spell ? {tags: ["spell"]} : {})};
@@ -187,13 +220,32 @@ function convertActivity({document, activity, system, spell, level, scales, note
     if ( activation.type ) notes.push(`activation: ${activation.value ?? ""} ${activation.type} is not an action-economy cost`.replace(/\s+/g, " "));
   }
   for ( const target of activity.consumption?.targets ?? [] ) {
-    if ( (target.type === "itemUses") && pool ) definition.costs.allOf.push({capability: pool.id, amount: number(target.value) || 1});
-    else notes.push(`consumption: ${target.type} not converted`);
+    const amount = target.value === "" || target.value == null ? 1 : number(target.value);
+    // A negative consumption gives a use back; that is not a cost.
+    if ( (target.type === "itemUses") && pool && (amount > 0) ) definition.costs.allOf.push({capability: pool.id, amount});
+    else notes.push(`consumption: ${target.type} ${target.value ?? ""} not converted`.trim());
   }
+  return definition;
+}
+
+/** A spell of `level` spends a slot of that level or higher; `damage` components with scaling dice grow per level above. */
+function slotConfiguration(level, damage) {
+  const levels = Array.from({length: 10 - level}, (_, offset) => level + offset);
+  const scaling = damage.filter(component => component.scaleDice).map(component => ({type: "scaleDamage", levelChoiceId: "spell-slot",
+    baseLevel: level, componentIds: [component.id], dice: component.scaleDice}));
+  return [{id: "spell-slot", type: "resource", label: "Spell slot", required: true,
+    cost: {anyOf: levels.map(each => [{capability: `spell-slot.${each}`, amount: 1}])},
+    levelByResourceId: Object.fromEntries(levels.map(each => [`spell-slot.${each}`, each])), effects: scaling}];
+}
+
+function convertActivity({document, activity, system, spell, level, scales, notes, pool, saveDC}) {
+  const definition = baseDefinition({document, activity, system, spell, notes, pool});
 
   const attackData = activity.type === "attack" ? activity.attack ?? {} : null;
   const attack = attackData ? {type: attackData.type?.value || (document.system?.range?.long ? "ranged" : "melee"),
-    statistic: (spell || attackData.type?.classification === "spell") ? "spell" : "weapon", defenseKey: "ac"} : null;
+    statistic: (spell || attackData.type?.classification === "spell") ? "spell" : "weapon", defenseKey: "ac",
+    // Spells and stat-block attacks are proficient; a character not proficient with a weapon unticks it.
+    proficient: true} : null;
   if ( attack ) {
     if ( (system.properties ?? []).includes("fin") ) attack.properties = ["finesse"];
     if ( attackData.ability && ABILITY_MAP[attackData.ability] ) attack.ability = ABILITY_MAP[attackData.ability];
@@ -211,8 +263,9 @@ function convertActivity({document, activity, system, spell, level, scales, note
     if ( abilities.length > 1 ) notes.push(`save: a choice of ${abilities.join("/")} uses ${abilities[0]}`);
     const dc = activity.save?.dc ?? {};
     const flat = number(dc.formula);
+    // An ability calculation wins: dnd5e keeps a stale `formula` beside it.
     const value = dc.calculation === "spellcasting" ? {valueExpression: SPELL_DC}
-      : (flat != null ? {value: flat} : (saveDC?.(dc.calculation) ?? null));
+      : ((ABILITY_MAP[dc.calculation] ? saveDC?.(dc.calculation) : null) ?? (flat != null ? {value: flat} : null));
     if ( !ability || !value ) {
       notes.push(`save: ${abilities.join("/") || "?"} DC (${dc.calculation || dc.formula || "?"}) not converted`);
       return null;
@@ -224,11 +277,11 @@ function convertActivity({document, activity, system, spell, level, scales, note
   const damage = [];
   const label = document.name;
   const base = system.damage?.base;
-  if ( activity.damage?.includeBase && (document.type === "weapon") && base?.number ) {
-    damage.push({id: "base", expression: dice(number(base.number), number(base.denomination)), damageType: base.types?.[0] ?? "untyped",
-      provenance: "weapon-base"});
+  const baseExpression = base ? partExpression(base, {spell, ability: null, scales, notes, label: "base damage"}) : null;
+  if ( activity.damage?.includeBase && (document.type === "weapon") && baseExpression ) {
+    damage.push({id: "base", expression: baseExpression, damageType: base.types?.[0] ?? "untyped", provenance: "weapon-base"});
     if ( (system.properties ?? []).includes("ver") ) notes.push("damage: versatile two-handed damage not converted");
-  } else if ( activity.damage?.includeBase && base?.number ) {
+  } else if ( activity.damage?.includeBase && baseExpression ) {
     notes.push("damage: the item's base damage not converted");
   }
   for ( const [index, part] of (activity.damage?.parts ?? []).entries() ) {
@@ -272,14 +325,7 @@ function convertActivity({document, activity, system, spell, level, scales, note
   if ( effects.length ) definition.effects = effects;
 
   // A spell of level 1 or higher spends a slot of its level or higher; damage dice that scale grow per level above.
-  if ( spell && level && SLOT_MODES.has(system.preparation?.mode ?? "prepared") ) {
-    const levels = Array.from({length: 10 - level}, (_, offset) => level + offset);
-    const scaling = damage.filter(component => component.scaleDice).map(component => ({type: "scaleDamage", levelChoiceId: "spell-slot",
-      baseLevel: level, componentIds: [component.id], dice: component.scaleDice}));
-    definition.configuration = [{id: "spell-slot", type: "resource", label: "Spell slot", required: true,
-      cost: {anyOf: levels.map(each => [{capability: `spell-slot.${each}`, amount: 1}])},
-      levelByResourceId: Object.fromEntries(levels.map(each => [`spell-slot.${each}`, each])), effects: scaling}];
-  }
+  if ( spell && level && SLOT_MODES.has(system.preparation?.mode ?? "prepared") ) definition.configuration = slotConfiguration(level, damage);
   if ( concentration && !effects.length ) notes.push("concentration: nothing it sustains was converted");
   // An attack or save with nothing converted on it would roll for nothing: such an Action is left out and noted.
   return (damage.length || healing.length || effects.length) ? definition : null;
@@ -326,8 +372,8 @@ export const proficiencyForChallenge = challenge => Math.max(2, Math.floor((Math
  * - Resistances and immunities, and Legendary Actions (a pool that refills each turn), go on a Traits feature.
  * @returns {{ok: true, actor: object, notes: string[]} | {ok: false, reason: string}}
  */
-export function convertActor(document, {scales={}, pack=null}={}) {
-  if ( !isSrd2024(document) ) return {ok: false, reason: "not SRD 5.2 (CC-BY-4.0)"};
+export function convertActor(document, {scales={}, pack=null, names={}, licensed=isSrd2024, book="SRD 5.2"}={}) {
+  if ( !licensed(document) ) return {ok: false, reason: "not SRD 5.2 (CC-BY-4.0)"};
   if ( document.type !== "npc" ) return {ok: false, reason: `a ${document.type} is not converted`};
   const system = document.system ?? {};
   const notes = [];
@@ -337,11 +383,14 @@ export function convertActor(document, {scales={}, pack=null}={}) {
   const proficiency = proficiencyForChallenge(challenge);
   const saveDC = calculation => (ABILITY_MAP[calculation] ? {value: 8 + proficiency + modifier(calculation)} : null);
   const actorId = document._id;
+  // What a stat block's text reads from its creature: its name, numbers and its own items' names.
+  const creature = {name: document.name, modifier, proficiency, saveDC,
+    itemNames: Object.fromEntries((document.items ?? []).map(item => [item._id, item.name]))};
 
   const items = [];
   for ( const item of document.items ?? [] ) {
     if ( item.type === "equipment" ) continue;
-    const result = convertItem(item, {scales, pack, saveDC});
+    const result = convertItem(item, {scales, pack, saveDC, names, creature, licensed, book});
     if ( !result.ok ) {
       notes.push(`${item.name}: ${result.reason}`);
       continue;
@@ -350,7 +399,7 @@ export function convertActor(document, {scales={}, pack=null}={}) {
     for ( const converted of result.items ) {
       // Legendary Actions are paid from the creature's own pool, not a pool per item.
       converted.system.ruleElements = converted.system.ruleElements.filter(rule => rule.type !== "GrantResource" || !converted.system
-        .definition.costs.allOf.some(cost => cost.capability === "legendary-action"));
+        .definition?.costs.allOf.some(cost => cost.capability === "legendary-action"));
       items.push({...converted, _key: `!actors.items!${actorId}.${converted._id}`});
     }
   }
@@ -360,8 +409,6 @@ export function convertActor(document, {scales={}, pack=null}={}) {
     name: "Traits", type: "feature", img: "icons/svg/aura.svg", system: {active: true, description: "", ruleElements: traits},
     flags: {wildpath: {conversion: {notes: []}}}});
 
-  // shortcut: WildPath adds no proficiency bonus to attack rolls or saves; the stat block's numbers include it.
-  notes.push(`attacks and proficient saves: the stat block adds +${proficiency} proficiency, which WildPath does not`);
   const walk = number(system.attributes?.movement?.walk) ?? 30;
   const health = number(system.attributes?.hp?.max) ?? number(system.attributes?.hp?.value) ?? 1;
   const size = SIZES[system.traits?.size] ?? 1;
@@ -369,7 +416,8 @@ export function convertActor(document, {scales={}, pack=null}={}) {
     _id: actorId, _key: `!actors!${actorId}`, name: document.name, type: "npc",
     img: String(document.img ?? "").startsWith("icons/") ? document.img : "icons/svg/mystery-man.svg",
     system: {
-      abilities: Object.fromEntries(Object.entries(ABILITY_MAP).map(([key, ability]) => [ability, {value: score(key)}])),
+      abilities: Object.fromEntries(Object.entries(ABILITY_MAP).map(([key, ability]) => [ability, {value: score(key),
+        ...((number(system.abilities?.[key]?.proficient) ?? 0) >= 1 ? {saveProficient: true} : {})}])),
       defenses: {ac: {value: armorClass(document, modifier("dex"), notes)}},
       resources: {health: {base: health, value: health}, movement: {base: walk, value: walk}},
       details: {threat: Math.floor(challenge)},
@@ -377,8 +425,8 @@ export function convertActor(document, {scales={}, pack=null}={}) {
     },
     prototypeToken: {name: document.name, width: size, height: size, disposition: -1, actorLink: false},
     items,
-    flags: {wildpath: {source: {system: "dnd5e", pack, id: document._id, type: document.type, book: "SRD 5.2", license: "CC-BY-4.0",
-      rules: "2024", challenge}, conversion: {notes}}}
+    flags: {wildpath: {source: {system: "dnd5e", pack, id: document._id, type: document.type, book,
+      license: document.system?.source?.license || null, rules: document.system?.source?.rules || "2024", challenge}, conversion: {notes}}}
   }};
 }
 
@@ -419,4 +467,161 @@ function traitRules(system, notes) {
   if ( legendary ) rules.push({schemaVersion: 1, id: "legendary-actions", type: "GrantResource",
     data: {resourceId: "legendary-action", label: "Legendary Actions", maximum: legendary, recovery: "turn"}});
   return rules;
+}
+
+const DND_ABILITY_NAMES = Object.freeze({str: "Strength", dex: "Dexterity", con: "Constitution", int: "Intelligence", wis: "Wisdom",
+  cha: "Charisma"});
+const DND_SKILLS = Object.freeze({acr: "Acrobatics", ani: "Animal Handling", arc: "Arcana", ath: "Athletics", dec: "Deception",
+  his: "History", ins: "Insight", itm: "Intimidation", inv: "Investigation", med: "Medicine", nat: "Nature", prc: "Perception",
+  prf: "Performance", per: "Persuasion", rel: "Religion", slt: "Sleight of Hand", ste: "Stealth", sur: "Survival"});
+const capitalize = text => String(text ?? "").charAt(0).toUpperCase() + String(text ?? "").slice(1);
+const titleCase = text => String(text ?? "").split(/\s+/).map(capitalize).join(" ");
+const average = (count, faces) => Math.floor((count * (faces + 1)) / 2);
+const signed = value => (value < 0 ? `- ${-value}` : `+ ${value}`);
+
+/** The words for an area: "20-foot-radius Sphere". */
+function templateText(template={}) {
+  const size = number(template.size);
+  if ( !size ) return "";
+  switch ( template.type ) {
+    case "sphere": return `${size}-foot-radius Sphere`;
+    case "cylinder": return `${size}-foot-radius, ${number(template.height) ?? size}-foot-high Cylinder`;
+    case "cone": return `${size}-foot Cone`;
+    case "cube": return `${size}-foot Cube`;
+    case "line": return `${size}-foot-long, ${number(template.width) ?? 5}-foot-wide Line`;
+    case "radius": return `${size}-foot Emanation`;
+    default: return `${size}-foot ${capitalize(template.type)}`;
+  }
+}
+
+/**
+ * The source's own description with dnd5e's enrichers resolved: links become their labels, and inline rolls,
+ * stat-block attacks, damage, saves and checks become the words dnd5e shows. A creature's numbers come from it.
+ */
+export function describe(document, {names={}, creature=null}={}) {
+  const html = String(document.system?.description?.value ?? "");
+  if ( !html.trim() ) return "";
+  const system = document.system ?? {};
+  const activities = Object.values(system.activities ?? {}).sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0));
+  const activityFor = id => (id ? activities.find(activity => activity._id === id) : null);
+  const firstOf = type => activities.find(activity => activity.type === type) ?? null;
+  const caseAs = (text, flags) => (flags.has("lowercase") ? text.toLowerCase() : flags.has("uppercase") ? text.toUpperCase()
+    : flags.has("capitalize") ? capitalize(text) : text);
+
+  /** The attack's ability modifier for a creature: its own, a finesse weapon's better one, else by attack type. */
+  const attackModifier = activity => {
+    if ( !creature ) return null;
+    const ability = activity?.attack?.ability;
+    if ( ability && ability !== "spellcasting" ) return creature.modifier(ability);
+    if ( (system.properties ?? []).includes("fin") ) return Math.max(creature.modifier("str"), creature.modifier("dex"));
+    return activity?.attack?.type?.value === "ranged" ? creature.modifier("dex") : creature.modifier("str");
+  };
+  const attackText = activity => {
+    const type = activity?.attack?.type?.value === "ranged" ? "Ranged" : "Melee";
+    const modifier = attackModifier(activity);
+    const range = pick(activity, system, "range");
+    const reach = number(system.range?.reach) ?? number(range.value) ?? 5;
+    // The source text supplies the sentence's own period.
+    const where = type === "Melee" ? `reach ${reach} ft`
+      : `range ${number(system.range?.value) ?? number(range.value) ?? 0}${number(system.range?.long) ? `/${system.range.long}` : ""} ft`;
+    return `${type} Attack Roll: ${modifier == null ? "" : `${modifier + creature.proficiency >= 0 ? "+" : ""}${modifier + creature.proficiency}, `}${where}`;
+  };
+  const damageText = (activity, flags) => {
+    const parts = [];
+    const base = system.damage?.base;
+    const modifier = attackModifier(activity);
+    if ( activity?.damage?.includeBase && (base?.number || base?.bonus) ) parts.push({count: number(base.number), faces: number(base.denomination),
+      bonus: (modifier ?? 0) + (number(base.bonus) ?? 0), types: base.types ?? []});
+    for ( const part of activity?.damage?.parts ?? (activity?.healing ? [activity.healing] : []) ) {
+      const bonus = part.bonus === "@mod" ? (modifier ?? 0) : (number(part.bonus) ?? 0);
+      if ( (number(part.number) && number(part.denomination)) || bonus ) parts.push({count: number(part.number), faces: number(part.denomination),
+        bonus, types: part.types ?? []});
+    }
+    const text = parts.map(({count, faces, bonus, types}) => {
+      const kind = types.length ? ` ${types.map(capitalize).join(" or ")}` : "";
+      if ( !(count && faces) ) return `${bonus}${kind}`;
+      const dice = `${count}d${faces}${bonus ? ` ${signed(bonus)}` : ""}`;
+      return flags.has("average") ? `${average(count, faces) + bonus} (${dice})${kind}` : `${dice}${kind}`;
+    }).join(" plus ");
+    if ( !text ) return "";
+    if ( !flags.has("extended") ) return text;
+    return `${activity?.type === "attack" ? "Hit: " : ""}${text}${activity?.healing ? " Hit Points" : " damage"}`;
+  };
+  const saveText = (activity, params, args) => {
+    const ability = params.ability ?? args.find(arg => DND_ABILITY_NAMES[arg]) ?? [].concat(activity?.save?.ability ?? [])[0];
+    const dc = number(params.dc) ?? saveValue(activity);
+    return `${dc ? `DC ${dc} ` : ""}${DND_ABILITY_NAMES[ability] ?? titleCase(ability ?? "")} saving throw`;
+  };
+  const checkText = (params, args) => {
+    const skill = params.skill ?? args.find(arg => DND_SKILLS[arg]);
+    const ability = params.ability ?? args.find(arg => DND_ABILITY_NAMES[arg]);
+    const named = [DND_ABILITY_NAMES[ability], DND_SKILLS[skill] ? `(${DND_SKILLS[skill]})` : (params.tool ? `(${titleCase(params.tool)})` : "")]
+      .filter(Boolean).join(" ");
+    return `${params.dc ? `DC ${params.dc} ` : ""}${named || "ability"} check`;
+  };
+
+  /** An activity's save DC: a creature's from its ability, else a flat one. */
+  const saveValue = activity => {
+    const dc = activity?.save?.dc;
+    if ( !dc ) return null;
+    return (creature && ABILITY_MAP[dc.calculation] ? creature.saveDC(dc.calculation)?.value : null) ?? number(dc.formula);
+  };
+  const lookupPath = (data, path) => String(path ?? "").replace(/^@(item.)?/, "").split(".").reduce((value, key) => value?.[key], data ?? null);
+
+  const inline = (inner, label) => {
+    const [command, ...rest] = inner.split(/\s+/);
+    const params = Object.fromEntries(rest.filter(arg => arg.includes("=")).map(arg => arg.split("=")));
+    const args = rest.filter(arg => !arg.includes("="));
+    const flags = new Set(args);
+    const activity = activityFor(params.activity);
+    switch ( command ) {
+      case "lookup": {
+        const path = args[0];
+        if ( path === "@name" ) return creature ? caseAs(creature.name, flags) : (label ?? document.name);
+        const source = activity ?? activities[0];
+        if ( path === "@activation.condition" ) return source?.activation?.condition || label || "";
+        if ( path === "@roll.formula" ) return source?.roll?.formula || label || "";
+        if ( String(path).startsWith("@scale.") ) return label ?? "(by class level)";
+        if ( path === "@save.dc.value" ) return String(saveValue(source) ?? label ?? "");
+        const found = lookupPath(source, path) ?? lookupPath(system, path);
+        if ( (found != null) && (typeof found !== "object") ) return caseAs(String(found), flags);
+        if ( path === "@labels.description.template" ) return caseAs(templateText(system.target?.template), flags) || label || "";
+        if ( path === "@labels.description.affects" ) {
+          const type = system.target?.affects?.type || "creature";
+          return caseAs(`each ${type === "creatureOrObject" ? "creature or object" : type}`, flags);
+        }
+        return label ?? "";
+      }
+      case "/attack": return label ?? attackText(activity ?? firstOf("attack"));
+      case "/damage": return label ?? damageText(activity ?? firstOf("attack") ?? activities.find(entry => entry.damage?.parts?.length), flags);
+      case "/heal": case "/healing": return label ?? damageText(activity ?? firstOf("heal"), flags);
+      case "/save": return label ?? saveText(activity ?? firstOf("save"), params, args);
+      case "/check": case "/skill": case "/tool": return label ?? checkText(params, args);
+      case "/item": return label ?? creature?.itemNames?.[String(args[0] ?? "").replace(/^\./, "")] ?? names[String(args[0] ?? "").split(".").pop()] ?? "";
+      case "/award": return label ?? args.join(" ");
+      case "/r": case "/roll": case "/gmr": case "/br": case "/sr": case "/pr": return label ?? args.join(" ").replace(/#.*$/, "").trim();
+      default: return label ?? inner.replace(/@prof/g, creature ? String(creature.proficiency) : "PB");
+    }
+  };
+
+  const links = text => text
+    .replace(/@(?:UUID|Compendium)\[([^\]]+)\](?:\{([^}]*)\})?/g, (_, uuid, label) => label ?? names[uuid.split(".").pop()] ?? "")
+    .replace(/@Embed\[[^\]]*\](?:\{[^}]*\})?/g, "")
+    .replace(/&(?:amp;)?reference\[([^\]]+)\](?:\{([^}]*)\})?/gi, (_, inner, label) => label ?? titleCase(inner.split(/\s+/)[0].replace(/^\w+=/, "")));
+  // Links first, then inline rolls, then links again: a looked-up value may itself hold a link.
+  const rolls = text => text.replace(/\[\[(.*?)\]\](?:\{([^}]*)\})?/g, (_, inner, label) => inline(inner.trim(), label));
+  return links(rolls(rolls(links(html))));
+}
+
+/** Document ids to names, from every extracted pack (Items, Actors, journal entries and their pages). */
+export function nameIndex(documents=[]) {
+  const names = {};
+  const visit = value => {
+    if ( Array.isArray(value) ) return value.forEach(visit);
+    if ( !value || (typeof value !== "object") ) return;
+    if ( (typeof value._id === "string") && (typeof value.name === "string") ) names[value._id] = value.name;
+    for ( const key of ["items", "pages", "results", "effects"] ) if ( value[key] ) visit(value[key]);
+  };
+  visit(documents);
+  return names;
 }

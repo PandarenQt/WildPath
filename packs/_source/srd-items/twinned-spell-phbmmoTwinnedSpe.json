@@ -1,0 +1,30 @@
+{
+  "_id": "phbmmoTwinnedSpe",
+  "_key": "!items!phbmmoTwinnedSpe",
+  "name": "Twinned Spell",
+  "type": "feature",
+  "img": "icons/magic/lightning/bolts-forked-large-orange.webp",
+  "system": {
+    "active": true,
+    "description": "<blockquote><p>Cost: 1 Sorcery Point</p></blockquote><p>When you cast a spell, such as <em>Charm Person</em>, that can be cast with a higher-level spell slot to target an additional creature, you can spend 1 Sorcery Point to increase the spell's effective level by 1.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbmmoTwinnedSpe",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Twinned Spell\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

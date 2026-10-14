@@ -1,0 +1,269 @@
+{
+  "_id": "dmgAvatarofDeath",
+  "_key": "!actors!dmgAvatarofDeath",
+  "name": "Avatar of Death",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 16
+      },
+      "agility": {
+        "value": 16
+      },
+      "fortitude": {
+        "value": 16
+      },
+      "intellect": {
+        "value": 16
+      },
+      "wits": {
+        "value": 16
+      },
+      "presence": {
+        "value": 16
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 20
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 0,
+        "value": 0
+      },
+      "movement": {
+        "base": 60,
+        "value": 60
+      }
+    },
+    "details": {
+      "threat": 0
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Avatar of Death",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "dmgaoiIncorporea",
+      "_key": "!actors.items!dmgAvatarofDeath.dmgaoiIncorporea",
+      "name": "Incorporeal Movement",
+      "type": "feature",
+      "img": "icons/magic/movement/trail-streak-impact-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The avatar can move through other creatures and objects as if they were DifficultTerrain. It takes 5 (1d10) Force damage if it ends its turn inside <span class=\"no-break\">an object.</span></p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "dmgaoiIncorporea",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "\"Self Damage\" is passive or triggered: not automated"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "dmgaoiMultiattac",
+      "_key": "!actors.items!dmgAvatarofDeath.dmgaoiMultiattac",
+      "name": "Multiattack",
+      "type": "action",
+      "img": "icons/skills/melee/strike-weapons-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The avatar makes a number of Reaping Scythe attacks equal to half the summoner's Proficiency Bonus (ro<span class=\"no-break\">unded up).</span></p><p>Number of Attacks</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-multiattack-action",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Multiattack"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "dmgaoiMultiattac",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "dmgaoiReapingScy",
+      "_key": "!actors.items!dmgAvatarofDeath.dmgaoiReapingScy",
+      "name": "Reaping Scythe",
+      "type": "action",
+      "img": "icons/skills/melee/strike-scythe-fire-green.webp",
+      "system": {
+        "active": true,
+        "description": "<p><em>Melee Attack Roll:</em> Automatic hit, reach 5 ft. <em>Hit:</em> 7 ( <span class=\"no-break\">1d8 + 3</span> ) Slashing damage plus 4 (1d8) <span class=\"no-break\">Necrotic</span> <span class=\"no-break\">damage.</span></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-reaping-scythe-attack",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 8
+              },
+              "damageType": "slashing",
+              "provenance": "additional"
+            },
+            {
+              "id": "damage-2",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 8
+              },
+              "damageType": "necrotic",
+              "provenance": "additional"
+            }
+          ],
+          "label": "Reaping Scythe"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "dmgaoiReapingScy",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "damage 1: bonus \"@abilities.str.mod\" not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "dmgAvatarofDtrts",
+      "_key": "!actors.items!dmgAvatarofDeath.dmgAvatarofDtrts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "immunities",
+            "type": "GrantImmunity",
+            "data": {
+              "damageTypes": [
+                "necrotic",
+                "poison"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "speed-fly",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "fly",
+              "distance": 60
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "dmgAvatarofDeath",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 0
+      },
+      "conversion": {
+        "notes": [
+          "Incorporeal Movement: \"Self Damage\" is passive or triggered: not automated",
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
+          "Reaping Scythe: damage 1: bonus \"@abilities.str.mod\" not converted",
+          "condition immunities (charmed, exhaustion, frightened, paralyzed, petrified, poisoned, unconscious) not converted"
+        ]
+      }
+    }
+  }
+}

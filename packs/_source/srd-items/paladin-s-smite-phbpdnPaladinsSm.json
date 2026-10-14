@@ -1,0 +1,28 @@
+{
+  "_id": "phbpdnPaladinsSm",
+  "_key": "!items!phbpdnPaladinsSm",
+  "name": "Paladin's Smite",
+  "type": "feature",
+  "img": "icons/skills/melee/strike-flail-destructive-yellow.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You always have the Divine Smite spell prepared. In addition, you can cast it without expending a spell slot, but you must finish a Long Rest before you can cast it in this way again.</p><section id=\"secret-47mDL7wHB8aQP7SD\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>When you reach this level the Divine Smite spell is added to your spells as Always Prepared and with a free use.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbpdnPaladinsSm",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

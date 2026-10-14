@@ -1,0 +1,437 @@
+{
+  "_id": "mmInvisibleStalk",
+  "_key": "!actors!mmInvisibleStalk",
+  "name": "Invisible Stalker",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 16
+      },
+      "agility": {
+        "value": 19
+      },
+      "fortitude": {
+        "value": 14
+      },
+      "intellect": {
+        "value": 10
+      },
+      "wits": {
+        "value": 15
+      },
+      "presence": {
+        "value": 11
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 14
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 97,
+        "value": 97
+      },
+      "movement": {
+        "base": 50,
+        "value": 50
+      }
+    },
+    "details": {
+      "threat": 6
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Invisible Stalker",
+    "width": 2,
+    "height": 2,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmAirForm0000000",
+      "_key": "!actors.items!mmInvisibleStalk.mmAirForm0000000",
+      "name": "Air Form",
+      "type": "feature",
+      "img": "icons/magic/air/weather-wind-gust.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The invisible stalker can enter an enemy's space and stop there. It can move through a space as narrow as 1 inch without expending extra movement to do so.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmAirForm0000000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmInvisibility00",
+      "_key": "!actors.items!mmInvisibleStalk.mmInvisibility00",
+      "name": "Invisibility",
+      "type": "feature",
+      "img": "icons/creatures/magical/spirit-undead-ghost-purple.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The invisible stalker has the Invisible condition.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmInvisibility00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmMultiattack000",
+      "_key": "!actors.items!mmInvisibleStalk.mmMultiattack000",
+      "name": "Multiattack",
+      "type": "action",
+      "img": "icons/skills/melee/strike-weapons-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The invisible stalker makes three Wind Swipe attacks. It can replace one attack with a use of Vortex.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-multiattack-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Multiattack"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMultiattack000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmWindSwipe00000",
+      "_key": "!actors.items!mmInvisibleStalk.mmWindSwipe00000",
+      "name": "Wind Swipe",
+      "type": "action",
+      "img": "icons/magic/air/air-wave-gust-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +7, reach 5 ft. Hit: 11 (2d6 + 4) Force damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-wind-swipe",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "agility"
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 6
+              },
+              "damageType": "force",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Wind Swipe"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmWindSwipe00000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmVortex00000000",
+      "_key": "!actors.items!mmInvisibleStalk.mmVortex00000000",
+      "name": "Vortex (Save)",
+      "type": "action",
+      "img": "icons/magic/air/wind-vortex-swirl-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\"><em>Constitution Saving Throw:</em> DC 14, one Large or smaller creature in the invisible stalker's space.</p><p><em>Failure:</em> 7 (1d8 + 3) Thunder damage, and the target has the Grappled condition (escape DC ). Until the grapple ends, the target can't cast spells with a Verbal component and takes 7 (2d6) Thunder damage at the start of each of the invisible stalker's turns.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-vortex-save",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "save": {
+            "ability": "fortitude",
+            "dc": {
+              "value": 14
+            }
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "dice",
+                    "number": 1,
+                    "faces": 8
+                  },
+                  {
+                    "type": "constant",
+                    "value": 3
+                  }
+                ]
+              },
+              "damageType": "thunder",
+              "provenance": "additional",
+              "saveOutcomePolicy": {
+                "success": "none",
+                "failure": "full"
+              }
+            }
+          ],
+          "label": "Vortex (Save)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmVortex00000000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "effect: grappled is not a WildPath condition yet"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "hzf75317rhtrd000",
+      "_key": "!actors.items!mmInvisibleStalk.hzf75317rhtrd000",
+      "name": "Vortex (Damage: Grappled)",
+      "type": "action",
+      "img": "icons/magic/air/wind-vortex-swirl-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\"><em>Constitution Saving Throw:</em> DC 14, one Large or smaller creature in the invisible stalker's space.</p><p><em>Failure:</em> 7 (1d8 + 3) Thunder damage, and the target has the Grappled condition (escape DC ). Until the grapple ends, the target can't cast spells with a Verbal component and takes 7 (2d6) Thunder damage at the start of each of the invisible stalker's turns.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-vortex-damage-grappled",
+          "costs": {
+            "allOf": []
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 6
+              },
+              "damageType": "thunder",
+              "provenance": "additional"
+            }
+          ],
+          "label": "Vortex (Damage: Grappled)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmVortex00000000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "activation: turnStart is not an action-economy cost"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmInvisibleStrts",
+      "_key": "!actors.items!mmInvisibleStalk.mmInvisibleStrts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "resistances",
+            "type": "GrantResistance",
+            "data": {
+              "damageTypes": [
+                "bludgeoning",
+                "piercing",
+                "slashing"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "immunities",
+            "type": "GrantImmunity",
+            "data": {
+              "damageTypes": [
+                "poison"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "speed-fly",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "fly",
+              "distance": 50
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmInvisibleStalk",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 6
+      },
+      "conversion": {
+        "notes": [
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
+          "Vortex: effect: grappled is not a WildPath condition yet",
+          "Vortex: \"Escape Check\" is passive or triggered: not automated",
+          "Vortex: activation: turnStart is not an action-economy cost",
+          "condition immunities (exhaustion, grappled, paralyzed, petrified, poisoned, prone, restrained, unconscious) not converted"
+        ]
+      }
+    }
+  }
+}

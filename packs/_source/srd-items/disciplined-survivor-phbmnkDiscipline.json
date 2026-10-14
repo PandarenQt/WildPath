@@ -1,0 +1,30 @@
+{
+  "_id": "phbmnkDiscipline",
+  "_key": "!items!phbmnkDiscipline",
+  "name": "Disciplined Survivor",
+  "type": "feature",
+  "img": "icons/skills/wounds/injury-pain-body-orange.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Your physical and mental discipline grant you proficiency in all saving throws.</p><p>Additionally, whenever you make a saving throw and fail, you can expend 1 Focus Point to reroll it, and you must use the new roll.</p><section class=\"secret\" id=\"secret-VLGTfBDBcfExjSXG\"><p><strong>Foundry Note</strong></p><p>You will automatically be granted the additional Saving Throw proficiencies as you level up.</p><p>Use this feature to expend 1 Focus Point.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbmnkDiscipline",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Consume Focus Point\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

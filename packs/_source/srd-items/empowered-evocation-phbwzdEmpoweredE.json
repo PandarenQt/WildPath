@@ -1,0 +1,30 @@
+{
+  "_id": "phbwzdEmpoweredE",
+  "_key": "!items!phbwzdEmpoweredE",
+  "name": "Empowered Evocation",
+  "type": "feature",
+  "img": "icons/magic/fire/explosion-mushroom-nuke-orange.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Whenever you cast a Wizard spell from the Evocation school, you can add your Intelligence modifier to one damage roll of that spell.</p><section class=\"secret\" id=\"secret-3cdT0RlurgG5XV4o\"><p><strong>Foundry Note</strong></p><p>You can add your Intelligence modifier to the spell's Situational Bonus in the damage dialog or use this feature's <strong>Damage</strong> activity which allows you to select the type in the damage dialog.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbwzdEmpoweredE",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"damage\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

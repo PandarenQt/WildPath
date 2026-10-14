@@ -1,0 +1,28 @@
+{
+  "_id": "phbrgeSlipperyMi",
+  "_key": "!items!phbrgeSlipperyMi",
+  "name": "Slippery Mind",
+  "type": "feature",
+  "img": "icons/magic/perception/third-eye-blue-red.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Your cunning mind is exceptionally difficult to control. You gain proficiency in Wisdom and Charisma saving throws.</p><section id=\"secret-57oM7wI8FDY1iw4F\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>These proficiencies are granted automatically as you level up.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbrgeSlipperyMi",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

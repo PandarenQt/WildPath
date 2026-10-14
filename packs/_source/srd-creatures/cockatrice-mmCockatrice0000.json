@@ -1,0 +1,221 @@
+{
+  "_id": "mmCockatrice0000",
+  "_key": "!actors!mmCockatrice0000",
+  "name": "Cockatrice",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 6
+      },
+      "agility": {
+        "value": 12
+      },
+      "fortitude": {
+        "value": 12
+      },
+      "intellect": {
+        "value": 2
+      },
+      "wits": {
+        "value": 13
+      },
+      "presence": {
+        "value": 5
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 11
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 22,
+        "value": 22
+      },
+      "movement": {
+        "base": 20,
+        "value": 20
+      }
+    },
+    "details": {
+      "threat": 0
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Cockatrice",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmPetrifyingBite",
+      "_key": "!actors.items!mmCockatrice0000.mmPetrifyingBite",
+      "name": "Petrifying Bite (attack)",
+      "type": "action",
+      "img": "icons/magic/defensive/armor-stone-skin.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Melee Attack Roll: +3, reach 5 ft. Hit: 3 (1d4 + 1) Piercing damage. If the target is a creature, it is subjected to the following effect.</p><p class=\"feature\"><em>Constitution Saving Throw:</em> DC 11.</p><p class=\"feature\"><em>First Failure:</em> The target has the Restrained condition and repeats the save at the end of its next turn if it is still Restrained, ending the effect on itself on a success.</p><p class=\"feature\"><em>Second Failure:</em> The target has the Petrified condition instead of the Restrained condition.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-petrifying-bite",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "agility"
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 4
+              },
+              "damageType": "piercing",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Petrifying Bite (attack)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmPetrifyingBite",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "yt5fbe1ryczxo000",
+      "_key": "!actors.items!mmCockatrice0000.yt5fbe1ryczxo000",
+      "name": "Petrifying Bite (Second Save)",
+      "type": "action",
+      "img": "icons/magic/defensive/armor-stone-skin.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Melee Attack Roll: +3, reach 5 ft. Hit: 3 (1d4 + 1) Piercing damage. If the target is a creature, it is subjected to the following effect.</p><p class=\"feature\"><em>Constitution Saving Throw:</em> DC 11.</p><p class=\"feature\"><em>First Failure:</em> The target has the Restrained condition and repeats the save at the end of its next turn if it is still Restrained, ending the effect on itself on a success.</p><p class=\"feature\"><em>Second Failure:</em> The target has the Petrified condition instead of the Restrained condition.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-petrifying-bite-second-save",
+          "costs": {
+            "allOf": []
+          },
+          "label": "Petrifying Bite (Second Save)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmPetrifyingBite",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest",
+              "activation: turnEnd is not an action-economy cost",
+              "effect: petrified is not a WildPath condition yet",
+              "activation: turnEnd is not an action-economy cost"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmCockatricetrts",
+      "_key": "!actors.items!mmCockatrice0000.mmCockatricetrts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "speed-fly",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "fly",
+              "distance": 40
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmCockatrice0000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 0.5
+      },
+      "conversion": {
+        "notes": [
+          "Petrifying Bite: \"First Save\" is passive or triggered: not automated",
+          "Petrifying Bite: not automated (save): using it spends its cost; its description says the rest",
+          "Petrifying Bite: activation: turnEnd is not an action-economy cost",
+          "Petrifying Bite: effect: petrified is not a WildPath condition yet"
+        ]
+      }
+    }
+  }
+}

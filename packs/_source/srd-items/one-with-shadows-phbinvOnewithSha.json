@@ -1,0 +1,44 @@
+{
+  "_id": "phbinvOnewithSha",
+  "_key": "!items!phbinvOnewithSha",
+  "name": "One with Shadows",
+  "type": "action",
+  "img": "icons/magic/unholy/silhouette-robe-evil-power.webp",
+  "system": {
+    "active": true,
+    "description": "<blockquote><p>Prerequisite: Level 5+ Warlock</p></blockquote><p>While you're in an area of Dim or Darkness, you can cast Invisibility on yourself without expending a spell slot.</p><section class=\"secret\" id=\"secret-SvwkLQLYzHCKzuss\"><p><strong>Foundry Note</strong></p><p>The <strong>Cast</strong> activity can be used in place of the Invisibility spell and includes an Active Effect that sets the Invisible status effect.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-one-with-shadows",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "One with Shadows"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbinvOnewithSha",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: invisible is not a WildPath condition yet"
+        ]
+      }
+    }
+  }
+}

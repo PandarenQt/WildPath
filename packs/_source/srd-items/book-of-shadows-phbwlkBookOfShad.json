@@ -1,0 +1,43 @@
+{
+  "_id": "phbwlkBookOfShad",
+  "_key": "!items!phbwlkBookOfShad",
+  "name": "Book of Shadows",
+  "type": "action",
+  "img": "icons/sundries/books/book-black-grey.webp",
+  "system": {
+    "active": true,
+    "description": "",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-book-of-shadows",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Book of Shadows"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbwlkBookOfShad",
+        "type": "weapon",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (attack): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

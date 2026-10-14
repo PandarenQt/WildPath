@@ -1,0 +1,30 @@
+{
+  "_id": "phbBoonofDimensi",
+  "_key": "!items!phbBoonofDimensi",
+  "name": "Boon of Dimensional Travel",
+  "type": "feature",
+  "img": "icons/magic/movement/portal-vortex-orange.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You gain the following benefits.</p><p><strong>Ability Score Increase.</strong> Increase one ability score of your choice by 1, to a maximum of 30.</p><p><strong>Blink Steps.</strong> Immediately after you take the Attack action or the Magic action, you can teleport up to 30 feet to an unoccupied space you can see.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "feats24",
+        "id": "phbBoonofDimensi",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Teleport\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

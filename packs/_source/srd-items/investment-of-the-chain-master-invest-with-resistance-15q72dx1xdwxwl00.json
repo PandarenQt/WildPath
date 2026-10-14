@@ -1,0 +1,56 @@
+{
+  "_id": "15q72dx1xdwxwl00",
+  "_key": "!items!15q72dx1xdwxwl00",
+  "name": "Investment of the Chain Master (Invest with Resistance)",
+  "type": "action",
+  "img": "icons/magic/control/debuff-chains-orb-movement-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<blockquote><p>Prerequisite: Level 5+ Warlock, Pact of the Chain Invocation</p></blockquote><p>When you cast Find Familiar, you infuse the summoned familiar with a measure of your eldritch power, granting the creature the following benefits.</p><p><strong>Aerial or Aquatic.</strong> The familiar gains either a Fly Speed or a Swim Speed (your choice) of 40 feet.</p><p><strong>Quick Attack.</strong> As a Bonus Action, you can command the familiar to take the Attack action.</p><p><strong>Necrotic or Radiant Damage.</strong> Whenever the familiar deals Bludgeoning, Piercing, or Slashing damage, you can make it deal Necrotic or Radiant damage instead.</p><p><strong>Your Save DC.</strong> If the familiar forces a creature to make a saving throw, it uses your spell save DC.</p><p><strong>Resistance.</strong> When the familiar takes damage, you can take a Reaction to grant it Resistance against that damage.</p><section class=\"secret\" id=\"secret-D3vSCo0uEG4Kp1X6\"><p><strong>Foundry Note</strong></p><p>The <strong>Find Familiar with Flight</strong> and <strong>with Swimming</strong> activities both allow you to summon a familiar with the relevant movement bonus. Both activities consume a Pact Magic spell slot.</p><p>The <strong>Invest with Resistance</strong> activity includes an Active Effect for resisting each type of damage which can be applied to get the relevant resistance. Be sure you disable/delete the previous Active Effect in the \"Effects\" tab of your sheet when you change Resistances.</p><p>The familiar automatically uses your Save DC.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-investment-of-the-chain-master-invest-with-resistance",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "reaction",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Investment of the Chain Master (Invest with Resistance)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbinvInvestment",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Resist Acid\" (its own changes) not converted",
+          "effect: \"Resist Bludgeoning\" (its own changes) not converted",
+          "effect: \"Resist Cold\" (its own changes) not converted",
+          "effect: \"Resist Fire\" (its own changes) not converted",
+          "effect: \"Resist Force\" (its own changes) not converted",
+          "effect: \"Resist Lightning\" (its own changes) not converted",
+          "effect: \"Resist Necrotic\" (its own changes) not converted",
+          "effect: \"Resist Piercing\" (its own changes) not converted",
+          "effect: \"Resist Poison\" (its own changes) not converted",
+          "effect: \"Resist Psychic\" (its own changes) not converted",
+          "effect: \"Resist Radiant\" (its own changes) not converted",
+          "effect: \"Resist Slashing\" (its own changes) not converted",
+          "effect: \"Resist Thunder\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

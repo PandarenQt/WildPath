@@ -1,0 +1,93 @@
+{
+  "_id": "phbsplHallow0000",
+  "_key": "!items!phbsplHallow0000",
+  "name": "Hallow",
+  "type": "action",
+  "img": "icons/magic/symbols/star-inverted-yellow.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You touch a point and infuse an area around it with holy or unholy power. The area can have a radius up to 60 feet, and the spell fails if the radius includes an area already under the effect of <em>Hallow</em>. The affected area has the following effects.</p><p><strong>Hallowed Ward.</strong> Choose any of these creature types: Aberration, Celestial, Elemental, Fey, Fiend, or Undead. Creatures of the chosen types can't willingly enter the area, and any creature that is possessed by or that has the Charmed or Frightened condition from such creatures isn't possessed, Charmed, or Frightened by them while in the area.</p><p><strong>Extra Effect.</strong> You bind an extra effect to the area from the list below:</p><p><strong>Courage.</strong> Creatures of any types you choose can't gain the Frightened condition while in the area.</p><p><strong>Darkness.</strong> Darkness fills the area. Normal light, as well as magical light created by spells of a level lower than this spell, can't illuminate the area.</p><p><strong>Daylight.</strong> Bright light fills the area. Magical Darkness created by spells of a level lower than this spell can't extinguish the light.</p><p><strong>Peaceful Rest</strong>. Dead bodies interred in the area can't be turned into Undead.</p><p><strong>Extradimensional Interference.</strong> Creatures of any types you choose can't enter or exit the area using teleportation or interplanar travel.</p><p><strong>Fear.</strong> Creatures of any types you choose have the Frightened condition while in the area.</p><p><strong>Resistance.</strong> Creatures of any types you choose have Resistance to one damage type of your choice while in the area.</p><p><strong>Silence.</strong> No sound can emanate from within the area, and no sound can reach into it.</p><p><strong>Tongues.</strong> Creatures of any types you choose can communicate with any other creature in the area even if they don't share a common language.</p><p><strong>Vulnerability.</strong> Creatures of any types you choose have Vulnerability to one damage type of your choice while in the area.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-hallow",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": []
+      },
+      "configuration": [
+        {
+          "id": "spell-slot",
+          "type": "resource",
+          "label": "Spell slot",
+          "required": true,
+          "cost": {
+            "anyOf": [
+              [
+                {
+                  "capability": "spell-slot.5",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.6",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.7",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.8",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.9",
+                  "amount": 1
+                }
+              ]
+            ]
+          },
+          "levelByResourceId": {
+            "spell-slot.5": 5,
+            "spell-slot.6": 6,
+            "spell-slot.7": 7,
+            "spell-slot.8": 8,
+            "spell-slot.9": 9
+          },
+          "effects": []
+        }
+      ],
+      "label": "Hallow"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbsplHallow0000",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "activation: 24 hour is not an action-economy cost",
+          "activation: 24 hour is not an action-economy cost"
+        ]
+      }
+    }
+  }
+}

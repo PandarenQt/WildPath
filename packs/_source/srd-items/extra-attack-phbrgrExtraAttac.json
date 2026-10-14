@@ -1,0 +1,28 @@
+{
+  "_id": "phbrgrExtraAttac",
+  "_key": "!items!phbrgrExtraAttac",
+  "name": "Extra Attack",
+  "type": "feature",
+  "img": "icons/skills/melee/spear-tips-triple-orange.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You can attack twice instead of once whenever you take the Attack action on your turn.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbrgrExtraAttac",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

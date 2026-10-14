@@ -1,0 +1,90 @@
+{
+  "_id": "phbsplMassHeal00",
+  "_key": "!items!phbsplMassHeal00",
+  "name": "Mass Heal",
+  "type": "action",
+  "img": "icons/magic/life/heart-shadow-red.webp",
+  "system": {
+    "active": true,
+    "description": "<p>A flood of healing energy flows from you into creatures around you. You restore up to 700 Hit Points, divided as you choose among any number of creatures that you can see within range. Creatures healed by this spell also have the Blinded, Deafened, and Poisoned conditions removed from them.</p><section id=\"secret-B4SsHM2Uk0rl4qtz\" class=\"secret\"><p>Foundry Note</p><p>The <strong>Heal</strong> activity is configured to restore 700 Hit Points to the selected creature. This spell's healing pool should be divided among the target creatures manually.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-mass-heal",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "healing": [
+        {
+          "id": "healing-1",
+          "expression": {
+            "type": "constant",
+            "value": 700
+          },
+          "healingType": "healing"
+        }
+      ],
+      "configuration": [
+        {
+          "id": "spell-slot",
+          "type": "resource",
+          "label": "Spell slot",
+          "required": true,
+          "cost": {
+            "anyOf": [
+              [
+                {
+                  "capability": "spell-slot.9",
+                  "amount": 1
+                }
+              ]
+            ]
+          },
+          "levelByResourceId": {
+            "spell-slot.9": 9
+          },
+          "effects": []
+        }
+      ],
+      "label": "Mass Heal"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbsplMassHeal00",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "healing: more healing at higher levels not converted"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "_id": "phbmnkUncannyMet",
+  "_key": "!items!phbmnkUncannyMet",
+  "name": "Uncanny Metabolism",
+  "type": "feature",
+  "img": "icons/magic/life/cross-area-circle-green-white.webp",
+  "system": {
+    "active": true,
+    "description": "<p>When you roll Initiative, you can regain all expended Focus Points. When you do so, roll your Martial Arts die, and regain a number of Hit Points equal to your Monk level plus the number rolled.</p><p>Once you use this feature, you can't use it again until you finish a Long Rest.</p><section id=\"secret-KTgTyrtJJBs1nIDS\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>Using this feature will restore all expended Focus Points and offers a Healing roll for restoring your Hit Points. It includes a single free use per Long Rest.</p></section>",
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "uncanny-metabolism-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "uncanny-metabolism",
+          "label": "Uncanny Metabolism",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbmnkUncannyMet",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Uncanny Metabolism\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

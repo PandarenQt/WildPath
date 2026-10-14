@@ -1,0 +1,30 @@
+{
+  "_id": "phbmmoHeightened",
+  "_key": "!items!phbmmoHeightened",
+  "name": "Heightened Spell",
+  "type": "feature",
+  "img": "icons/magic/fire/explosion-mushroom-nuke-orange.webp",
+  "system": {
+    "active": true,
+    "description": "<blockquote><p>Cost: 2 Sorcery Points</p></blockquote><p>When you cast a spell that forces a creature to make a saving throw, you can spend 2 Sorcery Points to give one target of the spell Disadvantage on saves against the spell.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbmmoHeightened",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Heightened Spell\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

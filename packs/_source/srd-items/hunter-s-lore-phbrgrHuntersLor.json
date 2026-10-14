@@ -1,0 +1,28 @@
+{
+  "_id": "phbrgrHuntersLor",
+  "_key": "!items!phbrgrHuntersLor",
+  "name": "Hunter's Lore",
+  "type": "feature",
+  "img": "icons/creatures/eyes/humanoid-single-blind.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You can call on the forces of nature to reveal certain strengths and weaknesses of your prey. While a creature is marked by your <em>Hunter's Mark</em>, you know whether that creature has any Immunities, Resistances, or Vulnerabilities, and if the creature has any, you know what they are.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbrgrHuntersLor",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

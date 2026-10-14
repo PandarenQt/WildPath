@@ -1,0 +1,28 @@
+{
+  "_id": "phbpdnDevotionSp",
+  "_key": "!items!phbpdnDevotionSp",
+  "name": "Oath of Devotion Spells",
+  "type": "feature",
+  "img": "icons/magic/symbols/circled-gem-pink.webp",
+  "system": {
+    "active": true,
+    "description": "<p>The magic of your oath ensures you always have certain spells ready; when you reach a Paladin level specified in the Oath of Devotion Spells table, you thereafter always have the listed spells prepared.</p><table><caption>Oath of Devotion Spells</caption><thead><tr><td>Paladin Level</td><td>Spells</td></tr></thead><tbody><tr><td>3</td><td>Protection from Evil and Good, Shield of Faith</td></tr><tr><td>5</td><td>Aid, Zone of Truth</td></tr><tr><td>9</td><td>Beacon of Hope, Dispel Magic</td></tr><tr><td>13</td><td>Freedom of Movement, Guardian of Faith</td></tr><tr><td>17</td><td>Commune, Flame Strike</td></tr></tbody></table><section class=\"secret\" id=\"secret-BJb1nvUMxSS77zuz\"><p><strong>Foundry Note</strong></p><p>The spells will be automatically granted as you level up.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbpdnDevotionSp",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

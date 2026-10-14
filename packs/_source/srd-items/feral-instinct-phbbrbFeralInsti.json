@@ -1,0 +1,28 @@
+{
+  "_id": "phbbrbFeralInsti",
+  "_key": "!items!phbbrbFeralInsti",
+  "name": "Feral Instinct",
+  "type": "feature",
+  "img": "icons/creatures/mammals/wolf-howl-moon-forest-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Your instincts are so honed that you have Advantage on Initiative rolls.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbbrbFeralInsti",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

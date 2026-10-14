@@ -1,0 +1,62 @@
+{
+  "_id": "phbsptAdrenaline",
+  "_key": "!items!phbsptAdrenaline",
+  "name": "Adrenaline Rush",
+  "type": "action",
+  "img": "icons/skills/movement/arrow-upward-yellow.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You can take the Dash action as a Bonus Action. When you do so, you gain a number of Temporary Hit Points equal to your Proficiency Bonus. You can use this trait a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Short or Long Rest.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-adrenaline-rush-adrenaline-rush-dash",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          },
+          {
+            "capability": "adrenaline-rush",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Adrenaline Rush"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "adrenaline-rush-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "adrenaline-rush",
+          "label": "Adrenaline Rush",
+          "maximum": {
+            "type": "proficiency-bonus"
+          },
+          "recovery": "shortRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "origins24",
+        "id": "phbsptAdrenaline",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (heal): using it spends its cost; its description says the rest",
+          "healing: temporary Hit Points not converted"
+        ]
+      }
+    }
+  }
+}

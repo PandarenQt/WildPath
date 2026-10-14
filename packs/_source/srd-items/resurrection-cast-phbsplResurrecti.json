@@ -1,0 +1,83 @@
+{
+  "_id": "phbsplResurrecti",
+  "_key": "!items!phbsplResurrecti",
+  "name": "Resurrection (Cast)",
+  "type": "action",
+  "img": "icons/magic/death/skeleton-skull-soul-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p>With a touch, you revive a dead creature that has been dead for no more than a century, didn't die of old age, and wasn't Undead when it died.</p><p>The creature returns to life with all its Hit Points. This spell also neutralizes any poisons that affected the creature at the time of death. This spell closes all mortal wounds and restores any missing body parts.</p><p>Coming back from the dead is an ordeal. The target takes a −4 penalty to D20 Tests. Every time the target finishes a Long Rest, the penalty is reduced by 1 until it becomes 0.</p><p>Casting this spell to revive a creature that has been dead for 365 days or longer taxes you. Until you finish a Long Rest, you can't cast spells again, and you have Disadvantage on D20 Tests.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-resurrection-cast",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": []
+      },
+      "configuration": [
+        {
+          "id": "spell-slot",
+          "type": "resource",
+          "label": "Spell slot",
+          "required": true,
+          "cost": {
+            "anyOf": [
+              [
+                {
+                  "capability": "spell-slot.7",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.8",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.9",
+                  "amount": 1
+                }
+              ]
+            ]
+          },
+          "levelByResourceId": {
+            "spell-slot.7": 7,
+            "spell-slot.8": 8,
+            "spell-slot.9": 9
+          },
+          "effects": []
+        }
+      ],
+      "label": "Resurrection (Cast)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbsplResurrecti",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "activation: 1 hour is not an action-economy cost",
+          "effect: \"Resurrection Sickness (Day 1)\" (its own changes) not converted",
+          "effect: \"Resurrection Sickness (Day 2)\" (its own changes) not converted",
+          "effect: \"Resurrection Sickness (Day 3)\" (its own changes) not converted",
+          "effect: \"Resurrection Sickness (Day 4)\" (its own changes) not converted",
+          "activation: 1 hour is not an action-economy cost"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "_id": "phbrgrFavoredEne",
+  "_key": "!items!phbrgrFavoredEne",
+  "name": "Favored Enemy",
+  "type": "action",
+  "img": "icons/creatures/abilities/dragon-breath-purple.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You always have the Hunter's Mark spell prepared. You can cast it twice without expending a spell slot, and you regain all expended uses of this ability when you finish a Long Rest.</p><p>The number of times you can cast the spell without a spell slot increases when you reach certain Ranger levels, as shown in the Favored Enemy column of the Ranger Features table.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-favored-enemy",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          },
+          {
+            "capability": "favored-enemy",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Favored Enemy"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "favored-enemy-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "favored-enemy",
+          "label": "Favored Enemy",
+          "maximum": {
+            "type": "table",
+            "key": {
+              "type": "class-level",
+              "class": "ranger"
+            },
+            "rows": {
+              "1": 2,
+              "5": 3,
+              "9": 4,
+              "13": 5,
+              "17": 6
+            }
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbrgrFavoredEne",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (cast): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

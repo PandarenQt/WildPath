@@ -1,0 +1,28 @@
+{
+  "_id": "phbdrdDruidic000",
+  "_key": "!items!phbdrdDruidic000",
+  "name": "Druidic",
+  "type": "feature",
+  "img": "icons/commodities/treasure/token-runed-circle-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You know Druidic, the secret language of Druids. While learning this ancient tongue, you also unlocked the magic of communicating with animals; you always have the Speak with Animals spell prepared.</p><p>You can use Druidic to leave hidden messages. You and others who know Druidic automatically spot such a message. Others spot the message's presence with a successful (Investigation) check check but can't decipher it without magic.</p><section class=\"secret\" id=\"secret-5uD3Qi61JX7q2Fk8\"><p><strong>Foundry Note</strong></p><p>Druidic and Speak with Animals are automatically added during advancement.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbdrdDruidic000",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "_id": "phbwzdEpicBoon00",
+  "_key": "!items!phbwzdEpicBoon00",
+  "name": "Epic Boon",
+  "type": "feature",
+  "img": "icons/magic/control/debuff-energy-hold-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You gain an Epic Boon feat or another feat of your choice for which you qualify. Boon of Spell Recall is recommended.</p><section class=\"secret\" id=\"secret-L2SpZgJc0oDT7wWU\"><p><strong>Foundry Note</strong></p><p>You will be prompted for a choice while leveling up.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbwzdEpicBoon00",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

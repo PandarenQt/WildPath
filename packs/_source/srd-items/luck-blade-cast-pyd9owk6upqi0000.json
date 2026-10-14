@@ -1,0 +1,63 @@
+{
+  "_id": "pyd9owk6upqi0000",
+  "_key": "!items!pyd9owk6upqi0000",
+  "name": "Luck Blade (cast)",
+  "type": "action",
+  "img": "icons/weapons/swords/sword-guard-worn-gold.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Weapon (Glaive, Greatsword, Longsword, Rapier, Scimitar, Sickle, or Shortsword), Legendary (Requires Attunement)</em></p><p>You gain a +1 bonus to attack rolls and damage rolls made with this magic weapon. While the weapon is on your person, you also gain a +1 bonus to saving throws.</p><p><strong>Luck.</strong> If the weapon is on your person, you can call on its luck (no action required) to reroll one failed D20 Test if you don't have the Incapacitated condition. You must use the second roll. Once used, this property can't be used again until the next dawn.</p><p><strong>Wish.</strong> The weapon has 1d3 charges. While holding it, you can expend 1 charge and cast <em>Wish</em> from it. Once used, this property can't be used again until the next dawn. The weapon loses this property if it has no charges.</p><p></p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-luck-blade",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "luck-blade",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Luck Blade (cast)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "luck-blade-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "luck-blade",
+          "label": "Luck Blade",
+          "maximum": {
+            "type": "constant",
+            "value": 3
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgLuckBlade0000",
+        "type": "weapon",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (cast): using it spends its cost; its description says the rest",
+          "consumption: activityUses 1 not converted"
+        ]
+      }
+    }
+  }
+}

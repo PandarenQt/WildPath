@@ -1,0 +1,30 @@
+{
+  "_id": "phbFuryPrimalStr",
+  "_key": "!items!phbFuryPrimalStr",
+  "name": "Elemental Fury: Primal Strike",
+  "type": "feature",
+  "img": "icons/magic/nature/hand-weapon-wood-bark-brown.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Once on each of your turns when you hit a creature with an attack roll using a weapon or a Beast form's attack in Wild Shape, you can cause the target to take an extra 1d8 cold, fire, lightning, or thunder damage (choose when you hit).</p><section class=\"secret\" id=\"secret-teMMREyPGTtod1kP\"><p><strong>Foundry Note</strong></p><p>This feature's damage will automatically increase when you gain Improved Elemental Fury. If using the activity you will be able to select the damage type when rolling. It will default to your previously chosen damage type.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbFuryPrimalStr",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Primal Strike\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

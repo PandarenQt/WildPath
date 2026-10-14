@@ -1,0 +1,28 @@
+{
+  "_id": "phbrgrExpertise0",
+  "_key": "!items!phbrgrExpertise0",
+  "name": "Expertise",
+  "type": "feature",
+  "img": "icons/magic/symbols/chevron-elipse-circle-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Choose two of your skill proficiencies with which you lack Expertise. You gain Expertise in those skills.</p><section class=\"secret\" id=\"secret-8Sp7JCTIzt2U5K6u\"><p><strong>Foundry Note</strong></p><p>You will be prompted with a choice when you reach this level.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbrgrExpertise0",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

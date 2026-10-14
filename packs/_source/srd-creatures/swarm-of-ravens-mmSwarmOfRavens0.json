@@ -1,0 +1,356 @@
+{
+  "_id": "mmSwarmOfRavens0",
+  "_key": "!actors!mmSwarmOfRavens0",
+  "name": "Swarm of Ravens",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 6
+      },
+      "agility": {
+        "value": 14
+      },
+      "fortitude": {
+        "value": 12
+      },
+      "intellect": {
+        "value": 5
+      },
+      "wits": {
+        "value": 12
+      },
+      "presence": {
+        "value": 6
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 12
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 11,
+        "value": 11
+      },
+      "movement": {
+        "base": 10,
+        "value": 10
+      }
+    },
+    "details": {
+      "threat": 0
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Swarm of Ravens",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmSwarm000000000",
+      "_key": "!actors.items!mmSwarmOfRavens0.mmSwarm000000000",
+      "name": "Swarm",
+      "type": "feature",
+      "img": "icons/creatures/invertebrates/bee-yellow.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The swarm can occupy another creature's space and vice versa, and the swarm can move through any opening large enough for a Tiny creature. The swarm can't regain Hit Points or gain Temporary Hit Points.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmSwarm000000000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmBeaks000000000",
+      "_key": "!actors.items!mmSwarmOfRavens0.mmBeaks000000000",
+      "name": "Beaks (attack)",
+      "type": "action",
+      "img": "icons/creatures/birds/corvid-call-sound-glowing.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +4, reach 5 ft. Hit: 5 (1d6 + 2) Piercing damage, or 2 (1d4) Piercing if the swarm is Bloodied</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-beaks",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "agility"
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 6
+              },
+              "damageType": "piercing",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Beaks (attack)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmBeaks000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "1yxx0c01p54jd200",
+      "_key": "!actors.items!mmSwarmOfRavens0.1yxx0c01p54jd200",
+      "name": "Beaks (Bloodied Attack)",
+      "type": "action",
+      "img": "icons/creatures/birds/corvid-call-sound-glowing.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +4, reach 5 ft. Hit: 5 (1d6 + 2) Piercing damage, or 2 (1d4) Piercing if the swarm is Bloodied</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-beaks-bloodied-attack",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "agility"
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 4
+              },
+              "damageType": "piercing",
+              "provenance": "additional"
+            }
+          ],
+          "label": "Beaks (Bloodied Attack)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmBeaks000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmCacophony00000",
+      "_key": "!actors.items!mmSwarmOfRavens0.mmCacophony00000",
+      "name": "Cacophony",
+      "type": "action",
+      "img": "icons/magic/sonic/projectile-sound-rings-wave.webp",
+      "system": {
+        "active": true,
+        "description": "<p><em>Wisdom Saving Throw:</em> DC , one creature in the swarm of ravens's space.</p><p><em>Failure:</em> The target has the Deafened condition until the start of the swarm of ravens's next turn. While Deafened, the target also has Disadvantage on ability checks and attack rolls.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-cacophony",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "cacophony",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Cacophony"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "cacophony-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "cacophony",
+              "label": "Cacophony",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "none"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmCacophony00000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest",
+              "uses: Recharge 6 is not rolled; refill the pool by hand",
+              "save: wis DC (8 + @prof) not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmSwarmOfRavtrts",
+      "_key": "!actors.items!mmSwarmOfRavens0.mmSwarmOfRavtrts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "resistances",
+            "type": "GrantResistance",
+            "data": {
+              "damageTypes": [
+                "bludgeoning",
+                "piercing",
+                "slashing"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "speed-fly",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "fly",
+              "distance": 50
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmSwarmOfRavens0",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 0.25
+      },
+      "conversion": {
+        "notes": [
+          "Cacophony: not automated (save): using it spends its cost; its description says the rest",
+          "Cacophony: uses: Recharge 6 is not rolled; refill the pool by hand",
+          "Cacophony: save: wis DC (8 + @prof) not converted",
+          "condition immunities (charmed, frightened, grappled, paralyzed, petrified, prone, restrained, stunned) not converted"
+        ]
+      }
+    }
+  }
+}

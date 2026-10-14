@@ -1,0 +1,79 @@
+{
+  "_id": "bwv1cwq3bfz20000",
+  "_key": "!items!bwv1cwq3bfz20000",
+  "name": "Master of Myriad Forms (Attack: Hooves)",
+  "type": "action",
+  "img": "icons/creatures/abilities/cougar-pounce-stalk-black.webp",
+  "system": {
+    "active": true,
+    "description": "<blockquote><p>Prerequisite: Level 5+ Warlock</p></blockquote><p>You can cast Alter Self without expending a spell slot.</p><section class=\"secret\" id=\"secret-x7wmXuFqGaXQspxB\"><p><strong>Foundry Note</strong></p><p>This feature includes Alter Self's activities.</p><p>The <strong>Aquatic Adaptation</strong>, <strong>Change Appearance</strong>, and <strong>Natural Weapons</strong> activities include Active Effects for tracking your choice and require Concentration.</p><p>The <strong>Attack</strong> activities can be used for your attack/damage rolls when you choose the <strong>Natural Weapons</strong> option.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-master-of-myriad-forms-attack-hooves",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "attack": {
+        "type": "melee",
+        "statistic": "weapon",
+        "defenseKey": "ac",
+        "proficient": true
+      },
+      "range": {
+        "type": "reach",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "dice",
+                "number": 1,
+                "faces": 6
+              },
+              {
+                "type": "spellcasting-modifier"
+              }
+            ]
+          },
+          "damageType": "bludgeoning",
+          "provenance": "additional"
+        }
+      ],
+      "label": "Master of Myriad Forms (Attack: Hooves)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbinvMasterofMy",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

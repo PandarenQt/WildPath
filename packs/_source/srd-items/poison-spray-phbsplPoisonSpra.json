@@ -1,0 +1,76 @@
+{
+  "_id": "phbsplPoisonSpra",
+  "_key": "!items!phbsplPoisonSpra",
+  "name": "Poison Spray",
+  "type": "action",
+  "img": "icons/magic/acid/pouring-gas-smoke-liquid.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You spray toxic mist at a creature within range. Make a ranged spell attack against the target. On a hit, the target takes 1d12 Poison damage.</p><p><strong>Cantrip Upgrade.</strong> The damage increases by 1d12 when you reach levels 5 (2d12), 11 (3d12), and 17 (4d12).</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-poison-spray",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "attack": {
+        "type": "ranged",
+        "statistic": "spell",
+        "defenseKey": "ac",
+        "proficient": true
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 30,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "dice",
+            "number": 1,
+            "faces": 12
+          },
+          "damageType": "poison",
+          "provenance": "spell-base"
+        }
+      ],
+      "label": "Poison Spray"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbsplPoisonSpra",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "damage 1: cantrip damage growing with character level not converted"
+        ]
+      }
+    }
+  }
+}

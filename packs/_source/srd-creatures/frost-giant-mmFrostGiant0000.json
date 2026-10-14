@@ -1,0 +1,391 @@
+{
+  "_id": "mmFrostGiant0000",
+  "_key": "!actors!mmFrostGiant0000",
+  "name": "Frost Giant",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 23
+      },
+      "agility": {
+        "value": 9
+      },
+      "fortitude": {
+        "value": 21,
+        "saveProficient": true
+      },
+      "intellect": {
+        "value": 9
+      },
+      "wits": {
+        "value": 10,
+        "saveProficient": true
+      },
+      "presence": {
+        "value": 12,
+        "saveProficient": true
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 15
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 149,
+        "value": 149
+      },
+      "movement": {
+        "base": 40,
+        "value": 40
+      }
+    },
+    "details": {
+      "threat": 8
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Frost Giant",
+    "width": 3,
+    "height": 3,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmMultiattack000",
+      "_key": "!actors.items!mmFrostGiant0000.mmMultiattack000",
+      "name": "Multiattack",
+      "type": "action",
+      "img": "icons/skills/melee/strike-weapons-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The frost giant makes two attacks, using Frost Axe or Great Bow in any combination.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-multiattack-expend-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Multiattack"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMultiattack000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmFrostAxe000000",
+      "_key": "!actors.items!mmFrostGiant0000.mmFrostAxe000000",
+      "name": "Frost Axe",
+      "type": "action",
+      "img": "icons/weapons/axes/axe-battle-worn.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Melee Attack Roll: +9, reach 10 ft. Hit: 19 (2d12 + 6) plus 9 (2d8) Cold damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-frost-axe",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 10,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 12
+              },
+              "damageType": "untyped",
+              "provenance": "weapon-base"
+            },
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 8
+              },
+              "damageType": "cold",
+              "provenance": "additional"
+            }
+          ],
+          "label": "Frost Axe"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmFrostAxe000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmGreatBow000000",
+      "_key": "!actors.items!mmFrostGiant0000.mmGreatBow000000",
+      "name": "Great Bow",
+      "type": "action",
+      "img": "icons/weapons/bows/shortbow-recurve-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Ranged Attack Roll: +9, range 150/600 ft. Hit: 17 (2d10 + 6) Piercing plus 7 (2d6) Cold damage, and the target's Speed decreases by 10 feet until the end of its next turn.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-great-bow",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "ranged",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "might"
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 150,
+              "unit": "ft"
+            },
+            "long": {
+              "value": 600,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 10
+              },
+              "damageType": "piercing",
+              "provenance": "weapon-base"
+            },
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 6
+              },
+              "damageType": "cold",
+              "provenance": "additional"
+            }
+          ],
+          "label": "Great Bow"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmGreatBow000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "effect: \"Speed: -10 Ft.\" (its own changes) not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmWarCry00000000",
+      "_key": "!actors.items!mmFrostGiant0000.mmWarCry00000000",
+      "name": "War Cry",
+      "type": "action",
+      "img": "icons/magic/sonic/scream-wail-shout-teal.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The frost giant or one creature of its choice that can see or hear it gains 16 (2d10 + 5) Temphp and has Advantage on attack rolls until the start of the frost giant's next turn.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-war-cry-temporary-healing",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              },
+              {
+                "capability": "war-cry",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "War Cry"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "war-cry-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "war-cry",
+              "label": "War Cry",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "none"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmWarCry00000000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (heal): using it spends its cost; its description says the rest",
+              "uses: Recharge 5–6 is not rolled; refill the pool by hand",
+              "healing: temporary Hit Points not converted",
+              "effect: \"Attack: Advantage\" (its own changes) not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmFrostGianttrts",
+      "_key": "!actors.items!mmFrostGiant0000.mmFrostGianttrts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "immunities",
+            "type": "GrantImmunity",
+            "data": {
+              "damageTypes": [
+                "cold"
+              ]
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmFrostGiant0000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 8
+      },
+      "conversion": {
+        "notes": [
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
+          "Great Bow: effect: \"Speed: -10 Ft.\" (its own changes) not converted",
+          "War Cry: not automated (heal): using it spends its cost; its description says the rest",
+          "War Cry: uses: Recharge 5–6 is not rolled; refill the pool by hand",
+          "War Cry: healing: temporary Hit Points not converted",
+          "War Cry: effect: \"Attack: Advantage\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

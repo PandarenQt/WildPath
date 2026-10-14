@@ -1,0 +1,360 @@
+{
+  "_id": "mmStoneGiant0000",
+  "_key": "!actors!mmStoneGiant0000",
+  "name": "Stone Giant",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 23
+      },
+      "agility": {
+        "value": 15,
+        "saveProficient": true
+      },
+      "fortitude": {
+        "value": 20,
+        "saveProficient": true
+      },
+      "intellect": {
+        "value": 10
+      },
+      "wits": {
+        "value": 12,
+        "saveProficient": true
+      },
+      "presence": {
+        "value": 9
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 17
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 126,
+        "value": 126
+      },
+      "movement": {
+        "base": 40,
+        "value": 40
+      }
+    },
+    "details": {
+      "threat": 7
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Stone Giant",
+    "width": 3,
+    "height": 3,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmMultiattack000",
+      "_key": "!actors.items!mmStoneGiant0000.mmMultiattack000",
+      "name": "Multiattack",
+      "type": "action",
+      "img": "icons/skills/melee/strike-weapons-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The stone giant makes two attacks, using Stone Club or Boulder in any combination.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-multiattack-expend-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Multiattack"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMultiattack000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmStoneClub00000",
+      "_key": "!actors.items!mmStoneGiant0000.mmStoneClub00000",
+      "name": "Stone Club",
+      "type": "action",
+      "img": "icons/weapons/clubs/club-simple-stone.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Melee Attack Roll: +9, reach 15 ft. Hit: 22 (3d10 + 6) Bludgeoning damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-stone-club",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "might"
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 15,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 3,
+                "faces": 10
+              },
+              "damageType": "bludgeoning",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Stone Club"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmStoneClub00000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmBoulder0000000",
+      "_key": "!actors.items!mmStoneGiant0000.mmBoulder0000000",
+      "name": "Boulder",
+      "type": "action",
+      "img": "icons/commodities/stone/stone-pile-grey.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Ranged Attack Roll: +9, range 60/240 ft. Hit: 15 (2d8 + 6) Bludgeoning damage. If the target is a Large or smaller creature, it has the Prone condition.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-boulder",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "ranged",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "might"
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 60,
+              "unit": "ft"
+            },
+            "long": {
+              "value": 240,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 8
+              },
+              "damageType": "bludgeoning",
+              "provenance": "weapon-base"
+            }
+          ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "prone"
+            }
+          ],
+          "label": "Boulder"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmBoulder0000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmDeflectMissile",
+      "_key": "!actors.items!mmStoneGiant0000.mmDeflectMissile",
+      "name": "Deflect Missile (Reduce Damage)",
+      "type": "action",
+      "img": "icons/magic/light/beam-impact-deflect-teal.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\"><em>Trigger:</em> The stone giant is hit by a ranged attack roll and takes Bludgeoning, Piercing, or Slashing damage from it.</p><p class=\"feature\"><em>Response:</em> The stone giant reduces the damage it takes from the attack by 5 (1d10) Healing, and if that damage is reduced to 0, the stone giant can redirect some of the attack's force.</p><p class=\"feature\"><em>Dexterity Saving Throw:</em> DC 17, one creature the stone giant can see within 60 feet. </p><p class=\"feature\"><em>Failure:</em> 11 (1d10 + 6) Force damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-deflect-missile-reduce-damage",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "reaction",
+                "amount": 1
+              },
+              {
+                "capability": "deflect-missile",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "healing": [
+            {
+              "id": "healing-1",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 10
+              },
+              "healingType": "healing"
+            }
+          ],
+          "label": "Deflect Missile (Reduce Damage)"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "deflect-missile-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "deflect-missile",
+              "label": "Deflect Missile",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "none"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmDeflectMissile",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "uses: Recharge 5–6 is not rolled; refill the pool by hand",
+              "healing: bonus \"@abilities.str.mod\" not converted"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmStoneGiant0000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 7
+      },
+      "conversion": {
+        "notes": [
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
+          "Deflect Missile: uses: Recharge 5–6 is not rolled; refill the pool by hand",
+          "Deflect Missile: healing: bonus \"@abilities.str.mod\" not converted",
+          "Deflect Missile: \"Save\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

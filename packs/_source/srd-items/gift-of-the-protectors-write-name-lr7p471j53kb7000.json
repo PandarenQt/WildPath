@@ -1,0 +1,60 @@
+{
+  "_id": "lr7p471j53kb7000",
+  "_key": "!items!lr7p471j53kb7000",
+  "name": "Gift of the Protectors (Write Name)",
+  "type": "action",
+  "img": "icons/sundries/books/book-open-red.webp",
+  "system": {
+    "active": true,
+    "description": "<blockquote><p>Prerequisite: Level 9+ Warlock, Pact of the Tome Invocation</p></blockquote><p>A new page appears in your Book of Shadows when you conjure it. With your permission, a creature can take an action to write its name on that page, which can contain a number of names equal to your Charisma modifier (minimum of one name).</p><p>When any creature whose name is on the page is reduced to 0 Hit Points but not killed outright, the creature magically drops to 1 Hit Point instead. Once this magic is triggered, no creature can benefit from it until you finish a Long Rest.</p><p>As a Magic action, you can erase a name on the page by touching it.</p><section id=\"secret-VzLQ7nRPLs0fIkvE\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>The <strong>Protect</strong> activity consumes a use of its activity which refreshes every Long Rest.</p><p>The <strong>Write Name</strong> activity consumes a use of the item which can be used for tracking how many names you've written down.</p><p>The <strong>Erase Name</strong> activity will restore a use of the item and allows you to add another name.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-gift-of-the-protectors-write-name",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "gift-of-the-protectors",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Gift of the Protectors (Write Name)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "gift-of-the-protectors-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "gift-of-the-protectors",
+          "label": "Gift of the Protectors",
+          "maximum": 1,
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbinvGiftoftheP",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "uses: maximum \"(max(1,@abilities.cha.mod))\" not converted"
+        ]
+      }
+    }
+  }
+}

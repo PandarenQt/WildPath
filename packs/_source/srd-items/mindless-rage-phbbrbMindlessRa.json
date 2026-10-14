@@ -1,0 +1,28 @@
+{
+  "_id": "phbbrbMindlessRa",
+  "_key": "!items!phbbrbMindlessRa",
+  "name": "Mindless Rage",
+  "type": "feature",
+  "img": "icons/magic/fire/flame-burning-eye.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You have Immunity to the Charmed and Frightened conditions while your Rage is active. If you're Charmed or Frightened when you enter your Rage, the condition ends on you.</p><section class=\"secret\" id=\"secret-CnCRD0Dyvx4FFGfV\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect which grants the Charmed and Frightened condition immunity. It is not applied automatically when you begin your Rage though.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbbrbMindlessRa",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

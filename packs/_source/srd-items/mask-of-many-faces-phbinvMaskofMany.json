@@ -1,0 +1,44 @@
+{
+  "_id": "phbinvMaskofMany",
+  "_key": "!items!phbinvMaskofMany",
+  "name": "Mask of Many Faces",
+  "type": "action",
+  "img": "icons/creatures/magical/spirit-undead-masked-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<blockquote><p>Prerequisite: Level 2+ Warlock</p></blockquote><p>You can cast Disguise Self without expending a spell slot.</p><section class=\"secret\" id=\"secret-vIzXrLvsSDtyMciU\"><p><strong>Foundry Note</strong></p><p>The <strong>Cast</strong> activity can be used in-place of Disguise Self and includes an Active Effect for tracking when you are disguised.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-mask-of-many-faces",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Mask of Many Faces"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbinvMaskofMany",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Disguised\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

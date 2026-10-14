@@ -1,0 +1,28 @@
+{
+  "_id": "phbsptResourcefu",
+  "_key": "!items!phbsptResourcefu",
+  "name": "Resourceful",
+  "type": "feature",
+  "img": "icons/tools/hand/hammer-and-nail.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You gain Heroic Inspiration whenever you finish a Long Rest.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "origins24",
+        "id": "phbsptResourcefu",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

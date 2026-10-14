@@ -1,0 +1,46 @@
+{
+  "_id": "phbclcPreserveLi",
+  "_key": "!items!phbclcPreserveLi",
+  "name": "Preserve Life",
+  "type": "action",
+  "img": "icons/magic/life/heart-hand-gold-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p>As a Magic action, you present your Holy Symbol and expend a use of your Channel Divinity to evoke healing energy that can restore a number of Hit Points equal to five times your Cleric level. Choose Bloodied creatures within 30 feet of yourself (which can include you), and divide those Hit Points among them. This feature can restore a creature to no more than half its Hit Point maximum.</p><section class=\"secret\" id=\"secret-vybBdwcDQO3jMVDo\"><p><strong>Foundry Note</strong></p><p>The <strong>Heal</strong> activity does not automatically restrict the HP gained to 50% of the target's max.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-preserve-life",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Preserve Life"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbclcPreserveLi",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (heal): using it spends its cost; its description says the rest",
+          "consumption: itemUses 1 not converted",
+          "healing: custom formula \"5 * @classes.cleric.levels\" not converted",
+          "consumption: itemUses 1 not converted"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "_id": "phbsptBrave00000",
+  "_key": "!items!phbsptBrave00000",
+  "name": "Brave",
+  "type": "feature",
+  "img": "icons/skills/melee/unarmed-punch-fist.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You have Advantage on saving throws you make to avoid or end the Frightened condition.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "origins24",
+        "id": "phbsptBrave00000",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

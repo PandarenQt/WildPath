@@ -1,0 +1,30 @@
+{
+  "_id": "phbrgrHuntersPre",
+  "_key": "!items!phbrgrHuntersPre",
+  "name": "Hunter's Prey",
+  "type": "feature",
+  "img": "icons/creatures/magical/construct-iron-stomping-yellow.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You gain one of the following feature options of your choice. Whenever you finish a Short or Long Rest, you can replace the chosen option with the other one.</p><p><strong>Colossus Slayer.</strong> Your tenacity can wear down even the most resilient foes. When you hit a creature with a weapon, the weapon deals an extra 1d8 damage to the target if it's missing any of its Hit Points. You can deal this extra damage only once per turn.</p><p><strong>Horde Breaker.</strong> Once on each of your turns when you make an attack with a weapon, you can make another attack with the same weapon against a different creature that is within 5 feet of the original target, that is within the weapon's range, and that you haven't attacked this turn.</p><section class=\"secret\" id=\"secret-I2q5Nm7g6mkLjH5Y\"><p><strong>Foundry Note</strong></p><p>This feature includes a <strong>Colossus Slayer</strong> activity for the additional damage. You can select the correct damage type in the roll dialog.</p><p>For the <strong>Horde Breaker</strong> option simply make another attack.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbrgrHuntersPre",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"damage\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

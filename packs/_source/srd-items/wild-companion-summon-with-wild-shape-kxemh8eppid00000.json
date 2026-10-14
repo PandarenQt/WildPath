@@ -1,0 +1,44 @@
+{
+  "_id": "kxemh8eppid00000",
+  "_key": "!items!kxemh8eppid00000",
+  "name": "Wild Companion (Summon with Wild Shape)",
+  "type": "action",
+  "img": "icons/creatures/mammals/spirit-deer-herd-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You can summon a nature spirit that assumes an animal form to aid you. As a Magic action, you can expend a spell slot or a use of Wild Shape to cast the Find Familiar spell without Material components.</p><p>When you cast the spell in this way, the familiar is Fey and disappears when you finish a Long Rest.</p><section id=\"secret-4iYtjsPCmpeQTKY5\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This feature includes a Summon activity which can be used to summon your wild companion. You can choose whether to expend a use of wild shape or a spell slot when activating it.</p><p>The summon does not automatically disappear when you finish a Long Rest.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-wild-companion-summon-with-wild-shape",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Wild Companion (Summon with Wild Shape)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbdrdWildCompan",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (summon): using it spends its cost; its description says the rest",
+          "consumption: itemUses 1 not converted"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "_id": "phbbrbPrimalCham",
+  "_key": "!items!phbbrbPrimalCham",
+  "name": "Primal Champion",
+  "type": "feature",
+  "img": "icons/magic/control/sihouette-hold-beam-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You embody primal power. Your Strength and Constitution scores increase by 4, to a maximum of 25.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbbrbPrimalCham",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

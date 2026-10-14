@@ -1,0 +1,45 @@
+{
+  "_id": "phbscrSorcerousR",
+  "_key": "!items!phbscrSorcerousR",
+  "name": "Sorcerous Restoration",
+  "type": "feature",
+  "img": "icons/magic/life/cross-beam-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p>When you finish a Short Rest, you can regain expended Sorcery Points, but no more than a number equal to half your Sorcerer level (round down). Once you use this feature, you can't do so again until you finish a Long Rest.</p><section id=\"secret-mYrbb0UHsBGBUVbN\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This feature includes 1 free user per Long Rest. Use it to automatically regain the correct number of Sorcery Points.</p></section>",
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "sorcerous-restoration-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "sorcerous-restoration",
+          "label": "Sorcerous Restoration",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbscrSorcerousR",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Restore Sorcery Points\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

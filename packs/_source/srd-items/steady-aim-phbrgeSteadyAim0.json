@@ -1,0 +1,43 @@
+{
+  "_id": "phbrgeSteadyAim0",
+  "_key": "!items!phbrgeSteadyAim0",
+  "name": "Steady Aim",
+  "type": "action",
+  "img": "icons/skills/ranged/arrow-flying-spiral-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p>As a Bonus Action, you give yourself Advantage on your next attack roll on the current turn. You can use this feature only if you haven't moved during this turn, and after you use it, your Speed is 0 until the end of the current turn.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-steady-aim-steady-aim",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Steady Aim"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbrgeSteadyAim0",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

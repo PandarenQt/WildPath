@@ -1,0 +1,43 @@
+{
+  "_id": "phbinvWhispersOf",
+  "_key": "!items!phbinvWhispersOf",
+  "name": "Whispers of the Grave",
+  "type": "action",
+  "img": "icons/magic/death/undead-ghost-scream-teal.webp",
+  "system": {
+    "active": true,
+    "description": "<blockquote><p>Prerequisite: Level 7+ Warlock</p></blockquote><p>You can cast Speak with Dead without expending a spell slot.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-whispers-of-the-grave-whisper",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Whispers of the Grave"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbinvWhispersOf",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

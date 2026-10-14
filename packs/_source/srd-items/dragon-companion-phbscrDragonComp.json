@@ -1,0 +1,45 @@
+{
+  "_id": "phbscrDragonComp",
+  "_key": "!items!phbscrDragonComp",
+  "name": "Dragon Companion",
+  "type": "feature",
+  "img": "icons/creatures/abilities/dragon-fire-breath-orange.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You can cast Summon Dragon without a Material component. You can also cast it once without a spell slot, and you regain the ability to cast it in this way when you finish a Long Rest.</p><p>Whenever you start casting the spell, you can modify it so that it doesn't require Concentration. If you do so, the spell's duration becomes 1 minute for that casting.</p><section id=\"secret-dxl0rjuVblJvTXgy\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This feature can be used for tracking your free usage. When you cast the spell you can uncheck the \"Consumption\" box and, optionally, the \"Concentration\" box.</p></section>",
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "dragon-companion-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "dragon-companion",
+          "label": "Dragon Companion",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbscrDragonComp",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Expend Use\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

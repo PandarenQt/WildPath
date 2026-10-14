@@ -1,0 +1,30 @@
+{
+  "_id": "phbmmoDistantSpe",
+  "_key": "!items!phbmmoDistantSpe",
+  "name": "Distant Spell",
+  "type": "feature",
+  "img": "icons/skills/targeting/target-strike-triple-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<blockquote><p>Cost: 1 Sorcery Point</p></blockquote><p>When you cast a spell that has a range of at least 5 feet, you can spend 1 Sorcery Point to double the spell's range. Or when you cast a spell that has a range of Touch, you can spend 1 Sorcery Point to make the spell's range 30 feet.</p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbmmoDistantSpe",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Distant Spell\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

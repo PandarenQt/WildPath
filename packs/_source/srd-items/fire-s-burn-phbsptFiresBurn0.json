@@ -1,0 +1,44 @@
+{
+  "_id": "phbsptFiresBurn0",
+  "_key": "!items!phbsptFiresBurn0",
+  "name": "Fire's Burn",
+  "type": "feature",
+  "img": "icons/magic/fire/flame-burning-fist-strike.webp",
+  "system": {
+    "active": true,
+    "description": "<p>When you hit a target with an attack roll and deal damage to it, you can also deal 1d10 Fire damage to that target.</p>",
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "fire-s-burn-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "fire-s-burn",
+          "label": "Fire's Burn",
+          "maximum": {
+            "type": "proficiency-bonus"
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "origins24",
+        "id": "phbsptFiresBurn0",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Burn\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

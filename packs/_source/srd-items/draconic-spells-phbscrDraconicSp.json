@@ -1,0 +1,28 @@
+{
+  "_id": "phbscrDraconicSp",
+  "_key": "!items!phbscrDraconicSp",
+  "name": "Draconic Spells",
+  "type": "feature",
+  "img": "icons/magic/symbols/mask-metal-silver-white.webp",
+  "system": {
+    "active": true,
+    "description": "<p>When you reach a Sorcerer level specified in the Draconic Spells table, you thereafter always have the listed spells prepared.</p><table><caption>Draconic Spells</caption><thead><tr><td>Sorcerer Level</td><td>Spells</td></tr></thead><tbody><tr><td>3</td><td><em>Alter Self, Chromatic Orb, Command, Dragon's Breath</em></td></tr><tr><td>5</td><td><em>Fear, Fly</em></td></tr><tr><td>7</td><td><em>Arcane Eye, Charm Monster</em></td></tr><tr><td>9</td><td><em>Legend Lore, Summon Dragon</em></td></tr></tbody></table><section class=\"secret\" id=\"secret-kL8H0ClyrUNajoht\"><p><strong>Foundry Note</strong></p><p>The spells will be automatically granted as you level up.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbscrDraconicSp",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

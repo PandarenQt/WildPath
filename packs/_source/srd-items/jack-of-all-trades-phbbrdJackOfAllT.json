@@ -1,0 +1,28 @@
+{
+  "_id": "phbbrdJackOfAllT",
+  "_key": "!items!phbbrdJackOfAllT",
+  "name": "Jack of All Trades",
+  "type": "feature",
+  "img": "icons/skills/trades/academics-investigation-puzzles.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You can add half your Proficiency Bonus (round down) to any ability check you make that uses a skill proficiency you lack and that doesn't otherwise use your Proficiency Bonus.</p><p>For example, if you make a Strength (Athletics) check and lack Athletics proficiency, you can add half your Proficiency Bonus to the check.</p><section id=\"secret-su4PzYrZZDdS1qZg\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect which will automatically grant you half proficiency for all skills which you aren't currently proficient in.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbbrdJackOfAllT",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

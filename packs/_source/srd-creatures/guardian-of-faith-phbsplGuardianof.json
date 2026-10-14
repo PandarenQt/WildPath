@@ -1,0 +1,123 @@
+{
+  "_id": "phbsplGuardianof",
+  "_key": "!actors!phbsplGuardianof",
+  "name": "Guardian of Faith",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 0
+      },
+      "agility": {
+        "value": 0
+      },
+      "fortitude": {
+        "value": 0
+      },
+      "intellect": {
+        "value": 0
+      },
+      "wits": {
+        "value": 0
+      },
+      "presence": {
+        "value": 0
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 0
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 1,
+        "value": 1
+      },
+      "movement": {
+        "base": 0,
+        "value": 0
+      }
+    },
+    "details": {
+      "threat": 0
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Guardian of Faith",
+    "width": 2,
+    "height": 2,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "phbaoiLevel4Conj",
+      "_key": "!actors.items!phbsplGuardianof.phbaoiLevel4Conj",
+      "name": "Guarded Area",
+      "type": "feature",
+      "img": "icons/skills/melee/sword-shield-stylized-white.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Any enemy that moves to a space within 10 feet of the guardian for the first time on a turn or starts its turn there makes a Dexterity saving throw, taking 20 Radiant damage on a failed save or half as much damage on a successful one. The guardian vanishes when it has dealt a total of 60 damage.</p><section id=\"secret-fNtHgg2PRmVbaDl5\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This feature's Limited Uses is optionally provided for tracking the total damage dealt by the guardian.  Additionally, The <strong>Consume Damage Pool</strong> activity is configured with scaling uses consumption in increments of 5 damage for use after the final damage is determined and applied.</p></section>",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "guarded-area-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "guarded-area",
+              "label": "Guarded Area",
+              "maximum": {
+                "type": "constant",
+                "value": 60
+              },
+              "recovery": "none"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbaoiLevel4Conj",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "\"save\" is passive or triggered: not automated",
+              "\"Consume Damage Pool\" is passive or triggered: not automated"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "phbsplGuardianof",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 0
+      },
+      "conversion": {
+        "notes": [
+          "Guarded Area: \"save\" is passive or triggered: not automated",
+          "Guarded Area: \"Consume Damage Pool\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

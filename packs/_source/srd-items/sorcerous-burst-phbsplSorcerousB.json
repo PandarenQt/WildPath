@@ -1,0 +1,47 @@
+{
+  "_id": "phbsplSorcerousB",
+  "_key": "!items!phbsplSorcerousB",
+  "name": "Sorcerous Burst",
+  "type": "action",
+  "img": "icons/magic/lightning/bolt-strike-embers-teal.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You cast sorcerous energy at one creature or object within range. Make a ranged attack roll against the target. On a hit, the target takes 1d8 damage of a type you choose: Acid, Cold, Fire, Lightning, Poison, Psychic, or Thunder.</p><p>If you roll an 8 on a d8 for this spell, you can roll another d8, and add it to the damage. When you cast this spell, the maximum number of these d8s you can add to the spell's damage equals your spellcasting ability modifier.</p><p><strong>Cantrip Upgrade. </strong>The damage increases by 1d8 when you reach levels 5 (2d8), 11 (3d8), and 17 (4d8).</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-sorcerous-burst",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Sorcerous Burst"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbsplSorcerousB",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (attack): using it spends its cost; its description says the rest",
+          "damage 1: custom formula \"1d8x@mod=8\" not converted"
+        ]
+      }
+    }
+  }
+}

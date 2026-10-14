@@ -1,0 +1,87 @@
+{
+  "_id": "phbsplGuardsandW",
+  "_key": "!items!phbsplGuardsandW",
+  "name": "Guards and Wards",
+  "type": "action",
+  "img": "icons/environment/settlement/stone-stairs.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You create a ward that protects up to 2,500 square feet of floor space. The warded area can be up to 20 feet tall, and you shape it as one 50-foot square, one hundred 5-foot squares that are contiguous, or twenty-five 10-foot squares that are contiguous.</p><p>When you cast this spell, you can specify individuals that are unaffected by the spell's effects. You can also specify a password that, when spoken aloud within 5 feet of the warded area, makes the speaker immune to its effects.</p><p>The spell creates the effects below within the warded area. <em>Dispel Magic</em> has no effect on <em>Guards and Wards</em> itself, but each of the following effects can be dispelled. If all four are dispelled, <em>Guards and Wards</em> ends. If you cast the spell every day for 365 days on the same area, the spell thereafter lasts until all its effects are dispelled.</p><p><strong>Corridors.</strong> Fog fills all the warded corridors, making them HeavilyObscured. In addition, at each intersection or branching passage offering a choice of direction, there is a 50 percent chance that a creature other than you believes it is going in the opposite direction from the one it chooses.</p><p><strong>Doors.</strong> All doors in the warded area are magically locked, as if sealed by the <em>Arcane Lock</em> spell. In addition, you can cover up to ten doors with an illusion to make them appear as plain sections of wall.</p><p><strong>Stairs.</strong> Webs fill all stairs in the warded area from top to bottom, as in the <em>Web</em> spell. These strands regrow in 10 minutes if they are destroyed while <em>Guards and Wards</em> lasts.</p><p><strong>Other Spell Effect. </strong>Place one of the following magical effects within the warded area:</p><ul><li><em>Dancing Lights</em> in four corridors, with a simple program that the lights repeat as long as <em>Guards and Wards</em> lasts</li><li><em>Magic Mouth</em> in two locations</li><li><em>Stinking Cloud</em> in two locations (the vapors return within 10 minutes if dispersed while <em>Guards and Wards</em> lasts)</li><li><em>Gust of Wind</em> in one corridor or room (the wind blows continuously while the spell lasts)</li><li><em>Suggestion</em> in one 5-foot square; any creature that enters that square receives the suggestion mentally</li></ul>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-guards-and-wards",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": []
+      },
+      "configuration": [
+        {
+          "id": "spell-slot",
+          "type": "resource",
+          "label": "Spell slot",
+          "required": true,
+          "cost": {
+            "anyOf": [
+              [
+                {
+                  "capability": "spell-slot.6",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.7",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.8",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.9",
+                  "amount": 1
+                }
+              ]
+            ]
+          },
+          "levelByResourceId": {
+            "spell-slot.6": 6,
+            "spell-slot.7": 7,
+            "spell-slot.8": 8,
+            "spell-slot.9": 9
+          },
+          "effects": []
+        }
+      ],
+      "label": "Guards and Wards"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbsplGuardsandW",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "activation: 1 hour is not an action-economy cost",
+          "area: 50-ft square is not supported; the user picks the targets",
+          "activation: 1 hour is not an action-economy cost"
+        ]
+      }
+    }
+  }
+}

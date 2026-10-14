@@ -1,0 +1,381 @@
+{
+  "_id": "mmWillowisp00000",
+  "_key": "!actors!mmWillowisp00000",
+  "name": "Will-o'-Wisp",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 1
+      },
+      "agility": {
+        "value": 28
+      },
+      "fortitude": {
+        "value": 10
+      },
+      "intellect": {
+        "value": 13
+      },
+      "wits": {
+        "value": 14
+      },
+      "presence": {
+        "value": 11
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 19
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 27,
+        "value": 27
+      },
+      "movement": {
+        "base": 5,
+        "value": 5
+      }
+    },
+    "details": {
+      "threat": 2
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Will-o'-Wisp",
+    "width": 0.5,
+    "height": 0.5,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "mmEphemeral00000",
+      "_key": "!actors.items!mmWillowisp00000.mmEphemeral00000",
+      "name": "Ephemeral",
+      "type": "feature",
+      "img": "icons/magic/light/orb-shadow-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The will-o'-wisp can't wear or carry anything.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmEphemeral00000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmIllumination00",
+      "_key": "!actors.items!mmWillowisp00000.mmIllumination00",
+      "name": "Illumination",
+      "type": "feature",
+      "img": "icons/magic/light/orb-lightbulb-gray.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The will-o'-wisp sheds Bright Light in a 20-foot radius and Dim Light for an additional 20 feet.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmIllumination00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmIncorporealMov",
+      "_key": "!actors.items!mmWillowisp00000.mmIncorporealMov",
+      "name": "Incorporeal Movement",
+      "type": "feature",
+      "img": "icons/magic/death/undead-ghost-scream-teal.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The will-o'-wisp can move through other creatures and objects as if they were Difficult. It takes  damage if it ends its turn inside an object.</p>",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmIncorporealMov",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmVanish00000000",
+      "_key": "!actors.items!mmWillowisp00000.mmVanish00000000",
+      "name": "Vanish",
+      "type": "action",
+      "img": "icons/magic/control/silhouette-hold-change-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The will-o'-wisp and its light have the Invisible condition until the will-o'-wisp's Concentration ends on this effect, which ends early immediately after the will-o'-wisp makes an attack roll or uses Consume Life.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-vanish-expend-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Vanish"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmVanish00000000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "effect: invisible is not a WildPath condition yet"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "YPy3wAfsPZ7cNJoJ",
+      "_key": "!actors.items!mmWillowisp00000.YPy3wAfsPZ7cNJoJ",
+      "name": "Consume Life (Save)",
+      "type": "action",
+      "img": "icons/magic/life/cross-area-circle-green-white.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\"><em>Constitution Saving Throw:</em> DC 10, one living creature the will-o'-wisp can see within 5 feet. that has 0 Hit Points.</p><p><em>Failure:</em> The target dies, and the will-o'-wisp regains 10 (3d6) Healing.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-consume-life-save",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Consume Life (Save)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "YPy3wAfsPZ7cNJoJ",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (save): using it spends its cost; its description says the rest",
+              "effect: dead is not a WildPath condition yet"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "KSPu27tkSo11sWcw",
+      "_key": "!actors.items!mmWillowisp00000.KSPu27tkSo11sWcw",
+      "name": "Shock",
+      "type": "action",
+      "img": "icons/magic/lightning/orb-ball-purple.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Melee Attack Roll: +4, reach 5 ft. Hit: 11 (2d8 + 2) Lightning damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-shock",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "wits"
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 8
+              },
+              "damageType": "lightning",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Shock"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "KSPu27tkSo11sWcw",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mmWillowisp0trts",
+      "_key": "!actors.items!mmWillowisp00000.mmWillowisp0trts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "resistances",
+            "type": "GrantResistance",
+            "data": {
+              "damageTypes": [
+                "acid",
+                "bludgeoning",
+                "cold",
+                "fire",
+                "necrotic",
+                "piercing",
+                "slashing"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "immunities",
+            "type": "GrantImmunity",
+            "data": {
+              "damageTypes": [
+                "lightning",
+                "poison"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "speed-fly",
+            "type": "GrantMovement",
+            "data": {
+              "mode": "fly",
+              "distance": 50
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmWillowisp00000",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 2
+      },
+      "conversion": {
+        "notes": [
+          "Vanish: not automated (utility): using it spends its cost; its description says the rest",
+          "Vanish: effect: invisible is not a WildPath condition yet",
+          "Consume Life: not automated (save): using it spends its cost; its description says the rest",
+          "Consume Life: effect: dead is not a WildPath condition yet",
+          "Consume Life: \"Wisp: Healing\" is passive or triggered: not automated",
+          "condition immunities (exhaustion, grappled, paralyzed, petrified, poisoned, prone, restrained, unconscious) not converted"
+        ]
+      }
+    }
+  }
+}

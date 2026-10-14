@@ -1,0 +1,537 @@
+{
+  "_id": "dmggwsDancingSwo",
+  "_key": "!actors!dmggwsDancingSwo",
+  "name": "Dancing Sword",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 10
+      },
+      "agility": {
+        "value": 10
+      },
+      "fortitude": {
+        "value": 0
+      },
+      "intellect": {
+        "value": 0
+      },
+      "wits": {
+        "value": 0
+      },
+      "presence": {
+        "value": 0
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 0
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 1,
+        "value": 1
+      },
+      "movement": {
+        "base": 30,
+        "value": 30
+      }
+    },
+    "details": {
+      "threat": 0
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Dancing Sword",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "W8EZZZznFN8X4gGD",
+      "_key": "!actors.items!dmggwsDancingSwo.W8EZZZznFN8X4gGD",
+      "name": "Greatsword",
+      "type": "action",
+      "img": "icons/weapons/swords/greatsword-crossguard-steel.webp",
+      "system": {
+        "active": true,
+        "description": "",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-greatsword-command-move-and-attack",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              },
+              {
+                "capability": "greatsword",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 6
+              },
+              "damageType": "slashing",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Greatsword"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "greatsword-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "greatsword",
+              "label": "Greatsword",
+              "maximum": {
+                "type": "constant",
+                "value": 4
+              },
+              "recovery": "none"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "W8EZZZznFN8X4gGD",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "DPH6ngFfFJHdxMYe",
+      "_key": "!actors.items!dmggwsDancingSwo.DPH6ngFfFJHdxMYe",
+      "name": "Longsword",
+      "type": "action",
+      "img": "icons/weapons/swords/greatsword-guard.webp",
+      "system": {
+        "active": true,
+        "description": "",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-longsword-command-move-and-attack",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              },
+              {
+                "capability": "longsword",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 8
+              },
+              "damageType": "slashing",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Longsword"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "longsword-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "longsword",
+              "label": "Longsword",
+              "maximum": {
+                "type": "constant",
+                "value": 4
+              },
+              "recovery": "none"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "DPH6ngFfFJHdxMYe",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "damage: versatile two-handed damage not converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "dlSKamvVAPMCCTbC",
+      "_key": "!actors.items!dmggwsDancingSwo.dlSKamvVAPMCCTbC",
+      "name": "Rapier",
+      "type": "action",
+      "img": "icons/weapons/swords/sword-guard-bronze.webp",
+      "system": {
+        "active": true,
+        "description": "",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-rapier-command-move-and-attack",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              },
+              {
+                "capability": "rapier",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "properties": [
+              "finesse"
+            ]
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 8
+              },
+              "damageType": "piercing",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Rapier"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "rapier-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "rapier",
+              "label": "Rapier",
+              "maximum": {
+                "type": "constant",
+                "value": 4
+              },
+              "recovery": "none"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "dlSKamvVAPMCCTbC",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "aYun8JFJxhdpFw14",
+      "_key": "!actors.items!dmggwsDancingSwo.aYun8JFJxhdpFw14",
+      "name": "Scimitar",
+      "type": "action",
+      "img": "icons/weapons/swords/scimitar-worn-blue.webp",
+      "system": {
+        "active": true,
+        "description": "",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-scimitar-command-move-and-attack",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              },
+              {
+                "capability": "scimitar",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "properties": [
+              "finesse"
+            ]
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 6
+              },
+              "damageType": "slashing",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Scimitar"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "scimitar-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "scimitar",
+              "label": "Scimitar",
+              "maximum": {
+                "type": "constant",
+                "value": 4
+              },
+              "recovery": "none"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "aYun8JFJxhdpFw14",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "237FLmvncdVOhDKY",
+      "_key": "!actors.items!dmggwsDancingSwo.237FLmvncdVOhDKY",
+      "name": "Shortsword",
+      "type": "action",
+      "img": "icons/weapons/swords/sword-guard-worn-purple.webp",
+      "system": {
+        "active": true,
+        "description": "",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-shortsword-command-move-and-attack",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              },
+              {
+                "capability": "shortsword",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "properties": [
+              "finesse"
+            ]
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 6
+              },
+              "damageType": "piercing",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Shortsword"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "shortsword-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "shortsword",
+              "label": "Shortsword",
+              "maximum": {
+                "type": "constant",
+                "value": 4
+              },
+              "recovery": "none"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "237FLmvncdVOhDKY",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "dmggwsDancingSwo",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 0
+      },
+      "conversion": {
+        "notes": [
+          "Longsword: damage: versatile two-handed damage not converted"
+        ]
+      }
+    }
+  }
+}

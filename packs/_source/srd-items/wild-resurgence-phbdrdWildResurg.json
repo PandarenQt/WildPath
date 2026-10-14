@@ -1,0 +1,46 @@
+{
+  "_id": "phbdrdWildResurg",
+  "_key": "!items!phbdrdWildResurg",
+  "name": "Wild Resurgence",
+  "type": "feature",
+  "img": "icons/magic/life/cross-worn-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Once on each of your turns, if you have no uses of Wild Shape left, you can give yourself one use by expending a spell slot (no action required).</p><p>In addition, you can expend one use of Wild Shape (no action required) to give yourself a level 1 spell slot, but you can't do so again until you finish a Long Rest.</p><section class=\"secret\" id=\"secret-b0eq9t1Lkei4tN53\"><p><strong>Foundry Note</strong></p><p>The <strong>Regain Wild Shape</strong> activity consumes a spell slot and grants you another use of Wild Shape.</p><p>The <strong>Regain Spell Slot</strong> activity will consume a use of Wild Shape and grant you a level 1 spell slot.</p></section>",
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "wild-resurgence-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "wild-resurgence",
+          "label": "Wild Resurgence",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbdrdWildResurg",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Regain Wild Shape\" is passive or triggered: not automated",
+          "\"Regain Spell Slot\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

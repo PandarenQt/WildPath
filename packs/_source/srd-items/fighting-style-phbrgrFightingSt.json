@@ -1,0 +1,28 @@
+{
+  "_id": "phbrgrFightingSt",
+  "_key": "!items!phbrgrFightingSt",
+  "name": "Fighting Style",
+  "type": "feature",
+  "img": "icons/skills/melee/hand-grip-staff-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You gain a Fighting Style feat of your choice. Instead of choosing one of those feats, you can choose the option below.</p><hr /><p></p>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbrgrFightingSt",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

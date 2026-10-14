@@ -1,0 +1,43 @@
+{
+  "_id": "phbinvVisionsOfD",
+  "_key": "!items!phbinvVisionsOfD",
+  "name": "Visions of Distant Realms",
+  "type": "action",
+  "img": "icons/magic/control/hypnosis-mesmerism-eye.webp",
+  "system": {
+    "active": true,
+    "description": "<blockquote><p>Prerequisite: Level 9+ Warlock</p></blockquote><p>You can cast Arcane Eye without expending a spell slot.</p><section class=\"secret\" id=\"secret-yVljO3Op1LVKKBRZ\"><p><strong>Foundry Note</strong></p><p>This feature can be used in place of Arcane Eye and includes a <strong>Summon</strong> activity.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-visions-of-distant-realms",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Visions of Distant Realms"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbinvVisionsOfD",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (summon): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "_id": "phbdrdLandSpells",
+  "_key": "!items!phbdrdLandSpells",
+  "name": "Circle of the Land Spells",
+  "type": "feature",
+  "img": "icons/magic/nature/leaf-glow-triple-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Whenever you finish a Long Rest, choose one type of land: arid, polar, temperate, or tropical. Consult the table below that corresponds to the chosen type; you have the spells listed for your Druid level and lower prepared.</p><table><caption>Arid Land</caption><thead><tr><td>Druid Level</td><td>Circle Spells</td></tr></thead><tbody><tr><td>3</td><td>Blur, Burning Hands, Fire Bolt</td></tr><tr><td>5</td><td>Fireball</td></tr><tr><td>7</td><td>Blight</td></tr><tr><td>9</td><td>Wall of Stone</td></tr></tbody></table><table><caption>Polar Land</caption><thead><tr><td>Druid Level</td><td>Circle Spells</td></tr></thead><tbody><tr><td>3</td><td>Fog Cloud, Hold Person, Ray of Frost</td></tr><tr><td>5</td><td>Sleet Storm</td></tr><tr><td>7</td><td>Ice Storm</td></tr><tr><td>9</td><td>Cone of Cold</td></tr></tbody></table><table><caption>Temperate Land</caption><thead><tr><td>Druid Level</td><td>Circle Spells</td></tr></thead><tbody><tr><td>3</td><td>Misty Step, Shocking Grasp, Sleep</td></tr><tr><td>5</td><td>Lightning Bolt</td></tr><tr><td>7</td><td>Freedom of Movement</td></tr><tr><td>9</td><td>Tree Stride</td></tr></tbody></table><table><caption>Tropical Land</caption><thead><tr><td>Druid Level</td><td>Circle Spells</td></tr></thead><tbody><tr><td>3</td><td>Acid Splash, Ray of Sickness, Web</td></tr><tr><td>5</td><td>Stinking Cloud</td></tr><tr><td>7</td><td>Polymorph</td></tr><tr><td>9</td><td>Insect Plague</td></tr></tbody></table><section class=\"secret\" id=\"secret-0B8V69GLRm5swkth\"><p><strong>Foundry Note</strong></p><p>This feature does not automate swapping between prepared spell options.</p></section>",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbdrdLandSpells",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}
