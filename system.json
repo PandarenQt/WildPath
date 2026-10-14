@@ -20,6 +20,24 @@
       "type": "Item",
       "system": "wildpath",
       "ownership": {"PLAYER": "OBSERVER", "ASSISTANT": "OWNER"}
+    },
+    {
+      "name": "srd-items",
+      "label": "WILDPATH.PACKS.SrdItems",
+      "path": "packs/srd-items",
+      "type": "Item",
+      "system": "wildpath",
+      "ownership": {"PLAYER": "OBSERVER", "ASSISTANT": "OWNER"},
+      "flags": {"wildpath": {"license": "CC-BY-4.0", "source": "SRD 5.2"}}
+    },
+    {
+      "name": "srd-creatures",
+      "label": "WILDPATH.PACKS.SrdCreatures",
+      "path": "packs/srd-creatures",
+      "type": "Actor",
+      "system": "wildpath",
+      "ownership": {"PLAYER": "OBSERVER", "ASSISTANT": "OWNER"},
+      "flags": {"wildpath": {"license": "CC-BY-4.0", "source": "SRD 5.2"}}
     }
   ],
   "esmodules": [

@@ -1,0 +1,96 @@
+{
+  "_id": "phbftrSecondWind",
+  "_key": "!items!phbftrSecondWind",
+  "name": "Second Wind",
+  "type": "action",
+  "img": "icons/magic/life/cross-worn-green.webp",
+  "system": {
+    "active": true,
+    "description": "",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-second-wind",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          },
+          {
+            "capability": "second-wind",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "healing": [
+        {
+          "id": "healing-1",
+          "expression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "dice",
+                "number": 1,
+                "faces": 10
+              },
+              {
+                "type": "class-level",
+                "class": "fighter"
+              }
+            ]
+          },
+          "healingType": "healing"
+        }
+      ],
+      "label": "Second Wind"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "second-wind-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "second-wind",
+          "label": "Second Wind",
+          "maximum": {
+            "type": "table",
+            "key": {
+              "type": "class-level",
+              "class": "fighter"
+            },
+            "rows": {
+              "1": 2,
+              "4": 3,
+              "10": 4
+            }
+          },
+          "recovery": "shortRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbftrSecondWind",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool"
+        ]
+      }
+    }
+  }
+}

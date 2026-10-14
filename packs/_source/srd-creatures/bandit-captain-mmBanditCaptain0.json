@@ -1,0 +1,225 @@
+{
+  "_id": "mmBanditCaptain0",
+  "_key": "!actors!mmBanditCaptain0",
+  "name": "Bandit Captain",
+  "type": "npc",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "might": {
+        "value": 15
+      },
+      "agility": {
+        "value": 16
+      },
+      "fortitude": {
+        "value": 14
+      },
+      "intellect": {
+        "value": 14
+      },
+      "wits": {
+        "value": 11
+      },
+      "presence": {
+        "value": 14
+      }
+    },
+    "defenses": {
+      "ac": {
+        "value": 15
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 52,
+        "value": 52
+      },
+      "movement": {
+        "base": 30,
+        "value": 30
+      }
+    },
+    "details": {
+      "threat": 2
+    },
+    "dyingMode": "auto"
+  },
+  "prototypeToken": {
+    "name": "Bandit Captain",
+    "width": 1,
+    "height": 1,
+    "disposition": -1,
+    "actorLink": false
+  },
+  "items": [
+    {
+      "_id": "w3cX0piuU875Hc2M",
+      "_key": "!actors.items!mmBanditCaptain0.w3cX0piuU875Hc2M",
+      "name": "Scimitar",
+      "type": "action",
+      "img": "icons/weapons/swords/scimitar-worn-blue.webp",
+      "system": {
+        "active": true,
+        "description": "",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-scimitar",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "properties": [
+              "finesse"
+            ]
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 6
+              },
+              "damageType": "slashing",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Scimitar"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "w3cX0piuU875Hc2M",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "2TB9ZSIbtbi4UtSv",
+      "_key": "!actors.items!mmBanditCaptain0.2TB9ZSIbtbi4UtSv",
+      "name": "Pistol",
+      "type": "action",
+      "img": "icons/weapons/guns/gun-purple.webp",
+      "system": {
+        "active": true,
+        "description": "",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-pistol",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "attack": {
+            "type": "ranged",
+            "statistic": "weapon",
+            "defenseKey": "ac"
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 30,
+              "unit": "ft"
+            },
+            "long": {
+              "value": 90,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 10
+              },
+              "damageType": "piercing",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Pistol"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "2TB9ZSIbtbi4UtSv",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "mmBanditCaptain0",
+        "type": "npc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "challenge": 2
+      },
+      "conversion": {
+        "notes": [
+          "Multiattack: activity \"Expend Use\" does nothing WildPath can run",
+          "Parry: activity \"Use\" does nothing WildPath can run",
+          "attacks and proficient saves: the stat block adds +2 proficiency, which WildPath does not"
+        ]
+      }
+    }
+  }
+}

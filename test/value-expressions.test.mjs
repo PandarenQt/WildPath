@@ -101,3 +101,14 @@ test("ActionDefinition validation accepts a table ValueExpression and rejects on
   assert.equal(validateActionDefinition(strike({type: "table", key: 3, rows: {one: 2}})).ok, false);
   assert.equal(validateActionDefinition(strike({type: "table", rows: {1: 2}})).ok, false);
 });
+
+test("a class-based caster's source snapshot: level from its classes, spellcasting from its spellcasting class", () => {
+  // The authority reads source data: `details.level` is the stored default, and `spellcasting` is not prepared.
+  const snapshot = {actorSystem: {abilities: {intellect: {value: 16}}, details: {level: 1},
+    classes: [{id: "wizard", name: "Wizard", level: 5, original: true, spellcasting: {progression: "full", ability: "intellect"}}]}};
+  assert.equal(evaluateValueExpression({type: "character-level"}, snapshot).value, 5);
+  assert.equal(evaluateValueExpression({type: "proficiency-bonus"}, snapshot).value, 3);
+  assert.equal(evaluateValueExpression({type: "spellcasting-modifier"}, snapshot).value, 3);
+  const dc = {type: "add", terms: [{type: "constant", value: 8}, {type: "proficiency-bonus"}, {type: "spellcasting-modifier"}]};
+  assert.equal(evaluateValueExpression(dc, snapshot).value, 14, "a 5th-level wizard with Intellect 16 has spell save DC 14");
+});

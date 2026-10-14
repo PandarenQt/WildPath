@@ -5,6 +5,7 @@
  * strings, which keeps future homebrew formulas and selection/capacity limits safe to inspect,
  * serialize, validate, and migrate.
  */
+import {deriveClassData} from "./spellcasting.mjs";
 
 export const VALUE_EXPRESSION_CODES = Object.freeze({
   OK: "OK",
@@ -229,10 +230,13 @@ function evaluateSpellcastingModifier(expression, context) {
   ]);
   if ( explicit != null ) return ok(explicit);
 
+  // A source snapshot has no prepared `spellcasting`: the spellcasting class (its original, else the first) names it.
+  const classes = context.actor?.system?.classes ?? context.actorSystem?.classes;
   const ability = expression.ability
     ?? context.spellcastingAbility
     ?? context.actor?.system?.spellcasting?.ability
-    ?? context.actorSystem?.spellcasting?.ability;
+    ?? context.actorSystem?.spellcasting?.ability
+    ?? (Array.isArray(classes) ? deriveClassData(classes).spellcasting.ability : null);
   return ability
     ? evaluateAbilityModifier({type: "ability-modifier", ability}, context)
     : fail(VALUE_EXPRESSION_CODES.UNKNOWN_CONTEXT_PATH, "No spellcasting modifier or spellcasting ability found.");
@@ -293,19 +297,21 @@ function resolveAbilityScore(ability, context) {
 }
 
 function resolveCharacterLevel(context) {
-  const explicit = firstNumeric([
-    context.characterLevel,
-    context.level,
-    context.actor?.level,
+  const explicit = firstNumeric([context.characterLevel, context.level, context.actor?.level]);
+  if ( explicit != null ) return explicit;
+
+  // A character's class records (the data model's list) sum to its level, as its prepared data derives it. The
+  // authority reads a source snapshot, whose stored `details.level` may be a value the classes replaced.
+  const classes = context.actor?.system?.classes ?? context.actorSystem?.classes ?? context.classLevels;
+  const classTotal = sumClassLevels(classes);
+  if ( Array.isArray(classes) && (classTotal > 0) ) return classTotal;
+  const stored = firstNumeric([
     context.actor?.system?.details?.level,
     context.actor?.system?.level,
     context.actorSystem?.details?.level,
     context.actorSystem?.level
   ]);
-  if ( explicit != null ) return explicit;
-
-  const classTotal = sumClassLevels(context.actor?.system?.classes ?? context.actorSystem?.classes ?? context.classLevels);
-  return classTotal > 0 ? classTotal : null;
+  return stored ?? (classTotal > 0 ? classTotal : null);
 }
 
 function resolveClassLevel(classKey, context) {

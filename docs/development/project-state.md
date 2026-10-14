@@ -233,7 +233,18 @@ the smaller product gaps (Phase E).
   - Live: Spare the Dying stabilized the caster, and an hour of world time later they woke with 1 health. A Player's
     long rest at 0 health gave no benefit, but its 8 hours woke the stable caster. The next long rest restored full
     health and took Exhaustion from 2 to 1.
-  Phase E is done. Next: Phase F, content (2024 SRD first).
+  Phase E is done.
+
+**Phase F, content: SRD 5.2 converter, representative slice (2026-10-14).** A converter maps dnd5e 6.0.2's 2024 SRD
+(CC-BY-4.0 documents only) to WildPath. The first slice is one of each kind: Longsword, Fireball, Fire Bolt, Cure
+Wounds, Second Wind and the Bandit Captain, in the new packs `srd-items` and `srd-creatures`
+([content-packs.md](content-packs.md#srd-52-packs-2026-10-14)).
+- What WildPath cannot express is listed per document, never approximated.
+- Live: the converted Fireball and Scimitar resolved correctly.
+- It also fixed an engine bug: a class caster's spell save DC (`8 + prof + spellmod`) failed on the authority.
+- **Open decisions** before converting volume:
+  - proficiency on attacks and saves;
+  - whether to copy SRD descriptions.
 
 **M4 — content pack (in progress, 2026-10-14).**
 - **The pack.** `@foundryvtt/foundryvtt-cli` 3.0.4 was approved and added. The built-in **WildPath Actions**

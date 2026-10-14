@@ -31,6 +31,56 @@ Live (14.369, after the maintainer relaunched the world):
 - The Quench import case passed.
 - Player1 imported Melee Strike from the pack and hit with it through `Item.use()`.
 
+## SRD 5.2 packs (2026-10-14)
+
+**SRD 5.2: Spells, Weapons and Features** (`srd-items`, Items) and **SRD 5.2: Creatures** (`srd-creatures`,
+Actors) are converted from dnd5e 6.0.2's 2024 compendiums by `scripts/content/convert-dnd5e-srd.mjs`. The mapping
+itself is `dnd5e-to-wildpath.mjs`.
+
+- **Only SRD.** A document is converted only if its own `system.source` says `license: "CC-BY-4.0"` and `rules:
+  "2024"`.
+  - The "Free Rules" documents (Unlicensed) and those with no license are skipped.
+  - Each converted document keeps its origin and license in `flags.wildpath.source`.
+  - Premium books (PHB, DMG, MM) are never written to `packs/_source`.
+- **Reading dnd5e's packs.** Copy them out of the dnd5e system folder, extract the copy with the Foundry CLI
+  (`extractPack`), and point the script at the extracted folder. Opening a LevelDB pack writes to it.
+- **The mapping.**
+  - Abilities map one to one: str, dex, con, int, wis, cha become might, agility, fortitude, intellect, wits,
+    presence.
+  - Each activity becomes an Action Item: attack, save (with what a success does), damage, healing, and the
+    conditions WildPath has.
+  - A spell of level 1 or higher spends a slot of its level or higher, and its scaling dice grow per level above.
+  - Item uses become a resource pool (`GrantResource`), with class scale values as tables on the class level.
+  - A creature keeps its abilities, Hit Points, AC (natural, or worn armor and shield), Speeds and size.
+    Resistances, immunities and Legendary Actions go on a Traits feature, and an ability-based save DC is fixed
+    from its Challenge Rating.
+- **Never approximated.** What WildPath cannot express is left out and listed in
+  `flags.wildpath.conversion.notes` and in `docs/content/srd-conversion.md`. Examples:
+  - cantrip damage growing with level, and more healing at higher levels;
+  - versatile damage;
+  - a cube area (the user picks the targets instead);
+  - conditions WildPath lacks (Paralyzed, Grappled, Frightened...);
+  - passive or triggered abilities, and Multiattack.
+  - An Action that would roll for nothing is left out.
+- **Proficiency.** WildPath adds no proficiency bonus to attack rolls or saves, so converted attacks roll lower
+  than their stat blocks. This is noted on each creature, and it is the maintainer's open decision.
+- **No descriptions** (AGENTS §22). Whether to copy the SRD's own CC-BY text is the maintainer's decision.
+- **Representative first** (CODEX §28). The first conversion is one of each kind: Longsword, Fireball, Fire Bolt,
+  Cure Wounds, Second Wind and the Bandit Captain. Volume comes after the open decisions.
+
+Live (14.369, created from the pack sources because the packs load only after a world relaunch):
+- A 5th-level wizard's Fireball, cast by Player1, asked for a slot and spent a 3rd-level one. It rolled 8d6
+  (25): a failed save took 25 and a successful one 12.
+- The Bandit Captain's Scimitar hit with Agility (finesse): 12 + 3 against AC 10, for 1d6 + 3 damage. That is
+  without its +2 proficiency.
+- Converting these found an engine bug, fixed with them. The authority's source snapshot evaluated `prof` from the
+  stored `details.level` rather than the class levels, and had no `spellmod` at all, so a class caster's spell
+  save DC failed. Both now derive from the class records (value-expressions.mjs).
+
+This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
+https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
+available at https://creativecommons.org/licenses/by/4.0/legalcode.
+
 ## WildPath Actions
 
 Mechanical data only, with no descriptions (AGENTS §22). Item names are functional labels, for the

@@ -519,7 +519,9 @@
       }
     },
     "PACKS": {
-      "Actions": "WildPath Actions"
+      "Actions": "WildPath Actions",
+      "SrdItems": "SRD 5.2: Spells, Weapons and Features",
+      "SrdCreatures": "SRD 5.2: Creatures"
     },
     "TRANSFORMATION": {
       "Effect": "Transformed: {form}"
