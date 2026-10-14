@@ -105,6 +105,10 @@ export function registerFoundryV14MultiplayerResolution({
   // Lasting areas: Regions created by completed area Actions, whose triggers resolve as authority Actions.
   const areas = createFoundryPersistentAreas({game, coordinator, logger, fromUuid: globalThis.fromUuid ?? null,
     resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});
+  // A Player who disconnects mid-resolution cannot answer; the authority routes their requests again (GM fallback).
+  globalThis.Hooks?.on?.("userConnected", (user, connected) => {
+    if ( !connected && (game.users?.activeGM?.id === game.user?.id) ) void coordinator.releaseRequestsOf(user.id);
+  });
   globalThis.Hooks?.on?.("deleteActiveEffect", effect => areas.onEffectDeleted(effect));
   globalThis.Hooks?.on?.("deleteRegion", region => areas.onRegionDeleted(region));
   const movement = createMultiplayerMovementAuthority({

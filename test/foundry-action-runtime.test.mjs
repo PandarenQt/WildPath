@@ -650,6 +650,42 @@ test("a save is routed to the Player who owns the target Token, not to the GM fa
   assert.equal(targetActor.system.resources.health.value, 26);
 });
 
+test("a save waiting on a Player who disconnects goes to the GM instead of hanging", async t => {
+  const saveDefinition = {schemaVersion: 1, id: "action:routed-save", label: "Routed save",
+    costs: {allOf: [{capability: "action", amount: 1}]}, targeting: {type: "single", required: true, count: 1},
+    range: {type: "reach", distance: {value: 5, unit: "ft"}}, save: {ability: "fortitude", dc: {value: 100}},
+    damage: [{id: "venom", expression: {type: "constant", value: 4}, damageType: "poison",
+      saveOutcomePolicy: {success: "half", failure: "full"}}]};
+  const {sourceActor, targetActor, targetToken, action, game} = syntheticRuntimeFixture(t, saveDefinition, {targetHealth: 30});
+  const hub = createTestResolutionTransportHub({users: [
+    {id: "gm-a", active: true, isGM: true, isActiveGM: true},
+    {id: "player-a", active: true, isGM: false}
+  ]});
+  const gm = createMultiplayerActionCoordinator({userId: "gm-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
+    transport: hub.createEndpoint({userId: "gm-a"}), rollProviders: [createTestRollProvider({result: {natural: 5, total: 5}})],
+    actionIntentResolver: ({intent, envelope}) => foundryActionIntentToStagedOptions({intent,
+      senderUserId: envelope.senderUserId, game, persistencePort: createTestDocumentPersistenceAdapter()})});
+  gm.register();
+  // The Player's client receives the request but never answers it.
+  const silent = hub.createEndpoint({userId: "player-a"});
+  silent.register(() => ({ok: true}));
+  const built = buildFoundryActionUseIntent({actor: sourceActor, action, game: {user: {targets: new Set([{document: targetToken}])}}});
+  const declared = await gm.declareActionIntent(built.intent);
+  const record = gm.getRecord(declared.resolutionId);
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.AWAITING_ROLL, "the save waits on the target's Player");
+  hub.setActive("player-a", false);
+  await gm.releaseRequestsOf("player-a");
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors));
+  assert.equal(targetActor.system.resources.health.value, 26, "the GM rolled the save; it failed against DC 100");
+  // Back online, the Player's answer for a resolution the GM no longer has is refused back to them, not dropped.
+  hub.setActive("player-a", true);
+  const errors = [];
+  silent.register(envelope => { errors.push(envelope); return {ok: true}; });
+  await silent.send(createResolutionSocketEnvelope({messageType: "REQUEST_RESPONSE", senderUserId: "player-a",
+    recipientUserId: "gm-a", resolutionId: "resolution:gone", requestId: "request:gone", payload: {response: {value: {}}}}));
+  assert.equal(errors.find(envelope => envelope.messageType === "RESOLUTION_ERROR")?.payload?.code, "RESOLUTION_NOT_FOUND");
+});
+
 test("two unlinked Tokens of one base Actor each take their own hit, never each other's", async t => {
   const definition = {...meleeStrikeDefinition(), targeting: {type: "multiple", required: true, count: 2}};
   const {scene, sourceActor, targetActor, targetToken, action, game} = syntheticRuntimeFixture(t, definition, {targetHealth: 30});

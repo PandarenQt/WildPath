@@ -118,6 +118,27 @@ export function createMultiplayerActionCoordinator({
       records.set(resolutionId, record);
       return advanceRecord(record);
     },
+    /**
+     * A user who disconnected cannot answer: requests still waiting on them are routed again without them
+     * (another controller, or the GM fallback). The authority calls this from Foundry's `userConnected` hook.
+     */
+    async releaseRequestsOf(userId) {
+      const results = [];
+      for ( const record of [...records.values()] ) {
+        if ( (record.authorityUserId !== localUserId) || isTerminalState(record.state) ) continue;
+        const execution = activeResolutionExecution(record.state);
+        const pending = new Set((execution.state?.pendingRequests ?? []).map(request => requestKey(request, execution.state)));
+        let released = false;
+        for ( const [key, expectation] of record.requestExpectations ) {
+          if ( (expectation.expectedUserId !== userId) || !pending.has(key) ) continue;
+          record.requestExpectations.delete(key);
+          record.routedRequestIds.delete(key);
+          released = true;
+        }
+        if ( released ) results.push(await advanceRecord(record));
+      }
+      return results;
+    },
     register() {
       if ( !transport || typeof transport.register !== "function" ) return {
         ok: false,
@@ -551,11 +572,15 @@ export function createMultiplayerActionCoordinator({
 
   async function receiveRequestResponse(envelope) {
     const record = findRecordForResolutionId(envelope.resolutionId);
-    if ( !record ) return {
-      ok: false,
-      code: MULTIPLAYER_AUTHORITY_CODES.RESOLUTION_NOT_FOUND,
-      reason: `No authoritative resolution is registered for ${envelope.resolutionId}.`
-    };
+    if ( !record ) {
+      // Tell the responder (the authority may have reloaded) rather than leave their answer unanswered.
+      const failed = {ok: false, code: MULTIPLAYER_AUTHORITY_CODES.RESOLUTION_NOT_FOUND,
+        reason: "That action is no longer running; the GM may have reloaded."};
+      if ( envelope.senderUserId && (envelope.senderUserId !== localUserId) ) await sendError({
+        resolutionId: envelope.resolutionId, requestId: envelope.requestId ?? null,
+        recipientUserId: envelope.senderUserId, code: failed.code, reason: failed.reason});
+      return failed;
+    }
     if ( record.authorityUserId !== localUserId ) return {
       ok: false,
       code: MULTIPLAYER_AUTHORITY_CODES.WRONG_AUTHORITY,

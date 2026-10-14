@@ -43,7 +43,8 @@ import {
 } from "../adapters/foundry-v14-movement-adapter.mjs";
 
 const DEFAULT_APPROVAL_TIMEOUT_MS = 15000;
-// shortcut: a fixed bound while a step's reactions resolve (prompts included); abandoned prompts are not timed out yet.
+// A step held while its reactions resolve (prompts included) waits at most this long. A Player who disconnects
+// has their prompts routed again (GM fallback); shortcut: a connected but idle Player can still hold it this long.
 const REACTION_APPROVAL_TIMEOUT_MS = 10 * 60 * 1000;
 
 /* -------------------------------------------- */

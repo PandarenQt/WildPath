@@ -72,6 +72,12 @@ If the expected chooser is inactive, the request is not sent to an unrelated pla
 used only when the request policy allows it; otherwise the resolution is cancelled with
 `REQUEST_AUTHORITY_UNAVAILABLE`.
 
+The same rule applies when a chooser disconnects while a request is waiting on them. On Foundry's
+`userConnected` hook, the active GM calls `releaseRequestsOf(userId)`. Requests still pending on that
+user are routed again without them, to another controller or to the GM fallback, so the resolution does
+not hang. An answer that arrives for a resolution the authority no longer has (for example after a GM
+reload) is refused back to its sender with `RESOLUTION_NOT_FOUND`, instead of being dropped.
+
 ## Socket Envelope
 
 `module/adapters/foundry-v14-resolution-socket-adapter.mjs` isolates Foundry socket access. The
@@ -385,8 +391,9 @@ Not implemented here:
   [multiplayer-confidentiality.md](multiplayer-confidentiality.md) is client-level, recipient-restricted transport
 - resolution cancel: `RESOLUTION_CANCEL` was removed (nothing sent it and it had no sender check);
   re-add it with an initiator/GM check when a cancel UI exists
-- time-outs for abandoned requests: finished resolutions and committed movements are retained only up
-  to `duplicateCacheLimit` (200) and then released, but unfinished ones stay until answered
+- time-outs for idle requests: a disconnected chooser's requests are routed again (above), but a connected
+  Player who never answers still holds the resolution. Finished resolutions and committed movements are
+  retained only up to `duplicateCacheLimit` (200) and then released.
 
 Generic reaction-choice routing and nested child advancement are covered by deterministic transport
 tests. The live movement/reaction gate additionally proved active-GM authority, a real player prompt,
