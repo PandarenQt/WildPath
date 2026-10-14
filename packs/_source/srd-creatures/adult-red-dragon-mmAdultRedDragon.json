@@ -64,7 +64,19 @@
       "system": {
         "active": true,
         "description": "<p>If the adult red dragon fails a saving throw, it can choose to succeed instead.</p>",
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "legendary-resistance",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "legendary-resistance",
+              "label": "Legendary Resistance",
+              "maximum": 3,
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -78,9 +90,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "\"Expend Use\" is passive or triggered: not automated"
-            ]
+            "notes": []
           }
         }
       }
@@ -855,7 +865,6 @@
       },
       "conversion": {
         "notes": [
-          "Legendary Resistance: \"Expend Use\" is passive or triggered: not automated",
           "Commanding Presence: cast: Command at level 2 is cast at its own level",
           "Commanding Presence: not automated (save): using it spends its cost; its description says the rest",
           "Spellcasting: cast: Command at level 2 is cast at its own level",

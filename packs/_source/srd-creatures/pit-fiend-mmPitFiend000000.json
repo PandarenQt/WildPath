@@ -122,7 +122,24 @@
       "system": {
         "active": true,
         "description": "<p>The pit fiend has Advantage on saving throws against spells and other magical effects.</p>",
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "magic-resistance",
+            "type": "RollMode",
+            "predicate": {
+              "tagsAny": [
+                "spell"
+              ]
+            },
+            "data": {
+              "domains": [
+                "save"
+              ],
+              "mode": "advantage"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -136,7 +153,9 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": []
+            "notes": [
+              "Magic Resistance: Advantage on saves against spells; other magical effects are not told apart"
+            ]
           }
         }
       }
@@ -216,7 +235,19 @@
       "system": {
         "active": true,
         "description": "<p>If the pit fiend fails a saving throw, it can choose to succeed instead.</p>",
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "legendary-resistance",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "legendary-resistance",
+              "label": "Legendary Resistance",
+              "maximum": 4,
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -230,9 +261,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "\"Expend Use\" is passive or triggered: not automated"
-            ]
+            "notes": []
           }
         }
       }
@@ -922,7 +951,7 @@
       "conversion": {
         "notes": [
           "Fear Aura: \"save\" is passive or triggered: not automated",
-          "Legendary Resistance: \"Expend Use\" is passive or triggered: not automated",
+          "Magic Resistance: Magic Resistance: Advantage on saves against spells; other magical effects are not told apart",
           "Bite: \"save\" is passive or triggered: not automated",
           "Bite: activation: turnStart is not an action-economy cost",
           "Hellfire Spellcasting: cast: Fireball at level 5 is cast at its own level",

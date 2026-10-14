@@ -137,6 +137,21 @@ Converted on 2026-10-14 (dnd5e 6.0.2 data), as of the monster toolkit (G4):
 Each package was read back with the Foundry CLI, and every art path resolves on disk. They have not been opened
 in Foundry yet; that waits for the next world launch.
 
+### Common monster traits (G5)
+
+A feature is matched by its dnd5e identifier (or its name) and gets the rules of that trait:
+- **Magic Resistance:** Advantage on saves against spells (a `RollMode` on `save` for Actions tagged `spell`).
+  Shortcut: other magical effects are not told apart.
+- **Pack Tactics:** Advantage on attacks while one of the creature's allies, not Incapacitated, is within 5 ft of the
+  target.
+- **Regeneration:** its healing at the start of each of its turns, while it has at least 1 Hit Point. Shortcut: the
+  damage that stops it for a turn (Acid, Fire) is not tracked, so the GM turns the feature off for that turn.
+- **Legendary Resistance:** a pool of the creature's uses ("3/Day", from its stat block). A failed save may succeed
+  instead, spending one; its controller is asked unless its setting says Always or Never.
+
+Converted on 2026-10-14, the SRD has Legendary Resistance on 32 creatures, Magic Resistance on 34, Pack Tactics on 18
+and Regeneration on 4. The book packages convert the same way.
+
 ### The monster toolkit (G4)
 
 - **Multiattack.**

@@ -92,7 +92,19 @@
       "system": {
         "active": true,
         "description": "<p>If the adult black dragon fails a saving throw, it can choose to succeed instead.</p>",
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "legendary-resistance",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "legendary-resistance",
+              "label": "Legendary Resistance",
+              "maximum": 3,
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -106,9 +118,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "\"Expend Use\" is passive or triggered: not automated"
-            ]
+            "notes": []
           }
         }
       }
@@ -1010,7 +1020,6 @@
       },
       "conversion": {
         "notes": [
-          "Legendary Resistance: \"Expend Use\" is passive or triggered: not automated",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Detect Magic\" (its own changes) not converted",
           "Spellcasting: concentration: nothing it sustains was converted",

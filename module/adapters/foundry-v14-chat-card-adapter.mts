@@ -78,7 +78,8 @@ export function createFoundryV14ChatCardAdapter({
   };
 }
 
-const FLOATED = new Set<string>([CHAT_OUTCOME_KEYS.miss, CHAT_OUTCOME_KEYS.critical, CHAT_OUTCOME_KEYS.saveSuccess]);
+const FLOATED = new Set<string>([CHAT_OUTCOME_KEYS.miss, CHAT_OUTCOME_KEYS.critical, CHAT_OUTCOME_KEYS.saveSuccess,
+  CHAT_OUTCOME_KEYS.legendaryResistance]);
 
 /** The outcomes that float over targets: a named target's Miss, Critical hit or Saved (hidden targets have no uuid). */
 export function floatingOutcomes(view: ReturnType<typeof createResolutionCardViewModel>) {

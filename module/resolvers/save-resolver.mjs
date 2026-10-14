@@ -159,7 +159,15 @@ export function resolveSaveTargets({
 
 /* -------------------------------------------- */
 
-function resolveSaveTarget({roll, targetContext, dc, dcKey, saveKey, policy, context}) {
+/** A target whose overrides say `succeed-instead` (Legendary Resistance) turns a failure, even an automatic one, into a success. */
+function resolveSaveTarget(options) {
+  const result = resolveSaveTargetRoll(options);
+  if ( !result.ok || (result.success !== false) ) return result;
+  if ( !(result.targetContext?.overrides ?? []).some(override => override?.type === "succeed-instead") ) return result;
+  return {...result, outcome: SAVE_OUTCOMES.SUCCESS, success: true, succeededInstead: true};
+}
+
+function resolveSaveTargetRoll({roll, targetContext, dc, dcKey, saveKey, policy, context}) {
   const normalizedContext = normalizeTargetContext(targetContext);
   if ( !normalizedContext.selected || normalizedContext.excluded || normalizedContext.resolutionState === "excluded" ) {
     return {

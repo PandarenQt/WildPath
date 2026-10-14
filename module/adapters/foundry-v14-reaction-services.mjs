@@ -5,6 +5,7 @@ import { actionCombatStatistics, attackForcesCritical, attackRollMode, resolveAc
 import { conditionsFrom } from "../helpers/effect-sources.mjs";
 import { footprintDistance } from "../helpers/grid-footprints.mjs";
 import { turnKey } from "./foundry-v14-persistent-areas.mjs";
+import { allyNearTarget } from "./foundry-v14-auras.mjs";
 import { economyResourcesFromActorResources } from "../helpers/action-economy.mjs";
 import { createAutomationEvent } from "../helpers/automation-events.mjs";
 import { movementTransitionRelations } from "../helpers/movement-transition.mjs";
@@ -66,7 +67,8 @@ function reactionChildState({ args, reactor, target, targetFootprint, sourceFoot
     const type = definition.attack?.type ?? null;
     const fields = footprintDistance(sourceFootprint, targetFootprint.footprint);
     const context = { attack: { type, ...(Number.isFinite(fields) ? { adjacent: fields * sceneContext.grid.distance <= 5 } : {}),
-            fromTarget: conditionsFrom(reactor.actor, actor) } };
+            fromTarget: conditionsFrom(reactor.actor, actor),
+            allyNearTarget: allyNearTarget(reactor, target, targetFootprint.footprint ?? null) } };
     const rollMode = definition.attack ? attackRollMode(reactor.actor, actor, { type, item: reactionItem, context }) : null;
     const critical = !!definition.attack && attackForcesCritical(actor, { type, context });
     const targetSystem = foundryActorSystemSnapshot(actor);

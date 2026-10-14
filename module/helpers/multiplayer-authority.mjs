@@ -289,6 +289,9 @@ export function projectPendingRequestPayloadForChooser(type, payload) {
       return pick(data, ["candidates", "options"]);
     case RESOLUTION_REQUEST_TYPES.ACTION_CONFIGURATION:
       return pick(data, ["requests"]);
+    // A yes-or-no choice (Legendary Resistance): its question and options only.
+    case RESOLUTION_REQUEST_TYPES.CHOICE:
+      return pick(data, ["id", "label", "description", "options", "defaultValue"]);
     default:
       return {};
   }
@@ -449,7 +452,7 @@ function projectPublicResolutionResult(data) {
     targets: normalizeArray(data.targets).map(projectEntityRefForDisclosure),
     outcomes: {
       attack: projectContestOutcome(data.outcomes?.attack, ["hit", "critical", "outcome"]),
-      save: projectContestOutcome(data.outcomes?.save, ["success", "critical", "outcome"]),
+      save: projectContestOutcome(data.outcomes?.save, ["success", "critical", "outcome"], ["succeededInstead"]),
       // The acting creature's own check: whether it succeeded, never its DC or margin.
       check: data.outcomes?.check ? {success: data.outcomes.check.success === true} : null,
       movement: projectMovementOutcome(data.outcomes?.movement)
@@ -481,13 +484,15 @@ function publicFoundryRoll(rollResult) {
   return roll;
 }
 
-function projectContestOutcome(outcome, keys) {
+/** Each result's `keys` (null when missing), and its `flags` only when they are set. */
+function projectContestOutcome(outcome, keys, flags=[]) {
   if ( !outcome || typeof outcome !== "object" ) return null;
   return {
     ok: outcome.ok !== false,
     results: normalizeArray(outcome.results).map(entry => ({
       target: projectEntityRefForDisclosure(entry?.target ?? null),
-      ...Object.fromEntries(keys.map(key => [key, entry?.[key] ?? null]))
+      ...Object.fromEntries(keys.map(key => [key, entry?.[key] ?? null])),
+      ...Object.fromEntries(flags.filter(key => entry?.[key] === true).map(key => [key, true]))
     }))
   };
 }

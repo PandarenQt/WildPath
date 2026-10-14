@@ -271,6 +271,9 @@ the GM with the V14 user query `wildpath.automationEvent`. Foundry's server name
 only `rest.completed`, only for an Actor that sender owns, and takes only the rest type from the data. A
 rest on the GM's own client runs before `rest()` returns.
 
+A trigger's predicate also sees its creature as `actor`. Regeneration is a `turn.started` trigger with
+`{not: {equals: {path: "actor.system.resources.health.value", value: 0}}}`.
+
 Not yet: `once` is ignored (triggers fire every time), and a trigger cannot target anyone but its owner.
 
 Live (14.369): Quench ran a turn-start trigger once per turn, an initiative trigger when the Combatant
@@ -285,7 +288,10 @@ its domains:
 - **Attacks against the creature:** `attacked`, `attacked.melee` and `attacked.ranged`.
 
 Its predicate sees `attack.type` and `attack.adjacent` (the attacker within 5 ft), so "advantage within
-5 ft, disadvantage beyond" is two RollModes. The 2024 conditions are authored this way in
+5 ft, disadvantage beyond" is two RollModes. It also sees:
+- `attack.allyNearTarget`: one of the attacker's allies (its disposition, not Incapacitated) stands within 5 ft of
+  the target. Pack Tactics is `{equals: {path: "attack.allyNearTarget", value: true}}` on `attack`.
+- on a save, the Action's `tags`. Magic Resistance is `{tagsAny: ["spell"]}` on `save`. The 2024 conditions are authored this way in
 `WILDPATH.CONDITIONS` (rolls.md, "Advantage / Disadvantage and Modifiers").
 
 **Resource caps.** A `ResourceCap` RuleElement puts a ceiling on resource maxima:
@@ -298,6 +304,18 @@ Its predicate sees `attack.type` and `attack.adjacent` (the attacker within 5 ft
   target context carries the `automatic-failure` override.
 - `critical-on-hit` on attacks against it (`attacked`): a hit becomes a critical hit. Its predicate sees
   `attack.adjacent`, measured per target.
+
+**Legendary Resistance (2026-10-14, G5).** A creature with a `legendary-resistance` pool (a `GrantResource`) that
+fails a save may succeed instead.
+- Its setting is the creature's own, `flags.wildpath.commonPolicies["legendary-resistance"]`. With Ask (the default),
+  the save stage asks its controller once: Succeed instead, or Fail the save. With Always it is used without asking.
+  With Never it is not used. The action bar's Legendary Resistance counter has the same toggle as a reaction.
+- Using it spends one use of that pool, paid by the creature, in the Action's own transaction. It turns even an
+  automatic failure (Stunned) into a success.
+- The card and the floating text say "Legendary Resistance" instead of "Saved".
+
+Live (two browsers, 14.369): Player1's Fireball caught the SRD Unicorn, Stunned. The GM was asked and chose to
+succeed: half damage, uses 3 → 2. Set to Always from the GM's action bar, the next Fireball asked no one (2 → 1).
 
 **Leveled Modifiers.** A Modifier on an effect is bound to that effect's level (`effect.system.level`,
 through the modifier's `bindings`). Exhaustion's 2024 penalties scale this way: −2 per level on d20 tests

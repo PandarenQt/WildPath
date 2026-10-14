@@ -9,6 +9,7 @@ export const CHAT_OUTCOME_KEYS = Object.freeze({
     miss: "WILDPATH.CHAT.Outcome.Miss",
     saveSuccess: "WILDPATH.CHAT.Outcome.SaveSuccess",
     saveFailure: "WILDPATH.CHAT.Outcome.SaveFailure",
+    legendaryResistance: "WILDPATH.CHAT.Outcome.LegendaryResistance",
     checkSuccess: "WILDPATH.CHAT.Outcome.CheckSuccess",
     checkFailure: "WILDPATH.CHAT.Outcome.CheckFailure"
 });
@@ -55,6 +56,8 @@ function attackOutcome(entry) {
     return { label: entry.critical ? CHAT_OUTCOME_KEYS.critical : CHAT_OUTCOME_KEYS.hit, tone: "success" };
 }
 function saveOutcome(entry) {
+    if (entry.success && entry.succeededInstead)
+        return { label: CHAT_OUTCOME_KEYS.legendaryResistance, tone: "success" };
     return entry.success
         ? { label: CHAT_OUTCOME_KEYS.saveSuccess, tone: "success" }
         : { label: CHAT_OUTCOME_KEYS.saveFailure, tone: "failure" };

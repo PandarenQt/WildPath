@@ -5,7 +5,7 @@ import {fileURLToPath} from "node:url";
 import {ECONOMY_CAPABILITIES} from "../module/helpers/action-economy.mjs";
 import {CREATURE_SIZES} from "../module/helpers/grid-footprints.mjs";
 import {RESOLUTION_STATE_STATUS, validateResolutionStateSerializable} from "../module/helpers/resolution-state.mjs";
-import {createActionResolutionState, planStagedActionResolution} from "../module/resolvers/action-pipeline-resolver.mjs";
+import {createActionResolutionState, planStagedActionResolution, resumeStagedActionResolution} from "../module/resolvers/action-pipeline-resolver.mjs";
 import {withFoundryActorSystem} from "./fixtures/foundry-actor-system.mjs";
 import {
   MULTIPLAYER_AUTHORITY_CODES,
@@ -375,9 +375,12 @@ test("ordinary Foundry Action rejects invalid serialized system data at the Foun
   assert.equal(actor.system.resources.action.value, 1);
 });
 
-/** A fake creature under these conditions: its roll modes come from their real 2024 RollMode RuleElements. */
+/**
+ * A fake creature under these conditions: its roll modes come from their real 2024 RollMode RuleElements. An array
+ * instead of a condition id is the creature's own rules (a trait).
+ */
 function withConditions(actor, ...ids) {
-  const owners = ids.map(id => ({ruleElements: WILDPATH.CONDITIONS[id].ruleElements}));
+  const owners = ids.map(id => ({ruleElements: Array.isArray(id) ? id : WILDPATH.CONDITIONS[id].ruleElements}));
   actor.getRollModes = (domains, {context={}}={}) => rollModesFromRuleElements(owners, {domains, context});
   actor.getRollOutcomes = (domains, {context={}}={}) => rollOutcomesFromRuleElements(owners, {domains, context});
   return actor;
@@ -389,17 +392,22 @@ async function firstRollRequest(definition, options={}) {
 }
 
 /** The planned resolution of an Action between two conditioned creatures (`attackRoll` answers the attack). */
-async function plannedWithConditions(definition, {attacker=[], target=[], offset={i: 1, j: 0}, targetStatistics={}, attackRoll=null}={}) {
+async function plannedWithConditions(definition, {attacker=[], target=[], offset={i: 1, j: 0}, targetStatistics={}, attackRoll=null,
+  allies=[], prepareTarget=null}={}) {
   const scene = fakeScene(new FakeSquareGrid(), {id: "scene-roll-modes"});
   const sourceActor = withConditions(fakeActor("roll-source", {system: actorSystem(),
     statistics: {"attack.weapon": runtimeStatistic("attack.weapon", 4)}}), ...attacker);
   const targetActor = withConditions(fakeActor("roll-target", {system: targetActorSystem(20, 20, {ac: 14}),
     statistics: targetStatistics}), ...target);
+  prepareTarget?.(targetActor);
   const sourceToken = fakeTokenDocument({id: "source", actor: sourceActor, scene, offset: {i: 0, j: 0}});
   const targetToken = fakeTokenDocument({id: "enemy", actor: targetActor, scene, offset});
   sourceActor.tokens = [sourceToken];
   targetActor.tokens = [targetToken];
-  scene.tokens = [sourceToken, targetToken];
+  // The attacker's allies (its disposition), each at an offset and under its own conditions.
+  const allyTokens = allies.map(({offset: at, conditions=[]}, index) => fakeTokenDocument({id: `ally-${index}`, scene, offset: at,
+    actor: Object.assign(fakeActor(`roll-ally-${index}`, {system: actorSystem()}), {statuses: new Set(conditions)})}));
+  scene.tokens = [sourceToken, targetToken, ...allyTokens];
   const action = actionItem(definition, sourceActor);
   const resolved = await foundryActionIntentToStagedOptions({senderUserId: "player-a", game: fakeGame({actors: [sourceActor, targetActor],
     scenes: [scene]}), intent: {actorRef: sourceActor.uuid, actionRef: action.uuid,
@@ -424,6 +432,55 @@ const fortitudeBlast = ability => ({schemaVersion: 1, id: `action:runtime-${abil
   targeting: {type: "single", required: true, count: 1}, range: {type: "reach", distance: {value: 5, unit: "ft"}},
   save: {ability, dc: {value: 13}},
   damage: [{id: "blast", expression: {type: "constant", value: 4}, damageType: "force", provenance: "spell-base"}]});
+
+test("common traits (G5): Magic Resistance is Advantage on saves against spells, Pack Tactics needs an ally by the target", async () => {
+  const magicResistance = [{schemaVersion: 1, id: "magic-resistance", type: "RollMode", predicate: {tagsAny: ["spell"]},
+    data: {domains: ["save"], mode: "advantage"}}];
+  const spell = {...fortitudeBlast("wits"), id: "action:runtime-spell-blast", tags: ["spell"]};
+  assert.equal((await firstRollRequest(spell, {target: [magicResistance]})).rollMode, "advantage");
+  assert.equal((await firstRollRequest(fortitudeBlast("wits"), {target: [magicResistance]})).rollMode, "normal", "not against a non-spell");
+
+  const packTactics = [{schemaVersion: 1, id: "pack-tactics", type: "RollMode", predicate: {equals: {path: "attack.allyNearTarget", value: true}},
+    data: {domains: ["attack"], mode: "advantage"}}];
+  const strike = meleeStrikeDefinition();
+  assert.equal((await firstRollRequest(strike, {attacker: [packTactics]})).rollMode, "normal", "alone");
+  assert.equal((await firstRollRequest(strike, {attacker: [packTactics], allies: [{offset: {i: 2, j: 0}}]})).rollMode, "advantage",
+    "an ally on the target's far side");
+  assert.equal((await firstRollRequest(strike, {attacker: [packTactics], allies: [{offset: {i: 3, j: 0}}]})).rollMode, "normal",
+    "an ally 10 ft from the target");
+  assert.equal((await firstRollRequest(strike, {attacker: [packTactics], allies: [{offset: {i: 2, j: 0}, conditions: ["unconscious"]}]}))
+    .rollMode, "normal", "an Incapacitated ally");
+});
+
+test("Legendary Resistance: a failed save succeeds instead, at once or when its controller chooses, paid from its own pool", async () => {
+  const legendary = policy => actor => {
+    actor.system.pools = [{id: "legendary-resistance", label: "Legendary Resistance", value: 3, max: 3, recovery: "longRest"}];
+    if ( policy ) actor.flags = {wildpath: {commonPolicies: {"legendary-resistance": policy}}};
+  };
+  // A Stunned creature fails its Might save automatically; Legendary Resistance still turns that into a success.
+  const always = await plannedWithConditions(fortitudeBlast("might"), {target: ["stunned"], prepareTarget: legendary("always")});
+  const [saved] = always.state.results.saveResolution.successes;
+  assert.deepEqual([saved.success, saved.succeededInstead], [true, true]);
+  const payment = always.state.mutationPlans.find(plan => plan.payerRef === "Actor.roll-target");
+  assert.deepEqual(payment.plan.updates, {"system.pools.0.value": 2}, "one use, paid by the creature that saved");
+
+  const asked = await plannedWithConditions(fortitudeBlast("might"), {target: ["stunned"], prepareTarget: legendary(null)});
+  const [request] = asked.state.pendingRequests;
+  assert.deepEqual([request.type, request.authority.kind, request.payload.options.map(option => option.value)],
+    ["choice", "target-controller", ["use", "decline"]], "by default its controller is asked");
+  assert.equal(request.metadata.title, "WILDPATH.LEGENDARY.Title");
+  const answer = value => resumeStagedActionResolution({state: asked.state, response: {resolutionId: asked.state.id, requestId: request.id,
+    type: request.type, value: {choices: {"legendary-resistance": value}}}});
+  assert.equal(answer("use").state.results.saveResolution.successes.length, 1);
+  const declined = answer("decline").state;
+  assert.deepEqual([declined.results.saveResolution.failures.length, declined.mutationPlans.some(plan => plan.payerRef)], [1, false]);
+
+  const never = await plannedWithConditions(fortitudeBlast("might"), {target: ["stunned"], prepareTarget: legendary("never")});
+  assert.deepEqual([never.state.pendingRequests.length, never.state.results.saveResolution.failures.length], [0, 1]);
+  const spent = await plannedWithConditions(fortitudeBlast("might"), {target: ["stunned"],
+    prepareTarget: actor => { legendary("always")(actor); actor.system.pools[0].value = 0; }});
+  assert.equal(spent.state.results.saveResolution.failures.length, 1, "no use left");
+});
 
 test("each target adds its own save bonus from its save Modifiers", async () => {
   const request = await firstRollRequest(fortitudeBlast("might"), {targetStatistics: {"save.might": runtimeStatistic("save.might", 3)}});
@@ -1211,6 +1268,16 @@ test("an Item's automatic trigger runs its Action on its owner through the autho
   assert.deepEqual(states.map(state => state.status), [RESOLUTION_STATE_STATUS.COMPLETED],
     "only the active automatic trigger whose predicate holds runs");
   assert.equal(targetActor.system.resources.health.value, 26);
+});
+
+test("an automatic trigger's predicate sees its creature: Regeneration needs at least 1 Hit Point", async t => {
+  const {targetActor, targetToken, automation} = lastingAreaFixture(t);
+  targetActor.items = [triggerFeature("regeneration", {event: "turn.started",
+    predicate: {not: {equals: {path: "actor.system.resources.health.value", value: 0}}}})];
+  targetActor.system.resources.health.value = 0;
+  assert.deepEqual(await automation.dispatch("turn.started", {actor: targetActor, token: targetToken}), [], "at 0 Hit Points");
+  targetActor.system.resources.health.value = 10;
+  assert.equal((await automation.dispatch("turn.started", {actor: targetActor, token: targetToken})).length, 1);
 });
 
 test("a rest a Player reports is dispatched only for an Actor that Player owns, with only the rest type taken", async t => {

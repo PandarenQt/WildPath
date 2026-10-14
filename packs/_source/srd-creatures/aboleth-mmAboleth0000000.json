@@ -137,7 +137,19 @@
       "system": {
         "active": true,
         "description": "<p>If the aboleth fails a saving throw, it can choose to succeed instead.</p>",
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "legendary-resistance",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "legendary-resistance",
+              "label": "Legendary Resistance",
+              "maximum": 3,
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -151,9 +163,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "\"Expend Use\" is passive or triggered: not automated"
-            ]
+            "notes": []
           }
         }
       }
@@ -663,7 +673,6 @@
       "conversion": {
         "notes": [
           "Eldritch Restoration: not automated (utility): using it spends its cost; its description says the rest",
-          "Legendary Resistance: \"Expend Use\" is passive or triggered: not automated",
           "Mucus Cloud: \"save\" is passive or triggered: not automated",
           "Mucus Cloud: \"Damage: Outside Water\" is passive or triggered: not automated",
           "Tentacle: \"Escape Check\" is passive or triggered: not automated",

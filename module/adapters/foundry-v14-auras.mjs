@@ -1,5 +1,6 @@
 import { createFoundryV14TacticalGridAdapter } from "./foundry-v14-tactical-grid-adapter.mjs";
-import { createReachFootprint } from "../helpers/grid-footprints.mjs";
+import { createReachFootprint, footprintDistance } from "../helpers/grid-footprints.mjs";
+import { WILDPATH } from "../config.mjs";
 import { areaCovers } from "./foundry-v14-persistent-areas.mjs";
 const reachFootprint = createReachFootprint;
 /** Whether an aura of `affects` from `bearer` reaches the creature standing at `token`, by their dispositions. */
@@ -8,6 +9,30 @@ function affectsToken(affects, bearer, token) {
         return true;
     const relation = (bearer.disposition ?? 0) * (token.disposition ?? 0);
     return affects === "enemies" ? relation < 0 : ((relation > 0) && (bearer.disposition === token.disposition));
+}
+/**
+ * Whether an ally of `attacker` (its disposition), other than the attacker and not Incapacitated, stands within 5 ft
+ * of `target` (Pack Tactics). `footprint` is where the target stands; its Token's own when omitted.
+ */
+export function allyNearTarget(attacker, target, footprint = null) {
+    const scene = target?.parent;
+    if (!attacker || !scene)
+        return false;
+    const adapter = createFoundryV14TacticalGridAdapter({ scene });
+    const footprintOf = (token) => adapter.tokenToFootprint(token).footprint ?? null;
+    const at = footprint ?? footprintOf(target);
+    if (!at)
+        return false;
+    const conditions = WILDPATH.CONDITIONS ?? {};
+    return [...scene.tokens].some(token => {
+        if ((token.id === attacker.id) || (token.id === target.id) || !affectsToken("allies", attacker, token))
+            return false;
+        const statuses = [...(token.actor?.statuses ?? [])];
+        if (!token.actor || statuses.some(status => conditions[status]?.endsConcentration))
+            return false;
+        const ally = footprintOf(token);
+        return !!ally && (footprintDistance(ally, at) * scene.grid.distance <= 5);
+    });
 }
 export function createFoundryAuras() {
     /** Rule owners (`{ruleElements, source}`) the auras around `actor`'s Tokens grant it. */

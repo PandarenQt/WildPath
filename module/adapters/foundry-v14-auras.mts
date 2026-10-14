@@ -1,5 +1,6 @@
 import {createFoundryV14TacticalGridAdapter} from "./foundry-v14-tactical-grid-adapter.mjs";
-import {createReachFootprint} from "../helpers/grid-footprints.mjs";
+import {createReachFootprint, footprintDistance} from "../helpers/grid-footprints.mjs";
+import {WILDPATH} from "../config.mjs";
 import {areaCovers} from "./foundry-v14-persistent-areas.mjs";
 
 /**
@@ -24,6 +25,27 @@ function affectsToken(affects: AuraEntry["affects"], bearer: AuraToken, token: A
   if ( affects === "all" ) return true;
   const relation = (bearer.disposition ?? 0) * (token.disposition ?? 0);
   return affects === "enemies" ? relation < 0 : ((relation > 0) && (bearer.disposition === token.disposition));
+}
+
+/**
+ * Whether an ally of `attacker` (its disposition), other than the attacker and not Incapacitated, stands within 5 ft
+ * of `target` (Pack Tactics). `footprint` is where the target stands; its Token's own when omitted.
+ */
+export function allyNearTarget(attacker: AuraToken | null, target: AuraToken | null, footprint: Data | null = null) {
+  const scene = target?.parent;
+  if ( !attacker || !scene ) return false;
+  const adapter = createFoundryV14TacticalGridAdapter({scene});
+  const footprintOf = (token: AuraToken) => (adapter.tokenToFootprint(token) as {footprint?: Data}).footprint ?? null;
+  const at = footprint ?? footprintOf(target);
+  if ( !at ) return false;
+  const conditions = (WILDPATH as {CONDITIONS?: Record<string, {endsConcentration?: boolean} | undefined>}).CONDITIONS ?? {};
+  return [...scene.tokens].some(token => {
+    if ( (token.id === attacker.id) || (token.id === target.id) || !affectsToken("allies", attacker, token) ) return false;
+    const statuses = [...((token.actor as {statuses?: Iterable<string>} | null)?.statuses ?? [])];
+    if ( !token.actor || statuses.some(status => conditions[status]?.endsConcentration) ) return false;
+    const ally = footprintOf(token);
+    return !!ally && ((footprintDistance as (a: Data, b: Data) => number)(ally, at) * scene.grid.distance <= 5);
+  });
 }
 
 export function createFoundryAuras() {

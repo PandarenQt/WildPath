@@ -145,7 +145,25 @@
       "system": {
         "active": true,
         "description": "<p>The werewolf has Advantage on an attack roll against a creature if at least one of the werewolf's allies is within 5 feet of the creature and the ally doesn't have the Incapacitated condition.</p>",
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "pack-tactics",
+            "type": "RollMode",
+            "predicate": {
+              "equals": {
+                "path": "attack.allyNearTarget",
+                "value": true
+              }
+            },
+            "data": {
+              "domains": [
+                "attack"
+              ],
+              "mode": "advantage"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {

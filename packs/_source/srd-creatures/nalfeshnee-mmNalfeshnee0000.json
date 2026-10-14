@@ -94,7 +94,24 @@
       "system": {
         "active": true,
         "description": "<p>The nalfeshnee has Advantage on saving throws against spells and other magical effects.</p>",
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "magic-resistance",
+            "type": "RollMode",
+            "predicate": {
+              "tagsAny": [
+                "spell"
+              ]
+            },
+            "data": {
+              "domains": [
+                "save"
+              ],
+              "mode": "advantage"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -108,7 +125,9 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": []
+            "notes": [
+              "Magic Resistance: Advantage on saves against spells; other magical effects are not told apart"
+            ]
           }
         }
       }
@@ -535,6 +554,7 @@
       },
       "conversion": {
         "notes": [
+          "Magic Resistance: Magic Resistance: Advantage on saves against spells; other magical effects are not told apart",
           "Teleport: not automated (utility): using it spends its cost; its description says the rest",
           "Pursuit: not automated (utility): using it spends its cost; its description says the rest",
           "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
