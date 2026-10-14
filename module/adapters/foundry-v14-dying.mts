@@ -17,6 +17,7 @@ export interface DyingConsequence {die?: boolean; unconscious?: boolean; wake?: 
 
 export const DEATH_SAVE_DC = 10;
 const RESET: DeathSaves = Object.freeze({successes: 0, failures: 0});
+const STABLE: DeathSaves = Object.freeze({successes: 3, failures: 0});
 const DAMAGE = new Set(["damage", "durabilityDamage"]);
 // The untyped lookup helpers; these are the only places their shapes are asserted.
 const lookupActor = resolveTargetLookupValue as unknown as (lookup: unknown, target: Data, payload: unknown,
@@ -51,8 +52,10 @@ export function dyingAfterChange({change, critical=false, character=true, deathS
     }
     if ( from === 0 ) {
       if ( !character || (amount >= max) ) return {die: true};
-      const failures = deathSaves.failures + (critical ? 2 : 1);
-      return failures >= 3 ? {die: true} : {deathSaves: {...deathSaves, failures}};
+      // 2024: a stable creature that takes damage stops being stable, and its death saves start over.
+      const counted = deathSaves.successes >= 3 ? RESET : deathSaves;
+      const failures = counted.failures + (critical ? 2 : 1);
+      return failures >= 3 ? {die: true} : {deathSaves: {...counted, failures}};
     }
   }
   if ( HEALING.has(String(change.type)) && (from === 0) && (to > 0) ) return {wake: true, deathSaves: {...RESET}};
@@ -63,7 +66,9 @@ export function dyingAfterChange({change, critical=false, character=true, deathS
 export function deathSaveResult({natural, total, deathSaves=RESET}: {natural: number; total: number; deathSaves?: DeathSaves}):
   DyingConsequence {
   if ( natural === 20 ) return {heal: 1, wake: true, deathSaves: {...RESET}};
-  if ( (natural !== 1) && (total >= DEATH_SAVE_DC) ) return {deathSaves: {...deathSaves, successes: Math.min(deathSaves.successes + 1, 3)}};
+  // The third success makes the creature stable (successes 3), and its failures reset (2024).
+  if ( (natural !== 1) && (total >= DEATH_SAVE_DC) ) return {deathSaves: deathSaves.successes >= 2 ? {...STABLE}
+    : {...deathSaves, successes: deathSaves.successes + 1}};
   const failures = deathSaves.failures + (natural === 1 ? 2 : 1);
   return failures >= 3 ? {die: true} : {deathSaves: {...deathSaves, failures}};
 }
@@ -134,6 +139,7 @@ export function createFoundryDying({game, coordinator, resolveAction, logger=glo
   /** After an Action: each target whose health it changed, a critical hit counting as two failed saves at 0. */
   async function afterResolution({options, state}: {options?: {targetActors?: unknown}; state?: Data}) {
     if ( !isActiveGM() ) return;
+    await stabilizeTargets({options, state});
     const hits = ((state?.results as Data | undefined)?.attackResolution as {hits?: Array<{outcome?: string; target?: Data}>} | undefined)?.hits ?? [];
     const criticalRefs = new Set(hits.filter(hit => hit.outcome === "criticalHit").flatMap(hit => refsOf(hit.target ?? {})));
     for ( const entry of (state?.mutationPlans as Data[] | undefined) ?? [] ) {
@@ -142,6 +148,22 @@ export function createFoundryDying({game, coordinator, resolveAction, logger=glo
       const actor = lookupActor(options?.targetActors, target, entry,
         {selectValue: value => (value as {actor?: DyingActor} | null)?.actor ?? value}) as DyingActor | null;
       await afterPlans(actor, [entry], {critical: refsOf(target).some(ref => criticalRefs.has(ref))});
+    }
+  }
+
+  /**
+   * A `stabilize` Action (2024: Spare the Dying, or an ally's DC 10 Medicine check) makes each dying target stable:
+   * three successes, no failures. A failed check withholds it, as it withholds the Action's effects.
+   */
+  async function stabilizeTargets({options, state}: {options?: {targetActors?: unknown} | undefined; state?: Data | undefined}) {
+    const definition = state?.actionDefinition as {stabilize?: boolean} | undefined;
+    const results = state?.results as {checkResolution?: {success?: boolean}; actionResult?: {context?: {targets?: Data[]}}} | undefined;
+    if ( (definition?.stabilize !== true) || (results?.checkResolution?.success === false) ) return;
+    for ( const target of results?.actionResult?.context?.targets ?? [] ) {
+      const actor = lookupActor(options?.targetActors, mutationTargetIdentity(target), target,
+        {selectValue: value => (value as {actor?: DyingActor} | null)?.actor ?? value}) as DyingActor | null;
+      if ( !actor || !savesForDeath(actor) || isDead(actor) || ((Number(actor.system.resources?.health?.value) || 0) > 0) ) continue;
+      await actor.update({"system.deathSaves": {...STABLE}});
     }
   }
 

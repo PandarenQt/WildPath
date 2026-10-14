@@ -33,13 +33,16 @@ export function summarizeActionDefinition(definition) {
         ["Area", d.area?.shape ? `${d.area.shape} ${d.area.size?.value ?? "?"} ft${d.area.persistence ? ", lasting" : ""}` : null],
         ["Attack", d.attack ? `${d.attack.type ?? "?"} vs ${d.attack.defenseKey ?? "ac"}` : null],
         ["Save", d.save ? `${d.save.ability ?? "?"} DC ${d.save.dc?.value ?? "?"}` : null],
+        ["Check", d.check ? `${[d.check.ability, d.check.skill && `(${d.check.skill})`].filter(Boolean).join(" ")} DC ${d.check.dc?.value ?? "?"}`
+                : null],
         ["Damage", d.damage?.length ? d.damage.map(entry => `${amountText(entry.expression)} ${entry.damageType ?? ""}`.trim()).join(", ") : null],
         ["Healing", d.healing?.length ? d.healing.map(entry => amountText(entry.expression)).join(", ") : null],
         ["Effects", d.effects?.length ? d.effects.map(entry => entry.conditionId ?? entry.type ?? "?").join(", ") : null],
         ["Choices", d.configuration?.length ? String(d.configuration.length) : null],
         ["Transform", d.transform ? (d.transform.revert ? "revert" : d.transform.formRef ?? `choice ${d.transform.choiceId}`) : null],
         ["Summon", d.summon ? `${d.summon.actorRef ?? `choice ${d.summon.choiceId}`} ×${d.summon.count ?? 1}${d.summon.concentration
-                ? ", concentration" : ""}` : null]
+                ? ", concentration" : ""}` : null],
+        ["Stabilize", d.stabilize ? "dying targets" : null]
     ];
     return lines.filter((line) => line[1] !== null);
 }

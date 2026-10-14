@@ -33,6 +33,7 @@ export interface PublicResolutionResult {
   readonly outcomes?: {
     readonly attack?: {readonly results?: readonly ContestEntry[]} | null;
     readonly save?: {readonly results?: readonly ContestEntry[]} | null;
+    readonly check?: {readonly success?: boolean} | null;
   };
   readonly rolls?: readonly PublicRoll[];
 }
@@ -42,7 +43,9 @@ export const CHAT_OUTCOME_KEYS = Object.freeze({
   critical: "WILDPATH.CHAT.Outcome.Critical",
   miss: "WILDPATH.CHAT.Outcome.Miss",
   saveSuccess: "WILDPATH.CHAT.Outcome.SaveSuccess",
-  saveFailure: "WILDPATH.CHAT.Outcome.SaveFailure"
+  saveFailure: "WILDPATH.CHAT.Outcome.SaveFailure",
+  checkSuccess: "WILDPATH.CHAT.Outcome.CheckSuccess",
+  checkFailure: "WILDPATH.CHAT.Outcome.CheckFailure"
 });
 
 /** A lang key plus a tone: whether the roll behind the outcome succeeded. */
@@ -62,6 +65,8 @@ export interface ResolutionCardTarget {
 export interface ResolutionCardView {
   readonly resolutionId: string | null;
   readonly actionName: string | null;
+  /** The acting creature's own check, if the Action has one. */
+  readonly check: CardOutcome | null;
   readonly targets: readonly ResolutionCardTarget[];
   readonly rolls: readonly Readonly<Record<string, unknown>>[];
   /** Public rolls entered by hand (physical or manual dice): no Foundry Roll exists to render. */
@@ -74,6 +79,8 @@ export function createResolutionCardViewModel(result: PublicResolutionResult): R
   return {
     resolutionId: result.resolutionId ?? null,
     actionName: textOrNull(result.action?.name ?? result.action?.label),
+    check: !result.outcomes?.check ? null : result.outcomes.check.success
+      ? {label: CHAT_OUTCOME_KEYS.checkSuccess, tone: "success"} : {label: CHAT_OUTCOME_KEYS.checkFailure, tone: "failure"},
     targets: (result.targets ?? []).map(target => {
       const attackEntry = attack.find(entry => sameTarget(entry.target, target));
       const saveEntry = save.find(entry => sameTarget(entry.target, target));

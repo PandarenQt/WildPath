@@ -82,7 +82,7 @@ import {
 import {resolveActorResourcePayment} from "./resource-resolver.mjs";
 import {resolveActionTargets} from "./target-resolver.mjs";
 import {resolveAttackTargets} from "./attack-resolver.mjs";
-import {resolveSaveTargets} from "./save-resolver.mjs";
+import {resolveSaveAgainstDC, resolveSaveTargets} from "./save-resolver.mjs";
 import {planConcentrationChecks, resolveConcentrationCheckResults} from "./concentration-resolver.mjs";
 import {planEffectLifecycle} from "./effect-lifecycle-resolver.mjs";
 import {
@@ -95,6 +95,8 @@ export const ACTION_PIPELINE_STAGE_IDS = Object.freeze({
   CONFIGURATION: "action.configuration",
   TARGETING: "action.targeting",
   RANGE: "action.range",
+  CHECK_ROLL: "action.check-roll",
+  CHECK_OUTCOME: "action.check-outcome",
   ATTACK_ROLL: "action.attack-roll",
   ATTACK_OUTCOME: "action.attack-outcome",
   REACTION_AFTER_ACTION_DECLARED: "action.reaction.after-action-declared",
@@ -136,6 +138,7 @@ export function createActionResolutionState({
   targeting=null,
   attack=null,
   save=null,
+  check=null,
   damage=null,
   healing=null,
   effects=null,
@@ -184,6 +187,7 @@ export function createActionResolutionState({
       targeting,
       attack,
       save,
+      check,
       damage,
       healing,
       effects,
@@ -215,6 +219,8 @@ export function createActionResolutionPipeline({reactions=false}={}) {
   stages.push(
     createTargetingStage(),
     createRangeStage(),
+    createCheckRollStage(),
+    createCheckOutcomeStage(),
     createAttackRollStage(),
     createAttackOutcomeStage()
   );
@@ -805,6 +811,72 @@ function createRangeStage() {
           checkCount: checks.length,
           range
         }
+      });
+    }
+  });
+}
+
+/** The acting creature's own ability check, rolled by its controller like an attack (2024: no contest). */
+function createCheckRollStage() {
+  return createResolutionPipelineStage({
+    id: ACTION_PIPELINE_STAGE_IDS.CHECK_ROLL,
+    run(state) {
+      const input = preparedResolverInput(state);
+      const requestId = requestIdFor(state, "check-roll");
+      const accepted = getResolutionResponse(state, {requestId, type: RESOLUTION_REQUEST_TYPES.ROLL});
+      if ( accepted ) {
+        const rollRequest = rollRequestFromAcceptedResponse(accepted, () => checkRollRequestForState(state, input));
+        const normalized = normalizeRollResponseValue(accepted.response.value, {request: rollRequest,
+          completedRequestIds: completedRollRequestIds(state)});
+        if ( !normalized.ok ) return failResolutionStage({state, code: normalized.code, reason: normalized.reason,
+          errors: [{code: normalized.code, reason: normalized.reason, requestId, validation: normalized.validation}],
+          data: {requestId, rollRequest, validation: normalized.validation}});
+        const check = {...input.check, roll: rollResultToResolverRoll(normalized.result)};
+        return continueResolutionStage({
+          state: updateResolutionState(state, {
+            input: {...input, check},
+            rollRequests: appendRollRequest(state.rollRequests, rollRequest),
+            rollResults: [...state.rollResults, {requestId: accepted.request.id, type: "check-roll",
+              semanticType: normalized.result.type, rollRequest, rollResult: normalized.result, roll: check.roll}]
+          }),
+          data: {requestId: accepted.request.id, rollRequestId: rollRequest.id, semanticType: normalized.result.type}
+        });
+      }
+      if ( !input.check || hasRollTotal(input.check.roll) ) return continueResolutionStage({state: updateResolutionState(state, {input})});
+      const rollRequest = checkRollRequestForState(state, input);
+      return waitResolutionStage({
+        state: updateResolutionState(state, {rollRequests: appendRollRequest(state.rollRequests, rollRequest)}),
+        request: createResolutionRequest({
+          id: rollRequest.id,
+          resolutionId: state.id,
+          stageId: ACTION_PIPELINE_STAGE_IDS.CHECK_ROLL,
+          type: RESOLUTION_REQUEST_TYPES.ROLL,
+          expectedResponseType: "roll-result",
+          chooser: rollRequest.chooser,
+          authority: rollRequest.authority,
+          validation: {rollRequestId: rollRequest.id, semanticType: rollRequest.type,
+            requireNatural: rollRequest.expected.requireNatural, formula: rollFormulaForRequest(rollRequest).formula ?? null},
+          payload: {actionDefinitionId: state.actionDefinition?.id ?? null, rollKind: "check", rollRequest}
+        }),
+        reason: "Check roll result is required before action resolution can continue."
+      });
+    }
+  });
+}
+
+/** Success or failure of the Action's check against its DC, by the same d20-vs-DC rule as a save. */
+function createCheckOutcomeStage() {
+  return createResolutionPipelineStage({
+    id: ACTION_PIPELINE_STAGE_IDS.CHECK_OUTCOME,
+    run(state) {
+      const input = preparedResolverInput(state);
+      if ( !input.check || state.results?.checkResolution ) return continueResolutionStage({state: updateResolutionState(state, {input})});
+      const checkResolution = resolveSaveAgainstDC({roll: input.check.roll, dc: input.check.dc, policy: input.check.policy ?? {}});
+      if ( !checkResolution.ok ) return failResolutionStage({state, code: checkResolution.code, reason: checkResolution.reason,
+        data: {checkResolution}});
+      return continueResolutionStage({
+        state: updateResolutionState(state, {input, results: {...state.results, checkResolution}}),
+        data: {success: checkResolution.success}
       });
     }
   });
@@ -2437,10 +2509,25 @@ function uniqueStrings(values) {
 
 /* -------------------------------------------- */
 
+/**
+ * Once the Action's check is resolved, its damage, healing and effects are those for the outcome: an entry's
+ * `checkOutcomePolicy` is "success" (the default), "failure" or "any".
+ */
+function withCheckOutcome(definition, checkResolution) {
+  if ( !definition || !checkResolution ) return definition;
+  const outcome = checkResolution.success ? "success" : "failure";
+  const applies = entry => [outcome, "any"].includes(entry?.checkOutcomePolicy ?? "success");
+  return {...definition, damage: (definition.damage ?? []).filter(applies), healing: (definition.healing ?? []).filter(applies),
+    effects: (definition.effects ?? []).filter(applies), stabilize: definition.stabilize === true && checkResolution.success === true};
+}
+
 function preparedResolverInput(state) {
   const input = state.input ?? {};
-  const definition = state.configuration?.effectiveDefinition ?? state.actionDefinition;
+  const effective = state.configuration?.effectiveDefinition ?? state.actionDefinition;
+  const definition = withCheckOutcome(effective, state.results?.checkResolution);
   if ( !definition ) return clonePlain(input) ?? {};
+  // A kind the check removed entirely must not come back from the input earlier stages carried over.
+  const removed = kind => !!effective?.[kind]?.length && !definition[kind]?.length;
   const prepared = actionDefinitionToResolverInput(definition, {
     actorSystem: input.actorSystem,
     source: input.source,
@@ -2448,9 +2535,10 @@ function preparedResolverInput(state) {
     targeting: input.targeting,
     attack: input.attack,
     save: input.save,
-    damage: input.damage,
-    healing: input.healing,
-    effects: input.effects,
+    check: input.check,
+    damage: removed("damage") ? null : input.damage,
+    healing: removed("healing") ? null : input.healing,
+    effects: removed("effects") ? null : input.effects,
     context: input.context ?? {},
     policies: input.policies ?? {}
   });
@@ -2597,6 +2685,27 @@ function attackRollRequestForState(state, input) {
       statistic: attack.statistic ?? null,
       attackType: attack.type ?? null
     }
+  });
+}
+
+function checkRollRequestForState(state, input) {
+  const check = input.check ?? {};
+  const modifier = rollModifierInfo(check, ["checkBonus", "modifierTotal", "totalModifier", "modifier", "bonus"]);
+  return createD20RollRequest({
+    id: requestIdFor(state, "check-roll"),
+    resolutionId: state.id,
+    type: check.skill ? ROLL_TYPES.SKILL_CHECK : ROLL_TYPES.ABILITY_CHECK,
+    modifier: modifier.value,
+    rollMode: check.rollMode,
+    visibility: check.visibility ?? input.context?.messageMode,
+    dc: check.dc ?? null,
+    source: state.source ?? input.source ?? null,
+    chooser: check.chooser ?? ROLL_AUTHORITY.SOURCE_CONTROLLER,
+    authority: check.authority ?? {kind: ROLL_AUTHORITY.SOURCE_CONTROLLER},
+    modifiers: modifier.known ? [{id: "check-modifier", value: modifier.value}] : [],
+    expected: {validateTotalFromNatural: modifier.known, modifierTotal: modifier.known ? modifier.value : null},
+    metadata: {actionDefinitionId: state.actionDefinition?.id ?? null, rollKind: "check", ability: check.ability ?? null,
+      skill: check.skill ?? null}
   });
 }
 

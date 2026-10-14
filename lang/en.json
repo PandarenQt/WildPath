@@ -48,7 +48,9 @@
         "Critical": "Critical hit",
         "Miss": "Miss",
         "SaveSuccess": "Saved",
-        "SaveFailure": "Failed save"
+        "SaveFailure": "Failed save",
+        "CheckSuccess": "Check succeeded",
+        "CheckFailure": "Check failed"
       }
     },
     "CONDITIONS": {

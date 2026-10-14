@@ -129,6 +129,8 @@ resolved by the owning rules domains before the `RollRequest` is created.
   `attacked.<type>`).
 - **Saving throws.** Each target uses its own modes for the save it makes (`save`, `save.<ability>`), keyed
   by Token.
+- **Ability checks.** An Action's own check uses the acting creature's modes (`check`, `check.<ability>`,
+  `check.<skill>`).
 - **Combining.** Advantage and disadvantage cancel source for source (maintainer decision, 2026-10-14,
   in place of the 2024 rule that any one of each cancels). More sources of advantage than of disadvantage
   give advantage, more of disadvantage give disadvantage, and an equal count gives a normal roll

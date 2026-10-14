@@ -8,7 +8,9 @@ export const CHAT_OUTCOME_KEYS = Object.freeze({
     critical: "WILDPATH.CHAT.Outcome.Critical",
     miss: "WILDPATH.CHAT.Outcome.Miss",
     saveSuccess: "WILDPATH.CHAT.Outcome.SaveSuccess",
-    saveFailure: "WILDPATH.CHAT.Outcome.SaveFailure"
+    saveFailure: "WILDPATH.CHAT.Outcome.SaveFailure",
+    checkSuccess: "WILDPATH.CHAT.Outcome.CheckSuccess",
+    checkFailure: "WILDPATH.CHAT.Outcome.CheckFailure"
 });
 export function createResolutionCardViewModel(result) {
     const attack = result.outcomes?.attack?.results ?? [];
@@ -16,6 +18,8 @@ export function createResolutionCardViewModel(result) {
     return {
         resolutionId: result.resolutionId ?? null,
         actionName: textOrNull(result.action?.name ?? result.action?.label),
+        check: !result.outcomes?.check ? null : result.outcomes.check.success
+            ? { label: CHAT_OUTCOME_KEYS.checkSuccess, tone: "success" } : { label: CHAT_OUTCOME_KEYS.checkFailure, tone: "failure" },
         targets: (result.targets ?? []).map(target => {
             const attackEntry = attack.find(entry => sameTarget(entry.target, target));
             const saveEntry = save.find(entry => sameTarget(entry.target, target));

@@ -164,6 +164,8 @@ export function actionDefinitionField() {
     controllerCosts: new ObjectField({required: true, initial: () => ({})}),
     transform: new ObjectField({nullable: true, initial: null}),
     summon: new ObjectField({nullable: true, initial: null}),
+    // Makes each dying target stable when the Action completes (dying-and-death.md); a check gates it like an effect.
+    stabilize: new BooleanField({required: true, initial: false}),
     range: new ObjectField({nullable: true, initial: null}),
     targeting: new ObjectField({nullable: true, initial: null}),
     area: new ObjectField({nullable: true, initial: null}),

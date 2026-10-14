@@ -157,6 +157,8 @@ test("ActionPipeline plans a complete action without waiting and records expecte
     ACTION_PIPELINE_STAGE_IDS.CONFIGURATION,
     ACTION_PIPELINE_STAGE_IDS.TARGETING,
     ACTION_PIPELINE_STAGE_IDS.RANGE,
+    ACTION_PIPELINE_STAGE_IDS.CHECK_ROLL,
+    ACTION_PIPELINE_STAGE_IDS.CHECK_OUTCOME,
     ACTION_PIPELINE_STAGE_IDS.ATTACK_ROLL,
     ACTION_PIPELINE_STAGE_IDS.ATTACK_OUTCOME,
     ACTION_PIPELINE_STAGE_IDS.SAVE_ROLL,
@@ -700,4 +702,40 @@ test("ActionPipeline can create a child action state with parent provenance", ()
   assert.equal(child.relationship, "triggered-action");
   assert.equal(child.ancestry[0].id, "resolution:parent");
   assert.deepEqual(child.triggerIdentities, ["trigger:after-hit"]);
+});
+
+test("an Action's own check is rolled by its controller, and its outcome picks the healing and effects that apply", async () => {
+  const {validateActionDefinition} = await import("../module/helpers/action-definitions.mjs");
+  const definition = {schemaVersion: 1, id: "action:steady", label: "Steady", costs: {allOf: []},
+    targeting: {type: "single", required: true, count: 1},
+    check: {ability: "wits", skill: "medicine", dc: {value: 10}},
+    healing: [{id: "steady", expression: {type: "constant", value: 3}}],
+    effects: [{id: "fumble", type: "condition", conditionId: "prone", checkOutcomePolicy: "failure"}]};
+  assert.equal(validateActionDefinition(definition).ok, true);
+  assert.equal(validateActionDefinition({...definition, check: {dc: {value: 10}}}).ok, false, "an ability or skill is required");
+  assert.equal(validateActionDefinition({...definition, check: {ability: "wits"}}).ok, false, "a DC is required");
+  const waiting = planStagedActionResolution({
+    id: "resolution:check",
+    actorSystem: actorSystem(1),
+    action: definitionAction(definition),
+    source: {actorId: "actor-source"},
+    check: {modifier: 2},
+    targeting: {required: true, candidates: [{id: "ally", target: target("ally", {disposition: "friendly"}),
+      actor: {id: "actor-ally"}, disposition: "friendly", kind: "creature"}]}
+  });
+  const request = waiting.state.pendingRequests[0];
+  assert.equal(request.payload.rollRequest.type, ROLL_TYPES.SKILL_CHECK);
+  assert.equal(request.authority.kind, "source-controller");
+  assert.equal(request.payload.rollRequest.expected.modifierTotal, 2);
+  const roll = (total, die) => resumeStagedActionResolution({state: waiting.state,
+    response: {resolutionId: waiting.state.id, requestId: request.id, type: RESOLUTION_REQUEST_TYPES.ROLL, value: {total, die}}});
+  const steady = roll(12, 10);
+  assert.equal(steady.state.results.checkResolution.success, true);
+  assert.deepEqual(steady.state.results.actionResult.consequences.map(entry => entry.type).filter(type => /healing|effect/i.test(type)),
+    ["healingResolved"], "success: the healing, not the failure's effect");
+  const fumbled = roll(9, 7);
+  assert.equal(fumbled.state.results.checkResolution.success, false);
+  const types = fumbled.state.results.actionResult.consequences.map(entry => entry.type);
+  assert.equal(types.includes("healingResolved"), false, "failure: no healing");
+  assert.equal(types.some(type => /effect/i.test(type)), true, "failure: the failure's effect");
 });

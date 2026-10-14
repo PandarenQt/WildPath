@@ -47,6 +47,7 @@ test("the card view model reads only names, outcomes and public Roll JSON from t
   assert.deepEqual(view, {
     resolutionId: "resolution:card",
     actionName: "Strike",
+    check: null,
     targets: [
       {name: "Goblin", uuid: "Actor.goblin", attack: {label: CHAT_OUTCOME_KEYS.critical, tone: "success"}, save: null},
       {name: "Orc", uuid: "Actor.orc", attack: {label: CHAT_OUTCOME_KEYS.miss, tone: "failure"},
@@ -147,4 +148,11 @@ test("a card's target link resolves only a Token this client can see", async t =
   assert.deepEqual(visibleTokenFor("Scene.s.Token.t")?.center, {x: 5, y: 6}, "a Token uuid resolves its placeable");
   assert.equal(visibleTokenFor("Actor.missing"), null);
   assert.equal(visibleTokenFor(undefined), null);
+});
+
+test("the card shows the acting creature's own check outcome, and nothing for an Action without one", () => {
+  const card = check => createResolutionCardViewModel({...publicResult(), outcomes: {...publicResult().outcomes, check}}).check;
+  assert.deepEqual(card({success: true}), {label: CHAT_OUTCOME_KEYS.checkSuccess, tone: "success"});
+  assert.deepEqual(card({success: false}), {label: CHAT_OUTCOME_KEYS.checkFailure, tone: "failure"});
+  assert.equal(card(null), null);
 });

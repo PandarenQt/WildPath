@@ -35,6 +35,7 @@ import {footprintDistance} from "../helpers/grid-footprints.mjs";
 import {combineRollModes} from "../helpers/rolls.mjs";
 import {
   resolveActorAttackStatistic,
+  resolveActorCheckStatistic,
   resolveActorSaveStatistic,
   resolveActorDefense
 } from "../helpers/combat-statistics.mjs";
@@ -481,6 +482,14 @@ function notifyMultiplayerMovementFailure(event={}, {logger=globalThis.console}=
  * `action` is for the authority's own Actions only (a lasting area's inline effect): it replaces the Item
  * lookup and is never reachable from a socket intent.
  */
+/** The acting creature's own check: its bonus, and its advantage or disadvantage on the same domains. */
+function actionCheckInput(actor, {ability=null, skill=null}={}) {
+  const bonus = resolveActorCheckStatistic(actor, {ability, skill});
+  const domains = ["check", ability ? `check.${ability}` : null, skill ? `check.${skill}` : null].filter(Boolean);
+  return {...(bonus ? {modifier: bonus.totalModifier} : {}),
+    rollMode: combineRollModes(actor.getRollModes?.(domains, {context: {check: {ability, skill}}}) ?? [])};
+}
+
 export async function foundryActionIntentToStagedOptions({intent={}, senderUserId=null, game=globalThis.game, persistencePort=null,
   action: authorityAction=null}={}) {
   const actorRef = intent.actorRef ?? intent.actorUuid ?? intent.source?.actorRef ?? intent.source?.uuid ?? null;
@@ -666,6 +675,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
         ...(attackOutcomes ? {outcomesByTarget: attackOutcomes} : {})}} : {}),
       ...(Object.keys(saveRollModes).length ? {save: {rollModesByTarget: saveRollModes, modifiersByTarget: saveModifiers,
         outcomesByTarget: saveOutcomes}} : {}),
+      ...(definition?.check ? {check: actionCheckInput(actor, definition.check)} : {}),
       // Rules consume plain effective snapshots; commit retains the exact live (possibly synthetic) Actors.
       durability: {targetSystems, ...(Object.keys(targetProfiles).length ? {adjustmentProfiles: targetProfiles} : {})},
       configuration: clonePlainData(intent.configuration ?? null, "intent.configuration"),

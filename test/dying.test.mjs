@@ -28,7 +28,8 @@ test("2024 healing at 0 wakes the creature and clears its death saves", () => {
 
 test("2024 death saves: 10 or higher succeeds, a natural 1 is two failures, a natural 20 is back with 1", () => {
   const saves = {successes: 2, failures: 1};
-  assert.deepEqual(deathSaveResult({natural: 10, total: 10, deathSaves: saves}), {deathSaves: {successes: 3, failures: 1}}, "stable");
+  assert.deepEqual(deathSaveResult({natural: 10, total: 10, deathSaves: saves}), {deathSaves: {successes: 3, failures: 0}},
+    "stable, and the failures reset (2024)");
   assert.deepEqual(deathSaveResult({natural: 9, total: 9, deathSaves: saves}), {deathSaves: {successes: 2, failures: 2}});
   assert.deepEqual(deathSaveResult({natural: 12, total: 8, deathSaves: saves}), {deathSaves: {successes: 2, failures: 2}},
     "Exhaustion's penalty can turn a 12 into a failure");
@@ -106,4 +107,29 @@ test("a Player's companion dropped to 0 falls Unconscious instead of dying", asy
     coordinator: {}, resolveAction: async () => ({ok: false})});
   await dying.afterPlans(wolf, [damage(5, 8)]);
   assert.deepEqual(wolf.effects.map(effect => effect.system.type), ["unconscious"]);
+});
+
+test("2024 stability: the third success resets the failures, and damage while stable starts the death saves over", () => {
+  assert.deepEqual(deathSaveResult({natural: 12, total: 12, deathSaves: {successes: 2, failures: 2}}),
+    {deathSaves: {successes: 3, failures: 0}});
+  assert.deepEqual(dyingAfterChange({change: damage(0, 2), deathSaves: {successes: 3, failures: 0}}),
+    {deathSaves: {successes: 0, failures: 1}});
+  assert.deepEqual(dyingAfterChange({change: damage(0, 2), critical: true, deathSaves: {successes: 3, failures: 0}}),
+    {deathSaves: {successes: 0, failures: 2}});
+});
+
+test("a stabilize Action makes a dying target stable, unless its check failed; the living and the dead are left alone", async () => {
+  const dying = createFoundryDying({game: {user: {id: "gm"}, users: {activeGM: {id: "gm"}}, combats: []},
+    coordinator: {}, resolveAction: async () => ({ok: false})});
+  const hero = creature({health: 0, saves: {successes: 1, failures: 2}});
+  const standing = creature({health: 6});
+  const target = token => ({actorRef: `Actor.${token}`, tokenId: token});
+  const event = (checkResolution, tokens=["hero"]) => ({options: {targetActors: {"token:hero": hero, "token:standing": standing}},
+    state: {actionDefinition: {stabilize: true}, mutationPlans: [], results: {...(checkResolution ? {checkResolution} : {}),
+      actionResult: {context: {targets: tokens.map(target)}}}}});
+  await dying.afterResolution(event({success: false}));
+  assert.deepEqual(hero.system.deathSaves, {successes: 1, failures: 2}, "a failed check stabilizes no one");
+  await dying.afterResolution(event({success: true}, ["hero", "standing"]));
+  assert.deepEqual(hero.system.deathSaves, {successes: 3, failures: 0});
+  assert.equal(standing.calls.length, 0, "a creature above 0 health is not touched");
 });

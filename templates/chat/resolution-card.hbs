@@ -14,6 +14,7 @@
     </div>
   </div>
   {{/each}}
+  {{#if check}}<p class="card-check"><span class="outcome {{check.tone}}">{{localize check.label}}</span></p>{{/if}}
   {{#if targets.length}}
   <ul class="card-targets">
     {{#each targets}}

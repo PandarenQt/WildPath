@@ -3,6 +3,7 @@ import { resolveTargetLookupValue, targetLookupRefs } from "../helpers/target-ac
 import { runAuthorityAction } from "./foundry-v14-automation-dispatcher.mjs";
 export const DEATH_SAVE_DC = 10;
 const RESET = Object.freeze({ successes: 0, failures: 0 });
+const STABLE = Object.freeze({ successes: 3, failures: 0 });
 const DAMAGE = new Set(["damage", "durabilityDamage"]);
 // The untyped lookup helpers; these are the only places their shapes are asserted.
 const lookupActor = resolveTargetLookupValue;
@@ -35,8 +36,10 @@ export function dyingAfterChange({ change, critical = false, character = true, d
         if (from === 0) {
             if (!character || (amount >= max))
                 return { die: true };
-            const failures = deathSaves.failures + (critical ? 2 : 1);
-            return failures >= 3 ? { die: true } : { deathSaves: { ...deathSaves, failures } };
+            // 2024: a stable creature that takes damage stops being stable, and its death saves start over.
+            const counted = deathSaves.successes >= 3 ? RESET : deathSaves;
+            const failures = counted.failures + (critical ? 2 : 1);
+            return failures >= 3 ? { die: true } : { deathSaves: { ...counted, failures } };
         }
     }
     if (HEALING.has(String(change.type)) && (from === 0) && (to > 0))
@@ -47,8 +50,10 @@ export function dyingAfterChange({ change, critical = false, character = true, d
 export function deathSaveResult({ natural, total, deathSaves = RESET }) {
     if (natural === 20)
         return { heal: 1, wake: true, deathSaves: { ...RESET } };
+    // The third success makes the creature stable (successes 3), and its failures reset (2024).
     if ((natural !== 1) && (total >= DEATH_SAVE_DC))
-        return { deathSaves: { ...deathSaves, successes: Math.min(deathSaves.successes + 1, 3) } };
+        return { deathSaves: deathSaves.successes >= 2 ? { ...STABLE }
+                : { ...deathSaves, successes: deathSaves.successes + 1 } };
     const failures = deathSaves.failures + (natural === 1 ? 2 : 1);
     return failures >= 3 ? { die: true } : { deathSaves: { ...deathSaves, failures } };
 }
@@ -106,6 +111,7 @@ export function createFoundryDying({ game, coordinator, resolveAction, logger = 
     async function afterResolution({ options, state }) {
         if (!isActiveGM())
             return;
+        await stabilizeTargets({ options, state });
         const hits = state?.results?.attackResolution?.hits ?? [];
         const criticalRefs = new Set(hits.filter(hit => hit.outcome === "criticalHit").flatMap(hit => refsOf(hit.target ?? {})));
         for (const entry of state?.mutationPlans ?? []) {
@@ -114,6 +120,22 @@ export function createFoundryDying({ game, coordinator, resolveAction, logger = 
             const target = mutationTargetIdentity((entry.target ?? entry.plan?.target ?? {}));
             const actor = lookupActor(options?.targetActors, target, entry, { selectValue: value => value?.actor ?? value });
             await afterPlans(actor, [entry], { critical: refsOf(target).some(ref => criticalRefs.has(ref)) });
+        }
+    }
+    /**
+     * A `stabilize` Action (2024: Spare the Dying, or an ally's DC 10 Medicine check) makes each dying target stable:
+     * three successes, no failures. A failed check withholds it, as it withholds the Action's effects.
+     */
+    async function stabilizeTargets({ options, state }) {
+        const definition = state?.actionDefinition;
+        const results = state?.results;
+        if ((definition?.stabilize !== true) || (results?.checkResolution?.success === false))
+            return;
+        for (const target of results?.actionResult?.context?.targets ?? []) {
+            const actor = lookupActor(options?.targetActors, mutationTargetIdentity(target), target, { selectValue: value => value?.actor ?? value });
+            if (!actor || !savesForDeath(actor) || isDead(actor) || ((Number(actor.system.resources?.health?.value) || 0) > 0))
+                continue;
+            await actor.update({ "system.deathSaves": { ...STABLE } });
         }
     }
     /** At the start of its turn a dying character (0 health, not stable, not dead) rolls its death save. */

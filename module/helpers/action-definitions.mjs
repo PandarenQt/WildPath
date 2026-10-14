@@ -23,6 +23,7 @@ export const ACTION_DEFINITION_CODES = Object.freeze({
   INVALID_AREA: "INVALID_AREA",
   INVALID_ATTACK: "INVALID_ATTACK",
   INVALID_SAVE: "INVALID_SAVE",
+  INVALID_CHECK: "INVALID_CHECK",
   INVALID_DAMAGE: "INVALID_DAMAGE",
   INVALID_DAMAGE_TYPE: "INVALID_DAMAGE_TYPE",
   INVALID_HEALING: "INVALID_HEALING",
@@ -114,6 +115,7 @@ export function normalizeActionDefinition(rawDefinition={}, {
     // Creatures the Action summons when it completes (companions.md): a fixed `actorRef` or a `choiceId`
     // configuration choice of creatures, `count`, and optionally `rounds` and `concentration`.
     summon: normalizePlainComponent(raw.summon),
+    ...(raw.stabilize === true ? {stabilize: true} : {}),
     configuration: normalizeArray(raw.configuration ?? raw.configurations).map(clonePlain),
     ruleElements: normalizeArray(raw.ruleElements).map(clonePlain),
     policies: clonePlain(raw.policies ?? raw.resolutionPolicies ?? {}) ?? {},
@@ -152,6 +154,7 @@ export function validateActionDefinition(rawDefinition={}, options={}) {
   validateArea(definition.area, errors);
   validateAttack(definition.attack, errors);
   validateSave(definition.save, errors);
+  validateCheck(definition.check, errors);
   validateDamage(definition.damage, errors);
   validateHealing(definition.healing, errors);
   validateEffects(definition.effects, errors, options);
@@ -261,6 +264,7 @@ export function actionDefinitionToResolverInput(definition, {
   targeting=null,
   attack=null,
   save=null,
+  check=null,
   damage=null,
   healing=null,
   effects=null,
@@ -293,6 +297,8 @@ export function actionDefinitionToResolverInput(definition, {
     targeting: targetingFromDefinition(normalized, {source, targeting}),
     attack: resolverRequestFromAttackDefinition(normalized.attack, attack),
     save: resolverRequestFromSaveDefinition(normalized.save, save, evaluationContext),
+    check: normalized.check ? mergeResolverRequest({ability: normalized.check.ability ?? null, skill: normalized.check.skill ?? null,
+      dc: resolveSaveDCDefinition(normalized.check.dc, evaluationContext), policy: normalized.check.policy ?? {}}, check) : check ?? null,
     damage: resolverRequestFromDamageDefinition(normalized, damage, evaluationContext),
     healing: resolverRequestFromHealingDefinition(normalized, healing, evaluationContext),
     effects: resolverRequestFromEffectsDefinition(normalized, effects)
@@ -656,6 +662,16 @@ function validateSave(save, errors) {
   validateValueExpressionShape(save.dc?.valueExpression ?? save.dc?.expression, "save.dc.valueExpression", errors);
 }
 
+/** The acting creature's own ability check against a DC (2024: stabilizing, hiding, escaping a grapple). */
+function validateCheck(check, errors) {
+  if ( !check ) return;
+  if ( !check.ability && !check.skill ) {
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_CHECK, "check.ability", "CheckDefinition requires an ability or skill."));
+  }
+  if ( !check.dc ) errors.push(error(ACTION_DEFINITION_CODES.INVALID_CHECK, "check.dc", "CheckDefinition requires a DC source."));
+  validateValueExpressionShape(check.dc?.valueExpression ?? check.dc?.expression, "check.dc.valueExpression", errors);
+}
+
 function validateDamage(components, errors) {
   components.forEach((component, index) => {
     const path = `damage.${index}`;
@@ -931,6 +947,7 @@ function normalizeDamageDefinition(component={}, index=0) {
     weaponSizeScalable: component.weaponSizeScalable ?? component.scalingCategory === "weapon-size",
     outcomePolicy: clonePlain(component.outcomePolicy ?? {}) ?? {},
     saveOutcomePolicy: clonePlain(component.saveOutcomePolicy ?? null),
+    checkOutcomePolicy: stringOrNull(component.checkOutcomePolicy),
     weaponSize: clonePlain(component.weaponSize ?? component.weaponSizeContext ?? null),
     predicate: clonePlain(component.predicate ?? null),
     targetPolicy: stringOrDefault(component.targetPolicy ?? component.target, "selected"),
@@ -950,6 +967,7 @@ function normalizeHealingDefinition(component={}, index=0) {
     id: stringOrDefault(component.id ?? component.slug, `healing:${index}`),
     expression: clonePlain(expression),
     healingType: stringOrDefault(component.healingType ?? component.type, "healing"),
+    checkOutcomePolicy: stringOrNull(component.checkOutcomePolicy),
     targetPolicy: stringOrDefault(component.targetPolicy ?? component.target, "selected"),
     predicate: clonePlain(component.predicate ?? null),
     scaling: clonePlain(component.scaling ?? {}) ?? {},
@@ -971,6 +989,7 @@ function normalizeEffectApplicationDefinition(effect={}, index=0) {
     duration: normalizeDurationDefinition(effect.duration),
     concentration: clonePlain(effect.concentration ?? null),
     saveOutcomePolicy: clonePlain(effect.saveOutcomePolicy ?? effect.savePolicy ?? null),
+    checkOutcomePolicy: stringOrNull(effect.checkOutcomePolicy),
     predicate: clonePlain(effect.predicate ?? null),
     source: clonePlain(effect.source ?? null),
     origin: clonePlain(effect.origin ?? null),

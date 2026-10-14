@@ -97,6 +97,13 @@ export function resolveActorSaveStatistic(actor, ability=null) {
   return statistic.known ? {domain: statistic.domain, totalModifier: statistic.value, trace: statistic.trace} : null;
 }
 
+/** A creature's check bonus: every Modifier on `check.<skill>`, `check.<ability>` and `check`. */
+export function resolveActorCheckStatistic(actor, {ability=null, skill=null}={}) {
+  const statistic = resolveActorStatisticModifier(actor, [skill ? `check.${skill}` : null, ability ? `check.${ability}` : null, "check"]
+    .filter(Boolean), {tags: [ability, skill].filter(Boolean)});
+  return statistic.known ? {domain: statistic.domain, totalModifier: statistic.value, trace: statistic.trace} : null;
+}
+
 function resolveActorStatisticModifier(actor, domains, options={}) {
   if ( typeof actor?.getStatistic !== "function" ) return {known: false, value: null, trace: null, domain: null};
   const list = uniqueStrings(domains);

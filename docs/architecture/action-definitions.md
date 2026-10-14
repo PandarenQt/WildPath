@@ -77,12 +77,13 @@ ActionDefinition
 |- area?
 |- attack?
 |- save?
-|- check?
+|- check?          (the acting creature's own ability check, below)
 |- damage[]
 |- healing[]
 |- effects[]
 |- duration?
 |- configuration[]
+|- transform? / summon? / stabilize   (applied when the Action completes)
 |- ruleElements[]
 |- policies
 |- metadata
@@ -91,6 +92,31 @@ ActionDefinition
 The Foundry DataModel stores component arrays as plain objects and delegates semantic validation to
 `module/helpers/action-definitions.mjs`. This keeps the Foundry schema stable while the pure domain
 contract evolves.
+
+## Ability checks (2026-10-14)
+
+`check` is the acting creature's own ability check against a DC, the 2024 pattern: stabilizing an ally (DC 10
+Wits, Medicine), hiding (DC 15), escaping a grapple.
+
+```js
+{check: {ability: "wits", skill: "medicine", dc: {value: 10}}, stabilize: true,
+ effects: [{id: "fumble", type: "condition", conditionId: "prone", checkOutcomePolicy: "failure"}]}
+```
+
+- **Validation.** It names an ability or a skill, and a DC: a number, `{value}` or a ValueExpression,
+  evaluated like a save DC.
+- **The roll.** The creature's controller rolls it, as for an attack, before any attack or save. The bonus is
+  every Modifier on `check.<skill>`, `check.<ability>` and `check`. The creature's advantage and disadvantage
+  on those domains combine as for any roll. The roller is never shown the DC.
+- **The outcome.** It uses a save's d20-against-DC rule. It picks what the Action does:
+  - each damage, healing and effect entry's `checkOutcomePolicy` is `success` (the default), `failure` or `any`;
+  - `stabilize` needs a success.
+- **The card** says whether the check succeeded, never its DC or margin.
+
+Not yet:
+- a check by each target, or a contest;
+- automatic failure of a check;
+- check events for Triggers.
 
 `schemaVersion` is currently `1`. Future persisted changes should migrate deterministically based on
 that field instead of inferring meaning from labels or opaque payloads.

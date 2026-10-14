@@ -735,6 +735,7 @@ function sampleResult() {
         outcome: "hit", margin: 10, defense: {value: 12}, roll: {total: 22}}], hits: [], misses: []},
       save: {ok: true, results: [{target: {id: "enemy", actorRef: "Actor.e"}, success: false, critical: false, outcome: "failure",
         margin: -10, dc: {value: 15}}]},
+      check: {ok: true, outcome: "success", success: true, margin: 4, dc: {value: 17}, roll: {total: 21}},
       damage: {results: [{target: {id: "enemy"}, total: 9}]},
       healing: null, effects: {applied: []},
       payment: {resources: [{id: "economy.action", amount: 1}]},
@@ -756,6 +757,7 @@ test("result projection: both BROADCAST_SAFE and PARTICIPANT_PRIVATE are allow-l
     outcomes: {
       attack: {ok: true, results: [{target: {id: "enemy", actorRef: "Actor.e"}, hit: true, critical: false, outcome: "hit"}]},
       save: {ok: true, results: [{target: {id: "enemy", actorRef: "Actor.e"}, success: false, critical: false, outcome: "failure"}]},
+      check: {success: true},
       movement: {completedTransitionCount: 3, intendedTransitionCount: 3, committed: true}
     },
     rolls: [{requestId: "r1", type: "attack", visibility: "public", natural: 18, total: 22, formula: null, foundryRoll: null}],

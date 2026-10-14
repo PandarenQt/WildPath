@@ -359,6 +359,7 @@ export function sanitizeResolutionResultForTransport({state=null, result=null, a
     outcomes: {
       attack: current.results?.attackResolution ?? null,
       save: current.results?.saveResolution ?? null,
+      check: current.results?.checkResolution ?? null,
       damage: current.results?.damageResolution ?? null,
       healing: current.results?.healingResolution ?? null,
       effects: current.results?.effectResolution ?? null,
@@ -443,6 +444,8 @@ function projectPublicResolutionResult(data) {
     outcomes: {
       attack: projectContestOutcome(data.outcomes?.attack, ["hit", "critical", "outcome"]),
       save: projectContestOutcome(data.outcomes?.save, ["success", "critical", "outcome"]),
+      // The acting creature's own check: whether it succeeded, never its DC or margin.
+      check: data.outcomes?.check ? {success: data.outcomes.check.success === true} : null,
       movement: projectMovementOutcome(data.outcomes?.movement)
     },
     rolls: normalizeArray(data.rolls)

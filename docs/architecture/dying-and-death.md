@@ -22,6 +22,7 @@ The rules are in `module/adapters/foundry-v14-dying.mts`: a pure core (`dyingAft
   - The save is an ordinary Action save, so the character's controller rolls it, and Modifiers on `save`
     (such as Exhaustion's −2) apply.
   - **10 or higher** is a success. Three successes make the character **stable**, and it rolls no more.
+    Becoming stable resets its failures (2024).
   - **A natural 1** is two failures.
   - **A natural 20** brings it back with 1 health, conscious.
   - **Three failures** are death.
@@ -29,6 +30,10 @@ The rules are in `module/adapters/foundry-v14-dying.mts`: a pure core (`dyingAft
   - Damage at 0 health is one failed death save.
   - A **critical hit** is two. A hit on an Unconscious creature from within 5 ft is a critical hit, so a
     finishing blow counts double.
+  - A stable creature that takes damage stops being stable, and its death saves start over from that failure.
+- **Stabilizing (2024).** An Action with `stabilize: true` makes each dying target stable. Spare the Dying does
+  it outright. An ally's Help needs a DC 10 Wits (Medicine) `check` (action-definitions.md), and a failed check
+  stabilizes no one.
   - Damage of at least the maximum health kills outright.
 - **Healing at 0** wakes the creature, and its death saves reset.
 - **Exhaustion 6** is death.
@@ -84,8 +89,11 @@ discarded. Quench checked the rest on real Documents:
 - a sustained effect on another creature ending when its caster was Stunned;
 - Prone arriving with Unconscious and staying after waking.
 
+Live (two browsers, 14.369, 2026-10-14): Player1's medic used a stabilize Action on a dying ally. With −20 on
+Medicine, the card said "Check failed", the ally stayed dying and the Action was spent. With +20, the card said
+"Check succeeded", and the ally's Token became stable (three successes, no failures).
+
 ## Not yet
 
-- Stabilizing by an ally's check.
 - Regaining 1 health after being stable for a while.
 - PF2e's dying values, wounded and doomed: WildPath uses 2024 death saves instead.
