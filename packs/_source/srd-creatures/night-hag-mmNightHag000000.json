@@ -472,7 +472,7 @@
             "type": "RollMode",
             "predicate": {
               "tagsAny": [
-                "spell"
+                "magical"
               ]
             },
             "data": {
@@ -496,9 +496,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Magic Resistance: Advantage on saves against spells; other magical effects are not told apart"
-            ]
+            "notes": []
           }
         }
       }
@@ -1201,7 +1199,6 @@
           "Coven Magic: not automated (save): using it spends its cost; its description says the rest",
           "Coven Magic: activation: 10 minute is not an action-economy cost",
           "Coven Magic: \"Create Sensor\" is passive or triggered: not automated",
-          "Magic Resistance: Magic Resistance: Advantage on saves against spells; other magical effects are not told apart",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Detect Magic\" (its own changes) not converted",
           "Spellcasting: concentration: nothing it sustains was converted",

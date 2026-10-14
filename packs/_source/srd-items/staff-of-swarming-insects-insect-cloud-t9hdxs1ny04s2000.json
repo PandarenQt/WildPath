@@ -10,6 +10,9 @@
     "definition": {
       "schemaVersion": 1,
       "id": "action:srd-staff-of-swarming-insects-insect-cloud",
+      "tags": [
+        "magical"
+      ],
       "costs": {
         "allOf": [
           {

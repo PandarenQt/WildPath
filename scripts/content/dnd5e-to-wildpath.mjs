@@ -272,6 +272,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, names=
   for ( const [index, activity] of usable.entries() ) {
     const notes = [...(pool?.notes ?? [])];
     const label = activity.name || activity.type;
+    // An activity a common trait automates (Regeneration's healing) is the trait's, not an Action.
+    if ( trait?.consumes?.includes(activity) ) continue;
     // A passive or triggered ability is not something a creature uses on its turn; its feature carries its text.
     const activation = pick(activity, system, "activation").type ?? "";
     if ( ["", "none", "special"].includes(activation) ) {
@@ -315,30 +317,44 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, names=
 
 /**
  * Common monster traits (G5), by dnd5e identifier: the rules each gives its creature, and what is left to the GM.
- * A trait's own passive activities are used by its rules (Regeneration's healing).
+ * The activities a trait automates (`consumes`: Regeneration's healing, however dnd5e activates it) are not Actions.
  */
 const TRAITS = Object.freeze({
+  // Every spell is magical, and so is an Action tagged `magical` (a magic item's).
   "magic-resistance": () => ({rules: [{schemaVersion: 1, id: "magic-resistance", type: "RollMode",
-    predicate: {tagsAny: ["spell"]}, data: {domains: ["save"], mode: "advantage"}}],
-    // shortcut: only spells are told apart from other effects; upgrade with a "magical" tag on magic items' Actions.
-    notes: ["Magic Resistance: Advantage on saves against spells; other magical effects are not told apart"]}),
+    predicate: {tagsAny: ["magical"]}, data: {domains: ["save"], mode: "advantage"}}], notes: []}),
   // Its uses are the creature's ("3/Day"); a failed save may succeed instead, at once or when its controller chooses.
   "legendary-resistance": (document, {creature}) => (creature?.legendaryResistances ? {rules: [{schemaVersion: 1,
     id: "legendary-resistance", type: "GrantResource", data: {resourceId: "legendary-resistance", label: "Legendary Resistance",
       maximum: creature.legendaryResistances, recovery: "longRest"}}], notes: []} : null),
+  // "Doesn't provoke an Opportunity Attack when it flies out of an enemy's reach."
+  flyby: () => ({rules: [{schemaVersion: 1, id: "flyby", type: "AvoidOpportunityAttacks", data: {movementModes: ["fly"]}}], notes: []}),
   "pack-tactics": () => ({rules: [{schemaVersion: 1, id: "pack-tactics", type: "RollMode",
     predicate: {equals: {path: "attack.allyNearTarget", value: true}}, data: {domains: ["attack"], mode: "advantage"}}], notes: []}),
   regeneration: (document, {activities, ...options}) => {
     const activity = activities.find(entry => entry.type === "heal");
     const heal = activity ? convertActivity({document, activity, ...options, notes: []}) : null;
     if ( !heal?.healing?.length ) return null;
-    // At the start of each of its turns, while it has at least 1 Hit Point.
+    const text = String(document.system?.description?.value ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
+    // "If the troll takes Acid or Fire damage, this trait doesn't function on its next turn": only the types it names.
+    const stopping = text.split(/(?<=\.)\s+/).find(sentence => /\btakes\b/i.test(sentence) && /function/i.test(sentence)) ?? "";
+    const stoppedBy = DAMAGE_TYPES.filter(type => new RegExp(`\\b${type}\\b`, "i").test(stopping));
+    const predicates = [
+      ...(/at least 1 hit point/i.test(text) ? [{not: {equals: {path: "actor.system.resources.health.value", value: 0}}}] : []),
+      ...stoppedBy.map(type => ({not: {equals: {path: `actor.flags.wildpath.damageTaken.${type}`, value: true}}}))];
+    // "The troll dies only if it starts its turn with 0 Hit Points and doesn't regenerate."
+    const deferDeath = /only if it starts its turn with 0 hit points/i.test(text);
     return {rules: [{schemaVersion: 1, id: "regeneration", type: "Trigger", data: {event: "turn.started",
-      predicate: {not: {equals: {path: "actor.system.resources.health.value", value: 0}}}, action: {...heal, costs: {allOf: []}}}}],
-      // shortcut: the damage that stops it for a turn is not tracked; upgrade with a damage-taken record per turn.
-      notes: ["Regeneration: the damage that stops it for a turn is not tracked; turn the feature off by hand"]};
+      ...(stoppedBy.length ? {stoppedBy} : {}), ...(deferDeath ? {deferDeath: true} : {}),
+      ...(predicates.length ? {predicate: predicates.length > 1 ? {all: predicates} : predicates[0]} : {}),
+      action: {...heal, costs: {allOf: []}}}}], consumes: [activity],
+      notes: /sunlight|running water/i.test(text) ? ["Regeneration: sunlight and running water are not checked"] : []};
   }
 });
+
+/** The 2024 damage types, as a text names them. */
+const DAMAGE_TYPES = Object.freeze(["acid", "bludgeoning", "cold", "fire", "force", "lightning", "necrotic", "piercing", "poison",
+  "psychic", "radiant", "slashing", "thunder"]);
 
 /** The common trait `document` is, by its dnd5e identifier or its name, as rules; null when it is none of them. */
 function traitOf(document, options) {
@@ -422,8 +438,10 @@ function poolOf(uses, {id, label, scales}) {
 /** An Action's identity and costs: its activation in the action economy and the uses it spends. */
 function baseDefinition({document, activity, system, spell, notes, pool}) {
   const activation = pick(activity, system, "activation");
+  // A magic item's Action is magical (Magic Resistance); a spell is magical without saying so.
+  const tags = [...(spell ? ["spell"] : []), ...((system.properties ?? []).includes("mgc") ? ["magical"] : [])];
   const definition = {schemaVersion: 1, id: `action:srd-${slugify(document.name)}${activity.name ? `-${slugify(activity.name)}` : ""}`,
-    ...(spell ? {tags: ["spell"]} : {})};
+    ...(tags.length ? {tags} : {})};
   const capability = ACTIVATION_COST[activation.type];
   if ( capability ) definition.costs = {allOf: [{capability, amount: number(activation.value) || 1}]};
   else {
@@ -978,6 +996,11 @@ export function describe(document, {names={}, creature=null}={}) {
         if ( path === "@roll.formula" ) return source?.roll?.formula || label || "";
         if ( String(path).startsWith("@scale.") ) return label ?? "(by class level)";
         if ( path === "@save.dc.value" ) return String(saveValue(source) ?? label ?? "");
+        // Regeneration's "regains [[lookup @healing.formula]] Hit Points": its dice and bonus, which dnd5e prepares.
+        if ( path === "@healing.formula" ) {
+          const {number: count, denomination, bonus} = source?.healing ?? {};
+          return [count && denomination ? `${count}d${denomination}` : "", bonus ?? ""].filter(Boolean).join(" + ") || label || "";
+        }
         const found = lookupPath(source, path) ?? lookupPath(system, path);
         if ( (found != null) && (typeof found !== "object") ) return caseAs(String(found), flags);
         if ( path === "@labels.description.template" ) return caseAs(templateText(system.target?.template), flags) || label || "";

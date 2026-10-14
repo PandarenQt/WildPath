@@ -2,7 +2,7 @@ import {WildPathModifier, WildPathStatistic} from "../helpers/modifiers.mjs";
 import {
   damageProfileFromRuleElements, grantedMovementFromRuleElements, grantedResourcesFromRuleElements, modifiersFromRuleElements,
   resourceCapsFromRuleElements, rollModesFromRuleElements, rollOutcomesFromRuleElements, extraDamageFromRuleElements, aurasFromRuleElements,
-  conditionImmunitiesFromRuleElements, normalizeRuleElementType
+  conditionImmunitiesFromRuleElements, opportunityAttackAvoidanceFromRuleElements, normalizeRuleElementType
 } from "../helpers/rule-elements.mjs";
 import {DEFAULT_FORM_STATISTICS, DEFAULT_KEPT_ITEM_TYPES, itemContributesWhileTransformed} from "../helpers/transformations.mjs";
 import WildPathConditionEffect from "../data/active-effect/condition.mjs";
@@ -163,6 +163,12 @@ export default class WildPathActor extends Actor {
   /** The conditions this creature's features, gear and effects make it immune to (`ConditionImmunity`). */
   getConditionImmunities() {
     return conditionImmunitiesFromRuleElements(grantOwners(this), {actor: this, actorSystem: this.system,
+      conditions: [...(this.statuses ?? [])]});
+  }
+
+  /** Whether this creature's movement provokes Opportunity Attacks (`AvoidOpportunityAttacks`): `{always, movementModes}`. */
+  getOpportunityAttackAvoidance() {
+    return opportunityAttackAvoidanceFromRuleElements(grantOwners(this), {actor: this, actorSystem: this.system,
       conditions: [...(this.statuses ?? [])]});
   }
 

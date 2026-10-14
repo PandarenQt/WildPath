@@ -269,27 +269,48 @@ test("an effect with its own changes becomes a custom effect with the rules they
 });
 
 test("common monster traits (G5): Magic Resistance, Pack Tactics and Regeneration become their rules", () => {
-  const trait = (id, name, activities={}) => ({_id: `${id.replace(/-/g, "").slice(0, 12)}0000`, name, type: "feat",
-    system: {source: SRD, identifier: id, activities}});
-  const regeneration = trait("regeneration", "Regeneration", {a: activity("heal", {activation: {type: "special", condition: "starts its turn"},
-    healing: {number: null, denomination: null, bonus: "10", types: ["healing"], custom: {enabled: false}}})});
+  const trait = (id, name, activities={}, description="") => ({_id: `${id.replace(/-/g, "").slice(0, 12)}0000`, name, type: "feat",
+    system: {source: SRD, identifier: id, activities, description: {value: description}}});
+  const regenerating = description => trait("regeneration", "Regeneration", {a: activity("heal", {activation: {type: "special",
+    condition: "starts its turn"}, healing: {number: null, denomination: null, bonus: "10", types: ["healing"], custom: {enabled: false}}})},
+    description);
+  const regeneration = regenerating("<p>The troll regains 10 Hit Points at the start of each of its turns. If the troll takes Acid or Fire "
+    + "damage, this trait doesn't function on the troll's next turn. The troll dies only if it starts its turn with 0 Hit Points and "
+    + "doesn't regenerate.</p>");
   const troll = {_id: "testTroll0000001", name: "Test Troll", type: "npc", system: {source: SRD, details: {cr: 5},
     abilities: {str: {value: 18}}, attributes: {hp: {max: 94}, movement: {walk: "30"}}, traits: {size: "lg"},
     resources: {legres: {max: 3, spent: 0}}},
-    items: [trait("magic-resistance", "Magic Resistance"), trait("pack-tactics", "Pack Tactics"), regeneration,
+    items: [trait("magic-resistance", "Magic Resistance"), trait("pack-tactics", "Pack Tactics"), regeneration, trait("flyby", "Flyby"),
       trait("legendary-resistance", "Legendary Resistance", {a: activity("utility", {activation: {type: "special", condition: "fails a saving throw"}})})]};
   const {actor} = convertActor(troll);
   const rules = name => actor.items.find(item => item.name === name).system.ruleElements;
   assert.deepEqual(rules("Magic Resistance").map(rule => [rule.type, rule.predicate, rule.data]),
-    [["RollMode", {tagsAny: ["spell"]}, {domains: ["save"], mode: "advantage"}]]);
+    [["RollMode", {tagsAny: ["magical"]}, {domains: ["save"], mode: "advantage"}]]);
   assert.deepEqual(rules("Pack Tactics").map(rule => [rule.type, rule.predicate, rule.data]),
     [["RollMode", {equals: {path: "attack.allyNearTarget", value: true}}, {domains: ["attack"], mode: "advantage"}]]);
   const [regenerate] = rules("Regeneration");
-  assert.deepEqual([regenerate.type, regenerate.data.event, regenerate.data.predicate],
-    ["Trigger", "turn.started", {not: {equals: {path: "actor.system.resources.health.value", value: 0}}}]);
+  const stopped = type => ({not: {equals: {path: `actor.flags.wildpath.damageTaken.${type}`, value: true}}});
+  assert.deepEqual([regenerate.type, regenerate.data.event, regenerate.data.stoppedBy, regenerate.data.deferDeath, regenerate.data.predicate],
+    ["Trigger", "turn.started", ["acid", "fire"], true, {all: [stopped("acid"), stopped("fire")]}],
+    "it works at 0 Hit Points, unless Acid or Fire stopped it; at 0 it dies only if it does not regenerate");
+  assert.equal(describe(regenerating("<p>Regains [[lookup @healing.formula activity=actheal]] Hit Points.</p>")),
+    "<p>Regains 10 Hit Points.</p>", "its healing, which dnd5e computes");
+  const ruleOf = description => convertItem(regenerating(description), {creature: {name: "Test"}}).items[0].system.ruleElements[0].data;
+  assert.deepEqual(ruleOf("<p>The oni regains 10 Hit Points at the start of each of its turns if it has at least 1 Hit Point.</p>").predicate,
+    {not: {equals: {path: "actor.system.resources.health.value", value: 0}}}, "only while it has 1 Hit Point");
+  const turnStart = convertItem({...regeneration, system: {...regeneration.system, activities: {a: {...regeneration.system.activities.a,
+    activation: {type: "turnStart"}}}}}, {creature: {name: "Test"}}).items;
+  assert.deepEqual(turnStart.map(item => [item.type, item.system.ruleElements[0].id]), [["feature", "regeneration"]],
+    "healing activated at the start of the turn is the trait's too, not an Action");
+  const unstoppable = ruleOf("<p>The tarrasque regains 30 Hit Points at the start of each of its turns.</p>");
+  assert.deepEqual([unstoppable.predicate, unstoppable.stoppedBy, unstoppable.deferDeath], [undefined, undefined, undefined],
+    "nothing stops it");
   assert.deepEqual(regenerate.data.action.costs, {allOf: []});
   assert.equal(regenerate.data.action.healing[0].expression.value, 10);
   assert.equal(validateActionDefinition(regenerate.data.action).ok, true);
+  assert.deepEqual(rules("Flyby").map(rule => [rule.type, rule.data]), [["AvoidOpportunityAttacks", {movementModes: ["fly"]}]]);
+  const wand = convertItem({...weapon, _id: "testMagicSword01", system: {...weapon.system, properties: [...weapon.system.properties, "mgc"]}});
+  assert.deepEqual(wand.items[0].system.definition.tags, ["magical"], "a magic item's Action is magical");
   assert.deepEqual(rules("Legendary Resistance").map(rule => rule.data), [{resourceId: "legendary-resistance", label: "Legendary Resistance",
     maximum: 3, recovery: "longRest"}], "its uses, the pool a failed save spends");
   assert.ok(!actor.flags.wildpath.conversion.notes.some(note => /passive or triggered/.test(note)), "nothing is left as passive text");

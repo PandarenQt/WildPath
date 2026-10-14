@@ -856,9 +856,13 @@ function legendaryResistanceFor(actor, actorSystem, game) {
   return {policy, payerRef: actor.uuid, plan: payment.mutationPlan, ...(label ? {label} : {})};
 }
 
-/** What a save's RuleElement predicates see: its ability, and the Action's tags (`{tagsAny: ["spell"]}`). */
+/**
+ * What a save's RuleElement predicates see: its ability, and the Action's tags. Every spell is `magical` too, so
+ * Magic Resistance (`{tagsAny: ["magical"]}`) covers spells and Actions tagged `magical` (a magic item's).
+ */
 function saveContext(definition, ability) {
-  return {context: {save: {ability}, tags: definition?.tags ?? []}};
+  const tags = definition?.tags ?? [];
+  return {context: {save: {ability}, tags: tags.includes("spell") && !tags.includes("magical") ? [...tags, "magical"] : tags}};
 }
 
 /**

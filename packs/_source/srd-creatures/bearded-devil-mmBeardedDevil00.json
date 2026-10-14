@@ -72,7 +72,7 @@
             "type": "RollMode",
             "predicate": {
               "tagsAny": [
-                "spell"
+                "magical"
               ]
             },
             "data": {
@@ -96,9 +96,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Magic Resistance: Advantage on saves against spells; other magical effects are not told apart"
-            ]
+            "notes": []
           }
         }
       }
@@ -444,7 +442,6 @@
       },
       "conversion": {
         "notes": [
-          "Magic Resistance: Magic Resistance: Advantage on saves against spells; other magical effects are not told apart",
           "Infernal Glaive: \"save\" is passive or triggered: not automated",
           "Infernal Glaive: \"Damage: Infernal Wound\" is passive or triggered: not automated",
           "Infernal Glaive: not automated (check): using it spends its cost; its description says the rest",

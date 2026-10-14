@@ -113,7 +113,7 @@
             "type": "RollMode",
             "predicate": {
               "tagsAny": [
-                "spell"
+                "magical"
               ]
             },
             "data": {
@@ -137,9 +137,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Magic Resistance: Advantage on saves against spells; other magical effects are not told apart"
-            ]
+            "notes": []
           }
         }
       }
@@ -922,7 +920,6 @@
       },
       "conversion": {
         "notes": [
-          "Magic Resistance: Magic Resistance: Advantage on saves against spells; other magical effects are not told apart",
           "Reflective Carapace: \"Roll d6\" is passive or triggered: not automated",
           "Bite: \"Escape Check\" is passive or triggered: not automated",
           "Swallow: effect: coverTotal is not a WildPath condition yet",

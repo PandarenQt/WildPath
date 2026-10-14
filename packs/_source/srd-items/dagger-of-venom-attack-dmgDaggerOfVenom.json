@@ -10,6 +10,9 @@
     "definition": {
       "schemaVersion": 1,
       "id": "action:srd-dagger-of-venom",
+      "tags": [
+        "magical"
+      ],
       "costs": {
         "allOf": [
           {

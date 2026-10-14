@@ -83,3 +83,24 @@ test("every creature makes Opportunity Attacks, unless its own content does, it 
   assert.deepEqual(provider({scene, token: mover}).reactions.triggers.map(trigger => trigger.id), ["reaction:guard:strike:opportunity"],
     "Disengage stops the common Opportunity Attack");
 });
+
+test("Flyby: a creature that avoids Opportunity Attacks while flying provokes none when it flies out of reach", async () => {
+  const {evaluatePredicate} = await import("../module/helpers/predicates.mjs");
+  const {opportunityAttackAvoidanceFromRuleElements} = await import("../module/helpers/rule-elements.mjs");
+  const owners = rules => [{ruleElements: rules}];
+  const flyby = {schemaVersion: 1, id: "flyby", type: "AvoidOpportunityAttacks", data: {movementModes: ["fly"]}};
+  assert.deepEqual(opportunityAttackAvoidanceFromRuleElements(owners([flyby])), {always: false, movementModes: ["fly"]});
+  assert.deepEqual(opportunityAttackAvoidanceFromRuleElements(owners([{...flyby, data: {}}])), {always: true, movementModes: []},
+    "naming no mode is every movement");
+
+  const avoidance = {always: false, movementModes: ["fly"]};
+  const mover = {...token("bat", 1), actor: {id: "actor-bat", uuid: "Actor.bat", items: [], statuses: new Set(),
+    getOpportunityAttackAvoidance: () => avoidance}};
+  const scene = {grid: {distance: 5}, tokens: [mover, token("ogre", -1, [])]};
+  const [trigger] = createFoundryReactionProvider({resolve: () => null})({scene, token: mover}).reactions.triggers;
+  const leaving = movementMode => ({event: {data: {movementMode, relations: {ogre: {leavesReach: true, context: {hostile: true}}}}}});
+  assert.equal(evaluatePredicate(trigger.predicate, leaving("fly")).ok, false, "flying out of reach");
+  assert.equal(evaluatePredicate(trigger.predicate, leaving("walk")).ok, true, "walking out still provokes");
+  avoidance.always = true;
+  assert.equal(createFoundryReactionProvider({resolve: () => null})({scene, token: mover}).reactions, undefined, "like Disengage");
+});

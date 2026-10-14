@@ -99,7 +99,7 @@
             "type": "RollMode",
             "predicate": {
               "tagsAny": [
-                "spell"
+                "magical"
               ]
             },
             "data": {
@@ -123,9 +123,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Magic Resistance: Advantage on saves against spells; other magical effects are not told apart"
-            ]
+            "notes": []
           }
         }
       }
@@ -524,7 +522,6 @@
       },
       "conversion": {
         "notes": [
-          "Magic Resistance: Magic Resistance: Advantage on saves against spells; other magical effects are not told apart",
           "Chain: \"Escape Check\" is passive or triggered: not automated",
           "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
         ]

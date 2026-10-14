@@ -10,6 +10,9 @@
     "definition": {
       "schemaVersion": 1,
       "id": "action:srd-energy-bow-energy-bow",
+      "tags": [
+        "magical"
+      ],
       "costs": {
         "allOf": [
           {

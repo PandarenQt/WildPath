@@ -10,6 +10,9 @@
     "definition": {
       "schemaVersion": 1,
       "id": "action:srd-energy-bow-arrow-of-transport",
+      "tags": [
+        "magical"
+      ],
       "costs": {
         "allOf": [
           {

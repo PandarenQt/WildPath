@@ -10,6 +10,9 @@
     "definition": {
       "schemaVersion": 1,
       "id": "action:srd-sword-of-life-stealing-sword-of-life-stealing",
+      "tags": [
+        "magical"
+      ],
       "costs": {
         "allOf": [
           {

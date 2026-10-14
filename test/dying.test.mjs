@@ -112,6 +112,36 @@ test("a Player's companion dropped to 0 falls Unconscious instead of dying", asy
   assert.deepEqual(wolf.effects.map(effect => effect.system.type), ["unconscious"]);
 });
 
+test("Regeneration: a Troll at 0 lies Unconscious until its turn, Fire stops it, and it dies only if it does not regenerate", async () => {
+  const dying = createFoundryDying({game: {user: {id: "gm"}, users: {activeGM: {id: "gm"}}, combats: []},
+    coordinator: {}, resolveAction: async () => ({ok: false})});
+  const troll = creature({type: "npc", health: 6});
+  troll.items = [{system: {active: true, ruleElements: [{type: "Trigger", data: {event: "turn.started", stoppedBy: ["acid", "fire"],
+    deferDeath: true}}]}}];
+  troll.update = async function (data) {
+    this.calls.push(["update", data]);
+    for ( const [path, value] of Object.entries(data) ) {
+      if ( path.startsWith("flags.wildpath.damageTaken.") ) this.flags.wildpath = {...this.flags.wildpath,
+        damageTaken: {...this.flags.wildpath?.damageTaken, [path.split(".").pop()]: value}};
+      if ( path === "system.resources.health.value" ) this.system.resources.health.value = value;
+    }
+  };
+  const burn = (from, amount, byDamageType) => ({type: "durabilityDamage", plan: {...damage(from, amount, 84),
+    metadata: {damageResult: {byDamageType}}}});
+  await dying.afterPlans(troll, [burn(6, 8, {fire: 5, slashing: 3})]);
+  assert.deepEqual(troll.effects.map(effect => effect.system.type), ["unconscious"], "not dead at 0");
+  assert.deepEqual(troll.flags.wildpath.damageTaken, {fire: true}, "the Fire is recorded; the Slashing stops nothing");
+  troll.system.resources.health.value = 0;
+  await dying.onTurnStart({combatant: {actor: troll}});
+  assert.ok(troll.effects.some(effect => effect.system.type === "dead"), "it started its turn at 0 without regenerating");
+  assert.equal(troll.flags.wildpath.damageTaken, undefined, "the record ends with the turn");
+
+  const healed = creature({type: "npc", health: 10});
+  healed.items = troll.items;
+  await dying.onTurnStart({combatant: {actor: healed}});
+  assert.equal(healed.effects.length, 0, "it regenerated");
+});
+
 test("2024 stability: the third success resets the failures, and damage while stable starts the death saves over", () => {
   assert.deepEqual(deathSaveResult({natural: 12, total: 12, deathSaves: {successes: 2, failures: 2}}),
     {deathSaves: {successes: 3, failures: 0}});

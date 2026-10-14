@@ -65,6 +65,9 @@
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-clenched-fist",
+          "tags": [
+            "magical"
+          ],
           "costs": {
             "allOf": [
               {
@@ -109,6 +112,9 @@
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-forceful-hand",
+          "tags": [
+            "magical"
+          ],
           "costs": {
             "allOf": [
               {
@@ -152,6 +158,9 @@
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-grasping-hand-grapple",
+          "tags": [
+            "magical"
+          ],
           "costs": {
             "allOf": [
               {
@@ -195,6 +204,9 @@
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-grasping-hand-crush",
+          "tags": [
+            "magical"
+          ],
           "costs": {
             "allOf": [
               {
@@ -239,6 +251,9 @@
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-interposing-hand-interpose",
+          "tags": [
+            "magical"
+          ],
           "costs": {
             "allOf": [
               {

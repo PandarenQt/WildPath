@@ -10,6 +10,9 @@
     "definition": {
       "schemaVersion": 1,
       "id": "action:srd-staff-of-the-magi-spell-absorption",
+      "tags": [
+        "magical"
+      ],
       "costs": {
         "allOf": [
           {

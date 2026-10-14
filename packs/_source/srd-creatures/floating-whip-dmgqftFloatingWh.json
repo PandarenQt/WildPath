@@ -65,6 +65,9 @@
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-melee-spell-attack",
+          "tags": [
+            "magical"
+          ],
           "costs": {
             "allOf": [
               {

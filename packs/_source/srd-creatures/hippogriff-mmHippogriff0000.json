@@ -62,7 +62,18 @@
       "system": {
         "active": true,
         "description": "<p>The hippogriff doesn't provoke an Opportunity Attack when it flies out of an enemy's reach.</p>",
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "flyby",
+            "type": "AvoidOpportunityAttacks",
+            "data": {
+              "movementModes": [
+                "fly"
+              ]
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {

@@ -129,7 +129,7 @@
             "type": "RollMode",
             "predicate": {
               "tagsAny": [
-                "spell"
+                "magical"
               ]
             },
             "data": {
@@ -153,9 +153,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Magic Resistance: Advantage on saves against spells; other magical effects are not told apart"
-            ]
+            "notes": []
           }
         }
       }
@@ -1676,7 +1674,6 @@
       },
       "conversion": {
         "notes": [
-          "Magic Resistance: Magic Resistance: Advantage on saves against spells; other magical effects are not told apart",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Detect Evil and Good\" (its own changes) not converted",
           "Spellcasting: concentration: nothing it sustains was converted",

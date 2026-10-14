@@ -65,6 +65,9 @@
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-greatsword-command-move-and-attack",
+          "tags": [
+            "magical"
+          ],
           "costs": {
             "allOf": [
               {
@@ -155,6 +158,9 @@
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-longsword-command-move-and-attack",
+          "tags": [
+            "magical"
+          ],
           "costs": {
             "allOf": [
               {
@@ -247,6 +253,9 @@
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-rapier-command-move-and-attack",
+          "tags": [
+            "magical"
+          ],
           "costs": {
             "allOf": [
               {
@@ -340,6 +349,9 @@
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-scimitar-command-move-and-attack",
+          "tags": [
+            "magical"
+          ],
           "costs": {
             "allOf": [
               {
@@ -433,6 +445,9 @@
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-shortsword-command-move-and-attack",
+          "tags": [
+            "magical"
+          ],
           "costs": {
             "allOf": [
               {

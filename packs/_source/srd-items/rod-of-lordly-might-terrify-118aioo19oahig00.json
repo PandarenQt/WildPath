@@ -10,6 +10,9 @@
     "definition": {
       "schemaVersion": 1,
       "id": "action:srd-rod-of-lordly-might-terrify",
+      "tags": [
+        "magical"
+      ],
       "costs": {
         "allOf": [
           {
