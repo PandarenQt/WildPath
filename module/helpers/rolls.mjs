@@ -865,6 +865,25 @@ export function combineRollModes(modes=[]) {
 }
 
 /**
+ * The chance that d20 + `modifier` reaches `target`, rolled with `rollMode`. With `natural` (attack rolls), a
+ * natural 20 always succeeds and a natural 1 always fails; 2024 saves and checks have no such rule.
+ * @param {{modifier?: number, target: number, rollMode?: string, natural?: boolean}} options
+ * @returns {number}  between 0 and 1
+ */
+export function d20Chance({modifier=0, target, rollMode=ROLL_MODES.NORMAL, natural=false}) {
+  let faces = 0;
+  for ( let face = 1; face <= 20; face++ ) {
+    if ( natural && (face === 1) ) continue;
+    if ( (natural && (face === 20)) || ((face + modifier) >= target) ) faces += 1;
+  }
+  const single = faces / 20;
+  const mode = normalizeRollMode(rollMode);
+  if ( mode === ROLL_MODES.ADVANTAGE ) return 1 - ((1 - single) ** 2);
+  if ( mode === ROLL_MODES.DISADVANTAGE ) return single ** 2;
+  return single;
+}
+
+/**
  * A d20 formula rolled with advantage or disadvantage (`2d20kh`/`2d20kl` in place of its first `1d20`) and with
  * a flat modifier added, for rolls made outside RollRequests (initiative).
  * @param {string} formula

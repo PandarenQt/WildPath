@@ -29,7 +29,8 @@ import {WILDPATH} from "../module/config.mjs";
 import {
   buildFoundryActionUseIntent,
   conditionsFrom,
-  foundryActionIntentToStagedOptions
+  foundryActionIntentToStagedOptions,
+  foundryActionOdds
 } from "../module/resolvers/foundry-multiplayer-runtime.mjs";
 import {
   FOUNDRY_GRID_TYPES,
@@ -1650,4 +1651,36 @@ test("a creature's conditions from another are the effects naming it, its Tokens
   ]};
   assert.deepEqual(conditionsFrom(holder, charmer, game), {charmed: true, grappled: true});
   assert.deepEqual(conditionsFrom(holder, null, game), {});
+});
+
+test("the odds of an attack and of a save use the authority's own numbers, and show only to those who may see them", () => {
+  const scene = fakeScene(new FakeSquareGrid(), {id: "scene-odds"});
+  const attacker = withConditions(fakeActor("odds-source", {system: actorSystem(),
+    statistics: {"attack.weapon": runtimeStatistic("attack.weapon", 4)}}));
+  const target = withConditions(fakeActor("odds-target", {system: targetActorSystem(20, 20, {ac: 14}),
+    statistics: {"save.might": runtimeStatistic("save.might", 3)}}), "prone");
+  const sourceToken = fakeTokenDocument({id: "odds-source", actor: attacker, scene, offset: {i: 0, j: 0}});
+  const targetToken = {...fakeTokenDocument({id: "odds-target", actor: target, scene, offset: {i: 1, j: 0}}), name: "Goblin"};
+  attacker.tokens = [sourceToken];
+  target.tokens = [targetToken];
+  scene.tokens = [sourceToken, targetToken];
+  const game = fakeGame({actors: [attacker, target], scenes: [scene]});
+  const odds = (definition, user={isGM: true}) => foundryActionOdds({actor: attacker, action: actionItem(definition, attacker),
+    sourceToken, targetTokens: [targetToken], user, game});
+
+  const [hit] = odds(meleeStrikeDefinition());
+  assert.deepEqual([hit.kind, hit.modifier, hit.defense, hit.rollMode], ["attack", 4, 14, "advantage"], "Prone within 5 ft: advantage");
+  assert.equal(hit.chance.toFixed(4), "0.7975", "+4 against AC 14 is 55%, with advantage 79.75%");
+  const [save] = odds(fortitudeBlast("might"));
+  assert.deepEqual([save.kind, save.dc, save.modifier, save.chance.toFixed(2)], ["save", 13, 3, "0.45"], "+3 against DC 13 fails 45%");
+  withConditions(target, "stunned");
+  assert.deepEqual(odds(fortitudeBlast("might")).map(entry => [entry.automatic, entry.chance]), [[true, 1]]);
+
+  assert.deepEqual(odds(meleeStrikeDefinition(), {isGM: false}), [], "players see no odds by default");
+  target.effects = [{statuses: new Set(), flags: {wildpath: {conditionEffect: {sourceRef: `actor:${attacker.id}`}}},
+    system: {ruleElements: [{schemaVersion: 1, id: "sized-up", type: "Reveal", data: {details: ["defenses"]}}]}}];
+  assert.equal(odds(meleeStrikeDefinition(), {isGM: false}).length, 1, "unless the target reveals its defenses to the attacker");
+  game.settings = {get: (scope, key) => key === "playersSeeOdds"};
+  target.effects = [];
+  assert.equal(odds(meleeStrikeDefinition(), {isGM: false}).length, 1, "or the house rule shows odds to players");
 });

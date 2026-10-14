@@ -23,9 +23,10 @@
           <span class="bar-group-label">{{localize group.label}}</span>
           {{#each group.actions as |action|}}
             <button type="button" class="bar-action" data-action="use" data-item-id="{{action.id}}"
-                    {{#unless action.enabled}}disabled title="{{localize "WILDPATH.ACTIONBAR.Unavailable"}} ({{action.disabledCode}})"{{else}}title="{{action.label}}"{{/unless}}>
+                    {{#unless action.enabled}}disabled title="{{localize "WILDPATH.ACTIONBAR.Unavailable"}} ({{action.disabledCode}})"{{else}}{{#if action.odds}}data-tooltip="{{action.odds.tooltip}}"{{else}}title="{{action.label}}"{{/if}}{{/unless}}>
               <img src="{{action.img}}" alt="" width="28" height="28">
               <span>{{action.label}}</span>
+              {{#if action.odds}}<span class="bar-odds">{{action.odds.badge}}</span>{{/if}}
             </button>
             {{#if action.policy}}
               <button type="button" class="bar-policy policy-{{action.policy.id}}" data-action="reactionPolicy" data-item-id="{{action.id}}"

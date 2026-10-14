@@ -30,10 +30,11 @@ import {
   MULTIPLAYER_AUTHORITY_CODES,
   clonePlainData
 } from "../helpers/multiplayer-authority.mjs";
-import {actionDefinitionActivationCost, actionDefinitionFromAction} from "../helpers/action-definitions.mjs";
+import {actionDefinitionActivationCost, actionDefinitionFromAction, actionDefinitionToResolverInput} from "../helpers/action-definitions.mjs";
 import {tokenRef} from "../helpers/entity-refs.mjs";
 import {footprintDistance} from "../helpers/grid-footprints.mjs";
-import {combineRollModes} from "../helpers/rolls.mjs";
+import {combineRollModes, d20Chance} from "../helpers/rolls.mjs";
+import {collectRuleElementContributions} from "../helpers/rule-elements.mjs";
 import {
   actionCombatStatistics,
   resolveActorCheckStatistic,
@@ -844,16 +845,68 @@ function creatureRefs(actor, game) {
  * Token ref) or one of its Items (an Action it used) as where the effect came from.
  */
 export function conditionsFrom(holder, source, game=globalThis.game) {
-  if ( !holder?.effects || !source?.uuid ) return {};
-  const refs = creatureRefs(source, game);
   const from = {};
-  for ( const effect of collectionContents(holder.effects) ) {
+  for ( const effect of effectsFrom(holder, source, game) ) for ( const id of effect.statuses ?? [] ) from[id] = true;
+  return from;
+}
+
+/** The enabled effects on `holder` that came from `source`: its Actor, one of its Tokens, or one of its Items. */
+function effectsFrom(holder, source, game) {
+  if ( !holder?.effects || !source?.uuid ) return [];
+  const refs = creatureRefs(source, game);
+  return collectionContents(holder.effects).filter(effect => {
     const flag = effect?.flags?.wildpath?.conditionEffect ?? {};
     const ref = String(flag.sourceRef ?? flag.originRef ?? effect?.origin ?? "").replace(/^uuid:/, "");
-    if ( !ref || effect.disabled || !(refs.has(ref) || [...refs].some(owner => ref.startsWith(`${owner}.`))) ) continue;
-    for ( const id of effect.statuses ?? [] ) from[id] = true;
+    return ref && !effect.disabled && (refs.has(ref) || [...refs].some(owner => ref.startsWith(`${owner}.`)));
+  });
+}
+
+/** Whether `target` reveals `detail` (`defenses`) to `viewer`: a `Reveal` rule on an effect `viewer` applied to it. */
+export function revealedTo(target, viewer, detail="defenses", game=globalThis.game) {
+  return effectsFrom(target, viewer, game).some(effect => collectRuleElementContributions({ruleElements: effect.system?.ruleElements ?? [],
+    context: {actor: target, actorSystem: target.system}}).contributions.reveals.includes(detail));
+}
+
+/**
+ * The odds of `action` against each of `targetTokens`, from the authority's own numbers: for an attack, the chance
+ * to hit (its modifier against the target's defense, with every advantage and disadvantage, adjacency included);
+ * for a save, the chance the target fails it (its save bonus against the DC, its own roll mode, automatic failure).
+ * `user` sees the odds against a target when they are the GM, when the table's house rule shows odds to players
+ * (`playersSeeOdds`), or when the target reveals its defenses to `actor`. An area or a self Action has none.
+ */
+export function foundryActionOdds({actor, action, sourceToken=null, targetTokens=[], user=null, game=globalThis.game}) {
+  const definitionResult = actionDefinitionFromAction(action, {actorSystem: actor?.system ?? null});
+  const definition = definitionResult.ok ? definitionResult.definition : null;
+  if ( !definition || !(definition.attack || definition.save) || ["area", "self", "none"].includes(definition.targeting?.type) ) return [];
+  let playersSeeOdds = false;
+  try { playersSeeOdds = game?.settings?.get("wildpath", "playersSeeOdds") === true; } catch (_error) {}
+  const entries = targetTokens.filter(token => token?.actor && (user?.isGM || playersSeeOdds || revealedTo(token.actor, actor, "defenses", game)))
+    .map(token => ({token, actor: token.actor, hint: {tokenId: token.id, sceneId: token.parent?.id ?? null}}));
+  if ( definition.attack ) {
+    const statistics = actionCombatStatistics(actor, definition, {item: action, turn: game?.combat?.started ? turnKey(game.combat) : null});
+    const modifier = statistics.attack?.modifierTotal ?? 0;
+    const defenseKey = statistics.defenseKey ?? definition.attack.defenseKey ?? "ac";
+    const spatial = buildFoundryActionSpatialContext({sourceToken, targetEntries: entries, game, defenseKey});
+    return entries.flatMap(entry => {
+      const defense = resolveActorDefense(entry.actor, defenseKey)?.value;
+      if ( !Number.isFinite(defense) ) return [];
+      const rollMode = foundryAttackRollMode({actor, action, definition, targetEntries: [entry], spatial, game, sourceToken});
+      return [{tokenId: entry.token.id, name: entry.token.name, kind: "attack", modifier, defense, rollMode,
+        chance: d20Chance({modifier, target: defense, rollMode, natural: true})}];
+    });
   }
-  return from;
+  const dc = actionDefinitionToResolverInput(definition, {actorSystem: foundryActorSystemSnapshot(actor)}).save?.dc?.value;
+  const ability = definition.save.ability ?? definition.save.saveKey ?? null;
+  if ( !Number.isFinite(dc) ) return [];
+  return entries.map(({token, actor: target}) => {
+    const context = {context: {save: {ability}}};
+    const rollMode = combineRollModes(target.getRollModes?.(["save", `save.${ability}`], context) ?? []);
+    const modifier = resolveActorSaveStatistic(target, ability)?.totalModifier ?? 0;
+    const automatic = (target.getRollOutcomes?.(["save", `save.${ability}`], context) ?? [])
+      .some(outcome => outcome.outcome === "automatic-failure");
+    return {tokenId: token.id, name: token.name, kind: "save", ability, dc, modifier, rollMode, automatic,
+      chance: automatic ? 1 : 1 - d20Chance({modifier, target: dc, rollMode})};
+  });
 }
 
 /**

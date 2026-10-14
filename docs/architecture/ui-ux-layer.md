@@ -34,6 +34,36 @@ model through `actionBarContext` (`helpers/action-bar-context.mts`).
 - **Use:** a click calls the real `Item.use()`, so the authority decides everything.
 - **Updates:** it re-renders when that creature, its Items or its effects change.
 
+**Odds before acting (2026-10-14, after Baldur's Gate 3).** With targets chosen, each attack and save Action on
+the bar shows the odds as a badge, and one line per target in its tooltip:
+- an attack: the chance to hit, as "+4 vs AC 15, disadvantage";
+- a save: the chance the target fails it, as "DC 13, +2", or that it fails automatically.
+
+`foundryActionOdds` (foundry-multiplayer-runtime.mjs) computes them from the authority's own numbers:
+- the attack modifier;
+- the target's defense;
+- every advantage and disadvantage, adjacency included;
+- the save DC and the target's save bonus, roll mode and automatic failures.
+
+Area and self Actions show none. Who sees them:
+- **The GM** always.
+- **Players**, when the `playersSeeOdds` house rule is on (maintainer decision: off by default).
+- **A player's creature** against a target bearing an effect that creature applied with a `Reveal` rule, such as
+  a martial's "size up". The builder's rule rows offer it as "Reveals its AC and saves to whoever applied it".
+
+The bar refreshes when the user's targets change, when a creature moves, when a target's effects change, and when
+the house rule changes.
+
+Odds are a display, not a secret: every client holds the creatures' data, so a determined player could read AC
+from the console.
+
+Live (two browsers):
+- The GM saw Fire Bolt at 25% against the Bandit Captain (+4 vs AC 15, disadvantage from Prone) and a Wits save
+  at 50% (DC 13, +2). Player1 saw nothing.
+- Player1 used a test "Size Up" on the Captain. Player1 then saw the same odds against the Captain, but none
+  against QA Saver.
+- With the house rule on, Player1's bar showed odds against QA Saver at once: 56% to hit and 60% to fail.
+
 **Reaction settings (2026-10-14, after Baldur's Gate 3).** Each reaction on the bar has a small toggle that
 cycles Ask, Always and Never ([reactions.md](reactions.md)). Live (two browsers): Player1 clicked QA Caster's
 reaction to Always. The Bandit Captain's hit then triggered it with no prompt, and its card posted before the

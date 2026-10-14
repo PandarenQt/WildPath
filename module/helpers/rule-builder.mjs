@@ -8,7 +8,8 @@
 import { formatFormula, parseFormula } from "./formula.mjs";
 import { DEFAULT_RULE_ELEMENT_REGISTRY, evaluateRuleElement, normalizeRuleElementType, validateRuleElementDefinition } from "./rule-elements.mjs";
 const TYPE_OF_KIND = { bonus: "Modifier", rollMode: "RollMode", resistance: "GrantResistance",
-    immunity: "GrantImmunity", vulnerability: "GrantVulnerability", conditionImmunity: "ConditionImmunity", speed: "GrantMovement", resource: "GrantResource", extraDamage: "ExtraDamage", aura: "Aura" };
+    immunity: "GrantImmunity", vulnerability: "GrantVulnerability", conditionImmunity: "ConditionImmunity", reveal: "Reveal",
+    speed: "GrantMovement", resource: "GrantResource", extraDamage: "ExtraDamage", aura: "Aura" };
 const KIND_OF_TYPE = Object.fromEntries(Object.entries(TYPE_OF_KIND).map(([kind, type]) => [type, kind]));
 /** The kinds a row can be; an aura's own rules can be any but another aura. */
 export const RULE_KINDS = Object.freeze(Object.keys(TYPE_OF_KIND));
@@ -115,6 +116,7 @@ export function defaultRule(kind, id) {
         case "immunity": return rule({ damageTypes: ["poison"] });
         case "vulnerability": return rule({ damageTypes: ["bludgeoning"] });
         case "conditionImmunity": return rule({ conditions: ["charmed"] });
+        case "reveal": return rule({ details: ["defenses"] });
         case "speed": return rule({ mode: "fly", distance: 30 });
         case "resource": return rule({ resourceId: "points", label: "Points", maximum: 1, recovery: "longRest" });
         case "extraDamage": return rule({ domains: ["damage.melee"], expression: { type: "dice", number: 1, faces: 6 }, damageType: "fire", once: "turn" });
@@ -310,7 +312,7 @@ export function removeRule(rules, index, path = []) {
 }
 /** Handlers that read nothing but their own data, so they can be tried while editing. */
 const CONTEXT_FREE = new Set(["Modifier", "RollMode", "GrantResistance", "GrantImmunity", "GrantVulnerability", "ConditionImmunity",
-    "ExtraDamage", "Aura", "RollOutcome"]);
+    "Reveal", "ExtraDamage", "Aura", "RollOutcome"]);
 /**
  * What is wrong with a list of RuleElements, one message per rule: its shape, an unknown type, or what the rule's
  * own handler refuses (a Modifier without domains), tried without its predicate.

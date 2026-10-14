@@ -14,6 +14,9 @@ interface ActionView {id: string | null; ref: string; label: string; img: string
 interface GroupView {id: string; label: string; actions: string[]}
 interface BarView {actorName: string | null; resources: ResourceView[]; actions: ActionView[]; groups: GroupView[]}
 interface ConditionDefinition {id: string; name: string; img: string; stacking?: boolean}
+/** The odds of an Action against one target (`foundryActionOdds`). */
+export interface OddsEntry {name: string; kind: "attack" | "save"; chance: number; modifier: number; rollMode: string;
+  defense?: number; dc?: number; ability?: string | null; automatic?: boolean}
 interface BarActor {
   name?: string; img?: string; items?: Iterable<{id?: string | null; flags?: Data}>;
   effects?: Iterable<{system?: {type?: string; level?: number}; disabled?: boolean}>;
@@ -36,7 +39,33 @@ const GROUP_LABELS: Record<string, string> = {
   "reaction": "WILDPATH.ACTIONBAR.Group.reaction"
 };
 
-export function actionBarContext({actor, conditions=[]}: {actor: BarActor; conditions?: readonly ConditionDefinition[]}) {
+const signed = (value: number) => (value < 0 ? `${value}` : `+${value}`);
+const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
+
+/**
+ * How an Action's odds show: a badge with the chance (a range over several targets), and one tooltip line per target
+ * as a lang key with its data. `mode` and `ability` are lang keys too.
+ */
+export function oddsView(entries: readonly OddsEntry[] = []) {
+  if ( !entries.length ) return null;
+  const percents = entries.map(entry => Math.round(entry.chance * 100));
+  const [low, high] = [Math.min(...percents), Math.max(...percents)];
+  return {
+    badge: low === high ? `${low}%` : `${low}–${high}%`,
+    lines: entries.map((entry, index) => {
+      const mode = entry.rollMode === "normal" ? null : `WILDPATH.ODDS.Mode.${entry.rollMode}`;
+      if ( entry.kind === "attack" ) return {key: "WILDPATH.ODDS.Hit", mode, ability: null,
+        data: {name: entry.name, chance: percents[index], modifier: signed(entry.modifier), defense: entry.defense}};
+      const ability = `WILDPATH.ABILITIES.${capitalize(String(entry.ability ?? ""))}`;
+      return entry.automatic ? {key: "WILDPATH.ODDS.AlwaysFails", mode: null, ability, data: {name: entry.name}}
+        : {key: "WILDPATH.ODDS.Fails", mode, ability,
+          data: {name: entry.name, chance: percents[index], dc: entry.dc, modifier: signed(entry.modifier)}};
+    })
+  };
+}
+
+export function actionBarContext({actor, conditions=[], odds={}}: {actor: BarActor; conditions?: readonly ConditionDefinition[];
+  odds?: Record<string, readonly OddsEntry[]>}) {
   const bar = viewModel({actor});
   const order = (resource: ResourceView) => {
     const index = ECONOMY_ORDER.indexOf(resource.id);
@@ -55,6 +84,7 @@ export function actionBarContext({actor, conditions=[]}: {actor: BarActor; condi
     groups: bar.groups.map(group => ({id: group.id, label: GROUP_LABELS[group.id] ?? group.label,
       actions: group.actions.flatMap(ref => byRef.get(ref) ?? []).map(action => ({id: action.id, label: action.label,
         img: action.img ?? "icons/svg/sword.svg", enabled: action.enabled, disabledCode: action.disabledCode,
+        odds: oddsView(odds[action.id ?? ""] ?? []),
         // A reaction's Always / Ask / Never setting.
         ...(group.id === "reaction" ? {policy: {id: policyOf(items.get(action.id)), ...POLICY_VIEWS[policyOf(items.get(action.id))]}} : {})}))})),
     conditions: conditions.filter(condition => levels.has(condition.id)).map(condition => ({id: condition.id,

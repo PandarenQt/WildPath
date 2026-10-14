@@ -16,6 +16,10 @@
         "Digital": "Digital dice",
         "Physical": "Physical dice"
       },
+      "PlayersSeeOdds": {
+        "Name": "Players see the odds",
+        "Hint": "House rule. On: before acting, players see the chance to hit and the chance a target fails its save, which reveals targets' AC and save bonuses. Off: only the GM sees them, except against a creature whose defenses an effect has revealed to the player's creature."
+      },
       "RulesVersion": {
         "Name": "Rules",
         "Hint": "Which edition's conditions apply in this world: the 2024 rules, or the 2014 rules (Exhaustion's six levels, Grappled, Incapacitated, Invisible). Takes effect after a reload, for conditions applied from then on.",
@@ -152,6 +156,15 @@
       "Round": "Round {round}",
       "EndTurn": "End Turn"
     },
+    "ODDS": {
+      "Hit": "{name}: {chance}% to hit ({modifier} vs AC {defense}{mode})",
+      "Fails": "{name}: {chance}% to fail its {ability} save (DC {dc}, {modifier}{mode})",
+      "AlwaysFails": "{name}: fails its {ability} save automatically",
+      "Mode": {
+        "advantage": ", advantage",
+        "disadvantage": ", disadvantage"
+      }
+    },
     "ACTIONBAR": {
       "NoActions": "No actions",
       "Unavailable": "Not available now",
@@ -233,6 +246,7 @@
         "immunity": "Immunity",
         "vulnerability": "Vulnerability",
         "conditionImmunity": "Immunity to conditions",
+        "reveal": "Reveals its AC and saves to whoever applied it",
         "speed": "A Speed",
         "resource": "A resource pool",
         "extraDamage": "Extra damage on a hit",

@@ -10,6 +10,7 @@ export const RULE_ELEMENT_TYPES = Object.freeze({
   GRANT_IMMUNITY: "GrantImmunity",
   GRANT_VULNERABILITY: "GrantVulnerability",
   CONDITION_IMMUNITY: "ConditionImmunity",
+  REVEAL: "Reveal",
   GRANT_MOVEMENT: "GrantMovement",
   ROLL_MODE: "RollMode",
   RESOURCE_CAP: "ResourceCap",
@@ -51,6 +52,7 @@ const TYPE_ALIASES = Object.freeze({
   grantvulnerability: RULE_ELEMENT_TYPES.GRANT_VULNERABILITY,
   vulnerability: RULE_ELEMENT_TYPES.GRANT_VULNERABILITY,
   conditionimmunity: RULE_ELEMENT_TYPES.CONDITION_IMMUNITY,
+  reveal: RULE_ELEMENT_TYPES.REVEAL,
   grantmovement: RULE_ELEMENT_TYPES.GRANT_MOVEMENT,
   movement: RULE_ELEMENT_TYPES.GRANT_MOVEMENT,
   rollmode: RULE_ELEMENT_TYPES.ROLL_MODE,
@@ -104,6 +106,7 @@ export function createDefaultRuleElementRegistry() {
     [RULE_ELEMENT_TYPES.GRANT_IMMUNITY, grantImmunityRuleElement],
     [RULE_ELEMENT_TYPES.GRANT_VULNERABILITY, grantVulnerabilityRuleElement],
     [RULE_ELEMENT_TYPES.CONDITION_IMMUNITY, conditionImmunityRuleElement],
+    [RULE_ELEMENT_TYPES.REVEAL, revealRuleElement],
     [RULE_ELEMENT_TYPES.GRANT_MOVEMENT, grantMovementRuleElement],
     [RULE_ELEMENT_TYPES.TRIGGER, triggerRuleElement]
   ]);
@@ -497,6 +500,14 @@ function conditionImmunityRuleElement(ruleElement) {
   return success({conditionImmunities: conditions});
 }
 
+/**
+ * What the creature bearing this rule reveals to whoever applied its effect: `defenses` (its AC and save bonuses,
+ * so the odds against it show, whatever the table's house rule).
+ */
+function revealRuleElement(ruleElement) {
+  return success({reveals: normalizeStrings(ruleElement.data.details ?? "defenses")});
+}
+
 function grantMovementRuleElement(ruleElement, context) {
   const data = ruleElement.data;
   const distance = evaluateNumeric(data.distance ?? data.value ?? 0, context);
@@ -701,6 +712,7 @@ function emptyContributions() {
     extraDamage: [],
     auras: [],
     conditionImmunities: [],
+    reveals: [],
     triggers: []
   };
 }
@@ -721,6 +733,7 @@ function mergeContributions(target, source={}) {
   target.extraDamage.push(...(source.extraDamage ?? []));
   target.auras.push(...(source.auras ?? []));
   target.conditionImmunities.push(...(source.conditionImmunities ?? []));
+  target.reveals.push(...(source.reveals ?? []));
   target.triggers.push(...(source.triggers ?? []));
 
   const damage = source.damageAdjustments ?? {};

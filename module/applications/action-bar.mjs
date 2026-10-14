@@ -1,4 +1,5 @@
 import { actionBarContext } from "../helpers/action-bar-context.mjs";
+import { foundryActionOdds } from "../resolvers/foundry-multiplayer-runtime.mjs";
 import { REACTION_POLICIES, reactionPolicyOf } from "../helpers/automation-events.mjs";
 const globals = globalThis;
 const { ApplicationV2, HandlebarsApplicationMixin } = globals.foundry.applications.api;
@@ -23,8 +24,31 @@ export class WildPathActionBar extends HandlebarsApplicationMixin(ApplicationV2)
     }
     async _prepareContext() {
         const actor = this.shownActor;
-        return actor ? { shown: true, ...actionBarContext({ actor, conditions: Object.values(globals.CONFIG.WILDPATH.CONDITIONS) }) }
-            : { shown: false };
+        if (!actor)
+            return { shown: false };
+        const context = actionBarContext({ actor, conditions: Object.values(globals.CONFIG.WILDPATH.CONDITIONS), odds: this.#odds(actor) });
+        // Each target's odds, one line each, in the button's tooltip.
+        const { i18n } = globals.game;
+        for (const action of context.groups.flatMap(group => group.actions)) {
+            if (!action.odds)
+                continue;
+            Object.assign(action.odds, { tooltip: action.odds.lines.map(line => i18n.format(line.key, { ...line.data,
+                    name: globals.foundry.utils.escapeHTML(String(line.data.name ?? "")), mode: line.mode ? i18n.localize(line.mode) : "",
+                    ability: line.ability ? i18n.localize(line.ability) : "" })).join("<br>") });
+        }
+        return { shown: true, ...context };
+    }
+    /** The odds of each attack and save Action against the user's targets, as far as this user may see them. */
+    #odds(actor) {
+        const { user } = globals.game;
+        const targets = [...(user?.targets ?? [])].map(token => token.document);
+        if (!targets.length)
+            return {};
+        const sourceToken = globals.canvas?.tokens?.controlled?.find(token => token.actor === actor)?.document
+            ?? actor.getActiveTokens?.()[0]?.document ?? null;
+        const odds = foundryActionOdds;
+        return Object.fromEntries([...actor.items].filter(item => item.type === "action")
+            .map(item => [item.id ?? "", odds({ actor, action: item, sourceToken, targetTokens: targets, user })]));
     }
     static async #onUse(event, target) {
         const id = target.closest("[data-item-id]")?.dataset.itemId;
@@ -60,9 +84,22 @@ export function registerActionBar() {
     const concerns = (document) => {
         const shown = bar?.shownActor;
         const owner = document;
-        return !!shown && ((owner?.uuid === shown.uuid) || (owner?.parent?.uuid === shown.uuid));
+        // A target's own changes (an effect revealing its defenses) change the odds shown.
+        const targets = [...(globals.game.user?.targets ?? [])].map(token => token.actor?.uuid);
+        return !!shown && [shown.uuid, ...targets].some(uuid => uuid && ((owner?.uuid === uuid) || (owner?.parent?.uuid === uuid)));
     };
     globals.Hooks.on("controlToken", () => refreshActionBar());
+    // The odds change with the user's targets, and with where the creatures stand.
+    globals.Hooks.on("targetToken", (user) => { if (user === globals.game.user)
+        refreshActionBar(); });
+    globals.Hooks.on("updateToken", () => { if ([...(globals.game.user?.targets ?? [])].length)
+        refreshActionBar(); });
+    // The house rule's first change creates its Setting; later ones update it.
+    for (const hook of ["createSetting", "updateSetting"])
+        globals.Hooks.on(hook, (setting) => {
+            if (setting.key === "wildpath.playersSeeOdds")
+                refreshActionBar();
+        });
     for (const hook of ["updateActor", "createItem", "updateItem", "deleteItem", "createActiveEffect", "updateActiveEffect",
         "deleteActiveEffect"]) {
         globals.Hooks.on(hook, (document) => { if (concerns(document))
