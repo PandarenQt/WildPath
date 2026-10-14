@@ -49,7 +49,8 @@ export function automationTriggers(actor, event) {
             return [];
         const trigger = triggerDefinition({ id: `automation:${actor.id}:${owner.id}:${element.id ?? "trigger"}`, event: type,
             match: data.match ?? {}, predicate: data.triggerPredicate ?? data.eventPredicate ?? data.predicate ?? null });
-        if (!triggerMatches(trigger, event).ok)
+        // Predicates also see the creature (`actor.system.resources.health.value`: Regeneration needs 1 Hit Point).
+        if (!triggerMatches(trigger, event, { actor }).ok)
             return [];
         const actionItem = owner.type === "action" ? owner
             : items.find(entry => (entry.type === "action") && (entry.system?.definition?.id === data.actionId));

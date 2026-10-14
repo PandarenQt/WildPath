@@ -15,7 +15,7 @@ import {createFoundryReactionProvider} from "../adapters/foundry-v14-reaction-pr
 import {foundryActionReactionServices} from "../adapters/foundry-v14-reaction-services.mjs";
 import {foundryAreaFootprint, foundryAreaTargetTokens} from "../adapters/foundry-v14-area-placement.mjs";
 import {createFoundryPersistentAreas, turnKey} from "../adapters/foundry-v14-persistent-areas.mjs";
-import {createFoundryAuras} from "../adapters/foundry-v14-auras.mjs";
+import {allyNearTarget, createFoundryAuras} from "../adapters/foundry-v14-auras.mjs";
 import {AUTOMATION_QUERY, createFoundryAutomationDispatcher} from "../adapters/foundry-v14-automation-dispatcher.mjs";
 import {COMPANION_QUERY, createFoundryCompanions} from "../adapters/foundry-v14-companions.mjs";
 import {createFoundryDying} from "../adapters/foundry-v14-dying.mjs";
@@ -48,6 +48,7 @@ import {
 } from "../helpers/combat-statistics.mjs";
 import {createMultiplayerActionCoordinator} from "./multiplayer-action-coordinator.mjs";
 import {createPhysicalDiceProvider} from "./roll-provider-resolver.mjs";
+import {resolveActorResourcePayment} from "./resource-resolver.mjs";
 import {createMultiplayerMovementAuthority} from "./multiplayer-movement-authority.mjs";
 import {createFoundryV14ReactionPauseAdapter} from "../adapters/foundry-v14-reaction-pause-adapter.mjs";
 import {foundryMovementIntentToStagedOptions} from "../adapters/foundry-v14-staged-movement-adapter.mjs";
@@ -606,6 +607,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const saveModifiers = {};
   const saveDice = {};
   const saveOutcomes = {};
+  const legendaryByTarget = {};
   const ambiguousKeys = new Set();
   // The authority, not the client's selection, decides who a "self" or "no target" Action targets.
   const targetingType = definition?.targeting?.type;
@@ -641,13 +643,15 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       const ability = definition.save.ability ?? definition.save.saveKey ?? null;
       const key = target.tokenId ?? target.id;
       saveRollModes[key] = combineRollModes(targetActor.getRollModes?.(["save", `save.${ability}`],
-        {context: {save: {ability}}}) ?? []);
+        saveContext(definition, ability)) ?? []);
       // Each target's own save bonus (Modifiers on save.<ability> and save), and an automatic failure.
       const bonus = resolveActorSaveStatistic(targetActor, ability);
       if ( bonus ) saveModifiers[key] = bonus.totalModifier;
       if ( bonus?.dice?.length ) saveDice[key] = bonus.dice;
-      if ( (targetActor.getRollOutcomes?.(["save", `save.${ability}`], {context: {save: {ability}}}) ?? [])
+      if ( (targetActor.getRollOutcomes?.(["save", `save.${ability}`], saveContext(definition, ability)) ?? [])
         .some(entry => entry.outcome === "automatic-failure") ) saveOutcomes[key] = "automatic-failure";
+      const legendary = legendaryResistanceFor(targetActor, systemSnapshots.get(targetActor), game);
+      if ( legendary ) legendaryByTarget[key] = legendary;
     }
     targets.push(target);
     const keys = uniqueStrings([targetActor.uuid, targetActor.id, `actor:${targetActor.id}`, targetRef,
@@ -726,6 +730,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
         ...(attackOutcomes ? {outcomesByTarget: attackOutcomes} : {})}} : {}),
       ...(Object.keys(saveRollModes).length ? {save: {rollModesByTarget: saveRollModes, modifiersByTarget: saveModifiers,
         ...(Object.keys(saveDice).length ? {diceByTarget: saveDice} : {}),
+        ...(Object.keys(legendaryByTarget).length ? {legendaryByTarget} : {}),
         outcomesByTarget: saveOutcomes}} : {}),
       ...(definition?.check ? {check: actionCheckInput(actor, definition.check)} : {}),
       ...(definition?.summon && Array.isArray(intent.summon?.points) ? {summonPoints: intent.summon.points.slice(0, 20)
@@ -821,8 +826,9 @@ function foundryAttackOutcomes({definition, targets, targetEntries, spatial, gam
 }
 
 /**
- * What RuleElement predicates see about an attack on one target: its type, whether it is within 5 ft, and the
- * conditions the attacker has from that target (`fromTarget.grappled`).
+ * What RuleElement predicates see about an attack on one target: its type, whether it is within 5 ft, the
+ * conditions the attacker has from that target (`fromTarget.grappled`), and whether one of the attacker's allies
+ * stands within 5 ft of it (`allyNearTarget`, Pack Tactics).
  */
 function attackContext(type, spatial, entry, game, sourceToken, attacker=null) {
   const token = entry ? resolveFoundryTargetToken({actor: entry.actor, hint: entry.hint, game,
@@ -832,7 +838,27 @@ function attackContext(type, spatial, entry, game, sourceToken, attacker=null) {
     ? createFoundryV14TacticalGridAdapter({scene: token.parent}).tokenToFootprint(token) : null;
   const fields = footprint?.ok && footprint.footprint ? footprintDistance(source, footprint.footprint) : null;
   return {attack: {type, ...(Number.isFinite(fields) ? {adjacent: fields * spatial.context.gridDistance <= 5} : {}),
-    fromTarget: conditionsFrom(attacker, entry?.actor, game)}};
+    fromTarget: conditionsFrom(attacker, entry?.actor, game), allyNearTarget: allyNearTarget(sourceToken, token)}};
+}
+
+/**
+ * A creature's Legendary Resistance for one save: one use of its `legendary-resistance` pool, paid by it, and its
+ * policy (`flags.wildpath.commonPolicies["legendary-resistance"]`: always, ask (the default) or never). Null when it
+ * has no use left.
+ */
+function legendaryResistanceFor(actor, actorSystem, game) {
+  const policy = actor.flags?.wildpath?.commonPolicies?.["legendary-resistance"] ?? "ask";
+  if ( policy === "never" ) return null;
+  const payment = resolveActorResourcePayment({actorSystem, cost: {allOf: [{capability: "legendary-resistance", amount: 1}]}});
+  if ( !payment.ok ) return null;
+  const pool = (actorSystem?.pools ?? []).find(entry => entry.id === "legendary-resistance") ?? {};
+  const label = game?.i18n?.format?.("WILDPATH.LEGENDARY.Prompt", {name: actor.name ?? "", value: pool.value ?? 0, max: pool.max ?? 0}) ?? null;
+  return {policy, payerRef: actor.uuid, plan: payment.mutationPlan, ...(label ? {label} : {})};
+}
+
+/** What a save's RuleElement predicates see: its ability, and the Action's tags (`{tagsAny: ["spell"]}`). */
+function saveContext(definition, ability) {
+  return {context: {save: {ability}, tags: definition?.tags ?? []}};
 }
 
 /**
@@ -867,7 +893,7 @@ export function foundryActionOdds({actor, action, sourceToken=null, targetTokens
   const ability = definition.save.ability ?? definition.save.saveKey ?? null;
   if ( !Number.isFinite(dc) ) return [];
   return entries.map(({token, actor: target}) => {
-    const context = {context: {save: {ability}}};
+    const context = saveContext(definition, ability);
     const rollMode = combineRollModes(target.getRollModes?.(["save", `save.${ability}`], context) ?? []);
     const statistic = resolveActorSaveStatistic(target, ability);
     const modifier = statistic?.totalModifier ?? 0;

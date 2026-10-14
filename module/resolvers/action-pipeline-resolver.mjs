@@ -1258,6 +1258,47 @@ function withOutcomeOverrides(entries, outcomesByTarget) {
   });
 }
 
+/**
+ * Legendary Resistance: the failing targets that may succeed instead (`save.legendaryByTarget`, by Token, from the
+ * runtime) and do: at once when their policy is `always`, else when their controller chooses to. Waits for the first
+ * unanswered choice; each is asked once, of the target's own controller.
+ */
+function legendaryResistanceChoices(state, input, saveResolution) {
+  const byTarget = input.save.legendaryByTarget ?? {};
+  const chosen = [];
+  for ( const failure of saveResolution.failures ) {
+    const key = rollModeTargetKey(failure.target);
+    const entry = byTarget[key];
+    if ( !entry?.plan ) continue;
+    if ( entry.policy === "always" ) {
+      chosen.push(key);
+      continue;
+    }
+    const requestId = requestIdFor(state, `legendary-resistance:${key}`);
+    const accepted = getResolutionResponse(state, {requestId, type: RESOLUTION_REQUEST_TYPES.CHOICE});
+    if ( !accepted ) return {chosen, wait: waitResolutionStage({
+      state: updateResolutionState(state, {input}),
+      request: createResolutionRequest({
+        id: requestId,
+        resolutionId: state.id,
+        stageId: ACTION_PIPELINE_STAGE_IDS.SAVE_OUTCOME,
+        type: RESOLUTION_REQUEST_TYPES.CHOICE,
+        expectedResponseType: "choice",
+        chooser: ROLL_AUTHORITY.TARGET_CONTROLLER,
+        authority: {kind: ROLL_AUTHORITY.TARGET_CONTROLLER},
+        payload: {id: "legendary-resistance", label: entry.label ?? "WILDPATH.LEGENDARY.Title",
+          options: [{value: "use", label: "WILDPATH.LEGENDARY.Use"}, {value: "decline", label: "WILDPATH.LEGENDARY.Decline"}],
+          defaultValue: "use", targets: [failure.targetContext?.target ?? failure.target]},
+        metadata: {title: "WILDPATH.LEGENDARY.Title"}
+      }),
+      reason: "A creature that failed its save may choose to succeed instead."
+    })};
+    const value = accepted.response?.value;
+    if ( (value?.choices?.["legendary-resistance"] ?? value) === "use" ) chosen.push(key);
+  }
+  return {chosen};
+}
+
 function saveTargetKey(target) {
   return String(target?.id ?? target?.actorRef ?? target?.uuid ?? "");
 }
@@ -1284,10 +1325,11 @@ function createSaveOutcomeStage() {
       const {actionContext} = planning;
       let {actionResult} = planning;
 
-      const saveResolution = resolveSaveTargets({
+      const targetContexts = withOutcomeOverrides(withTargetSaveRolls(input.save.targetContexts
+        ?? state.results?.targetResolution?.targetContexts ?? [], input.save.rollsByTarget), input.save.outcomesByTarget);
+      const resolveSaves = contexts => resolveSaveTargets({
         roll: input.save.roll,
-        targetContexts: withOutcomeOverrides(withTargetSaveRolls(input.save.targetContexts
-          ?? state.results?.targetResolution?.targetContexts ?? [], input.save.rollsByTarget), input.save.outcomesByTarget),
+        targetContexts: contexts,
         targets: withTargetSaveRolls(input.save.targets ?? (state.results?.targetResolution ? [] : actionContext.targets),
           input.save.rollsByTarget),
         dc: input.save.dc ?? null,
@@ -1300,6 +1342,14 @@ function createSaveOutcomeStage() {
           ...(input.save.context ?? {})
         }
       });
+      let saveResolution = resolveSaves(targetContexts);
+      // Legendary Resistance: a target that fails may succeed instead, spending a use of its own pool.
+      const legendary = saveResolution.ok ? legendaryResistanceChoices(state, input, saveResolution) : {chosen: []};
+      if ( legendary.wait ) return legendary.wait;
+      if ( legendary.chosen.length ) {
+        saveResolution = resolveSaves(withOutcomeOverrides(targetContexts,
+          Object.fromEntries(legendary.chosen.map(key => [key, "succeed-instead"]))));
+      }
       if ( !saveResolution.ok ) {
         return failActionPlanningStage({
           state,
@@ -1319,6 +1369,9 @@ function createSaveOutcomeStage() {
           type: "saveResolved",
           saveResolution
         }],
+        // Each use is paid by the creature that succeeded instead, in the Action's transaction.
+        mutationPlans: legendary.chosen.map(key => ({type: "resourcePayment", resolver: "ResourceResolver",
+          plan: input.save.legendaryByTarget[key].plan, payerRef: input.save.legendaryByTarget[key].payerRef})),
         data: {saveResolution}
       });
 

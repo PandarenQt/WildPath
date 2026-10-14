@@ -66,7 +66,19 @@
       "system": {
         "active": true,
         "description": "<p>If the vampire fails a saving throw, it can choose to succeed instead.</p>",
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "legendary-resistance",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "legendary-resistance",
+              "label": "Legendary Resistance",
+              "maximum": 3,
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -80,9 +92,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "\"Expend Use\" is passive or triggered: not automated"
-            ]
+            "notes": []
           }
         }
       }
@@ -737,7 +747,6 @@
       },
       "conversion": {
         "notes": [
-          "Legendary Resistance: \"Expend Use\" is passive or triggered: not automated",
           "Misty Escape: \"Paralyzed\" is passive or triggered: not automated",
           "Multiattack (Vampire Form Only): not automated (utility): using it spends its cost; its description says the rest",
           "Grave Strike (Vampire Form Only): \"Escape Check\" is passive or triggered: not automated",

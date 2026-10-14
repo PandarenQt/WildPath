@@ -121,6 +121,9 @@ cycles Ask, Always and Never ([reactions.md](reactions.md)). Live (two browsers)
 reaction to Always. The Bandit Captain's hit then triggered it with no prompt, and its card posted before the
 damage. Set to Never, it was not offered. Set back to Ask, Player1 was prompted and chose it.
 
+A creature's Legendary Resistance counter has the same toggle (rule-elements.md, "Legendary Resistance"). Live: the
+GM set an SRD Unicorn's to Always, and its next failed save succeeded without a prompt.
+
 Live (two browsers, 14.369): Player1 controlled their hero, whose bar showed Exhaustion 2 and movement
 20/20. Melee Strike, imported from the WildPath Actions pack, rolled `1d20 − 4` from the bar. The Action
 counter went to 0/1 and the strike button greyed out.

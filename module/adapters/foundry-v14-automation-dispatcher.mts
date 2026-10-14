@@ -22,7 +22,7 @@ const REPORTED_EVENTS: Record<string, (data: Data) => Data> = {
 
 const definitionFor = actionDefinitionFromAction as (item: Owner) => {ok: boolean; definition?: Data | null};
 const triggerDefinition = createTriggerDefinition as (options: Data) => Data;
-const triggerMatches = evaluateTrigger as (trigger: Data, event: Data) => {ok: boolean};
+const triggerMatches = evaluateTrigger as (trigger: Data, event: Data, context?: Data) => {ok: boolean};
 const automationEvent = createAutomationEvent as unknown as (options: Data) => Data;
 
 /**
@@ -67,7 +67,8 @@ export function automationTriggers(actor: AutomationActor, event: Data) {
     if ( !type ) return [];
     const trigger = triggerDefinition({id: `automation:${actor.id}:${owner.id}:${element.id ?? "trigger"}`, event: type,
       match: data.match ?? {}, predicate: data.triggerPredicate ?? data.eventPredicate ?? data.predicate ?? null});
-    if ( !triggerMatches(trigger, event).ok ) return [];
+    // Predicates also see the creature (`actor.system.resources.health.value`: Regeneration needs 1 Hit Point).
+    if ( !triggerMatches(trigger, event, {actor}).ok ) return [];
     const actionItem = owner.type === "action" ? owner
       : items.find(entry => (entry.type === "action") && (entry.system?.definition?.id === data.actionId));
     const definition = (data.action as Data | undefined) ?? (actionItem ? definitionFor(actionItem).definition : null);

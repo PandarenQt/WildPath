@@ -92,7 +92,24 @@
       "system": {
         "active": true,
         "description": "<p>The deva has Advantage on saving throws against spells and other magical effects.</p>",
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "magic-resistance",
+            "type": "RollMode",
+            "predicate": {
+              "tagsAny": [
+                "spell"
+              ]
+            },
+            "data": {
+              "domains": [
+                "save"
+              ],
+              "mode": "advantage"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -106,7 +123,9 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": []
+            "notes": [
+              "Magic Resistance: Advantage on saves against spells; other magical effects are not told apart"
+            ]
           }
         }
       }
@@ -792,6 +811,7 @@
       },
       "conversion": {
         "notes": [
+          "Magic Resistance: Magic Resistance: Advantage on saves against spells; other magical effects are not told apart",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Detect Evil and Good\" (its own changes) not converted",
           "Spellcasting: concentration: nothing it sustains was converted",

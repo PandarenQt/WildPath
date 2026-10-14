@@ -66,7 +66,19 @@
       "system": {
         "active": true,
         "description": "<p>If the tarrasque fails a saving throw, it can choose to succeed instead.</p>",
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "legendary-resistance",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "legendary-resistance",
+              "label": "Legendary Resistance",
+              "maximum": 6,
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -80,9 +92,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "\"Expend Use\" is passive or triggered: not automated"
-            ]
+            "notes": []
           }
         }
       }
@@ -96,7 +106,24 @@
       "system": {
         "active": true,
         "description": "<p>The tarrasque has Advantage on saving throws against spells and other magical effects.</p>",
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "magic-resistance",
+            "type": "RollMode",
+            "predicate": {
+              "tagsAny": [
+                "spell"
+              ]
+            },
+            "data": {
+              "domains": [
+                "save"
+              ],
+              "mode": "advantage"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -110,7 +137,9 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": []
+            "notes": [
+              "Magic Resistance: Advantage on saves against spells; other magical effects are not told apart"
+            ]
           }
         }
       }
@@ -893,7 +922,7 @@
       },
       "conversion": {
         "notes": [
-          "Legendary Resistance: \"Expend Use\" is passive or triggered: not automated",
+          "Magic Resistance: Magic Resistance: Advantage on saves against spells; other magical effects are not told apart",
           "Reflective Carapace: \"Roll d6\" is passive or triggered: not automated",
           "Bite: \"Escape Check\" is passive or triggered: not automated",
           "Swallow: effect: coverTotal is not a WildPath condition yet",

@@ -17,6 +17,8 @@ interface ContestEntry {
   readonly hit?: boolean | null;
   readonly critical?: boolean | null;
   readonly success?: boolean | null;
+  /** A failure the creature chose to turn into a success (Legendary Resistance). */
+  readonly succeededInstead?: boolean | null;
 }
 
 interface PublicRoll {
@@ -44,6 +46,7 @@ export const CHAT_OUTCOME_KEYS = Object.freeze({
   miss: "WILDPATH.CHAT.Outcome.Miss",
   saveSuccess: "WILDPATH.CHAT.Outcome.SaveSuccess",
   saveFailure: "WILDPATH.CHAT.Outcome.SaveFailure",
+  legendaryResistance: "WILDPATH.CHAT.Outcome.LegendaryResistance",
   checkSuccess: "WILDPATH.CHAT.Outcome.CheckSuccess",
   checkFailure: "WILDPATH.CHAT.Outcome.CheckFailure"
 });
@@ -126,6 +129,7 @@ function attackOutcome(entry: ContestEntry): CardOutcome {
 }
 
 function saveOutcome(entry: ContestEntry): CardOutcome {
+  if ( entry.success && entry.succeededInstead ) return {label: CHAT_OUTCOME_KEYS.legendaryResistance, tone: "success"};
   return entry.success
     ? {label: CHAT_OUTCOME_KEYS.saveSuccess, tone: "success"}
     : {label: CHAT_OUTCOME_KEYS.saveFailure, tone: "failure"};

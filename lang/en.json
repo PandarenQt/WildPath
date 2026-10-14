@@ -59,6 +59,7 @@
         "Miss": "Miss",
         "SaveSuccess": "Saved",
         "SaveFailure": "Failed save",
+        "LegendaryResistance": "Legendary Resistance",
         "CheckSuccess": "Check succeeded",
         "CheckFailure": "Check failed"
       }
@@ -189,6 +190,12 @@
       "Shove": "Shove",
       "UnarmedStrike": "Unarmed Strike",
       "OpportunityAttack": "Opportunity Attack"
+    },
+    "LEGENDARY": {
+      "Title": "Legendary Resistance",
+      "Prompt": "{name} failed its save. Use Legendary Resistance to succeed instead? ({value} of {max} left)",
+      "Use": "Succeed instead",
+      "Decline": "Fail the save"
     },
     "RECHARGE": {
       "Recharged": "Recharge {range}: {name} is ready again",

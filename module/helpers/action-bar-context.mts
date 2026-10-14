@@ -22,6 +22,7 @@ interface BarActor {
   name?: string; img?: string; items?: Iterable<{id?: string | null; flags?: Data}>;
   effects?: Iterable<{system?: {type?: string; level?: number}; disabled?: boolean}>;
   system?: Data;
+  flags?: Data;
 }
 
 const viewModel = createActionBarViewModel as unknown as (options: {actor: BarActor; actions?: readonly unknown[]}) => BarView;
@@ -65,6 +66,13 @@ export function oddsView(entries: readonly OddsEntry[] = []) {
   };
 }
 
+/** A creature's Legendary Resistance setting (Ask by default), as its toggle shows it. */
+function legendaryPolicy(actor: BarActor) {
+  const policies = (actor.flags?.wildpath as {commonPolicies?: Data} | undefined)?.commonPolicies;
+  const id = policyOf({flags: {wildpath: {reactionPolicy: policies?.["legendary-resistance"]}}});
+  return {id, ...POLICY_VIEWS[id]};
+}
+
 export function actionBarContext({actor, conditions=[], odds={}, common=[]}: {actor: BarActor; conditions?: readonly ConditionDefinition[];
   odds?: Record<string, readonly OddsEntry[]>; common?: readonly {id: string}[]}) {
   const bar = viewModel({actor});
@@ -88,7 +96,9 @@ export function actionBarContext({actor, conditions=[], odds={}, common=[]}: {ac
     name: actor.name ?? bar.actorName ?? "",
     img: actor.img ?? null,
     resources: [...bar.resources].sort((a, b) => order(a) - order(b)).map(resource => ({id: resource.id, label: resource.label,
-      current: resource.current, maximum: resource.maximum, depleted: resource.depleted})),
+      current: resource.current, maximum: resource.maximum, depleted: resource.depleted,
+      // Legendary Resistance has a setting like a reaction's: the creature's own, as a common reaction's is.
+      ...(resource.id === "legendary-resistance" ? {policy: legendaryPolicy(actor)} : {})})),
     groups: [...bar.groups.map(group => ({id: group.id, label: GROUP_LABELS[group.id] ?? group.label,
       actions: group.actions.flatMap(ref => byRef.get(ref) ?? []).map(view(group.id))})),
     ...(commonActions.length ? [{id: "common", label: "WILDPATH.ACTIONBAR.Group.common", actions: commonActions.map(view("common"))}] : [])],

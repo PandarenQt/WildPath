@@ -35,6 +35,15 @@ test("a spent Action greys out its Actions with the reason, and the bar shows ac
     "a disabled condition effect is not shown");
 });
 
+test("Legendary Resistance's counter shows its setting: Ask by default, the creature's own", () => {
+  const dragon = creature();
+  dragon.system.pools.push({id: "legendary-resistance", label: "Legendary Resistance", value: 3, max: 3});
+  const policy = actor => actionBarContext({actor, conditions}).resources.find(resource => resource.id === "legendary-resistance").policy.id;
+  assert.equal(policy(dragon), "ask");
+  assert.equal(policy({...dragon, flags: {wildpath: {commonPolicies: {"legendary-resistance": "always"}}}}), "always");
+  assert.equal(actionBarContext({actor: dragon, conditions}).resources.find(resource => resource.id === "ki").policy, undefined);
+});
+
 test("each reaction on the bar shows whether it asks, is used automatically, or never", () => {
   const hero = creature();
   hero.items.push(action("Parry", "reaction"), {...action("Riposte", "reaction"), flags: {wildpath: {reactionPolicy: "always"}}});

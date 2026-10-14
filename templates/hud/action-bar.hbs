@@ -14,7 +14,13 @@
     </header>
     <div class="bar-resources">
       {{#each resources as |resource|}}
-        <span class="bar-resource {{#if resource.depleted}}depleted{{/if}}">{{resource.label}} {{resource.current}}/{{resource.maximum}}</span>
+        <span class="bar-resource {{#if resource.depleted}}depleted{{/if}}">{{resource.label}} {{resource.current}}/{{resource.maximum}}
+          {{#if resource.policy}}
+            <button type="button" class="bar-policy policy-{{resource.policy.id}}" data-action="reactionPolicy" data-item-id="{{resource.id}}"
+                    data-tooltip="{{resource.policy.label}}" aria-label="{{localize resource.policy.label}}">
+              <i class="fa-solid {{resource.policy.icon}}" inert></i></button>
+          {{/if}}
+        </span>
       {{/each}}
     </div>
     <div class="bar-groups">

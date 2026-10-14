@@ -41,6 +41,12 @@ export function oddsView(entries = []) {
         })
     };
 }
+/** A creature's Legendary Resistance setting (Ask by default), as its toggle shows it. */
+function legendaryPolicy(actor) {
+    const policies = actor.flags?.wildpath?.commonPolicies;
+    const id = policyOf({ flags: { wildpath: { reactionPolicy: policies?.["legendary-resistance"] } } });
+    return { id, ...POLICY_VIEWS[id] };
+}
 export function actionBarContext({ actor, conditions = [], odds = {}, common = [] }) {
     const bar = viewModel({ actor });
     const order = (resource) => {
@@ -63,7 +69,9 @@ export function actionBarContext({ actor, conditions = [], odds = {}, common = [
         name: actor.name ?? bar.actorName ?? "",
         img: actor.img ?? null,
         resources: [...bar.resources].sort((a, b) => order(a) - order(b)).map(resource => ({ id: resource.id, label: resource.label,
-            current: resource.current, maximum: resource.maximum, depleted: resource.depleted })),
+            current: resource.current, maximum: resource.maximum, depleted: resource.depleted,
+            // Legendary Resistance has a setting like a reaction's: the creature's own, as a common reaction's is.
+            ...(resource.id === "legendary-resistance" ? { policy: legendaryPolicy(actor) } : {}) })),
         groups: [...bar.groups.map(group => ({ id: group.id, label: GROUP_LABELS[group.id] ?? group.label,
                 actions: group.actions.flatMap(ref => byRef.get(ref) ?? []).map(view(group.id)) })),
             ...(commonActions.length ? [{ id: "common", label: "WILDPATH.ACTIONBAR.Group.common", actions: commonActions.map(view("common")) }] : [])],

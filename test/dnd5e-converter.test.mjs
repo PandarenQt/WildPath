@@ -268,6 +268,33 @@ test("an effect with its own changes becomes a custom effect with the rules they
     {minSelections: 1, maxSelections: 3}, "up to three creatures: one is enough");
 });
 
+test("common monster traits (G5): Magic Resistance, Pack Tactics and Regeneration become their rules", () => {
+  const trait = (id, name, activities={}) => ({_id: `${id.replace(/-/g, "").slice(0, 12)}0000`, name, type: "feat",
+    system: {source: SRD, identifier: id, activities}});
+  const regeneration = trait("regeneration", "Regeneration", {a: activity("heal", {activation: {type: "special", condition: "starts its turn"},
+    healing: {number: null, denomination: null, bonus: "10", types: ["healing"], custom: {enabled: false}}})});
+  const troll = {_id: "testTroll0000001", name: "Test Troll", type: "npc", system: {source: SRD, details: {cr: 5},
+    abilities: {str: {value: 18}}, attributes: {hp: {max: 94}, movement: {walk: "30"}}, traits: {size: "lg"},
+    resources: {legres: {max: 3, spent: 0}}},
+    items: [trait("magic-resistance", "Magic Resistance"), trait("pack-tactics", "Pack Tactics"), regeneration,
+      trait("legendary-resistance", "Legendary Resistance", {a: activity("utility", {activation: {type: "special", condition: "fails a saving throw"}})})]};
+  const {actor} = convertActor(troll);
+  const rules = name => actor.items.find(item => item.name === name).system.ruleElements;
+  assert.deepEqual(rules("Magic Resistance").map(rule => [rule.type, rule.predicate, rule.data]),
+    [["RollMode", {tagsAny: ["spell"]}, {domains: ["save"], mode: "advantage"}]]);
+  assert.deepEqual(rules("Pack Tactics").map(rule => [rule.type, rule.predicate, rule.data]),
+    [["RollMode", {equals: {path: "attack.allyNearTarget", value: true}}, {domains: ["attack"], mode: "advantage"}]]);
+  const [regenerate] = rules("Regeneration");
+  assert.deepEqual([regenerate.type, regenerate.data.event, regenerate.data.predicate],
+    ["Trigger", "turn.started", {not: {equals: {path: "actor.system.resources.health.value", value: 0}}}]);
+  assert.deepEqual(regenerate.data.action.costs, {allOf: []});
+  assert.equal(regenerate.data.action.healing[0].expression.value, 10);
+  assert.equal(validateActionDefinition(regenerate.data.action).ok, true);
+  assert.deepEqual(rules("Legendary Resistance").map(rule => rule.data), [{resourceId: "legendary-resistance", label: "Legendary Resistance",
+    maximum: 3, recovery: "longRest"}], "its uses, the pool a failed save spends");
+  assert.ok(!actor.flags.wildpath.conversion.notes.some(note => /passive or triggered/.test(note)), "nothing is left as passive text");
+});
+
 test("the monster toolkit (G4): Multiattack's attacks, a Spellcasting's spells at their own uses, and Recharge", async () => {
   const {multiattackCount} = await import("../scripts/content/dnd5e-to-wildpath.mjs");
   assert.equal(multiattackCount("<p>The dragon makes three Rend attacks. It can replace one attack.</p>"), 3);

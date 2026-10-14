@@ -90,7 +90,47 @@
       "system": {
         "active": true,
         "description": "<p>The shield guardian regains  Hit Points at the start of each of its turns if it has at least 1 Hit Point.</p>",
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "regeneration",
+            "type": "Trigger",
+            "data": {
+              "event": "turn.started",
+              "predicate": {
+                "not": {
+                  "equals": {
+                    "path": "actor.system.resources.health.value",
+                    "value": 0
+                  }
+                }
+              },
+              "action": {
+                "schemaVersion": 1,
+                "id": "action:srd-regeneration",
+                "costs": {
+                  "allOf": []
+                },
+                "range": {
+                  "type": "self"
+                },
+                "targeting": {
+                  "type": "self"
+                },
+                "healing": [
+                  {
+                    "id": "healing-1",
+                    "expression": {
+                      "type": "constant",
+                      "value": 10
+                    },
+                    "healingType": "healing"
+                  }
+                ]
+              }
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -105,7 +145,7 @@
           },
           "conversion": {
             "notes": [
-              "\"heal\" is passive or triggered: not automated"
+              "Regeneration: the damage that stops it for a turn is not tracked; turn the feature off by hand"
             ]
           }
         }
@@ -428,7 +468,7 @@
       },
       "conversion": {
         "notes": [
-          "Regeneration: \"heal\" is passive or triggered: not automated",
+          "Regeneration: Regeneration: the damage that stops it for a turn is not tracked; turn the feature off by hand",
           "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
         ]
       }

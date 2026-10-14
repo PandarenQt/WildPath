@@ -201,6 +201,17 @@ Forced movement and elevation join G6, which becomes "space": areas, elevation a
     refused, unspent; at another creature it went through. With `ConditionImmunity` to Grappled, a hit
     applied nothing.
 
+- **G5, common traits, first part (2026-10-14).** Done:
+  - Magic Resistance, Pack Tactics, Regeneration and Legendary Resistance, matched by dnd5e identifier. By the trait
+    survey these are 142, 52, 21 and 82 stat-block features across the SRD and the four books.
+  - Legendary Resistance asks the creature's controller after a failed save, or follows its Always or Never setting
+    on the action bar.
+  - Live (two browsers): Player1's Fireball and an SRD Unicorn (asked, then Always). The Unicorn's save against the
+    spell rolled `2d20kh`. An SRD Wolf's Bite showed 94% with an ally beside the target and 75% without. An SRD Troll
+    regained 10 at the start of its turn.
+  - Not yet, by survey count: Amphibious, Water Breathing and Hold Breath (82, 27, 16: no breathing rules), Spider
+    Climb (50: a listed climb Speed is converted, ceilings are not; 3 SRD creatures list none), Flyby (25), Sunlight Sensitivity (20, needs light),
+    Sneak Attack, Extra Attack and Evasion.
 - **G4, the monster toolkit (2026-10-14).** Done:
   - Multiattack, monster spellcasting, per-activity uses and Recharge;
   - Action Items' own uses pools now exist. Fire Breath, Second Wind and every "X/Day" Action could not be paid for
@@ -218,8 +229,8 @@ Forced movement and elevation join G6, which becomes "space": areas, elevation a
   - Live (GM): an Adult Black Dragon from the SRD pack used Multiattack (pool 3), then three Rends at the Bandit
     Captain, each paid from the pool; a fourth was refused. At the start of its turn, its leftover Multiattack uses
     emptied, and Acid Breath recharged on a 5, whispered to the GM.
-  - Not yet: Legendary Resistance, Lair Actions, summoned creatures' own stat blocks, and enforcing which attacks a
-    Multiattack names.
+  - Not yet: Lair Actions, summoned creatures' own stat blocks, and enforcing which attacks a Multiattack names.
+    Legendary Resistance came with G5.
 - **G3, effects with their own rules (2026-10-14).** Done:
   - dnd5e effect changes map to rules on custom effects, with their duration, concentration and save policy;
   - dice bonuses (Bless, Bane, Guidance) roll with the d20, for attacks, saves and checks, physical dice included;

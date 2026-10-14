@@ -78,9 +78,12 @@ export class WildPathActionBar extends HandlebarsApplicationMixin(ApplicationV2)
         const next = (current) => policies[(policies.indexOf(reactionPolicyOf(current)) + 1) % policies.length];
         // A common reaction (the Opportunity Attack) keeps its setting on the creature.
         const common = id.startsWith("common-") && actor ? this.#common(actor).find(action => action.id === id) : null;
+        const creature = actor;
         if (common)
-            return void await actor
-                .setFlag("wildpath", `commonPolicies.${id.slice("common-".length)}`, next(common));
+            return void await creature.setFlag("wildpath", `commonPolicies.${id.slice("common-".length)}`, next(common));
+        // Legendary Resistance's setting is the creature's own too.
+        if (actor && (id === "legendary-resistance"))
+            return void await creature.setFlag("wildpath", `commonPolicies.${id}`, next({ flags: { wildpath: { reactionPolicy: creature.flags?.wildpath?.commonPolicies?.[id] } } }));
         const item = actor?.items.get(id);
         if (item)
             await item.setFlag("wildpath", "reactionPolicy", next(item));

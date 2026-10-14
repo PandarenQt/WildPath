@@ -265,6 +265,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, names=
   const img = kept(document.img, images) ?? "icons/svg/item-bag.svg";
   const items = [];
   const allNotes = [];
+  const trait = traitOf(document, {activities, system, spell, level, scales, pool, saveDC, creature});
+  if ( trait ) allNotes.push(...trait.notes);
   // A spell without activities is still cast: it spends its slot like any other.
   const usable = activities.length ? activities : (spell ? [{type: "manual", activation: {override: false}}] : []);
   for ( const [index, activity] of usable.entries() ) {
@@ -273,7 +275,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, names=
     // A passive or triggered ability is not something a creature uses on its turn; its feature carries its text.
     const activation = pick(activity, system, "activation").type ?? "";
     if ( ["", "none", "special"].includes(activation) ) {
-      allNotes.push(`"${label}" is passive or triggered: not automated`);
+      if ( !trait ) allNotes.push(`"${label}" is passive or triggered: not automated`);
       continue;
     }
     // Monster spellcasting (G4): a cast activity is its spell, at the activity's cost and uses rather than a slot.
@@ -305,10 +307,43 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, names=
   // Nothing to use: a passive ability is a feature carrying its text (and any uses its other Actions spend).
   if ( !items.length ) {
     items.push({_id: document._id, _key: `!items!${document._id}`, name: document.name, type: "feature", img,
-      system: {active: true, description, ruleElements: pool ? [pool.rule] : []},
+      system: {active: true, description, ruleElements: [pool?.rule, ...(trait?.rules ?? [])].filter(Boolean)},
       flags: {wildpath: {source, conversion: {notes: [...new Set(allNotes)]}}}});
   }
   return {ok: true, items, notes: [...new Set(allNotes)]};
+}
+
+/**
+ * Common monster traits (G5), by dnd5e identifier: the rules each gives its creature, and what is left to the GM.
+ * A trait's own passive activities are used by its rules (Regeneration's healing).
+ */
+const TRAITS = Object.freeze({
+  "magic-resistance": () => ({rules: [{schemaVersion: 1, id: "magic-resistance", type: "RollMode",
+    predicate: {tagsAny: ["spell"]}, data: {domains: ["save"], mode: "advantage"}}],
+    // shortcut: only spells are told apart from other effects; upgrade with a "magical" tag on magic items' Actions.
+    notes: ["Magic Resistance: Advantage on saves against spells; other magical effects are not told apart"]}),
+  // Its uses are the creature's ("3/Day"); a failed save may succeed instead, at once or when its controller chooses.
+  "legendary-resistance": (document, {creature}) => (creature?.legendaryResistances ? {rules: [{schemaVersion: 1,
+    id: "legendary-resistance", type: "GrantResource", data: {resourceId: "legendary-resistance", label: "Legendary Resistance",
+      maximum: creature.legendaryResistances, recovery: "longRest"}}], notes: []} : null),
+  "pack-tactics": () => ({rules: [{schemaVersion: 1, id: "pack-tactics", type: "RollMode",
+    predicate: {equals: {path: "attack.allyNearTarget", value: true}}, data: {domains: ["attack"], mode: "advantage"}}], notes: []}),
+  regeneration: (document, {activities, ...options}) => {
+    const activity = activities.find(entry => entry.type === "heal");
+    const heal = activity ? convertActivity({document, activity, ...options, notes: []}) : null;
+    if ( !heal?.healing?.length ) return null;
+    // At the start of each of its turns, while it has at least 1 Hit Point.
+    return {rules: [{schemaVersion: 1, id: "regeneration", type: "Trigger", data: {event: "turn.started",
+      predicate: {not: {equals: {path: "actor.system.resources.health.value", value: 0}}}, action: {...heal, costs: {allOf: []}}}}],
+      // shortcut: the damage that stops it for a turn is not tracked; upgrade with a damage-taken record per turn.
+      notes: ["Regeneration: the damage that stops it for a turn is not tracked; turn the feature off by hand"]};
+  }
+});
+
+/** The common trait `document` is, by its dnd5e identifier or its name, as rules; null when it is none of them. */
+function traitOf(document, options) {
+  const key = document.system?.identifier || slugify(String(document.name ?? "").replace(/\s*\(.*\)\s*$/, ""));
+  return Object.hasOwn(TRAITS, key) ? TRAITS[key](document, options) : null;
 }
 
 /**
@@ -584,6 +619,7 @@ export function convertActor(document, {scales={}, pack=null, names={}, licensed
   const casting = system.attributes?.spellcasting;
   const creature = {name: document.name, modifier, proficiency, saveDC, challenge,
     spellDC: ABILITY_MAP[casting] ? 8 + proficiency + modifier(casting) : null, castingAbility: ABILITY_MAP[casting] ?? null,
+    legendaryResistances: number(system.resources?.legres?.max) ?? 0,
     itemNames: Object.fromEntries((document.items ?? []).map(item => [item._id, item.name]))};
 
   const items = [];
