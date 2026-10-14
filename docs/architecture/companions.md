@@ -64,8 +64,14 @@ An ActionDefinition's `summon` brings creatures when the Action completes:
 {summon: {actorRef: "Actor.wolf", count: 2, rounds: 10, concentration: true}}   // or choiceId: a choice of creatures
 ```
 
-- **Placement.** The active GM places unlinked Tokens of the creature on the nearest free fields around the
-  caster's Token: a breadth-first search over the grid's own adjacency, so square and hex grids work alike.
+- **Placement.** The active GM places unlinked Tokens of the creature on the nearest places around the
+  caster's Token where it fits. The search is breadth-first over the grid's own adjacency, so square and hex
+  grids work alike.
+  - A place fits when every field of the summon's footprint is free, including of summons placed before it, so a
+    Large summon needs all four of its fields.
+  - Under the 2024 rules it must also be a space the caster can see. The summon's centre and every field must
+    be in the caster's sight, so it never straddles a wall. Walls are tested only when the GM is viewing the
+    caster's Scene.
 - **Compendium creatures** are imported into the world once, and later summons reuse them.
 - **Control.** Each Token is a `summon` whose controller is the caster, so the caster's Player owns and
   commands it, through the same shared control as companions.
@@ -88,10 +94,11 @@ Live (GM browser, 14.369, 2026-10-14): in a combat, two wolves summoned for one 
 behind their summoner's 10. At the start of the summoner's next turn they left the Scene and the combat, and the
 turn stayed on the summoner.
 
+Live (GM browser, 14.369): three 2×2 wolves summoned in a corridor three fields wide, with a wall on each side,
+all stayed inside it. None overlapped another or the caster.
+
 Not yet:
-- choosing where summons appear;
-- checking that a Large summon's whole footprint is free;
-- walls.
+- choosing where summons appear.
 
 ## Evidence
 

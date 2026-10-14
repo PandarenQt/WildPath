@@ -60,3 +60,15 @@ test("summons join a combat right after their caster, and leave it with their To
   assert.deepEqual(calls.filter(call => call[0] === "delete").map(call => call.slice(1)),
     [["Combatant", ["w0", "w1"]], ["Token", ["t0", "t1"]]], "combatants go before their Tokens");
 });
+
+test("a Large summon needs its whole footprint free, summons never overlap each other, and an unseen place is skipped", () => {
+  const large = ({i, j}) => [{i, j}, {i: i + 1, j}, {i, j: j + 1}, {i: i + 1, j: j + 1}];
+  const placed = summonPlacements({start: {i: 5, j: 5}, count: 2, occupied: new Set(["5,5"]), adjacent: square, footprint: large});
+  const cells = placed.flatMap(offset => large(offset).map(cell => `${cell.i},${cell.j}`));
+  assert.equal(placed.length, 2);
+  assert.equal(new Set(cells).size, 8, "the two 2×2 summons share no field");
+  assert.equal(cells.includes("5,5"), false, "neither covers the caster");
+  const behindWall = summonPlacements({start: {i: 5, j: 5}, count: 3, occupied: new Set(["5,5"]), adjacent: square,
+    allowed: ({j}) => j <= 5});
+  assert.ok(behindWall.every(({j}) => j <= 5), "the caster cannot see past the wall at column 6");
+});

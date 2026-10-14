@@ -6,10 +6,12 @@
  */
 const key = (offset) => `${offset.i},${offset.j}`;
 /**
- * The `count` nearest fields around `start` that no Token occupies, nearest first (a breadth-first search
- * over the grid's own adjacency, so it holds for square and hex grids alike).
+ * The `count` nearest places around `start` where a summon fits, nearest first (a breadth-first search over the
+ * grid's own adjacency, so it holds for square and hex grids alike). A place fits when every field of the
+ * summon's `footprint` there is free, including of the summons placed before it, and it is `allowed` (seen).
  */
-export function summonPlacements({ start, count, occupied, adjacent, limit = 400 }) {
+export function summonPlacements({ start, count, occupied, adjacent, footprint = offset => [offset], allowed = () => true, limit = 400 }) {
+    const taken = new Set(occupied);
     const seen = new Set([key(start)]);
     const queue = [start];
     const free = [];
@@ -19,14 +21,18 @@ export function summonPlacements({ start, count, occupied, adjacent, limit = 400
             if (seen.has(key(next)))
                 continue;
             seen.add(key(next));
-            if (!occupied.has(key(next)))
-                free.push(next);
             queue.push(next);
+            const cells = footprint(next).map(key);
+            if (cells.some(cell => taken.has(cell)) || !allowed(next))
+                continue;
+            free.push(next);
+            for (const cell of cells)
+                taken.add(cell);
             if (free.length >= count)
                 break;
         }
     }
-    return free.slice(0, count);
+    return free;
 }
 /** Whether a summon's rounds have run out at this combat turn (N rounds after the turn it arrived on). */
 export function summonExpired(flag, combat) {
@@ -82,13 +88,29 @@ export function createFoundrySummons({ game, companions, fromUuid, logger = glob
         }
         const occupied = new Set([...scene.tokens].flatMap(token => (token.getOccupiedGridSpaceOffsets?.() ?? []).map(key)));
         const start = scene.grid.getOffset({ x: casterToken.x, y: casterToken.y });
+        // The summon's own size and shape on this Scene's grid, and (2024) a space its caster can see.
+        const shape = await base.getTokenDocument({ actorLink: false }, { parent: scene });
+        const footprint = (offset) => {
+            const cells = shape.getOccupiedGridSpaceOffsets?.(scene.grid.getTopLeftPoint(offset)) ?? [];
+            return cells.length ? cells : [offset];
+        };
+        // The summon's centre and each of its fields must be in its caster's sight, so it never straddles a wall.
+        // shortcut: walls are tested through the caster's placeable, so only when the GM is viewing the caster's Scene.
+        const collides = casterToken.object?.checkCollision?.bind(casterToken.object);
+        const seen = (point) => !collides?.(point, { type: "sight", mode: "any" });
+        const centre = (offset) => {
+            const { x, y } = scene.grid.getTopLeftPoint(offset);
+            return { x: x + (((shape.width ?? 1) * (scene.grid.sizeX ?? 0)) / 2), y: y + (((shape.height ?? 1) * (scene.grid.sizeY ?? 0)) / 2) };
+        };
         const offsets = summonPlacements({ start, count: Math.max(1, Math.min(Number(spec.count) || 1, 20)), occupied,
-            adjacent: offset => scene.grid.getAdjacentOffsets(offset) });
+            adjacent: offset => scene.grid.getAdjacentOffsets(offset), footprint,
+            allowed: offset => !collides || [centre(offset), ...footprint(offset).map(cell => scene.grid.getCenterPoint?.(cell)
+                    ?? scene.grid.getTopLeftPoint(cell))].every(seen) });
         const combat = game.combat ?? null;
         const summon = { casterUuid: caster.uuid, kind: "summon", rounds: Number(spec.rounds) || null,
             createdAt: combat ? { combatId: combat.id, round: combat.round, turn: combat.turn } : null };
         const data = await Promise.all(offsets.map(async (offset) => (await base.getTokenDocument({ ...scene.grid.getTopLeftPoint(offset),
-            actorLink: false, disposition: casterToken.disposition ?? 0, flags: { wildpath: { summon } } })).toObject()));
+            actorLink: false, disposition: casterToken.disposition ?? 0, flags: { wildpath: { summon } } }, { parent: scene })).toObject()));
         const tokens = await scene.createEmbeddedDocuments("Token", data);
         // Each summon is its caster's: every Player who owns the caster commands it.
         for (const token of tokens)
