@@ -99,3 +99,21 @@ test("stacking conditions show their level", () => {
   assert.deepEqual(view.conditions.map(entry => [entry.id, entry.active, entry.stacking, entry.level]),
     [["exhaustion", true, true, 3], ["prone", false, false, null]]);
 });
+
+test("gear rows show equipped, quantity and weight; the header shows the effective AC over the base", () => {
+  const model = createActorSheetViewModel({
+    actor: {id: "actor-g", name: "Pack", type: "character", system: {...system(), defenses: {ac: {value: 12}}}},
+    items: [
+      {id: "shield", type: "gear", name: "Shield", system: {active: true, quantity: 1, weight: 6}},
+      {id: "torch", type: "gear", name: "Torch", system: {active: false, quantity: 5, weight: 1}},
+      {id: "rope", type: "gear", name: "Rope", system: {quantity: 1, weight: 5.5}}
+    ],
+    effectiveAc: 14
+  });
+  assert.deepEqual(model.gearItems.map(item => [item.name, item.active, item.quantity, item.weight]),
+    [["Rope", true, 1, 5.5], ["Shield", true, 1, 6], ["Torch", false, 5, 1]]);
+  assert.equal(model.summary.carriedWeight, 16.5, "everything carried counts, equipped or not");
+  assert.deepEqual([model.header.ac, model.header.baseAc], [14, 12]);
+  assert.deepEqual([createActorSheetViewModel({actor: {system: {defenses: {ac: {value: 11}}}}}).header.ac], [11],
+    "without an effective AC the stored one shows");
+});

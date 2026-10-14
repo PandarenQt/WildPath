@@ -16,7 +16,7 @@
         {{#each header.speeds as |speed|}}
           <span>{{localize speed.label mode=speed.mode distance=speed.distance}}</span>
         {{/each}}
-        {{#if header.ac}}<span>{{localize "WILDPATH.SHEET.AC"}} {{header.ac}}</span>{{/if}}
+        {{#if header.ac}}<span title="{{localize "WILDPATH.SHEET.EffectiveAc"}}">{{localize "WILDPATH.SHEET.AC"}} {{header.ac}}</span>{{/if}}
         {{#if header.level}}<span>{{localize "WILDPATH.SHEET.Level"}} {{header.level}}</span>{{/if}}
         {{#if header.threat}}<span>{{localize "WILDPATH.SHEET.Threat"}} {{header.threat}}</span>{{/if}}
         <span>{{localize "WILDPATH.SHEET.ActionCount" count=summary.actionCount}}</span>
@@ -57,6 +57,14 @@
         <div class="field-block">
           <h4>{{localize "WILDPATH.SHEET.Resources"}}</h4>
           <div class="resource-grid">
+            <label class="resource">
+              <span class="label">{{localize "WILDPATH.SHEET.ArmorClass"}}</span>
+              <span class="resource-values">
+                <span class="max" title="{{localize "WILDPATH.SHEET.EffectiveAc"}}">{{header.ac}}</span>
+                <input class="base" type="number" name="system.defenses.ac.value" value="{{header.baseAc}}" min="0"
+                       title="{{localize "WILDPATH.SHEET.Base"}}">
+              </span>
+            </label>
             {{#each resources as |resource|}}
               <label class="resource">
                 <span class="label">{{localize resource.label}}</span>
@@ -170,16 +178,22 @@
 
         <div class="field-block">
           <h4>{{localize "WILDPATH.SHEET.Gear"}}
+            <span class="row-detail">{{localize "WILDPATH.SHEET.Carried" weight=summary.carriedWeight}}</span>
             <button type="button" class="row-command" data-action="createItem" data-type="gear">{{localize "WILDPATH.SHEET.Create"}}</button>
           </h4>
           <ol class="sheet-list">
             {{#each gearItems as |item|}}
-              <li class="sheet-row" data-item-id="{{item.id}}">
+              <li class="sheet-row gear-row {{#unless item.active}}unavailable{{/unless}}" data-item-id="{{item.id}}">
                 <img class="row-image" src="{{item.img}}" width="28" height="28" alt="{{item.name}}">
                 <div class="row-main">
                   <a class="row-name" data-action="openItem">{{item.name}}</a>
-                  <span class="row-detail">{{item.type}}</span>
+                  <span class="row-detail">{{localize "WILDPATH.SHEET.Weight" weight=item.weight}}</span>
                 </div>
+                <input class="quantity" type="number" min="0" step="1" value="{{item.quantity}}" data-item-field="system.quantity"
+                       aria-label="{{localize "WILDPATH.SHEET.Quantity"}}" title="{{localize "WILDPATH.SHEET.Quantity"}}">
+                <button type="button" class="row-command" data-action="toggleEquipped" aria-pressed="{{#if item.active}}true{{else}}false{{/if}}">
+                  {{#if item.active}}{{localize "WILDPATH.SHEET.Equipped"}}{{else}}{{localize "WILDPATH.SHEET.Unequipped"}}{{/if}}
+                </button>
                 <button type="button" class="row-command" data-action="deleteItem" title="{{localize "WILDPATH.SHEET.Delete"}}">✕</button>
               </li>
             {{else}}

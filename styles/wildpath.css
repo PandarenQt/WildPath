@@ -564,3 +564,9 @@
   border: 1px dashed #c9a227; border-radius: 4px; }
 .wildpath-inspector .inspector-waiting ul { margin: 0; padding-left: 1rem; flex: 1; }
 .wildpath-inspector .inspector-waiting button { width: auto; white-space: nowrap; }
+
+/* Gear rows (equip toggle, quantity) and the gear item fields. */
+.wildpath.actor-sheet .gear-row input.quantity { width: 3.5em; flex: 0 0 3.5em; }
+.wildpath.item .gear-fields { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 0 0 4px; }
+.wildpath.item .gear-fields label { display: inline-flex; align-items: center; gap: 4px; }
+.wildpath.item .gear-fields input[type="number"] { width: 5em; }

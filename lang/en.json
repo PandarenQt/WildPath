@@ -150,6 +150,9 @@
       "DomainsPlaceholder": "domains (comma separated, e.g. resources.health.max)",
       "LabelPlaceholder": "label",
       "TypePlaceholder": "type",
+      "WeightLabel": "Weight (lb.)",
+      "Slot": "Slot",
+      "SlotPlaceholder": "body, hands, ring...",
       "Tab": {
         "builder": "Builder",
         "rules": "Rules",
@@ -441,6 +444,13 @@
     },
     "SHEET": {
       "AC": "AC",
+      "ArmorClass": "Armor Class",
+      "EffectiveAc": "Armor Class with gear, effects and auras; the field is its base",
+      "Equipped": "Equipped",
+      "Unequipped": "Not equipped",
+      "Quantity": "Quantity",
+      "Weight": "{weight} lb. each",
+      "Carried": "{weight} lb. carried",
       "Level": "Level",
       "Threat": "Threat",
       "ShortRest": "Short Rest",

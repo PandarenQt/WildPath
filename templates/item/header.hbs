@@ -1,8 +1,17 @@
+<div class="item-header">
 <header class="sheet-header">
   <img class="profile-img" src="{{item.img}}" data-edit="img" alt="{{item.name}}">
   <input class="item-name" type="text" name="name" value="{{item.name}}">
   <label class="active-toggle">
     <input type="checkbox" name="system.active" {{checked system.active}}>
-    {{localize "WILDPATH.ITEMSHEET.Active"}}
+    {{#if isGear}}{{localize "WILDPATH.SHEET.Equipped"}}{{else}}{{localize "WILDPATH.ITEMSHEET.Active"}}{{/if}}
   </label>
 </header>
+{{#if isGear}}
+<div class="gear-fields">
+  <label>{{localize "WILDPATH.SHEET.Quantity"}} <input type="number" name="system.quantity" value="{{system.quantity}}" min="0" step="1"></label>
+  <label>{{localize "WILDPATH.ITEMSHEET.WeightLabel"}} <input type="number" name="system.weight" value="{{system.weight}}" min="0" step="0.1"></label>
+  <label>{{localize "WILDPATH.ITEMSHEET.Slot"}} <input type="text" name="system.slot" value="{{system.slot}}" placeholder="{{localize "WILDPATH.ITEMSHEET.SlotPlaceholder"}}"></label>
+</div>
+{{/if}}
+</div>

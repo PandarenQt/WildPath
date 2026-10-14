@@ -22,7 +22,8 @@ export function createActorSheetViewModel({
   statuses=null,
   abilityLabels={},
   resourceLabels={},
-  conditionDefinitions=[]
+  conditionDefinitions=[],
+  effectiveAc=null
 }={}) {
   const actorSystem = system ?? actor.system ?? {};
   const actorModel = normalizeActor(actor);
@@ -47,13 +48,15 @@ export function createActorSheetViewModel({
     gearCount: groupedItems.gear.length,
     otherItemCount: groupedItems.other.length,
     effectCount: effectEntries.length,
-    activeConditionCount: conditionEntries.filter(condition => condition.active).length
+    activeConditionCount: conditionEntries.filter(condition => condition.active).length,
+    // Everything carried, equipped or not: quantity times weight.
+    carriedWeight: Math.round(groupedItems.gear.reduce((total, item) => total + ((item.quantity ?? 1) * (item.weight ?? 0)), 0) * 100) / 100
   };
 
   return {
     actor: actorModel,
     system: actorSystem,
-    header: createHeaderView(actorModel, actorSystem, summary),
+    header: createHeaderView(actorModel, actorSystem, summary, effectiveAc),
     sections: CHARACTER_SHEET_SECTIONS.map(section => ({...section, anchor: `wildpath-${actorModel.id}-${section.id}`})),
     abilities: normalizeAbilities(actorSystem.abilities, abilityLabels),
     resources: normalizeResources(actorSystem.resources, resourceLabels),
@@ -84,10 +87,12 @@ function normalizeActor(actor) {
   };
 }
 
-function createHeaderView(actor, system, summary) {
+/** The header: `effectiveAc` is the AC attacks are rolled against (gear, effects and auras included). */
+function createHeaderView(actor, system, summary, effectiveAc=null) {
   const health = system?.resources?.health ?? null;
   const movement = system?.resources?.movement ?? null;
-  const ac = Number(system?.defenses?.ac?.value);
+  const baseAc = Number(system?.defenses?.ac?.value);
+  const ac = Number.isFinite(Number(effectiveAc)) && (effectiveAc !== null) ? Number(effectiveAc) : baseAc;
   return {
     actorRef: actor.ref,
     name: actor.name,
@@ -96,6 +101,7 @@ function createHeaderView(actor, system, summary) {
     health: health ? normalizeResourceSummary("health", health) : null,
     movement: movement ? normalizeResourceSummary("movement", movement) : null,
     ac: Number.isFinite(ac) ? ac : null,
+    baseAc: Number.isFinite(baseAc) ? baseAc : null,
     level: Number.isFinite(Number(system?.details?.level)) ? Number(system.details.level) : null,
     threat: Number.isFinite(Number(system?.details?.threat)) ? Number(system.details.threat) : null,
     // Every Speed but walking (shown as movement), e.g. "fly 60".
@@ -166,7 +172,10 @@ function normalizeItemEntry(item) {
     sort: Number(item?.sort ?? 0) || 0,
     tags: [...(item?.tags ?? item?.system?.tags ?? [])],
     activationCost: clonePlain(item?.system?.getActivationCost?.() ?? item?.activationCost ?? item?.system?.activationCost ?? null),
-    cost: clonePlain(item?.cost ?? item?.system?.cost ?? null)
+    cost: clonePlain(item?.cost ?? item?.system?.cost ?? null),
+    active: item?.system?.active !== false,
+    quantity: Number.isFinite(Number(item?.system?.quantity)) ? Number(item.system.quantity) : null,
+    weight: Number.isFinite(Number(item?.system?.weight)) ? Number(item.system.weight) : null
   };
 }
 

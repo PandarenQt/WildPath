@@ -128,6 +128,11 @@ Inventory UI must use InventorySpaces as the source of truth. It should distingu
 
 Do not implement inventory as only a flat Item table or nested D&D5e-style containers.
 
+**Interim (2026-10-14).** Until InventorySpaces exist, the sheet's gear is a flat list:
+- an equip toggle (`system.active`, which gates the gear's rules);
+- quantity, weight, and a carried-weight total.
+Encumbrance, attunement and InventorySpaces are deferred. The flat list is a stopgap, not the inventory model.
+
 ## Action Economy Integration
 
 Actions should group by actual action-economy meaning, including unknown and custom categories.

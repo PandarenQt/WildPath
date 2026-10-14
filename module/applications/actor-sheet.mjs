@@ -1,4 +1,5 @@
 import {createActorSheetViewModel} from "../helpers/character-sheet-view-models.mjs";
+import {resolveActorDefense} from "../helpers/combat-statistics.mjs";
 
 const {HandlebarsApplicationMixin} = foundry.applications.api;
 const {ActorSheetV2} = foundry.applications.sheets;
@@ -24,6 +25,7 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
       createEffect: WildPathActorSheet.#onCreateEffect,
       openEffect: WildPathActorSheet.#onOpenEffect,
       toggleEffect: WildPathActorSheet.#onToggleEffect,
+      toggleEquipped: WildPathActorSheet.#onToggleEquipped,
       deleteEffect: WildPathActorSheet.#onDeleteEffect
     }
   };
@@ -42,7 +44,8 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
       actor: this.actor,
       abilityLabels: CONFIG.WILDPATH.ABILITIES,
       resourceLabels: CONFIG.WILDPATH.RESOURCES,
-      conditionDefinitions: Object.values(CONFIG.WILDPATH.CONDITIONS)
+      conditionDefinitions: Object.values(CONFIG.WILDPATH.CONDITIONS),
+      effectiveAc: resolveActorDefense(this.actor, "ac")?.value ?? null
     });
     context.sheet = sheet;
     Object.assign(context, sheet);
@@ -52,9 +55,20 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
     return context;
   }
 
-  /** A right-click on a stacking condition removes one of its levels (a click adds one). */
+  /**
+   * A right-click on a stacking condition removes one of its levels (a click adds one). A gear row's quantity is the
+   * Item's own field, so it is saved on that Item rather than with the Actor's form.
+   */
   async _onRender(context, options) {
     await super._onRender(context, options);
+    for ( const input of this.element.querySelectorAll("input[data-item-field]") ) {
+      input.addEventListener("change", event => {
+        event.stopPropagation();
+        const item = this.actor.items.get(input.closest("[data-item-id]")?.dataset.itemId);
+        const value = Number(input.value);
+        if ( item && Number.isFinite(value) ) void item.update({[input.dataset.itemField]: Math.max(0, value)});
+      });
+    }
     for ( const element of this.element.querySelectorAll("[data-condition-id][data-stacking]") ) {
       element.addEventListener("contextmenu", event => {
         event.preventDefault();
@@ -127,6 +141,12 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
   /** @this {WildPathActorSheet} */
   static async #onDeleteItem(event, target) {
     await this.actor.items.get(target.closest("[data-item-id]")?.dataset.itemId)?.deleteDialog();
+  }
+
+  /** @this {WildPathActorSheet} Equipping gear turns its rules on (`system.active`). */
+  static async #onToggleEquipped(event, target) {
+    const item = this.actor.items.get(target.closest("[data-item-id]")?.dataset.itemId);
+    if ( item ) await item.update({"system.active": !item.system.active});
   }
 
   /** @this {WildPathActorSheet} */

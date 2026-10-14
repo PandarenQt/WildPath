@@ -215,6 +215,13 @@ can use a spell slot with upcast dice; and buff, debuff, aura, reaction and Lege
 Phase C is done; Phase D (duplicate, export and import, trigger and monster builders) is next in the plan, after
 the smaller product gaps (Phase E).
 
+**Phase E, smaller product gaps (2026-10-14, in progress).**
+- **Equipment.** Gear rows can be equipped and unequipped, with quantity, weight and a carried total. The header
+  shows the effective AC, and the base AC is editable
+  ([ui-ux-layer.md](../architecture/ui-ux-layer.md#character-sheet-m6-2026-10-14)).
+  Live, a Player equipping a +2 shield took the header from AC 10 to 12, and unequipping it brought it back.
+  Encumbrance, attunement and InventorySpaces are deferred.
+
 **M4 — content pack (in progress, 2026-10-14).**
 - **The pack.** `@foundryvtt/foundryvtt-cli` 3.0.4 was approved and added. The built-in **WildPath Actions**
   pack (nine Actions, one per proven mechanic) is built from JSON sources by `npm run build:packs`

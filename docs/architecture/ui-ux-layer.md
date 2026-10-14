@@ -106,7 +106,9 @@ effects directly.
 
 The actor sheet renders `createActorSheetViewModel` (`helpers/character-sheet-view-models.mjs`) and
 leaves the rules to the documents:
-- **Header:** AC, level (characters) or threat (NPCs), and every Speed besides walking.
+- **Header:** AC, level (characters) or threat (NPCs), and every Speed besides walking. The AC is the
+  effective one attacks roll against (`resolveActorDefense`: gear, effects and auras). The overview's Armor Class
+  field edits its stored base.
 - **Rests:** Short and Long Rest buttons call `Actor#rest`.
 - **Editing:** abilities, current values, and each resource's and pool's base (which sets its maximum).
   Pool fields are folded into the whole stored array, because V14 drops ArrayField element paths.
@@ -116,6 +118,10 @@ leaves the rules to the documents:
   setting edits `system.dyingMode`.
 - **Items and effects:** create, open (click the name) and delete (with Foundry's confirmation).
   Effects can also be enabled or disabled.
+- **Gear (2026-10-14):** each gear row has an equip toggle, which is `system.active` and turns the gear's rules on
+  or off. It also shows its weight and has an editable quantity, saved on the Item. The Gear heading shows the
+  carried weight, which is quantity times weight for everything carried, equipped or not. A gear item's own sheet
+  edits quantity, weight and slot.
 
 The sheet templates' wrappers are `<div>`s. Both sheets are ApplicationV2 sheets whose root element is the
 form; the templates used to open their own nested `<form>`, so their inputs never reached the sheet's

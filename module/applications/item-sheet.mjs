@@ -349,6 +349,7 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
     context.item = this.item;
     context.system = this.item.system;
     context.isAction = this.item.type === "action";
+    context.isGear = this.item.type === "gear";
     context.actionCostResources = CONFIG.WILDPATH.ACTION_COST_RESOURCES.map(key => ({key,
       label: CONFIG.WILDPATH.RESOURCES[key]?.label ?? key}));
     context.modifiers = this.item.system.modifiers.map((modifier, index) => ({
