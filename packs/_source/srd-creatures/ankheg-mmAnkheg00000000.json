@@ -246,7 +246,8 @@
                 "type": "constant",
                 "value": 1
               },
-              "recovery": "none"
+              "recovery": "none",
+              "recharge": 6
             }
           }
         ]
@@ -263,9 +264,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "uses: Recharge 6 is not rolled; refill the pool by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -314,8 +313,7 @@
       },
       "conversion": {
         "notes": [
-          "Bite: \"Escape Check\" is passive or triggered: not automated",
-          "Acid Spray: uses: Recharge 6 is not rolled; refill the pool by hand"
+          "Bite: \"Escape Check\" is passive or triggered: not automated"
         ]
       }
     }

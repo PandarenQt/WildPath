@@ -119,7 +119,7 @@
       "img": "icons/skills/melee/strike-weapons-orange.webp",
       "system": {
         "active": true,
-        "description": "<p>The deva makes two  attacks.</p>",
+        "description": "<p>The deva makes two Holy Mace attacks.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-multiattack-use",
@@ -131,9 +131,32 @@
               }
             ]
           },
-          "label": "Multiattack"
+          "label": "Multiattack",
+          "targeting": {
+            "type": "none"
+          },
+          "restores": [
+            {
+              "resourceId": "multiattack",
+              "amount": 2
+            }
+          ]
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack",
+              "label": "Multiattack",
+              "maximum": 2,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -148,7 +171,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
             ]
           }
         }
@@ -167,11 +190,19 @@
           "schemaVersion": 1,
           "id": "action:srd-holy-mace",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "attack": {
@@ -236,182 +267,8 @@
       }
     },
     {
-      "_id": "mmSpellcasting00",
-      "_key": "!actors.items!mmDeva0000000000.mmSpellcasting00",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The deva casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Evil and Good</em>, <em>Shapechange</em> (Beast or Humanoid form only, no Temporary Hit Points gained from the spell, and no Concentration or Temporary Hit Points required to maintain the spell)</p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Commune</em>, <em>Raise Dead</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "17svfvloelxmr000",
-      "_key": "!actors.items!mmDeva0000000000.17svfvloelxmr000",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The deva casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Evil and Good</em>, <em>Shapechange</em> (Beast or Humanoid form only, no Temporary Hit Points gained from the spell, and no Concentration or Temporary Hit Points required to maintain the spell)</p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Commune</em>, <em>Raise Dead</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "16ywmso1mzul9w00",
-      "_key": "!actors.items!mmDeva0000000000.16ywmso1mzul9w00",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The deva casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Evil and Good</em>, <em>Shapechange</em> (Beast or Humanoid form only, no Temporary Hit Points gained from the spell, and no Concentration or Temporary Hit Points required to maintain the spell)</p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Commune</em>, <em>Raise Dead</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "consumption: activityUses 1 not converted"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "178w8hnnsecqh000",
-      "_key": "!actors.items!mmDeva0000000000.178w8hnnsecqh000",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The deva casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Evil and Good</em>, <em>Shapechange</em> (Beast or Humanoid form only, no Temporary Hit Points gained from the spell, and no Concentration or Temporary Hit Points required to maintain the spell)</p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Commune</em>, <em>Raise Dead</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "consumption: activityUses 1 not converted"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "b1uBxAcirNnGh1ik",
-      "_key": "!actors.items!mmDeva0000000000.b1uBxAcirNnGh1ik",
+      "_id": "ibnuvs1yf7qb0000",
+      "_key": "!actors.items!mmDeva0000000000.ibnuvs1yf7qb0000",
       "name": "Detect Evil and Good",
       "type": "action",
       "img": "icons/magic/perception/eye-ringed-green.webp",
@@ -420,7 +277,7 @@
         "description": "<p>For the duration, you sense the location of any Aberration, Celestial, Elemental, Fey, Fiend, or Undead within 30 feet of yourself. You also sense whether the <em>Hallow</em> spell is active there and, if so, where.</p><p>The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-detect-evil-and-good-cast",
+          "id": "action:srd-spellcasting-detect-evil-and-good",
           "tags": [
             "spell"
           ],
@@ -432,84 +289,6 @@
               }
             ]
           },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.1",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.1": 1,
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
           "label": "Detect Evil and Good"
         },
         "ruleElements": []
@@ -519,11 +298,12 @@
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "b1uBxAcirNnGh1ik",
+            "id": "phbsplDetectEvil",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
@@ -536,17 +316,17 @@
       }
     },
     {
-      "_id": "8NbTvaM4cujIXUzT",
-      "_key": "!actors.items!mmDeva0000000000.8NbTvaM4cujIXUzT",
+      "_id": "r98qkm40tlu20000",
+      "_key": "!actors.items!mmDeva0000000000.r98qkm40tlu20000",
       "name": "Shapechange",
       "type": "action",
       "img": "icons/magic/unholy/hand-fire-skeleton-pink.webp",
       "system": {
         "active": true,
-        "description": "<p>You shape-shift into another creature for the duration or until you take a Magic action to shape-shift into a different eligible form. The new form must be of a creature that has a Challenge Rating no higher than your level or Challenge Rating. You must have seen the sort of creature before, and it can't be a Construct or an Undead.</p><p>When you shape-shift, you gain a number of Temporary Hit Points equal to the Hit Points of the form. The spell ends early if you have no Temporary Hit Points left.</p><p>Your game statistics are replaced by the stat block of the chosen form, but you retain your creature type; alignment; personality; Intelligence, Wisdom, and Charisma scores; Hit Points; Hit Point Dice; proficiencies; and ability to communicate. If you have the Spellcasting feature, you retain it too.</p><p>Upon shape-shifting, you determine whether your equipment drops to the ground or changes in size and shape to fit the new form while you're in it.</p>",
+        "description": "<p>You shape-shift into another creature for the duration or until you take a Magic action to shape-shift into a different eligible form. The new form must be of a creature that has a Challenge Rating no higher than your level or Challenge Rating. You must have seen the sort of creature before, and it can't be a Construct or an Undead.</p><p>When you cast the spell, you gain a number of Temporary Hit Points equal to the Hit Points of the first form into which you shape-shift. These Temporary Hit Points vanish if any remain when the spell ends.</p><p>Your game statistics are replaced by the stat block of the chosen form, but you retain your creature type; alignment; personality; Intelligence, Wisdom, and Charisma scores; Hit Points; Hit Point Dice; proficiencies; and ability to communicate. If you have the Spellcasting feature, you retain it too.</p><p>Upon shape-shifting, you determine whether your equipment drops to the ground or changes in size and shape to fit the new form while you're in it.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-shapechange-cast",
+          "id": "action:srd-spellcasting-shapechange",
           "tags": [
             "spell"
           ],
@@ -558,28 +338,6 @@
               }
             ]
           },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
           "label": "Shapechange"
         },
         "ruleElements": []
@@ -589,11 +347,12 @@
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "8NbTvaM4cujIXUzT",
+            "id": "phbsplShapechang",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
@@ -605,8 +364,8 @@
       }
     },
     {
-      "_id": "RIzW4Hz3llGsevNc",
-      "_key": "!actors.items!mmDeva0000000000.RIzW4Hz3llGsevNc",
+      "_id": "1y2q2v4qxiabk000",
+      "_key": "!actors.items!mmDeva0000000000.1y2q2v4qxiabk000",
       "name": "Commune",
       "type": "action",
       "img": "icons/tools/laboratory/bowl-liquid-orange.webp",
@@ -615,82 +374,56 @@
         "description": "<p>You contact a deity or a divine proxy and ask up to three questions that can be answered with yes or no. You must ask your questions before the spell ends. You receive a correct answer for each question.</p><p>Divine beings aren't necessarily omniscient, so you might receive \"unclear\" as an answer if a question pertains to information that lies beyond the deity's knowledge. In a case where a one-word answer could be misleading or contrary to the deity's interests, the DM might offer a short phrase as an answer instead.</p><p>If you cast the spell more than once before finishing a Long Rest, there is a cumulative 25 percent chance for each casting after the first that you get no answer.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-commune",
+          "id": "action:srd-spellcasting-commune",
           "tags": [
             "spell"
           ],
           "costs": {
-            "allOf": []
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplcommune000",
+                "amount": 1
+              }
+            ]
           },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
           "label": "Commune"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "spellcasting-phbsplcommune000-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "spellcasting-phbsplcommune000",
+              "label": "Spellcasting (Commune)",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "RIzW4Hz3llGsevNc",
+            "id": "phbsplCommune000",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
               "not automated (utility): using it spends its cost; its description says the rest",
-              "activation: 1 minute is not an action-economy cost",
               "activation: 1 minute is not an action-economy cost"
             ]
           }
@@ -698,8 +431,8 @@
       }
     },
     {
-      "_id": "t2FrmBjeFeQrFYPL",
-      "_key": "!actors.items!mmDeva0000000000.t2FrmBjeFeQrFYPL",
+      "_id": "gye6pnr3xq9r0000",
+      "_key": "!actors.items!mmDeva0000000000.gye6pnr3xq9r0000",
       "name": "Raise Dead",
       "type": "action",
       "img": "icons/magic/death/skull-fire-white-yellow.webp",
@@ -708,12 +441,21 @@
         "description": "<p>With a touch, you revive a dead creature if it has been dead no longer than 10 days and it wasn't Undead when it died.</p><p>The creature returns to life with 1 Hit Point. This spell also neutralizes any poisons that affected the creature at the time of death.</p><p>This spell closes all mortal wounds, but it doesn't restore missing body parts. If the creature is lacking body parts or organs integral for its survival—its head, for instance—the spell automatically fails.</p><p>Coming back from the dead is an ordeal. The target takes a −4 penalty to D20 Tests. Every time the target finishes a Long Rest, the penalty is reduced by 1 until it becomes 0.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-raise-dead-revive",
+          "id": "action:srd-spellcasting-raise-dead",
           "tags": [
             "spell"
           ],
           "costs": {
-            "allOf": []
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplraisedead0",
+                "amount": 1
+              }
+            ]
           },
           "range": {
             "type": "self"
@@ -957,467 +699,40 @@
               ]
             }
           ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
           "label": "Raise Dead"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "spellcasting-phbsplraisedead0-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "spellcasting-phbsplraisedead0",
+              "label": "Spellcasting (Raise Dead)",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "t2FrmBjeFeQrFYPL",
+            "id": "phbsplRaiseDead0",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
               "activation: 1 hour is not an action-economy cost"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "mH23ndCIXLPrvNkM",
-      "_key": "!actors.items!mmDeva0000000000.mH23ndCIXLPrvNkM",
-      "name": "Lesser Restoration",
-      "type": "action",
-      "img": "icons/magic/holy/prayer-hands-glowing-yellow-green.webp",
-      "system": {
-        "active": true,
-        "description": "<p>You touch a creature and end one condition on it: Blinded, Deafened, Paralyzed, or Poisoned.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-lesser-restoration",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": [
-              {
-                "capability": "bonus-action",
-                "amount": 1
-              }
-            ]
-          },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
-          "label": "Lesser Restoration"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mH23ndCIXLPrvNkM",
-            "type": "spell",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "BeGSMs1GVEiu4IgP",
-      "_key": "!actors.items!mmDeva0000000000.BeGSMs1GVEiu4IgP",
-      "name": "Cure Wounds",
-      "type": "action",
-      "img": "icons/magic/nature/leaf-drip-light-green.webp",
-      "system": {
-        "active": true,
-        "description": "<p>A creature you touch regains a number of Hit Points equal to 2d8 plus your spellcasting ability modifier.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The healing increases by 2d8 for each spell slot level above 1.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-cure-wounds",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "range": {
-            "type": "touch",
-            "distance": {
-              "value": 5,
-              "unit": "ft"
-            }
-          },
-          "targeting": {
-            "type": "single",
-            "required": true,
-            "count": 1
-          },
-          "healing": [
-            {
-              "id": "healing-1",
-              "expression": {
-                "type": "add",
-                "terms": [
-                  {
-                    "type": "dice",
-                    "number": 2,
-                    "faces": 8
-                  },
-                  {
-                    "type": "spellcasting-modifier"
-                  }
-                ]
-              },
-              "healingType": "healing"
-            }
-          ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.1",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.1": 1,
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": [
-                {
-                  "type": "scaleHealing",
-                  "levelChoiceId": "spell-slot",
-                  "baseLevel": 1,
-                  "componentIds": [
-                    "healing-1"
-                  ],
-                  "dice": {
-                    "number": 2,
-                    "faces": 8
-                  }
-                }
-              ]
-            }
-          ],
-          "label": "Cure Wounds"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "BeGSMs1GVEiu4IgP",
-            "type": "spell",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": []
-          }
-        }
-      }
-    },
-    {
-      "_id": "7eVbHabgeTUA6Vvh",
-      "_key": "!actors.items!mmDeva0000000000.7eVbHabgeTUA6Vvh",
-      "name": "Remove Curse",
-      "type": "action",
-      "img": "icons/skills/melee/sword-damaged-broken-glow-red.webp",
-      "system": {
-        "active": true,
-        "description": "<p>At your touch, all curses affecting one creature or object end. If the object is a cursed magic item, its curse remains, but the spell breaks its owner's Attunement to the object so it can be removed or discarded.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-remove-curse",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
-          "label": "Remove Curse"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "7eVbHabgeTUA6Vvh",
-            "type": "spell",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
             ]
           }
         }
@@ -1477,20 +792,13 @@
       },
       "conversion": {
         "notes": [
-          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Spellcasting: not automated (cast): using it spends its cost; its description says the rest",
-          "Spellcasting: consumption: activityUses 1 not converted",
-          "Detect Evil and Good: not automated (utility): using it spends its cost; its description says the rest",
-          "Detect Evil and Good: effect: \"Detect Evil and Good\" (its own changes) not converted",
-          "Detect Evil and Good: concentration: nothing it sustains was converted",
-          "Shapechange: not automated (utility): using it spends its cost; its description says the rest",
-          "Shapechange: concentration: nothing it sustains was converted",
-          "Commune: not automated (utility): using it spends its cost; its description says the rest",
-          "Commune: activation: 1 minute is not an action-economy cost",
-          "Raise Dead: activation: 1 hour is not an action-economy cost",
+          "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
+          "Spellcasting: effect: \"Detect Evil and Good\" (its own changes) not converted",
+          "Spellcasting: concentration: nothing it sustains was converted",
+          "Spellcasting: activation: 1 minute is not an action-economy cost",
+          "Spellcasting: activation: 1 hour is not an action-economy cost",
           "Divine Aid: not SRD 5.2 (CC-BY-4.0)",
-          "Lesser Restoration: not automated (utility): using it spends its cost; its description says the rest",
-          "Remove Curse: not automated (utility): using it spends its cost; its description says the rest"
+          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
         ]
       }
     }

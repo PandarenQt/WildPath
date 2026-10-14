@@ -175,7 +175,7 @@
       "img": "icons/skills/melee/strike-weapons-orange.webp",
       "system": {
         "active": true,
-        "description": "<p>The solar makes two  attacks. It can replace one attack with a use of .</p>",
+        "description": "<p>The solar makes two Flying Sword attacks. It can replace one attack with a use of Slaying Bow.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-multiattack-use",
@@ -187,9 +187,32 @@
               }
             ]
           },
-          "label": "Multiattack"
+          "label": "Multiattack",
+          "targeting": {
+            "type": "none"
+          },
+          "restores": [
+            {
+              "resourceId": "multiattack",
+              "amount": 2
+            }
+          ]
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack",
+              "label": "Multiattack",
+              "maximum": 2,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -204,7 +227,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
             ]
           }
         }
@@ -321,11 +344,19 @@
           "schemaVersion": 1,
           "id": "action:srd-flying-sword",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "attack": {
@@ -390,227 +421,8 @@
       }
     },
     {
-      "_id": "mmSpellcasting00",
-      "_key": "!actors.items!mmSolar000000000.mmSpellcasting00",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The solar casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Evil and Good</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Commune</em>, <em>Control Weather</em>, <em>Dispel Evil and Good</em>, <em>Resurrection</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "17svfvloelxmr000",
-      "_key": "!actors.items!mmSolar000000000.17svfvloelxmr000",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The solar casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Evil and Good</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Commune</em>, <em>Control Weather</em>, <em>Dispel Evil and Good</em>, <em>Resurrection</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "consumption: activityUses 1 not converted"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "16ywmso1mzul9w00",
-      "_key": "!actors.items!mmSolar000000000.16ywmso1mzul9w00",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The solar casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Evil and Good</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Commune</em>, <em>Control Weather</em>, <em>Dispel Evil and Good</em>, <em>Resurrection</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "consumption: activityUses 1 not converted"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "178w8hnnsecqh000",
-      "_key": "!actors.items!mmSolar000000000.178w8hnnsecqh000",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The solar casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Evil and Good</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Commune</em>, <em>Control Weather</em>, <em>Dispel Evil and Good</em>, <em>Resurrection</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "consumption: activityUses 1 not converted"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "18mu8yi1mdn0dm00",
-      "_key": "!actors.items!mmSolar000000000.18mu8yi1mdn0dm00",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The solar casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Evil and Good</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Commune</em>, <em>Control Weather</em>, <em>Dispel Evil and Good</em>, <em>Resurrection</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "consumption: activityUses 1 not converted"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "ovdN9mRTyXP1j08C",
-      "_key": "!actors.items!mmSolar000000000.ovdN9mRTyXP1j08C",
+      "_id": "6vnry11d080i0000",
+      "_key": "!actors.items!mmSolar000000000.6vnry11d080i0000",
       "name": "Detect Evil and Good",
       "type": "action",
       "img": "icons/magic/perception/eye-ringed-green.webp",
@@ -619,7 +431,7 @@
         "description": "<p>For the duration, you sense the location of any Aberration, Celestial, Elemental, Fey, Fiend, or Undead within 30 feet of yourself. You also sense whether the <em>Hallow</em> spell is active there and, if so, where.</p><p>The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-detect-evil-and-good-cast",
+          "id": "action:srd-spellcasting-detect-evil-and-good",
           "tags": [
             "spell"
           ],
@@ -631,84 +443,6 @@
               }
             ]
           },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.1",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.1": 1,
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
           "label": "Detect Evil and Good"
         },
         "ruleElements": []
@@ -718,11 +452,12 @@
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "ovdN9mRTyXP1j08C",
+            "id": "phbsplDetectEvil",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
@@ -735,8 +470,8 @@
       }
     },
     {
-      "_id": "1N2neNzwvXKVcU5x",
-      "_key": "!actors.items!mmSolar000000000.1N2neNzwvXKVcU5x",
+      "_id": "1i24a491ntyxod00",
+      "_key": "!actors.items!mmSolar000000000.1i24a491ntyxod00",
       "name": "Commune",
       "type": "action",
       "img": "icons/tools/laboratory/bowl-liquid-orange.webp",
@@ -745,82 +480,56 @@
         "description": "<p>You contact a deity or a divine proxy and ask up to three questions that can be answered with yes or no. You must ask your questions before the spell ends. You receive a correct answer for each question.</p><p>Divine beings aren't necessarily omniscient, so you might receive \"unclear\" as an answer if a question pertains to information that lies beyond the deity's knowledge. In a case where a one-word answer could be misleading or contrary to the deity's interests, the DM might offer a short phrase as an answer instead.</p><p>If you cast the spell more than once before finishing a Long Rest, there is a cumulative 25 percent chance for each casting after the first that you get no answer.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-commune",
+          "id": "action:srd-spellcasting-commune",
           "tags": [
             "spell"
           ],
           "costs": {
-            "allOf": []
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplcommune000",
+                "amount": 1
+              }
+            ]
           },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
           "label": "Commune"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "spellcasting-phbsplcommune000-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "spellcasting-phbsplcommune000",
+              "label": "Spellcasting (Commune)",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "1N2neNzwvXKVcU5x",
+            "id": "phbsplCommune000",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
               "not automated (utility): using it spends its cost; its description says the rest",
-              "activation: 1 minute is not an action-economy cost",
               "activation: 1 minute is not an action-economy cost"
             ]
           }
@@ -828,9 +537,9 @@
       }
     },
     {
-      "_id": "0lf6wzfUsp3jTIti",
-      "_key": "!actors.items!mmSolar000000000.0lf6wzfUsp3jTIti",
-      "name": "Control Weather (Cast and Control)",
+      "_id": "1bhvwvgn0fwde000",
+      "_key": "!actors.items!mmSolar000000000.1bhvwvgn0fwde000",
+      "name": "Control Weather",
       "type": "action",
       "img": "icons/magic/air/weather-clouds-rainbow.webp",
       "system": {
@@ -838,153 +547,7 @@
         "description": "<p>You take control of the weather within 5 miles of you for the duration. You must be outdoors to cast this spell, and it ends early if you go indoors.</p><p>When you cast the spell, you change the current weather conditions, which are determined by the DM. You can change precipitation, temperature, and wind. It takes 1d4 × 10 minutes for the new conditions to take effect. Once they do so, you can change the conditions again. When the spell ends, the weather gradually returns to normal.</p><p>When you change the weather conditions, find a current condition on the following tables and change its stage by one, up or down. When changing the wind, you can change its direction.</p><details><summary><strong>Precipitation</strong></summary><table><thead><tr><td>Stage</td><td>Condition</td></tr></thead><tbody><tr><td>1</td><td>Clear</td></tr><tr><td>2</td><td>Light clouds</td></tr><tr><td>3</td><td>Overcast or ground fog</td></tr><tr><td>4</td><td>Rain, hail, or snow</td></tr><tr><td>5</td><td>Torrential rain, driving hail, or blizzard</td></tr></tbody></table></details><details><summary><strong>Temperature</strong></summary><table><thead><tr><td>Stage</td><td>Condition</td></tr></thead><tbody><tr><td>1</td><td>Heat wave</td></tr><tr><td>2</td><td>Hot</td></tr><tr><td>3</td><td>Warm</td></tr><tr><td>4</td><td>Cool</td></tr><tr><td>5</td><td>Cold</td></tr><tr><td>6</td><td>Freezing</td></tr></tbody></table></details><details><summary><strong>Wind</strong></summary><table><thead><tr><td>Stage</td><td>Condition</td></tr></thead><tbody><tr><td>1</td><td>Calm</td></tr><tr><td>2</td><td>Moderate wind</td></tr><tr><td>3</td><td>Strong wind</td></tr><tr><td>4</td><td>Gale</td></tr><tr><td>5</td><td>Storm</td></tr></tbody></table></details>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-control-weather-cast-and-control",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": []
-          },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
-          "label": "Control Weather (Cast and Control)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "0lf6wzfUsp3jTIti",
-            "type": "spell",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "activation: 10 minute is not an action-economy cost",
-              "concentration: nothing it sustains was converted",
-              "activation: 10 minute is not an action-economy cost"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "1knhniy198wd5400",
-      "_key": "!actors.items!mmSolar000000000.1knhniy198wd5400",
-      "name": "Control Weather (Change Conditions)",
-      "type": "action",
-      "img": "icons/magic/air/weather-clouds-rainbow.webp",
-      "system": {
-        "active": true,
-        "description": "<p>You take control of the weather within 5 miles of you for the duration. You must be outdoors to cast this spell, and it ends early if you go indoors.</p><p>When you cast the spell, you change the current weather conditions, which are determined by the DM. You can change precipitation, temperature, and wind. It takes 1d4 × 10 minutes for the new conditions to take effect. Once they do so, you can change the conditions again. When the spell ends, the weather gradually returns to normal.</p><p>When you change the weather conditions, find a current condition on the following tables and change its stage by one, up or down. When changing the wind, you can change its direction.</p><details><summary><strong>Precipitation</strong></summary><table><thead><tr><td>Stage</td><td>Condition</td></tr></thead><tbody><tr><td>1</td><td>Clear</td></tr><tr><td>2</td><td>Light clouds</td></tr><tr><td>3</td><td>Overcast or ground fog</td></tr><tr><td>4</td><td>Rain, hail, or snow</td></tr><tr><td>5</td><td>Torrential rain, driving hail, or blizzard</td></tr></tbody></table></details><details><summary><strong>Temperature</strong></summary><table><thead><tr><td>Stage</td><td>Condition</td></tr></thead><tbody><tr><td>1</td><td>Heat wave</td></tr><tr><td>2</td><td>Hot</td></tr><tr><td>3</td><td>Warm</td></tr><tr><td>4</td><td>Cool</td></tr><tr><td>5</td><td>Cold</td></tr><tr><td>6</td><td>Freezing</td></tr></tbody></table></details><details><summary><strong>Wind</strong></summary><table><thead><tr><td>Stage</td><td>Condition</td></tr></thead><tbody><tr><td>1</td><td>Calm</td></tr><tr><td>2</td><td>Moderate wind</td></tr><tr><td>3</td><td>Strong wind</td></tr><tr><td>4</td><td>Gale</td></tr><tr><td>5</td><td>Storm</td></tr></tbody></table></details>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-control-weather-change-conditions",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": []
-          },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
-          "label": "Control Weather (Change Conditions)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "0lf6wzfUsp3jTIti",
-            "type": "spell",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "activation: 10 minute is not an action-economy cost",
-              "concentration: nothing it sustains was converted",
-              "activation: 10 minute is not an action-economy cost"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "kiSJTCgeflbQIcAL",
-      "_key": "!actors.items!mmSolar000000000.kiSJTCgeflbQIcAL",
-      "name": "Dispel Evil and Good (Cast)",
-      "type": "action",
-      "img": "icons/magic/holy/yin-yang-balance-symbol.webp",
-      "system": {
-        "active": true,
-        "description": "<p>For the duration, Celestials, Elementals, Fey, Fiends, and Undead have Disadvantage on attack rolls against you. You can end the spell early by using either of the following special functions.</p><p><strong>Break Enchantment.</strong> As a Magic action, you touch a creature that is possessed by or has the Charmed or Frightened condition from one or more creatures of the types above. The target is no longer possessed, Charmed, or Frightened by such creatures.</p><p><strong>Dismissal.</strong> As a Magic action, you target one creature you can see within 5 feet of you that has one of the creature types above. The target must succeed on a Charisma saving throw or be sent back to its home plane if it isn't there already. If they aren't on their home plane, Undead are sent to the Shadowfell, and Fey are sent to the Feywild.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-dispel-evil-and-good-cast",
+          "id": "action:srd-spellcasting-control-weather",
           "tags": [
             "spell"
           ],
@@ -993,282 +556,127 @@
               {
                 "capability": "action",
                 "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplcontrolwea",
+                "amount": 1
               }
             ]
           },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
-          "label": "Dispel Evil and Good (Cast)"
+          "label": "Control Weather"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "spellcasting-phbsplcontrolwea-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "spellcasting-phbsplcontrolwea",
+              "label": "Spellcasting (Control Weather)",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "kiSJTCgeflbQIcAL",
+            "id": "phbsplControlWea",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "activation: 10 minute is not an action-economy cost",
+              "concentration: nothing it sustains was converted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "1dql6zn1vtseqb00",
+      "_key": "!actors.items!mmSolar000000000.1dql6zn1vtseqb00",
+      "name": "Dispel Evil and Good",
+      "type": "action",
+      "img": "icons/magic/holy/yin-yang-balance-symbol.webp",
+      "system": {
+        "active": true,
+        "description": "<p>For the duration, Celestials, Elementals, Fey, Fiends, and Undead have Disadvantage on attack rolls against you. You can end the spell early by using either of the following special functions.</p><p><strong>Break Enchantment.</strong> As a Magic action, you touch a creature that is possessed by or has the Charmed or Frightened condition from one or more creatures of the types above. The target is no longer possessed, Charmed, or Frightened by such creatures.</p><p><strong>Dismissal.</strong> As a Magic action, you target one creature you can see within 5 feet of you that has one of the creature types above. The target must succeed on a Charisma saving throw or be sent back to its home plane if it isn't there already. If they aren't on their home plane, Undead are sent to the Shadowfell, and Fey are sent to the Feywild.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting-dispel-evil-and-good",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbspldispelevil",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Dispel Evil and Good"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "spellcasting-phbspldispelevil-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "spellcasting-phbspldispelevil",
+              "label": "Spellcasting (Dispel Evil and Good)",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbsplDispelEvil",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
               "not automated (utility): using it spends its cost; its description says the rest",
               "effect: \"Dispelling Evil and Good\" (its own changes) not converted",
-              "concentration: nothing it sustains was converted"
+              "concentration: nothing it sustains was converted",
+              "not automated (save): using it spends its cost; its description says the rest"
             ]
           }
         }
       }
     },
     {
-      "_id": "w505om13ity7c000",
-      "_key": "!actors.items!mmSolar000000000.w505om13ity7c000",
-      "name": "Dispel Evil and Good (Dismissal)",
-      "type": "action",
-      "img": "icons/magic/holy/yin-yang-balance-symbol.webp",
-      "system": {
-        "active": true,
-        "description": "<p>For the duration, Celestials, Elementals, Fey, Fiends, and Undead have Disadvantage on attack rolls against you. You can end the spell early by using either of the following special functions.</p><p><strong>Break Enchantment.</strong> As a Magic action, you touch a creature that is possessed by or has the Charmed or Frightened condition from one or more creatures of the types above. The target is no longer possessed, Charmed, or Frightened by such creatures.</p><p><strong>Dismissal.</strong> As a Magic action, you target one creature you can see within 5 feet of you that has one of the creature types above. The target must succeed on a Charisma saving throw or be sent back to its home plane if it isn't there already. If they aren't on their home plane, Undead are sent to the Shadowfell, and Fey are sent to the Feywild.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-dispel-evil-and-good-dismissal",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
-          "label": "Dispel Evil and Good (Dismissal)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "kiSJTCgeflbQIcAL",
-            "type": "spell",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "concentration: nothing it sustains was converted"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "vv0jzn4xlak70000",
-      "_key": "!actors.items!mmSolar000000000.vv0jzn4xlak70000",
-      "name": "Dispel Evil and Good (Break Enchantment)",
-      "type": "action",
-      "img": "icons/magic/holy/yin-yang-balance-symbol.webp",
-      "system": {
-        "active": true,
-        "description": "<p>For the duration, Celestials, Elementals, Fey, Fiends, and Undead have Disadvantage on attack rolls against you. You can end the spell early by using either of the following special functions.</p><p><strong>Break Enchantment.</strong> As a Magic action, you touch a creature that is possessed by or has the Charmed or Frightened condition from one or more creatures of the types above. The target is no longer possessed, Charmed, or Frightened by such creatures.</p><p><strong>Dismissal.</strong> As a Magic action, you target one creature you can see within 5 feet of you that has one of the creature types above. The target must succeed on a Charisma saving throw or be sent back to its home plane if it isn't there already. If they aren't on their home plane, Undead are sent to the Shadowfell, and Fey are sent to the Feywild.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-dispel-evil-and-good-break-enchantment",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
-          "label": "Dispel Evil and Good (Break Enchantment)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "kiSJTCgeflbQIcAL",
-            "type": "spell",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "concentration: nothing it sustains was converted"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "CqPrcjjGFXcwb6lK",
-      "_key": "!actors.items!mmSolar000000000.CqPrcjjGFXcwb6lK",
-      "name": "Resurrection (Cast)",
+      "_id": "1mhbddzrvybbr000",
+      "_key": "!actors.items!mmSolar000000000.1mhbddzrvybbr000",
+      "name": "Resurrection",
       "type": "action",
       "img": "icons/magic/death/skeleton-skull-soul-blue.webp",
       "system": {
@@ -1276,12 +684,21 @@
         "description": "<p>With a touch, you revive a dead creature that has been dead for no more than a century, didn't die of old age, and wasn't Undead when it died.</p><p>The creature returns to life with all its Hit Points. This spell also neutralizes any poisons that affected the creature at the time of death. This spell closes all mortal wounds and restores any missing body parts.</p><p>Coming back from the dead is an ordeal. The target takes a −4 penalty to D20 Tests. Every time the target finishes a Long Rest, the penalty is reduced by 1 until it becomes 0.</p><p>Casting this spell to revive a creature that has been dead for 365 days or longer taxes you. Until you finish a Long Rest, you can't cast spells again, and you have Disadvantage on D20 Tests.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-resurrection-cast",
+          "id": "action:srd-spellcasting-resurrection",
           "tags": [
             "spell"
           ],
           "costs": {
-            "allOf": []
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplresurrecti",
+                "amount": 1
+              }
+            ]
           },
           "range": {
             "type": "touch",
@@ -1521,371 +938,36 @@
               ]
             }
           ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
-          "label": "Resurrection (Cast)"
+          "label": "Resurrection"
         },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "CqPrcjjGFXcwb6lK",
-            "type": "spell",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "activation: 1 hour is not an action-economy cost"
-            ]
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "spellcasting-phbsplresurrecti-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "spellcasting-phbsplresurrecti",
+              "label": "Spellcasting (Resurrection)",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "longRest"
+            }
           }
-        }
-      }
-    },
-    {
-      "_id": "4ot70ten6bsh0000",
-      "_key": "!actors.items!mmSolar000000000.4ot70ten6bsh0000",
-      "name": "Resurrection (Taxing Cast)",
-      "type": "action",
-      "img": "icons/magic/death/skeleton-skull-soul-blue.webp",
-      "system": {
-        "active": true,
-        "description": "<p>With a touch, you revive a dead creature that has been dead for no more than a century, didn't die of old age, and wasn't Undead when it died.</p><p>The creature returns to life with all its Hit Points. This spell also neutralizes any poisons that affected the creature at the time of death. This spell closes all mortal wounds and restores any missing body parts.</p><p>Coming back from the dead is an ordeal. The target takes a −4 penalty to D20 Tests. Every time the target finishes a Long Rest, the penalty is reduced by 1 until it becomes 0.</p><p>Casting this spell to revive a creature that has been dead for 365 days or longer taxes you. Until you finish a Long Rest, you can't cast spells again, and you have Disadvantage on D20 Tests.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-resurrection-taxing-cast",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": []
-          },
-          "range": {
-            "type": "touch",
-            "distance": {
-              "value": 5,
-              "unit": "ft"
-            }
-          },
-          "targeting": {
-            "type": "single",
-            "required": true,
-            "count": 1
-          },
-          "effects": [
-            {
-              "id": "effect-1",
-              "type": "effect",
-              "name": "Resurrection Sickness (Day 1)",
-              "img": "icons/svg/stoned.svg",
-              "ruleElements": [
-                {
-                  "schemaVersion": 1,
-                  "id": "resurrection-sickness-day-1-1",
-                  "type": "Modifier",
-                  "data": {
-                    "domains": [
-                      "check"
-                    ],
-                    "modifierType": "untyped",
-                    "value": -1
-                  }
-                },
-                {
-                  "schemaVersion": 1,
-                  "id": "resurrection-sickness-day-1-2",
-                  "type": "Modifier",
-                  "data": {
-                    "domains": [
-                      "save"
-                    ],
-                    "modifierType": "untyped",
-                    "value": -1
-                  }
-                },
-                {
-                  "schemaVersion": 1,
-                  "id": "resurrection-sickness-day-1-3",
-                  "type": "Modifier",
-                  "data": {
-                    "domains": [
-                      "initiative"
-                    ],
-                    "modifierType": "untyped",
-                    "value": -1
-                  }
-                },
-                {
-                  "schemaVersion": 1,
-                  "id": "resurrection-sickness-day-1-4",
-                  "type": "Modifier",
-                  "data": {
-                    "domains": [
-                      "attack"
-                    ],
-                    "modifierType": "untyped",
-                    "value": -1
-                  }
-                }
-              ]
-            },
-            {
-              "id": "effect-2",
-              "type": "effect",
-              "name": "Resurrection Sickness (Day 2)",
-              "img": "icons/svg/stoned.svg",
-              "ruleElements": [
-                {
-                  "schemaVersion": 1,
-                  "id": "resurrection-sickness-day-2-1",
-                  "type": "Modifier",
-                  "data": {
-                    "domains": [
-                      "check"
-                    ],
-                    "modifierType": "untyped",
-                    "value": -1
-                  }
-                },
-                {
-                  "schemaVersion": 1,
-                  "id": "resurrection-sickness-day-2-2",
-                  "type": "Modifier",
-                  "data": {
-                    "domains": [
-                      "save"
-                    ],
-                    "modifierType": "untyped",
-                    "value": -1
-                  }
-                },
-                {
-                  "schemaVersion": 1,
-                  "id": "resurrection-sickness-day-2-3",
-                  "type": "Modifier",
-                  "data": {
-                    "domains": [
-                      "initiative"
-                    ],
-                    "modifierType": "untyped",
-                    "value": -1
-                  }
-                },
-                {
-                  "schemaVersion": 1,
-                  "id": "resurrection-sickness-day-2-4",
-                  "type": "Modifier",
-                  "data": {
-                    "domains": [
-                      "attack"
-                    ],
-                    "modifierType": "untyped",
-                    "value": -1
-                  }
-                }
-              ]
-            },
-            {
-              "id": "effect-3",
-              "type": "effect",
-              "name": "Resurrection Sickness (Day 3)",
-              "img": "icons/svg/stoned.svg",
-              "ruleElements": [
-                {
-                  "schemaVersion": 1,
-                  "id": "resurrection-sickness-day-3-1",
-                  "type": "Modifier",
-                  "data": {
-                    "domains": [
-                      "check"
-                    ],
-                    "modifierType": "untyped",
-                    "value": -1
-                  }
-                },
-                {
-                  "schemaVersion": 1,
-                  "id": "resurrection-sickness-day-3-2",
-                  "type": "Modifier",
-                  "data": {
-                    "domains": [
-                      "save"
-                    ],
-                    "modifierType": "untyped",
-                    "value": -1
-                  }
-                },
-                {
-                  "schemaVersion": 1,
-                  "id": "resurrection-sickness-day-3-3",
-                  "type": "Modifier",
-                  "data": {
-                    "domains": [
-                      "initiative"
-                    ],
-                    "modifierType": "untyped",
-                    "value": -1
-                  }
-                },
-                {
-                  "schemaVersion": 1,
-                  "id": "resurrection-sickness-day-3-4",
-                  "type": "Modifier",
-                  "data": {
-                    "domains": [
-                      "attack"
-                    ],
-                    "modifierType": "untyped",
-                    "value": -1
-                  }
-                }
-              ]
-            },
-            {
-              "id": "effect-4",
-              "type": "effect",
-              "name": "Resurrection Sickness (Day 4)",
-              "img": "icons/svg/stoned.svg",
-              "ruleElements": [
-                {
-                  "schemaVersion": 1,
-                  "id": "resurrection-sickness-day-4-1",
-                  "type": "Modifier",
-                  "data": {
-                    "domains": [
-                      "check"
-                    ],
-                    "modifierType": "untyped",
-                    "value": -1
-                  }
-                },
-                {
-                  "schemaVersion": 1,
-                  "id": "resurrection-sickness-day-4-2",
-                  "type": "Modifier",
-                  "data": {
-                    "domains": [
-                      "save"
-                    ],
-                    "modifierType": "untyped",
-                    "value": -1
-                  }
-                },
-                {
-                  "schemaVersion": 1,
-                  "id": "resurrection-sickness-day-4-3",
-                  "type": "Modifier",
-                  "data": {
-                    "domains": [
-                      "initiative"
-                    ],
-                    "modifierType": "untyped",
-                    "value": -1
-                  }
-                },
-                {
-                  "schemaVersion": 1,
-                  "id": "resurrection-sickness-day-4-4",
-                  "type": "Modifier",
-                  "data": {
-                    "domains": [
-                      "attack"
-                    ],
-                    "modifierType": "untyped",
-                    "value": -1
-                  }
-                }
-              ]
-            }
-          ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
-          "label": "Resurrection (Taxing Cast)"
-        },
-        "ruleElements": []
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "CqPrcjjGFXcwb6lK",
+            "id": "phbsplResurrecti",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
@@ -2044,194 +1126,8 @@
       }
     },
     {
-      "_id": "jb9GlwVmpAclDUSd",
-      "_key": "!actors.items!mmSolar000000000.jb9GlwVmpAclDUSd",
-      "name": "Divine Aid (cast)",
-      "type": "action",
-      "img": "icons/magic/life/cross-beam-green.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The solar casts <em>Cure Wounds</em> (level 2 version), <em>Lesser Restoration</em>, or <em>Remove Curse</em>, using the same spellcasting ability as Spellcasting.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-divine-aid",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              },
-              {
-                "capability": "divine-aid",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Divine Aid (cast)"
-        },
-        "ruleElements": [
-          {
-            "schemaVersion": 1,
-            "id": "divine-aid-uses",
-            "type": "GrantResource",
-            "data": {
-              "resourceId": "divine-aid",
-              "label": "Divine Aid",
-              "maximum": {
-                "type": "constant",
-                "value": 3
-              },
-              "recovery": "none"
-            }
-          }
-        ]
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "jb9GlwVmpAclDUSd",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "4bzegs1b3w42u000",
-      "_key": "!actors.items!mmSolar000000000.4bzegs1b3w42u000",
-      "name": "Divine Aid (cast)",
-      "type": "action",
-      "img": "icons/magic/life/cross-beam-green.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The solar casts <em>Cure Wounds</em> (level 2 version), <em>Lesser Restoration</em>, or <em>Remove Curse</em>, using the same spellcasting ability as Spellcasting.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-divine-aid",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              },
-              {
-                "capability": "divine-aid",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Divine Aid (cast)"
-        },
-        "ruleElements": [
-          {
-            "schemaVersion": 1,
-            "id": "divine-aid-uses",
-            "type": "GrantResource",
-            "data": {
-              "resourceId": "divine-aid",
-              "label": "Divine Aid",
-              "maximum": {
-                "type": "constant",
-                "value": 3
-              },
-              "recovery": "none"
-            }
-          }
-        ]
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "jb9GlwVmpAclDUSd",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "55y7jpba8an50000",
-      "_key": "!actors.items!mmSolar000000000.55y7jpba8an50000",
-      "name": "Divine Aid (cast)",
-      "type": "action",
-      "img": "icons/magic/life/cross-beam-green.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The solar casts <em>Cure Wounds</em> (level 2 version), <em>Lesser Restoration</em>, or <em>Remove Curse</em>, using the same spellcasting ability as Spellcasting.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-divine-aid",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              },
-              {
-                "capability": "divine-aid",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Divine Aid (cast)"
-        },
-        "ruleElements": [
-          {
-            "schemaVersion": 1,
-            "id": "divine-aid-uses",
-            "type": "GrantResource",
-            "data": {
-              "resourceId": "divine-aid",
-              "label": "Divine Aid",
-              "maximum": {
-                "type": "constant",
-                "value": 3
-              },
-              "recovery": "none"
-            }
-          }
-        ]
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "jb9GlwVmpAclDUSd",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "lNdiEuYQ2WarE6UR",
-      "_key": "!actors.items!mmSolar000000000.lNdiEuYQ2WarE6UR",
+      "_id": "9nyfba1lqavg4000",
+      "_key": "!actors.items!mmSolar000000000.9nyfba1lqavg4000",
       "name": "Cure Wounds",
       "type": "action",
       "img": "icons/magic/nature/leaf-drip-light-green.webp",
@@ -2240,7 +1136,7 @@
         "description": "<p>A creature you touch regains a number of Hit Points equal to 2d8 plus your spellcasting ability modifier.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The healing increases by 2d8 for each spell slot level above 1.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-cure-wounds",
+          "id": "action:srd-divine-aid-cure-wounds",
           "tags": [
             "spell"
           ],
@@ -2248,6 +1144,10 @@
             "allOf": [
               {
                 "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "divine-aid",
                 "amount": 1
               }
             ]
@@ -2283,121 +1183,48 @@
               "healingType": "healing"
             }
           ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.1",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.1": 1,
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": [
-                {
-                  "type": "scaleHealing",
-                  "levelChoiceId": "spell-slot",
-                  "baseLevel": 1,
-                  "componentIds": [
-                    "healing-1"
-                  ],
-                  "dice": {
-                    "number": 2,
-                    "faces": 8
-                  }
-                }
-              ]
-            }
-          ],
           "label": "Cure Wounds"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "divine-aid-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "divine-aid",
+              "label": "Divine Aid",
+              "maximum": {
+                "type": "constant",
+                "value": 3
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "lNdiEuYQ2WarE6UR",
+            "id": "phbsplCureWounds",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Divine Aid"
           },
           "conversion": {
-            "notes": []
+            "notes": [
+              "cast: Cure Wounds at level 2 is cast at its own level"
+            ]
           }
         }
       }
     },
     {
-      "_id": "Fmei7YO1waLBqeSJ",
-      "_key": "!actors.items!mmSolar000000000.Fmei7YO1waLBqeSJ",
+      "_id": "gqz7clavte7z0000",
+      "_key": "!actors.items!mmSolar000000000.gqz7clavte7z0000",
       "name": "Lesser Restoration",
       "type": "action",
       "img": "icons/magic/holy/prayer-hands-glowing-yellow-green.webp",
@@ -2406,103 +1233,52 @@
         "description": "<p>You touch a creature and end one condition on it: Blinded, Deafened, Paralyzed, or Poisoned.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-lesser-restoration",
+          "id": "action:srd-divine-aid-lesser-restoration",
           "tags": [
             "spell"
           ],
           "costs": {
             "allOf": [
               {
-                "capability": "bonus-action",
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "divine-aid",
                 "amount": 1
               }
             ]
           },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
           "label": "Lesser Restoration"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "divine-aid-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "divine-aid",
+              "label": "Divine Aid",
+              "maximum": {
+                "type": "constant",
+                "value": 3
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "Fmei7YO1waLBqeSJ",
+            "id": "phbsplLesserRest",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Divine Aid"
           },
           "conversion": {
             "notes": [
@@ -2513,8 +1289,8 @@
       }
     },
     {
-      "_id": "UBpYC2J5kdms3616",
-      "_key": "!actors.items!mmSolar000000000.UBpYC2J5kdms3616",
+      "_id": "cr4782pu1ina0000",
+      "_key": "!actors.items!mmSolar000000000.cr4782pu1ina0000",
       "name": "Remove Curse",
       "type": "action",
       "img": "icons/skills/melee/sword-damaged-broken-glow-red.webp",
@@ -2523,7 +1299,7 @@
         "description": "<p>At your touch, all curses affecting one creature or object end. If the object is a cursed magic item, its curse remains, but the spell breaks its owner's Attunement to the object so it can be removed or discarded.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-remove-curse-cast",
+          "id": "action:srd-divine-aid-remove-curse",
           "tags": [
             "spell"
           ],
@@ -2532,87 +1308,43 @@
               {
                 "capability": "action",
                 "amount": 1
+              },
+              {
+                "capability": "divine-aid",
+                "amount": 1
               }
             ]
           },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
           "label": "Remove Curse"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "divine-aid-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "divine-aid",
+              "label": "Divine Aid",
+              "maximum": {
+                "type": "constant",
+                "value": 3
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "UBpYC2J5kdms3616",
+            "id": "phbsplRemoveCurs",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Divine Aid"
           },
           "conversion": {
             "notes": [
@@ -2702,26 +1434,18 @@
       "conversion": {
         "notes": [
           "Legendary Resistance: \"Expend Use\" is passive or triggered: not automated",
-          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Spellcasting: not automated (cast): using it spends its cost; its description says the rest",
-          "Spellcasting: consumption: activityUses 1 not converted",
-          "Detect Evil and Good: not automated (utility): using it spends its cost; its description says the rest",
-          "Detect Evil and Good: effect: \"Detect Evil and Good\" (its own changes) not converted",
-          "Detect Evil and Good: concentration: nothing it sustains was converted",
-          "Commune: not automated (utility): using it spends its cost; its description says the rest",
-          "Commune: activation: 1 minute is not an action-economy cost",
-          "Control Weather: not automated (utility): using it spends its cost; its description says the rest",
-          "Control Weather: activation: 10 minute is not an action-economy cost",
-          "Control Weather: concentration: nothing it sustains was converted",
-          "Dispel Evil and Good: not automated (utility): using it spends its cost; its description says the rest",
-          "Dispel Evil and Good: effect: \"Dispelling Evil and Good\" (its own changes) not converted",
-          "Dispel Evil and Good: concentration: nothing it sustains was converted",
-          "Dispel Evil and Good: not automated (save): using it spends its cost; its description says the rest",
-          "Resurrection: activation: 1 hour is not an action-economy cost",
-          "Resurrection: effect: \"Spell Taxed\" (its own changes) not converted",
-          "Divine Aid: not automated (cast): using it spends its cost; its description says the rest",
-          "Lesser Restoration: not automated (utility): using it spends its cost; its description says the rest",
-          "Remove Curse: not automated (utility): using it spends its cost; its description says the rest"
+          "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
+          "Spellcasting: effect: \"Detect Evil and Good\" (its own changes) not converted",
+          "Spellcasting: concentration: nothing it sustains was converted",
+          "Spellcasting: activation: 1 minute is not an action-economy cost",
+          "Spellcasting: activation: 10 minute is not an action-economy cost",
+          "Spellcasting: effect: \"Dispelling Evil and Good\" (its own changes) not converted",
+          "Spellcasting: not automated (save): using it spends its cost; its description says the rest",
+          "Spellcasting: activation: 1 hour is not an action-economy cost",
+          "Spellcasting: effect: \"Spell Taxed\" (its own changes) not converted",
+          "Divine Aid: cast: Cure Wounds at level 2 is cast at its own level",
+          "Divine Aid: not automated (utility): using it spends its cost; its description says the rest",
+          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
         ]
       }
     }

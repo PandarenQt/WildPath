@@ -260,400 +260,8 @@
       }
     },
     {
-      "_id": "mmSpellcasting00",
-      "_key": "!actors.items!mmCouatl00000000.mmSpellcasting00",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The couatl casts one of the following spells, requiring no spell components and using Wisdom as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Evil and Good</em>, <em>Detect Magic</em>, <em>Detect Thoughts</em>, <em>Shapechange</em> (Beast or Humanoid form only, no Temporary Hit Points gained from the spell, and no Concentration or Temporary Hit Points required to maintain the spell)</p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Create Food and Water</em>, <em>Dream</em>, <em>Greater Restoration</em>, <em>Scrying</em>, <em>Sleep</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "17svfvloelxmr000",
-      "_key": "!actors.items!mmCouatl00000000.17svfvloelxmr000",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The couatl casts one of the following spells, requiring no spell components and using Wisdom as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Evil and Good</em>, <em>Detect Magic</em>, <em>Detect Thoughts</em>, <em>Shapechange</em> (Beast or Humanoid form only, no Temporary Hit Points gained from the spell, and no Concentration or Temporary Hit Points required to maintain the spell)</p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Create Food and Water</em>, <em>Dream</em>, <em>Greater Restoration</em>, <em>Scrying</em>, <em>Sleep</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "16ywmso1mzul9w00",
-      "_key": "!actors.items!mmCouatl00000000.16ywmso1mzul9w00",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The couatl casts one of the following spells, requiring no spell components and using Wisdom as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Evil and Good</em>, <em>Detect Magic</em>, <em>Detect Thoughts</em>, <em>Shapechange</em> (Beast or Humanoid form only, no Temporary Hit Points gained from the spell, and no Concentration or Temporary Hit Points required to maintain the spell)</p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Create Food and Water</em>, <em>Dream</em>, <em>Greater Restoration</em>, <em>Scrying</em>, <em>Sleep</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "178w8hnnsecqh000",
-      "_key": "!actors.items!mmCouatl00000000.178w8hnnsecqh000",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The couatl casts one of the following spells, requiring no spell components and using Wisdom as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Evil and Good</em>, <em>Detect Magic</em>, <em>Detect Thoughts</em>, <em>Shapechange</em> (Beast or Humanoid form only, no Temporary Hit Points gained from the spell, and no Concentration or Temporary Hit Points required to maintain the spell)</p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Create Food and Water</em>, <em>Dream</em>, <em>Greater Restoration</em>, <em>Scrying</em>, <em>Sleep</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "18mu8yi1mdn0dm00",
-      "_key": "!actors.items!mmCouatl00000000.18mu8yi1mdn0dm00",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The couatl casts one of the following spells, requiring no spell components and using Wisdom as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Evil and Good</em>, <em>Detect Magic</em>, <em>Detect Thoughts</em>, <em>Shapechange</em> (Beast or Humanoid form only, no Temporary Hit Points gained from the spell, and no Concentration or Temporary Hit Points required to maintain the spell)</p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Create Food and Water</em>, <em>Dream</em>, <em>Greater Restoration</em>, <em>Scrying</em>, <em>Sleep</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "consumption: activityUses 1 not converted"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "18wtunhn66ru7000",
-      "_key": "!actors.items!mmCouatl00000000.18wtunhn66ru7000",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The couatl casts one of the following spells, requiring no spell components and using Wisdom as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Evil and Good</em>, <em>Detect Magic</em>, <em>Detect Thoughts</em>, <em>Shapechange</em> (Beast or Humanoid form only, no Temporary Hit Points gained from the spell, and no Concentration or Temporary Hit Points required to maintain the spell)</p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Create Food and Water</em>, <em>Dream</em>, <em>Greater Restoration</em>, <em>Scrying</em>, <em>Sleep</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "consumption: activityUses 1 not converted"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "182v1kk1lrffhc00",
-      "_key": "!actors.items!mmCouatl00000000.182v1kk1lrffhc00",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The couatl casts one of the following spells, requiring no spell components and using Wisdom as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Evil and Good</em>, <em>Detect Magic</em>, <em>Detect Thoughts</em>, <em>Shapechange</em> (Beast or Humanoid form only, no Temporary Hit Points gained from the spell, and no Concentration or Temporary Hit Points required to maintain the spell)</p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Create Food and Water</em>, <em>Dream</em>, <em>Greater Restoration</em>, <em>Scrying</em>, <em>Sleep</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "consumption: activityUses 1 not converted"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "18cun9jmjz6xx000",
-      "_key": "!actors.items!mmCouatl00000000.18cun9jmjz6xx000",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The couatl casts one of the following spells, requiring no spell components and using Wisdom as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Evil and Good</em>, <em>Detect Magic</em>, <em>Detect Thoughts</em>, <em>Shapechange</em> (Beast or Humanoid form only, no Temporary Hit Points gained from the spell, and no Concentration or Temporary Hit Points required to maintain the spell)</p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Create Food and Water</em>, <em>Dream</em>, <em>Greater Restoration</em>, <em>Scrying</em>, <em>Sleep</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "consumption: activityUses 1 not converted"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "15az0mu1q2whra00",
-      "_key": "!actors.items!mmCouatl00000000.15az0mu1q2whra00",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The couatl casts one of the following spells, requiring no spell components and using Wisdom as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Evil and Good</em>, <em>Detect Magic</em>, <em>Detect Thoughts</em>, <em>Shapechange</em> (Beast or Humanoid form only, no Temporary Hit Points gained from the spell, and no Concentration or Temporary Hit Points required to maintain the spell)</p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Create Food and Water</em>, <em>Dream</em>, <em>Greater Restoration</em>, <em>Scrying</em>, <em>Sleep</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "consumption: activityUses 1 not converted"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "3ov18jCeVA8S88kM",
-      "_key": "!actors.items!mmCouatl00000000.3ov18jCeVA8S88kM",
+      "_id": "7os5kx1l01abt000",
+      "_key": "!actors.items!mmCouatl00000000.7os5kx1l01abt000",
       "name": "Detect Evil and Good",
       "type": "action",
       "img": "icons/magic/perception/eye-ringed-green.webp",
@@ -662,7 +270,7 @@
         "description": "<p>For the duration, you sense the location of any Aberration, Celestial, Elemental, Fey, Fiend, or Undead within 30 feet of yourself. You also sense whether the <em>Hallow</em> spell is active there and, if so, where.</p><p>The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-detect-evil-and-good-cast",
+          "id": "action:srd-spellcasting-detect-evil-and-good",
           "tags": [
             "spell"
           ],
@@ -674,84 +282,6 @@
               }
             ]
           },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.1",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.1": 1,
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
           "label": "Detect Evil and Good"
         },
         "ruleElements": []
@@ -761,11 +291,12 @@
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "3ov18jCeVA8S88kM",
+            "id": "phbsplDetectEvil",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
@@ -778,8 +309,8 @@
       }
     },
     {
-      "_id": "Z0LBB9pGvtGYmYtU",
-      "_key": "!actors.items!mmCouatl00000000.Z0LBB9pGvtGYmYtU",
+      "_id": "1bqp6s71j9zuj000",
+      "_key": "!actors.items!mmCouatl00000000.1bqp6s71j9zuj000",
       "name": "Detect Magic",
       "type": "action",
       "img": "icons/magic/symbols/runes-carved-stone-green.webp",
@@ -788,7 +319,7 @@
         "description": "<p>For the duration, you sense the presence of magical effects within 30 feet of yourself. If you sense such effects, you can take the Magic action to see a faint aura around any visible creature or object in the area that bears the magic, and if an effect was created by a spell, you learn the spell's school of magic.</p><p>The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-detect-magic-cast",
+          "id": "action:srd-spellcasting-detect-magic",
           "tags": [
             "spell"
           ],
@@ -800,84 +331,6 @@
               }
             ]
           },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.1",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.1": 1,
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
           "label": "Detect Magic"
         },
         "ruleElements": []
@@ -887,11 +340,12 @@
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "Z0LBB9pGvtGYmYtU",
+            "id": "phbsplDetectMagi",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
@@ -904,9 +358,9 @@
       }
     },
     {
-      "_id": "fvUMKr2MYY3v76q0",
-      "_key": "!actors.items!mmCouatl00000000.fvUMKr2MYY3v76q0",
-      "name": "Detect Thoughts (Sense Thoughts)",
+      "_id": "11f5no8faokek000",
+      "_key": "!actors.items!mmCouatl00000000.11f5no8faokek000",
+      "name": "Detect Thoughts",
       "type": "action",
       "img": "icons/skills/social/diplomacy-handshake-yellow.webp",
       "system": {
@@ -914,7 +368,7 @@
         "description": "<p>You activate one of the effects below. Until the spell ends, you can activate either effect as a Magic action on your later turns.</p><p><strong>Sense Thoughts.</strong> You sense the presence of thoughts within 30 feet of yourself that belong to creatures that know languages or are telepathic. You don't read the thoughts, but you know that a thinking creature is present.</p><p>The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.</p><p><strong>Read Thoughts.</strong> Target one creature you can see within 30 feet of yourself or one creature within 30 feet of yourself that you detected with the Sense Thoughts option. You learn what is most on the target's mind right now. If the target doesn't know any languages and isn't telepathic, you learn nothing.</p><p>As a Magic action on your next turn, you can try to probe deeper into the target's mind. If you probe deeper, the target makes a Wisdom saving throw. On a failed save, you discern the target's reasoning, emotions, and something that looms large in its mind (such as a worry, love, or hate). On a successful save, the spell ends. Either way, the target knows that you are probing into its mind, and until you shift your attention away from the target's mind, the target can take an action on its turn to make an DC @attributes.spell.dc Intelligence (Arcana) check check against your spell save DC, ending the spell on a success.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-detect-thoughts-sense-thoughts",
+          "id": "action:srd-spellcasting-detect-thoughts",
           "tags": [
             "spell"
           ],
@@ -926,78 +380,7 @@
               }
             ]
           },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
-          "label": "Detect Thoughts (Sense Thoughts)"
+          "label": "Detect Thoughts"
         },
         "ruleElements": []
       },
@@ -1006,151 +389,35 @@
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "fvUMKr2MYY3v76q0",
+            "id": "phbsplDetectThou",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
               "not automated (utility): using it spends its cost; its description says the rest",
-              "concentration: nothing it sustains was converted"
+              "concentration: nothing it sustains was converted",
+              "not automated (save): using it spends its cost; its description says the rest"
             ]
           }
         }
       }
     },
     {
-      "_id": "198rib910oc81v00",
-      "_key": "!actors.items!mmCouatl00000000.198rib910oc81v00",
-      "name": "Detect Thoughts (Probe Deeper)",
-      "type": "action",
-      "img": "icons/skills/social/diplomacy-handshake-yellow.webp",
-      "system": {
-        "active": true,
-        "description": "<p>You activate one of the effects below. Until the spell ends, you can activate either effect as a Magic action on your later turns.</p><p><strong>Sense Thoughts.</strong> You sense the presence of thoughts within 30 feet of yourself that belong to creatures that know languages or are telepathic. You don't read the thoughts, but you know that a thinking creature is present.</p><p>The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.</p><p><strong>Read Thoughts.</strong> Target one creature you can see within 30 feet of yourself or one creature within 30 feet of yourself that you detected with the Sense Thoughts option. You learn what is most on the target's mind right now. If the target doesn't know any languages and isn't telepathic, you learn nothing.</p><p>As a Magic action on your next turn, you can try to probe deeper into the target's mind. If you probe deeper, the target makes a Wisdom saving throw. On a failed save, you discern the target's reasoning, emotions, and something that looms large in its mind (such as a worry, love, or hate). On a successful save, the spell ends. Either way, the target knows that you are probing into its mind, and until you shift your attention away from the target's mind, the target can take an action on its turn to make an DC @attributes.spell.dc Intelligence (Arcana) check check against your spell save DC, ending the spell on a success.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-detect-thoughts-probe-deeper",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
-          "label": "Detect Thoughts (Probe Deeper)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "fvUMKr2MYY3v76q0",
-            "type": "spell",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "concentration: nothing it sustains was converted"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "sOJ29wIQbeRNa4Qt",
-      "_key": "!actors.items!mmCouatl00000000.sOJ29wIQbeRNa4Qt",
+      "_id": "1xyj143jkhlj1000",
+      "_key": "!actors.items!mmCouatl00000000.1xyj143jkhlj1000",
       "name": "Shapechange",
       "type": "action",
       "img": "icons/magic/unholy/hand-fire-skeleton-pink.webp",
       "system": {
         "active": true,
-        "description": "<p>You shape-shift into another creature for the duration or until you take a Magic action to shape-shift into a different eligible form. The new form must be of a creature that has a Challenge Rating no higher than your level or Challenge Rating. You must have seen the sort of creature before, and it can't be a Construct or an Undead.</p><p>When you shape-shift, you gain a number of Temporary Hit Points equal to the Hit Points of the form. The spell ends early if you have no Temporary Hit Points left.</p><p>Your game statistics are replaced by the stat block of the chosen form, but you retain your creature type; alignment; personality; Intelligence, Wisdom, and Charisma scores; Hit Points; Hit Point Dice; proficiencies; and ability to communicate. If you have the Spellcasting feature, you retain it too.</p><p>Upon shape-shifting, you determine whether your equipment drops to the ground or changes in size and shape to fit the new form while you're in it.</p>",
+        "description": "<p>You shape-shift into another creature for the duration or until you take a Magic action to shape-shift into a different eligible form. The new form must be of a creature that has a Challenge Rating no higher than your level or Challenge Rating. You must have seen the sort of creature before, and it can't be a Construct or an Undead.</p><p>When you cast the spell, you gain a number of Temporary Hit Points equal to the Hit Points of the first form into which you shape-shift. These Temporary Hit Points vanish if any remain when the spell ends.</p><p>Your game statistics are replaced by the stat block of the chosen form, but you retain your creature type; alignment; personality; Intelligence, Wisdom, and Charisma scores; Hit Points; Hit Point Dice; proficiencies; and ability to communicate. If you have the Spellcasting feature, you retain it too.</p><p>Upon shape-shifting, you determine whether your equipment drops to the ground or changes in size and shape to fit the new form while you're in it.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-shapechange-cast",
+          "id": "action:srd-spellcasting-shapechange",
           "tags": [
             "spell"
           ],
@@ -1162,28 +429,6 @@
               }
             ]
           },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
           "label": "Shapechange"
         },
         "ruleElements": []
@@ -1193,11 +438,12 @@
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "sOJ29wIQbeRNa4Qt",
+            "id": "phbsplShapechang",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
@@ -1209,8 +455,8 @@
       }
     },
     {
-      "_id": "QdAb5sLcSgIoIpg2",
-      "_key": "!actors.items!mmCouatl00000000.QdAb5sLcSgIoIpg2",
+      "_id": "1wf76dy1kz861600",
+      "_key": "!actors.items!mmCouatl00000000.1wf76dy1kz861600",
       "name": "Create Food and Water",
       "type": "action",
       "img": "icons/tools/cooking/bowl-steaming-brown.webp",
@@ -1219,7 +465,7 @@
         "description": "<p>You create 45 pounds of food and 30 gallons of fresh water on the ground or in containers within range—both useful in fending off the hazards of malnutrition and dehydration. The food is bland but nourishing and looks like a food of your choice, and the water is clean. The food spoils after 24 hours if uneaten.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-create-food-and-water",
+          "id": "action:srd-spellcasting-create-food-and-water",
           "tags": [
             "spell"
           ],
@@ -1228,87 +474,43 @@
               {
                 "capability": "action",
                 "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplcreatefood",
+                "amount": 1
               }
             ]
           },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
           "label": "Create Food and Water"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "spellcasting-phbsplcreatefood-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "spellcasting-phbsplcreatefood",
+              "label": "Spellcasting (Create Food and Water)",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "QdAb5sLcSgIoIpg2",
+            "id": "phbsplCreateFood",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
@@ -1319,8 +521,8 @@
       }
     },
     {
-      "_id": "2QpBQBYj5OOOROeD",
-      "_key": "!actors.items!mmCouatl00000000.2QpBQBYj5OOOROeD",
+      "_id": "2rghoo1eq9f20000",
+      "_key": "!actors.items!mmCouatl00000000.2rghoo1eq9f20000",
       "name": "Dream",
       "type": "action",
       "img": "icons/magic/control/sleep-bubble-purple.webp",
@@ -1329,12 +531,21 @@
         "description": "<p>You target a creature you know on the same plane of existence. You or a willing creature you touch enters a trance state to act as a dream messenger. While in the trance, the messenger is Incapacitated and has a Speed of 0.</p><p>If the target is asleep, the messenger appears in the target's dreams and can converse with the target as long as it remains asleep, through the spell's duration. The messenger can also shape the dream's environment, creating landscapes, objects, and other images. The messenger can emerge from the trance at any time, ending the spell. The target recalls the dream perfectly upon waking.</p><p>If the target is awake when you cast the spell, the messenger knows it and can either end the trance (and the spell) or wait for the target to sleep, at which point the messenger enters its dreams.</p><p>You can make the messenger terrifying to the target. If you do so, the messenger can deliver a message of no more than ten words, and then the target makes a Wisdom saving throw. On a failed save, the target gains no benefit from its rest, and it takes 3d6 Psychic damage when it wakes up.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-dream",
+          "id": "action:srd-spellcasting-dream",
           "tags": [
             "spell"
           ],
           "costs": {
-            "allOf": []
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbspldream00000",
+                "amount": 1
+              }
+            ]
           },
           "range": {
             "type": "special"
@@ -1372,113 +583,51 @@
               "type": "condition",
               "conditionId": "incapacitated",
               "saveOutcomePolicy": "failure"
-            },
-            {
-              "id": "effect-2",
-              "type": "effect",
-              "name": "Trance State",
-              "img": "icons/magic/control/hypnosis-mesmerism-eye-tan.webp",
-              "ruleElements": [
-                {
-                  "schemaVersion": 1,
-                  "id": "trance-state-1",
-                  "type": "ResourceCap",
-                  "data": {
-                    "resources": [
-                      "movement"
-                    ],
-                    "maximum": 0
-                  }
-                }
-              ],
-              "duration": {
-                "value": 28800,
-                "units": "seconds",
-                "expiry": "turnStart"
-              },
-              "saveOutcomePolicy": "failure"
-            }
-          ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
             }
           ],
           "label": "Dream"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "spellcasting-phbspldream00000-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "spellcasting-phbspldream00000",
+              "label": "Spellcasting (Dream)",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "2QpBQBYj5OOOROeD",
+            "id": "phbsplDream00000",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
               "activation: 1 minute is not an action-economy cost",
-              "effect: \"Trance State\" change system.attributes.movement.fly (downgrade) not converted",
-              "effect: \"Trance State\" change system.attributes.movement.swim (downgrade) not converted",
-              "effect: \"Trance State\" change system.attributes.movement.burrow (downgrade) not converted",
-              "effect: \"Trance State\" change system.attributes.movement.climb (downgrade) not converted"
+              "effect: \"Trance State\" change system.attributes.movement.multiplier (override) not converted"
             ]
           }
         }
       }
     },
     {
-      "_id": "RcwrcfGLqHMeiMAX",
-      "_key": "!actors.items!mmCouatl00000000.RcwrcfGLqHMeiMAX",
+      "_id": "1q6sbi9o4qhtj000",
+      "_key": "!actors.items!mmCouatl00000000.1q6sbi9o4qhtj000",
       "name": "Greater Restoration",
       "type": "action",
       "img": "icons/magic/life/heart-hand-gold-green-light.webp",
@@ -1487,7 +636,7 @@
         "description": "<p>You touch a creature and magically remove one of the following effects from it:</p><ul><li>1 Exhaustion level</li><li>The Charmed or Petrified condition</li><li>A curse, including the target's Attunement to a cursed magic item</li><li>Any reduction to one of the target's ability scores</li><li>Any reduction to the target's Hit Point maximum</li></ul>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-greater-restoration",
+          "id": "action:srd-spellcasting-greater-restoration",
           "tags": [
             "spell"
           ],
@@ -1496,73 +645,43 @@
               {
                 "capability": "action",
                 "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplgreaterres",
+                "amount": 1
               }
             ]
           },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
           "label": "Greater Restoration"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "spellcasting-phbsplgreaterres-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "spellcasting-phbsplgreaterres",
+              "label": "Spellcasting (Greater Restoration)",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "RcwrcfGLqHMeiMAX",
+            "id": "phbsplGreaterRes",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
@@ -1573,9 +692,9 @@
       }
     },
     {
-      "_id": "sSktU9MJhyaviFo2",
-      "_key": "!actors.items!mmCouatl00000000.sSktU9MJhyaviFo2",
-      "name": "Scrying (Secondhand and Picture)",
+      "_id": "1ek45hw4puhga000",
+      "_key": "!actors.items!mmCouatl00000000.1ek45hw4puhga000",
+      "name": "Scrying",
       "type": "action",
       "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
       "system": {
@@ -1583,844 +702,67 @@
         "description": "<p>You can see and hear a creature you choose that is on the same plane of existence as you. The target makes a Wisdom saving throw, which is modified (see the tables below) by how well you know the target and the sort of physical connection you have to it. The target doesn't know what it is making the save against, only that it feels uneasy.</p><table><thead><tr><td>Your Knowledge of the Target Is …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Secondhand (heard of the target)</td><td>+5</td></tr><tr><td>Firsthand (met the target)</td><td>+0</td></tr><tr><td>Extensive (know the target well)</td><td>−5</td></tr></tbody></table><table><thead><tr><td>You Have the Target's …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Picture or other likeness</td><td>−2</td></tr><tr><td>Garment or other possession</td><td>−4</td></tr><tr><td>Body part, lock of hair, or bit of nail</td><td>−10</td></tr></tbody></table><p>On a successful save, the target isn't affected, and you can't use this spell on it again for 24 hours.</p><p>On a failed save, the spell creates an Invisible, intangible sensor within 10 feet of the target. You can see and hear through the sensor as if you were there. The sensor moves with the target, remaining within 10 feet of it for the duration. If something can see the sensor, it appears as a luminous orb about the size of your fist.</p><p>Instead of targeting a creature, you can target a location you have seen. When you do so, the sensor appears at that location and doesn't move.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-scrying-secondhand-and-picture",
+          "id": "action:srd-spellcasting-scrying",
           "tags": [
             "spell"
           ],
           "costs": {
-            "allOf": []
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplscrying000",
+                "amount": 1
+              }
+            ]
           },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
-          "label": "Scrying (Secondhand and Picture)"
+          "label": "Scrying"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "spellcasting-phbsplscrying000-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "spellcasting-phbsplscrying000",
+              "label": "Spellcasting (Scrying)",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "sSktU9MJhyaviFo2",
+            "id": "phbsplScrying000",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
               "not automated (save): using it spends its cost; its description says the rest",
               "activation: 10 minute is not an action-economy cost",
               "concentration: nothing it sustains was converted",
-              "activation: 10 minute is not an action-economy cost"
+              "\"Create Sensor\" is passive or triggered: not automated"
             ]
           }
         }
       }
     },
     {
-      "_id": "27lqjmmupxag0000",
-      "_key": "!actors.items!mmCouatl00000000.27lqjmmupxag0000",
-      "name": "Scrying (Secondhand and Garment)",
-      "type": "action",
-      "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
-      "system": {
-        "active": true,
-        "description": "<p>You can see and hear a creature you choose that is on the same plane of existence as you. The target makes a Wisdom saving throw, which is modified (see the tables below) by how well you know the target and the sort of physical connection you have to it. The target doesn't know what it is making the save against, only that it feels uneasy.</p><table><thead><tr><td>Your Knowledge of the Target Is …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Secondhand (heard of the target)</td><td>+5</td></tr><tr><td>Firsthand (met the target)</td><td>+0</td></tr><tr><td>Extensive (know the target well)</td><td>−5</td></tr></tbody></table><table><thead><tr><td>You Have the Target's …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Picture or other likeness</td><td>−2</td></tr><tr><td>Garment or other possession</td><td>−4</td></tr><tr><td>Body part, lock of hair, or bit of nail</td><td>−10</td></tr></tbody></table><p>On a successful save, the target isn't affected, and you can't use this spell on it again for 24 hours.</p><p>On a failed save, the spell creates an Invisible, intangible sensor within 10 feet of the target. You can see and hear through the sensor as if you were there. The sensor moves with the target, remaining within 10 feet of it for the duration. If something can see the sensor, it appears as a luminous orb about the size of your fist.</p><p>Instead of targeting a creature, you can target a location you have seen. When you do so, the sensor appears at that location and doesn't move.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-scrying-secondhand-and-garment",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": []
-          },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
-          "label": "Scrying (Secondhand and Garment)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "sSktU9MJhyaviFo2",
-            "type": "spell",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "activation: 10 minute is not an action-economy cost",
-              "concentration: nothing it sustains was converted",
-              "activation: 10 minute is not an action-economy cost"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "1xm4un1nalbmf000",
-      "_key": "!actors.items!mmCouatl00000000.1xm4un1nalbmf000",
-      "name": "Scrying (Secondhand and Body Part)",
-      "type": "action",
-      "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
-      "system": {
-        "active": true,
-        "description": "<p>You can see and hear a creature you choose that is on the same plane of existence as you. The target makes a Wisdom saving throw, which is modified (see the tables below) by how well you know the target and the sort of physical connection you have to it. The target doesn't know what it is making the save against, only that it feels uneasy.</p><table><thead><tr><td>Your Knowledge of the Target Is …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Secondhand (heard of the target)</td><td>+5</td></tr><tr><td>Firsthand (met the target)</td><td>+0</td></tr><tr><td>Extensive (know the target well)</td><td>−5</td></tr></tbody></table><table><thead><tr><td>You Have the Target's …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Picture or other likeness</td><td>−2</td></tr><tr><td>Garment or other possession</td><td>−4</td></tr><tr><td>Body part, lock of hair, or bit of nail</td><td>−10</td></tr></tbody></table><p>On a successful save, the target isn't affected, and you can't use this spell on it again for 24 hours.</p><p>On a failed save, the spell creates an Invisible, intangible sensor within 10 feet of the target. You can see and hear through the sensor as if you were there. The sensor moves with the target, remaining within 10 feet of it for the duration. If something can see the sensor, it appears as a luminous orb about the size of your fist.</p><p>Instead of targeting a creature, you can target a location you have seen. When you do so, the sensor appears at that location and doesn't move.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-scrying-secondhand-and-body-part",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": []
-          },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
-          "label": "Scrying (Secondhand and Body Part)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "sSktU9MJhyaviFo2",
-            "type": "spell",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "activation: 10 minute is not an action-economy cost",
-              "concentration: nothing it sustains was converted",
-              "activation: 10 minute is not an action-economy cost"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "1nmj5ongxi6q0000",
-      "_key": "!actors.items!mmCouatl00000000.1nmj5ongxi6q0000",
-      "name": "Scrying (Firsthand and Picture)",
-      "type": "action",
-      "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
-      "system": {
-        "active": true,
-        "description": "<p>You can see and hear a creature you choose that is on the same plane of existence as you. The target makes a Wisdom saving throw, which is modified (see the tables below) by how well you know the target and the sort of physical connection you have to it. The target doesn't know what it is making the save against, only that it feels uneasy.</p><table><thead><tr><td>Your Knowledge of the Target Is …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Secondhand (heard of the target)</td><td>+5</td></tr><tr><td>Firsthand (met the target)</td><td>+0</td></tr><tr><td>Extensive (know the target well)</td><td>−5</td></tr></tbody></table><table><thead><tr><td>You Have the Target's …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Picture or other likeness</td><td>−2</td></tr><tr><td>Garment or other possession</td><td>−4</td></tr><tr><td>Body part, lock of hair, or bit of nail</td><td>−10</td></tr></tbody></table><p>On a successful save, the target isn't affected, and you can't use this spell on it again for 24 hours.</p><p>On a failed save, the spell creates an Invisible, intangible sensor within 10 feet of the target. You can see and hear through the sensor as if you were there. The sensor moves with the target, remaining within 10 feet of it for the duration. If something can see the sensor, it appears as a luminous orb about the size of your fist.</p><p>Instead of targeting a creature, you can target a location you have seen. When you do so, the sensor appears at that location and doesn't move.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-scrying-firsthand-and-picture",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": []
-          },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
-          "label": "Scrying (Firsthand and Picture)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "sSktU9MJhyaviFo2",
-            "type": "spell",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "activation: 10 minute is not an action-economy cost",
-              "concentration: nothing it sustains was converted",
-              "activation: 10 minute is not an action-economy cost"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "1dmxgp1nwswip000",
-      "_key": "!actors.items!mmCouatl00000000.1dmxgp1nwswip000",
-      "name": "Scrying (Firsthand and Garment)",
-      "type": "action",
-      "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
-      "system": {
-        "active": true,
-        "description": "<p>You can see and hear a creature you choose that is on the same plane of existence as you. The target makes a Wisdom saving throw, which is modified (see the tables below) by how well you know the target and the sort of physical connection you have to it. The target doesn't know what it is making the save against, only that it feels uneasy.</p><table><thead><tr><td>Your Knowledge of the Target Is …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Secondhand (heard of the target)</td><td>+5</td></tr><tr><td>Firsthand (met the target)</td><td>+0</td></tr><tr><td>Extensive (know the target well)</td><td>−5</td></tr></tbody></table><table><thead><tr><td>You Have the Target's …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Picture or other likeness</td><td>−2</td></tr><tr><td>Garment or other possession</td><td>−4</td></tr><tr><td>Body part, lock of hair, or bit of nail</td><td>−10</td></tr></tbody></table><p>On a successful save, the target isn't affected, and you can't use this spell on it again for 24 hours.</p><p>On a failed save, the spell creates an Invisible, intangible sensor within 10 feet of the target. You can see and hear through the sensor as if you were there. The sensor moves with the target, remaining within 10 feet of it for the duration. If something can see the sensor, it appears as a luminous orb about the size of your fist.</p><p>Instead of targeting a creature, you can target a location you have seen. When you do so, the sensor appears at that location and doesn't move.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-scrying-firsthand-and-garment",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": []
-          },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
-          "label": "Scrying (Firsthand and Garment)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "sSktU9MJhyaviFo2",
-            "type": "spell",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "activation: 10 minute is not an action-economy cost",
-              "concentration: nothing it sustains was converted",
-              "activation: 10 minute is not an action-economy cost"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "13nbrqo353300000",
-      "_key": "!actors.items!mmCouatl00000000.13nbrqo353300000",
-      "name": "Scrying (Firsthand and Body Part)",
-      "type": "action",
-      "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
-      "system": {
-        "active": true,
-        "description": "<p>You can see and hear a creature you choose that is on the same plane of existence as you. The target makes a Wisdom saving throw, which is modified (see the tables below) by how well you know the target and the sort of physical connection you have to it. The target doesn't know what it is making the save against, only that it feels uneasy.</p><table><thead><tr><td>Your Knowledge of the Target Is …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Secondhand (heard of the target)</td><td>+5</td></tr><tr><td>Firsthand (met the target)</td><td>+0</td></tr><tr><td>Extensive (know the target well)</td><td>−5</td></tr></tbody></table><table><thead><tr><td>You Have the Target's …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Picture or other likeness</td><td>−2</td></tr><tr><td>Garment or other possession</td><td>−4</td></tr><tr><td>Body part, lock of hair, or bit of nail</td><td>−10</td></tr></tbody></table><p>On a successful save, the target isn't affected, and you can't use this spell on it again for 24 hours.</p><p>On a failed save, the spell creates an Invisible, intangible sensor within 10 feet of the target. You can see and hear through the sensor as if you were there. The sensor moves with the target, remaining within 10 feet of it for the duration. If something can see the sensor, it appears as a luminous orb about the size of your fist.</p><p>Instead of targeting a creature, you can target a location you have seen. When you do so, the sensor appears at that location and doesn't move.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-scrying-firsthand-and-body-part",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": []
-          },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
-          "label": "Scrying (Firsthand and Body Part)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "sSktU9MJhyaviFo2",
-            "type": "spell",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "activation: 10 minute is not an action-economy cost",
-              "concentration: nothing it sustains was converted",
-              "activation: 10 minute is not an action-economy cost"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "tnq2r1oj0hez0000",
-      "_key": "!actors.items!mmCouatl00000000.tnq2r1oj0hez0000",
-      "name": "Scrying (Extensive and Picture)",
-      "type": "action",
-      "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
-      "system": {
-        "active": true,
-        "description": "<p>You can see and hear a creature you choose that is on the same plane of existence as you. The target makes a Wisdom saving throw, which is modified (see the tables below) by how well you know the target and the sort of physical connection you have to it. The target doesn't know what it is making the save against, only that it feels uneasy.</p><table><thead><tr><td>Your Knowledge of the Target Is …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Secondhand (heard of the target)</td><td>+5</td></tr><tr><td>Firsthand (met the target)</td><td>+0</td></tr><tr><td>Extensive (know the target well)</td><td>−5</td></tr></tbody></table><table><thead><tr><td>You Have the Target's …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Picture or other likeness</td><td>−2</td></tr><tr><td>Garment or other possession</td><td>−4</td></tr><tr><td>Body part, lock of hair, or bit of nail</td><td>−10</td></tr></tbody></table><p>On a successful save, the target isn't affected, and you can't use this spell on it again for 24 hours.</p><p>On a failed save, the spell creates an Invisible, intangible sensor within 10 feet of the target. You can see and hear through the sensor as if you were there. The sensor moves with the target, remaining within 10 feet of it for the duration. If something can see the sensor, it appears as a luminous orb about the size of your fist.</p><p>Instead of targeting a creature, you can target a location you have seen. When you do so, the sensor appears at that location and doesn't move.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-scrying-extensive-and-picture",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": []
-          },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
-          "label": "Scrying (Extensive and Picture)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "sSktU9MJhyaviFo2",
-            "type": "spell",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "activation: 10 minute is not an action-economy cost",
-              "concentration: nothing it sustains was converted",
-              "activation: 10 minute is not an action-economy cost"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "jo4dsopcnza00000",
-      "_key": "!actors.items!mmCouatl00000000.jo4dsopcnza00000",
-      "name": "Scrying (Extensive and Garment)",
-      "type": "action",
-      "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
-      "system": {
-        "active": true,
-        "description": "<p>You can see and hear a creature you choose that is on the same plane of existence as you. The target makes a Wisdom saving throw, which is modified (see the tables below) by how well you know the target and the sort of physical connection you have to it. The target doesn't know what it is making the save against, only that it feels uneasy.</p><table><thead><tr><td>Your Knowledge of the Target Is …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Secondhand (heard of the target)</td><td>+5</td></tr><tr><td>Firsthand (met the target)</td><td>+0</td></tr><tr><td>Extensive (know the target well)</td><td>−5</td></tr></tbody></table><table><thead><tr><td>You Have the Target's …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Picture or other likeness</td><td>−2</td></tr><tr><td>Garment or other possession</td><td>−4</td></tr><tr><td>Body part, lock of hair, or bit of nail</td><td>−10</td></tr></tbody></table><p>On a successful save, the target isn't affected, and you can't use this spell on it again for 24 hours.</p><p>On a failed save, the spell creates an Invisible, intangible sensor within 10 feet of the target. You can see and hear through the sensor as if you were there. The sensor moves with the target, remaining within 10 feet of it for the duration. If something can see the sensor, it appears as a luminous orb about the size of your fist.</p><p>Instead of targeting a creature, you can target a location you have seen. When you do so, the sensor appears at that location and doesn't move.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-scrying-extensive-and-garment",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": []
-          },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
-          "label": "Scrying (Extensive and Garment)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "sSktU9MJhyaviFo2",
-            "type": "spell",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "activation: 10 minute is not an action-economy cost",
-              "concentration: nothing it sustains was converted",
-              "activation: 10 minute is not an action-economy cost"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "4pi5sd1k7jf51000",
-      "_key": "!actors.items!mmCouatl00000000.4pi5sd1k7jf51000",
-      "name": "Scrying (Extensive and Body Part)",
-      "type": "action",
-      "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
-      "system": {
-        "active": true,
-        "description": "<p>You can see and hear a creature you choose that is on the same plane of existence as you. The target makes a Wisdom saving throw, which is modified (see the tables below) by how well you know the target and the sort of physical connection you have to it. The target doesn't know what it is making the save against, only that it feels uneasy.</p><table><thead><tr><td>Your Knowledge of the Target Is …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Secondhand (heard of the target)</td><td>+5</td></tr><tr><td>Firsthand (met the target)</td><td>+0</td></tr><tr><td>Extensive (know the target well)</td><td>−5</td></tr></tbody></table><table><thead><tr><td>You Have the Target's …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Picture or other likeness</td><td>−2</td></tr><tr><td>Garment or other possession</td><td>−4</td></tr><tr><td>Body part, lock of hair, or bit of nail</td><td>−10</td></tr></tbody></table><p>On a successful save, the target isn't affected, and you can't use this spell on it again for 24 hours.</p><p>On a failed save, the spell creates an Invisible, intangible sensor within 10 feet of the target. You can see and hear through the sensor as if you were there. The sensor moves with the target, remaining within 10 feet of it for the duration. If something can see the sensor, it appears as a luminous orb about the size of your fist.</p><p>Instead of targeting a creature, you can target a location you have seen. When you do so, the sensor appears at that location and doesn't move.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-scrying-extensive-and-body-part",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": []
-          },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
-          "label": "Scrying (Extensive and Body Part)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "sSktU9MJhyaviFo2",
-            "type": "spell",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "activation: 10 minute is not an action-economy cost",
-              "concentration: nothing it sustains was converted",
-              "activation: 10 minute is not an action-economy cost"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "WZos2YJlqndVWXeQ",
-      "_key": "!actors.items!mmCouatl00000000.WZos2YJlqndVWXeQ",
+      "_id": "1oeixmjyicq5p000",
+      "_key": "!actors.items!mmCouatl00000000.1oeixmjyicq5p000",
       "name": "Sleep",
       "type": "action",
       "img": "icons/magic/control/hypnosis-mesmerism-pendulum.webp",
@@ -2429,7 +771,7 @@
         "description": "<p>Each creature of your choice in a 5-foot-radius Sphere centered on a point within range must succeed on a Wisdom saving throw or have the Incapacitated condition until the end of its next turn, at which point it must repeat the save. If the target fails the second save, the target has the Unconscious condition for the duration. The spell ends on a target if it takes damage or someone within 5 feet of it takes an action to shake it out of the spell's effect.</p><p>Creatures that don't sleep, such as elves, or that have Immunity to the Exhaustion condition automatically succeed on saves against this spell.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-sleep",
+          "id": "action:srd-spellcasting-sleep",
           "tags": [
             "spell"
           ],
@@ -2437,6 +779,10 @@
             "allOf": [
               {
                 "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplsleep00000",
                 "amount": 1
               }
             ]
@@ -2473,98 +819,36 @@
               "concentration": true
             }
           ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.1",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.1": 1,
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
           "label": "Sleep"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "spellcasting-phbsplsleep00000-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "spellcasting-phbsplsleep00000",
+              "label": "Spellcasting (Sleep)",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "WZos2YJlqndVWXeQ",
+            "id": "phbsplSleep00000",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": []
@@ -2640,30 +924,15 @@
       "conversion": {
         "notes": [
           "Constrict: \"Escape Check\" is passive or triggered: not automated",
-          "Spellcasting: not automated (cast): using it spends its cost; its description says the rest",
-          "Spellcasting: consumption: activityUses 1 not converted",
-          "Detect Evil and Good: not automated (utility): using it spends its cost; its description says the rest",
-          "Detect Evil and Good: effect: \"Detect Evil and Good\" (its own changes) not converted",
-          "Detect Evil and Good: concentration: nothing it sustains was converted",
-          "Detect Magic: not automated (utility): using it spends its cost; its description says the rest",
-          "Detect Magic: effect: \"Detect Magic\" (its own changes) not converted",
-          "Detect Magic: concentration: nothing it sustains was converted",
-          "Detect Thoughts: not automated (utility): using it spends its cost; its description says the rest",
-          "Detect Thoughts: concentration: nothing it sustains was converted",
-          "Detect Thoughts: not automated (save): using it spends its cost; its description says the rest",
-          "Shapechange: not automated (utility): using it spends its cost; its description says the rest",
-          "Shapechange: concentration: nothing it sustains was converted",
-          "Create Food and Water: not automated (utility): using it spends its cost; its description says the rest",
-          "Dream: activation: 1 minute is not an action-economy cost",
-          "Dream: effect: \"Trance State\" change system.attributes.movement.fly (downgrade) not converted",
-          "Dream: effect: \"Trance State\" change system.attributes.movement.swim (downgrade) not converted",
-          "Dream: effect: \"Trance State\" change system.attributes.movement.burrow (downgrade) not converted",
-          "Dream: effect: \"Trance State\" change system.attributes.movement.climb (downgrade) not converted",
-          "Greater Restoration: not automated (utility): using it spends its cost; its description says the rest",
-          "Scrying: not automated (save): using it spends its cost; its description says the rest",
-          "Scrying: activation: 10 minute is not an action-economy cost",
-          "Scrying: concentration: nothing it sustains was converted",
-          "Scrying: \"Create Sensor\" is passive or triggered: not automated"
+          "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
+          "Spellcasting: effect: \"Detect Evil and Good\" (its own changes) not converted",
+          "Spellcasting: concentration: nothing it sustains was converted",
+          "Spellcasting: effect: \"Detect Magic\" (its own changes) not converted",
+          "Spellcasting: not automated (save): using it spends its cost; its description says the rest",
+          "Spellcasting: activation: 1 minute is not an action-economy cost",
+          "Spellcasting: effect: \"Trance State\" change system.attributes.movement.multiplier (override) not converted",
+          "Spellcasting: activation: 10 minute is not an action-economy cost",
+          "Spellcasting: \"Create Sensor\" is passive or triggered: not automated"
         ]
       }
     }

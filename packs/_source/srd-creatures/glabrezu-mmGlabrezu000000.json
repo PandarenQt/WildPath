@@ -133,9 +133,32 @@
               }
             ]
           },
-          "label": "Multiattack"
+          "label": "Multiattack",
+          "targeting": {
+            "type": "none"
+          },
+          "restores": [
+            {
+              "resourceId": "multiattack",
+              "amount": 2
+            }
+          ]
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack",
+              "label": "Multiattack",
+              "maximum": 2,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -150,7 +173,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
             ]
           }
         }
@@ -169,11 +192,19 @@
           "schemaVersion": 1,
           "id": "action:srd-pincer",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "attack": {
@@ -312,269 +343,8 @@
       }
     },
     {
-      "_id": "mmSpellcasting00",
-      "_key": "!actors.items!mmGlabrezu000000.mmSpellcasting00",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The glabrezu casts one of the following spells, requiring no Material components and using Intelligence as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Darkness</em>, <em>Detect Magic</em>, <em>Dispel Magic</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Confusion</em>, <em>Fly</em>, <em>Power Word Stun</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "17svfvloelxmr000",
-      "_key": "!actors.items!mmGlabrezu000000.17svfvloelxmr000",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The glabrezu casts one of the following spells, requiring no Material components and using Intelligence as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Darkness</em>, <em>Detect Magic</em>, <em>Dispel Magic</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Confusion</em>, <em>Fly</em>, <em>Power Word Stun</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "16ywmso1mzul9w00",
-      "_key": "!actors.items!mmGlabrezu000000.16ywmso1mzul9w00",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The glabrezu casts one of the following spells, requiring no Material components and using Intelligence as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Darkness</em>, <em>Detect Magic</em>, <em>Dispel Magic</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Confusion</em>, <em>Fly</em>, <em>Power Word Stun</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "178w8hnnsecqh000",
-      "_key": "!actors.items!mmGlabrezu000000.178w8hnnsecqh000",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The glabrezu casts one of the following spells, requiring no Material components and using Intelligence as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Darkness</em>, <em>Detect Magic</em>, <em>Dispel Magic</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Confusion</em>, <em>Fly</em>, <em>Power Word Stun</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "consumption: activityUses 1 not converted"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "18mu8yi1mdn0dm00",
-      "_key": "!actors.items!mmGlabrezu000000.18mu8yi1mdn0dm00",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The glabrezu casts one of the following spells, requiring no Material components and using Intelligence as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Darkness</em>, <em>Detect Magic</em>, <em>Dispel Magic</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Confusion</em>, <em>Fly</em>, <em>Power Word Stun</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "consumption: activityUses 1 not converted"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "18wtunhn66ru7000",
-      "_key": "!actors.items!mmGlabrezu000000.18wtunhn66ru7000",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The glabrezu casts one of the following spells, requiring no Material components and using Intelligence as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Darkness</em>, <em>Detect Magic</em>, <em>Dispel Magic</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Confusion</em>, <em>Fly</em>, <em>Power Word Stun</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "consumption: activityUses 1 not converted"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "OYJaCanfv7pQKr1j",
-      "_key": "!actors.items!mmGlabrezu000000.OYJaCanfv7pQKr1j",
+      "_id": "1a6q9ob8469cp000",
+      "_key": "!actors.items!mmGlabrezu000000.1a6q9ob8469cp000",
       "name": "Darkness",
       "type": "action",
       "img": "icons/magic/unholy/orb-rays-blue.webp",
@@ -583,7 +353,7 @@
         "description": "<p>For the duration, magical Darkness spreads from a point within range and fills a 15-foot-radius Sphere. Darkvision can't see through it, and nonmagical light can't illuminate it.</p><p>Alternatively, you cast the spell on an object that isn't being worn or carried, causing the Darkness to fill a 15-foot Emanation originating from that object. Covering that object with something opaque, such as a bowl or helm, blocks the Darkness.</p><p>If any of this spell's area overlaps with an area of Bright Light or Dim Light created by a spell of level 2 or lower, that other spell is dispelled.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-darkness",
+          "id": "action:srd-spellcasting-darkness",
           "tags": [
             "spell"
           ],
@@ -595,77 +365,6 @@
               }
             ]
           },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
           "label": "Darkness"
         },
         "ruleElements": []
@@ -675,11 +374,12 @@
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "OYJaCanfv7pQKr1j",
+            "id": "phbsplDarkness00",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
@@ -691,8 +391,8 @@
       }
     },
     {
-      "_id": "TyBg1ubPWzY9AqFZ",
-      "_key": "!actors.items!mmGlabrezu000000.TyBg1ubPWzY9AqFZ",
+      "_id": "103pzau1ixkm0m00",
+      "_key": "!actors.items!mmGlabrezu000000.103pzau1ixkm0m00",
       "name": "Detect Magic",
       "type": "action",
       "img": "icons/magic/symbols/runes-carved-stone-green.webp",
@@ -701,7 +401,7 @@
         "description": "<p>For the duration, you sense the presence of magical effects within 30 feet of yourself. If you sense such effects, you can take the Magic action to see a faint aura around any visible creature or object in the area that bears the magic, and if an effect was created by a spell, you learn the spell's school of magic.</p><p>The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-detect-magic-cast",
+          "id": "action:srd-spellcasting-detect-magic",
           "tags": [
             "spell"
           ],
@@ -713,84 +413,6 @@
               }
             ]
           },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.1",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.1": 1,
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
           "label": "Detect Magic"
         },
         "ruleElements": []
@@ -800,11 +422,12 @@
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "TyBg1ubPWzY9AqFZ",
+            "id": "phbsplDetectMagi",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
@@ -817,8 +440,8 @@
       }
     },
     {
-      "_id": "o9zHpjCrGZEcIJzZ",
-      "_key": "!actors.items!mmGlabrezu000000.o9zHpjCrGZEcIJzZ",
+      "_id": "1il8niakjdbt8000",
+      "_key": "!actors.items!mmGlabrezu000000.1il8niakjdbt8000",
       "name": "Dispel Magic",
       "type": "action",
       "img": "icons/skills/melee/sword-damaged-broken-purple.webp",
@@ -827,7 +450,7 @@
         "description": "<p>Choose one creature, object, or magical effect within range. Any ongoing spell of level 3 or lower on the target ends. For each ongoing spell of level 4 or higher on the target, make an ability check using your spellcasting ability (DC 10 plus that spell's level). On a successful check, the spell ends.</p><p><strong>Using a Higher-Level Spell Slot.</strong> You automatically end a spell on the target if the spell's level is equal to or less than the level of the spell slot you use.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-dispel-magic",
+          "id": "action:srd-spellcasting-dispel-magic",
           "tags": [
             "spell"
           ],
@@ -839,70 +462,6 @@
               }
             ]
           },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
           "label": "Dispel Magic"
         },
         "ruleElements": []
@@ -912,11 +471,12 @@
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "o9zHpjCrGZEcIJzZ",
+            "id": "phbsplDispelMagi",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
@@ -927,8 +487,8 @@
       }
     },
     {
-      "_id": "DJvVJd398Rul9PmN",
-      "_key": "!actors.items!mmGlabrezu000000.DJvVJd398Rul9PmN",
+      "_id": "m26def1b7ikkn000",
+      "_key": "!actors.items!mmGlabrezu000000.m26def1b7ikkn000",
       "name": "Confusion",
       "type": "action",
       "img": "icons/magic/symbols/question-stone-yellow.webp",
@@ -937,7 +497,7 @@
         "description": "<p>Each creature in a 10-foot-radius Sphere centered on a point you choose within range must succeed on a Wisdom saving throw, or that target can't take Bonus Actions or Reactions and must roll 1d10 at the start of each of its turns to determine its behavior for that turn, consulting the table below.</p><p></p><p>At the end of each of its turns, an affected target repeats the save, ending the spell on itself on a success.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The Sphere's radius increases by 5 feet for each spell slot level above 4.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-confusion",
+          "id": "action:srd-spellcasting-confusion",
           "tags": [
             "spell"
           ],
@@ -946,80 +506,43 @@
               {
                 "capability": "action",
                 "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplconfusion0",
+                "amount": 1
               }
             ]
           },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
           "label": "Confusion"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "spellcasting-phbsplconfusion0-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "spellcasting-phbsplconfusion0",
+              "label": "Spellcasting (Confusion)",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "DJvVJd398Rul9PmN",
+            "id": "phbsplConfusion0",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
@@ -1033,8 +556,8 @@
       }
     },
     {
-      "_id": "uMQdIP114kiMDwyZ",
-      "_key": "!actors.items!mmGlabrezu000000.uMQdIP114kiMDwyZ",
+      "_id": "13hvrgf14b1kkr00",
+      "_key": "!actors.items!mmGlabrezu000000.13hvrgf14b1kkr00",
       "name": "Fly",
       "type": "action",
       "img": "icons/creatures/birds/songbird-yellow-flying.webp",
@@ -1043,7 +566,7 @@
         "description": "<p>You touch a willing creature. For the duration, the target gains a Fly Speed of 60 feet and can hover. When the spell ends, the target falls if it is still aloft unless it can stop the fall.</p><p><strong>Using a Higher-Level Spell Slot.</strong> You can target one additional creature for each spell slot level above 3.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-fly",
+          "id": "action:srd-spellcasting-fly",
           "tags": [
             "spell"
           ],
@@ -1051,6 +574,10 @@
             "allOf": [
               {
                 "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplfly0000000",
                 "amount": 1
               }
             ]
@@ -1092,91 +619,36 @@
               "concentration": true
             }
           ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": [
-                {
-                  "type": "scaleTargets",
-                  "levelChoiceId": "spell-slot",
-                  "baseLevel": 3,
-                  "perLevel": 1
-                }
-              ]
-            }
-          ],
           "label": "Fly"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "spellcasting-phbsplfly0000000-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "spellcasting-phbsplfly0000000",
+              "label": "Spellcasting (Fly)",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "uMQdIP114kiMDwyZ",
+            "id": "phbsplFly0000000",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
@@ -1187,8 +659,8 @@
       }
     },
     {
-      "_id": "EsCIdlnqYCUbyDIm",
-      "_key": "!actors.items!mmGlabrezu000000.EsCIdlnqYCUbyDIm",
+      "_id": "1y5eq9b18ksmiv00",
+      "_key": "!actors.items!mmGlabrezu000000.1y5eq9b18ksmiv00",
       "name": "Power Word Stun",
       "type": "action",
       "img": "icons/magic/unholy/strike-body-life-soul-purple.webp",
@@ -1197,7 +669,7 @@
         "description": "<p>You overwhelm the mind of one creature you can see within range. If the target has 150 Hit Points or fewer, it has the Stunned condition. Otherwise, its Speed is 0 until the start of your next turn.</p><p>The Stunned target makes a Constitution saving throw saving throw at the end of each of its turns, ending the condition on itself on a success.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-power-word-stun-cast",
+          "id": "action:srd-spellcasting-power-word-stun",
           "tags": [
             "spell"
           ],
@@ -1205,6 +677,10 @@
             "allOf": [
               {
                 "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplpowerwords",
                 "amount": 1
               }
             ]
@@ -1226,82 +702,43 @@
               "id": "effect-1",
               "type": "condition",
               "conditionId": "stunned"
-            },
-            {
-              "id": "effect-2",
-              "type": "effect",
-              "name": "No Movement",
-              "img": "icons/svg/anchor.svg",
-              "ruleElements": [
-                {
-                  "schemaVersion": 1,
-                  "id": "no-movement-1",
-                  "type": "ResourceCap",
-                  "data": {
-                    "resources": [
-                      "movement"
-                    ],
-                    "maximum": 0
-                  }
-                }
-              ],
-              "duration": {
-                "value": 1,
-                "units": "rounds",
-                "expiry": "turnStart"
-              }
-            }
-          ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
             }
           ],
           "label": "Power Word Stun"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "spellcasting-phbsplpowerwords-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "spellcasting-phbsplpowerwords",
+              "label": "Spellcasting (Power Word Stun)",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "EsCIdlnqYCUbyDIm",
+            "id": "phbsplPowerWordS",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
-              "effect: \"No Movement\" change system.attributes.movement.climb (downgrade) not converted",
-              "effect: \"No Movement\" change system.attributes.movement.swim (downgrade) not converted",
-              "effect: \"No Movement\" change system.attributes.movement.fly (downgrade) not converted",
-              "effect: \"No Movement\" change system.attributes.movement.burrow (downgrade) not converted"
+              "effect: \"No Movement\" change system.attributes.movement.multiplier (override) not converted",
+              "effect: \"No Movement\" (its own changes) not converted"
             ]
           }
         }
@@ -1374,25 +811,17 @@
       },
       "conversion": {
         "notes": [
-          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
           "Pincer: \"Escape Check\" is passive or triggered: not automated",
-          "Spellcasting: not automated (cast): using it spends its cost; its description says the rest",
-          "Spellcasting: consumption: activityUses 1 not converted",
-          "Darkness: not automated (utility): using it spends its cost; its description says the rest",
-          "Darkness: concentration: nothing it sustains was converted",
-          "Detect Magic: not automated (utility): using it spends its cost; its description says the rest",
-          "Detect Magic: effect: \"Detect Magic\" (its own changes) not converted",
-          "Detect Magic: concentration: nothing it sustains was converted",
-          "Dispel Magic: not automated (utility): using it spends its cost; its description says the rest",
-          "Confusion: not automated (save): using it spends its cost; its description says the rest",
-          "Confusion: area: @item.level * 5 - 10-ft sphere is not supported; the user picks the targets",
-          "Confusion: effect: \"Confused\" (its own changes) not converted",
-          "Confusion: concentration: nothing it sustains was converted",
-          "Fly: effect: \"Flight\" change system.attributes.movement.hover (override) not converted",
-          "Power Word Stun: effect: \"No Movement\" change system.attributes.movement.climb (downgrade) not converted",
-          "Power Word Stun: effect: \"No Movement\" change system.attributes.movement.swim (downgrade) not converted",
-          "Power Word Stun: effect: \"No Movement\" change system.attributes.movement.fly (downgrade) not converted",
-          "Power Word Stun: effect: \"No Movement\" change system.attributes.movement.burrow (downgrade) not converted"
+          "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
+          "Spellcasting: concentration: nothing it sustains was converted",
+          "Spellcasting: effect: \"Detect Magic\" (its own changes) not converted",
+          "Spellcasting: not automated (save): using it spends its cost; its description says the rest",
+          "Spellcasting: area: @item.level * 5 - 10-ft sphere is not supported; the user picks the targets",
+          "Spellcasting: effect: \"Confused\" (its own changes) not converted",
+          "Spellcasting: effect: \"Flight\" change system.attributes.movement.hover (override) not converted",
+          "Spellcasting: effect: \"No Movement\" change system.attributes.movement.multiplier (override) not converted",
+          "Spellcasting: effect: \"No Movement\" (its own changes) not converted",
+          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
         ]
       }
     }

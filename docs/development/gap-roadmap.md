@@ -201,6 +201,25 @@ Forced movement and elevation join G6, which becomes "space": areas, elevation a
     refused, unspent; at another creature it went through. With `ConditionImmunity` to Grappled, a hit
     applied nothing.
 
+- **G4, the monster toolkit (2026-10-14).** Done:
+  - Multiattack, monster spellcasting, per-activity uses and Recharge;
+  - Action Items' own uses pools now exist. Fire Breath, Second Wind and every "X/Day" Action could not be paid for
+    before.
+  - Census, documents with the gap:
+
+    | Gap | Before | After |
+    | --- | --- | --- |
+    | Multiattack | 421 | 80 (summoned spirits whose attack count follows the spell's level) |
+    | monster spellcasting (cast activities) | 355 | 35 |
+    | Recharge | 324 | 11 |
+    | per-activity uses | 204 | 5 |
+
+    Automated Items in the book packages: DMG 83 → 122 (items that cast spells), MM 433 → 472.
+  - Live (GM): an Adult Black Dragon from the SRD pack used Multiattack (pool 3), then three Rends at the Bandit
+    Captain, each paid from the pool; a fourth was refused. At the start of its turn, its leftover Multiattack uses
+    emptied, and Acid Breath recharged on a 5, whispered to the GM.
+  - Not yet: Legendary Resistance, Lair Actions, summoned creatures' own stat blocks, and enforcing which attacks a
+    Multiattack names.
 - **G3, effects with their own rules (2026-10-14).** Done:
   - dnd5e effect changes map to rules on custom effects, with their duration, concentration and save policy;
   - dice bonuses (Bless, Bane, Guidance) roll with the d20, for attacks, saves and checks, physical dice included;

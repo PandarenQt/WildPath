@@ -165,9 +165,32 @@
               }
             ]
           },
-          "label": "Multiattack"
+          "label": "Multiattack",
+          "targeting": {
+            "type": "none"
+          },
+          "restores": [
+            {
+              "resourceId": "multiattack",
+              "amount": 4
+            }
+          ]
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack",
+              "label": "Multiattack",
+              "maximum": 4,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -182,7 +205,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
             ]
           }
         }
@@ -201,11 +224,19 @@
           "schemaVersion": 1,
           "id": "action:srd-bite",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "attack": {
@@ -284,11 +315,19 @@
           "schemaVersion": 1,
           "id": "action:srd-claw",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "attack": {
@@ -355,11 +394,19 @@
           "schemaVersion": 1,
           "id": "action:srd-tail",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "attack": {
@@ -521,7 +568,8 @@
                 "type": "constant",
                 "value": 1
               },
-              "recovery": "none"
+              "recovery": "none",
+              "recharge": 6
             }
           }
         ]
@@ -538,9 +586,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "uses: Recharge 6 is not rolled; refill the pool by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -849,13 +895,12 @@
         "notes": [
           "Legendary Resistance: \"Expend Use\" is passive or triggered: not automated",
           "Reflective Carapace: \"Roll d6\" is passive or triggered: not automated",
-          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
           "Bite: \"Escape Check\" is passive or triggered: not automated",
-          "Thunderous Bellow: uses: Recharge 6 is not rolled; refill the pool by hand",
           "Swallow: effect: coverTotal is not a WildPath condition yet",
           "Swallow: \"Damage: Swallowed\" is passive or triggered: not automated",
           "Swallow: \"Regurgitate: Save\" is passive or triggered: not automated",
-          "Onslaught: not automated (utility): using it spends its cost; its description says the rest"
+          "Onslaught: not automated (utility): using it spends its cost; its description says the rest",
+          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
         ]
       }
     }

@@ -129,9 +129,32 @@
               }
             ]
           },
-          "label": "Multiattack"
+          "label": "Multiattack",
+          "targeting": {
+            "type": "none"
+          },
+          "restores": [
+            {
+              "resourceId": "multiattack",
+              "amount": 1
+            }
+          ]
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack",
+              "label": "Multiattack",
+              "maximum": 1,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -146,7 +169,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
             ]
           }
         }
@@ -165,11 +188,19 @@
           "schemaVersion": 1,
           "id": "action:srd-vine-lash",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "attack": {
@@ -237,11 +268,19 @@
           "schemaVersion": 1,
           "id": "action:srd-thorn-burst",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "attack": {
@@ -297,17 +336,20 @@
       }
     },
     {
-      "_id": "mmSpellcasting00",
-      "_key": "!actors.items!mmDryad000000000.mmSpellcasting00",
-      "name": "Spellcasting (cast)",
+      "_id": "kjzgvl1qhv1v7000",
+      "_key": "!actors.items!mmDryad000000000.kjzgvl1qhv1v7000",
+      "name": "Animal Friendship",
       "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "img": "icons/creatures/abilities/paw-glowing-yellow.webp",
       "system": {
         "active": true,
-        "description": "<p class=\"feature\">The dryad casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Animal Friendship</em>, <em>Charm Monster</em> (lasts 24 hours; ends early if the dryad casts the spell again), <em>Druidcraft</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Entangle</em>, <em>Pass without Trace</em></p>",
+        "description": "<p>Target a Beast that you can see within range. The target must succeed on a Wisdom saving throw or have the Charmed condition for the duration. If you or one of your allies deals damage to the target, the spells ends.</p><p><strong>Using a Higher-Level Spell Slot.</strong> You can target one additional Beast for each spell slot level above 1.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
+          "id": "action:srd-spellcasting-animal-friendship",
+          "tags": [
+            "spell"
+          ],
           "costs": {
             "allOf": [
               {
@@ -316,7 +358,33 @@
               }
             ]
           },
-          "label": "Spellcasting (cast)"
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "value": 14
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "charmed",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
+          "label": "Animal Friendship"
         },
         "ruleElements": []
       },
@@ -325,190 +393,328 @@
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
+            "id": "phbsplAnimalFrie",
+            "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "68qpxm10qxkig000",
+      "_key": "!actors.items!mmDryad000000000.68qpxm10qxkig000",
+      "name": "Charm Monster",
+      "type": "action",
+      "img": "icons/creatures/magical/humanoid-silhouette-glowing-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p>One creature you can see within range makes a Wisdom saving throw. It does so with Advantage if you or your allies are fighting it. On a failed save, the target has the Charmed condition until the spell ends or until you or your allies damage it. The Charmed creature is Friendly to you. When the spell ends, the target knows it was Charmed by you.</p><p><strong>Using a Higher-Level Spell Slot.</strong>You can target one additional creature for each spell slot level above 4.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting-charm-monster",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "value": 14
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "charmed",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
+          "label": "Charm Monster"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbsplCharmMonst",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024",
+            "castBy": "Spellcasting"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "1d09k5c9fgwj6000",
+      "_key": "!actors.items!mmDryad000000000.1d09k5c9fgwj6000",
+      "name": "Druidcraft",
+      "type": "action",
+      "img": "icons/magic/nature/plant-seed-hands-glow-yellow.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Whispering to the spirits of nature, you create one of the following effects within range.</p><p><strong>Weather Sensor.</strong> You create a Tiny, harmless sensory effect that predicts what the weather will be at your location for the next 24 hours. The effect might manifest as a golden orb for clear skies, a cloud for rain, falling snowflakes for snow, and so on. This effect persists for 1 round.</p><p><strong>Bloom.</strong> You instantly make a flower blossom, a seed pod open, or a leaf bud bloom.</p><p><strong>Sensory Effect.</strong> You create a harmless sensory effect, such as falling leaves, spectral dancing fairies, a gentle breeze, the sound of an animal, or the faint odor of skunk. The effect must fit in a 5-foot Cube.</p><p><strong>Fire Play.</strong> You light or snuff out a candle, a torch, or a campfire.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting-druidcraft",
+          "tags": [
+            "spell"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Druidcraft"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbsplDruidcraft",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "area: 5-ft cube is not supported; the user picks the targets"
             ]
           }
         }
       }
     },
     {
-      "_id": "17svfvloelxmr000",
-      "_key": "!actors.items!mmDryad000000000.17svfvloelxmr000",
-      "name": "Spellcasting (cast)",
+      "_id": "1cmq6ct1sn7dr100",
+      "_key": "!actors.items!mmDryad000000000.1cmq6ct1sn7dr100",
+      "name": "Entangle",
       "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "img": "icons/magic/nature/root-vine-entangle-foot-green.webp",
       "system": {
         "active": true,
-        "description": "<p class=\"feature\">The dryad casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Animal Friendship</em>, <em>Charm Monster</em> (lasts 24 hours; ends early if the dryad casts the spell again), <em>Druidcraft</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Entangle</em>, <em>Pass without Trace</em></p>",
+        "description": "<p>Grasping plants sprout from the ground in a 20-foot square within range. For the duration, these plants turn the ground in the area into Difficultterrain. They disappear when the spell ends.</p><p>Each creature (other than you) in the area when you cast the spell must succeed on a Strength saving throw or have the Restrained condition until the spell ends. A Restrained creature can take an action to make a DC @attributes.spell.dc Strength (Athletics) check check against your spell save DC. On a success, it frees itself from the grasping plants and is no longer Restrained by them.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
+          "id": "action:srd-spellcasting-entangle",
+          "tags": [
+            "spell"
+          ],
           "costs": {
             "allOf": [
               {
                 "capability": "action",
                 "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplentangle00",
+                "amount": 1
               }
             ]
           },
-          "label": "Spellcasting (cast)"
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 90,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "multiple",
+            "required": true,
+            "count": 20,
+            "refinementPolicy": {
+              "minSelections": 1
+            }
+          },
+          "save": {
+            "ability": "might",
+            "dc": {
+              "value": 14
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "restrained",
+              "saveOutcomePolicy": "failure",
+              "concentration": true
+            }
+          ],
+          "label": "Entangle"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "spellcasting-phbsplentangle00-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "spellcasting-phbsplentangle00",
+              "label": "Spellcasting (Entangle)",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
+            "id": "phbsplEntangle00",
+            "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
+              "area: 20-ft cube is not supported; the user picks the targets"
             ]
           }
         }
       }
     },
     {
-      "_id": "16ywmso1mzul9w00",
-      "_key": "!actors.items!mmDryad000000000.16ywmso1mzul9w00",
-      "name": "Spellcasting (cast)",
+      "_id": "1uwh50doh3lpj000",
+      "_key": "!actors.items!mmDryad000000000.1uwh50doh3lpj000",
+      "name": "Pass without Trace",
       "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "img": "icons/creatures/mammals/humanoid-cat-skulking-teal.webp",
       "system": {
         "active": true,
-        "description": "<p class=\"feature\">The dryad casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Animal Friendship</em>, <em>Charm Monster</em> (lasts 24 hours; ends early if the dryad casts the spell again), <em>Druidcraft</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Entangle</em>, <em>Pass without Trace</em></p>",
+        "description": "<p>You radiate a concealing aura in a 30-foot Emanation for the duration. While in the aura, you and each creature you choose have a +10 bonus to Dexterity (Stealth) check checks and leave no tracks.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
+          "id": "action:srd-spellcasting-pass-without-trace",
+          "tags": [
+            "spell"
+          ],
           "costs": {
             "allOf": [
               {
                 "capability": "action",
                 "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplpasswithou",
+                "amount": 1
               }
             ]
           },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
+          "range": {
+            "type": "self"
           },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
-            ]
+          "targeting": {
+            "type": "self"
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Concealed",
+              "img": "icons/magic/nature/stealth-hide-beast-eyes-green.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "concealed-1",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "check.stealth"
+                    ],
+                    "modifierType": "untyped",
+                    "value": 10
+                  }
+                }
+              ],
+              "duration": {
+                "value": 3600,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
+              "concentration": true
+            }
+          ],
+          "label": "Pass without Trace"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "spellcasting-phbsplpasswithou-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "spellcasting-phbsplpasswithou",
+              "label": "Spellcasting (Pass without Trace)",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "longRest"
+            }
           }
-        }
-      }
-    },
-    {
-      "_id": "178w8hnnsecqh000",
-      "_key": "!actors.items!mmDryad000000000.178w8hnnsecqh000",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The dryad casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Animal Friendship</em>, <em>Charm Monster</em> (lasts 24 hours; ends early if the dryad casts the spell again), <em>Druidcraft</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Entangle</em>, <em>Pass without Trace</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
+            "id": "phbsplPasswithou",
+            "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "consumption: activityUses 1 not converted"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "18mu8yi1mdn0dm00",
-      "_key": "!actors.items!mmDryad000000000.18mu8yi1mdn0dm00",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The dryad casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Animal Friendship</em>, <em>Charm Monster</em> (lasts 24 hours; ends early if the dryad casts the spell again), <em>Druidcraft</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Entangle</em>, <em>Pass without Trace</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "consumption: activityUses 1 not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -555,645 +761,6 @@
           }
         }
       }
-    },
-    {
-      "_id": "VZjGEY8Eyr5uFRqw",
-      "_key": "!actors.items!mmDryad000000000.VZjGEY8Eyr5uFRqw",
-      "name": "Animal Friendship",
-      "type": "action",
-      "img": "icons/creatures/abilities/paw-glowing-yellow.webp",
-      "system": {
-        "active": true,
-        "description": "<p>Target a Beast that you can see within range. The target must succeed on a Wisdom saving throw or have the Charmed condition for the duration. If you or one of your allies deals damage to the target, the spells ends.</p><p><strong>Using a Higher-Level Spell Slot.</strong> You can target one additional Beast for each spell slot level above 1.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-animal-friendship",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "range": {
-            "type": "ranged",
-            "normal": {
-              "value": 30,
-              "unit": "ft"
-            }
-          },
-          "targeting": {
-            "type": "single",
-            "required": true,
-            "count": 1
-          },
-          "save": {
-            "ability": "wits",
-            "dc": {
-              "value": 14
-            }
-          },
-          "effects": [
-            {
-              "id": "effect-1",
-              "type": "condition",
-              "conditionId": "charmed",
-              "saveOutcomePolicy": "failure"
-            }
-          ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.1",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.1": 1,
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": [
-                {
-                  "type": "scaleTargets",
-                  "levelChoiceId": "spell-slot",
-                  "baseLevel": 1,
-                  "perLevel": 1
-                }
-              ]
-            }
-          ],
-          "label": "Animal Friendship"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "VZjGEY8Eyr5uFRqw",
-            "type": "spell",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": []
-          }
-        }
-      }
-    },
-    {
-      "_id": "VLb2DFHh9haywGHI",
-      "_key": "!actors.items!mmDryad000000000.VLb2DFHh9haywGHI",
-      "name": "Charm Monster",
-      "type": "action",
-      "img": "icons/creatures/magical/humanoid-silhouette-glowing-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p>One creature you can see within range makes a Wisdom saving throw. It does so with Advantage if you or your allies are fighting it. On a failed save, the target has the Charmed condition until the spell ends or until you or your allies damage it. The Charmed creature is Friendly to you. When the spell ends, the target knows it was Charmed by you.</p><p><strong>Using a Higher-Level Spell Slot.</strong>You can target one additional creature for each spell slot level above 4.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-charm-monster",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "range": {
-            "type": "ranged",
-            "normal": {
-              "value": 30,
-              "unit": "ft"
-            }
-          },
-          "targeting": {
-            "type": "single",
-            "required": true,
-            "count": 1
-          },
-          "save": {
-            "ability": "wits",
-            "dc": {
-              "value": 14
-            }
-          },
-          "effects": [
-            {
-              "id": "effect-1",
-              "type": "condition",
-              "conditionId": "charmed",
-              "saveOutcomePolicy": "failure"
-            }
-          ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": [
-                {
-                  "type": "scaleTargets",
-                  "levelChoiceId": "spell-slot",
-                  "baseLevel": 4,
-                  "perLevel": 1
-                }
-              ]
-            }
-          ],
-          "label": "Charm Monster"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "VLb2DFHh9haywGHI",
-            "type": "spell",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": []
-          }
-        }
-      }
-    },
-    {
-      "_id": "LNlYma6ZtNnMsXpp",
-      "_key": "!actors.items!mmDryad000000000.LNlYma6ZtNnMsXpp",
-      "name": "Druidcraft",
-      "type": "action",
-      "img": "icons/magic/nature/plant-seed-hands-glow-yellow.webp",
-      "system": {
-        "active": true,
-        "description": "<p>Whispering to the spirits of nature, you create one of the following effects within range.</p><p><strong>Weather Sensor.</strong> You create a Tiny, harmless sensory effect that predicts what the weather will be at your location for the next 24 hours. The effect might manifest as a golden orb for clear skies, a cloud for rain, falling snowflakes for snow, and so on. This effect persists for 1 round.</p><p><strong>Bloom.</strong> You instantly make a flower blossom, a seed pod open, or a leaf bud bloom.</p><p><strong>Sensory Effect.</strong> You create a harmless sensory effect, such as falling leaves, spectral dancing fairies, a gentle breeze, the sound of an animal, or the faint odor of skunk. The effect must fit in a 5-foot Cube.</p><p><strong>Fire Play.</strong> You light or snuff out a candle, a torch, or a campfire.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-druidcraft-cast",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Druidcraft"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "LNlYma6ZtNnMsXpp",
-            "type": "spell",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "area: 5-ft cube is not supported; the user picks the targets"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "GXTORnFldJH2VQX4",
-      "_key": "!actors.items!mmDryad000000000.GXTORnFldJH2VQX4",
-      "name": "Entangle",
-      "type": "action",
-      "img": "icons/magic/nature/root-vine-entangle-foot-green.webp",
-      "system": {
-        "active": true,
-        "description": "<p>Grasping plants sprout from the ground in a 20-foot square within range. For the duration, these plants turn the ground in the area into Difficultterrain. They disappear when the spell ends.</p><p>Each creature (other than you) in the area when you cast the spell must succeed on a Strength saving throw or have the Restrained condition until the spell ends. A Restrained creature can take an action to make a DC @attributes.spell.dc Strength (Athletics) check check against your spell save DC. On a success, it frees itself from the grasping plants and is no longer Restrained by them.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-entangle",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "range": {
-            "type": "ranged",
-            "normal": {
-              "value": 90,
-              "unit": "ft"
-            }
-          },
-          "targeting": {
-            "type": "multiple",
-            "required": true,
-            "count": 20,
-            "refinementPolicy": {
-              "minSelections": 1
-            }
-          },
-          "save": {
-            "ability": "might",
-            "dc": {
-              "value": 14
-            }
-          },
-          "effects": [
-            {
-              "id": "effect-1",
-              "type": "condition",
-              "conditionId": "restrained",
-              "saveOutcomePolicy": "failure",
-              "concentration": true
-            }
-          ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.1",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.1": 1,
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
-          "label": "Entangle"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "GXTORnFldJH2VQX4",
-            "type": "spell",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "area: 20-ft cube is not supported; the user picks the targets"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "V847HTMc8gLNi8OR",
-      "_key": "!actors.items!mmDryad000000000.V847HTMc8gLNi8OR",
-      "name": "Pass without Trace",
-      "type": "action",
-      "img": "icons/creatures/mammals/humanoid-cat-skulking-teal.webp",
-      "system": {
-        "active": true,
-        "description": "<p>You radiate a concealing aura in a 30-foot Emanation for the duration. While in the aura, you and each creature you choose have a +10 bonus to Dexterity (Stealth) check checks and leave no tracks.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-pass-without-trace",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "range": {
-            "type": "self"
-          },
-          "targeting": {
-            "type": "self"
-          },
-          "effects": [
-            {
-              "id": "effect-1",
-              "type": "effect",
-              "name": "Concealed",
-              "img": "icons/magic/nature/stealth-hide-beast-eyes-green.webp",
-              "ruleElements": [
-                {
-                  "schemaVersion": 1,
-                  "id": "concealed-1",
-                  "type": "Modifier",
-                  "data": {
-                    "domains": [
-                      "check.stealth"
-                    ],
-                    "modifierType": "untyped",
-                    "value": 10
-                  }
-                }
-              ],
-              "duration": {
-                "value": 3600,
-                "units": "seconds",
-                "expiry": "turnStart"
-              },
-              "concentration": true
-            }
-          ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
-          "label": "Pass without Trace"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "V847HTMc8gLNi8OR",
-            "type": "spell",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": []
-          }
-        }
-      }
     }
   ],
   "flags": {
@@ -1210,13 +777,11 @@
       },
       "conversion": {
         "notes": [
-          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Spellcasting: not automated (cast): using it spends its cost; its description says the rest",
-          "Spellcasting: consumption: activityUses 1 not converted",
+          "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
+          "Spellcasting: area: 5-ft cube is not supported; the user picks the targets",
+          "Spellcasting: area: 20-ft cube is not supported; the user picks the targets",
           "Tree Stride: not automated (utility): using it spends its cost; its description says the rest",
-          "Druidcraft: not automated (utility): using it spends its cost; its description says the rest",
-          "Druidcraft: area: 5-ft cube is not supported; the user picks the targets",
-          "Entangle: area: 20-ft cube is not supported; the user picks the targets"
+          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
         ]
       }
     }

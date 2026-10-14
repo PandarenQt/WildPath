@@ -166,6 +166,8 @@ export function actionDefinitionField() {
     summon: new ObjectField({nullable: true, initial: null}),
     // Makes each dying target stable when the Action completes (dying-and-death.md); a check gates it like an effect.
     stabilize: new BooleanField({required: true, initial: false}),
+    // Pools of the acting creature the Action refills when used (Multiattack's attacks): [{resourceId, amount}].
+    restores: objectArrayField(),
     range: new ObjectField({nullable: true, initial: null}),
     targeting: new ObjectField({nullable: true, initial: null}),
     area: new ObjectField({nullable: true, initial: null}),

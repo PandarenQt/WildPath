@@ -95,7 +95,7 @@
       "img": "icons/magic/movement/abstract-ribbons-red-orange.webp",
       "system": {
         "active": true,
-        "description": "<p>The spirit makes a number of  attacks equal to half the spell's level (round down), and it uses .</p><p class=\"hide-in-embed\">Number of attacks</p>",
+        "description": "<p>The spirit makes a number of Rend attacks equal to half the spell's level (round down), and it uses Breath Weapon.</p><p class=\"hide-in-embed\">Number of attacks</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-multiattack-activate",

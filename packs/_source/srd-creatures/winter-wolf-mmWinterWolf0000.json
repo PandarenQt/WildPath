@@ -232,7 +232,8 @@
                 "type": "constant",
                 "value": 1
               },
-              "recovery": "none"
+              "recovery": "none",
+              "recharge": 5
             }
           }
         ]
@@ -249,9 +250,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "uses: Recharge 5–6 is not rolled; refill the pool by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -300,9 +299,7 @@
         "challenge": 3
       },
       "conversion": {
-        "notes": [
-          "Cold Breath: uses: Recharge 5–6 is not rolled; refill the pool by hand"
-        ]
+        "notes": []
       }
     }
   }

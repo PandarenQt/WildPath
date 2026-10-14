@@ -132,9 +132,32 @@
               }
             ]
           },
-          "label": "Multiattack"
+          "label": "Multiattack",
+          "targeting": {
+            "type": "none"
+          },
+          "restores": [
+            {
+              "resourceId": "multiattack",
+              "amount": 2
+            }
+          ]
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack",
+              "label": "Multiattack",
+              "maximum": 2,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -149,7 +172,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
             ]
           }
         }
@@ -168,11 +191,19 @@
           "schemaVersion": 1,
           "id": "action:srd-shred",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "attack": {
@@ -302,7 +333,8 @@
                 "type": "constant",
                 "value": 1
               },
-              "recovery": "none"
+              "recovery": "none",
+              "recharge": 6
             }
           }
         ]
@@ -319,9 +351,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "uses: Recharge 6 is not rolled; refill the pool by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -373,7 +403,8 @@
                 "type": "constant",
                 "value": 1
               },
-              "recovery": "none"
+              "recovery": "none",
+              "recharge": 6
             }
           }
         ]
@@ -391,7 +422,6 @@
           },
           "conversion": {
             "notes": [
-              "uses: Recharge 6 is not rolled; refill the pool by hand",
               "activation: turnStart is not an action-economy cost"
             ]
           }
@@ -479,7 +509,7 @@
                 "type": "constant",
                 "value": 1
               },
-              "recovery": "none"
+              "recovery": "longRest"
             }
           }
         ]
@@ -577,9 +607,8 @@
       },
       "conversion": {
         "notes": [
-          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Spores: uses: Recharge 6 is not rolled; refill the pool by hand",
-          "Spores: activation: turnStart is not an action-economy cost"
+          "Spores: activation: turnStart is not an action-economy cost",
+          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
         ]
       }
     }

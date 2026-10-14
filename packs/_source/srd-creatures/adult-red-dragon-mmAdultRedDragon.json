@@ -93,7 +93,7 @@
       "img": "icons/skills/melee/strike-weapons-orange.webp",
       "system": {
         "active": true,
-        "description": "<p>The adult red dragon makes three  attacks. It can replace one attack with a use of  to cast <em>Scorching Ray</em>.</p>",
+        "description": "<p>The adult red dragon makes three Rend attacks. It can replace one attack with a use of Spellcasting to cast <em>Scorching Ray</em>.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-multiattack-use",
@@ -105,9 +105,32 @@
               }
             ]
           },
-          "label": "Multiattack"
+          "label": "Multiattack",
+          "targeting": {
+            "type": "none"
+          },
+          "restores": [
+            {
+              "resourceId": "multiattack",
+              "amount": 3
+            }
+          ]
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack",
+              "label": "Multiattack",
+              "maximum": 3,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -122,7 +145,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
             ]
           }
         }
@@ -141,11 +164,19 @@
           "schemaVersion": 1,
           "id": "action:srd-rend",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "attack": {
@@ -282,7 +313,8 @@
                 "type": "constant",
                 "value": 1
               },
-              "recovery": "none"
+              "recovery": "none",
+              "recharge": 5
             }
           }
         ]
@@ -299,25 +331,26 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "uses: Recharge 5–6 is not rolled; refill the pool by hand"
-            ]
+            "notes": []
           }
         }
       }
     },
     {
-      "_id": "mmCommandingPres",
-      "_key": "!actors.items!mmAdultRedDragon.mmCommandingPres",
-      "name": "Commanding Presence",
+      "_id": "1dj34lk1crx5rc00",
+      "_key": "!actors.items!mmAdultRedDragon.1dj34lk1crx5rc00",
+      "name": "Command",
       "type": "action",
       "img": "icons/magic/sonic/scream-wail-shout-teal.webp",
       "system": {
         "active": true,
-        "description": "<p class=\"feature\">The adult red dragon uses  to cast <em>Command</em> (level 2 version). The adult red dragon can't take this action again until the start of its next turn.</p>",
+        "description": "<p>You speak a one-word command to a creature you can see within range. The target must succeed on a Wisdom saving throw or follow the command on its next turn. Choose the command from these options:</p><p><strong>Approach.</strong> The target moves toward you by the shortest and most direct route, ending its turn if it moves within 5 feet of you.</p><p><strong>Drop.</strong> The target drops whatever it is holding and then ends its turn.</p><p><strong>Flee.</strong> The target spends its turn moving away from you by the fastest available means.</p><p><strong>Grovel.</strong> The target has the Prone condition and then ends its turn.</p><p><strong>Halt.</strong> On its turn, the target doesn't move and takes no action or Bonus Action.</p><p><strong>Using a Higher-Level Spell Slot.</strong> You can affect one additional creature for each spell slot level above 1.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-commanding-presence",
+          "id": "action:srd-commanding-presence-command",
+          "tags": [
+            "spell"
+          ],
           "costs": {
             "allOf": [
               {
@@ -326,7 +359,7 @@
               }
             ]
           },
-          "label": "Commanding Presence"
+          "label": "Command"
         },
         "ruleElements": []
       },
@@ -335,23 +368,25 @@
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "mmCommandingPres",
-            "type": "feat",
+            "id": "phbsplCommand000",
+            "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Commanding Presence"
           },
           "conversion": {
             "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
+              "cast: Command at level 2 is cast at its own level",
+              "not automated (save): using it spends its cost; its description says the rest"
             ]
           }
         }
       }
     },
     {
-      "_id": "XdmqM6EC8IQGORA7",
-      "_key": "!actors.items!mmAdultRedDragon.XdmqM6EC8IQGORA7",
+      "_id": "osremv1cgkhw1000",
+      "_key": "!actors.items!mmAdultRedDragon.osremv1cgkhw1000",
       "name": "Command",
       "type": "action",
       "img": "icons/magic/sonic/scream-wail-shout-teal.webp",
@@ -360,7 +395,7 @@
         "description": "<p>You speak a one-word command to a creature you can see within range. The target must succeed on a Wisdom saving throw or follow the command on its next turn. Choose the command from these options:</p><p><strong>Approach.</strong> The target moves toward you by the shortest and most direct route, ending its turn if it moves within 5 feet of you.</p><p><strong>Drop.</strong> The target drops whatever it is holding and then ends its turn.</p><p><strong>Flee.</strong> The target spends its turn moving away from you by the fastest available means.</p><p><strong>Grovel.</strong> The target has the Prone condition and then ends its turn.</p><p><strong>Halt.</strong> On its turn, the target doesn't move and takes no action or Bonus Action.</p><p><strong>Using a Higher-Level Spell Slot.</strong> You can affect one additional creature for each spell slot level above 1.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-command",
+          "id": "action:srd-spellcasting-command",
           "tags": [
             "spell"
           ],
@@ -372,84 +407,6 @@
               }
             ]
           },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.1",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.1": 1,
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
           "label": "Command"
         },
         "ruleElements": []
@@ -459,14 +416,16 @@
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "XdmqM6EC8IQGORA7",
+            "id": "phbsplCommand000",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
+              "cast: Command at level 2 is cast at its own level",
               "not automated (save): using it spends its cost; its description says the rest"
             ]
           }
@@ -474,305 +433,8 @@
       }
     },
     {
-      "_id": "mmSpellcasting00",
-      "_key": "!actors.items!mmAdultRedDragon.mmSpellcasting00",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The adult red dragon casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC , +12 to hit with spell attacks):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Command</em> (level 2 version), <em>Detect Magic</em>, <em>Scorching Ray</em></p><p class=\"feature-trait\"><strong>1/Day:</strong> <em>Fireball</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "17svfvloelxmr000",
-      "_key": "!actors.items!mmAdultRedDragon.17svfvloelxmr000",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The adult red dragon casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC , +12 to hit with spell attacks):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Command</em> (level 2 version), <em>Detect Magic</em>, <em>Scorching Ray</em></p><p class=\"feature-trait\"><strong>1/Day:</strong> <em>Fireball</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "16ywmso1mzul9w00",
-      "_key": "!actors.items!mmAdultRedDragon.16ywmso1mzul9w00",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The adult red dragon casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC , +12 to hit with spell attacks):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Command</em> (level 2 version), <em>Detect Magic</em>, <em>Scorching Ray</em></p><p class=\"feature-trait\"><strong>1/Day:</strong> <em>Fireball</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "178w8hnnsecqh000",
-      "_key": "!actors.items!mmAdultRedDragon.178w8hnnsecqh000",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The adult red dragon casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC , +12 to hit with spell attacks):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Command</em> (level 2 version), <em>Detect Magic</em>, <em>Scorching Ray</em></p><p class=\"feature-trait\"><strong>1/Day:</strong> <em>Fireball</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "consumption: activityUses 1 not converted"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "96FsmcQizygzJObm",
-      "_key": "!actors.items!mmAdultRedDragon.96FsmcQizygzJObm",
-      "name": "Command",
-      "type": "action",
-      "img": "icons/magic/sonic/scream-wail-shout-teal.webp",
-      "system": {
-        "active": true,
-        "description": "<p>You speak a one-word command to a creature you can see within range. The target must succeed on a Wisdom saving throw or follow the command on its next turn. Choose the command from these options:</p><p><strong>Approach.</strong> The target moves toward you by the shortest and most direct route, ending its turn if it moves within 5 feet of you.</p><p><strong>Drop.</strong> The target drops whatever it is holding and then ends its turn.</p><p><strong>Flee.</strong> The target spends its turn moving away from you by the fastest available means.</p><p><strong>Grovel.</strong> The target has the Prone condition and then ends its turn.</p><p><strong>Halt.</strong> On its turn, the target doesn't move and takes no action or Bonus Action.</p><p><strong>Using a Higher-Level Spell Slot.</strong> You can affect one additional creature for each spell slot level above 1.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-command",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.1",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.1": 1,
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
-          "label": "Command"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "96FsmcQizygzJObm",
-            "type": "spell",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (save): using it spends its cost; its description says the rest"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "XSQvtfHscntDlwUz",
-      "_key": "!actors.items!mmAdultRedDragon.XSQvtfHscntDlwUz",
+      "_id": "1q6i0vc462wvq000",
+      "_key": "!actors.items!mmAdultRedDragon.1q6i0vc462wvq000",
       "name": "Detect Magic",
       "type": "action",
       "img": "icons/magic/symbols/runes-carved-stone-green.webp",
@@ -781,7 +443,7 @@
         "description": "<p>For the duration, you sense the presence of magical effects within 30 feet of yourself. If you sense such effects, you can take the Magic action to see a faint aura around any visible creature or object in the area that bears the magic, and if an effect was created by a spell, you learn the spell's school of magic.</p><p>The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-detect-magic-cast",
+          "id": "action:srd-spellcasting-detect-magic",
           "tags": [
             "spell"
           ],
@@ -793,84 +455,6 @@
               }
             ]
           },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.1",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.1": 1,
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
           "label": "Detect Magic"
         },
         "ruleElements": []
@@ -880,11 +464,12 @@
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "XSQvtfHscntDlwUz",
+            "id": "phbsplDetectMagi",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
@@ -897,8 +482,8 @@
       }
     },
     {
-      "_id": "cZAd3i7LBGyErsZb",
-      "_key": "!actors.items!mmAdultRedDragon.cZAd3i7LBGyErsZb",
+      "_id": "4h3awccgco8m0000",
+      "_key": "!actors.items!mmAdultRedDragon.4h3awccgco8m0000",
       "name": "Scorching Ray",
       "type": "action",
       "img": "icons/magic/fire/projectiles-salvo-trio-orange.webp",
@@ -907,7 +492,7 @@
         "description": "<p>You hurl three fiery rays. You can hurl them at one target within range or at several. Make a ranged spell attack for each ray. On a hit, the target takes 2d6 Fire damage.</p><p><strong>Using a Higher-Level Spell Slot.</strong> You create one additional ray for each spell slot level above 2.</p><p>Total Rays</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-scorching-ray",
+          "id": "action:srd-spellcasting-scorching-ray",
           "tags": [
             "spell"
           ],
@@ -923,7 +508,8 @@
             "type": "ranged",
             "statistic": "spell",
             "defenseKey": "ac",
-            "proficient": true
+            "proficient": true,
+            "ability": "presence"
           },
           "range": {
             "type": "ranged",
@@ -949,77 +535,6 @@
               "provenance": "spell-base"
             }
           ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
           "label": "Scorching Ray"
         },
         "ruleElements": []
@@ -1029,11 +544,12 @@
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "cZAd3i7LBGyErsZb",
+            "id": "phbsplScorchingR",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": []
@@ -1042,8 +558,8 @@
       }
     },
     {
-      "_id": "ovOl8m4PyxnQNcMs",
-      "_key": "!actors.items!mmAdultRedDragon.ovOl8m4PyxnQNcMs",
+      "_id": "q8ppnn1pj8nf7000",
+      "_key": "!actors.items!mmAdultRedDragon.q8ppnn1pj8nf7000",
       "name": "Fireball",
       "type": "action",
       "img": "icons/magic/fire/barrier-shield-explosion-yellow.webp",
@@ -1052,7 +568,7 @@
         "description": "<p>A bright streak flashes from you to a point you choose within range and then blossoms with a low roar into a fiery explosion. Each creature in a 20-foot-radius Sphere centered on that point makes a Dexterity saving throw, taking 8d6 Fire damage on a failed save or half as much damage on a successful one.</p><p>Flammable objects in the area that aren't being worn or carried start burning.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The damage increases by 1d6 for each spell slot level above 3.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-fireball",
+          "id": "action:srd-spellcasting-fireball",
           "tags": [
             "spell"
           ],
@@ -1060,6 +576,10 @@
             "allOf": [
               {
                 "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplfireball00",
                 "amount": 1
               }
             ]
@@ -1103,97 +623,36 @@
               }
             }
           ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": [
-                {
-                  "type": "scaleDamage",
-                  "levelChoiceId": "spell-slot",
-                  "baseLevel": 3,
-                  "componentIds": [
-                    "damage-1"
-                  ],
-                  "dice": {
-                    "number": 1,
-                    "faces": 6
-                  }
-                }
-              ]
-            }
-          ],
           "label": "Fireball"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "spellcasting-phbsplfireball00-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "spellcasting-phbsplfireball00",
+              "label": "Spellcasting (Fireball)",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "ovOl8m4PyxnQNcMs",
+            "id": "phbsplFireball00",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": []
@@ -1202,51 +661,8 @@
       }
     },
     {
-      "_id": "mmFieryRays00000",
-      "_key": "!actors.items!mmAdultRedDragon.mmFieryRays00000",
-      "name": "Fiery Rays",
-      "type": "action",
-      "img": "icons/magic/fire/beam-jet-stream-trails-orange.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The adult red dragon uses  to cast <em>Scorching Ray</em>. The adult red dragon can't take this action again until the start of its next turn.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-fiery-rays",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "legendary-action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Fiery Rays"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmFieryRays00000",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "xAtxnx1heKJdMFCH",
-      "_key": "!actors.items!mmAdultRedDragon.xAtxnx1heKJdMFCH",
+      "_id": "136inz9u1veb3000",
+      "_key": "!actors.items!mmAdultRedDragon.136inz9u1veb3000",
       "name": "Scorching Ray",
       "type": "action",
       "img": "icons/magic/fire/projectiles-salvo-trio-orange.webp",
@@ -1255,14 +671,14 @@
         "description": "<p>You hurl three fiery rays. You can hurl them at one target within range or at several. Make a ranged spell attack for each ray. On a hit, the target takes 2d6 Fire damage.</p><p><strong>Using a Higher-Level Spell Slot.</strong> You create one additional ray for each spell slot level above 2.</p><p>Total Rays</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-scorching-ray",
+          "id": "action:srd-fiery-rays-scorching-ray",
           "tags": [
             "spell"
           ],
           "costs": {
             "allOf": [
               {
-                "capability": "action",
+                "capability": "legendary-action",
                 "amount": 1
               }
             ]
@@ -1271,7 +687,8 @@
             "type": "ranged",
             "statistic": "spell",
             "defenseKey": "ac",
-            "proficient": true
+            "proficient": true,
+            "ability": "presence"
           },
           "range": {
             "type": "ranged",
@@ -1297,77 +714,6 @@
               "provenance": "spell-base"
             }
           ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
           "label": "Scorching Ray"
         },
         "ruleElements": []
@@ -1377,11 +723,12 @@
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "xAtxnx1heKJdMFCH",
+            "id": "phbsplScorchingR",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Fiery Rays"
           },
           "conversion": {
             "notes": []
@@ -1397,7 +744,7 @@
       "img": "icons/skills/movement/arrow-upward-yellow.webp",
       "system": {
         "active": true,
-        "description": "<p>The adult red dragon moves up to half its Speed, and it makes one  attack.</p>",
+        "description": "<p>The adult red dragon moves up to half its Speed, and it makes one Rend attack.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-pounce-expend-use",
@@ -1509,19 +856,16 @@
       "conversion": {
         "notes": [
           "Legendary Resistance: \"Expend Use\" is passive or triggered: not automated",
-          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Fire Breath: uses: Recharge 5–6 is not rolled; refill the pool by hand",
-          "Commanding Presence: not automated (cast): using it spends its cost; its description says the rest",
-          "Command: not automated (save): using it spends its cost; its description says the rest",
-          "Spellcasting: not automated (cast): using it spends its cost; its description says the rest",
-          "Spellcasting: consumption: activityUses 1 not converted",
-          "Command: not automated (save): using it spends its cost; its description says the rest",
-          "Detect Magic: not automated (utility): using it spends its cost; its description says the rest",
-          "Detect Magic: effect: \"Detect Magic\" (its own changes) not converted",
-          "Detect Magic: concentration: nothing it sustains was converted",
-          "Fiery Rays: not automated (cast): using it spends its cost; its description says the rest",
+          "Commanding Presence: cast: Command at level 2 is cast at its own level",
+          "Commanding Presence: not automated (save): using it spends its cost; its description says the rest",
+          "Spellcasting: cast: Command at level 2 is cast at its own level",
+          "Spellcasting: not automated (save): using it spends its cost; its description says the rest",
+          "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
+          "Spellcasting: effect: \"Detect Magic\" (its own changes) not converted",
+          "Spellcasting: concentration: nothing it sustains was converted",
           "Pounce: not automated (utility): using it spends its cost; its description says the rest",
-          "Pounce: consumption: attribute 1 not converted"
+          "Pounce: consumption: attribute 1 not converted",
+          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
         ]
       }
     }

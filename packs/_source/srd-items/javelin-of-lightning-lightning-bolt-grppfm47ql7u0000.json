@@ -15,6 +15,10 @@
           {
             "capability": "action",
             "amount": 1
+          },
+          {
+            "capability": "javelin-of-lightning-lightning-bolt",
+            "amount": 1
           }
         ]
       },
@@ -67,7 +71,22 @@
       ],
       "label": "Javelin of Lightning (Lightning Bolt)"
     },
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "javelin-of-lightning-lightning-bolt-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "javelin-of-lightning-lightning-bolt",
+          "label": "Javelin of Lightning (Lightning Bolt)",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -81,9 +100,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "consumption: activityUses 1 not converted"
-        ]
+        "notes": []
       }
     }
   }

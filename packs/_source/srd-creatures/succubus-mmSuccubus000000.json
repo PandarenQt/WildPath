@@ -116,9 +116,32 @@
               }
             ]
           },
-          "label": "Multiattack"
+          "label": "Multiattack",
+          "targeting": {
+            "type": "none"
+          },
+          "restores": [
+            {
+              "resourceId": "multiattack",
+              "amount": 1
+            }
+          ]
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack",
+              "label": "Multiattack",
+              "maximum": 1,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -133,7 +156,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
             ]
           }
         }
@@ -152,11 +175,19 @@
           "schemaVersion": 1,
           "id": "action:srd-fiendish-touch",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "attack": {
@@ -212,17 +243,20 @@
       }
     },
     {
-      "_id": "mmCharm000000000",
-      "_key": "!actors.items!mmSuccubus000000.mmCharm000000000",
-      "name": "Charm",
+      "_id": "1y8twh635r8ze000",
+      "_key": "!actors.items!mmSuccubus000000.1y8twh635r8ze000",
+      "name": "Dominate Person",
       "type": "action",
       "img": "icons/magic/control/control-influence-puppet.webp",
       "system": {
         "active": true,
-        "description": "<p class=\"feature\">The succubus casts <em>Dominate Person</em> (level 8 version), requiring no spell components and using Charisma as the spellcasting ability (spell save DC ).</p>",
+        "description": "<p>One Humanoid you can see within range must succeed on a Wisdom saving throw or have the Charmed condition for the duration. The target has Advantage on the save if you or your allies are fighting it. Whenever the target takes damage, it repeats the save, ending the spell on itself on a success.</p><p>You have a telepathic link with the Charmed target while the two of you are on the same plane of existence. On your turn, you can use this link to issue commands to the target (no action required), such as \"Attack that creature,\" \"Move over there,\" or \"Fetch that object.\" The target does its best to obey on its turn. If it completes an order and doesn't receive further direction from you, it acts and moves as it likes, focusing on protecting itself.</p><p>You can command the target to take a Reaction but must take your own Reaction to do so.</p><p><strong>Using a Higher-Level Spell Slot.</strong> Your Concentration can last longer with a spell slot of level 6 (up to 10 minutes), 7 (up to 1 hour), or 8+ (up to 8 hours).</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-charm",
+          "id": "action:srd-charm-dominate-person",
+          "tags": [
+            "spell"
+          ],
           "costs": {
             "allOf": [
               {
@@ -231,7 +265,34 @@
               }
             ]
           },
-          "label": "Charm"
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 60,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "value": 15
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "charmed",
+              "saveOutcomePolicy": "failure",
+              "concentration": true
+            }
+          ],
+          "label": "Dominate Person"
         },
         "ruleElements": [
           {
@@ -245,7 +306,8 @@
                 "type": "constant",
                 "value": 1
               },
-              "recovery": "none"
+              "recovery": "none",
+              "recharge": 5
             }
           }
         ]
@@ -255,16 +317,16 @@
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "mmCharm000000000",
-            "type": "feat",
+            "id": "phbsplDominatePe",
+            "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Charm"
           },
           "conversion": {
             "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "uses: Recharge 5–6 is not rolled; refill the pool by hand"
+              "cast: Dominate Person at level 8 is cast at its own level"
             ]
           }
         }
@@ -389,127 +451,6 @@
       }
     },
     {
-      "_id": "ngMn9mjUa63VWbHY",
-      "_key": "!actors.items!mmSuccubus000000.ngMn9mjUa63VWbHY",
-      "name": "Dominate Person",
-      "type": "action",
-      "img": "icons/magic/control/control-influence-puppet.webp",
-      "system": {
-        "active": true,
-        "description": "<p>One Humanoid you can see within range must succeed on a Wisdom saving throw or have the Charmed condition for the duration. The target has Advantage on the save if you or your allies are fighting it. Whenever the target takes damage, it repeats the save, ending the spell on itself on a success.</p><p>You have a telepathic link with the Charmed target while the two of you are on the same plane of existence. On your turn, you can use this link to issue commands to the target (no action required), such as \"Attack that creature,\" \"Move over there,\" or \"Fetch that object.\" The target does its best to obey on its turn. If it completes an order and doesn't receive further direction from you, it acts and moves as it likes, focusing on protecting itself.</p><p>You can command the target to take a Reaction but must take your own Reaction to do so.</p><p><strong>Using a Higher-Level Spell Slot.</strong> Your Concentration can last longer with a spell slot of level 6 (up to 10 minutes), 7 (up to 1 hour), or 8+ (up to 8 hours).</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-dominate-person",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "range": {
-            "type": "ranged",
-            "normal": {
-              "value": 60,
-              "unit": "ft"
-            }
-          },
-          "targeting": {
-            "type": "single",
-            "required": true,
-            "count": 1
-          },
-          "save": {
-            "ability": "wits",
-            "dc": {
-              "value": 15
-            }
-          },
-          "effects": [
-            {
-              "id": "effect-1",
-              "type": "condition",
-              "conditionId": "charmed",
-              "saveOutcomePolicy": "failure",
-              "concentration": true
-            }
-          ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
-          "label": "Dominate Person"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "ngMn9mjUa63VWbHY",
-            "type": "spell",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": []
-          }
-        }
-      }
-    },
-    {
       "_id": "mmSuccubus00trts",
       "_key": "!actors.items!mmSuccubus000000.mmSuccubus00trts",
       "name": "Traits",
@@ -567,10 +508,9 @@
       "conversion": {
         "notes": [
           "Incubus Form: not automated (summon): using it spends its cost; its description says the rest",
-          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Charm: not automated (cast): using it spends its cost; its description says the rest",
-          "Charm: uses: Recharge 5–6 is not rolled; refill the pool by hand",
-          "Shape-Shift: not automated (utility): using it spends its cost; its description says the rest"
+          "Charm: cast: Dominate Person at level 8 is cast at its own level",
+          "Shape-Shift: not automated (utility): using it spends its cost; its description says the rest",
+          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
         ]
       }
     }

@@ -73,9 +73,32 @@
               }
             ]
           },
-          "label": "Multiattack"
+          "label": "Multiattack",
+          "targeting": {
+            "type": "none"
+          },
+          "restores": [
+            {
+              "resourceId": "multiattack",
+              "amount": 2
+            }
+          ]
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack",
+              "label": "Multiattack",
+              "maximum": 2,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -90,7 +113,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
             ]
           }
         }
@@ -109,11 +132,19 @@
           "schemaVersion": 1,
           "id": "action:srd-vine-staff",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "attack": {
@@ -191,11 +222,19 @@
           "schemaVersion": 1,
           "id": "action:srd-verdant-wisp",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "attack": {
@@ -251,314 +290,8 @@
       }
     },
     {
-      "_id": "mmSpellcasting00",
-      "_key": "!actors.items!mmDruid000000000.mmSpellcasting00",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The druid casts one of the following spells, using Wisdom as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Druidcraft</em>, <em>Speak with Animals</em></p><p class=\"feature-trait\"><strong>2/Day Each:</strong> <em>Entangle</em>, <em>Thunderwave</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Animal Messenger</em>, <em>Longstrider</em>, <em>Moonbeam</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "17svfvloelxmr000",
-      "_key": "!actors.items!mmDruid000000000.17svfvloelxmr000",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The druid casts one of the following spells, using Wisdom as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Druidcraft</em>, <em>Speak with Animals</em></p><p class=\"feature-trait\"><strong>2/Day Each:</strong> <em>Entangle</em>, <em>Thunderwave</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Animal Messenger</em>, <em>Longstrider</em>, <em>Moonbeam</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "16ywmso1mzul9w00",
-      "_key": "!actors.items!mmDruid000000000.16ywmso1mzul9w00",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The druid casts one of the following spells, using Wisdom as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Druidcraft</em>, <em>Speak with Animals</em></p><p class=\"feature-trait\"><strong>2/Day Each:</strong> <em>Entangle</em>, <em>Thunderwave</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Animal Messenger</em>, <em>Longstrider</em>, <em>Moonbeam</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "consumption: activityUses 1 not converted"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "178w8hnnsecqh000",
-      "_key": "!actors.items!mmDruid000000000.178w8hnnsecqh000",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The druid casts one of the following spells, using Wisdom as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Druidcraft</em>, <em>Speak with Animals</em></p><p class=\"feature-trait\"><strong>2/Day Each:</strong> <em>Entangle</em>, <em>Thunderwave</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Animal Messenger</em>, <em>Longstrider</em>, <em>Moonbeam</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "consumption: activityUses 1 not converted"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "18mu8yi1mdn0dm00",
-      "_key": "!actors.items!mmDruid000000000.18mu8yi1mdn0dm00",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The druid casts one of the following spells, using Wisdom as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Druidcraft</em>, <em>Speak with Animals</em></p><p class=\"feature-trait\"><strong>2/Day Each:</strong> <em>Entangle</em>, <em>Thunderwave</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Animal Messenger</em>, <em>Longstrider</em>, <em>Moonbeam</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "consumption: activityUses 1 not converted"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "18wtunhn66ru7000",
-      "_key": "!actors.items!mmDruid000000000.18wtunhn66ru7000",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The druid casts one of the following spells, using Wisdom as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Druidcraft</em>, <em>Speak with Animals</em></p><p class=\"feature-trait\"><strong>2/Day Each:</strong> <em>Entangle</em>, <em>Thunderwave</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Animal Messenger</em>, <em>Longstrider</em>, <em>Moonbeam</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "consumption: activityUses 1 not converted"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "182v1kk1lrffhc00",
-      "_key": "!actors.items!mmDruid000000000.182v1kk1lrffhc00",
-      "name": "Spellcasting (cast)",
-      "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">The druid casts one of the following spells, using Wisdom as the spellcasting ability (spell save DC ):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Druidcraft</em>, <em>Speak with Animals</em></p><p class=\"feature-trait\"><strong>2/Day Each:</strong> <em>Entangle</em>, <em>Thunderwave</em></p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Animal Messenger</em>, <em>Longstrider</em>, <em>Moonbeam</em></p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Spellcasting (cast)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "consumption: activityUses 1 not converted"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "TJRGXmcjfvHAliH6",
-      "_key": "!actors.items!mmDruid000000000.TJRGXmcjfvHAliH6",
+      "_id": "1a6q9ob8469cp000",
+      "_key": "!actors.items!mmDruid000000000.1a6q9ob8469cp000",
       "name": "Druidcraft",
       "type": "action",
       "img": "icons/magic/nature/plant-seed-hands-glow-yellow.webp",
@@ -567,7 +300,7 @@
         "description": "<p>Whispering to the spirits of nature, you create one of the following effects within range.</p><p><strong>Weather Sensor.</strong> You create a Tiny, harmless sensory effect that predicts what the weather will be at your location for the next 24 hours. The effect might manifest as a golden orb for clear skies, a cloud for rain, falling snowflakes for snow, and so on. This effect persists for 1 round.</p><p><strong>Bloom.</strong> You instantly make a flower blossom, a seed pod open, or a leaf bud bloom.</p><p><strong>Sensory Effect.</strong> You create a harmless sensory effect, such as falling leaves, spectral dancing fairies, a gentle breeze, the sound of an animal, or the faint odor of skunk. The effect must fit in a 5-foot Cube.</p><p><strong>Fire Play.</strong> You light or snuff out a candle, a torch, or a campfire.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-druidcraft-cast",
+          "id": "action:srd-spellcasting-druidcraft",
           "tags": [
             "spell"
           ],
@@ -588,11 +321,12 @@
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "TJRGXmcjfvHAliH6",
+            "id": "phbsplDruidcraft",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
@@ -604,8 +338,8 @@
       }
     },
     {
-      "_id": "rnHaNNaeCidsdNoG",
-      "_key": "!actors.items!mmDruid000000000.rnHaNNaeCidsdNoG",
+      "_id": "1oayt5bya4251000",
+      "_key": "!actors.items!mmDruid000000000.1oayt5bya4251000",
       "name": "Speak with Animals",
       "type": "action",
       "img": "icons/creatures/mammals/dog-husky-white-blue.webp",
@@ -614,7 +348,7 @@
         "description": "<p>For the duration, you can comprehend and verbally communicate with Beasts, and you can use any of the Influence action's skill options with them.</p><p>Most Beasts have little to say about topics that don't pertain to survival or companionship, but at minimum, a Beast can give you information about nearby locations and monsters, including whatever it has perceived within the past day.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-speak-with-animals",
+          "id": "action:srd-spellcasting-speak-with-animals",
           "tags": [
             "spell"
           ],
@@ -626,84 +360,6 @@
               }
             ]
           },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.1",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.1": 1,
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
           "label": "Speak with Animals"
         },
         "ruleElements": []
@@ -713,11 +369,12 @@
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "rnHaNNaeCidsdNoG",
+            "id": "phbsplSpeakwithA",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
@@ -730,8 +387,8 @@
       }
     },
     {
-      "_id": "NtmJOdVVNW4jyd24",
-      "_key": "!actors.items!mmDruid000000000.NtmJOdVVNW4jyd24",
+      "_id": "7xnw15hhnrxb0000",
+      "_key": "!actors.items!mmDruid000000000.7xnw15hhnrxb0000",
       "name": "Entangle",
       "type": "action",
       "img": "icons/magic/nature/root-vine-entangle-foot-green.webp",
@@ -740,7 +397,7 @@
         "description": "<p>Grasping plants sprout from the ground in a 20-foot square within range. For the duration, these plants turn the ground in the area into Difficultterrain. They disappear when the spell ends.</p><p>Each creature (other than you) in the area when you cast the spell must succeed on a Strength saving throw or have the Restrained condition until the spell ends. A Restrained creature can take an action to make a DC @attributes.spell.dc Strength (Athletics) check check against your spell save DC. On a success, it frees itself from the grasping plants and is no longer Restrained by them.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-entangle",
+          "id": "action:srd-spellcasting-entangle",
           "tags": [
             "spell"
           ],
@@ -748,6 +405,10 @@
             "allOf": [
               {
                 "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplentangle00",
                 "amount": 1
               }
             ]
@@ -782,98 +443,36 @@
               "concentration": true
             }
           ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.1",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.1": 1,
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
           "label": "Entangle"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "spellcasting-phbsplentangle00-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "spellcasting-phbsplentangle00",
+              "label": "Spellcasting (Entangle)",
+              "maximum": {
+                "type": "constant",
+                "value": 2
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "NtmJOdVVNW4jyd24",
+            "id": "phbsplEntangle00",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
@@ -884,8 +483,8 @@
       }
     },
     {
-      "_id": "kdc53KLaLU9CW6dh",
-      "_key": "!actors.items!mmDruid000000000.kdc53KLaLU9CW6dh",
+      "_id": "1jrx5jj1pkwpml00",
+      "_key": "!actors.items!mmDruid000000000.1jrx5jj1pkwpml00",
       "name": "Thunderwave",
       "type": "action",
       "img": "icons/magic/sonic/explosion-shock-wave-teal.webp",
@@ -894,7 +493,7 @@
         "description": "<p>You unleash a wave of thunderous energy. Each creature in a 15-foot Cube originating from you makes a Constitution saving throw. On a failed save, a creature takes 2d8 Thunder damage and is pushed 10 feet away from you. On a successful save, a creature takes half as much damage only.</p><p>In addition, unsecured objects that are entirely within the Cube are pushed 10 feet away from you, and a thunderous boom is audible within 300 feet.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The damage increases by 1d8 for each spell slot level above 1.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-thunderwave",
+          "id": "action:srd-spellcasting-thunderwave",
           "tags": [
             "spell"
           ],
@@ -902,6 +501,10 @@
             "allOf": [
               {
                 "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplthunderwav",
                 "amount": 1
               }
             ]
@@ -939,111 +542,36 @@
               }
             }
           ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.1",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.1": 1,
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": [
-                {
-                  "type": "scaleDamage",
-                  "levelChoiceId": "spell-slot",
-                  "baseLevel": 1,
-                  "componentIds": [
-                    "damage-1"
-                  ],
-                  "dice": {
-                    "number": 1,
-                    "faces": 8
-                  }
-                }
-              ]
-            }
-          ],
           "label": "Thunderwave"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "spellcasting-phbsplthunderwav-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "spellcasting-phbsplthunderwav",
+              "label": "Spellcasting (Thunderwave)",
+              "maximum": {
+                "type": "constant",
+                "value": 2
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "kdc53KLaLU9CW6dh",
+            "id": "phbsplThunderwav",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
@@ -1054,8 +582,8 @@
       }
     },
     {
-      "_id": "2wnXlRyaVnQFLOji",
-      "_key": "!actors.items!mmDruid000000000.2wnXlRyaVnQFLOji",
+      "_id": "1bj30a1fzrcyq000",
+      "_key": "!actors.items!mmDruid000000000.1bj30a1fzrcyq000",
       "name": "Animal Messenger",
       "type": "action",
       "img": "icons/creatures/mammals/rabbit-movement-glowing-green.webp",
@@ -1064,7 +592,7 @@
         "description": "<p>A Tiny Beast of your choice that you can see within range must succeed on a Charisma saving throw, or it attempts to deliver a message for you (if the target's Challenge Rating isn't 0, it automatically succeeds). You specify a location you have visited and a recipient who matches a general description, such as \"a person dressed in the uniform of the town guard\" or \"a red-haired dwarf wearing a pointed hat.\" You also communicate a message of up to twenty-five words. The Beast travels for the duration toward the specified location, covering about 25 miles per 24 hours or 50 miles if the Beast can fly.</p><p>When the Beast arrives, it delivers your message to the creature that you described, mimicking your communication. If the Beast doesn't reach its destination before the spell ends, the message is lost, and the Beast returns to where you cast the spell.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The spell's duration increases by 48 hours for each spell slot level above 2.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-animal-messenger",
+          "id": "action:srd-spellcasting-animal-messenger",
           "tags": [
             "spell"
           ],
@@ -1073,94 +601,43 @@
               {
                 "capability": "action",
                 "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplanimalmess",
+                "amount": 1
               }
             ]
           },
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
           "label": "Animal Messenger"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "spellcasting-phbsplanimalmess-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "spellcasting-phbsplanimalmess",
+              "label": "Spellcasting (Animal Messenger)",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "2wnXlRyaVnQFLOji",
+            "id": "phbsplAnimalMess",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
@@ -1172,8 +649,8 @@
       }
     },
     {
-      "_id": "TrVoUfhvvvEWG2fS",
-      "_key": "!actors.items!mmDruid000000000.TrVoUfhvvvEWG2fS",
+      "_id": "eelulg1wksn5i000",
+      "_key": "!actors.items!mmDruid000000000.eelulg1wksn5i000",
       "name": "Longstrider",
       "type": "action",
       "img": "icons/equipment/feet/boots-leather-laced-brown.webp",
@@ -1182,7 +659,7 @@
         "description": "<p>You touch a creature. The target's Speed increases by 10 feet until the spell ends.</p><p><strong>Using a Higher-Level Spell Slot.</strong> You can target one additional creature for each spell slot level above 1.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-longstrider-cast",
+          "id": "action:srd-spellcasting-longstrider",
           "tags": [
             "spell"
           ],
@@ -1190,6 +667,10 @@
             "allOf": [
               {
                 "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbspllongstride",
                 "amount": 1
               }
             ]
@@ -1233,105 +714,36 @@
               }
             }
           ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.1",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.1": 1,
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": [
-                {
-                  "type": "scaleTargets",
-                  "levelChoiceId": "spell-slot",
-                  "baseLevel": 1,
-                  "perLevel": 1
-                }
-              ]
-            }
-          ],
           "label": "Longstrider"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "spellcasting-phbspllongstride-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "spellcasting-phbspllongstride",
+              "label": "Spellcasting (Longstrider)",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "TrVoUfhvvvEWG2fS",
+            "id": "phbsplLongstride",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": []
@@ -1340,8 +752,8 @@
       }
     },
     {
-      "_id": "0KWA94HrnX1qAj50",
-      "_key": "!actors.items!mmDruid000000000.0KWA94HrnX1qAj50",
+      "_id": "1exb6i3skexbb000",
+      "_key": "!actors.items!mmDruid000000000.1exb6i3skexbb000",
       "name": "Moonbeam",
       "type": "action",
       "img": "icons/magic/light/beam-rays-yellow-blue-large.webp",
@@ -1350,7 +762,7 @@
         "description": "<p>A silvery beam of pale light shines down in a 5-foot-radius, 40-foot-high Cylinder centered on a point within range. Until the spell ends, Dim Light fills the Cylinder, and you can take a Magic action on later turns to move the Cylinder up to 60 feet.</p><p>When the Cylinder appears, each creature in it makes a Constitution saving throw. On a failed save, a creature takes 2d10 Radiant damage, and if the creature is shape-shifted (as a result of the <em>Polymorph</em> spell, for example), it reverts to its true form and can't shape-shift until it leaves the Cylinder. On a successful save, a creature takes half as much damage only. A creature also makes this save when the spell's area moves into its space and when it enters the spell's area or ends its turn there. A creature makes this save only once per turn.</p><p><strong>Using a Higher-Level Spell Slot.</strong>The damage increases by 1d10 for each spell slot level above 2.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-moonbeam",
+          "id": "action:srd-spellcasting-moonbeam",
           "tags": [
             "spell"
           ],
@@ -1358,6 +770,10 @@
             "allOf": [
               {
                 "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplmoonbeam00",
                 "amount": 1
               }
             ]
@@ -1401,104 +817,36 @@
               }
             }
           ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.2",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.2": 2,
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": [
-                {
-                  "type": "scaleDamage",
-                  "levelChoiceId": "spell-slot",
-                  "baseLevel": 2,
-                  "componentIds": [
-                    "damage-1"
-                  ],
-                  "dice": {
-                    "number": 1,
-                    "faces": 10
-                  }
-                }
-              ]
-            }
-          ],
           "label": "Moonbeam"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "spellcasting-phbsplmoonbeam00-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "spellcasting-phbsplmoonbeam00",
+              "label": "Spellcasting (Moonbeam)",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "0KWA94HrnX1qAj50",
+            "id": "phbsplMoonbeam00",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
@@ -1524,20 +872,17 @@
       },
       "conversion": {
         "notes": [
-          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Spellcasting: not automated (cast): using it spends its cost; its description says the rest",
-          "Spellcasting: consumption: activityUses 1 not converted",
-          "Druidcraft: not automated (utility): using it spends its cost; its description says the rest",
-          "Druidcraft: area: 5-ft cube is not supported; the user picks the targets",
-          "Speak with Animals: not automated (utility): using it spends its cost; its description says the rest",
-          "Speak with Animals: effect: \"Bestial Communication\" change system.traits.languages.custom (add) not converted",
-          "Speak with Animals: effect: \"Bestial Communication\" (its own changes) not converted",
-          "Entangle: area: 20-ft cube is not supported; the user picks the targets",
-          "Thunderwave: area: 15-ft cube is not supported; the user picks the targets",
-          "Animal Messenger: not automated (save): using it spends its cost; its description says the rest",
-          "Animal Messenger: effect: \"Carrying Message\" (its own changes) not converted",
-          "Moonbeam: area: a cylinder's height is not modeled",
-          "Moonbeam: concentration: nothing it sustains was converted"
+          "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
+          "Spellcasting: area: 5-ft cube is not supported; the user picks the targets",
+          "Spellcasting: effect: \"Bestial Communication\" change system.traits.languages.custom (add) not converted",
+          "Spellcasting: effect: \"Bestial Communication\" (its own changes) not converted",
+          "Spellcasting: area: 20-ft cube is not supported; the user picks the targets",
+          "Spellcasting: area: 15-ft cube is not supported; the user picks the targets",
+          "Spellcasting: not automated (save): using it spends its cost; its description says the rest",
+          "Spellcasting: effect: \"Carrying Message\" (its own changes) not converted",
+          "Spellcasting: area: a cylinder's height is not modeled",
+          "Spellcasting: concentration: nothing it sustains was converted",
+          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
         ]
       }
     }

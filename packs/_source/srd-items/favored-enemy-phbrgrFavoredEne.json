@@ -64,7 +64,8 @@
       },
       "conversion": {
         "notes": [
-          "not automated (cast): using it spends its cost; its description says the rest"
+          "not automated (cast): using it spends its cost; its description says the rest",
+          "cast: its spell was not found among the converted spells"
         ]
       }
     }

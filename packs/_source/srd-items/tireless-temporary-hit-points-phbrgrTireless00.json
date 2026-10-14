@@ -15,12 +15,40 @@
           {
             "capability": "action",
             "amount": 1
+          },
+          {
+            "capability": "tireless-temporary-hit-points",
+            "amount": 1
           }
         ]
       },
       "label": "Tireless (Temporary Hit Points)"
     },
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "tireless-temporary-hit-points-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "tireless-temporary-hit-points",
+          "label": "Tireless (Temporary Hit Points)",
+          "maximum": {
+            "type": "max",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 1
+              },
+              {
+                "type": "ability-modifier",
+                "ability": "wits"
+              }
+            ]
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -36,9 +64,7 @@
       "conversion": {
         "notes": [
           "not automated (heal): using it spends its cost; its description says the rest",
-          "consumption: activityUses 1 not converted",
-          "healing: temporary Hit Points not converted",
-          "consumption: activityUses 1 not converted"
+          "healing: temporary Hit Points not converted"
         ]
       }
     }

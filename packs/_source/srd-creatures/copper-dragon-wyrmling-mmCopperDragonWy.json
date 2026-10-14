@@ -203,7 +203,8 @@
                 "type": "constant",
                 "value": 1
               },
-              "recovery": "none"
+              "recovery": "none",
+              "recharge": 5
             }
           }
         ]
@@ -220,9 +221,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "uses: Recharge 5–6 is not rolled; refill the pool by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -407,7 +406,6 @@
       },
       "conversion": {
         "notes": [
-          "Acid Breath: uses: Recharge 5–6 is not rolled; refill the pool by hand",
           "Slowing Breath: effect: \"1/2 Speed | Action Restrictions\" change system.attributes.movement.burrow (multiply) not converted",
           "Slowing Breath: effect: \"1/2 Speed | Action Restrictions\" change system.attributes.movement.climb (multiply) not converted",
           "Slowing Breath: effect: \"1/2 Speed | Action Restrictions\" change system.attributes.movement.fly (multiply) not converted",

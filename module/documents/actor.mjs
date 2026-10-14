@@ -2,7 +2,7 @@ import {WildPathModifier, WildPathStatistic} from "../helpers/modifiers.mjs";
 import {
   damageProfileFromRuleElements, grantedMovementFromRuleElements, grantedResourcesFromRuleElements, modifiersFromRuleElements,
   resourceCapsFromRuleElements, rollModesFromRuleElements, rollOutcomesFromRuleElements, extraDamageFromRuleElements, aurasFromRuleElements,
-  conditionImmunitiesFromRuleElements
+  conditionImmunitiesFromRuleElements, normalizeRuleElementType
 } from "../helpers/rule-elements.mjs";
 import {DEFAULT_FORM_STATISTICS, DEFAULT_KEPT_ITEM_TYPES, itemContributesWhileTransformed} from "../helpers/transformations.mjs";
 import WildPathConditionEffect from "../data/active-effect/condition.mjs";
@@ -184,7 +184,12 @@ export default class WildPathActor extends Actor {
 
   /** The resources this creature's grants give (`GrantResource`); each backs its pool of the same id. */
   getGrantedResources() {
-    return grantedResourcesFromRuleElements(grantOwners(this), {actor: this, actorSystem: this.system});
+    // An Action's own uses (Fire Breath, Second Wind, 3/Day) are a pool it spends: its GrantResource counts, though
+    // its other RuleElements only describe that Action.
+    const actions = [...(this.items ?? [])].filter(item => (item.type === "action") && (item.system?.active !== false)).map(item => ({
+      ruleElements: (item.system?.ruleElements ?? []).filter(rule => normalizeRuleElementType(rule?.type) === "GrantResource"),
+      source: documentRuleElementSource(item, "item")}));
+    return grantedResourcesFromRuleElements([...grantOwners(this), ...actions], {actor: this, actorSystem: this.system});
   }
 
   /**
@@ -193,10 +198,11 @@ export default class WildPathActor extends Actor {
    */
   grantedPoolsMissing(pools) {
     const known = new Set(pools.map(pool => pool.id));
-    return this.getGrantedResources().flatMap(({id, label, maximum, recovery}) => {
+    return this.getGrantedResources().flatMap(({id, label, maximum, current, recovery}) => {
       if ( known.has(id) ) return [];
       known.add(id);
-      return [{id, label: label || id, base: 0, bonus: 0, max: maximum, value: maximum,
+      // A grant may start its pool empty (`current: 0`, Multiattack's attacks).
+      return [{id, label: label || id, base: 0, bonus: 0, max: maximum, value: Math.min(current ?? maximum, maximum),
         recovery: ["turn", "shortRest", "longRest"].includes(recovery) ? recovery : "none"}];
     });
   }
@@ -464,6 +470,28 @@ export default class WildPathActor extends Actor {
       pools[index].value = resource.max;
       updates["system.pools"] = pools;
     }
+    // Multiattack's attacks last only the turn it is used.
+    for ( const grant of this.getGrantedResources().filter(entry => entry.emptiesAtTurnStart) ) {
+      const index = this.system.pools.findIndex(pool => pool.id === grant.id);
+      if ( (index < 0) || !pools[index].value ) continue;
+      pools[index].value = 0;
+      updates["system.pools"] = pools;
+    }
+    // Recharge: a spent pool whose grant says `recharge: 5` comes back on a d6 of 5 or more, rolled for the GM.
+    for ( const grant of this.getGrantedResources().filter(entry => entry.recharge) ) {
+      const index = this.system.pools.findIndex(pool => pool.id === grant.id);
+      const pool = this.system.pools[index];
+      if ( !pool || (pool.value >= pool.max) ) continue;
+      const roll = await new Roll("1d6").evaluate();
+      const recharged = roll.total >= grant.recharge;
+      if ( recharged ) {
+        pools[index].value = pool.max;
+        updates["system.pools"] = pools;
+      }
+      await roll.toMessage({speaker: ChatMessage.getSpeaker({actor: this}),
+        flavor: game.i18n.format(recharged ? "WILDPATH.RECHARGE.Recharged" : "WILDPATH.RECHARGE.Spent",
+          {name: grant.label, range: grant.recharge === 6 ? "6" : `${grant.recharge}–6`})}, {messageMode: "gm"});
+    }
     if ( !foundry.utils.isEmpty(updates) ) await this.update(updates);
     const triggers = await this.applyConditionTriggers({events});
     return {
@@ -636,7 +664,7 @@ function tokensOf(actor) {
 /** Grants count from active features and gear (those a transformation keeps) and enabled effects. */
 function grantOwners(actor) {
   const transformation = actor.transformation;
-  const items = [...actor.items].filter(item => (item.system?.active !== false) && (item.type !== "action")
+  const items = [...(actor.items ?? [])].filter(item => (item.system?.active !== false) && (item.type !== "action")
     && (!transformation || contributesWhileTransformed(item, transformation)))
     .map(item => ({ruleElements: item.system?.ruleElements ?? [], source: documentRuleElementSource(item, "item")}));
   const effects = [...(actor.allApplicableEffects?.() ?? actor.effects)].filter(effect => !effect.disabled && !effect.isSuppressed)

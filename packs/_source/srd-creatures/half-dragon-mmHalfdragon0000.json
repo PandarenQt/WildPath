@@ -103,9 +103,32 @@
               }
             ]
           },
-          "label": "Multiattack"
+          "label": "Multiattack",
+          "targeting": {
+            "type": "none"
+          },
+          "restores": [
+            {
+              "resourceId": "multiattack",
+              "amount": 2
+            }
+          ]
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack",
+              "label": "Multiattack",
+              "maximum": 2,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -120,7 +143,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
             ]
           }
         }
@@ -139,11 +162,19 @@
           "schemaVersion": 1,
           "id": "action:srd-claw",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "attack": {
@@ -282,7 +313,8 @@
                 "type": "constant",
                 "value": 1
               },
-              "recovery": "none"
+              "recovery": "none",
+              "recharge": 5
             }
           }
         ]
@@ -300,7 +332,6 @@
           },
           "conversion": {
             "notes": [
-              "uses: Recharge 5–6 is not rolled; refill the pool by hand",
               "damage 1: a choice of acid/cold/fire/lightning/poison uses acid"
             ]
           }
@@ -365,11 +396,10 @@
       },
       "conversion": {
         "notes": [
-          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
           "Claw: damage 1: a choice of acid/cold/fire/lightning/poison uses acid",
-          "Dragon's Breath: uses: Recharge 5–6 is not rolled; refill the pool by hand",
           "Dragon's Breath: damage 1: a choice of acid/cold/fire/lightning/poison uses acid",
-          "Leap: not automated (utility): using it spends its cost; its description says the rest"
+          "Leap: not automated (utility): using it spends its cost; its description says the rest",
+          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
         ]
       }
     }

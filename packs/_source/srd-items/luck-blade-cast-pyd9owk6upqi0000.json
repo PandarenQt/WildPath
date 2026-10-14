@@ -19,6 +19,10 @@
           {
             "capability": "luck-blade",
             "amount": 1
+          },
+          {
+            "capability": "luck-blade-phbsplwish000000",
+            "amount": 1
           }
         ]
       },
@@ -38,6 +42,20 @@
           },
           "recovery": "none"
         }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "luck-blade-phbsplwish000000-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "luck-blade-phbsplwish000000",
+          "label": "Luck Blade (phbsplWish000000)",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "longRest"
+        }
       }
     ]
   },
@@ -55,7 +73,7 @@
       "conversion": {
         "notes": [
           "not automated (cast): using it spends its cost; its description says the rest",
-          "consumption: activityUses 1 not converted"
+          "cast: its spell was not found among the converted spells"
         ]
       }
     }

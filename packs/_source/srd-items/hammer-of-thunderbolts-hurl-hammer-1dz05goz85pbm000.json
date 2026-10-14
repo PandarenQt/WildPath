@@ -15,6 +15,10 @@
           {
             "capability": "action",
             "amount": 1
+          },
+          {
+            "capability": "hammer-of-thunderbolts-hurl-hammer",
+            "amount": 1
           }
         ]
       },
@@ -50,7 +54,22 @@
       ],
       "label": "Hammer of Thunderbolts (Hurl Hammer)"
     },
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "hammer-of-thunderbolts-hurl-hammer-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "hammer-of-thunderbolts-hurl-hammer",
+          "label": "Hammer of Thunderbolts (Hurl Hammer)",
+          "maximum": {
+            "type": "constant",
+            "value": 5
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -65,7 +84,6 @@
       },
       "conversion": {
         "notes": [
-          "consumption: activityUses 1 not converted",
           "attack: +1 magic bonus not converted"
         ]
       }

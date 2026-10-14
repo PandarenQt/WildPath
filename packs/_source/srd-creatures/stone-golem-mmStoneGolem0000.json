@@ -117,7 +117,7 @@
       "img": "icons/skills/melee/strike-weapons-orange.webp",
       "system": {
         "active": true,
-        "description": "<p>The stone golem makes two attacks, using  or  in any combination.</p>",
+        "description": "<p>The stone golem makes two attacks, using Slam or Force Bolt in any combination.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-multiattack-use",
@@ -129,9 +129,32 @@
               }
             ]
           },
-          "label": "Multiattack"
+          "label": "Multiattack",
+          "targeting": {
+            "type": "none"
+          },
+          "restores": [
+            {
+              "resourceId": "multiattack",
+              "amount": 2
+            }
+          ]
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack",
+              "label": "Multiattack",
+              "maximum": 2,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -146,7 +169,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
             ]
           }
         }
@@ -165,11 +188,19 @@
           "schemaVersion": 1,
           "id": "action:srd-slam",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "attack": {
@@ -246,11 +277,19 @@
           "schemaVersion": 1,
           "id": "action:srd-force-bolt",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "attack": {
@@ -306,17 +345,20 @@
       }
     },
     {
-      "_id": "mmSlow0000000000",
-      "_key": "!actors.items!mmStoneGolem0000.mmSlow0000000000",
+      "_id": "sb023y7bp4s00000",
+      "_key": "!actors.items!mmStoneGolem0000.sb023y7bp4s00000",
       "name": "Slow",
       "type": "action",
       "img": "icons/magic/time/clock-stopwatch-white-blue.webp",
       "system": {
         "active": true,
-        "description": "<p class=\"feature\">The stone golem casts the <em>Slow</em> spell, requiring no spell components and using Constitution as the spellcasting ability (spell save DC ).</p>",
+        "description": "<p>You alter time around up to six creatures of your choice in a 40-foot Cube within range. Each target must succeed on a Wisdom saving throw or be affected by this spell for the duration.</p><p>An affected target's Speed is halved, it takes a −2 penalty to AC and Dexterity saving throws, and it can't take Reactions. On its turns, it can take either an action or a Bonus Action, not both, and it can make only one attack if it takes the Attack action. If it casts a spell with a Somatic component, there is a 25 percent chance the spell fails as a result of the target making the spell's gestures too slowly.</p><p>An affected target repeats the save at the end of each of its turns, ending the spell on itself on a success.</p><section class=\"secret\" id=\"secret-2RobIVhv3tn7gmU7\"><p><strong>Foundry Note</strong></p><p>The inline roll above will return 1 if it succeeded or 0 if it failed.</p></section>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-slow",
+          "id": "action:srd-slow-slow",
+          "tags": [
+            "spell"
+          ],
           "costs": {
             "allOf": [
               {
@@ -325,68 +367,6 @@
               },
               {
                 "capability": "slow",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Slow"
-        },
-        "ruleElements": [
-          {
-            "schemaVersion": 1,
-            "id": "slow-uses",
-            "type": "GrantResource",
-            "data": {
-              "resourceId": "slow",
-              "label": "Slow",
-              "maximum": {
-                "type": "constant",
-                "value": 1
-              },
-              "recovery": "none"
-            }
-          }
-        ]
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSlow0000000000",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "uses: Recharge 5–6 is not rolled; refill the pool by hand"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "_id": "rHwlDG85kUcrUFdg",
-      "_key": "!actors.items!mmStoneGolem0000.rHwlDG85kUcrUFdg",
-      "name": "Slow (save)",
-      "type": "action",
-      "img": "icons/magic/time/clock-stopwatch-white-blue.webp",
-      "system": {
-        "active": true,
-        "description": "<p>You alter time around up to six creatures of your choice in a 40-foot Cube within range. Each target must succeed on a Wisdom saving throw or be affected by this spell for the duration.</p><p>An affected target's Speed is halved, it takes a −2 penalty to AC and Dexterity saving throws, and it can't take Reactions. On its turns, it can take either an action or a Bonus Action, not both, and it can make only one attack if it takes the Attack action. If it casts a spell with a Somatic component, there is a 25 percent chance the spell fails as a result of the target making the spell's gestures too slowly.</p><p>An affected target repeats the save at the end of each of its turns, ending the spell on itself on a success.</p><section id=\"secret-2RobIVhv3tn7gmU7\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>The inline roll above will return 1 if it succeeded or 0 if it failed.</p></section>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-slow",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
                 "amount": 1
               }
             ]
@@ -437,42 +417,6 @@
                   "type": "Modifier",
                   "data": {
                     "domains": [
-                      "resources.movement.max"
-                    ],
-                    "modifierType": "untyped",
-                    "valueExpression": {
-                      "type": "floor",
-                      "value": {
-                        "type": "multiply",
-                        "terms": [
-                          {
-                            "type": "constant",
-                            "value": -0.5
-                          },
-                          {
-                            "type": "add",
-                            "terms": [
-                              {
-                                "type": "context",
-                                "path": "actorSystem.resources.movement.base"
-                              },
-                              {
-                                "type": "context",
-                                "path": "actorSystem.resources.movement.bonus"
-                              }
-                            ]
-                          }
-                        ]
-                      }
-                    }
-                  }
-                },
-                {
-                  "schemaVersion": 1,
-                  "id": "slowed-3",
-                  "type": "Modifier",
-                  "data": {
-                    "domains": [
                       "save.agility"
                     ],
                     "modifierType": "untyped",
@@ -489,297 +433,42 @@
               "concentration": true
             }
           ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
-          "label": "Slow (save)"
+          "label": "Slow"
         },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "rHwlDG85kUcrUFdg",
-            "type": "spell",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024"
-          },
-          "conversion": {
-            "notes": [
-              "area: 40-ft cube is not supported; the user picks the targets",
-              "effect: \"Slowed\" change system.attributes.movement.burrow (multiply) not converted",
-              "effect: \"Slowed\" change system.attributes.movement.climb (multiply) not converted",
-              "effect: \"Slowed\" change system.attributes.movement.fly (multiply) not converted",
-              "effect: \"Slowed\" change system.attributes.movement.swim (multiply) not converted"
-            ]
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "slow-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "slow",
+              "label": "Slow",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "none",
+              "recharge": 5
+            }
           }
-        }
-      }
-    },
-    {
-      "_id": "1sfwhr41r3h4is00",
-      "_key": "!actors.items!mmStoneGolem0000.1sfwhr41r3h4is00",
-      "name": "Slow (utility)",
-      "type": "action",
-      "img": "icons/magic/time/clock-stopwatch-white-blue.webp",
-      "system": {
-        "active": true,
-        "description": "<p>You alter time around up to six creatures of your choice in a 40-foot Cube within range. Each target must succeed on a Wisdom saving throw or be affected by this spell for the duration.</p><p>An affected target's Speed is halved, it takes a −2 penalty to AC and Dexterity saving throws, and it can't take Reactions. On its turns, it can take either an action or a Bonus Action, not both, and it can make only one attack if it takes the Attack action. If it casts a spell with a Somatic component, there is a 25 percent chance the spell fails as a result of the target making the spell's gestures too slowly.</p><p>An affected target repeats the save at the end of each of its turns, ending the spell on itself on a success.</p><section id=\"secret-2RobIVhv3tn7gmU7\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>The inline roll above will return 1 if it succeeded or 0 if it failed.</p></section>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-slow",
-          "tags": [
-            "spell"
-          ],
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "range": {
-            "type": "ranged",
-            "normal": {
-              "value": 120,
-              "unit": "ft"
-            }
-          },
-          "targeting": {
-            "type": "multiple",
-            "required": true,
-            "count": 20,
-            "refinementPolicy": {
-              "minSelections": 1
-            }
-          },
-          "effects": [
-            {
-              "id": "effect-1",
-              "type": "effect",
-              "name": "Slowed",
-              "img": "icons/magic/time/clock-stopwatch-white-blue.webp",
-              "ruleElements": [
-                {
-                  "schemaVersion": 1,
-                  "id": "slowed-1",
-                  "type": "Modifier",
-                  "data": {
-                    "domains": [
-                      "defense.ac"
-                    ],
-                    "modifierType": "untyped",
-                    "value": -2
-                  }
-                },
-                {
-                  "schemaVersion": 1,
-                  "id": "slowed-2",
-                  "type": "Modifier",
-                  "data": {
-                    "domains": [
-                      "resources.movement.max"
-                    ],
-                    "modifierType": "untyped",
-                    "valueExpression": {
-                      "type": "floor",
-                      "value": {
-                        "type": "multiply",
-                        "terms": [
-                          {
-                            "type": "constant",
-                            "value": -0.5
-                          },
-                          {
-                            "type": "add",
-                            "terms": [
-                              {
-                                "type": "context",
-                                "path": "actorSystem.resources.movement.base"
-                              },
-                              {
-                                "type": "context",
-                                "path": "actorSystem.resources.movement.bonus"
-                              }
-                            ]
-                          }
-                        ]
-                      }
-                    }
-                  }
-                },
-                {
-                  "schemaVersion": 1,
-                  "id": "slowed-3",
-                  "type": "Modifier",
-                  "data": {
-                    "domains": [
-                      "save.agility"
-                    ],
-                    "modifierType": "untyped",
-                    "value": -2
-                  }
-                }
-              ],
-              "duration": {
-                "value": 60,
-                "units": "seconds",
-                "expiry": "turnStart"
-              },
-              "concentration": true
-            }
-          ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "resource",
-              "label": "Spell slot",
-              "required": true,
-              "cost": {
-                "anyOf": [
-                  [
-                    {
-                      "capability": "spell-slot.3",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.4",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.5",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.6",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.7",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.8",
-                      "amount": 1
-                    }
-                  ],
-                  [
-                    {
-                      "capability": "spell-slot.9",
-                      "amount": 1
-                    }
-                  ]
-                ]
-              },
-              "levelByResourceId": {
-                "spell-slot.3": 3,
-                "spell-slot.4": 4,
-                "spell-slot.5": 5,
-                "spell-slot.6": 6,
-                "spell-slot.7": 7,
-                "spell-slot.8": 8,
-                "spell-slot.9": 9
-              },
-              "effects": []
-            }
-          ],
-          "label": "Slow (utility)"
-        },
-        "ruleElements": []
+        ]
       },
       "flags": {
         "wildpath": {
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "rHwlDG85kUcrUFdg",
+            "id": "phbsplSlow000000",
             "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "castBy": "Slow"
           },
           "conversion": {
             "notes": [
               "area: 40-ft cube is not supported; the user picks the targets",
-              "effect: \"Slowed\" change system.attributes.movement.burrow (multiply) not converted",
-              "effect: \"Slowed\" change system.attributes.movement.climb (multiply) not converted",
-              "effect: \"Slowed\" change system.attributes.movement.fly (multiply) not converted",
-              "effect: \"Slowed\" change system.attributes.movement.swim (multiply) not converted"
+              "effect: \"Slowed\" change system.attributes.movement.multiplier (multiply) not converted"
             ]
           }
         }
@@ -846,14 +535,9 @@
       },
       "conversion": {
         "notes": [
-          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Slow: not automated (cast): using it spends its cost; its description says the rest",
-          "Slow: uses: Recharge 5–6 is not rolled; refill the pool by hand",
           "Slow: area: 40-ft cube is not supported; the user picks the targets",
-          "Slow: effect: \"Slowed\" change system.attributes.movement.burrow (multiply) not converted",
-          "Slow: effect: \"Slowed\" change system.attributes.movement.climb (multiply) not converted",
-          "Slow: effect: \"Slowed\" change system.attributes.movement.fly (multiply) not converted",
-          "Slow: effect: \"Slowed\" change system.attributes.movement.swim (multiply) not converted"
+          "Slow: effect: \"Slowed\" change system.attributes.movement.multiplier (multiply) not converted",
+          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
         ]
       }
     }

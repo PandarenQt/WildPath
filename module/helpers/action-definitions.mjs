@@ -117,6 +117,9 @@ export function normalizeActionDefinition(rawDefinition={}, {
     // configuration choice of creatures, `count`, and optionally `rounds` and `concentration`.
     summon: normalizePlainComponent(raw.summon),
     ...(raw.stabilize === true ? {stabilize: true} : {}),
+    // Pools of the acting creature the Action refills when it is used (Multiattack's attacks, a use given back).
+    ...(Array.isArray(raw.restores) && raw.restores.length ? {restores: raw.restores.map(entry => ({
+      resourceId: stringOrNull(entry?.resourceId ?? entry?.resource), amount: finiteNumber(entry?.amount) ?? 1}))} : {}),
     configuration: normalizeArray(raw.configuration ?? raw.configurations).map(clonePlain),
     ruleElements: normalizeArray(raw.ruleElements).map(clonePlain),
     policies: clonePlain(raw.policies ?? raw.resolutionPolicies ?? {}) ?? {},
@@ -148,6 +151,11 @@ export function validateActionDefinition(rawDefinition={}, options={}) {
 
   validateCosts(definition.costs, errors);
   validateCosts(definition.controllerCosts, errors, "controllerCosts");
+  (definition.restores ?? []).forEach((entry, index) => {
+    if ( !entry.resourceId || !Number.isInteger(entry.amount) || (entry.amount < 1) ) {
+      errors.push(error(ACTION_DEFINITION_CODES.INVALID_COST, `restores.${index}`, "A restore names a pool and a whole amount of at least 1."));
+    }
+  });
   validateTransform(definition.transform, errors);
   validateSummon(definition.summon, errors);
   validatePredicateCandidates(definition, errors);

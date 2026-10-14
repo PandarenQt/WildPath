@@ -172,6 +172,33 @@ export function createActorResourceMutationPlan(actorSystem, paymentPlan) {
 
 /* -------------------------------------------- */
 
+/**
+ * Add to a payment's mutation plan the pools the Action refills (`restores`: Multiattack's attacks, a use given
+ * back), each up to its maximum, after what the payment itself spends. A pool the creature lacks is skipped.
+ */
+export function withResourceRestores(actorSystem, mutationPlan, restores=[]) {
+  if ( !mutationPlan?.ok || !restores.length ) return mutationPlan;
+  const updates = {...mutationPlan.updates};
+  // Each restore is recorded with what the pool held before, so the transaction can roll it back.
+  const payments = (mutationPlan.payments ?? []).map(payment => ({...payment}));
+  const restored = [];
+  for ( const {resourceId, amount} of restores ) {
+    const index = (actorSystem?.pools ?? []).findIndex(pool => pool.id === resourceId);
+    if ( index < 0 ) continue;
+    const pool = actorSystem.pools[index];
+    const path = `system.pools.${index}.value`;
+    const from = Number(updates[path] ?? pool.value ?? 0) || 0;
+    updates[path] = Math.min(from + amount, Number(pool.max ?? 0) || 0);
+    const paid = payments.find(payment => payment.path === path);
+    if ( paid ) paid.to = updates[path];
+    else payments.push({resourceId, actorResourceId: resourceId, path, from: Number(pool.value ?? 0) || 0, to: updates[path], amount: 0});
+    restored.push({resourceId, path, from, to: updates[path], amount});
+  }
+  return {...mutationPlan, updates, payments, restores: restored};
+}
+
+/* -------------------------------------------- */
+
 export async function commitActorResourceMutationPlan(actor, mutationPlan, {persistencePort=null}={}) {
   if ( !mutationPlan?.ok ) return false;
   if ( !Object.keys(mutationPlan.updates ?? {}).length ) return true;

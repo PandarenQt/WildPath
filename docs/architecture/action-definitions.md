@@ -128,6 +128,12 @@ Live (two browsers, 14.369):
 - Player1's barbarian used Rage (a `self` custom effect with slug `raging`). Its feature's
   `{hasCondition: "raging"}` Modifier on `damage.melee` made the axe roll "1d12 + 2".
 
+## Restores (2026-10-14)
+
+`restores: [{resourceId, amount}]` refills pools of the acting creature when the Action is paid for, each up to its
+maximum. It joins the payment's mutation plan, with what each pool held before, so the transaction can roll it
+back. Multiattack uses it: it costs the Action and restores its "Multiattack" pool to its number of attacks.
+
 ## Up to N targets (2026-10-14)
 
 A required `count` means exactly that many targets, unless `targeting.refinementPolicy.minSelections` says

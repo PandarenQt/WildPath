@@ -24,6 +24,8 @@ const ITEM_PACKS = ["equipment24", "spells24", "classes24", "feats24", "origins2
 const scales = scaleTables(readPack(from, "classes24").filter(document => document.type === "class"));
 const names = nameIndex([...ITEM_PACKS, "actors24", "content24", "tables24"].flatMap(pack => readPack(from, pack)));
 const wanted = document => isSrd2024(document) && (!only || only.has(document.name));
+// The spells a creature's Spellcasting casts, by id.
+const spells = Object.fromEntries(readPack(from, "spells24").map(document => [document._id, document]));
 
 const items = [];
 const actors = [];
@@ -37,7 +39,7 @@ for ( const pack of ITEM_PACKS ) {
   }
 }
 for ( const document of readPack(from, "actors24").filter(wanted) ) {
-  const result = convertActor(document, {scales, pack: "actors24", names});
+  const result = convertActor(document, {scales, pack: "actors24", names, spells});
   if ( !result.ok ) continue;
   actors.push(result.actor);
   report.push({pack: "actors24", name: document.name, converted: [`${result.actor.name} (${result.actor.items.length} items)`], notes: result.notes});

@@ -15,6 +15,10 @@
           {
             "capability": "bonus-action",
             "amount": 1
+          },
+          {
+            "capability": "staff-of-thunder-and-lightning-thunder-lightning",
+            "amount": 1
           }
         ]
       },
@@ -63,7 +67,21 @@
             "type": "constant",
             "value": 1
           },
-          "recovery": "none"
+          "recovery": "longRest"
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "staff-of-thunder-and-lightning-thunder-lightning-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "staff-of-thunder-and-lightning-thunder-lightning",
+          "label": "Staff of Thunder and Lightning (Thunder & Lightning)",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "longRest"
         }
       }
     ]
@@ -80,9 +98,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "consumption: activityUses 1 not converted"
-        ]
+        "notes": []
       }
     }
   }

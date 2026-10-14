@@ -62,7 +62,7 @@
             "type": "constant",
             "value": 50
           },
-          "recovery": "none"
+          "recovery": "longRest"
         }
       }
     ]
