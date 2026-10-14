@@ -370,9 +370,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -465,8 +463,7 @@
       },
       "conversion": {
         "notes": [
-          "Cunning Action: not automated (utility): using it spends its cost; its description says the rest",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Cunning Action: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

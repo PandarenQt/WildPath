@@ -80,7 +80,7 @@
           },
           "restores": [
             {
-              "resourceId": "multiattack",
+              "resourceId": "multiattack-rotting-fist",
               "amount": 2
             }
           ]
@@ -88,11 +88,11 @@
         "ruleElements": [
           {
             "schemaVersion": 1,
-            "id": "multiattack-uses",
+            "id": "multiattack-rotting-fist-uses",
             "type": "GrantResource",
             "data": {
-              "resourceId": "multiattack",
-              "label": "Multiattack",
+              "resourceId": "multiattack-rotting-fist",
+              "label": "Multiattack (Rotting Fist)",
               "maximum": 2,
               "current": 0,
               "recovery": "none",
@@ -114,7 +114,7 @@
           },
           "conversion": {
             "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+              "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
             ]
           }
         }
@@ -136,7 +136,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-rotting-fist",
                   "amount": 1
                 }
               ],
@@ -394,7 +394,7 @@
         "notes": [
           "Rotting Fist: effect: cursed is not a WildPath condition yet",
           "Rotting Fist: not automated (utility): using it spends its cost; its description says the rest",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
         ]
       }
     }

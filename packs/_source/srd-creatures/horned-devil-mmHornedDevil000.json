@@ -190,7 +190,7 @@
           },
           "conversion": {
             "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+              "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
             ]
           }
         }
@@ -526,7 +526,7 @@
         "notes": [
           "Infernal Tail: \"Target: HP Loss\" is passive or triggered: not automated",
           "Infernal Tail: \"Stanch Wound Check\" is passive or triggered: not automated",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
         ]
       }
     }

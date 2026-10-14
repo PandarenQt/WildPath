@@ -199,7 +199,11 @@
           "restores": [
             {
               "resourceId": "multiattack",
-              "amount": 4
+              "amount": 3
+            },
+            {
+              "resourceId": "multiattack-bite",
+              "amount": 1
             }
           ]
         },
@@ -211,7 +215,20 @@
             "data": {
               "resourceId": "multiattack",
               "label": "Multiattack",
-              "maximum": 4,
+              "maximum": 3,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-bite-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-bite",
+              "label": "Multiattack (Bite)",
+              "maximum": 1,
               "current": 0,
               "recovery": "none",
               "emptiesAtTurnStart": true
@@ -231,9 +248,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -254,7 +269,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-bite",
                   "amount": 1
                 }
               ],
@@ -925,8 +940,7 @@
           "Swallow: effect: coverTotal is not a WildPath condition yet",
           "Swallow: \"Damage: Swallowed\" is passive or triggered: not automated",
           "Swallow: \"Regurgitate: Save\" is passive or triggered: not automated",
-          "Onslaught: not automated (utility): using it spends its cost; its description says the rest",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Onslaught: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

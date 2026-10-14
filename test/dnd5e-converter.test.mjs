@@ -392,9 +392,41 @@ test("the monster toolkit (G4): Multiattack's attacks, a Spellcasting's spells a
 
   const [multiattack] = byName("Multiattack");
   valid(multiattack);
-  assert.deepEqual(multiattack.system.definition.restores, [{resourceId: "multiattack", amount: 2}]);
-  assert.deepEqual(multiattack.system.ruleElements.at(-1).data, {resourceId: "multiattack", label: "Multiattack", maximum: 2, current: 0,
-    recovery: "none", emptiesAtTurnStart: true});
-  assert.deepEqual(byName("Rend")[0].system.definition.costs, {anyOf: [[{capability: "multiattack", amount: 1}], [{capability: "action", amount: 1}]]});
+  assert.deepEqual(multiattack.system.definition.restores, [{resourceId: "multiattack-rend", amount: 2}], "the attacks it names");
+  assert.deepEqual(multiattack.system.ruleElements.at(-1).data, {resourceId: "multiattack-rend", label: "Multiattack (Rend)", maximum: 2,
+    current: 0, recovery: "none", emptiesAtTurnStart: true});
+  assert.deepEqual(byName("Rend")[0].system.definition.costs, {anyOf: [[{capability: "multiattack-rend", amount: 1}], [{capability: "action", amount: 1}]]});
   assert.equal(multiattack.system.description, "<p>The test mage makes two Rend attacks.</p>", "an item named by name");
+});
+
+test("Multiattack's named attacks: one pool each, an Action per alternative, and one shared pool when it names none", async () => {
+  const {multiattackPlans} = await import("../scripts/content/dnd5e-to-wildpath.mjs");
+  const plans = (text, names) => multiattackPlans(text, names)?.map(plan => plan.map(group => [group.names.join("|"), group.amount]));
+  assert.deepEqual(plans("The griffon makes one Beak attack and two Claws attacks.", ["Beak", "Claws", "Tail"]), [[["Beak", 1], ["Claws", 2]]]);
+  assert.deepEqual(plans("It makes three attacks: one with its bite and two with its claws.", ["Bite", "Claw"]), [[["Bite", 1], ["Claw", 2]]]);
+  assert.deepEqual(plans("It makes two attacks: one Bite and one Claw.", ["Bite", "Claw"]), [[["Bite", 1], ["Claw", 1]]]);
+  assert.deepEqual(plans("It makes two attacks, using Scimitar or Pistol in any combination.", ["Scimitar", "Pistol", "Kick"]),
+    [[["Scimitar|Pistol", 2]]], "a count those attacks share");
+  assert.equal(plans("It makes two attacks.", ["Slam"]), undefined, "it names none");
+  const attack = (id, name) => ({_id: id, name, type: "weapon", system: {source: SRD, properties: [], range: {value: null, units: "ft", reach: 5},
+    damage: {base: {number: 1, denomination: 8, types: ["bludgeoning"]}},
+    activities: {a: activity("attack", {attack: {ability: "str", bonus: "", type: {value: "melee", classification: "weapon"}},
+      damage: {includeBase: true, parts: []}})}}});
+  const ogre = {_id: "testOgre00000001", name: "Test Ogre", type: "npc", system: {source: SRD, details: {cr: 2}, abilities: {str: {value: 19}},
+    attributes: {hp: {max: 68}, movement: {walk: "40"}}, traits: {size: "lg"}},
+    items: [attack("greatclub0000001", "Greatclub"), attack("javelin000000001", "Javelin"), attack("stomp00000000001", "Stomp"),
+      {_id: "multiattack00002", name: "Multiattack", type: "feat", system: {source: SRD,
+        description: {value: "<p>The ogre makes two Greatclub attacks, or it makes two Javelin attacks.</p>"}, activities: {a: activity("utility")}}}]};
+  const {actor} = convertActor(ogre);
+  const byName = name => actor.items.find(item => item.name === name);
+  const [club, javelin] = ["Multiattack (2 Greatclub)", "Multiattack (2 Javelin)"].map(byName);
+  for ( const item of [club, javelin] ) valid(item);
+  assert.deepEqual([club.system.definition.restores, javelin.system.definition.restores],
+    [[{resourceId: "multiattack-greatclub", amount: 2}], [{resourceId: "multiattack-javelin", amount: 2}]], "each alternative is an Action");
+  assert.notEqual(club._id, javelin._id);
+  assert.deepEqual(club.system.ruleElements.filter(rule => rule.type === "GrantResource").map(rule => rule.data.resourceId),
+    ["multiattack-greatclub", "multiattack-javelin"], "the pools are granted once");
+  assert.equal(javelin.system.ruleElements.filter(rule => rule.type === "GrantResource").length, 0);
+  assert.deepEqual(byName("Javelin").system.definition.costs.anyOf[0], [{capability: "multiattack-javelin", amount: 1}]);
+  assert.deepEqual(byName("Stomp").system.definition.costs, {allOf: [{capability: "action", amount: 1}]}, "an attack it does not name");
 });

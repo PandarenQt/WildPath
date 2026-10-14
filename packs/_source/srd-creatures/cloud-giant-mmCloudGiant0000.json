@@ -115,7 +115,7 @@
           },
           "conversion": {
             "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+              "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
             ]
           }
         }
@@ -841,7 +841,7 @@
           "Spellcasting: not automated (save): using it spends its cost; its description says the rest",
           "Misty Step: consumption: itemUses 1 not converted",
           "Misty Step: not automated (teleport): using it spends its cost; its description says the rest",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
         ]
       }
     }

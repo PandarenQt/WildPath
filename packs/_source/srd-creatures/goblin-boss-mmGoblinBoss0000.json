@@ -148,19 +148,11 @@
           "schemaVersion": 1,
           "id": "action:srd-scimitar-attack-at-advantage",
           "costs": {
-            "anyOf": [
-              [
-                {
-                  "capability": "multiattack",
-                  "amount": 1
-                }
-              ],
-              [
-                {
-                  "capability": "action",
-                  "amount": 1
-                }
-              ]
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
             ]
           },
           "attack": {
@@ -323,19 +315,11 @@
           "schemaVersion": 1,
           "id": "action:srd-shortbow-attack-at-advantage",
           "costs": {
-            "anyOf": [
-              [
-                {
-                  "capability": "multiattack",
-                  "amount": 1
-                }
-              ],
-              [
-                {
-                  "capability": "action",
-                  "amount": 1
-                }
-              ]
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
             ]
           },
           "attack": {
@@ -462,9 +446,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -573,8 +555,7 @@
         "notes": [
           "Nimble Escape: not automated (utility): using it spends its cost; its description says the rest",
           "Nimble Escape: effect: hiding is not a WildPath condition yet",
-          "Redirect Attack: not automated (utility): using it spends its cost; its description says the rest",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Redirect Attack: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

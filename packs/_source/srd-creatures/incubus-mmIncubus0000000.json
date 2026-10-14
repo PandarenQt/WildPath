@@ -99,7 +99,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-restless-touch",
                   "amount": 1
                 }
               ],
@@ -191,7 +191,7 @@
           },
           "restores": [
             {
-              "resourceId": "multiattack",
+              "resourceId": "multiattack-restless-touch",
               "amount": 2
             }
           ]
@@ -199,11 +199,11 @@
         "ruleElements": [
           {
             "schemaVersion": 1,
-            "id": "multiattack-uses",
+            "id": "multiattack-restless-touch-uses",
             "type": "GrantResource",
             "data": {
-              "resourceId": "multiattack",
-              "label": "Multiattack",
+              "resourceId": "multiattack-restless-touch",
+              "label": "Multiattack (Restless Touch)",
               "maximum": 2,
               "current": 0,
               "recovery": "none",
@@ -224,9 +224,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -704,8 +702,7 @@
           "Spellcasting: activation: 1 minute is not an action-economy cost",
           "Spellcasting: effect: \"Trance State\" change system.attributes.movement.multiplier (override) not converted",
           "Spellcasting: area: 30-ft cube is not supported; the user picks the targets",
-          "Spellcasting: effect: \"Hypnotized\" change system.attributes.movement.multiplier (override) not converted",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Spellcasting: effect: \"Hypnotized\" change system.attributes.movement.multiplier (override) not converted"
         ]
       }
     }

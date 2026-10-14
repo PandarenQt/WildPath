@@ -127,20 +127,37 @@
           },
           "restores": [
             {
-              "resourceId": "multiattack",
-              "amount": 2
+              "resourceId": "multiattack-beard",
+              "amount": 1
+            },
+            {
+              "resourceId": "multiattack-infernal-glaive",
+              "amount": 1
             }
           ]
         },
         "ruleElements": [
           {
             "schemaVersion": 1,
-            "id": "multiattack-uses",
+            "id": "multiattack-beard-uses",
             "type": "GrantResource",
             "data": {
-              "resourceId": "multiattack",
-              "label": "Multiattack",
-              "maximum": 2,
+              "resourceId": "multiattack-beard",
+              "label": "Multiattack (Beard)",
+              "maximum": 1,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-infernal-glaive-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-infernal-glaive",
+              "label": "Multiattack (Infernal Glaive)",
+              "maximum": 1,
               "current": 0,
               "recovery": "none",
               "emptiesAtTurnStart": true
@@ -160,9 +177,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -183,7 +198,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-beard",
                   "amount": 1
                 }
               ],
@@ -269,7 +284,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-infernal-glaive",
                   "amount": 1
                 }
               ],
@@ -444,8 +459,7 @@
         "notes": [
           "Infernal Glaive: \"save\" is passive or triggered: not automated",
           "Infernal Glaive: \"Damage: Infernal Wound\" is passive or triggered: not automated",
-          "Infernal Glaive: not automated (check): using it spends its cost; its description says the rest",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Infernal Glaive: not automated (check): using it spends its cost; its description says the rest"
         ]
       }
     }

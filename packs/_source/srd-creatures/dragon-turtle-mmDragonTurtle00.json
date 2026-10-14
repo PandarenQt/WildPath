@@ -109,7 +109,7 @@
           },
           "restores": [
             {
-              "resourceId": "multiattack",
+              "resourceId": "multiattack-bite",
               "amount": 3
             }
           ]
@@ -117,11 +117,11 @@
         "ruleElements": [
           {
             "schemaVersion": 1,
-            "id": "multiattack-uses",
+            "id": "multiattack-bite-uses",
             "type": "GrantResource",
             "data": {
-              "resourceId": "multiattack",
-              "label": "Multiattack",
+              "resourceId": "multiattack-bite",
+              "label": "Multiattack (Bite)",
               "maximum": 3,
               "current": 0,
               "recovery": "none",
@@ -143,7 +143,7 @@
           },
           "conversion": {
             "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+              "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
             ]
           }
         }
@@ -165,7 +165,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-bite",
                   "amount": 1
                 }
               ],
@@ -251,19 +251,11 @@
           "schemaVersion": 1,
           "id": "action:srd-tail",
           "costs": {
-            "anyOf": [
-              [
-                {
-                  "capability": "multiattack",
-                  "amount": 1
-                }
-              ],
-              [
-                {
-                  "capability": "action",
-                  "amount": 1
-                }
-              ]
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
             ]
           },
           "attack": {
@@ -474,7 +466,7 @@
       },
       "conversion": {
         "notes": [
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
         ]
       }
     }

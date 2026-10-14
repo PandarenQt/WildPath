@@ -69,7 +69,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-slam",
                   "amount": 1
                 }
               ],
@@ -158,7 +158,7 @@
           },
           "restores": [
             {
-              "resourceId": "multiattack",
+              "resourceId": "multiattack-slam",
               "amount": 2
             }
           ]
@@ -166,11 +166,11 @@
         "ruleElements": [
           {
             "schemaVersion": 1,
-            "id": "multiattack-uses",
+            "id": "multiattack-slam-uses",
             "type": "GrantResource",
             "data": {
-              "resourceId": "multiattack",
-              "label": "Multiattack",
+              "resourceId": "multiattack-slam",
+              "label": "Multiattack (Slam)",
               "maximum": 2,
               "current": 0,
               "recovery": "none",
@@ -191,9 +191,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -259,9 +257,7 @@
         "challenge": 1
       },
       "conversion": {
-        "notes": [
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
-        ]
+        "notes": []
       }
     }
   }

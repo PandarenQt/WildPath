@@ -69,7 +69,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-battleaxe",
                   "amount": 1
                 }
               ],
@@ -157,7 +157,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-morningstar",
                   "amount": 1
                 }
               ],
@@ -248,20 +248,37 @@
           },
           "restores": [
             {
-              "resourceId": "multiattack",
-              "amount": 2
+              "resourceId": "multiattack-battleaxe",
+              "amount": 1
+            },
+            {
+              "resourceId": "multiattack-morningstar",
+              "amount": 1
             }
           ]
         },
         "ruleElements": [
           {
             "schemaVersion": 1,
-            "id": "multiattack-uses",
+            "id": "multiattack-battleaxe-uses",
             "type": "GrantResource",
             "data": {
-              "resourceId": "multiattack",
-              "label": "Multiattack",
-              "maximum": 2,
+              "resourceId": "multiattack-battleaxe",
+              "label": "Multiattack (Battleaxe)",
+              "maximum": 1,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-morningstar-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-morningstar",
+              "label": "Multiattack (Morningstar)",
+              "maximum": 1,
               "current": 0,
               "recovery": "none",
               "emptiesAtTurnStart": true
@@ -281,9 +298,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -304,8 +319,7 @@
       "conversion": {
         "notes": [
           "Battleaxe: damage: versatile two-handed damage not converted",
-          "Morningstar: effect: \"Next Attack: Disadv.\" (its own changes) not converted",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Morningstar: effect: \"Next Attack: Disadv.\" (its own changes) not converted"
         ]
       }
     }

@@ -115,9 +115,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -444,8 +442,7 @@
         "notes": [
           "War Cry: not automated (heal): using it spends its cost; its description says the rest",
           "War Cry: healing: temporary Hit Points not converted",
-          "War Cry: effect: \"Attack: Advantage\" (its own changes) not converted",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "War Cry: effect: \"Attack: Advantage\" (its own changes) not converted"
         ]
       }
     }

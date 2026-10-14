@@ -196,7 +196,7 @@
           },
           "conversion": {
             "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+              "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
             ]
           }
         }
@@ -215,19 +215,11 @@
           "schemaVersion": 1,
           "id": "action:srd-bite-bear-or-hybrid-form-only",
           "costs": {
-            "anyOf": [
-              [
-                {
-                  "capability": "multiattack",
-                  "amount": 1
-                }
-              ],
-              [
-                {
-                  "capability": "action",
-                  "amount": 1
-                }
-              ]
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
             ]
           },
           "attack": {
@@ -509,7 +501,7 @@
           "Bite (Bear or Hybrid Form Only): effect: cursed is not a WildPath condition yet",
           "Bite (Bear or Hybrid Form Only): not automated (summon): using it spends its cost; its description says the rest",
           "Shape-Shift: not automated (utility): using it spends its cost; its description says the rest",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
         ]
       }
     }

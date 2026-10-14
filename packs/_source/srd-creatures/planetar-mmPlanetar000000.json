@@ -184,7 +184,7 @@
           },
           "restores": [
             {
-              "resourceId": "multiattack",
+              "resourceId": "multiattack-radiant-sword",
               "amount": 3
             }
           ]
@@ -192,11 +192,11 @@
         "ruleElements": [
           {
             "schemaVersion": 1,
-            "id": "multiattack-uses",
+            "id": "multiattack-radiant-sword-uses",
             "type": "GrantResource",
             "data": {
-              "resourceId": "multiattack",
-              "label": "Multiattack",
+              "resourceId": "multiattack-radiant-sword",
+              "label": "Multiattack (Radiant Sword)",
               "maximum": 3,
               "current": 0,
               "recovery": "none",
@@ -218,7 +218,7 @@
           },
           "conversion": {
             "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+              "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
             ]
           }
         }
@@ -240,7 +240,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-radiant-sword",
                   "amount": 1
                 }
               ],
@@ -1683,7 +1683,7 @@
           "Spellcasting: not automated (save): using it spends its cost; its description says the rest",
           "Spellcasting: activation: 1 hour is not an action-economy cost",
           "Divine Aid: not automated (utility): using it spends its cost; its description says the rest",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
         ]
       }
     }

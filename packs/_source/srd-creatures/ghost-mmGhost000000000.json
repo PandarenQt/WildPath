@@ -135,7 +135,7 @@
           },
           "restores": [
             {
-              "resourceId": "multiattack",
+              "resourceId": "multiattack-withering-touch",
               "amount": 2
             }
           ]
@@ -143,11 +143,11 @@
         "ruleElements": [
           {
             "schemaVersion": 1,
-            "id": "multiattack-uses",
+            "id": "multiattack-withering-touch-uses",
             "type": "GrantResource",
             "data": {
-              "resourceId": "multiattack",
-              "label": "Multiattack",
+              "resourceId": "multiattack-withering-touch",
+              "label": "Multiattack (Withering Touch)",
               "maximum": 2,
               "current": 0,
               "recovery": "none",
@@ -168,9 +168,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -191,7 +189,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-withering-touch",
                   "amount": 1
                 }
               ],
@@ -554,8 +552,7 @@
       "conversion": {
         "notes": [
           "Etherealness: not automated (utility): using it spends its cost; its description says the rest",
-          "Etherealness: effect: ethereal is not a WildPath condition yet",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Etherealness: effect: ethereal is not a WildPath condition yet"
         ]
       }
     }

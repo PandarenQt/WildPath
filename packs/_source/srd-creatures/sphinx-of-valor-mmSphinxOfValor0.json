@@ -151,7 +151,7 @@
           },
           "restores": [
             {
-              "resourceId": "multiattack",
+              "resourceId": "multiattack-claw",
               "amount": 2
             }
           ]
@@ -159,11 +159,11 @@
         "ruleElements": [
           {
             "schemaVersion": 1,
-            "id": "multiattack-uses",
+            "id": "multiattack-claw-uses",
             "type": "GrantResource",
             "data": {
-              "resourceId": "multiattack",
-              "label": "Multiattack",
+              "resourceId": "multiattack-claw",
+              "label": "Multiattack (Claw)",
               "maximum": 2,
               "current": 0,
               "recovery": "none",
@@ -185,7 +185,7 @@
           },
           "conversion": {
             "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+              "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
             ]
           }
         }
@@ -207,7 +207,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-claw",
                   "amount": 1
                 }
               ],
@@ -1225,7 +1225,7 @@
           "Spellcasting: effect: \"Cannot Lie\" (its own changes) not converted",
           "Arcane Prowl: not automated (utility): using it spends its cost; its description says the rest",
           "Weight of Years: \"Years Older\" is passive or triggered: not automated",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
         ]
       }
     }

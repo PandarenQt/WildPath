@@ -135,7 +135,7 @@
           },
           "restores": [
             {
-              "resourceId": "multiattack",
+              "resourceId": "multiattack-pincer",
               "amount": 2
             }
           ]
@@ -143,11 +143,11 @@
         "ruleElements": [
           {
             "schemaVersion": 1,
-            "id": "multiattack-uses",
+            "id": "multiattack-pincer-uses",
             "type": "GrantResource",
             "data": {
-              "resourceId": "multiattack",
-              "label": "Multiattack",
+              "resourceId": "multiattack-pincer",
+              "label": "Multiattack (Pincer)",
               "maximum": 2,
               "current": 0,
               "recovery": "none",
@@ -169,7 +169,7 @@
           },
           "conversion": {
             "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+              "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
             ]
           }
         }
@@ -265,7 +265,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-pincer",
                   "amount": 1
                 }
               ],
@@ -400,7 +400,7 @@
       "conversion": {
         "notes": [
           "Pincer: \"Escape Check\" is passive or triggered: not automated",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
         ]
       }
     }

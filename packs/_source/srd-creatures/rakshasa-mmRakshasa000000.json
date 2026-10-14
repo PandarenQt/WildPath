@@ -135,7 +135,7 @@
           },
           "restores": [
             {
-              "resourceId": "multiattack",
+              "resourceId": "multiattack-cursed-touch",
               "amount": 3
             }
           ]
@@ -143,11 +143,11 @@
         "ruleElements": [
           {
             "schemaVersion": 1,
-            "id": "multiattack-uses",
+            "id": "multiattack-cursed-touch-uses",
             "type": "GrantResource",
             "data": {
-              "resourceId": "multiattack",
-              "label": "Multiattack",
+              "resourceId": "multiattack-cursed-touch",
+              "label": "Multiattack (Cursed Touch)",
               "maximum": 3,
               "current": 0,
               "recovery": "none",
@@ -168,9 +168,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -191,7 +189,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-cursed-touch",
                   "amount": 1
                 }
               ],
@@ -959,8 +957,7 @@
           "Spellcasting: effect: \"Disguised\" (its own changes) not converted",
           "Spellcasting: not automated (summon): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Flight\" change system.attributes.movement.hover (override) not converted",
-          "Spellcasting: not automated (teleport): using it spends its cost; its description says the rest",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Spellcasting: not automated (teleport): using it spends its cost; its description says the rest"
         ]
       }
     }

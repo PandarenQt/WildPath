@@ -164,20 +164,37 @@
           },
           "restores": [
             {
-              "resourceId": "multiattack",
-              "amount": 2
+              "resourceId": "multiattack-hooves",
+              "amount": 1
+            },
+            {
+              "resourceId": "multiattack-radiant-horn",
+              "amount": 1
             }
           ]
         },
         "ruleElements": [
           {
             "schemaVersion": 1,
-            "id": "multiattack-uses",
+            "id": "multiattack-hooves-uses",
             "type": "GrantResource",
             "data": {
-              "resourceId": "multiattack",
-              "label": "Multiattack",
-              "maximum": 2,
+              "resourceId": "multiattack-hooves",
+              "label": "Multiattack (Hooves)",
+              "maximum": 1,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-radiant-horn-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-radiant-horn",
+              "label": "Multiattack (Radiant Horn)",
+              "maximum": 1,
               "current": 0,
               "recovery": "none",
               "emptiesAtTurnStart": true
@@ -197,9 +214,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -220,7 +235,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-hooves",
                   "amount": 1
                 }
               ],
@@ -299,7 +314,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-radiant-horn",
                   "amount": 1
                 }
               ],
@@ -1271,8 +1286,7 @@
           "Spellcasting: not automated (teleport): using it spends its cost; its description says the rest",
           "Charging Horn: not automated (utility): using it spends its cost; its description says the rest",
           "Shimmering Shield: healing: temporary Hit Points not converted",
-          "Unicorn's Blessing: not automated (utility): using it spends its cost; its description says the rest",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Unicorn's Blessing: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

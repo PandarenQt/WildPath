@@ -255,9 +255,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -1448,8 +1446,7 @@
           "Spellcasting: effect: \"Gaseous Form\" change img (override) not converted",
           "Spellcasting: not automated (summon): using it spends its cost; its description says the rest",
           "Spellcasting: not automated (teleport): using it spends its cost; its description says the rest",
-          "Create Whirlwind: area: a cylinder's height is not modeled",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Create Whirlwind: area: a cylinder's height is not modeled"
         ]
       }
     }

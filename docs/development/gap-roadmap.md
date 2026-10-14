@@ -239,7 +239,11 @@ Forced movement and elevation join G6, which becomes "space": areas, elevation a
   - Live (GM): an Adult Black Dragon from the SRD pack used Multiattack (pool 3), then three Rends at the Bandit
     Captain, each paid from the pool; a fourth was refused. At the start of its turn, its leftover Multiattack uses
     emptied, and Acid Breath recharged on a 5, whispered to the GM.
-  - Not yet: Lair Actions, summoned creatures' own stat blocks, and enforcing which attacks a Multiattack names.
+  - Not yet: Lair Actions and summoned creatures' own stat blocks.
+  - Multiattack's named attacks (2026-10-15): "shortcut: named attacks not enforced" fell from 515 documents to 11.
+    Each named attack has its own count, and each alternative is an Action of its own. Live: an SRD Brown Bear's
+    Multiattack filled Bite 1 and Claw 1; a second Bite was refused, and the Claw went through. Its replacements
+    ("it can replace one attack with...") and other abilities stay manual (167 documents).
     Legendary Resistance came with G5.
 - **G3, effects with their own rules (2026-10-14).** Done:
   - dnd5e effect changes map to rules on custom effects, with their duration, concentration and save policy;

@@ -107,7 +107,7 @@
           },
           "restores": [
             {
-              "resourceId": "multiattack",
+              "resourceId": "multiattack-charged-tendril",
               "amount": 3
             }
           ]
@@ -115,11 +115,11 @@
         "ruleElements": [
           {
             "schemaVersion": 1,
-            "id": "multiattack-uses",
+            "id": "multiattack-charged-tendril-uses",
             "type": "GrantResource",
             "data": {
-              "resourceId": "multiattack",
-              "label": "Multiattack",
+              "resourceId": "multiattack-charged-tendril",
+              "label": "Multiattack (Charged Tendril)",
               "maximum": 3,
               "current": 0,
               "recovery": "none",
@@ -141,7 +141,7 @@
           },
           "conversion": {
             "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+              "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
             ]
           }
         }
@@ -163,7 +163,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-charged-tendril",
                   "amount": 1
                 }
               ],
@@ -436,7 +436,7 @@
         "notes": [
           "Engulf: \"Engulfed: Damage\" is passive or triggered: not automated",
           "Engulf: not automated (check): using it spends its cost; its description says the rest",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
         ]
       }
     }

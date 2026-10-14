@@ -152,7 +152,7 @@
           },
           "restores": [
             {
-              "resourceId": "multiattack",
+              "resourceId": "multiattack-vine-lash",
               "amount": 1
             }
           ]
@@ -160,11 +160,11 @@
         "ruleElements": [
           {
             "schemaVersion": 1,
-            "id": "multiattack-uses",
+            "id": "multiattack-vine-lash-uses",
             "type": "GrantResource",
             "data": {
-              "resourceId": "multiattack",
-              "label": "Multiattack",
+              "resourceId": "multiattack-vine-lash",
+              "label": "Multiattack (Vine Lash)",
               "maximum": 1,
               "current": 0,
               "recovery": "none",
@@ -186,7 +186,7 @@
           },
           "conversion": {
             "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+              "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
             ]
           }
         }
@@ -208,7 +208,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-vine-lash",
                   "amount": 1
                 }
               ],
@@ -285,19 +285,11 @@
           "schemaVersion": 1,
           "id": "action:srd-thorn-burst",
           "costs": {
-            "anyOf": [
-              [
-                {
-                  "capability": "multiattack",
-                  "amount": 1
-                }
-              ],
-              [
-                {
-                  "capability": "action",
-                  "amount": 1
-                }
-              ]
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
             ]
           },
           "attack": {
@@ -798,7 +790,7 @@
           "Spellcasting: area: 5-ft cube is not supported; the user picks the targets",
           "Spellcasting: area: 20-ft cube is not supported; the user picks the targets",
           "Tree Stride: not automated (utility): using it spends its cost; its description says the rest",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
         ]
       }
     }

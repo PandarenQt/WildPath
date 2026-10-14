@@ -185,9 +185,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -553,8 +551,7 @@
       "conversion": {
         "notes": [
           "Slow: area: 40-ft cube is not supported; the user picks the targets",
-          "Slow: effect: \"Slowed\" change system.attributes.movement.multiplier (multiply) not converted",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Slow: effect: \"Slowed\" change system.attributes.movement.multiplier (multiply) not converted"
         ]
       }
     }

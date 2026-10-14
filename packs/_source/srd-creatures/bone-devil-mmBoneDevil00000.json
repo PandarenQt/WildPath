@@ -156,20 +156,37 @@
           },
           "restores": [
             {
-              "resourceId": "multiattack",
-              "amount": 3
+              "resourceId": "multiattack-claw",
+              "amount": 2
+            },
+            {
+              "resourceId": "multiattack-infernal-sting",
+              "amount": 1
             }
           ]
         },
         "ruleElements": [
           {
             "schemaVersion": 1,
-            "id": "multiattack-uses",
+            "id": "multiattack-claw-uses",
             "type": "GrantResource",
             "data": {
-              "resourceId": "multiattack",
-              "label": "Multiattack",
-              "maximum": 3,
+              "resourceId": "multiattack-claw",
+              "label": "Multiattack (Claw)",
+              "maximum": 2,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-infernal-sting-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-infernal-sting",
+              "label": "Multiattack (Infernal Sting)",
+              "maximum": 1,
               "current": 0,
               "recovery": "none",
               "emptiesAtTurnStart": true
@@ -189,9 +206,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -212,7 +227,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-claw",
                   "amount": 1
                 }
               ],
@@ -291,7 +306,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-infernal-sting",
                   "amount": 1
                 }
               ],
@@ -445,9 +460,7 @@
         "challenge": 9
       },
       "conversion": {
-        "notes": [
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
-        ]
+        "notes": []
       }
     }
   }

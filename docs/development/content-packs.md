@@ -170,15 +170,17 @@ Flyby on 6 and Regeneration on 4. The book packages convert the same way.
 
 ### The monster toolkit (G4)
 
-- **Multiattack.**
-  - The attack count comes from its text: "makes three Rend attacks", "one Bite attack and two Claw attacks", the
-    first alternative of ", or".
-  - Multiattack costs the Action and restores a "Multiattack" pool of that many uses. The pool starts empty and
-    empties at the start of each turn.
-  - Each of the creature's attack Actions costs one Multiattack use, or the Action.
-
-  Shortcut: any of its attacks may be each of them, whatever the text names. Its other parts ("and uses Frightful
-  Presence") are used by hand.
+- **Multiattack** (named attacks, 2026-10-15).
+  - Its text names its attacks: "makes three Rend attacks", "one Bite attack and two Claw attacks", 2014's "three
+    attacks: one with its bite and two with its claws".
+  - Multiattack costs the Action and fills a pool per named attack, "Multiattack (Bite)" 1 and "Multiattack (Claw)"
+    2. The pools start empty and empty at the start of each turn.
+  - Each named attack costs a use of its own pool, or the Action. An attack it does not name costs the Action.
+  - "Two attacks, using Scimitar or Shortbow in any combination" is one pool those two attacks share.
+  - Each alternative ("two Greatclub attacks, or it makes two Javelin attacks") is a Multiattack Action of its own:
+    "Multiattack (2 Greatclub)" and "Multiattack (2 Javelin)".
+  - When its text names no attacks, any of its attacks may be each of them, from one pool. Its other parts ("it can
+    replace one attack with...", "and uses Frightful Presence") are used by hand.
 - **Spellcasting.**
   - A cast activity becomes its spell's Action, converted with the creature's save DC and casting ability.
   - It costs the activity's activation and its own uses ("2/Day each"), or an item's charges, never a slot.

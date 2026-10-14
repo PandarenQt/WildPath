@@ -81,7 +81,7 @@
           },
           "restores": [
             {
-              "resourceId": "multiattack",
+              "resourceId": "multiattack-rend",
               "amount": 2
             }
           ]
@@ -89,11 +89,11 @@
         "ruleElements": [
           {
             "schemaVersion": 1,
-            "id": "multiattack-uses",
+            "id": "multiattack-rend-uses",
             "type": "GrantResource",
             "data": {
-              "resourceId": "multiattack",
-              "label": "Multiattack",
+              "resourceId": "multiattack-rend",
+              "label": "Multiattack (Rend)",
               "maximum": 2,
               "current": 0,
               "recovery": "none",
@@ -114,9 +114,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -165,7 +163,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-rend",
                   "amount": 1
                 }
               ],
@@ -458,9 +456,7 @@
         "challenge": 2
       },
       "conversion": {
-        "notes": [
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
-        ]
+        "notes": []
       }
     }
   }

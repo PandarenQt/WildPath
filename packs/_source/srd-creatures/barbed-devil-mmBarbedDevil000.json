@@ -195,7 +195,7 @@
     {
       "_id": "mmMultiattack000",
       "_key": "!actors.items!mmBarbedDevil000.mmMultiattack000",
-      "name": "Multiattack",
+      "name": "Multiattack (1 Claws, 1 Tail)",
       "type": "action",
       "img": "icons/skills/melee/strike-weapons-orange.webp",
       "system": {
@@ -212,25 +212,55 @@
               }
             ]
           },
-          "label": "Multiattack",
+          "label": "Multiattack (1 Claws, 1 Tail)",
           "targeting": {
             "type": "none"
           },
           "restores": [
             {
-              "resourceId": "multiattack",
-              "amount": 2
+              "resourceId": "multiattack-claws",
+              "amount": 1
+            },
+            {
+              "resourceId": "multiattack-tail",
+              "amount": 1
             }
           ]
         },
         "ruleElements": [
           {
             "schemaVersion": 1,
-            "id": "multiattack-uses",
+            "id": "multiattack-claws-uses",
             "type": "GrantResource",
             "data": {
-              "resourceId": "multiattack",
-              "label": "Multiattack",
+              "resourceId": "multiattack-claws",
+              "label": "Multiattack (Claws)",
+              "maximum": 1,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-tail-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-tail",
+              "label": "Multiattack (Tail)",
+              "maximum": 1,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-hurl-flame-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-hurl-flame",
+              "label": "Multiattack (Hurl Flame)",
               "maximum": 2,
               "current": 0,
               "recovery": "none",
@@ -251,9 +281,57 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "150wsz8fnh59s000",
+      "_key": "!actors.items!mmBarbedDevil000.150wsz8fnh59s000",
+      "name": "Multiattack (2 Hurl Flame)",
+      "type": "action",
+      "img": "icons/skills/melee/strike-weapons-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The barbed devil makes one Claws attack and one Tail attack, or it makes two Hurl Flame attacks.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-multiattack-expend-use-2",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
             ]
+          },
+          "label": "Multiattack (2 Hurl Flame)",
+          "targeting": {
+            "type": "none"
+          },
+          "restores": [
+            {
+              "resourceId": "multiattack-hurl-flame",
+              "amount": 2
+            }
+          ]
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMultiattack000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
           }
         }
       }
@@ -274,7 +352,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-claws",
                   "amount": 1
                 }
               ],
@@ -360,7 +438,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-tail",
                   "amount": 1
                 }
               ],
@@ -439,7 +517,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-hurl-flame",
                   "amount": 1
                 }
               ],
@@ -579,8 +657,7 @@
       "conversion": {
         "notes": [
           "Barbed Hide: activation: turnStart is not an action-economy cost",
-          "Claws: \"Escape Check\" is passive or triggered: not automated",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Claws: \"Escape Check\" is passive or triggered: not automated"
         ]
       }
     }

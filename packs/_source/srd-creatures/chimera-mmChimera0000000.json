@@ -79,20 +79,54 @@
           },
           "restores": [
             {
-              "resourceId": "multiattack",
-              "amount": 3
+              "resourceId": "multiattack-ram",
+              "amount": 1
+            },
+            {
+              "resourceId": "multiattack-bite",
+              "amount": 1
+            },
+            {
+              "resourceId": "multiattack-claw",
+              "amount": 1
             }
           ]
         },
         "ruleElements": [
           {
             "schemaVersion": 1,
-            "id": "multiattack-uses",
+            "id": "multiattack-ram-uses",
             "type": "GrantResource",
             "data": {
-              "resourceId": "multiattack",
-              "label": "Multiattack",
-              "maximum": 3,
+              "resourceId": "multiattack-ram",
+              "label": "Multiattack (Ram)",
+              "maximum": 1,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-bite-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-bite",
+              "label": "Multiattack (Bite)",
+              "maximum": 1,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-claw-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-claw",
+              "label": "Multiattack (Claw)",
+              "maximum": 1,
               "current": 0,
               "recovery": "none",
               "emptiesAtTurnStart": true
@@ -113,7 +147,7 @@
           },
           "conversion": {
             "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+              "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
             ]
           }
         }
@@ -135,7 +169,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-bite",
                   "amount": 1
                 }
               ],
@@ -211,19 +245,11 @@
           "schemaVersion": 1,
           "id": "action:srd-bite-attack-with-advantage",
           "costs": {
-            "anyOf": [
-              [
-                {
-                  "capability": "multiattack",
-                  "amount": 1
-                }
-              ],
-              [
-                {
-                  "capability": "action",
-                  "amount": 1
-                }
-              ]
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
             ]
           },
           "attack": {
@@ -302,7 +328,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-claw",
                   "amount": 1
                 }
               ],
@@ -381,7 +407,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-ram",
                   "amount": 1
                 }
               ],
@@ -592,7 +618,7 @@
       },
       "conversion": {
         "notes": [
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
         ]
       }
     }

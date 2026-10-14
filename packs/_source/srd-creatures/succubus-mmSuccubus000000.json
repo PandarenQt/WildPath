@@ -122,7 +122,7 @@
           },
           "restores": [
             {
-              "resourceId": "multiattack",
+              "resourceId": "multiattack-fiendish-touch",
               "amount": 1
             }
           ]
@@ -130,11 +130,11 @@
         "ruleElements": [
           {
             "schemaVersion": 1,
-            "id": "multiattack-uses",
+            "id": "multiattack-fiendish-touch-uses",
             "type": "GrantResource",
             "data": {
-              "resourceId": "multiattack",
-              "label": "Multiattack",
+              "resourceId": "multiattack-fiendish-touch",
+              "label": "Multiattack (Fiendish Touch)",
               "maximum": 1,
               "current": 0,
               "recovery": "none",
@@ -156,7 +156,7 @@
           },
           "conversion": {
             "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+              "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
             ]
           }
         }
@@ -178,7 +178,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-fiendish-touch",
                   "amount": 1
                 }
               ],
@@ -510,7 +510,7 @@
           "Incubus Form: not automated (summon): using it spends its cost; its description says the rest",
           "Charm: cast: Dominate Person at level 8 is cast at its own level",
           "Shape-Shift: not automated (utility): using it spends its cost; its description says the rest",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
         ]
       }
     }

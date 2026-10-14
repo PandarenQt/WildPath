@@ -259,20 +259,37 @@
           },
           "restores": [
             {
-              "resourceId": "multiattack",
-              "amount": 2
+              "resourceId": "multiattack-flame-whip",
+              "amount": 1
+            },
+            {
+              "resourceId": "multiattack-lightning-blade",
+              "amount": 1
             }
           ]
         },
         "ruleElements": [
           {
             "schemaVersion": 1,
-            "id": "multiattack-uses",
+            "id": "multiattack-flame-whip-uses",
             "type": "GrantResource",
             "data": {
-              "resourceId": "multiattack",
-              "label": "Multiattack",
-              "maximum": 2,
+              "resourceId": "multiattack-flame-whip",
+              "label": "Multiattack (Flame Whip)",
+              "maximum": 1,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-lightning-blade-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-lightning-blade",
+              "label": "Multiattack (Lightning Blade)",
+              "maximum": 1,
               "current": 0,
               "recovery": "none",
               "emptiesAtTurnStart": true
@@ -292,9 +309,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -315,7 +330,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-flame-whip",
                   "amount": 1
                 }
               ],
@@ -455,7 +470,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-lightning-blade",
                   "amount": 1
                 }
               ],
@@ -608,8 +623,7 @@
         "notes": [
           "Death Throes: \"save\" is passive or triggered: not automated",
           "Fire Aura: activation: turnEnd is not an action-economy cost",
-          "Teleport: not automated (utility): using it spends its cost; its description says the rest",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Teleport: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }
