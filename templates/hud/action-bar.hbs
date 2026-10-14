@@ -5,7 +5,7 @@
       <span class="bar-name">{{name}}</span>
       <span class="bar-conditions">
         {{#each conditions as |condition|}}
-          <span class="bar-condition" title="{{localize condition.name}}">
+          <span class="bar-condition" data-tooltip="<strong>{{localize condition.name}}</strong>{{#if condition.summary}}<br>{{localize condition.summary}}{{/if}}{{#if condition.remaining}}<br>{{condition.remaining}}{{/if}}">
             <img src="{{condition.img}}" alt="{{localize condition.name}}" width="20" height="20">
             {{#if condition.level}}<span class="condition-level">{{condition.level}}</span>{{/if}}
           </span>
@@ -19,13 +19,14 @@
     </div>
     <div class="bar-groups">
       {{#each groups as |group|}}
-        <div class="bar-group">
+        <div class="bar-group" data-group="{{group.id}}">
           <span class="bar-group-label">{{localize group.label}}</span>
           {{#each group.actions as |action|}}
             <button type="button" class="bar-action" data-action="use" data-item-id="{{action.id}}"
-                    {{#unless action.enabled}}disabled title="{{localize "WILDPATH.ACTIONBAR.Unavailable"}} ({{action.disabledCode}})"{{else}}{{#if action.odds}}data-tooltip="{{action.odds.tooltip}}"{{else}}title="{{action.label}}"{{/if}}{{/unless}}>
+                    {{#unless action.enabled}}disabled title="{{action.label}}: {{localize "WILDPATH.ACTIONBAR.Unavailable"}} ({{action.disabledCode}})"{{else}}{{#if action.odds}}data-tooltip="{{action.label}}<br>{{action.odds.tooltip}}"{{else}}data-tooltip="{{action.label}}"{{/if}}{{/unless}}
+                    aria-label="{{action.label}}">
               <img src="{{action.img}}" alt="" width="28" height="28">
-              <span>{{action.label}}</span>
+              <span class="bar-action-label">{{action.label}}</span>
               {{#if action.odds}}<span class="bar-odds">{{action.odds.badge}}</span>{{/if}}
             </button>
             {{#if action.policy}}

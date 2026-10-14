@@ -152,10 +152,10 @@ const perLevel = (id, domains, value) => ({schemaVersion: 1, id: `condition.${id
  * `damageType`, times its stacks when the condition stacks (each application adds a stack). Envenomed
  * (poison) and Bleeding are built this way; another damage type is one more entry.
  */
-function damageOverTimeCondition({id, name, img, damageType, amount=1, stacking=true, maxLevel, label}) {
+function damageOverTimeCondition({id, name, summary, img, damageType, amount=1, stacking=true, maxLevel, label}) {
   const perTurn = stacking ? {type: "multiply", terms: [{type: "context", path: "effect.system.level"}, {type: "constant", value: amount}]}
     : {type: "constant", value: amount};
-  return {id, name, img, ...(stacking ? {stacking: true} : {}), ...(maxLevel ? {maxLevel} : {}),
+  return {id, name, summary, img, ...(stacking ? {stacking: true} : {}), ...(maxLevel ? {maxLevel} : {}),
     ruleElements: [{schemaVersion: 1, id: `condition.${id}.turn-start-damage`, type: "Trigger", label: label ?? `${id} turn damage`,
       data: {event: "turn.started", payload: {type: "durabilityChange", changeType: "damage", resourceId: "health",
         amount: perTurn, damageType, tags: ["condition", id, "periodic"]}}}]};
@@ -168,6 +168,7 @@ WILDPATH.CONDITIONS = {
   prone: {
     id: "prone",
     name: "WILDPATH.CONDITIONS.Prone",
+    summary: "WILDPATH.CONDITIONS.Summary.Prone",
     img: "icons/svg/falling.svg",
     ruleElements: [
       rollMode("prone.own-attacks", ["attack"], "disadvantage"),
@@ -178,6 +179,7 @@ WILDPATH.CONDITIONS = {
   blinded: {
     id: "blinded",
     name: "WILDPATH.CONDITIONS.Blinded",
+    summary: "WILDPATH.CONDITIONS.Summary.Blinded",
     img: "icons/svg/blind.svg",
     ruleElements: [
       rollMode("blinded.own-attacks", ["attack"], "disadvantage"),
@@ -187,6 +189,7 @@ WILDPATH.CONDITIONS = {
   restrained: {
     id: "restrained",
     name: "WILDPATH.CONDITIONS.Restrained",
+    summary: "WILDPATH.CONDITIONS.Summary.Restrained",
     img: "icons/svg/net.svg",
     ruleElements: [
       rollMode("restrained.own-attacks", ["attack"], "disadvantage"),
@@ -198,6 +201,7 @@ WILDPATH.CONDITIONS = {
   stunned: {
     id: "stunned",
     name: "WILDPATH.CONDITIONS.Stunned",
+    summary: "WILDPATH.CONDITIONS.Summary.Stunned",
     img: "icons/svg/daze.svg",
     endsConcentration: true,
     ruleElements: [rollMode("stunned.attacked", ["attacked"], "advantage"), cap("stunned.incapacitated", INCAPACITATED),
@@ -207,6 +211,7 @@ WILDPATH.CONDITIONS = {
   unconscious: {
     id: "unconscious",
     name: "WILDPATH.CONDITIONS.Unconscious",
+    summary: "WILDPATH.CONDITIONS.Summary.Unconscious",
     img: "icons/svg/unconscious.svg",
     // 2024: Unconscious includes Prone, which stays after waking; it is Incapacitated, so it ends concentration.
     implies: ["prone"],
@@ -220,6 +225,7 @@ WILDPATH.CONDITIONS = {
   exhaustion: {
     id: "exhaustion",
     name: "WILDPATH.CONDITIONS.Exhaustion",
+    summary: "WILDPATH.CONDITIONS.Summary.Exhaustion",
     img: "icons/svg/stoned.svg",
     stacking: true,
     maxLevel: 6,
@@ -230,12 +236,14 @@ WILDPATH.CONDITIONS = {
   poisoned: {
     id: "poisoned",
     name: "WILDPATH.CONDITIONS.Poisoned",
+    summary: "WILDPATH.CONDITIONS.Summary.Poisoned",
     img: "icons/svg/poison.svg",
     ruleElements: [rollMode("poisoned.own-rolls", ["attack", "check"], "disadvantage")]
   },
   incapacitated: {
     id: "incapacitated",
     name: "WILDPATH.CONDITIONS.Incapacitated",
+    summary: "WILDPATH.CONDITIONS.Summary.Incapacitated",
     img: "icons/svg/sleep.svg",
     endsConcentration: true,
     ruleElements: [cap("incapacitated.no-actions", INCAPACITATED), rollMode("incapacitated.initiative", ["initiative"], "disadvantage")]
@@ -243,6 +251,7 @@ WILDPATH.CONDITIONS = {
   paralyzed: {
     id: "paralyzed",
     name: "WILDPATH.CONDITIONS.Paralyzed",
+    summary: "WILDPATH.CONDITIONS.Summary.Paralyzed",
     img: "icons/svg/paralysis.svg",
     endsConcentration: true,
     ruleElements: [cap("paralyzed.incapacitated", INCAPACITATED), cap("paralyzed.speed-0", ["movement"]),
@@ -253,6 +262,7 @@ WILDPATH.CONDITIONS = {
   petrified: {
     id: "petrified",
     name: "WILDPATH.CONDITIONS.Petrified",
+    summary: "WILDPATH.CONDITIONS.Summary.Petrified",
     img: "icons/svg/statue.svg",
     endsConcentration: true,
     ruleElements: [cap("petrified.incapacitated", INCAPACITATED), cap("petrified.speed-0", ["movement"]),
@@ -264,6 +274,7 @@ WILDPATH.CONDITIONS = {
   invisible: {
     id: "invisible",
     name: "WILDPATH.CONDITIONS.Invisible",
+    summary: "WILDPATH.CONDITIONS.Summary.Invisible",
     img: "icons/svg/invisible.svg",
     // shortcut: a creature that can see the invisible (Truesight, See Invisibility) still has disadvantage; upgrade with senses.
     ruleElements: [rollMode("invisible.own-attacks", ["attack"], "advantage"), rollMode("invisible.attacked", ["attacked"], "disadvantage"),
@@ -272,12 +283,14 @@ WILDPATH.CONDITIONS = {
   deafened: {
     id: "deafened",
     name: "WILDPATH.CONDITIONS.Deafened",
+    summary: "WILDPATH.CONDITIONS.Summary.Deafened",
     img: "icons/svg/deaf.svg",
     ruleElements: []
   },
   frightened: {
     id: "frightened",
     name: "WILDPATH.CONDITIONS.Frightened",
+    summary: "WILDPATH.CONDITIONS.Summary.Frightened",
     img: "icons/svg/terror.svg",
     // shortcut: always on, not only while the source of fear is in sight; moving closer to it is not prevented.
     ruleElements: [rollMode("frightened.own-rolls", ["attack", "check"], "disadvantage")]
@@ -285,6 +298,7 @@ WILDPATH.CONDITIONS = {
   grappled: {
     id: "grappled",
     name: "WILDPATH.CONDITIONS.Grappled",
+    summary: "WILDPATH.CONDITIONS.Summary.Grappled",
     img: "icons/svg/anchor.svg",
     // `attack.fromTarget` holds the conditions the attacker has from its target, so attacking the grappler is free.
     ruleElements: [cap("grappled.speed-0", ["movement"]), rollMode("grappled.attacks-other-targets", ["attack"], "disadvantage",
@@ -294,6 +308,7 @@ WILDPATH.CONDITIONS = {
   charmed: {
     id: "charmed",
     name: "WILDPATH.CONDITIONS.Charmed",
+    summary: "WILDPATH.CONDITIONS.Summary.Charmed",
     img: "icons/svg/angel.svg",
     ruleElements: []
   },
@@ -301,14 +316,15 @@ WILDPATH.CONDITIONS = {
   dead: {
     id: "dead",
     name: "WILDPATH.CONDITIONS.Dead",
+    summary: "WILDPATH.CONDITIONS.Summary.Dead",
     img: "icons/svg/skull.svg",
     endsConcentration: true,
     ruleElements: [cap("dead.no-actions", [...INCAPACITATED, "movement"])]
   },
   // Poisoned's former damage each turn, kept by the maintainer (2026-10-14) as its own stacking condition.
-  envenomed: damageOverTimeCondition({id: "envenomed", name: "WILDPATH.CONDITIONS.Envenomed",
+  envenomed: damageOverTimeCondition({id: "envenomed", name: "WILDPATH.CONDITIONS.Envenomed", summary: "WILDPATH.CONDITIONS.Summary.Envenomed",
     img: "icons/skills/wounds/blood-cells-disease-green.webp", damageType: "poison", label: "Envenomed Turn Damage"}),
-  bleeding: damageOverTimeCondition({id: "bleeding", name: "WILDPATH.CONDITIONS.Bleeding",
+  bleeding: damageOverTimeCondition({id: "bleeding", name: "WILDPATH.CONDITIONS.Bleeding", summary: "WILDPATH.CONDITIONS.Summary.Bleeding",
     img: "icons/skills/wounds/blood-spurt-spray-red.webp", damageType: "bleeding", stacking: false,
     label: "Bleeding Turn Damage"})
 };
@@ -323,14 +339,14 @@ const conditions2024 = WILDPATH.CONDITIONS;
 const as2014 = (id, added=[]) => ({...conditions2024[id],
   ruleElements: [...conditions2024[id].ruleElements.filter(rule => !rule.id.endsWith(".initiative")), ...added]});
 WILDPATH.CONDITIONS_2014 = {
-  stunned: as2014("stunned", [cap("stunned.speed-0", ["movement"])]),
+  stunned: {...as2014("stunned", [cap("stunned.speed-0", ["movement"])]), summary: "WILDPATH.CONDITIONS.Summary.Stunned2014"},
   unconscious: as2014("unconscious"),
   incapacitated: as2014("incapacitated"),
   paralyzed: as2014("paralyzed"),
   petrified: as2014("petrified", [grant("petrified.poison-immunity", "GrantImmunity", {damageTypes: ["poison"]})]),
   invisible: as2014("invisible"),
-  grappled: {...conditions2024.grappled, ruleElements: [cap("grappled.speed-0", ["movement"])]},
-  exhaustion: {...conditions2024.exhaustion, ruleElements: [
+  grappled: {...conditions2024.grappled, summary: "WILDPATH.CONDITIONS.Summary.Grappled2014", ruleElements: [cap("grappled.speed-0", ["movement"])]},
+  exhaustion: {...conditions2024.exhaustion, summary: "WILDPATH.CONDITIONS.Summary.Exhaustion2014", ruleElements: [
     rollMode("exhaustion.checks", ["check"], "disadvantage"),
     // shortcut: halving caps every Speed at half the walking Speed's own maximum; upgrade with per-Speed caps.
     grant("exhaustion.speed-halved", "ResourceCap", {resources: ["movement"], maximum: half("movement")}, atLevels([2, 3, 4])),

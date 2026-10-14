@@ -34,6 +34,21 @@ model through `actionBarContext` (`helpers/action-bar-context.mts`).
 - **Use:** a click calls the real `Item.use()`, so the authority decides everything.
 - **Updates:** it re-renders when that creature, its Items or its effects change.
 
+**Tooltips that explain, and a tidier bar (2026-10-14, after Baldur's Gate 3).**
+- **Condition icons.** On the action bar and the combat carousel, hovering a condition shows:
+  - its name and a short rules summary (each condition's `summary` key, with 2014 wording for the 2014
+    conditions that differ);
+  - the time left, for a temporary effect.
+
+  The custom effects WildPath Actions apply (Dodging, Blessed, Raging) show too, after the conditions
+  (`activeEffectViews`, `module/helpers/effect-views.mts`).
+- **The bar.**
+  - Buttons keep their size and wrap within their group, rather than overlapping.
+  - The common actions show as icons, named in their tooltip.
+  - Every button's tooltip names it, with its odds below when there are any.
+
+Live: Player1's bar showed Prone's summary on hover, and the common actions as a row of icons.
+
 **Movement that warns (2026-10-14, after Baldur's Gate 3).** `WildPathTokenRuler` (`module/applications/token-ruler.mts`,
 `CONFIG.Token.rulerClass`) adds two things to a dragged Token's destination label:
 - **Movement left.** The creature's remaining movement less the path's cost, shown as "Not enough movement" in red

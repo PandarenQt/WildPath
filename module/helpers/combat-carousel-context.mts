@@ -1,4 +1,5 @@
 import {createCombatCarouselViewModel} from "./ui-view-models.mjs";
+import {activeEffectViews} from "./effect-views.mjs";
 
 /**
  * What the in-play combat carousel shows (M6): the combat's turn order from the shared carousel view model, each
@@ -35,8 +36,6 @@ export function combatCarouselContext({combat, isGM=false, conditions=[]}: {comb
       const combatant = byId.get(turn.id);
       const actor = combatant?.actor ?? null;
       const health = actor?.system?.resources?.health;
-      const levels = new Map([...(actor?.effects ?? [])].filter(effect => !effect.disabled && effect.system?.type)
-        .map(effect => [String(effect.system!.type), Number(effect.system!.level) || null]));
       const owned = isGM || (actor?.isOwner === true);
       return {
         id: turn.id,
@@ -47,8 +46,7 @@ export function combatCarouselContext({combat, isGM=false, conditions=[]}: {comb
         hidden: turn.hidden,
         health: owned && health && Number(health.max) > 0 ? {value: Number(health.value) || 0, max: Number(health.max),
           percent: Math.round(Math.min(Math.max((Number(health.value) || 0) / Number(health.max), 0), 1) * 100)} : null,
-        conditions: conditions.filter(condition => levels.has(condition.id)).map(condition => ({id: condition.id,
-          name: condition.name, img: condition.img, level: condition.stacking ? levels.get(condition.id) ?? null : null}))
+        conditions: activeEffectViews(actor?.effects ?? [], conditions)
       };
     })
   };

@@ -81,7 +81,30 @@
       "Deafened": "Deafened",
       "Frightened": "Frightened",
       "Grappled": "Grappled",
-      "Charmed": "Charmed"
+      "Charmed": "Charmed",
+      "Summary": {
+        "Prone": "Your attacks have disadvantage. Attacks against you have advantage from within 5 ft, disadvantage from farther. Standing up costs half your Speed.",
+        "Blinded": "You can't see. Your attacks have disadvantage; attacks against you have advantage.",
+        "Restrained": "Speed 0. Your attacks and Agility saves have disadvantage; attacks against you have advantage.",
+        "Stunned": "Incapacitated. You fail Might and Agility saves; attacks against you have advantage.",
+        "Unconscious": "Incapacitated and Prone. You fail Might and Agility saves; attacks against you have advantage, and hits from within 5 ft are critical.",
+        "Exhaustion": "Each level: −2 to d20 tests and −5 ft to every Speed. Level 6 is death.",
+        "Poisoned": "Your attacks and ability checks have disadvantage.",
+        "Dead": "Dead.",
+        "Incapacitated": "No actions, Bonus Actions or Reactions; your concentration ends. Disadvantage on initiative.",
+        "Paralyzed": "Incapacitated, Speed 0. You fail Might and Agility saves; attacks against you have advantage, and hits from within 5 ft are critical.",
+        "Petrified": "Turned to stone: Incapacitated, Speed 0, resistance to all damage, immune to Poisoned. You fail Might and Agility saves; attacks against you have advantage.",
+        "Invisible": "Your attacks have advantage; attacks against you have disadvantage. Advantage on initiative.",
+        "Deafened": "You can't hear.",
+        "Frightened": "Your attacks and ability checks have disadvantage while the source of your fear is in sight.",
+        "Grappled": "Speed 0. Your attacks against anyone but the grappler have disadvantage.",
+        "Charmed": "You can't attack or harm the charmer.",
+        "Envenomed": "Poison damage at the start of each of your turns, more with each stack.",
+        "Bleeding": "Bleeding damage at the start of each of your turns.",
+        "Stunned2014": "Incapacitated, Speed 0. You fail Might and Agility saves; attacks against you have advantage.",
+        "Grappled2014": "Speed 0.",
+        "Exhaustion2014": "Level 1: disadvantage on checks. 2: half Speed. 3: disadvantage on attacks and saves. 4: half Hit Point maximum. 5: Speed 0. 6: death."
+      }
     },
     "PROMPT": {
       "Confirm": "Confirm",
