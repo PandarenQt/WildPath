@@ -202,6 +202,20 @@ An opportunity attack is authored as:
     {equals: {path: "event.data.relations.{self}.context.hostile", value: true}}]}}}
 ```
 
+2024 Shield ("when you're hit, +5 AC until the start of your next turn, including against that attack") is an
+Action with this Trigger, a Reaction cost, `self` targeting, and a custom effect (action-definitions.md):
+
+```js
+{targeting: {type: "self"}, costs: {allOf: [{capability: "reaction", amount: 1}]},
+ effects: [{type: "effect", name: "Shield", ruleElements: [{type: "Modifier", data: {domains: ["defense.ac"], value: 5}}],
+   duration: {value: 1, units: "turns", expiry: "turnStart"}}]}
+// ruleElements: [{type: "Trigger", data: {kind: "reaction", event: "attack.hit", match: {phase: "interrupt", targetTokenId: "{self}"}}}]
+```
+
+The attack is scored again after the reaction, against the raised AC; a natural 20 still hits. Live (two
+browsers, 14.369, physical dice): a goblin's 13 hit Player1's wizard (AC 12). Player1 chose Shield, the card
+showed a miss, the wizard kept the Shield effect, and its reaction was spent.
+
 A counterattack ("when a creature hits you, strike back") is authored as:
 
 ```js

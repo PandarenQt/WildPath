@@ -81,10 +81,10 @@ function actorDocument(id, {system=actorSystem(), effects=[]}={}) {
     const list = [domains].flat();
     const domain = list[0];
     if ( !list.includes("defense.ac") && !list.includes("ac") ) return {totalModifier: 0, trace: {domain}};
-    const effectBonus = (actor.effects ?? []).reduce((sum, effect) => {
-      const bonus = Number(effect.flags?.wildpath?.conditionEffect?.metadata?.reactionDefenseBonus ?? 0);
-      return Number.isFinite(bonus) ? sum + bonus : sum;
-    }, 0);
+    // The effects' own Modifier rules on defense.ac, as a real creature's statistic reads them.
+    const effectBonus = (actor.effects ?? []).flatMap(effect => effect.system?.ruleElements ?? [])
+      .filter(rule => (rule.type === "Modifier") && (rule.data?.domains ?? []).some(entry => list.includes(entry)))
+      .reduce((sum, rule) => sum + (Number(rule.data.value) || 0), 0);
     return {
       totalModifier: effectBonus,
       trace: {
@@ -140,15 +140,14 @@ function reactiveGuardDefinition() {
     label: "Reactive Guard",
     costs: reactionCost(),
     targeting: {type: "self", required: true},
+    // 2024 Shield: +5 AC until the start of your next turn, including against the triggering attack.
     effects: [{
       id: "guard-defense-bonus",
-      type: "condition",
-      conditionId: "prone",
-      duration: {unit: "round", value: 1},
-      metadata: {
-        reactionDefenseBonus: GUARD_DEFENSE_BONUS,
-        source: "test-reactive-guard"
-      }
+      type: "effect",
+      name: "Shield",
+      slug: "shielded",
+      ruleElements: [{schemaVersion: 1, id: "shield-ac", type: "Modifier", data: {domains: ["defense.ac"], value: GUARD_DEFENSE_BONUS}}],
+      duration: {value: 1, units: "turns", expiry: "turnStart"}
     }]
   };
 }
@@ -493,6 +492,22 @@ test("Reactive Guard child action commits effect and reaction payment before par
       && operation.actorRef === fixture.defender.uuid
       && operation.updates["system.resources.reaction.value"] === 0;
   }), true);
+});
+
+test("Shield raises AC by 5 against the triggering attack, but a natural 20 still hits as a critical", async () => {
+  const fixture = attackFixture({attackTotal: 18, natural: 20});
+  const guardAction = reactiveGuardDefinition();
+  const services = guardServices({defender: fixture.defender, targetActors: fixture.targetActors, action: guardAction});
+  const waiting = planStagedActionResolution({id: "resolution:guard-natural-20", actor: fixture.attacker, action: fixture.actionItem,
+    source: {actorId: fixture.attacker.id, actorRef: fixture.attacker.uuid}, targets: [fixture.target], attack: fixture.attack,
+    durability: true, targetActors: fixture.targetActors, services});
+  const selected = resumeStagedActionResolution({state: waiting.state, response: acceptResponse(waiting.state.pendingRequests[0]), services});
+  const child = await executeGuardChild({parentState: selected.state, defender: fixture.defender, targetActors: fixture.targetActors,
+    action: guardAction, persistencePort: fixture.persistencePort});
+  assert.deepEqual(fixture.defender.effects.map(effect => effect.name), ["Shield"], "the reaction's custom effect is on the defender");
+  const resumed = completeStagedReactionChildResolution({parentState: selected.state, childState: child.state, services});
+  assert.equal(resumed.state.results.attackResolution.results[0].outcome, ATTACK_OUTCOMES.CRITICAL_HIT,
+    "18 is under AC 21, but a natural 20 always hits");
 });
 
 test("Reactive Guard decline leaves the hit intact while a still-hit guard applies damage after re-evaluation", async () => {
