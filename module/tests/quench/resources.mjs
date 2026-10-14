@@ -107,6 +107,25 @@ export function registerResourceTests(quench) {
         }
       });
 
+      it("Action counters store what was spent, so an effect raising the available count is usable at once", async function () {
+        const actor = await fixtures.createActor({name:"action counters"});
+        await actor.update({"system.resources.action.value":0});
+        assert.equal(actor.toObject(true).system.resources.action.spent,1,"spending the one Action stores spent 1");
+        assert.equal(actor.getResource("action").value,0);
+        const extra = await fixtures.createEffect(actor,{system:{modifiers:[{id:"quench-extra-action",
+          domains:["resources.action.max"],label:"QA extra action",type:"untyped",value:1,enabled:true}]}});
+        assert.deepEqual([actor.getResource("action").max,actor.getResource("action").value],[2,1],
+          "available 2, spent 1: one Action remains immediately");
+        await extra.delete();
+        const slowed = await fixtures.createEffect(actor,{system:{modifiers:[{id:"quench-fewer-actions",
+          domains:["resources.action.max"],label:"QA fewer actions",type:"untyped",value:-1,enabled:true}]}});
+        assert.deepEqual([actor.getResource("action").max,actor.getResource("action").value],[0,0],"never below zero");
+        await slowed.delete();
+        await actor.update({"system.resources.action.value":actor.getResource("action").max});
+        assert.deepEqual([actor.toObject(true).system.resources.action.spent,actor.getResource("action").value],[0,1],
+          "turn recovery writes the maximum, which clears spent");
+      });
+
       it("applies an Item maximum modifier once across repeated preparation and removes it on deletion", async function () {
         const actor = await fixtures.createActor({name:"modifier preparation",
           system:{resources:{health:{base:10,bonus:2,value:10}}}});

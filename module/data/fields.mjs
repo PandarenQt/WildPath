@@ -10,12 +10,15 @@ const {SchemaField, NumberField, StringField, ArrayField, SetField, BooleanField
  * @param {string} [options.recovery="none"]  Default recovery cadence for this pool.
  * @returns {SchemaField}
  */
-export function resourceField({initial=0, recovery="none"}={}) {
+export function resourceField({initial=0, recovery="none", counted=false}={}) {
   return new SchemaField({
     base: new NumberField({required: true, integer: true, initial}),
     bonus: new NumberField({required: true, integer: true, initial: 0}),
     max: new NumberField({required: true, integer: true, initial, min: 0}),
     value: new NumberField({required: true, integer: true, initial, min: 0}),
+    // A counted resource (Action, Bonus Action, Reaction) stores what was spent; its remaining `value` is
+    // derived as max - spent, so an effect that raises the available count is usable at once.
+    ...(counted ? {spent: new NumberField({required: true, integer: true, initial: 0, min: 0})} : {}),
     recovery: new StringField({required: true, initial: recovery,
       choices: ["turn", "shortRest", "longRest", "none"]})
   });

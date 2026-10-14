@@ -75,6 +75,22 @@ or custom pools use `recovery: "turn"`. The Actor sheet and UI view models do no
 Start Turn command, and Wild Path does not model exploration as a player-controlled turn loop. If
 turn-by-turn restrictions matter, play should be in Combat.
 
+## Available and Spent Counters
+
+Actions, Bonus Actions and Reactions are counters (maintainer decision, 2026-10-14). Each stores what
+was **spent** (`system.resources.<id>.spent`). What is **available** is the prepared maximum: base, plus
+bonus, plus every `Modifier` on `resources.<id>.max` from Items and effects. What **remains** is derived
+as available − spent, never below zero.
+
+So an effect that raises the available count, such as an extra Action this turn, is usable at once, and
+one that lowers it never leaves a negative count. Turn recovery clears what was spent.
+
+Writers did not change: payment, turn recovery and the sheet still set the remaining `value`, and the
+Actor model's `_preUpdate` stores it as the matching `spent` against the current maximum. Actors stored
+before this change are migrated once (`migrateData`: spent = base + bonus − remaining).
+
+Movement stays a stored remaining budget.
+
 ## Movement Capability vs Movement Budget
 
 Movement capability is canonical Actor data expressed as distance:
@@ -128,7 +144,7 @@ finished, the active GM commits the approved ordinary movement cost through `Res
 
 ## Existing Data Compatibility
 
-No schema migration is introduced by this foundation. `economyResourcesFromActorResources()`
+Apart from the counters above (one `migrateData` step), no schema migration is introduced by this foundation. `economyResourcesFromActorResources()`
 adapts the current Actor `system.resources` and `system.pools` shape into generic economy
 resources, so future resolvers can use the new payment model before persisted Actor data changes.
 

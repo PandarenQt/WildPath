@@ -78,6 +78,10 @@ user are routed again without them, to another controller or to the GM fallback,
 not hang. An answer that arrives for a resolution the authority no longer has (for example after a GM
 reload) is refused back to its sender with `RESOLUTION_NOT_FOUND`, instead of being dropped.
 
+Live (two browsers, 14.369, 2026-10-14): with physical dice, the GM's save Action asked Player1 for a
+roll. Player1's browser left without answering. The GM then received the same "Enter your roll" prompt,
+answered it, and the resolution completed.
+
 ## Socket Envelope
 
 `module/adapters/foundry-v14-resolution-socket-adapter.mjs` isolates Foundry socket access. The

@@ -45,3 +45,26 @@ export function computeResourceMax(pool, modifierBonus=0) {
 export function clampResourceValue(value, max) {
   return clamp(value ?? 0, 0, max);
 }
+
+/* -------------------------------------------- */
+
+/**
+ * A counted resource's remaining uses: what is available (`max`, effects included) less what was spent,
+ * never below zero.
+ * @param {number} max
+ * @param {number} spent
+ * @returns {number}
+ */
+export function remainingFromSpent(max, spent) {
+  return Math.max((max ?? 0) - (spent ?? 0), 0);
+}
+
+/**
+ * The spent count that leaves `value` remaining out of `max`: how a write of a remaining value is stored.
+ * @param {number} max
+ * @param {number} value
+ * @returns {number}
+ */
+export function spentFromRemaining(max, value) {
+  return Math.max((max ?? 0) - (value ?? 0), 0);
+}

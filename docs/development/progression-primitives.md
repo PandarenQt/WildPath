@@ -47,13 +47,13 @@ the code. Payment discovery reads only the Actor's stored resources and pools
 1. **Wire the grant RuleElements.** No new primitive, and no rules decision: each type already defines
    what it means.
    - `GrantResource` sets pool maxima.
-   - `GrantResistance` / `GrantImmunity` build the target's damage profile: **done 2026-10-14** (Node; a
-     Quench case awaits the next Foundry run).
+   - `GrantResistance` / `GrantImmunity` build the target's damage profile: **done 2026-10-14** (Node and
+     Quench).
    - `GrantMovement` feeds movement modes and budgets.
-   - `GrantActionEconomyResource` joins payment discovery, with one design point. A grant recomputes
-     its `current` on every read, so spending must be remembered somewhere. Proposal: the grant reads
-     a backing pool through `{type: "resource-current"}`, and paying the grant decrements that pool.
-     Action Surge would then be a short-rest pool plus a grant that pays `action`.
+   - Extra Actions: **decided and done 2026-10-14**. Actions, Bonus Actions and Reactions are counters:
+     the spent count is stored, the available count is the maximum effects modify, and what remains is
+     available − spent (action-economy.md). An effect that grants an extra Action raises the maximum;
+     `GrantActionEconomyResource` is not needed for this.
 
    This unlocks extra Actions, resistances and slot pools as authored data.
 2. **A general automation dispatcher, then the missing events.** Today an event such as

@@ -1,6 +1,9 @@
 import {WILDPATH} from "../../config.mjs";
 import {defenseField, resourceField, poolsField} from "../fields.mjs";
-import {computeResourceMax, clampResourceValue} from "../../helpers/resources.mjs";
+import {computeResourceMax, clampResourceValue, remainingFromSpent, spentFromRemaining} from "../../helpers/resources.mjs";
+
+/** Action-economy counters: what is spent is stored, what remains is derived from the (modifiable) maximum. */
+const COUNTED_RESOURCES = Object.freeze(["action", "bonus", "reaction"]);
 
 const {SchemaField, NumberField, HTMLField} = foundry.data.fields;
 
@@ -31,9 +34,9 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
       }),
       resources: new SchemaField({
         health: resourceField({initial: 10, recovery: "none"}),
-        action: resourceField({initial: 1, recovery: "turn"}),
-        bonus: resourceField({initial: 1, recovery: "turn"}),
-        reaction: resourceField({initial: 1, recovery: "turn"}),
+        action: resourceField({initial: 1, recovery: "turn", counted: true}),
+        bonus: resourceField({initial: 1, recovery: "turn", counted: true}),
+        reaction: resourceField({initial: 1, recovery: "turn", counted: true}),
         movement: resourceField({initial: 30, recovery: "turn"})
       }),
       pools: poolsField(),
@@ -41,6 +44,35 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
         turnsTaken: new NumberField({required: true, integer: true, initial: 0, min: 0})
       })
     };
+  }
+
+  /* -------------------------------------------- */
+
+  /** Counters stored before `spent` existed keep their state: spent = (base + bonus) - remaining. */
+  static migrateData(source) {
+    for ( const id of COUNTED_RESOURCES ) {
+      const resource = source.resources?.[id];
+      if ( !resource || ("spent" in resource) || !("value" in resource) ) continue;
+      resource.spent = spentFromRemaining((resource.base ?? 1) + (resource.bonus ?? 0), resource.value);
+    }
+    return super.migrateData(source);
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Every writer of a counted resource (payment, turn recovery, the sheet) sets its remaining `value`;
+   * store it as the matching `spent` against the current maximum, which effects may have changed.
+   * @inheritDoc
+   */
+  async _preUpdate(changes, options, user) {
+    if ( (await super._preUpdate(changes, options, user)) === false ) return false;
+    for ( const id of COUNTED_RESOURCES ) {
+      const path = `system.resources.${id}.value`;
+      const value = foundry.utils.getProperty(changes, path) ?? changes[path];
+      if ( typeof value !== "number" ) continue;
+      foundry.utils.setProperty(changes, `system.resources.${id}.spent`, spentFromRemaining(this.resources[id].max, value));
+    }
   }
 
   /* -------------------------------------------- */
@@ -97,9 +129,10 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
    * helpers/resources.mjs so the same idempotent computation is verifiable outside Foundry.
    */
   #finalizeResources() {
-    for ( const resource of Object.values(this.resources) ) {
+    for ( const [id, resource] of Object.entries(this.resources) ) {
       resource.max = computeResourceMax(resource, resource.modifierBonus);
-      resource.value = clampResourceValue(resource.value, resource.max);
+      resource.value = COUNTED_RESOURCES.includes(id) ? remainingFromSpent(resource.max, resource.spent)
+        : clampResourceValue(resource.value, resource.max);
     }
     for ( const pool of this.pools ) {
       pool.max = computeResourceMax(pool, pool.modifierBonus);
