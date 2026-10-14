@@ -1606,3 +1606,32 @@ test("a self-targeted Action targets its own creature whatever the Player has ta
   const nobody = await foundryActionIntentToStagedOptions({intent: none.intent, senderUserId: "player-a", game: none.game});
   assert.deepEqual(nobody.options.targets, []);
 });
+
+test("an aura grants its rules to allies within its radius and to its bearer, but not to enemies or allies further away", async () => {
+  const {createFoundryAuras} = await import("../module/adapters/foundry-v14-auras.mjs");
+  const {evaluateRuleElement} = await import("../module/helpers/rule-elements.mjs");
+  const ward = {schemaVersion: 1, id: "ward", type: "Modifier", data: {domains: ["defense.ac"], value: 1}};
+  const aura = {schemaVersion: 1, id: "protection", type: "Aura", data: {radius: 10, affects: "allies", ruleElements: [ward]}};
+  assert.equal(evaluateRuleElement(aura).ok, true);
+  assert.equal(evaluateRuleElement({...aura, data: {...aura.data, radius: 0}}).ok, false, "a radius is required");
+  assert.equal(evaluateRuleElement({...aura, data: {...aura.data, ruleElements: [{schemaVersion: 1, id: "x", type: "Nope"}]}}).ok, false);
+
+  const scene = fakeScene(new FakeSquareGrid(), {id: "aura-scene"});
+  const creature = (id, offset, disposition, auras=[]) => {
+    const actor = {id, isToken: true, getAuras: () => auras};
+    actor.token = fakeTokenDocument({id: `token-${id}`, actor, scene, offset, disposition});
+    scene.tokens.push(actor.token);
+    return actor;
+  };
+  const paladin = creature("paladin", {i: 5, j: 5}, 1, evaluateRuleElement(aura).result?.contributions?.auras
+    ?? [{id: "protection", radius: 10, affects: "allies", ruleElements: [ward]}]);
+  const near = creature("near", {i: 7, j: 5}, 1);
+  const far = creature("far", {i: 8, j: 5}, 1);
+  const enemy = creature("enemy", {i: 6, j: 5}, -1);
+  const auras = createFoundryAuras();
+  const granted = actor => auras.ownersFor(actor).flatMap(owner => owner.ruleElements.map(rule => rule.id));
+  assert.deepEqual(granted(near), ["ward"], "an ally 10 ft away");
+  assert.deepEqual(granted(paladin), ["ward"], "the bearer itself");
+  assert.deepEqual(granted(far), [], "an ally 15 ft away");
+  assert.deepEqual(granted(enemy), [], "an enemy inside the aura");
+});

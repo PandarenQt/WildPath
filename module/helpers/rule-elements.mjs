@@ -15,6 +15,7 @@ export const RULE_ELEMENT_TYPES = Object.freeze({
   RESOURCE_CAP: "ResourceCap",
   ROLL_OUTCOME: "RollOutcome",
   EXTRA_DAMAGE: "ExtraDamage",
+  AURA: "Aura",
   TRIGGER: "Trigger"
 });
 
@@ -56,6 +57,7 @@ const TYPE_ALIASES = Object.freeze({
   resourcecap: RULE_ELEMENT_TYPES.RESOURCE_CAP,
   rolloutcome: RULE_ELEMENT_TYPES.ROLL_OUTCOME,
   extradamage: RULE_ELEMENT_TYPES.EXTRA_DAMAGE,
+  aura: RULE_ELEMENT_TYPES.AURA,
   trigger: RULE_ELEMENT_TYPES.TRIGGER
 });
 
@@ -96,6 +98,7 @@ export function createDefaultRuleElementRegistry() {
     [RULE_ELEMENT_TYPES.RESOURCE_CAP, resourceCapRuleElement],
     [RULE_ELEMENT_TYPES.ROLL_OUTCOME, rollOutcomeRuleElement],
     [RULE_ELEMENT_TYPES.EXTRA_DAMAGE, extraDamageRuleElement],
+    [RULE_ELEMENT_TYPES.AURA, auraRuleElement],
     [RULE_ELEMENT_TYPES.GRANT_RESOURCE, grantResourceRuleElement],
     [RULE_ELEMENT_TYPES.GRANT_ACTION_ECONOMY_RESOURCE, grantActionEconomyResourceRuleElement],
     [RULE_ELEMENT_TYPES.GRANT_RESISTANCE, grantResistanceRuleElement],
@@ -339,6 +342,11 @@ export function rollOutcomesFromRuleElements(owners=[], {domains=[], context={}}
   return contributionsInDomains(owners, "rollOutcomes", domains, context);
 }
 
+/** The auras (`Aura`) a creature's owners give it: each grants its rules to creatures within its radius. */
+export function aurasFromRuleElements(owners=[], context={}) {
+  return owners.flatMap(({ruleElements=[], source=null}) => collectRuleElementContributions({ruleElements, context, source}).contributions.auras);
+}
+
 /** The extra damage (`ExtraDamage`) a creature's owners add to an Action's damage in any of `domains`. */
 export function extraDamageFromRuleElements(owners=[], {domains=[], context={}}={}) {
   return contributionsInDomains(owners, "extraDamage", domains, context);
@@ -532,6 +540,33 @@ function extraDamageRuleElement(ruleElement) {
   });
 }
 
+const AURA_AFFECTS = Object.freeze(["allies", "enemies", "all"]);
+
+/**
+ * An aura: `{radius, affects: "allies" | "enemies" | "all", ruleElements: [...]}` grants its nested rules to the
+ * creatures within `radius` feet of its bearer (allies and all include the bearer). The Foundry adapter works out
+ * who is inside when a statistic is read.
+ */
+function auraRuleElement(ruleElement) {
+  const data = ruleElement.data;
+  const radius = Number(data.radius);
+  const affects = data.affects ?? "allies";
+  const ruleElements = Array.isArray(data.ruleElements) ? data.ruleElements : [];
+  if ( !(radius > 0) ) return handlerFailure(RULE_ELEMENT_CODES.INVALID, "Aura RuleElement requires a radius in feet.");
+  if ( !AURA_AFFECTS.includes(affects) ) return handlerFailure(RULE_ELEMENT_CODES.INVALID, "Aura RuleElement affects allies, enemies or all.");
+  for ( const [index, nested] of ruleElements.entries() ) {
+    const validation = validateRuleElementDefinition(nested, {index});
+    if ( !validation.ok ) return handlerFailure(RULE_ELEMENT_CODES.INVALID, `Aura rule ${index}: ${validation.reason ?? validation.code}`);
+    if ( !DEFAULT_RULE_ELEMENT_REGISTRY.has(validation.ruleElement.type) ) {
+      return handlerFailure(RULE_ELEMENT_CODES.INVALID, `Aura rule ${index}: unknown RuleElement type ${nested.type}`);
+    }
+  }
+  return success({
+    auras: [{id: data.id ?? ruleElement.id, radius, affects, ruleElements: clonePlain(ruleElements), source: ruleElementSource(ruleElement),
+      metadata: contributionMetadata(ruleElement, data.metadata)}]
+  });
+}
+
 function rollModeRuleElement(ruleElement) {
   const data = ruleElement.data;
   const domains = normalizeStrings(data.domains ?? data.domain);
@@ -664,6 +699,7 @@ function emptyContributions() {
     resourceCaps: [],
     rollOutcomes: [],
     extraDamage: [],
+    auras: [],
     triggers: []
   };
 }
@@ -683,6 +719,7 @@ function mergeContributions(target, source={}) {
   target.resourceCaps.push(...(source.resourceCaps ?? []));
   target.rollOutcomes.push(...(source.rollOutcomes ?? []));
   target.extraDamage.push(...(source.extraDamage ?? []));
+  target.auras.push(...(source.auras ?? []));
   target.triggers.push(...(source.triggers ?? []));
 
   const damage = source.damageAdjustments ?? {};
@@ -694,7 +731,7 @@ function mergeContributions(target, source={}) {
 
 function sortContributions(contributions) {
   for ( const key of ["modifiers", "resources", "economyResources", "movement", "rollModes", "resourceCaps", "rollOutcomes",
-    "extraDamage", "triggers"] ) {
+    "extraDamage", "auras", "triggers"] ) {
     contributions[key].sort(compareContributions);
   }
   for ( const entries of Object.values(contributions.damageAdjustments) ) {

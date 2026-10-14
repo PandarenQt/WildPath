@@ -365,6 +365,27 @@ Live (two browsers, 14.369): Player1's rogue's dagger with a once-per-turn "+1d6
 "1d6" on its first hit, only "1d4" on its second hit that turn, and "2d4" and "2d6" on a critical in its next
 turn.
 
+## Aura (2026-10-14)
+
+`{type: "Aura", data: {radius, affects: "allies" | "enemies" | "all", ruleElements: [...]}}` grants its nested
+rules to the creatures within `radius` feet of its bearer.
+- **Who it covers.** Allies are the same Token disposition and enemies the opposite. `allies` and `all` include
+  the bearer (2024 "you and friendly creatures"); `enemies` does not.
+- **Example.** "You and allies within 10 ft gain +1 AC" is `{radius: 10, affects: "allies", ruleElements:
+  [{type: "Modifier", data: {domains: ["defense.ac"], value: 1}}]}`.
+- **When it is read.** Who is inside is worked out whenever a statistic is read for a roll or a defense:
+  `game.wildpath.auras.ownersFor(actor)` (`module/adapters/foundry-v14-auras.mts`) checks the Tokens on the Scene
+  with the lasting-area coverage test. That covers attacks, AC (including a re-scored attack), saves, checks and
+  damage. Nothing is written to the affected creatures, so the bonus is never stale and never shows on a Player's
+  sheet.
+- **Limits.**
+  - Data preparation leaves auras out, so an aura does not change Speed or health maxima.
+  - Only Modifier-type rules reach statistics; roll modes from auras are not read yet.
+  - Validation requires a radius, a known `affects`, and nested rules the engine knows.
+
+Live (GM browser, 14.369, physical dice): a paladin's +1 AC aura gave an ally 10 ft away AC 15 (14 + 1). A goblin's
+14 missed it there, and hit once the ally stood 20 ft away.
+
 ## Future Types
 
 When adding a RuleElement type:

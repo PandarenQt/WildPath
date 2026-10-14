@@ -204,7 +204,7 @@ function withAbilityModifier(statistic, actor, ability) {
 function resolveActorStatisticModifier(actor, domains, options={}) {
   if ( typeof actor?.getStatistic !== "function" ) return {known: false, value: null, trace: null, domain: null};
   const list = uniqueStrings(domains);
-  const statistic = actor.getStatistic(list, options);
+  const statistic = actor.getStatistic(list, {...options, auras: true});
   const value = finiteNumber(statistic?.totalModifier ?? statistic?.total ?? statistic?.value ?? statistic?.modifier);
   if ( value == null ) return {known: false, value: null, trace: null, domain: null};
   return {known: true, value, trace: clonePlain(statistic?.trace ?? {domain: list[0]}), domain: list[0] ?? null};

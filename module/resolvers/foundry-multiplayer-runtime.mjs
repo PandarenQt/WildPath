@@ -15,6 +15,7 @@ import {createFoundryReactionProvider} from "../adapters/foundry-v14-reaction-pr
 import {foundryActionReactionServices} from "../adapters/foundry-v14-reaction-services.mjs";
 import {foundryAreaFootprint, foundryAreaTargetTokens} from "../adapters/foundry-v14-area-placement.mjs";
 import {createFoundryPersistentAreas, turnKey} from "../adapters/foundry-v14-persistent-areas.mjs";
+import {createFoundryAuras} from "../adapters/foundry-v14-auras.mjs";
 import {AUTOMATION_QUERY, createFoundryAutomationDispatcher} from "../adapters/foundry-v14-automation-dispatcher.mjs";
 import {COMPANION_QUERY, createFoundryCompanions} from "../adapters/foundry-v14-companions.mjs";
 import {createFoundryDying} from "../adapters/foundry-v14-dying.mjs";
@@ -122,6 +123,8 @@ export function registerFoundryV14MultiplayerResolution({
     if ( !connected && (game.users?.activeGM?.id === game.user?.id) ) void coordinator.releaseRequestsOf(user.id);
   });
   globalThis.Hooks?.on?.("deleteActiveEffect", effect => areas.onEffectDeleted(effect));
+  // Auras: statistics read for rolls and defenses ask which auras surround a creature.
+  game.wildpath = {...(game.wildpath ?? {}), auras: createFoundryAuras()};
   // V14 tracks an unlinked Token's effects for expiry only once its delta materializes, so after a reload a buff on
   // such a creature would never expire. The active GM registers them for the viewed Scene and every combat's Scene.
   const trackTokenEffects = () => {

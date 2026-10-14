@@ -1,7 +1,7 @@
 import {WildPathModifier, WildPathStatistic} from "../helpers/modifiers.mjs";
 import {
   damageProfileFromRuleElements, grantedMovementFromRuleElements, grantedResourcesFromRuleElements, modifiersFromRuleElements,
-  resourceCapsFromRuleElements, rollModesFromRuleElements, rollOutcomesFromRuleElements, extraDamageFromRuleElements
+  resourceCapsFromRuleElements, rollModesFromRuleElements, rollOutcomesFromRuleElements, extraDamageFromRuleElements, aurasFromRuleElements
 } from "../helpers/rule-elements.mjs";
 import {DEFAULT_FORM_STATISTICS, DEFAULT_KEPT_ITEM_TYPES, itemContributesWhileTransformed} from "../helpers/transformations.mjs";
 import WildPathConditionEffect from "../data/active-effect/condition.mjs";
@@ -43,7 +43,7 @@ export default class WildPathActor extends Actor {
    * @param {string[]} [options.tags]    Tags of what is being rolled (attack type, Action tags).
    * @returns {WildPathStatistic}
    */
-  getStatistic(domain, {item=null, tags=[]}={}) {
+  getStatistic(domain, {item=null, tags=[], auras=false}={}) {
     const domains = [domain].flat().filter(Boolean).map(String);
     const modifiers = [];
     // What a rule's predicate sees: the roll's tags (attack type, the Action's tags) and the creature's conditions.
@@ -64,6 +64,12 @@ export default class WildPathActor extends Actor {
         source: documentRuleElementSource(owner, "item"),
         context: {item: owner, ...seen}
       }));
+    }
+
+    // Auras around the creature (game.wildpath.auras), when a roll or defense is read; data preparation leaves them out.
+    if ( auras ) for ( const owner of globalThis.game?.wildpath?.auras?.ownersFor?.(this) ?? [] ) {
+      for ( const entry of domains ) modifiers.push(...collectRuleElementModifiers(owner.ruleElements, {actor: this, domain: entry,
+        source: owner.source, context: seen}));
     }
 
     for ( const effect of this.allApplicableEffects?.() ?? this.effects ) {
@@ -123,6 +129,11 @@ export default class WildPathActor extends Actor {
     if ( item?.system?.ruleElements?.length ) owners.push({ruleElements: item.system.ruleElements, source: documentRuleElementSource(item, "item")});
     return extraDamageFromRuleElements(owners, {domains, context: {actor: this, actorSystem: this.system, item, tags,
       conditions: [...(this.statuses ?? [])]}});
+  }
+
+  /** The auras this creature's features, gear and effects give it (`Aura`). */
+  getAuras() {
+    return aurasFromRuleElements(grantOwners(this), {actor: this, actorSystem: this.system, conditions: [...(this.statuses ?? [])]});
   }
 
   /** The outcomes forced on this creature's rolls in `domains` (`RollOutcome`), e.g. automatic failure. */
