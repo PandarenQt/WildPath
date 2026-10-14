@@ -248,6 +248,9 @@ Wounds, Second Wind and the Bandit Captain, in the new packs `srd-items` and `sr
   - The SRD's own descriptions are copied as placeholders.
   - The whole SRD is converted: 918 Items (209 automated, 464 manual, 245 features) and 375 creatures. Live, the
     Bandit Captain's stat block matched in play.
+  - The maintainer's own books are local module packages (`convert-dnd5e-module.mjs`), never committed: Player's
+    Handbook, Dungeon Master's Guide, Monster Manual and Tasha's
+    ([content-packs.md](content-packs.md#your-own-books-as-local-packages-2026-10-14)).
 
 **M4 — content pack (in progress, 2026-10-14).**
 - **The pack.** `@foundryvtt/foundryvtt-cli` 3.0.4 was approved and added. The built-in **WildPath Actions**

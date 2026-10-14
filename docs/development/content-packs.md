@@ -96,6 +96,39 @@ This work includes material from the System Reference Document 5.2 ("SRD 5.2") b
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
 available at https://creativecommons.org/licenses/by/4.0/legalcode.
 
+## Your own books as local packages (2026-10-14)
+
+The maintainer's own legitimately sourced books (the dnd5e premium modules) are converted into **local Foundry
+module packages**. `scripts/content/convert-dnd5e-module.mjs <module-id> --srd <extracted SRD>` writes
+`<Foundry Data>/modules/wildpath-<module-id>` with an Items pack and a Creatures pack.
+
+- **Never in the repository.** The script refuses a target inside it, and the packages must never be committed or
+  shared. Each package's manifest says "for personal use only". The script is committed; its output is not.
+- **Read-only on the source.** The source module's packs are copied to a temporary folder and extracted there.
+- **Same mapping as the SRD.** The only differences:
+  - every document of the book is converted, whatever its license field says;
+  - the book's art is kept (`modules/<module-id>/...`, served by Foundry from the installed module, with
+    wildcard token art kept random);
+  - the SRD's classes and journal provide scale values and link names (`--srd`).
+- **No dependency on the source module.** It declares dnd5e as its system, so it cannot be enabled in a WildPath
+  world. Its art is served anyway.
+- **Checked before writing.** Every Action must validate and every id must be unique within its pack, or nothing
+  is written. The notes of what is not automated go to the package's `conversion-notes.json`.
+- **Enabling them.** Foundry lists a new module only after it scans packages again: return to setup, launch the
+  world, and enable the packages under Manage Modules.
+
+Converted on 2026-10-14 (dnd5e 6.0.2 data):
+
+| Package | Items: automated / manual / features | Creatures |
+| --- | --- | --- |
+| Player's Handbook (2.1.0) | 204 / 547 / 409 | 127 |
+| Dungeon Master's Guide (2.0.0) | 79 / 167 / 52 | 71 |
+| Monster Manual (1.3.0) | 291 / 327 / 134 | 504 |
+| Tasha's Cauldron of Everything (3.0.0, 2014 rules) | 53 / 184 / 194 | 124 |
+
+Each package was read back with the Foundry CLI, and every art path resolves on disk. They have not been opened
+in Foundry yet; that waits for the next world launch.
+
 ## WildPath Actions
 
 Mechanical data only, with no descriptions (AGENTS §22). Item names are functional labels, for the

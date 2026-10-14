@@ -160,3 +160,18 @@ test("a creature: proficient saves, its stat block's text with its numbers, and 
   assert.equal(byName("Pack Tactics").type, "feature", "a passive ability is a feature with its text");
   assert.equal(byName("Pack Tactics").system.description, "<p>Advantage.</p>");
 });
+
+test("a book package keeps its art, and its script refuses to write inside the repository", async () => {
+  const {execFileSync} = await import("node:child_process");
+  const owned = {_id: "goblinWarrior001", name: "Goblin", type: "npc", img: "modules/book/art/goblin.webp",
+    prototypeToken: {texture: {src: "modules/book/tokens/goblin-*.webp"}, randomImg: true},
+    system: {source: {license: "", rules: "2024"}, details: {cr: 0.25}, abilities: {}, attributes: {hp: {max: 10}}}, items: []};
+  assert.equal(convertActor(owned).ok, false, "without the book's licence check it is not converted as SRD");
+  const {actor} = convertActor(owned, {licensed: () => true, book: "Monster Manual", images: ["icons/", "modules/book/"]});
+  assert.equal(actor.img, "modules/book/art/goblin.webp");
+  assert.deepEqual(actor.prototypeToken.texture, {src: "modules/book/tokens/goblin-*.webp"});
+  assert.equal(actor.prototypeToken.randomImg, true);
+  assert.equal(actor.flags.wildpath.source.book, "Monster Manual");
+  assert.throws(() => execFileSync(process.execPath, ["scripts/content/convert-dnd5e-module.mjs", "dnd-monster-manual", "--data", "test"],
+    {stdio: "pipe"}), /inside this repository/);
+});

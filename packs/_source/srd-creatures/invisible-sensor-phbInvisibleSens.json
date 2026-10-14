@@ -50,7 +50,10 @@
     "width": 0.5,
     "height": 0.5,
     "disposition": -1,
-    "actorLink": false
+    "actorLink": false,
+    "texture": {
+      "src": "icons/magic/perception/eye-tendrils-web-purple.webp"
+    }
   },
   "items": [],
   "flags": {

@@ -38,6 +38,9 @@ export function stableId(seed) {
   return `${a.toString(36)}${b.toString(36)}`.padEnd(16, "0").slice(0, 16);
 }
 
+/** An image path when it is under one of `prefixes` (art that ships where the converted content is used), else null. */
+const kept = (path, prefixes) => (prefixes.some(prefix => String(path ?? "").startsWith(prefix)) ? path : null);
+
 export const slugify = text => String(text ?? "").toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 const number = value => (Number.isFinite(Number(value)) && (value !== "") && (value !== null) ? Number(value) : null);
 const dice = (count, faces) => ({type: "dice", number: count, faces});
@@ -134,7 +137,8 @@ function targetingOf({activity, system, notes}) {
  * `scales` maps `<class>.<scale>` to `{level: value}` rows (from the class's ScaleValue advancements).
  * @returns {{ok: true, items: object[], notes: string[]} | {ok: false, reason: string}}
  */
-export function convertItem(document, {scales={}, pack=null, saveDC=null, names={}, creature=null, licensed=isSrd2024, book="SRD 5.2"}={}) {
+export function convertItem(document, {scales={}, pack=null, saveDC=null, names={}, creature=null, licensed=isSrd2024, book="SRD 5.2",
+  images=["icons/"]}={}) {
   if ( !licensed(document) ) return {ok: false, reason: "not SRD 5.2 (CC-BY-4.0)"};
   const system = document.system ?? {};
   const activities = Object.values(system.activities ?? {}).sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0));
@@ -144,7 +148,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, names=
   const description = describe(document, {names, creature});
   const source = {system: "dnd5e", pack, id: document._id, type: document.type, book,
     license: document.system?.source?.license || null, rules: document.system?.source?.rules || "2024"};
-  const img = String(document.img ?? "").startsWith("icons/") ? document.img : "icons/svg/item-bag.svg";
+  const img = kept(document.img, images) ?? "icons/svg/item-bag.svg";
   const items = [];
   const allNotes = [];
   // A spell without activities is still cast: it spends its slot like any other.
@@ -197,11 +201,13 @@ function usesPool({document, scales}) {
   const notes = [];
   const maximum = formulaExpression(uses.max, {scales});
   if ( !maximum ) notes.push(`uses: maximum "${uses.max}" not converted`);
-  const periods = (uses.recovery ?? []).map(entry => entry.period);
+  // Older dnd5e data (before 4.0) stores the recovery period as a plain string.
+  const recoveries = Array.isArray(uses.recovery) ? uses.recovery : (uses.recovery ? [{period: uses.recovery}] : []);
+  const periods = recoveries.map(entry => entry.period);
   // 2024 often recovers one use on a short rest and all on a long one; WildPath pools refill whole.
   const recovery = RECOVERY[periods.includes("sr") ? "sr" : periods[0]] ?? "none";
-  if ( (uses.recovery ?? []).some(entry => entry.type === "formula") ) notes.push("uses: a partial recovery refills the whole pool");
-  const recharge = (uses.recovery ?? []).find(entry => entry.period === "recharge");
+  if ( recoveries.some(entry => entry.type === "formula") ) notes.push("uses: a partial recovery refills the whole pool");
+  const recharge = recoveries.find(entry => entry.period === "recharge");
   if ( recharge ) notes.push(`uses: Recharge ${recharge.formula}${recharge.formula === "6" ? "" : "–6"} is not rolled; refill the pool by hand`);
   const id = slugify(document.name);
   return {id, notes, rule: {schemaVersion: 1, id: `${id}-uses`, type: "GrantResource",
@@ -372,7 +378,7 @@ export const proficiencyForChallenge = challenge => Math.max(2, Math.floor((Math
  * - Resistances and immunities, and Legendary Actions (a pool that refills each turn), go on a Traits feature.
  * @returns {{ok: true, actor: object, notes: string[]} | {ok: false, reason: string}}
  */
-export function convertActor(document, {scales={}, pack=null, names={}, licensed=isSrd2024, book="SRD 5.2"}={}) {
+export function convertActor(document, {scales={}, pack=null, names={}, licensed=isSrd2024, book="SRD 5.2", images=["icons/"]}={}) {
   if ( !licensed(document) ) return {ok: false, reason: "not SRD 5.2 (CC-BY-4.0)"};
   if ( document.type !== "npc" ) return {ok: false, reason: `a ${document.type} is not converted`};
   const system = document.system ?? {};
@@ -390,7 +396,7 @@ export function convertActor(document, {scales={}, pack=null, names={}, licensed
   const items = [];
   for ( const item of document.items ?? [] ) {
     if ( item.type === "equipment" ) continue;
-    const result = convertItem(item, {scales, pack, saveDC, names, creature, licensed, book});
+    const result = convertItem(item, {scales, pack, saveDC, names, creature, licensed, book, images});
     if ( !result.ok ) {
       notes.push(`${item.name}: ${result.reason}`);
       continue;
@@ -414,7 +420,7 @@ export function convertActor(document, {scales={}, pack=null, names={}, licensed
   const size = SIZES[system.traits?.size] ?? 1;
   return {ok: true, notes, actor: {
     _id: actorId, _key: `!actors!${actorId}`, name: document.name, type: "npc",
-    img: String(document.img ?? "").startsWith("icons/") ? document.img : "icons/svg/mystery-man.svg",
+    img: kept(document.img, images) ?? "icons/svg/mystery-man.svg",
     system: {
       abilities: Object.fromEntries(Object.entries(ABILITY_MAP).map(([key, ability]) => [ability, {value: score(key),
         ...((number(system.abilities?.[key]?.proficient) ?? 0) >= 1 ? {saveProficient: true} : {})}])),
@@ -423,7 +429,10 @@ export function convertActor(document, {scales={}, pack=null, names={}, licensed
       details: {threat: Math.floor(challenge)},
       dyingMode: "auto"
     },
-    prototypeToken: {name: document.name, width: size, height: size, disposition: -1, actorLink: false},
+    prototypeToken: {name: document.name, width: size, height: size, disposition: -1, actorLink: false,
+      ...(kept(document.prototypeToken?.texture?.src, images) ? {texture: {src: document.prototypeToken.texture.src},
+        // A wildcard path ("goblin-*.webp") picks one of several images.
+        ...(document.prototypeToken.randomImg ? {randomImg: true} : {})} : {})},
     items,
     flags: {wildpath: {source: {system: "dnd5e", pack, id: document._id, type: document.type, book,
       license: document.system?.source?.license || null, rules: document.system?.source?.rules || "2024", challenge}, conversion: {notes}}}
