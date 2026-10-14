@@ -474,7 +474,10 @@
           "targeting": {
             "type": "multiple",
             "required": true,
-            "count": 20
+            "count": 20,
+            "refinementPolicy": {
+              "minSelections": 1
+            }
           },
           "save": {
             "ability": "agility",
@@ -642,6 +645,33 @@
               "provenance": "additional"
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Speed -10",
+              "img": "icons/skills/movement/figure-running-gray.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "speed-10-1",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "resources.movement.max"
+                    ],
+                    "modifierType": "untyped",
+                    "value": -10
+                  }
+                }
+              ],
+              "duration": {
+                "value": 1,
+                "units": "rounds",
+                "expiry": "turnStart"
+              }
+            }
+          ],
           "label": "Ice Spear"
         },
         "ruleElements": []
@@ -658,9 +688,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: \"Speed -10\" (its own changes) not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -727,8 +755,7 @@
           "Ice Wall: uses: Recharge 6 is not rolled; refill the pool by hand",
           "Wall of Ice: concentration: nothing it sustains was converted",
           "Wall of Ice: area: 10-ft wall is not supported; the user picks the targets",
-          "Wall of Ice: \"Frigid Air\" is passive or triggered: not automated",
-          "Ice Spear: effect: \"Speed -10\" (its own changes) not converted"
+          "Wall of Ice: \"Frigid Air\" is passive or triggered: not automated"
         ]
       }
     }

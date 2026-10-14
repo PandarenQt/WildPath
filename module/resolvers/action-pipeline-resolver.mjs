@@ -2667,9 +2667,22 @@ function rollRequestFromAcceptedResponse(accepted, fallbackFactory) {
   return accepted?.request?.payload?.rollRequest ?? fallbackFactory();
 }
 
+/**
+ * A d20 request's dice with its bonus dice (Bless +1d4). With bonus dice, the total is no longer the natural d20
+ * plus the modifier, so only the formula's bounds check it.
+ */
+function bonusDiceRequest(dice, modifier) {
+  const bonus = (Array.isArray(dice) ? dice : []).filter(die => (Number(die?.number) > 0) && (Number(die?.faces) > 0));
+  if ( !bonus.length ) return {};
+  return {definition: {dice: [{id: "d20", number: 1, faces: 20, purpose: "d20"}, ...bonus.map((die, index) => ({
+    id: `bonus:${die.id ?? index}`, number: die.number, faces: die.faces, purpose: "bonus", ...(die.sign < 0 ? {sign: -1} : {})}))]},
+  expected: {validateTotalFromNatural: modifier.known, modifierTotal: null}};
+}
+
 function attackRollRequestForState(state, input) {
   const attack = input.attack ?? {};
   const modifier = rollModifierInfo(attack, ["attackBonus", "modifierTotal", "totalModifier", "modifier", "bonus"]);
+  const bonus = bonusDiceRequest(attack.dice, modifier);
   return createD20RollRequest({
     id: requestIdFor(state, "attack-roll"),
     resolutionId: state.id,
@@ -2687,6 +2700,7 @@ function attackRollRequestForState(state, input) {
       validateTotalFromNatural: modifier.known,
       modifierTotal: modifier.known ? modifier.value : null
     },
+    ...bonus,
     metadata: {
       actionDefinitionId: state.actionDefinition?.id ?? null,
       rollKind: "attack",
@@ -2713,6 +2727,7 @@ function checkRollRequestForState(state, input) {
     authority: check.authority ?? {kind: ROLL_AUTHORITY.SOURCE_CONTROLLER},
     modifiers: modifier.known ? [{id: "check-modifier", value: modifier.value}] : [],
     expected: {validateTotalFromNatural: modifier.known, modifierTotal: modifier.known ? modifier.value : null},
+    ...bonusDiceRequest(check.dice, modifier),
     metadata: {actionDefinitionId: state.actionDefinition?.id ?? null, rollKind: "check", ability: check.ability ?? null,
       skill: check.skill ?? null}
   });
@@ -2744,6 +2759,8 @@ function saveRollRequestForState(state, input, {target=null, suffix="save-roll"}
       validateTotalFromNatural: modifier.known,
       modifierTotal: modifier.known ? modifier.value : null
     },
+    // Each target's own bonus dice (Bless), keyed by Token like its bonus.
+    ...bonusDiceRequest(save.diceByTarget?.[rollModeTargetKey(target ?? firstRollTarget(input))] ?? save.dice, modifier),
     metadata: {
       actionDefinitionId: state.actionDefinition?.id ?? null,
       rollKind: "save",

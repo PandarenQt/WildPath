@@ -21,6 +21,44 @@
           }
         ]
       },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 30,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Booming Voice",
+          "img": "icons/environment/people/cleric-orange.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "booming-voice-1",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "check.intimidation"
+                ],
+                "mode": "advantage"
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "label": "Thaumaturgy"
     },
     "ruleElements": []
@@ -37,10 +75,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Booming Voice\" (its own changes) not converted"
-        ]
+        "notes": []
       }
     }
   }

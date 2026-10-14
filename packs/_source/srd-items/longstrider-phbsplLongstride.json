@@ -21,6 +21,45 @@
           }
         ]
       },
+      "range": {
+        "type": "touch",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Longstrider",
+          "img": "icons/equipment/feet/boots-leather-laced-brown.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "longstrider-1",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "resources.movement.max"
+                ],
+                "modifierType": "untyped",
+                "value": 10
+              }
+            }
+          ],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -96,7 +135,14 @@
             "spell-slot.8": 8,
             "spell-slot.9": 9
           },
-          "effects": []
+          "effects": [
+            {
+              "type": "scaleTargets",
+              "levelChoiceId": "spell-slot",
+              "baseLevel": 1,
+              "perLevel": 1
+            }
+          ]
         }
       ],
       "label": "Longstrider"
@@ -115,10 +161,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Longstrider\" (its own changes) not converted"
-        ]
+        "notes": []
       }
     }
   }

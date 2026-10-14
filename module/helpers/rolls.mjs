@@ -446,13 +446,15 @@ export function createRollResultFromManualInput({request, input, provider=null, 
  */
 export function simpleFormulaBounds(formula) {
   const text = String(formula ?? "").replace(/\s+/gu, "");
-  if ( !text || !/^[+-]?(\d+d\d+|\d+)([+-](\d+d\d+|\d+))*$/iu.test(text) ) return null;
+  // Dice may keep their highest or lowest (advantage: 2d20kh), which keeps one die unless a count is given.
+  if ( !text || !/^[+-]?(\d+d\d+(k[hl]\d*)?|\d+)([+-](\d+d\d+(k[hl]\d*)?|\d+))*$/iu.test(text) ) return null;
   let min = 0;
   let max = 0;
-  for ( const [, sign, number, faces, constant] of text.matchAll(/([+-]?)(?:(\d+)d(\d+)|(\d+))/giu) ) {
+  for ( const [, sign, number, faces, keep, kept, constant] of text.matchAll(/([+-]?)(?:(\d+)d(\d+)(k[hl](\d*))?|(\d+))/giu) ) {
     const direction = sign === "-" ? -1 : 1;
-    const low = constant != null ? Number(constant) : Number(number);
-    const high = constant != null ? Number(constant) : Number(number) * Number(faces);
+    const count = keep ? (Number(kept) || 1) : Number(number);
+    const low = constant != null ? Number(constant) : count;
+    const high = constant != null ? Number(constant) : count * Number(faces);
     min += direction > 0 ? low : -high;
     max += direction > 0 ? high : -low;
   }
@@ -643,6 +645,7 @@ function normalizeRollDiceTerms(dice) {
       faces: Math.max(finiteInteger(data.faces ?? data.sides) ?? 0, 0),
       modifiers: normalizeStrings(data.modifiers ?? []),
       purpose: stringOrNull(data.purpose ?? data.type),
+      ...(Number(data.sign) < 0 ? {sign: -1} : {}),
       source: clonePlainData(data.source ?? null, `dice.${index}.source`),
       metadata: clonePlainData(data.metadata ?? {}, `dice.${index}.metadata`) ?? {}
     };
@@ -870,7 +873,18 @@ export function combineRollModes(modes=[]) {
  * @param {{modifier?: number, target: number, rollMode?: string, natural?: boolean}} options
  * @returns {number}  between 0 and 1
  */
-export function d20Chance({modifier=0, target, rollMode=ROLL_MODES.NORMAL, natural=false}) {
+export function d20Chance({modifier=0, target, rollMode=ROLL_MODES.NORMAL, natural=false, dice=[]}) {
+  // Bonus dice (Bless +1d4): the chance over each of their outcomes, equally likely.
+  const [die, ...rest] = dice ?? [];
+  if ( die && (die.number > 0) && (die.faces > 0) ) {
+    const once = {...die, number: die.number - 1};
+    let sum = 0;
+    for ( let face = 1; face <= die.faces; face++ ) {
+      sum += d20Chance({modifier: modifier + ((die.sign < 0 ? -1 : 1) * face), target, rollMode, natural,
+        dice: once.number ? [once, ...rest] : rest});
+    }
+    return sum / die.faces;
+  }
   let faces = 0;
   for ( let face = 1; face <= 20; face++ ) {
     if ( natural && (face === 1) ) continue;
@@ -899,6 +913,8 @@ export function d20FormulaWith(formula, {rollMode=ROLL_MODES.NORMAL, modifier=0}
 
 function formulaForDieTerm(die, rollMode) {
   if ( die.faces <= 0 || die.number <= 0 ) return null;
+  // A bonus die (Bless 1d4) is added, or subtracted (Bane); advantage applies to the d20 alone.
+  if ( die.purpose === "bonus" ) return `${die.sign < 0 ? "-" : ""}${die.number}d${die.faces}`;
   const isD20 = die.faces === 20 && die.number === 1;
   if ( isD20 && rollMode === ROLL_MODES.ADVANTAGE ) return "2d20kh";
   if ( isD20 && rollMode === ROLL_MODES.DISADVANTAGE ) return "2d20kl";
@@ -910,7 +926,8 @@ function joinFormulaTerms(terms) {
   if ( !parts.length ) return null;
   return parts.reduce((formula, term, index) => {
     if ( index === 0 ) return term;
-    return Number(term) < 0 ? `${formula} - ${Math.abs(Number(term))}` : `${formula} + ${term}`;
+    if ( (Number(term) < 0) || /^-\d+d\d+$/.test(term) ) return `${formula} - ${term.replace(/^-/, "")}`;
+    return `${formula} + ${term}`;
   }, "");
 }
 

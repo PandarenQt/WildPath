@@ -22,6 +22,36 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Winged",
+          "img": "icons/creatures/abilities/wing-batlike-white-blue.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "winged-1",
+              "type": "GrantMovement",
+              "data": {
+                "mode": "fly",
+                "distance": 60
+              }
+            }
+          ],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "label": "Dragon Wings (Dragon Wings)"
     },
     "ruleElements": [
@@ -53,10 +83,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Winged\" (its own changes) not converted"
-        ]
+        "notes": []
       }
     }
   }

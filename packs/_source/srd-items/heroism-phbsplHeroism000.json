@@ -21,6 +21,44 @@
           }
         ]
       },
+      "range": {
+        "type": "touch",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Bravery",
+          "img": "icons/magic/control/control-influence-crown-yellow.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "bravery-1",
+              "type": "ConditionImmunity",
+              "data": {
+                "conditions": [
+                  "frightened"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -96,7 +134,14 @@
             "spell-slot.8": 8,
             "spell-slot.9": 9
           },
-          "effects": []
+          "effects": [
+            {
+              "type": "scaleTargets",
+              "levelChoiceId": "spell-slot",
+              "baseLevel": 1,
+              "perLevel": 1
+            }
+          ]
         }
       ],
       "label": "Heroism"
@@ -116,10 +161,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (heal): using it spends its cost; its description says the rest",
-          "healing: temporary Hit Points not converted",
-          "effect: \"Bravery\" (its own changes) not converted",
-          "concentration: nothing it sustains was converted"
+          "healing: temporary Hit Points not converted"
         ]
       }
     }

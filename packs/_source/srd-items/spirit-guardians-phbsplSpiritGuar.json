@@ -165,6 +165,7 @@
       "conversion": {
         "notes": [
           "damage 1: a choice of necrotic/radiant uses necrotic",
+          "effect: \"Half Speed\" change system.attributes.movement.multiplier (multiply) not converted",
           "effect: \"Half Speed\" (its own changes) not converted",
           "concentration: nothing it sustains was converted"
         ]

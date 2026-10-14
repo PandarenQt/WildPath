@@ -135,7 +135,8 @@
       },
       "conversion": {
         "notes": [
-          "activation: 1 minute is not an action-economy cost"
+          "activation: 1 minute is not an action-economy cost",
+          "effect: \"Trance State\" change system.attributes.movement.multiplier (override) not converted"
         ]
       }
     }

@@ -21,6 +21,46 @@
           }
         ]
       },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Shimmering Field",
+          "img": "icons/magic/defensive/shield-barrier-blue.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "shimmering-field-1",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "defense.ac"
+                ],
+                "modifierType": "untyped",
+                "value": 2
+              }
+            }
+          ],
+          "duration": {
+            "value": 600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -115,11 +155,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Shimmering Field\" (its own changes) not converted",
-          "concentration: nothing it sustains was converted"
-        ]
+        "notes": []
       }
     }
   }

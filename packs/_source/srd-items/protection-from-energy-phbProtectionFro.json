@@ -21,6 +21,140 @@
           }
         ]
       },
+      "range": {
+        "type": "touch",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Acid Protection",
+          "img": "icons/magic/acid/dissolve-drip-droplet-smoke.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "acid-protection-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "acid"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-2",
+          "type": "effect",
+          "name": "Cold Protection",
+          "img": "icons/magic/water/snowflake-ice-snow-white.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "cold-protection-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "cold"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-3",
+          "type": "effect",
+          "name": "Fire Protection",
+          "img": "icons/magic/fire/flame-burning-skull-orange.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "fire-protection-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "fire"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-4",
+          "type": "effect",
+          "name": "Lightning Protection",
+          "img": "icons/magic/lightning/bolt-strike-blue-white.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "lightning-protection-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "lightning"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-5",
+          "type": "effect",
+          "name": "Thunder Protection",
+          "img": "icons/magic/sonic/explosion-shock-wave-teal.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "thunder-protection-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "thunder"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -101,15 +235,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Acid Protection\" (its own changes) not converted",
-          "effect: \"Cold Protection\" (its own changes) not converted",
-          "effect: \"Fire Protection\" (its own changes) not converted",
-          "effect: \"Lightning Protection\" (its own changes) not converted",
-          "effect: \"Thunder Protection\" (its own changes) not converted",
-          "concentration: nothing it sustains was converted"
-        ]
+        "notes": []
       }
     }
   }

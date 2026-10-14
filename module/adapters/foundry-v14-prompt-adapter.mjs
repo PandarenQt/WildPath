@@ -269,11 +269,17 @@ function renderRollControl(control) {
   const name = control.type === PROMPT_CONTROL_TYPES.ROLL_NATURAL ? "natural" : "total";
   const min = control.min == null ? "" : ` min="${escapeHtml(control.min)}"`;
   const max = control.max == null ? "" : ` max="${escapeHtml(control.max)}"`;
+  // With bonus dice (Bless), the total of every die as well.
+  const total = control.total ? `
+    <div class="form-group">
+      <label for="wildpath-roll-total">${escapeHtml(control.total.label)}</label>
+      <input id="wildpath-roll-total" name="total" type="number" step="1"${control.total.min == null ? "" : ` min="${escapeHtml(control.total.min)}"`}${control.total.max == null ? "" : ` max="${escapeHtml(control.total.max)}"`} required>
+    </div>` : "";
   return `
     <div class="form-group">
       <label for="wildpath-roll">${escapeHtml(control.label)}</label>
       <input id="wildpath-roll" name="${name}" type="number" step="1"${min}${max} required autofocus>
-    </div>
+    </div>${total}
   `;
 }
 

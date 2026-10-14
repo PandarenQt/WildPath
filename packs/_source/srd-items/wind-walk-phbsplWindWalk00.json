@@ -16,6 +16,67 @@
       "costs": {
         "allOf": []
       },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 30,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "multiple",
+        "required": true,
+        "count": 11,
+        "refinementPolicy": {
+          "minSelections": 1
+        }
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Cloud Form",
+          "img": "icons/magic/air/weather-clouds.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "cloud-form-1",
+              "type": "GrantMovement",
+              "data": {
+                "mode": "fly",
+                "distance": 300
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "cloud-form-2",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "bludgeoning",
+                  "piercing",
+                  "slashing"
+                ]
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "cloud-form-3",
+              "type": "ConditionImmunity",
+              "data": {
+                "conditions": [
+                  "prone"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 28800,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -76,10 +137,9 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
           "activation: 1 minute is not an action-economy cost",
           "effect: transformed is not a WildPath condition yet",
-          "activation: 1 minute is not an action-economy cost"
+          "effect: \"Cloud Form\" change system.attributes.movement.hover (override) not converted"
         ]
       }
     }

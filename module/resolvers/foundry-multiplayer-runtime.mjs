@@ -521,7 +521,7 @@ function notifyMultiplayerMovementFailure(event={}, {logger=globalThis.console}=
 function actionCheckInput(actor, {ability=null, skill=null}={}) {
   const bonus = resolveActorCheckStatistic(actor, {ability, skill});
   const domains = ["check", ability ? `check.${ability}` : null, skill ? `check.${skill}` : null].filter(Boolean);
-  return {...(bonus ? {modifier: bonus.totalModifier} : {}),
+  return {...(bonus ? {modifier: bonus.totalModifier} : {}), ...(bonus?.dice?.length ? {dice: bonus.dice} : {}),
     rollMode: combineRollModes(actor.getRollModes?.(domains, {context: {check: {ability, skill}}}) ?? [])};
 }
 
@@ -604,6 +604,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const targetEntries = [];
   const saveRollModes = {};
   const saveModifiers = {};
+  const saveDice = {};
   const saveOutcomes = {};
   const ambiguousKeys = new Set();
   // The authority, not the client's selection, decides who a "self" or "no target" Action targets.
@@ -644,6 +645,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       // Each target's own save bonus (Modifiers on save.<ability> and save), and an automatic failure.
       const bonus = resolveActorSaveStatistic(targetActor, ability);
       if ( bonus ) saveModifiers[key] = bonus.totalModifier;
+      if ( bonus?.dice?.length ) saveDice[key] = bonus.dice;
       if ( (targetActor.getRollOutcomes?.(["save", `save.${ability}`], {context: {save: {ability}}}) ?? [])
         .some(entry => entry.outcome === "automatic-failure") ) saveOutcomes[key] = "automatic-failure";
     }
@@ -723,6 +725,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
         ...(attackRollMode ? {rollMode: attackRollMode} : {}),
         ...(attackOutcomes ? {outcomesByTarget: attackOutcomes} : {})}} : {}),
       ...(Object.keys(saveRollModes).length ? {save: {rollModesByTarget: saveRollModes, modifiersByTarget: saveModifiers,
+        ...(Object.keys(saveDice).length ? {diceByTarget: saveDice} : {}),
         outcomesByTarget: saveOutcomes}} : {}),
       ...(definition?.check ? {check: actionCheckInput(actor, definition.check)} : {}),
       ...(definition?.summon && Array.isArray(intent.summon?.points) ? {summonPoints: intent.summon.points.slice(0, 20)
@@ -857,7 +860,7 @@ export function foundryActionOdds({actor, action, sourceToken=null, targetTokens
       if ( !Number.isFinite(defense) ) return [];
       const rollMode = foundryAttackRollMode({actor, action, definition, targetEntries: [entry], spatial, game, sourceToken});
       return [{tokenId: entry.token.id, name: entry.token.name, kind: "attack", modifier, defense, rollMode,
-        chance: d20Chance({modifier, target: defense, rollMode, natural: true})}];
+        chance: d20Chance({modifier, target: defense, rollMode, natural: true, dice: statistics.attack?.dice})}];
     });
   }
   const dc = actionDefinitionToResolverInput(definition, {actorSystem: foundryActorSystemSnapshot(actor)}).save?.dc?.value;
@@ -866,11 +869,12 @@ export function foundryActionOdds({actor, action, sourceToken=null, targetTokens
   return entries.map(({token, actor: target}) => {
     const context = {context: {save: {ability}}};
     const rollMode = combineRollModes(target.getRollModes?.(["save", `save.${ability}`], context) ?? []);
-    const modifier = resolveActorSaveStatistic(target, ability)?.totalModifier ?? 0;
+    const statistic = resolveActorSaveStatistic(target, ability);
+    const modifier = statistic?.totalModifier ?? 0;
     const automatic = (target.getRollOutcomes?.(["save", `save.${ability}`], context) ?? [])
       .some(outcome => outcome.outcome === "automatic-failure");
     return {tokenId: token.id, name: token.name, kind: "save", ability, dc, modifier, rollMode, automatic,
-      chance: automatic ? 1 : 1 - d20Chance({modifier, target: dc, rollMode})};
+      chance: automatic ? 1 : 1 - d20Chance({modifier, target: dc, rollMode, dice: statistic?.dice})};
   });
 }
 

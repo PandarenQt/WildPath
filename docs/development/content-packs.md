@@ -125,17 +125,37 @@ module packages**. `scripts/content/convert-dnd5e-module.mjs <module-id> --srd <
 - **Enabling them.** Foundry lists a new module only after it scans packages again: return to setup, launch the
   world, and enable the packages under Manage Modules.
 
-Converted on 2026-10-14 (dnd5e 6.0.2 data), as of the conditions track (G2):
+Converted on 2026-10-14 (dnd5e 6.0.2 data), as of the effects track (G3):
 
 | Package | Items: automated / manual / features | Creatures |
 | --- | --- | --- |
-| Player's Handbook (2.1.0) | 264 / 487 / 409 | 127 |
-| Dungeon Master's Guide (2.0.0) | 82 / 164 / 52 | 71 |
-| Monster Manual (1.3.0) | 425 / 193 / 134 | 504 |
-| Tasha's Cauldron of Everything (3.0.0, 2014 rules) | 65 / 176 / 190 | 124 |
+| Player's Handbook (2.1.0) | 319 / 432 / 409 | 127 |
+| Dungeon Master's Guide (2.0.0) | 83 / 163 / 52 | 71 |
+| Monster Manual (1.3.0) | 433 / 185 / 134 | 504 |
+| Tasha's Cauldron of Everything (3.0.0, 2014 rules) | 83 / 158 / 190 | 124 |
 
 Each package was read back with the Foundry CLI, and every art path resolves on disk. They have not been opened
 in Foundry yet; that waits for the next world launch.
+
+### Effects with their own changes (G3)
+
+An activity's effect that changes the creature becomes a custom effect (`effectRules`, dnd5e-to-wildpath.mjs). It
+keeps its name and icon, its dnd5e duration, the spell's concentration, and "only on a failed save". Its changes map
+to rules:
+
+| dnd5e change | Rule |
+| --- | --- |
+| `bonuses.mwak/rwak/msak/rsak.attack` | Modifier on `attack` (all four alike), else `attack.weapon`/`attack.spell` for melee or ranged |
+| `bonuses.mwak/rwak/msak/rsak.damage` (a number) | Modifier on `damage.weapon`/`damage.spell` |
+| `bonuses.abilities.save/check`, `abilities.<a>.bonuses.save/check`, `skills.<s>.bonuses.check` | Modifier on `save`, `check`, `save.<a>`, `check.<a>`, `check.<skill>` |
+| `abilities.<a>.save/check.roll.mode`, `skills.<s>.roll.mode` | RollMode: advantage or disadvantage |
+| `attributes.ac.bonus`, `attributes.init.bonus`, `attributes.hp.tempmax` | Modifier on `defense.ac`, `initiative`, `resources.health.max` |
+| `traits.dr/di/dv/ci.value` | GrantResistance, GrantImmunity, GrantVulnerability, ConditionImmunity |
+| `attributes.movement.walk`: add, multiply, override or downgrade | Modifier (Haste doubles), or a ResourceCap |
+| `attributes.movement.fly/swim/climb/burrow` | GrantMovement |
+
+A dice value ("1d4", "-1d4") becomes a dice Modifier rolled with the d20 ([rolls.md](../architecture/rolls.md)).
+Every other change is noted, never approximated.
 
 ## WildPath Actions
 

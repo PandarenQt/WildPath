@@ -247,6 +247,77 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "cone",
+            "size": {
+              "value": 15,
+              "unit": "ft"
+            }
+          },
+          "save": {
+            "ability": "fortitude",
+            "dc": {
+              "value": 11
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "1/2 Speed | Action Restrictions",
+              "img": "icons/magic/movement/abstract-ribbons-red-orange.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "1-2-speed-action-restrictions-1",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "resources.movement.max"
+                    ],
+                    "modifierType": "untyped",
+                    "valueExpression": {
+                      "type": "floor",
+                      "value": {
+                        "type": "multiply",
+                        "terms": [
+                          {
+                            "type": "constant",
+                            "value": -0.5
+                          },
+                          {
+                            "type": "add",
+                            "terms": [
+                              {
+                                "type": "context",
+                                "path": "actorSystem.resources.movement.base"
+                              },
+                              {
+                                "type": "context",
+                                "path": "actorSystem.resources.movement.bonus"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              ],
+              "duration": {
+                "value": 1,
+                "units": "turns",
+                "expiry": "turnStart"
+              },
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "label": "Slowing Breath"
         },
         "ruleElements": []
@@ -264,8 +335,10 @@
           },
           "conversion": {
             "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "effect: \"1/2 Speed | Action Restrictions\" (its own changes) not converted"
+              "effect: \"1/2 Speed | Action Restrictions\" change system.attributes.movement.burrow (multiply) not converted",
+              "effect: \"1/2 Speed | Action Restrictions\" change system.attributes.movement.climb (multiply) not converted",
+              "effect: \"1/2 Speed | Action Restrictions\" change system.attributes.movement.fly (multiply) not converted",
+              "effect: \"1/2 Speed | Action Restrictions\" change system.attributes.movement.swim (multiply) not converted"
             ]
           }
         }
@@ -335,8 +408,10 @@
       "conversion": {
         "notes": [
           "Acid Breath: uses: Recharge 5–6 is not rolled; refill the pool by hand",
-          "Slowing Breath: not automated (save): using it spends its cost; its description says the rest",
-          "Slowing Breath: effect: \"1/2 Speed | Action Restrictions\" (its own changes) not converted"
+          "Slowing Breath: effect: \"1/2 Speed | Action Restrictions\" change system.attributes.movement.burrow (multiply) not converted",
+          "Slowing Breath: effect: \"1/2 Speed | Action Restrictions\" change system.attributes.movement.climb (multiply) not converted",
+          "Slowing Breath: effect: \"1/2 Speed | Action Restrictions\" change system.attributes.movement.fly (multiply) not converted",
+          "Slowing Breath: effect: \"1/2 Speed | Action Restrictions\" change system.attributes.movement.swim (multiply) not converted"
         ]
       }
     }

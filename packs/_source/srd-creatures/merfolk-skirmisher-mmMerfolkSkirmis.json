@@ -145,6 +145,33 @@
               "provenance": "additional"
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Speed: -10 feet",
+              "img": "icons/skills/movement/figure-running-gray.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "speed-10-feet-1",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "resources.movement.max"
+                    ],
+                    "modifierType": "untyped",
+                    "value": -10
+                  }
+                }
+              ],
+              "duration": {
+                "value": 1,
+                "units": "rounds",
+                "expiry": "turnStart"
+              }
+            }
+          ],
           "label": "Ocean Spear"
         },
         "ruleElements": []
@@ -161,9 +188,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: \"Speed: -10 feet\" (its own changes) not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -211,9 +236,7 @@
         "challenge": 0.125
       },
       "conversion": {
-        "notes": [
-          "Ocean Spear: effect: \"Speed: -10 feet\" (its own changes) not converted"
-        ]
+        "notes": []
       }
     }
   }

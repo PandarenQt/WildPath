@@ -18,6 +18,313 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Resist Acid",
+          "img": "icons/magic/defensive/shield-barrier-deflect-teal.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "resist-acid-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "acid"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 1,
+            "units": "turns",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-2",
+          "type": "effect",
+          "name": "Resist Bludgeoning",
+          "img": "icons/magic/defensive/shield-barrier-deflect-teal.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "resist-bludgeoning-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "bludgeoning"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 1,
+            "units": "turns",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-3",
+          "type": "effect",
+          "name": "Resist Cold",
+          "img": "icons/magic/defensive/shield-barrier-deflect-teal.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "resist-cold-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "cold"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 1,
+            "units": "turns",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-4",
+          "type": "effect",
+          "name": "Resist Fire",
+          "img": "icons/magic/defensive/shield-barrier-deflect-teal.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "resist-fire-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "fire"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 1,
+            "units": "turns",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-5",
+          "type": "effect",
+          "name": "Resist Force",
+          "img": "icons/magic/defensive/shield-barrier-deflect-teal.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "resist-force-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "force"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 1,
+            "units": "turns",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-6",
+          "type": "effect",
+          "name": "Resist Lightning",
+          "img": "icons/magic/defensive/shield-barrier-deflect-teal.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "resist-lightning-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "lightning"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 1,
+            "units": "turns",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-7",
+          "type": "effect",
+          "name": "Resist Necrotic",
+          "img": "icons/magic/defensive/shield-barrier-deflect-teal.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "resist-necrotic-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "necrotic"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 1,
+            "units": "turns",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-8",
+          "type": "effect",
+          "name": "Resist Piercing",
+          "img": "icons/magic/defensive/shield-barrier-deflect-teal.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "resist-piercing-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "piercing"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 1,
+            "units": "turns",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-9",
+          "type": "effect",
+          "name": "Resist Poison",
+          "img": "icons/magic/defensive/shield-barrier-deflect-teal.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "resist-poison-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "poison"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 1,
+            "units": "turns",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-10",
+          "type": "effect",
+          "name": "Resist Psychic",
+          "img": "icons/magic/defensive/shield-barrier-deflect-teal.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "resist-psychic-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "psychic"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 1,
+            "units": "turns",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-11",
+          "type": "effect",
+          "name": "Resist Radiant",
+          "img": "icons/magic/defensive/shield-barrier-deflect-teal.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "resist-radiant-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "radiant"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 1,
+            "units": "turns",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-12",
+          "type": "effect",
+          "name": "Resist Slashing",
+          "img": "icons/magic/defensive/shield-barrier-deflect-teal.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "resist-slashing-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "slashing"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 1,
+            "units": "turns",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-13",
+          "type": "effect",
+          "name": "Resist Thunder",
+          "img": "icons/magic/defensive/shield-barrier-deflect-teal.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "resist-thunder-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "thunder"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 1,
+            "units": "turns",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "label": "Investment of the Chain Master (Invest with Resistance)"
     },
     "ruleElements": []
@@ -34,22 +341,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Resist Acid\" (its own changes) not converted",
-          "effect: \"Resist Bludgeoning\" (its own changes) not converted",
-          "effect: \"Resist Cold\" (its own changes) not converted",
-          "effect: \"Resist Fire\" (its own changes) not converted",
-          "effect: \"Resist Force\" (its own changes) not converted",
-          "effect: \"Resist Lightning\" (its own changes) not converted",
-          "effect: \"Resist Necrotic\" (its own changes) not converted",
-          "effect: \"Resist Piercing\" (its own changes) not converted",
-          "effect: \"Resist Poison\" (its own changes) not converted",
-          "effect: \"Resist Psychic\" (its own changes) not converted",
-          "effect: \"Resist Radiant\" (its own changes) not converted",
-          "effect: \"Resist Slashing\" (its own changes) not converted",
-          "effect: \"Resist Thunder\" (its own changes) not converted"
-        ]
+        "notes": []
       }
     }
   }

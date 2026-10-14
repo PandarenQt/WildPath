@@ -1229,6 +1229,64 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "cone",
+            "size": {
+              "value": 60,
+              "unit": "ft"
+            }
+          },
+          "save": {
+            "ability": "might",
+            "dc": {
+              "value": 13
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Weakened",
+              "img": "icons/magic/fire/beam-strike-whip-red.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "weakened-1",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "check.might"
+                    ],
+                    "modifierType": "untyped",
+                    "valueExpression": {
+                      "type": "subtract",
+                      "left": {
+                        "type": "constant",
+                        "value": 0
+                      },
+                      "right": {
+                        "type": "dice",
+                        "number": 1,
+                        "faces": 4
+                      }
+                    }
+                  }
+                }
+              ],
+              "duration": {
+                "value": 60,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "label": "Weakening Breath"
         },
         "ruleElements": []
@@ -1245,10 +1303,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "effect: \"Weakened\" (its own changes) not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -1679,8 +1734,6 @@
           "Flame Strike: area: a cylinder's height is not modeled",
           "Zone of Truth: not automated (save): using it spends its cost; its description says the rest",
           "Zone of Truth: effect: \"Cannot Lie\" (its own changes) not converted",
-          "Weakening Breath: not automated (save): using it spends its cost; its description says the rest",
-          "Weakening Breath: effect: \"Weakened\" (its own changes) not converted",
           "Guiding Light: not automated (cast): using it spends its cost; its description says the rest",
           "Guiding Bolt: effect: marked is not a WildPath condition yet",
           "Pounce: not automated (utility): using it spends its cost; its description says the rest",

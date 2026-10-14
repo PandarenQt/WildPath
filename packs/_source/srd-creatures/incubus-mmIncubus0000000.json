@@ -740,6 +740,31 @@
               "type": "condition",
               "conditionId": "incapacitated",
               "saveOutcomePolicy": "failure"
+            },
+            {
+              "id": "effect-2",
+              "type": "effect",
+              "name": "Trance State",
+              "img": "icons/magic/control/hypnosis-mesmerism-eye-tan.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "trance-state-1",
+                  "type": "ResourceCap",
+                  "data": {
+                    "resources": [
+                      "movement"
+                    ],
+                    "maximum": 0
+                  }
+                }
+              ],
+              "duration": {
+                "value": 28800,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
+              "saveOutcomePolicy": "failure"
             }
           ],
           "configuration": [
@@ -809,7 +834,11 @@
           },
           "conversion": {
             "notes": [
-              "activation: 1 minute is not an action-economy cost"
+              "activation: 1 minute is not an action-economy cost",
+              "effect: \"Trance State\" change system.attributes.movement.fly (downgrade) not converted",
+              "effect: \"Trance State\" change system.attributes.movement.swim (downgrade) not converted",
+              "effect: \"Trance State\" change system.attributes.movement.burrow (downgrade) not converted",
+              "effect: \"Trance State\" change system.attributes.movement.climb (downgrade) not converted"
             ]
           }
         }
@@ -848,7 +877,10 @@
           "targeting": {
             "type": "multiple",
             "required": true,
-            "count": 20
+            "count": 20,
+            "refinementPolicy": {
+              "minSelections": 1
+            }
           },
           "save": {
             "ability": "wits",
@@ -867,6 +899,31 @@
               "id": "effect-2",
               "type": "condition",
               "conditionId": "incapacitated",
+              "saveOutcomePolicy": "failure"
+            },
+            {
+              "id": "effect-3",
+              "type": "effect",
+              "name": "Hypnotized",
+              "img": "icons/magic/control/hypnosis-mesmerism-eye-tan.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "hypnotized-1",
+                  "type": "ResourceCap",
+                  "data": {
+                    "resources": [
+                      "movement"
+                    ],
+                    "maximum": 0
+                  }
+                }
+              ],
+              "duration": {
+                "value": 60,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
               "saveOutcomePolicy": "failure"
             }
           ],
@@ -951,7 +1008,11 @@
           },
           "conversion": {
             "notes": [
-              "area: 30-ft cube is not supported; the user picks the targets"
+              "area: 30-ft cube is not supported; the user picks the targets",
+              "effect: \"Hypnotized\" change system.attributes.movement.burrow (downgrade) not converted",
+              "effect: \"Hypnotized\" change system.attributes.movement.climb (downgrade) not converted",
+              "effect: \"Hypnotized\" change system.attributes.movement.fly (downgrade) not converted",
+              "effect: \"Hypnotized\" change system.attributes.movement.swim (downgrade) not converted"
             ]
           }
         }
@@ -1025,7 +1086,15 @@
           "Etherealness: not automated (utility): using it spends its cost; its description says the rest",
           "Etherealness: effect: ethereal is not a WildPath condition yet",
           "Dream: activation: 1 minute is not an action-economy cost",
-          "Hypnotic Pattern: area: 30-ft cube is not supported; the user picks the targets"
+          "Dream: effect: \"Trance State\" change system.attributes.movement.fly (downgrade) not converted",
+          "Dream: effect: \"Trance State\" change system.attributes.movement.swim (downgrade) not converted",
+          "Dream: effect: \"Trance State\" change system.attributes.movement.burrow (downgrade) not converted",
+          "Dream: effect: \"Trance State\" change system.attributes.movement.climb (downgrade) not converted",
+          "Hypnotic Pattern: area: 30-ft cube is not supported; the user picks the targets",
+          "Hypnotic Pattern: effect: \"Hypnotized\" change system.attributes.movement.burrow (downgrade) not converted",
+          "Hypnotic Pattern: effect: \"Hypnotized\" change system.attributes.movement.climb (downgrade) not converted",
+          "Hypnotic Pattern: effect: \"Hypnotized\" change system.attributes.movement.fly (downgrade) not converted",
+          "Hypnotic Pattern: effect: \"Hypnotized\" change system.attributes.movement.swim (downgrade) not converted"
         ]
       }
     }

@@ -254,6 +254,34 @@
               }
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Slowed: 10 ft.",
+              "img": "systems/dnd5e/icons/svg/statuses/heavily-encumbered.svg",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "slowed-10-ft-1",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "resources.movement.max"
+                    ],
+                    "modifierType": "untyped",
+                    "value": -10
+                  }
+                }
+              ],
+              "duration": {
+                "value": 1,
+                "units": "turns",
+                "expiry": "turnStart"
+              },
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "label": "Steam Breath"
         },
         "ruleElements": [
@@ -287,7 +315,10 @@
           "conversion": {
             "notes": [
               "uses: Recharge 6 is not rolled; refill the pool by hand",
-              "effect: \"Slowed: 10 ft.\" (its own changes) not converted"
+              "effect: \"Slowed: 10 ft.\" change system.attributes.movement.fly (add) not converted",
+              "effect: \"Slowed: 10 ft.\" change system.attributes.movement.swim (add) not converted",
+              "effect: \"Slowed: 10 ft.\" change system.attributes.movement.burrow (add) not converted",
+              "effect: \"Slowed: 10 ft.\" change system.attributes.movement.climb (add) not converted"
             ]
           }
         }
@@ -361,7 +392,10 @@
         "notes": [
           "Death Burst: \"save\" is passive or triggered: not automated",
           "Steam Breath: uses: Recharge 6 is not rolled; refill the pool by hand",
-          "Steam Breath: effect: \"Slowed: 10 ft.\" (its own changes) not converted"
+          "Steam Breath: effect: \"Slowed: 10 ft.\" change system.attributes.movement.fly (add) not converted",
+          "Steam Breath: effect: \"Slowed: 10 ft.\" change system.attributes.movement.swim (add) not converted",
+          "Steam Breath: effect: \"Slowed: 10 ft.\" change system.attributes.movement.burrow (add) not converted",
+          "Steam Breath: effect: \"Slowed: 10 ft.\" change system.attributes.movement.climb (add) not converted"
         ]
       }
     }

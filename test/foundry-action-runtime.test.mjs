@@ -26,6 +26,7 @@ import {inspectResolution} from "../module/helpers/resolution-inspection.mjs";
 import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
 import {damageProfileFromRuleElements, rollModesFromRuleElements, rollOutcomesFromRuleElements} from "../module/helpers/rule-elements.mjs";
 import {WILDPATH} from "../module/config.mjs";
+import {rollFormulaForRequest} from "../module/helpers/rolls.mjs";
 import {
   buildFoundryActionUseIntent,
   conditionsFrom,
@@ -1719,4 +1720,30 @@ test("a reaction's attack rolls with the same advantage as any attack: a Prone a
   assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors));
   const counter = gmRollRequests.find(request => request.type === "attack");
   assert.equal(counter.rollMode, "advantage");
+});
+
+test("a Blessed attacker rolls 1d20 + 1d4 + its bonus, and a Baned target's save subtracts its 1d4", async () => {
+  const scene = fakeScene(new FakeSquareGrid(), {id: "scene-bless"});
+  const blessed = {...runtimeStatistic("attack.weapon", 4), dice: [{id: "bless", label: "Bless", number: 1, faces: 4, sign: 1}]};
+  const baned = {...runtimeStatistic("save.might", 3), dice: [{id: "bane", label: "Bane", number: 1, faces: 4, sign: -1}]};
+  const sourceActor = withConditions(fakeActor("bless-source", {system: actorSystem(), statistics: {"attack.weapon": blessed}}));
+  const targetActor = withConditions(fakeActor("bless-target", {system: targetActorSystem(20, 20, {ac: 14}), statistics: {"save.might": baned}}));
+  const sourceToken = fakeTokenDocument({id: "bless-source", actor: sourceActor, scene, offset: {i: 0, j: 0}});
+  const targetToken = fakeTokenDocument({id: "bless-target", actor: targetActor, scene, offset: {i: 1, j: 0}});
+  sourceActor.tokens = [sourceToken];
+  targetActor.tokens = [targetToken];
+  scene.tokens = [sourceToken, targetToken];
+  const game = fakeGame({actors: [sourceActor, targetActor], scenes: [scene]});
+  const first = async definition => {
+    const action = actionItem(definition, sourceActor);
+    const resolved = await foundryActionIntentToStagedOptions({senderUserId: "player-a", game, intent: {actorRef: sourceActor.uuid,
+      actionRef: action.uuid, targetRefs: [{actorRef: targetActor.uuid, tokenId: targetToken.id, sceneId: scene.id}]}});
+    assert.equal(resolved.ok, true, resolved.reason);
+    return (await planStagedActionResolution(resolved.options)).state.rollRequests[0];
+  };
+  const attack = await first(meleeStrikeDefinition());
+  assert.equal(rollFormulaForRequest(attack).formula, "1d20 + 1d4 + 4");
+  assert.equal(attack.expected.modifierTotal, null, "the total is no longer the d20 plus a known modifier");
+  const save = await first(fortitudeBlast("might"));
+  assert.equal(rollFormulaForRequest(save).formula, "1d20 - 1d4 + 3");
 });

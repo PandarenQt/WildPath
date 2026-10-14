@@ -236,6 +236,7 @@
           "conversion": {
             "notes": [
               "not automated (utility): using it spends its cost; its description says the rest",
+              "effect: \"Wish Stress\" change system.abilities.str.value (downgrade) not converted",
               "effect: \"Wish Stress\" (its own changes) not converted"
             ]
           }
@@ -1031,6 +1032,65 @@
               }
             ]
           },
+          "range": {
+            "type": "touch",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Gaseous Form",
+              "img": "icons/magic/air/wind-vortex-swirl-blue-purple.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "gaseous-form-1",
+                  "type": "GrantMovement",
+                  "data": {
+                    "mode": "fly",
+                    "distance": 10
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "gaseous-form-2",
+                  "type": "GrantResistance",
+                  "data": {
+                    "damageTypes": [
+                      "bludgeoning",
+                      "piercing",
+                      "slashing"
+                    ]
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "gaseous-form-3",
+                  "type": "ConditionImmunity",
+                  "data": {
+                    "conditions": [
+                      "prone"
+                    ]
+                  }
+                }
+              ],
+              "duration": {
+                "value": 3600,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
+              "concentration": true
+            }
+          ],
           "configuration": [
             {
               "id": "spell-slot",
@@ -1092,7 +1152,14 @@
                 "spell-slot.8": 8,
                 "spell-slot.9": 9
               },
-              "effects": []
+              "effects": [
+                {
+                  "type": "scaleTargets",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 3,
+                  "perLevel": 1
+                }
+              ]
             }
           ],
           "label": "Gaseous Form"
@@ -1112,9 +1179,9 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
               "effect: transformed is not a WildPath condition yet",
-              "concentration: nothing it sustains was converted"
+              "effect: \"Gaseous Form\" change system.attributes.movement.hover (override) not converted",
+              "effect: \"Gaseous Form\" change img (override) not converted"
             ]
           }
         }
@@ -1559,6 +1626,7 @@
           "conversion": {
             "notes": [
               "not automated (utility): using it spends its cost; its description says the rest",
+              "effect: \"Universal Communication\" change system.traits.languages.custom (add) not converted",
               "effect: \"Universal Communication\" (its own changes) not converted"
             ]
           }
@@ -1598,7 +1666,10 @@
           "targeting": {
             "type": "multiple",
             "required": true,
-            "count": 20
+            "count": 20,
+            "refinementPolicy": {
+              "minSelections": 1
+            }
           },
           "save": {
             "ability": "agility",
@@ -1928,6 +1999,7 @@
         "notes": [
           "Wishes: not automated (cast): using it spends its cost; its description says the rest",
           "Wish: not automated (utility): using it spends its cost; its description says the rest",
+          "Wish: effect: \"Wish Stress\" change system.abilities.str.value (downgrade) not converted",
           "Wish: effect: \"Wish Stress\" (its own changes) not converted",
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: not automated (cast): using it spends its cost; its description says the rest",
@@ -1938,12 +2010,13 @@
           "Elementalism: not automated (utility): using it spends its cost; its description says the rest",
           "Elementalism: area: 5-ft cube is not supported; the user picks the targets",
           "Elementalism: area: 1-ft cube is not supported; the user picks the targets",
-          "Gaseous Form: not automated (utility): using it spends its cost; its description says the rest",
           "Gaseous Form: effect: transformed is not a WildPath condition yet",
-          "Gaseous Form: concentration: nothing it sustains was converted",
+          "Gaseous Form: effect: \"Gaseous Form\" change system.attributes.movement.hover (override) not converted",
+          "Gaseous Form: effect: \"Gaseous Form\" change img (override) not converted",
           "Major Image: not automated (summon): using it spends its cost; its description says the rest",
           "Plane Shift: not automated (utility): using it spends its cost; its description says the rest",
           "Tongues: not automated (utility): using it spends its cost; its description says the rest",
+          "Tongues: effect: \"Universal Communication\" change system.traits.languages.custom (add) not converted",
           "Tongues: effect: \"Universal Communication\" (its own changes) not converted",
           "Wall of Fire: area: 60-ft wall is not supported; the user picks the targets",
           "Wall of Fire: concentration: nothing it sustains was converted",

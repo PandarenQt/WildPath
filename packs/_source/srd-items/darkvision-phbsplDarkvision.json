@@ -110,6 +110,7 @@
       "conversion": {
         "notes": [
           "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Darkvision\" change system.attributes.senses.darkvision (upgrade) not converted",
           "effect: \"Darkvision\" (its own changes) not converted"
         ]
       }

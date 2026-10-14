@@ -365,6 +365,89 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Bat Form",
+              "img": "icons/creatures/mammals/bat-movement-flying-purple.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "bat-form-1",
+                  "type": "ResourceCap",
+                  "data": {
+                    "resources": [
+                      "movement"
+                    ],
+                    "maximum": 10
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "bat-form-2",
+                  "type": "GrantMovement",
+                  "data": {
+                    "mode": "fly",
+                    "distance": 40
+                  }
+                }
+              ]
+            },
+            {
+              "id": "effect-2",
+              "type": "effect",
+              "name": "Centipede Form",
+              "img": "icons/creatures/invertebrates/centipede-brown.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "centipede-form-1",
+                  "type": "ResourceCap",
+                  "data": {
+                    "resources": [
+                      "movement"
+                    ],
+                    "maximum": 40
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "centipede-form-2",
+                  "type": "GrantMovement",
+                  "data": {
+                    "mode": "climb",
+                    "distance": 40
+                  }
+                }
+              ]
+            },
+            {
+              "id": "effect-3",
+              "type": "effect",
+              "name": "Toad Form",
+              "img": "icons/creatures/amphibians/frog-water-teal.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "toad-form-1",
+                  "type": "ResourceCap",
+                  "data": {
+                    "resources": [
+                      "movement"
+                    ],
+                    "maximum": 20
+                  }
+                }
+              ]
+            }
+          ],
           "label": "Shape-Shift"
         },
         "ruleElements": []
@@ -382,10 +465,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "effect: \"Bat Form\" (its own changes) not converted",
-              "effect: \"Centipede Form\" (its own changes) not converted",
-              "effect: \"Toad Form\" (its own changes) not converted"
+              "effect: \"Toad Form\" change system.attributes.movement.swim (override) not converted"
             ]
           }
         }
@@ -545,10 +625,7 @@
       "conversion": {
         "notes": [
           "Invisibility: not automated (cast): using it spends its cost; its description says the rest",
-          "Shape-Shift: not automated (utility): using it spends its cost; its description says the rest",
-          "Shape-Shift: effect: \"Bat Form\" (its own changes) not converted",
-          "Shape-Shift: effect: \"Centipede Form\" (its own changes) not converted",
-          "Shape-Shift: effect: \"Toad Form\" (its own changes) not converted"
+          "Shape-Shift: effect: \"Toad Form\" change system.attributes.movement.swim (override) not converted"
         ]
       }
     }

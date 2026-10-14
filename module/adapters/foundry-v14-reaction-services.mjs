@@ -83,7 +83,8 @@ function reactionChildState({ args, reactor, target, targetFootprint, sourceFoot
         targeting: { candidates: [targetEntry] },
         context: { spatial: { sceneContext, gridDistance: sceneContext.grid.distance, sourceFootprint, targetFootprints: [targetEntry] } },
         attack: (statistics.attack || rollMode) ? {
-            ...(statistics.attack ? { statistic: statistics.attack.statistic, modifierTotal: statistics.attack.modifierTotal } : {}),
+            ...(statistics.attack ? { statistic: statistics.attack.statistic, modifierTotal: statistics.attack.modifierTotal,
+                ...(statistics.attack.dice ? { dice: statistics.attack.dice } : {}) } : {}),
             ...(rollMode ? { rollMode } : {}), ...(critical ? { outcomesByTarget: { [target.id]: "critical-on-hit" } } : {})
         } : null,
         damage: statistics.damage,

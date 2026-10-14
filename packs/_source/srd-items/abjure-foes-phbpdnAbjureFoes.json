@@ -40,6 +40,9 @@
               "ability": "presence"
             }
           ]
+        },
+        "refinementPolicy": {
+          "minSelections": 1
         }
       },
       "save": {

@@ -394,7 +394,9 @@ test("FoundryDigitalRollProvider isolates Foundry Roll objects behind a normaliz
 test("a roll total outside what the requested dice can produce is rejected, however it was rolled", () => {
   assert.deepEqual(simpleFormulaBounds("2d6 + 3"), {formula: "2d6 + 3", min: 5, max: 15});
   assert.deepEqual(simpleFormulaBounds("1d20 - 2"), {formula: "1d20 - 2", min: -1, max: 18});
-  assert.equal(simpleFormulaBounds("2d20kh + 4"), null, "keep/explode/roll-data formulas are not bounded");
+  assert.deepEqual(simpleFormulaBounds("2d20kh + 4"), {formula: "2d20kh + 4", min: 5, max: 24}, "advantage keeps one d20");
+  assert.deepEqual(simpleFormulaBounds("2d20kl + 1d4 - 1"), {formula: "2d20kl + 1d4 - 1", min: 1, max: 23}, "with a bonus die");
+  assert.equal(simpleFormulaBounds("1d6x + 2"), null, "exploding and roll-data formulas are not bounded");
   assert.equal(simpleFormulaBounds("1d8 + @mod"), null);
   const damage = createDamageRollRequest({id: "d", resolutionId: "r",
     components: [{id: "blade", expression: {type: "dice", number: 1, faces: 8}}]});

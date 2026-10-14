@@ -31,7 +31,10 @@
       "targeting": {
         "type": "multiple",
         "required": true,
-        "count": 3
+        "count": 3,
+        "refinementPolicy": {
+          "minSelections": 1
+        }
       },
       "healing": [
         {
@@ -41,6 +44,208 @@
             "value": 5
           },
           "healingType": "healing"
+        }
+      ],
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Level 2: +5 Max HP",
+          "img": "icons/magic/life/cross-flared-green.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "level-2-5-max-hp-1",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "resources.health.max"
+                ],
+                "modifierType": "untyped",
+                "value": 5
+              }
+            }
+          ],
+          "duration": {
+            "value": 28800,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-2",
+          "type": "effect",
+          "name": "Level 3: +10 Max HP",
+          "img": "icons/magic/life/cross-flared-green.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "level-3-10-max-hp-1",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "resources.health.max"
+                ],
+                "modifierType": "untyped",
+                "value": 10
+              }
+            }
+          ],
+          "duration": {
+            "value": 28800,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-3",
+          "type": "effect",
+          "name": "Level 4: +15 Max HP",
+          "img": "icons/magic/life/cross-flared-green.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "level-4-15-max-hp-1",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "resources.health.max"
+                ],
+                "modifierType": "untyped",
+                "value": 15
+              }
+            }
+          ],
+          "duration": {
+            "value": 28800,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-4",
+          "type": "effect",
+          "name": "Level 5: +20 Max HP",
+          "img": "icons/magic/life/cross-flared-green.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "level-5-20-max-hp-1",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "resources.health.max"
+                ],
+                "modifierType": "untyped",
+                "value": 20
+              }
+            }
+          ],
+          "duration": {
+            "value": 28800,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-5",
+          "type": "effect",
+          "name": "Level 6: +25 Max HP",
+          "img": "icons/magic/life/cross-flared-green.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "level-6-25-max-hp-1",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "resources.health.max"
+                ],
+                "modifierType": "untyped",
+                "value": 25
+              }
+            }
+          ],
+          "duration": {
+            "value": 28800,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-6",
+          "type": "effect",
+          "name": "Level 7: +30 Max HP",
+          "img": "icons/magic/life/cross-flared-green.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "level-7-30-max-hp-1",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "resources.health.max"
+                ],
+                "modifierType": "untyped",
+                "value": 30
+              }
+            }
+          ],
+          "duration": {
+            "value": 28800,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-7",
+          "type": "effect",
+          "name": "Level 8: +35 Max HP",
+          "img": "icons/magic/life/cross-flared-green.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "level-8-35-max-hp-1",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "resources.health.max"
+                ],
+                "modifierType": "untyped",
+                "value": 35
+              }
+            }
+          ],
+          "duration": {
+            "value": 28800,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-8",
+          "type": "effect",
+          "name": "Level 9: +40 Max HP",
+          "img": "icons/magic/life/cross-flared-green.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "level-9-40-max-hp-1",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "resources.health.max"
+                ],
+                "modifierType": "untyped",
+                "value": 40
+              }
+            }
+          ],
+          "duration": {
+            "value": 28800,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
         }
       ],
       "configuration": [
@@ -130,16 +335,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Level 2: +5 Max HP\" (its own changes) not converted",
-          "effect: \"Level 3: +10 Max HP\" (its own changes) not converted",
-          "effect: \"Level 4: +15 Max HP\" (its own changes) not converted",
-          "effect: \"Level 5: +20 Max HP\" (its own changes) not converted",
-          "effect: \"Level 6: +25 Max HP\" (its own changes) not converted",
-          "effect: \"Level 7: +30 Max HP\" (its own changes) not converted",
-          "effect: \"Level 8: +35 Max HP\" (its own changes) not converted",
-          "effect: \"Level 9: +40 Max HP\" (its own changes) not converted"
-        ]
+        "notes": []
       }
     }
   }

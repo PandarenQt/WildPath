@@ -990,6 +990,65 @@
               }
             ]
           },
+          "range": {
+            "type": "touch",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Gaseous Form",
+              "img": "icons/magic/air/wind-vortex-swirl-blue-purple.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "gaseous-form-1",
+                  "type": "GrantMovement",
+                  "data": {
+                    "mode": "fly",
+                    "distance": 10
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "gaseous-form-2",
+                  "type": "GrantResistance",
+                  "data": {
+                    "damageTypes": [
+                      "bludgeoning",
+                      "piercing",
+                      "slashing"
+                    ]
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "gaseous-form-3",
+                  "type": "ConditionImmunity",
+                  "data": {
+                    "conditions": [
+                      "prone"
+                    ]
+                  }
+                }
+              ],
+              "duration": {
+                "value": 3600,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
+              "concentration": true
+            }
+          ],
           "configuration": [
             {
               "id": "spell-slot",
@@ -1051,7 +1110,14 @@
                 "spell-slot.8": 8,
                 "spell-slot.9": 9
               },
-              "effects": []
+              "effects": [
+                {
+                  "type": "scaleTargets",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 3,
+                  "perLevel": 1
+                }
+              ]
             }
           ],
           "label": "Gaseous Form"
@@ -1071,9 +1137,9 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
               "effect: transformed is not a WildPath condition yet",
-              "concentration: nothing it sustains was converted"
+              "effect: \"Gaseous Form\" change system.attributes.movement.hover (override) not converted",
+              "effect: \"Gaseous Form\" change img (override) not converted"
             ]
           }
         }
@@ -1295,9 +1361,9 @@
           "Invisibility: not automated (cast): using it spends its cost; its description says the rest",
           "Darkness: not automated (utility): using it spends its cost; its description says the rest",
           "Darkness: concentration: nothing it sustains was converted",
-          "Gaseous Form: not automated (utility): using it spends its cost; its description says the rest",
           "Gaseous Form: effect: transformed is not a WildPath condition yet",
-          "Gaseous Form: concentration: nothing it sustains was converted"
+          "Gaseous Form: effect: \"Gaseous Form\" change system.attributes.movement.hover (override) not converted",
+          "Gaseous Form: effect: \"Gaseous Form\" change img (override) not converted"
         ]
       }
     }

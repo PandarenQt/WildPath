@@ -21,6 +21,45 @@
           }
         ]
       },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 30,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Hopeful",
+          "img": "icons/magic/holy/chalice-glowing-gold.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "hopeful-1",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "save.wits"
+                ],
+                "mode": "advantage"
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -102,9 +141,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Hopeful\" (its own changes) not converted",
-          "concentration: nothing it sustains was converted"
+          "effect: \"Hopeful\" change system.attributes.death.roll.mode (add) not converted"
         ]
       }
     }

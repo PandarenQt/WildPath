@@ -1278,6 +1278,7 @@
           "conversion": {
             "notes": [
               "not automated (utility): using it spends its cost; its description says the rest",
+              "effect: \"Truesight\" change system.attributes.senses.truesight (upgrade) not converted",
               "effect: \"Truesight\" (its own changes) not converted"
             ]
           }
@@ -1369,6 +1370,7 @@
           "Flame Strike: area: a cylinder's height is not modeled",
           "Geas: activation: 1 minute is not an action-economy cost",
           "True Seeing: not automated (utility): using it spends its cost; its description says the rest",
+          "True Seeing: effect: \"Truesight\" change system.attributes.senses.truesight (upgrade) not converted",
           "True Seeing: effect: \"Truesight\" (its own changes) not converted"
         ]
       }

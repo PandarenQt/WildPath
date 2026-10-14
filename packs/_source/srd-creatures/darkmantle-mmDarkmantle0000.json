@@ -108,6 +108,25 @@
               "id": "effect-1",
               "type": "condition",
               "conditionId": "blinded"
+            },
+            {
+              "id": "effect-2",
+              "type": "effect",
+              "name": "Self: Attack Adv./0 Speed",
+              "img": "icons/skills/movement/figure-running-gray.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "self-attack-adv-0-speed-1",
+                  "type": "ResourceCap",
+                  "data": {
+                    "resources": [
+                      "movement"
+                    ],
+                    "maximum": 0
+                  }
+                }
+              ]
             }
           ],
           "label": "Crush (attack)"
@@ -128,7 +147,7 @@
           "conversion": {
             "notes": [
               "effect: suffocation is not a WildPath condition yet",
-              "effect: \"Self: Attack Adv./0 Speed\" (its own changes) not converted"
+              "effect: \"Self: Attack Adv./0 Speed\" change system.attributes.movement.fly (override) not converted"
             ]
           }
         }
@@ -284,7 +303,7 @@
       "conversion": {
         "notes": [
           "Crush: effect: suffocation is not a WildPath condition yet",
-          "Crush: effect: \"Self: Attack Adv./0 Speed\" (its own changes) not converted",
+          "Crush: effect: \"Self: Attack Adv./0 Speed\" change system.attributes.movement.fly (override) not converted",
           "Crush: not automated (check): using it spends its cost; its description says the rest",
           "Darkness Aura: not automated (utility): using it spends its cost; its description says the rest"
         ]

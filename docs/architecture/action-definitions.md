@@ -128,6 +128,12 @@ Live (two browsers, 14.369):
 - Player1's barbarian used Rage (a `self` custom effect with slug `raging`). Its feature's
   `{hasCondition: "raging"}` Modifier on `damage.melee` made the axe roll "1d12 + 2".
 
+## Up to N targets (2026-10-14)
+
+A required `count` means exactly that many targets, unless `targeting.refinementPolicy.minSelections` says
+otherwise. dnd5e's "up to three creatures" (Bless) converts as `{type: "multiple", count: 3, refinementPolicy:
+{minSelections: 1}}`: one target is enough, three at most.
+
 ## Common actions (2026-10-14, after Baldur's Gate 3)
 
 Every creature has the 2024 actions anyone can take, with no Items (`module/helpers/common-actions.mts`):

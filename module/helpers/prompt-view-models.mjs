@@ -139,6 +139,9 @@ function rollControl(rollRequest) {
     max: natural && faces ? faces : (bounds?.max ?? null),
     expectedFaces: faces ?? null,
     requireNatural: expected.requireNatural === true,
+    // Bonus dice (Bless): the roller enters the d20, for critical hits, and the total with every die.
+    ...(natural && (request.definition?.dice ?? []).some(die => die?.purpose === "bonus")
+      ? {total: {label: "WILDPATH.PROMPT.Roll.TotalWithBonus", ...(simpleFormulaBounds(formula) ?? {})}} : {}),
     formula,
     modifierTotal: finiteNumber(expected.modifierTotal ?? request.definition?.modifierTotal),
     rollMode: request.rollMode ?? null,

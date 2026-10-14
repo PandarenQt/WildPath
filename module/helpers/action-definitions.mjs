@@ -321,7 +321,8 @@ function targetingFromDefinition(definition, {source, targeting}) {
   const refinementPolicy = {
     ...(targetDefinition.refinementPolicy ?? {}),
     ...(count != null ? {
-      minSelections: targetDefinition.required ? count : (targetDefinition.refinementPolicy?.minSelections ?? 0),
+      // "Up to three creatures" sets its own minimum; otherwise a required count is exact.
+      minSelections: targetDefinition.refinementPolicy?.minSelections ?? (targetDefinition.required ? count : 0),
       maxSelections: count
     } : {})
   };

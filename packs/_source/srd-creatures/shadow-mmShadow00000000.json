@@ -219,9 +219,13 @@
           "conversion": {
             "notes": [
               "not automated (utility): using it spends its cost; its description says the rest",
+              "effect: \"Hit: STR Score -1\" change system.abilities.str.value (add) not converted",
               "effect: \"Hit: STR Score -1\" (its own changes) not converted",
+              "effect: \"Hit: STR Score -2\" change system.abilities.str.value (add) not converted",
               "effect: \"Hit: STR Score -2\" (its own changes) not converted",
+              "effect: \"Hit: STR Score -3\" change system.abilities.str.value (add) not converted",
               "effect: \"Hit: STR Score -3\" (its own changes) not converted",
+              "effect: \"Hit: STR Score -4\" change system.abilities.str.value (add) not converted",
               "effect: \"Hit: STR Score -4\" (its own changes) not converted"
             ]
           }
@@ -404,9 +408,13 @@
       "conversion": {
         "notes": [
           "Draining Swipe: not automated (utility): using it spends its cost; its description says the rest",
+          "Draining Swipe: effect: \"Hit: STR Score -1\" change system.abilities.str.value (add) not converted",
           "Draining Swipe: effect: \"Hit: STR Score -1\" (its own changes) not converted",
+          "Draining Swipe: effect: \"Hit: STR Score -2\" change system.abilities.str.value (add) not converted",
           "Draining Swipe: effect: \"Hit: STR Score -2\" (its own changes) not converted",
+          "Draining Swipe: effect: \"Hit: STR Score -3\" change system.abilities.str.value (add) not converted",
           "Draining Swipe: effect: \"Hit: STR Score -3\" (its own changes) not converted",
+          "Draining Swipe: effect: \"Hit: STR Score -4\" change system.abilities.str.value (add) not converted",
           "Draining Swipe: effect: \"Hit: STR Score -4\" (its own changes) not converted",
           "Draining Swipe: not automated (summon): using it spends its cost; its description says the rest",
           "Shadow Stealth: not automated (utility): using it spends its cost; its description says the rest",

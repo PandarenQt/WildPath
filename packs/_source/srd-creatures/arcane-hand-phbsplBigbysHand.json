@@ -247,6 +247,51 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Half Cover",
+              "img": "icons/svg/shield.svg",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "half-cover-1",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "defense.ac"
+                    ],
+                    "modifierType": "untyped",
+                    "value": 2
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "half-cover-2",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "save.agility"
+                    ],
+                    "modifierType": "untyped",
+                    "value": 2
+                  }
+                }
+              ],
+              "duration": {
+                "value": 1,
+                "units": "turns",
+                "expiry": "turnStart"
+              }
+            }
+          ],
           "label": "Interposing Hand"
         },
         "ruleElements": []
@@ -264,8 +309,6 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "effect: \"Half Cover\" (its own changes) not converted",
               "effect: \"Interposed\" (its own changes) not converted"
             ]
           }
@@ -293,8 +336,6 @@
           "Grasping Hand: not automated (save): using it spends its cost; its description says the rest",
           "Grasping Hand: not automated (damage): using it spends its cost; its description says the rest",
           "Grasping Hand: damage 1: custom formula \"(2 * @flags.dnd5e.summon.level - 6)d6 + @flags.dnd5e.summon.mod\" not converted",
-          "Interposing Hand: not automated (utility): using it spends its cost; its description says the rest",
-          "Interposing Hand: effect: \"Half Cover\" (its own changes) not converted",
           "Interposing Hand: effect: \"Interposed\" (its own changes) not converted"
         ]
       }

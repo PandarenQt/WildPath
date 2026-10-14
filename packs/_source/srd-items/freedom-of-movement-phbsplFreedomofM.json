@@ -21,6 +21,56 @@
           }
         ]
       },
+      "range": {
+        "type": "touch",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Unrestricted Movement",
+          "img": "icons/skills/movement/feet-bladed-boots-fire.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "unrestricted-movement-1",
+              "type": "GrantMovement",
+              "data": {
+                "mode": "swim",
+                "distance": {
+                  "type": "context",
+                  "path": "actorSystem.resources.movement.max"
+                }
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "unrestricted-movement-2",
+              "type": "ConditionImmunity",
+              "data": {
+                "conditions": [
+                  "paralyzed",
+                  "restrained"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -75,7 +125,14 @@
             "spell-slot.8": 8,
             "spell-slot.9": 9
           },
-          "effects": []
+          "effects": [
+            {
+              "type": "scaleTargets",
+              "levelChoiceId": "spell-slot",
+              "baseLevel": 4,
+              "perLevel": 1
+            }
+          ]
         }
       ],
       "label": "Freedom of Movement"
@@ -95,8 +152,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Unrestricted Movement\" (its own changes) not converted"
+          "effect: \"Unrestricted Movement\" change system.attributes.movement.ignoredDifficultTerrain (add) not converted"
         ]
       }
     }

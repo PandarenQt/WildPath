@@ -110,8 +110,11 @@
       "conversion": {
         "notes": [
           "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Duplicate A\" change flags.dnd-players-handbook.mirrorImages (add) not converted",
           "effect: \"Duplicate A\" (its own changes) not converted",
+          "effect: \"Duplicate B\" change flags.dnd-players-handbook.mirrorImages (add) not converted",
           "effect: \"Duplicate B\" (its own changes) not converted",
+          "effect: \"Duplicate C\" change flags.dnd-players-handbook.mirrorImages (add) not converted",
           "effect: \"Duplicate C\" (its own changes) not converted"
         ]
       }

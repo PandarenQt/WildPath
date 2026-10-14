@@ -85,6 +85,7 @@ export function resolveActorAttackStatistic(actor, attack={}, {item=null, tags=[
     domain: statistic.domain ?? domains[0] ?? null,
     modifier: total,
     totalModifier: total,
+    dice: statistic.dice ?? [],
     ability,
     abilityModifier,
     proficiency,
@@ -175,6 +176,7 @@ export function actionCombatStatistics(actor, definition, {item=null, turn=null}
     attack: statistic ? {
       statistic,
       modifierTotal: statistic.totalModifier,
+      ...(statistic.dice?.length ? {dice: statistic.dice} : {}),
       modifiers: [{id: `statistic:${statistic.domain}`, value: statistic.totalModifier, source: statistic.source}]
     } : null
   };
@@ -239,7 +241,7 @@ function withAbilityModifier(statistic, actor, ability) {
   const abilityModifier = actorAbilityModifier(actor, ability);
   if ( !statistic.known && (abilityModifier == null) ) return null;
   return {domain: statistic.domain, totalModifier: (statistic.value ?? 0) + (abilityModifier ?? 0), abilityModifier,
-    trace: statistic.trace};
+    dice: statistic.dice ?? [], trace: statistic.trace};
 }
 
 function resolveActorStatisticModifier(actor, domains, options={}) {
@@ -248,7 +250,8 @@ function resolveActorStatisticModifier(actor, domains, options={}) {
   const statistic = actor.getStatistic(list, {...options, auras: true});
   const value = finiteNumber(statistic?.totalModifier ?? statistic?.total ?? statistic?.value ?? statistic?.modifier);
   if ( value == null ) return {known: false, value: null, trace: null, domain: null};
-  return {known: true, value, trace: clonePlain(statistic?.trace ?? {domain: list[0]}), domain: list[0] ?? null};
+  return {known: true, value, dice: clonePlain(statistic?.dice ?? []) ?? [], trace: clonePlain(statistic?.trace ?? {domain: list[0]}),
+    domain: list[0] ?? null};
 }
 
 function firstFiniteNumber(values) {

@@ -57,14 +57,18 @@ export class WildPathModifier {
     // Plain values from where the modifier came from (its effect's level), kept when a statistic re-evaluates it.
     this.bindings = data.bindings ? clonePlain(data.bindings) : null;
 
+    // A dice bonus or penalty (Bless +1d4, Bane -1d4) is rolled with the d20, not added as a number.
+    this.dice = modifierDice(this.valueExpression);
+
     const evaluation = this.evaluate(context);
-    this.value = evaluation.valueResult.ok ? evaluation.valueResult.value : 0;
-    this.valueResult = evaluation.valueResult;
+    this.valueResult = this.dice ? {ok: true, value: 0} : evaluation.valueResult;
+    this.value = this.valueResult.ok ? this.valueResult.value : 0;
     this.predicateResult = evaluation.predicateResult;
   }
 
-  /** @returns {string} A "+N"/"-N" formatted string of this modifier's value. */
+  /** @returns {string} A "+N"/"-N" (or "+1d4") formatted string of this modifier's value. */
   get signedValue() {
+    if ( this.dice ) return `${this.dice.sign < 0 ? "-" : "+"}${this.dice.number}d${this.dice.faces}`;
     return this.value >= 0 ? `+${this.value}` : `${this.value}`;
   }
 
@@ -199,6 +203,11 @@ export class WildPathStatistic {
     return this.applied.reduce((sum, m) => sum + m.value, 0);
   }
 
+  /** @type {Array<{id: string, label: string, number: number, faces: number, sign: number}>} Dice rolled with the d20. */
+  get dice() {
+    return this.applied.filter(modifier => modifier.dice).map(modifier => ({id: modifier.id, label: modifier.label, ...modifier.dice}));
+  }
+
   /** @type {string} A human-readable "Label +N, Label -N, ..." breakdown of applied modifiers. */
   get breakdown() {
     return this.applied.map(m => `${m.label} ${m.signedValue}`).join(", ");
@@ -282,6 +291,27 @@ function traceEntry(modifier, status) {
     metadata: clonePlain(modifier.metadata),
     status
   };
+}
+
+/**
+ * The dice a Modifier's value is, `{number, faces, sign}`, or null for a flat value: a dice expression (Bless "1d4"),
+ * or its negation (Bane: 0 - 1d4, or -1 * 1d4).
+ */
+export function modifierDice(expression) {
+  const dice = value => ((value?.type === "dice") && (Number(value.number ?? value.count ?? 1) > 0) && (Number(value.faces) > 0)
+    ? {number: Number(value.number ?? value.count ?? 1), faces: Number(value.faces)} : null);
+  if ( dice(expression) ) return {...dice(expression), sign: 1};
+  if ( (expression?.type === "subtract") && (Number((expression.left ?? expression.terms?.[0])?.value) === 0) ) {
+    const right = dice(expression.right ?? expression.terms?.[1]);
+    return right ? {...right, sign: -1} : null;
+  }
+  if ( (expression?.type === "multiply") && (expression.terms?.length === 2) ) {
+    const [first, second] = expression.terms;
+    const negated = (first?.type === "constant") && (Number(first.value) === -1) ? dice(second)
+      : ((second?.type === "constant") && (Number(second.value) === -1) ? dice(first) : null);
+    return negated ? {...negated, sign: -1} : null;
+  }
+  return null;
 }
 
 function normalizeValueExpression(data) {

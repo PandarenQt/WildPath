@@ -232,6 +232,28 @@
               "provenance": "weapon-base"
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Damaged: -1 AC",
+              "img": "icons/creatures/slimes/slime-movement-dripping-purple.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "damaged-1-ac-1",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "defense.ac"
+                    ],
+                    "modifierType": "untyped",
+                    "value": -1
+                  }
+                }
+              ]
+            }
+          ],
           "label": "Dissolving Pseudopod"
         },
         "ruleElements": []
@@ -248,9 +270,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: \"Damaged: -1 AC\" (its own changes) not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -329,8 +349,7 @@
       "conversion": {
         "notes": [
           "Corrosive Form: \"damage\" is passive or triggered: not automated",
-          "Split: not automated (summon): using it spends its cost; its description says the rest",
-          "Dissolving Pseudopod: effect: \"Damaged: -1 AC\" (its own changes) not converted"
+          "Split: not automated (summon): using it spends its cost; its description says the rest"
         ]
       }
     }

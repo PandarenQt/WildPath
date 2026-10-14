@@ -21,6 +21,79 @@
           }
         ]
       },
+      "range": {
+        "type": "touch",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Bonded",
+          "img": "icons/equipment/finger/ring-band-engraved-scrolls-silver.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "bonded-1",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "defense.ac"
+                ],
+                "modifierType": "untyped",
+                "value": 1
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "bonded-2",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "save"
+                ],
+                "modifierType": "untyped",
+                "value": 1
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "bonded-3",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "acid",
+                  "bludgeoning",
+                  "cold",
+                  "fire",
+                  "force",
+                  "lightning",
+                  "necrotic",
+                  "piercing",
+                  "poison",
+                  "psychic",
+                  "radiant",
+                  "slashing",
+                  "thunder"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -108,10 +181,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Bonded\" (its own changes) not converted"
-        ]
+        "notes": []
       }
     }
   }

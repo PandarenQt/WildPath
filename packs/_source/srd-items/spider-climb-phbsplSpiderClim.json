@@ -21,6 +21,46 @@
           }
         ]
       },
+      "range": {
+        "type": "touch",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Spider Climb",
+          "img": "icons/creatures/invertebrates/spider-dotted-green.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "spider-climb-1",
+              "type": "GrantMovement",
+              "data": {
+                "mode": "climb",
+                "distance": {
+                  "type": "context",
+                  "path": "actorSystem.resources.movement.max"
+                }
+              }
+            }
+          ],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -89,7 +129,14 @@
             "spell-slot.8": 8,
             "spell-slot.9": 9
           },
-          "effects": []
+          "effects": [
+            {
+              "type": "scaleTargets",
+              "levelChoiceId": "spell-slot",
+              "baseLevel": 2,
+              "perLevel": 1
+            }
+          ]
         }
       ],
       "label": "Spider Climb"
@@ -108,11 +155,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Spider Climb\" (its own changes) not converted",
-          "concentration: nothing it sustains was converted"
-        ]
+        "notes": []
       }
     }
   }

@@ -122,6 +122,7 @@
       },
       "conversion": {
         "notes": [
+          "effect: \"Unable to Move\" change system.attributes.movement.multiplier (override) not converted",
           "effect: \"Unable to Move\" (its own changes) not converted"
         ]
       }

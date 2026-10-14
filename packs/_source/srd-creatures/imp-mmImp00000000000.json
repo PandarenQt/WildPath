@@ -368,6 +368,89 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Rat Form",
+              "img": "icons/creatures/mammals/rodent-rat-green.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "rat-form-1",
+                  "type": "ResourceCap",
+                  "data": {
+                    "resources": [
+                      "movement"
+                    ],
+                    "maximum": 20
+                  }
+                }
+              ]
+            },
+            {
+              "id": "effect-2",
+              "type": "effect",
+              "name": "Raven Form",
+              "img": "icons/creatures/birds/raptor-hawk-flying.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "raven-form-1",
+                  "type": "ResourceCap",
+                  "data": {
+                    "resources": [
+                      "movement"
+                    ],
+                    "maximum": 20
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "raven-form-2",
+                  "type": "GrantMovement",
+                  "data": {
+                    "mode": "fly",
+                    "distance": 60
+                  }
+                }
+              ]
+            },
+            {
+              "id": "effect-3",
+              "type": "effect",
+              "name": "Spider Form",
+              "img": "icons/creatures/invertebrates/spider-dotted-green.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "spider-form-1",
+                  "type": "ResourceCap",
+                  "data": {
+                    "resources": [
+                      "movement"
+                    ],
+                    "maximum": 20
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "spider-form-2",
+                  "type": "GrantMovement",
+                  "data": {
+                    "mode": "climb",
+                    "distance": 20
+                  }
+                }
+              ]
+            }
+          ],
           "label": "Shape-Shift"
         },
         "ruleElements": []
@@ -385,10 +468,8 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "effect: \"Rat Form\" (its own changes) not converted",
-              "effect: \"Raven Form\" (its own changes) not converted",
-              "effect: \"Spider Form\" (its own changes) not converted"
+              "effect: \"Rat Form\" change system.attributes.movement.fly (override) not converted",
+              "effect: \"Spider Form\" change system.attributes.movement.fly (override) not converted"
             ]
           }
         }
@@ -470,10 +551,8 @@
       "conversion": {
         "notes": [
           "Invisibility: not automated (cast): using it spends its cost; its description says the rest",
-          "Shape-Shift: not automated (utility): using it spends its cost; its description says the rest",
-          "Shape-Shift: effect: \"Rat Form\" (its own changes) not converted",
-          "Shape-Shift: effect: \"Raven Form\" (its own changes) not converted",
-          "Shape-Shift: effect: \"Spider Form\" (its own changes) not converted"
+          "Shape-Shift: effect: \"Rat Form\" change system.attributes.movement.fly (override) not converted",
+          "Shape-Shift: effect: \"Spider Form\" change system.attributes.movement.fly (override) not converted"
         ]
       }
     }

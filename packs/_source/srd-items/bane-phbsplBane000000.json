@@ -21,6 +21,104 @@
           }
         ]
       },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 30,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "multiple",
+        "required": true,
+        "count": 3,
+        "refinementPolicy": {
+          "minSelections": 1
+        }
+      },
+      "save": {
+        "ability": "presence",
+        "dc": {
+          "valueExpression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 8
+              },
+              {
+                "type": "proficiency-bonus"
+              },
+              {
+                "type": "spellcasting-modifier"
+              }
+            ]
+          }
+        }
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Bane",
+          "img": "icons/magic/control/voodoo-doll-pain-damage-tan.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "bane-1",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "save"
+                ],
+                "modifierType": "untyped",
+                "valueExpression": {
+                  "type": "subtract",
+                  "left": {
+                    "type": "constant",
+                    "value": 0
+                  },
+                  "right": {
+                    "type": "dice",
+                    "number": 1,
+                    "faces": 4
+                  }
+                }
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "bane-2",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "attack"
+                ],
+                "modifierType": "untyped",
+                "valueExpression": {
+                  "type": "subtract",
+                  "left": {
+                    "type": "constant",
+                    "value": 0
+                  },
+                  "right": {
+                    "type": "dice",
+                    "number": 1,
+                    "faces": 4
+                  }
+                }
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "saveOutcomePolicy": "failure",
+          "concentration": true
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -96,7 +194,14 @@
             "spell-slot.8": 8,
             "spell-slot.9": 9
           },
-          "effects": []
+          "effects": [
+            {
+              "type": "scaleTargets",
+              "levelChoiceId": "spell-slot",
+              "baseLevel": 1,
+              "perLevel": 1
+            }
+          ]
         }
       ],
       "label": "Bane"
@@ -115,11 +220,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (save): using it spends its cost; its description says the rest",
-          "effect: \"Bane\" (its own changes) not converted",
-          "concentration: nothing it sustains was converted"
-        ]
+        "notes": []
       }
     }
   }

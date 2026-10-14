@@ -164,7 +164,7 @@ function targetingOf({activity, system, notes, level=0, scales={}}) {
         ...(shape === "line" ? {width: {value: number(template.width) ?? 5, unit: "ft"}} : {})}};
     }
     notes.push(`area: ${template.size}-ft ${template.type} is not supported; the user picks the targets`);
-    return {targeting: {type: "multiple", required: true, count: 20}};
+    return {targeting: {type: "multiple", required: true, count: 20, ...UP_TO}};
   }
   if ( (affects.type === "self") || (rangeUnits === "self") ) return {targeting: {type: "self"}};
   // A count may be a formula, and grow with the spell's level ("@item.level - 1"): its value at the spell's own level,
@@ -178,10 +178,14 @@ function targetingOf({activity, system, notes, level=0, scales={}}) {
   const perLevel = (typeof count === "number") && String(affects.count).includes("@item.level") && (typeof at(level + 1) === "number")
     ? at(level + 1) - count : 0;
   if ( affects.count && (count == null) ) notes.push(`targets: count "${affects.count}" not converted`);
-  if ( count && (typeof count === "object") ) return {targeting: {type: "multiple", required: true, count}};
-  if ( (count > 1) || perLevel ) return {targeting: {type: (count > 1) ? "multiple" : "single", required: true, count: Math.max(count, 1)}, perLevel};
+  if ( count && (typeof count === "object") ) return {targeting: {type: "multiple", required: true, count, ...UP_TO}};
+  if ( (count > 1) || perLevel ) return {targeting: {type: (count > 1) ? "multiple" : "single", required: true, count: Math.max(count, 1),
+    ...((count > 1) ? UP_TO : {})}, perLevel};
   return {targeting: {type: "single", required: true, count: 1}};
 }
+
+/** dnd5e's "up to three creatures": at least one, at most the count. */
+const UP_TO = Object.freeze({refinementPolicy: {minSelections: 1}});
 
 const LEGACY_ACTIONS = Object.freeze({mwak: ["attack", "melee", "weapon"], rwak: ["attack", "ranged", "weapon"],
   msak: ["attack", "melee", "spell"], rsak: ["attack", "ranged", "spell"], save: ["save"], heal: ["heal"], abil: ["check"],
@@ -437,13 +441,19 @@ function convertActivity({document, activity, system, spell, level, scales, note
     const effect = (document.effects ?? []).find(entry => entry._id === reference._id);
     const statuses = effect?.statuses ?? [];
     const known = statuses.filter(status => CONDITION_MAP[status]);
+    const onFailure = definition.save && (reference.onSave === false) ? {saveOutcomePolicy: "failure"} : {};
     for ( const status of statuses.filter(status => !CONDITION_MAP[status]) ) notes.push(`effect: ${status} is not a WildPath condition yet`);
-    if ( !statuses.length && effect ) notes.push(`effect: "${effect.name}" (its own changes) not converted`);
     for ( const status of known ) {
-      effects.push({id: `effect-${effects.length + 1}`, type: "condition", conditionId: CONDITION_MAP[status],
-        ...(definition.save && (reference.onSave === false) ? {saveOutcomePolicy: "failure"} : {}),
+      effects.push({id: `effect-${effects.length + 1}`, type: "condition", conditionId: CONDITION_MAP[status], ...onFailure,
         ...(concentration ? {concentration: true} : {})});
     }
+    // Its own changes (Bless, Shield of Faith, Haste) become a custom effect with the rules they map to.
+    const rules = effect ? effectRules(effect, notes) : [];
+    if ( rules.length ) {
+      const duration = effectDuration(effect.duration);
+      effects.push({id: `effect-${effects.length + 1}`, type: "effect", name: effect.name, ...(effect.img ? {img: effect.img} : {}),
+        ruleElements: rules, ...(duration ? {duration} : {}), ...onFailure, ...(concentration ? {concentration: true} : {})});
+    } else if ( effect && !statuses.length ) notes.push(`effect: "${effect.name}" (its own changes) not converted`);
   }
 
   if ( damage.length ) definition.damage = damage.map(({scaleDice: _scale, ...component}) => component);
@@ -604,6 +614,109 @@ function traitRules(system, notes) {
   const legendary = number(system.resources?.legact?.max);
   if ( legendary ) rules.push({schemaVersion: 1, id: "legendary-actions", type: "GrantResource",
     data: {resourceId: "legendary-action", label: "Legendary Actions", maximum: legendary, recovery: "turn"}});
+  return rules;
+}
+
+/* -------------------------------------------- */
+/*  Active Effect changes (G3)                   */
+/* -------------------------------------------- */
+
+/** V11-era numeric change modes, as V14's change types. */
+const CHANGE_MODES = Object.freeze({0: "custom", 1: "multiply", 2: "add", 3: "downgrade", 4: "upgrade", 5: "override"});
+/** dnd5e's attack bonus keys: the attack domain, and the attack type a predicate narrows it to. */
+const ATTACK_KEYS = Object.freeze({mwak: ["weapon", "melee"], rwak: ["weapon", "ranged"], msak: ["spell", "melee"], rsak: ["spell", "ranged"]});
+const DURATION_UNITS = new Set(["years", "months", "days", "hours", "minutes", "seconds", "rounds", "turns"]);
+const EXPIRY_EVENTS = new Set(["combatStart", "roundStart", "turnStart", "combatEnd", "roundEnd", "turnEnd"]);
+
+/** A change's value as a ValueExpression: a dnd5e formula, "+2", or a penalty die ("-1d4" is 0 - 1d4). */
+export function changeValue(value) {
+  const text = String(value ?? "").trim().replace(/^\+\s*/, "");
+  if ( !text.startsWith("-") ) return formulaExpression(text);
+  const rest = formulaExpression(text.slice(1).trim());
+  if ( rest?.type === "constant" ) return {type: "constant", value: -rest.value};
+  return rest ? {type: "subtract", left: {type: "constant", value: 0}, right: rest} : null;
+}
+
+/** An effect's dnd5e duration as a WildPath custom effect's V14 duration, or null when it has none. */
+function effectDuration(duration) {
+  const value = Number(duration?.value);
+  if ( !(value > 0) || !DURATION_UNITS.has(duration.units) ) return null;
+  return {value, units: duration.units, ...(EXPIRY_EVENTS.has(duration.expiry) ? {expiry: duration.expiry} : {})};
+}
+
+/**
+ * The rules a dnd5e Active Effect's changes become (G3): bonuses as Modifiers (dice ones roll with the d20),
+ * advantage and disadvantage as RollModes, damage adjustments, condition immunities, and Speeds. Each change WildPath
+ * has no equivalent for is noted, never approximated.
+ */
+export function effectRules(effect, notes=[]) {
+  const changes = effect?.system?.changes ?? effect?.changes ?? [];
+  const rules = [];
+  const base = slugify(effect?.name) || "effect";
+  const rule = (type, data, predicate=null) => rules.push({schemaVersion: 1, id: `${base}-${rules.length + 1}`, type,
+    ...(predicate ? {predicate} : {}), data});
+  const modifier = (domains, value, predicate=null) => rule("Modifier", {domains, modifierType: "untyped",
+    ...(value.type === "constant" ? {value: value.value} : {valueExpression: value})}, predicate);
+  const adjustments = {dr: [], di: [], dv: [], ci: []};
+  // Bonuses on all four kinds of attack with one value are one Modifier on every attack.
+  const attackChanges = changes.filter(change => /^system\.bonuses\.(mwak|rwak|msak|rsak)\.attack$/.test(change.key));
+  const everyAttack = (attackChanges.length === 4) && (new Set(attackChanges.map(change => String(change.value))).size === 1);
+  let everyAttackDone = false;
+  for ( const change of changes ) {
+    const key = String(change.key ?? "");
+    const type = change.type ?? CHANGE_MODES[change.mode] ?? "add";
+    const value = changeValue(change.value);
+    const number = Number(change.value);
+    const unmapped = () => notes.push(`effect: "${effect.name}" change ${key} (${type}) not converted`);
+    let match;
+    if ( (match = /^system\.bonuses\.(mwak|rwak|msak|rsak)\.attack$/.exec(key)) && (type === "add") && value ) {
+      if ( everyAttack ) {
+        if ( !everyAttackDone ) modifier(["attack"], value);
+        everyAttackDone = true;
+      } else modifier([`attack.${ATTACK_KEYS[match[1]][0]}`], value, {tagsAny: [ATTACK_KEYS[match[1]][1]]});
+    } else if ( (match = /^system\.bonuses\.(mwak|rwak|msak|rsak)\.damage$/.exec(key)) && (type === "add") && (value?.type === "constant") ) {
+      modifier([`damage.${ATTACK_KEYS[match[1]][0]}`], value, {tagsAny: [ATTACK_KEYS[match[1]][1]]});
+    } else if ( (match = /^system\.bonuses\.abilities\.(save|check)$/.exec(key)) && (type === "add") && value ) {
+      modifier([match[1]], value);
+    } else if ( (match = /^system\.abilities\.(\w+)\.bonuses\.(save|check)$/.exec(key)) && ABILITY_MAP[match[1]] && (type === "add") && value ) {
+      modifier([`${match[2]}.${ABILITY_MAP[match[1]]}`], value);
+    } else if ( (match = /^system\.skills\.(\w+)\.bonuses\.check$/.exec(key)) && DND_SKILLS[match[1]] && (type === "add") && value ) {
+      modifier([`check.${slugify(DND_SKILLS[match[1]])}`], value);
+    } else if ( (match = /^system\.abilities\.(\w+)\.(save|check)\.roll\.mode$/.exec(key)) && ABILITY_MAP[match[1]] && number ) {
+      rule("RollMode", {domains: [`${match[2]}.${ABILITY_MAP[match[1]]}`], mode: number > 0 ? "advantage" : "disadvantage"});
+    } else if ( (match = /^system\.skills\.(\w+)\.roll\.mode$/.exec(key)) && DND_SKILLS[match[1]] && number ) {
+      rule("RollMode", {domains: [`check.${slugify(DND_SKILLS[match[1]])}`], mode: number > 0 ? "advantage" : "disadvantage"});
+    } else if ( (key === "system.attributes.ac.bonus") && (type === "add") && value ) {
+      modifier(["defense.ac"], value);
+    } else if ( (key === "system.attributes.init.bonus") && (type === "add") && value ) {
+      modifier(["initiative"], value);
+    } else if ( (key === "system.attributes.hp.tempmax") && (type === "add") && value ) {
+      modifier(["resources.health.max"], value);
+    } else if ( (match = /^system\.traits\.(dr|di|dv|ci)\.value$/.exec(key)) && (type === "add") ) {
+      adjustments[match[1]].push(...String(change.value ?? "").split(/[,;]/).map(entry => entry.trim().toLowerCase()).filter(Boolean));
+    } else if ( (key === "system.attributes.movement.walk") && ["override", "downgrade"].includes(type) && Number.isFinite(number) ) {
+      // shortcut: a walking Speed set to a value only caps it; raising a Speed this way is not converted.
+      rule("ResourceCap", {resources: ["movement"], maximum: Math.max(number, 0)});
+    } else if ( (key === "system.attributes.movement.walk") && (type === "add") && value ) {
+      modifier(["resources.movement.max"], value);
+    } else if ( (key === "system.attributes.movement.walk") && (type === "multiply") && Number.isFinite(number) ) {
+      // Haste doubles it, Slow halves it: the walking Speed's own maximum times (factor - 1), added.
+      modifier(["resources.movement.max"], {type: "floor", value: {type: "multiply", terms: [{type: "constant", value: number - 1},
+        {type: "add", terms: [{type: "context", path: "actorSystem.resources.movement.base"},
+          {type: "context", path: "actorSystem.resources.movement.bonus"}]}]}});
+    } else if ( (match = /^system\.attributes\.movement\.(fly|swim|climb|burrow)$/.exec(key)) && ["upgrade", "override", "add"].includes(type) ) {
+      const distance = /^@attributes\.movement\.walk$/.test(String(change.value).trim())
+        ? {type: "context", path: "actorSystem.resources.movement.max"} : (Number.isFinite(number) && (number > 0) ? number : null);
+      if ( distance ) rule("GrantMovement", {mode: match[1], distance});
+      else unmapped();
+    } else unmapped();
+  }
+  if ( adjustments.dr.length ) rule("GrantResistance", {damageTypes: adjustments.dr});
+  if ( adjustments.di.length ) rule("GrantImmunity", {damageTypes: adjustments.di});
+  if ( adjustments.dv.length ) rule("GrantVulnerability", {damageTypes: adjustments.dv});
+  const conditions = adjustments.ci.filter(id => CONDITION_MAP[id]).map(id => CONDITION_MAP[id]);
+  if ( conditions.length ) rule("ConditionImmunity", {conditions});
+  for ( const id of adjustments.ci.filter(id => !CONDITION_MAP[id]) ) notes.push(`effect: "${effect.name}" condition immunity ${id} not converted`);
   return rules;
 }
 

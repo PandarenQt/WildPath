@@ -21,6 +21,82 @@
           }
         ]
       },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 120,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "multiple",
+        "required": true,
+        "count": 20,
+        "refinementPolicy": {
+          "minSelections": 1
+        }
+      },
+      "save": {
+        "ability": "wits",
+        "dc": {
+          "valueExpression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 8
+              },
+              {
+                "type": "proficiency-bonus"
+              },
+              {
+                "type": "spellcasting-modifier"
+              }
+            ]
+          }
+        }
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Slowed",
+          "img": "icons/magic/time/clock-stopwatch-white-blue.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "slowed-1",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "defense.ac"
+                ],
+                "modifierType": "untyped",
+                "value": -2
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "slowed-2",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "save.agility"
+                ],
+                "modifierType": "untyped",
+                "value": -2
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "saveOutcomePolicy": "failure",
+          "concentration": true
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -102,10 +178,8 @@
       },
       "conversion": {
         "notes": [
-          "not automated (save): using it spends its cost; its description says the rest",
           "area: 40-ft cube is not supported; the user picks the targets",
-          "effect: \"Slowed\" (its own changes) not converted",
-          "concentration: nothing it sustains was converted"
+          "effect: \"Slowed\" change system.attributes.movement.multiplier (multiply) not converted"
         ]
       }
     }

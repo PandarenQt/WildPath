@@ -21,6 +21,170 @@
           }
         ]
       },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 90,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Hexed Strength",
+          "img": "systems/dnd5e/icons/svg/abilities/strength.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "hexed-strength-1",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "check.might"
+                ],
+                "mode": "disadvantage"
+              }
+            }
+          ],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-2",
+          "type": "effect",
+          "name": "Hexed Dexterity",
+          "img": "systems/dnd5e/icons/svg/abilities/dexterity.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "hexed-dexterity-1",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "check.agility"
+                ],
+                "mode": "disadvantage"
+              }
+            }
+          ],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-3",
+          "type": "effect",
+          "name": "Hexed Constitution",
+          "img": "systems/dnd5e/icons/svg/abilities/constitution.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "hexed-constitution-1",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "check.fortitude"
+                ],
+                "mode": "disadvantage"
+              }
+            }
+          ],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-4",
+          "type": "effect",
+          "name": "Hexed Intelligence",
+          "img": "systems/dnd5e/icons/svg/abilities/intelligence.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "hexed-intelligence-1",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "check.intellect"
+                ],
+                "mode": "disadvantage"
+              }
+            }
+          ],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-5",
+          "type": "effect",
+          "name": "Hexed Wisdom",
+          "img": "systems/dnd5e/icons/svg/abilities/wisdom.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "hexed-wisdom-1",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "check.wits"
+                ],
+                "mode": "disadvantage"
+              }
+            }
+          ],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-6",
+          "type": "effect",
+          "name": "Hexed Charisma",
+          "img": "systems/dnd5e/icons/svg/abilities/charisma.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "hexed-charisma-1",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "check.presence"
+                ],
+                "mode": "disadvantage"
+              }
+            }
+          ],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -116,14 +280,12 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
           "effect: cursed is not a WildPath condition yet",
           "effect: cursed is not a WildPath condition yet",
           "effect: cursed is not a WildPath condition yet",
           "effect: cursed is not a WildPath condition yet",
           "effect: cursed is not a WildPath condition yet",
-          "effect: cursed is not a WildPath condition yet",
-          "concentration: nothing it sustains was converted"
+          "effect: cursed is not a WildPath condition yet"
         ]
       }
     }

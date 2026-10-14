@@ -16,6 +16,165 @@
       "costs": {
         "allOf": []
       },
+      "range": {
+        "type": "touch",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Foresight",
+          "img": "systems/dnd5e/icons/svg/trait-damage-resistances.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "foresight-1",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "save.might"
+                ],
+                "mode": "advantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "foresight-2",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "save.agility"
+                ],
+                "mode": "advantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "foresight-3",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "save.fortitude"
+                ],
+                "mode": "advantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "foresight-4",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "save.intellect"
+                ],
+                "mode": "advantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "foresight-5",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "save.wits"
+                ],
+                "mode": "advantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "foresight-6",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "save.presence"
+                ],
+                "mode": "advantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "foresight-7",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "check.might"
+                ],
+                "mode": "advantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "foresight-8",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "check.agility"
+                ],
+                "mode": "advantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "foresight-9",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "check.fortitude"
+                ],
+                "mode": "advantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "foresight-10",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "check.intellect"
+                ],
+                "mode": "advantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "foresight-11",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "check.wits"
+                ],
+                "mode": "advantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "foresight-12",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "check.presence"
+                ],
+                "mode": "advantage"
+              }
+            }
+          ],
+          "duration": {
+            "value": 28800,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -55,9 +214,6 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "activation: 1 minute is not an action-economy cost",
-          "effect: \"Foresight\" (its own changes) not converted",
           "activation: 1 minute is not an action-economy cost"
         ]
       }

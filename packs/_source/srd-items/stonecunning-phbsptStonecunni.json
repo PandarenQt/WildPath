@@ -54,6 +54,7 @@
       "conversion": {
         "notes": [
           "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Stonecunning\" change system.attributes.senses.tremorsense (add) not converted",
           "effect: \"Stonecunning\" (its own changes) not converted"
         ]
       }

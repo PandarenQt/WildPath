@@ -91,6 +91,7 @@
       },
       "conversion": {
         "notes": [
+          "effect: \"Reduced Movement\" change system.attributes.movement.bonus (add) not converted",
           "effect: \"Reduced Movement\" (its own changes) not converted"
         ]
       }

@@ -1059,6 +1059,7 @@
           "conversion": {
             "notes": [
               "not automated (utility): using it spends its cost; its description says the rest",
+              "effect: \"Bestial Communication\" change system.traits.languages.custom (add) not converted",
               "effect: \"Bestial Communication\" (its own changes) not converted"
             ]
           }
@@ -1589,6 +1590,53 @@
               }
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Failure: 1/2 Speed",
+              "img": "icons/skills/movement/figure-running-gray.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "failure-1-2-speed-1",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "resources.movement.max"
+                    ],
+                    "modifierType": "untyped",
+                    "valueExpression": {
+                      "type": "floor",
+                      "value": {
+                        "type": "multiply",
+                        "terms": [
+                          {
+                            "type": "constant",
+                            "value": -0.5
+                          },
+                          {
+                            "type": "add",
+                            "terms": [
+                              {
+                                "type": "context",
+                                "path": "actorSystem.resources.movement.base"
+                              },
+                              {
+                                "type": "context",
+                                "path": "actorSystem.resources.movement.bonus"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              ],
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "label": "Scorching Sands"
         },
         "ruleElements": []
@@ -1606,7 +1654,10 @@
           },
           "conversion": {
             "notes": [
-              "effect: \"Failure: 1/2 Speed\" (its own changes) not converted"
+              "effect: \"Failure: 1/2 Speed\" change system.attributes.movement.swim (multiply) not converted",
+              "effect: \"Failure: 1/2 Speed\" change system.attributes.movement.fly (multiply) not converted",
+              "effect: \"Failure: 1/2 Speed\" change system.attributes.movement.climb (multiply) not converted",
+              "effect: \"Failure: 1/2 Speed\" change system.attributes.movement.burrow (multiply) not converted"
             ]
           }
         }
@@ -1698,6 +1749,7 @@
           "Shapechange: not automated (utility): using it spends its cost; its description says the rest",
           "Shapechange: concentration: nothing it sustains was converted",
           "Speak with Animals: not automated (utility): using it spends its cost; its description says the rest",
+          "Speak with Animals: effect: \"Bestial Communication\" change system.traits.languages.custom (add) not converted",
           "Speak with Animals: effect: \"Bestial Communication\" (its own changes) not converted",
           "Detect Thoughts: not automated (utility): using it spends its cost; its description says the rest",
           "Detect Thoughts: concentration: nothing it sustains was converted",
@@ -1708,7 +1760,10 @@
           "Blazing Light: not automated (utility): using it spends its cost; its description says the rest",
           "Pounce: not automated (utility): using it spends its cost; its description says the rest",
           "Pounce: consumption: attribute 1 not converted",
-          "Scorching Sands: effect: \"Failure: 1/2 Speed\" (its own changes) not converted"
+          "Scorching Sands: effect: \"Failure: 1/2 Speed\" change system.attributes.movement.swim (multiply) not converted",
+          "Scorching Sands: effect: \"Failure: 1/2 Speed\" change system.attributes.movement.fly (multiply) not converted",
+          "Scorching Sands: effect: \"Failure: 1/2 Speed\" change system.attributes.movement.climb (multiply) not converted",
+          "Scorching Sands: effect: \"Failure: 1/2 Speed\" change system.attributes.movement.burrow (multiply) not converted"
         ]
       }
     }
