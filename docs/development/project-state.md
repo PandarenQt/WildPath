@@ -221,6 +221,10 @@ the smaller product gaps (Phase E).
   ([ui-ux-layer.md](../architecture/ui-ux-layer.md#character-sheet-m6-2026-10-14)).
   Live, a Player equipping a +2 shield took the header from AC 10 to 12, and unequipping it brought it back.
   Encumbrance, attunement and InventorySpaces are deferred.
+- **Choices before use.** `Item.use()` asks an Action's choices first (a spell slot, a damage type), with a live
+  preview of what they spend and roll, then sends them with the intent
+  ([ui-ux-layer.md](../architecture/ui-ux-layer.md#action-configuration-and-preview)).
+  Live: a Player picked a 2nd-level slot from the action bar and the spell rolled 3d6.
 
 **M4 — content pack (in progress, 2026-10-14).**
 - **The pack.** `@foundryvtt/foundryvtt-cli` 3.0.4 was approved and added. The built-in **WildPath Actions**

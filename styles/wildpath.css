@@ -570,3 +570,8 @@
 .wildpath.item .gear-fields { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 0 0 4px; }
 .wildpath.item .gear-fields label { display: inline-flex; align-items: center; gap: 4px; }
 .wildpath.item .gear-fields input[type="number"] { width: 5em; }
+
+/* The configuration dialog's live preview (what the chosen slot or option makes). */
+.wildpath-configuration-preview dl { display: grid; grid-template-columns: max-content 1fr; gap: 0 8px; margin: 6px 0 0; }
+.wildpath-configuration-preview dt { font-weight: bold; }
+.wildpath-configuration-preview dd { margin: 0; }

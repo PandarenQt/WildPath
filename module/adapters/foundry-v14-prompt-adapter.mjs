@@ -1,4 +1,4 @@
-import {ACTION_CHOICE_TYPES} from "../helpers/action-configuration.mjs";
+import {ACTION_CHOICE_TYPES, createResolvedActionPreview, discoverActionConfigurationChoices} from "../helpers/action-configuration.mjs";
 import {RESOLUTION_REQUEST_TYPES} from "../helpers/resolution-state.mjs";
 import {reactionChoiceValueFromForm} from "./foundry-v14-reaction-choice-adapter.mjs";
 import {
@@ -95,6 +95,62 @@ export function createFoundryV14PromptAdapter({
       };
     }
   };
+}
+
+/* -------------------------------------------- */
+
+/**
+ * Ask the user for an Action's choices before it is used (a spell slot, a damage type), with a live preview of what
+ * the choices make: what it spends, its damage dice and its save. The same controls as the authority's own
+ * configuration prompt, so the answer is the same `{choices}`; the authority still checks everything.
+ * @returns {Promise<object|null|undefined>} the choices, null when cancelled, undefined when the Action asks nothing.
+ */
+export async function promptActionConfiguration({definition, actorSystem, name=null, DialogV2=null}={}) {
+  const discovery = discoverActionConfigurationChoices({definition, actorSystem});
+  if ( !discovery.ok || !discovery.requests?.length ) return undefined;
+  const Dialog = resolveDialogV2({DialogV2, context: {}});
+  if ( !Dialog?.input ) return undefined;
+  const viewModel = createPromptViewModel({id: "configuration", resolutionId: "use", type: RESOLUTION_REQUEST_TYPES.ACTION_CONFIGURATION,
+    payload: {requests: discovery.requests}});
+  const shown = localizeViewModel(viewModel);
+  const FormData = globalThis.foundry?.applications?.ux?.FormDataExtended;
+  const refresh = form => {
+    const box = form?.querySelector(".wildpath-configuration-preview");
+    if ( !box || !FormData ) return;
+    const choices = actionConfigurationChoicesFromForm(viewModel, new FormData(form).object);
+    box.innerHTML = renderConfigurationPreview({definition, actorSystem, choices});
+  };
+  const response = await Dialog.input({
+    window: {title: localize("WILDPATH.PROMPT.Configure.Title", {name: name ?? definition.label ?? ""})},
+    content: `${renderPromptContent(shown)}<section class="wildpath-configuration-preview" aria-live="polite"></section>`,
+    ok: {label: localize("WILDPATH.PROMPT.Confirm")},
+    render: (_event, dialog) => {
+      const form = dialog.element?.querySelector("form") ?? dialog.form ?? null;
+      form?.addEventListener("change", () => refresh(form));
+      refresh(form);
+    },
+    rejectClose: false,
+    modal: true
+  });
+  return response == null ? null : actionConfigurationChoicesFromForm(viewModel, response);
+}
+
+/** What the chosen configuration makes, in a few plain lines. */
+export function renderConfigurationPreview({definition, actorSystem, choices}) {
+  const result = createResolvedActionPreview({definition, actorSystem, choices});
+  if ( !result.ok ) return `<p class="notes">${escapeHtml(localize("WILDPATH.PROMPT.Configure.Invalid"))}</p>`;
+  const preview = result.preview ?? {};
+  const pools = new Map((actorSystem?.pools ?? []).map(pool => [pool.id, pool.label ?? pool.id]));
+  const typeOf = new Map((definition.damage ?? []).map(component => [component.id, component.damageType ?? ""]));
+  const lines = [];
+  const spends = (preview.costs?.payment?.selectedPaymentPlan?.resources ?? [])
+    .map(resource => `${pools.get(resource.resourceId) ?? resource.resourceId}${resource.amount > 1 ? ` ×${resource.amount}` : ""}`);
+  if ( spends.length ) lines.push([localize("WILDPATH.PROMPT.Configure.Spends"), spends.join(", ")]);
+  const damage = (preview.damageExpressions ?? []).map(entry => `${entry.formula} ${typeOf.get(entry.componentId) ?? ""}`.trim());
+  if ( damage.length ) lines.push([localize("WILDPATH.PROMPT.Configure.Damage"), damage.join(" + ")]);
+  const dc = definition.save?.dc?.value;
+  if ( definition.save ) lines.push([localize("WILDPATH.PROMPT.Configure.Save"), `${definition.save.ability ?? ""}${dc != null ? ` DC ${dc}` : ""}`]);
+  return `<dl>${lines.map(([label, text]) => `<dt>${escapeHtml(label)}</dt><dd>${escapeHtml(text)}</dd>`).join("")}</dl>`;
 }
 
 /* -------------------------------------------- */

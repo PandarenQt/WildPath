@@ -67,6 +67,13 @@
     },
     "PROMPT": {
       "Confirm": "Confirm",
+      "Configure": {
+        "Title": "Use {name}",
+        "Spends": "Spends",
+        "Damage": "Damage",
+        "Save": "Save",
+        "Invalid": "These choices can't be used now."
+      },
       "Yes": "Yes",
       "No": "No",
       "NoResource": "No resource",

@@ -2,6 +2,8 @@ import {buildFoundryActionUseIntent} from "../resolvers/foundry-multiplayer-runt
 import {actionDefinitionFromAction} from "../helpers/action-definitions.mjs";
 import {placeFoundryArea, placeFoundrySummons} from "../applications/area-placement.mjs";
 import {areaClickCount} from "../adapters/foundry-v14-area-placement.mjs";
+import {promptActionConfiguration} from "../adapters/foundry-v14-prompt-adapter.mjs";
+import {foundryActorSystemSnapshot} from "../adapters/foundry-v14-actor-system-adapter.mjs";
 
 /**
  * The Item document subclass for the WildPath system.
@@ -26,7 +28,11 @@ export default class WildPathItem extends Item {
    * registered by `registerFoundryV14MultiplayerResolution`).
    * @returns {Promise<boolean>}
    */
-  async use() {
+  /**
+   * Use this Action. Its choices (a spell slot, a damage type) are asked first, with a preview, unless
+   * `configuration` (`{choices}`) is given; the authority checks them like everything else.
+   */
+  async use({configuration=null}={}) {
     if ( (this.type !== "action") || !this.actor ) return false;
     const runtime = globalThis.game?.wildpath;
     if ( typeof runtime?.executeActionIntent !== "function" ) {
@@ -38,8 +44,15 @@ export default class WildPathItem extends Item {
       globalThis.ui?.notifications?.warn?.(built.reason ?? `Unable to use ${this.name}.`);
       return false;
     }
-    // An area is placed on the canvas first; the authority derives its fields and targets from these clicks.
     const definition = actionDefinitionFromAction(this, {actorSystem: this.actor.system});
+    if ( configuration ) built.intent.configuration = configuration;
+    else if ( definition.ok && definition.definition?.configuration?.length ) {
+      const choices = await promptActionConfiguration({definition: definition.definition, actorSystem: foundryActorSystemSnapshot(this.actor),
+        name: this.name});
+      if ( choices === null ) return false;
+      if ( choices ) built.intent.configuration = {choices};
+    }
+    // An area is placed on the canvas first; the authority derives its fields and targets from these clicks.
     if ( definition.ok && (definition.definition?.targeting?.type === "area") ) {
       const sourceToken = this.actor.token ?? this.actor.getActiveTokens?.(false, true)?.[0] ?? null;
       if ( !sourceToken || !globalThis.canvas?.ready ) {

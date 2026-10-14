@@ -50,6 +50,17 @@ damage-type substitution, or payment legality itself. Those come from Action Con
 Action Economy so the previewed configuration is the same configuration later consumed by
 `ActionResolver`.
 
+**Done (2026-10-14).** `Item.use({configuration})` asks an Action's choices before it is used, unless
+`configuration` (`{choices}`) is given. This covers the action bar, the sheet and macros alike.
+- The dialog (`promptActionConfiguration`, foundry-v14-prompt-adapter.mjs) shows the authority's own configuration
+  controls. Only payable options are offered.
+- Under them is a live preview from `createResolvedActionPreview`, refreshed on every change: what the choice
+  spends, the damage dice it makes, and the save.
+- Confirming sends `{choices}` with the intent, and the authority checks them again. Cancelling cancels the use.
+- An Action with no active choices opens no dialog.
+- Live (Player1, action bar): a slot spell offered the 1st- and 2nd-level slots. The preview went from 2d6 fire to
+  3d6 fire, and confirming spent the 2nd-level slot and rolled 3d6.
+
 ## Combat Carousel
 
 The combat carousel view model turns combat timeline data into:
