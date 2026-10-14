@@ -1,0 +1,37 @@
+<div class="wildpath-action-bar">
+  {{#if shown}}
+    <header class="bar-header">
+      {{#if img}}<img src="{{img}}" alt="{{name}}" width="32" height="32">{{/if}}
+      <span class="bar-name">{{name}}</span>
+      <span class="bar-conditions">
+        {{#each conditions as |condition|}}
+          <span class="bar-condition" title="{{localize condition.name}}">
+            <img src="{{condition.img}}" alt="{{localize condition.name}}" width="20" height="20">
+            {{#if condition.level}}<span class="condition-level">{{condition.level}}</span>{{/if}}
+          </span>
+        {{/each}}
+      </span>
+    </header>
+    <div class="bar-resources">
+      {{#each resources as |resource|}}
+        <span class="bar-resource {{#if resource.depleted}}depleted{{/if}}">{{resource.label}} {{resource.current}}/{{resource.maximum}}</span>
+      {{/each}}
+    </div>
+    <div class="bar-groups">
+      {{#each groups as |group|}}
+        <div class="bar-group">
+          <span class="bar-group-label">{{localize group.label}}</span>
+          {{#each group.actions as |action|}}
+            <button type="button" class="bar-action" data-action="use" data-item-id="{{action.id}}"
+                    {{#unless action.enabled}}disabled title="{{localize "WILDPATH.ACTIONBAR.Unavailable"}} ({{action.disabledCode}})"{{else}}title="{{action.label}}"{{/unless}}>
+              <img src="{{action.img}}" alt="" width="28" height="28">
+              <span>{{action.label}}</span>
+            </button>
+          {{/each}}
+        </div>
+      {{else}}
+        <span class="bar-empty">{{localize "WILDPATH.ACTIONBAR.NoActions"}}</span>
+      {{/each}}
+    </div>
+  {{/if}}
+</div>

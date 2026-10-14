@@ -104,6 +104,15 @@
     "DYING": {
       "DeathSave": "Death Saving Throw"
     },
+    "ACTIONBAR": {
+      "NoActions": "No actions",
+      "Unavailable": "Not available now",
+      "Group": {
+        "action": "Actions",
+        "bonus": "Bonus Actions",
+        "reaction": "Reactions"
+      }
+    },
     "SHEET": {
       "AC": "AC",
       "Level": "Level",

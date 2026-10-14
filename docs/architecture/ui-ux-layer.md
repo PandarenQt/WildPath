@@ -21,8 +21,22 @@ Availability is computed with the same action-economy payment discovery used by 
 layer. For example, the Wild Path rule that lets a spent Bonus Action be paid with an Action is
 visible as an alternative payment option, not as a UI-only exception.
 
-Future action bar rendering should consume this view model rather than reading Actor resources and
-Item costs ad hoc in DOM event handlers.
+**In play (M6, 2026-10-14).** `WildPathActionBar` (`module/applications/action-bar.mts`) renders this view
+model through `actionBarContext` (`helpers/action-bar-context.mts`).
+- **Placement:** a frameless bar above the hotbar.
+- **Creature shown:** the controlled Token's creature, else the user's assigned character. It shows only for
+  an owner, and hides when there is none.
+- **Contents:**
+  - the Action, Bonus Action, Reaction and movement counters, then pools;
+  - the creature's Actions grouped by their cost; an unaffordable one is greyed, with the payment code
+    shown on hover;
+  - its active conditions, with stack levels.
+- **Use:** a click calls the real `Item.use()`, so the authority decides everything.
+- **Updates:** it re-renders when that creature, its Items or its effects change.
+
+Live (two browsers, 14.369): Player1 controlled their hero, whose bar showed Exhaustion 2 and movement
+20/20. Melee Strike, imported from the WildPath Actions pack, rolled `1d20 − 4` from the bar. The Action
+counter went to 0/1 and the strike button greyed out.
 
 ## Action Configuration And Preview
 

@@ -134,11 +134,14 @@ Hooks.once("init", () => {
 /*  Multiplayer Resolution Socket                */
 /* -------------------------------------------- */
 
-Hooks.once("ready", () => {
+Hooks.once("ready", async () => {
   const registration = registerFoundryV14MultiplayerResolution();
   if ( !registration.ok ) {
     console.warn("Wild Path | Multiplayer resolution socket registration failed", registration);
   }
+  // The in-play action bar needs Foundry's application classes, so it loads only in a running game.
+  const {registerActionBar} = await import("./module/applications/action-bar.mjs");
+  registerActionBar();
 });
 
 /* -------------------------------------------- */
