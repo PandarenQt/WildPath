@@ -12,6 +12,9 @@ not only the ones converted so far.
   Exhaustion's six-level table, Grappled, Incapacitated, Invisible, surprise and the 2014 rest rules. The 2024 rules
   stay the default.
 
+**Baldur's Gate 3 (maintainer, 2026-10-14).** BG3's mechanics, UX and game flow count too. BG3 is 5e with a
+computer doing the bookkeeping, which is WildPath's job too. See [Baldur's Gate 3](#baldurs-gate-3) below.
+
 ## How the gaps are measured
 
 `node scripts/content/gap-census.mjs` counts what is not automated, by reason, in the converted content. That is
@@ -62,6 +65,84 @@ The other Wizards books on D&D Beyond reuse these same mechanics at volume. They
   - Arcana Unleashed (2026; its mechanics are not yet known).
 - **Magic items everywhere:** attunement, charges that recover at dawn, spells cast from items, potions and
   scrolls, and +N weapons and armor.
+
+## Baldur's Gate 3
+
+What BG3 does that WildPath should learn from, in three kinds. Only the third changes the rules.
+
+### B1. Game flow and UX (no rules change)
+
+Each is small, and each changes every turn at the table.
+
+1. **Odds before you commit.** With a target chosen, hovering an attack or save Action on the bar shows:
+   - the chance to hit, or the chance the target fails its save;
+   - the expected damage;
+   - each modifier and where it comes from.
+
+   It is built on the Test tab's `previewAction` and the authority's roll modes, and the authority still
+   resolves for real. The odds reveal a target's AC and save bonuses, so a world setting decides who sees them.
+2. **Reactions: Always, Ask or Never**, per reaction, set from the action bar. Today every eligible reactor is
+   prompted, with Decline. A stored choice answers for the creature, so fewer attacks wait on a prompt.
+3. **Movement that warns.** While moving, the path shows:
+   - the Speed left;
+   - each enemy whose reach the path leaves, which is an Opportunity Attack;
+   - lasting areas and difficult terrain on the way.
+
+   The staged movement checkpoints already know all three.
+4. **Area preview.** While an area is placed, the creatures it would hit are highlighted, allies included.
+5. **Floating combat text** over Tokens: damage by type, healing, Miss, Immune, Resisted. Foundry's scrolling
+   text does this. An ignored condition then shows "Immune"; today it shows nothing.
+6. **Tooltips that explain.**
+   - A condition's icon shows its rules and the rounds left.
+   - A roll on a card opens its breakdown in place: the Rules Inspector's detail.
+7. **Common actions for every creature**, with no authoring:
+   - the 2024 actions: Dash, Disengage, Dodge, Help, Hide, Influence, Search, Study and Utilize;
+   - Grapple and Shove, as Unarmed Strike options;
+   - Jump.
+8. **A tidier bar**, grouped as BG3 does: common actions, class and feature actions, spells by level, and items.
+   When the slot level is the only choice, it is picked on the button rather than in a dialog.
+
+### B2. Mechanics that 5e content needs anyway
+
+1. **Forced movement and falling.**
+   - Push and pull: Thunderwave, Repelling Blast, Shove, the Push mastery. In the SRD alone, 24 Items push.
+   - Landing in a hazard, or off a ledge with 2024 falling damage: 1d6 per 10 ft, and Prone.
+
+   BG3's best tactical moments are shoves off ledges and into fire.
+2. **Elevation in combat:** Token elevation for reach, range and areas, plus flying and falling. Lasting areas
+   already have elevation bounds.
+3. **Weapon Mastery** (2024) is the tabletop form of BG3's weapon actions; it is in G7.
+4. **Areas that react to damage.** A lasting area changes when it takes a damage type:
+   - oil explodes into fire;
+   - cold freezes water into ice;
+   - lightning electrifies water;
+   - fire melts ice, and turns water into steam.
+
+   Lasting areas exist; the table of reactions is new.
+
+### B3. BG3's own rules, as world settings (maintainer decides)
+
+Each changes the rules, so each is a world setting, off unless the maintainer decides otherwise:
+- **High ground:** +2 to attack rolls from 2.5 m (8 ft) above the target, and −2 from as far below.
+- **Bonus-action moves:** Shove and Jump as Bonus Actions, and Dip a weapon in fire for extra fire damage.
+- **Surfaces** with BG3's reactions, and its Wet condition: resistance to fire, vulnerability to cold and
+  lightning, and immunity to Burning.
+- **Help** gets a downed ally back up.
+- **Shared initiative:** allies next to each other in the initiative order act together, in any order.
+- **Karmic dice:** digital rolls nudged after a streak of failures or successes.
+- **Weapon actions** (Lacerate, Topple, Cleave...), once per short rest with a weapon the creature is proficient
+  with: optional content, beside Weapon Mastery.
+- **Camp supplies** to take a long rest.
+
+### Order
+
+B1 interleaves with the G tracks, starting with:
+1. reactions Always, Ask or Never;
+2. odds;
+3. floating combat text;
+4. common actions.
+
+Forced movement and elevation join G6, which becomes "space": areas, elevation and forced movement.
 
 ## Progress
 
@@ -142,7 +223,8 @@ Each track is ranked by how much content it unblocks across all books, and by ho
    - Lair Actions.
 5. **G5, a common-trait library.** RuleElements for passive traits that recur across books (Magic Resistance,
    Pack Tactics, Sunlight Sensitivity, Sneak Attack, Extra Attack, Evasion...), matched by name or identifier.
-6. **G6, areas:** cube, cylinder and wall, with their placement.
+6. **G6, space:** cube, cylinder and wall areas with their placement; elevation in combat; forced movement and
+   falling (see B2).
 7. **G7, weapons, armor and magic items:**
    - versatile damage and +N weapons;
    - 2024 Weapon Mastery;
