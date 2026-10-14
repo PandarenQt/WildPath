@@ -1544,3 +1544,19 @@ test("a transformed creature can't cast spells, but its other Actions still reso
   const bite = await foundryActionIntentToStagedOptions({intent: strike.intent, senderUserId: "player-a", game: strike.game});
   assert.equal(bite.ok, true, JSON.stringify(bite.reason));
 });
+
+test("a weapon attack adds the attacker's Might to the attack and its damage; a spell attack's damage adds nothing", async t => {
+  const weapon = syntheticRuntimeFixture(t);
+  weapon.sourceActor.system.abilities = {might: {value: 16}};
+  const built = await foundryActionIntentToStagedOptions({intent: weapon.intent, senderUserId: "player-a", game: weapon.game});
+  assert.equal(built.ok, true, JSON.stringify(built.reason));
+  assert.equal(built.options.attack.modifierTotal, 7, "the weapon statistic's 4 plus Might's 3");
+  assert.deepEqual(built.options.damage, {abilityModifier: 3});
+
+  const spell = syntheticRuntimeFixture(t, {...meleeStrikeDefinition(), tags: ["spell"]});
+  spell.sourceActor.system.abilities = {might: {value: 16}, wits: {value: 14}};
+  spell.sourceActor.system.spellcasting = {ability: "wits"};
+  const cast = await foundryActionIntentToStagedOptions({intent: spell.intent, senderUserId: "player-a", game: spell.game});
+  assert.equal(cast.options.attack.modifierTotal, 6, "the statistic's 4 plus the spellcasting ability's 2");
+  assert.equal(cast.options.damage, undefined);
+});

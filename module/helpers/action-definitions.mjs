@@ -649,6 +649,10 @@ function validateAttack(attack, errors) {
   if ( !attack.statistic && !attack.ability && !attack.statisticSource ) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_ATTACK, "attack.statistic", "AttackDefinition requires a statistic or ability source."));
   }
+  // Weapon properties, such as "finesse" (the better of Might and Agility).
+  if ( (attack.properties !== undefined) && (!Array.isArray(attack.properties) || attack.properties.some(entry => typeof entry !== "string")) ) {
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_ATTACK, "attack.properties", "AttackDefinition properties must be a list of names."));
+  }
 }
 
 function validateSave(save, errors) {

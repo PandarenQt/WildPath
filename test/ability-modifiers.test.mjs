@@ -15,3 +15,24 @@ test("saves and checks add the ability modifier to their Modifiers; a save with 
   assert.equal(resolveActorCheckStatistic(creature({wits: {value: 16}}), {ability: "wits"}).totalModifier, 3, "no Modifiers to read");
   assert.equal(resolveActorCheckStatistic(creature({}), {skill: "medicine"}), null, "a skill alone names no ability");
 });
+
+test("an attack adds Might in melee, Agility at range, the better of the two with finesse, or the spellcasting ability", async () => {
+  const {attackAbility, resolveActorAttackStatistic} = await import("../module/helpers/combat-statistics.mjs");
+  const {validateActionDefinition} = await import("../module/helpers/action-definitions.mjs");
+  const rogue = {system: {abilities: {might: {value: 12}, agility: {value: 18}, wits: {value: 14}}, spellcasting: {ability: "wits"}},
+    getStatistic: () => ({totalModifier: 2})};
+  assert.equal(attackAbility(rogue, {type: "melee", statistic: "weapon"}), "might");
+  assert.equal(attackAbility(rogue, {type: "ranged", statistic: "weapon"}), "agility");
+  assert.equal(attackAbility(rogue, {type: "melee", statistic: "weapon", properties: ["finesse"]}), "agility");
+  assert.equal(attackAbility({system: {abilities: {might: {value: 16}, agility: {value: 12}}}},
+    {type: "melee", properties: ["finesse"]}), "might", "finesse takes the better one");
+  assert.equal(attackAbility(rogue, {type: "ranged", statistic: "spell"}), "wits");
+  assert.equal(attackAbility(rogue, {type: "melee", statistic: "weapon"}, {tags: ["spell"]}), "wits");
+  assert.equal(attackAbility(rogue, {type: "ranged", ability: "might"}), "might", "a thrown weapon can name Might");
+  const dagger = resolveActorAttackStatistic(rogue, {type: "melee", statistic: "weapon", properties: ["finesse"]});
+  assert.deepEqual([dagger.totalModifier, dagger.abilityModifier, dagger.spell], [6, 4, false], "proficiency 2 + Agility 4");
+
+  const definition = attack => ({schemaVersion: 1, id: "action:a", label: "A", costs: {allOf: []}, attack});
+  assert.equal(validateActionDefinition(definition({type: "melee", statistic: "weapon", properties: ["finesse"]})).ok, true);
+  assert.equal(validateActionDefinition(definition({type: "melee", statistic: "weapon", properties: "finesse"})).ok, false);
+});

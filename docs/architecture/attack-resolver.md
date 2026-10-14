@@ -74,3 +74,21 @@ and whether the attack is eligible:
   tags. A feat can therefore restrict itself with `{tagsAny: ["ranged"]}`.
 
 Defenses stack the same way (`defense.<key>` plus `<key>`).
+
+**Ability modifiers (2024, maintainer decision 2026-10-14).** An attack adds an ability modifier on top of its
+Modifiers (`attackAbility` and `resolveActorAttackStatistic`, `helpers/combat-statistics.mjs`). The ability is the
+first of these that applies:
+1. the attack's own `ability`, for example a thrown melee weapon naming Might;
+2. for a spell attack (`statistic: "spell"`, or an Action tagged `spell`), the creature's spellcasting ability;
+3. for a weapon with the `finesse` property (`attack.properties: ["finesse"]`), the better of Might and Agility;
+4. otherwise Might in melee and Agility at range.
+
+Weapon damage adds the same modifier once. The runtime passes it as `damage.abilityModifier` when the Action has
+a `weapon-base` damage component and the attack is not a spell attack.
+- **Rolled damage.** It is the damage roll's flat modifier, so a critical hit doubles only the dice
+  (`1d8 + 3` becomes `2d8 + 3`).
+- **Fixed damage**, such as an Unarmed Strike's 1, adds it to the first weapon component, and the result is
+  never below 0.
+
+Live (GM browser, 14.369): a rogue with Agility 18 and Might 12 used a finesse dagger. It rolled `1d20 + 4` to hit
+and `1d4 + 4` damage.

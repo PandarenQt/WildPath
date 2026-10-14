@@ -130,7 +130,7 @@ The authority adds it to the Modifiers it reads (`resolveActorSaveStatistic`, `r
   exists yet.
 - **Initiative** is an Agility check, so it adds Agility, and Modifiers on `check.agility` reach it.
 - **Death saves** name no ability, so they add only Modifiers on `save`.
-- **Attacks and damage** add no ability modifier yet.
+- **Attacks** add their attack's ability, and weapon damage adds the same once (attack-resolver.md).
 
 **Where advantage comes from (2024 rules, 2026-10-14):**
 

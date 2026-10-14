@@ -63,21 +63,27 @@ export function resolveActorDefense(actor, defenseKey="ac") {
 export function resolveActorAttackStatistic(actor, attack={}, {item=null, tags=[]}={}) {
   if ( !actor || !attack ) return null;
   const key = stringOrNull(attack.statistic ?? attack.statisticKey ?? attack.selector ?? attack.domain);
-  if ( !key ) return null;
+  if ( !key && !attack.ability ) return null;
   const domains = uniqueStrings([
-    key.includes(".") ? key : null,
-    `attack.${key}`,
+    key?.includes(".") ? key : null,
+    key ? `attack.${key}` : null,
     key,
     attack.type ? `attack.${attack.type}` : null,
     "attack"
   ]);
   const statistic = resolveActorStatisticModifier(actor, domains, {item, tags: uniqueStrings([attack.type, ...tags])});
-  if ( !statistic.known ) return null;
+  const ability = attackAbility(actor, attack, {tags});
+  const abilityModifier = actorAbilityModifier(actor, ability);
+  if ( !statistic.known && (abilityModifier == null) ) return null;
+  const total = (statistic.value ?? 0) + (abilityModifier ?? 0);
   return {
     key,
-    domain: statistic.domain,
-    modifier: statistic.value,
-    totalModifier: statistic.value,
+    domain: statistic.domain ?? domains[0] ?? null,
+    modifier: total,
+    totalModifier: total,
+    ability,
+    abilityModifier,
+    spell: isSpellAttack(attack, tags),
     source: {
       type: "actor-combat-statistic",
       actorId: actor.id ?? actor.actorId ?? null,
@@ -89,6 +95,22 @@ export function resolveActorAttackStatistic(actor, attack={}, {item=null, tags=[
 }
 
 /* -------------------------------------------- */
+
+const isSpellAttack = (attack, tags=[]) => (attack?.statistic === "spell") || tags.includes("spell");
+
+/**
+ * The ability an attack adds (2024): the attack's own `ability` if it names one; a spell attack's spellcasting
+ * ability; for a weapon with the `finesse` property the better of Might and Agility; else Might in melee and
+ * Agility at range.
+ */
+export function attackAbility(actor, attack={}, {tags=[]}={}) {
+  if ( attack.ability ) return String(attack.ability);
+  if ( isSpellAttack(attack, tags) ) return actor?.system?.spellcasting?.ability ?? null;
+  if ( (attack.properties ?? []).includes("finesse") ) {
+    return (actorAbilityModifier(actor, "agility") ?? 0) > (actorAbilityModifier(actor, "might") ?? 0) ? "agility" : "might";
+  }
+  return attack.type === "ranged" ? "agility" : "might";
+}
 
 /**
  * An ability's modifier from the creature's prepared score: floor((score - 10) / 2). Null when the creature has

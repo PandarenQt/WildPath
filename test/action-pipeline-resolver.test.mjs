@@ -7,7 +7,7 @@ import {
   RESOLUTION_REQUEST_TYPES,
   RESOLUTION_STATE_STATUS
 } from "../module/helpers/resolution-state.mjs";
-import {ROLL_TYPES} from "../module/helpers/rolls.mjs";
+import {ROLL_TYPES, rollFormulaForRequest} from "../module/helpers/rolls.mjs";
 import {AUTOMATION_EVENT_TYPES} from "../module/helpers/automation-events.mjs";
 import {
   createPhysicalDiceProvider,
@@ -762,4 +762,26 @@ test("a concentration save adds the concentrating creature's save bonus, so 8 + 
       type: request.payload.rollRequest.type, natural: 8, total: 11}}});
   assert.equal(kept.ok, true, JSON.stringify(kept.state.errors));
   assert.equal(kept.state.results.concentrationResolution.checks.maintained.length, 1);
+});
+
+test("weapon damage adds the attack's ability modifier once: after the dice, kept single on a critical, and on fixed damage", () => {
+  const strike = (damage, id) => planStagedActionResolution({
+    id,
+    actorSystem: actorSystem(1),
+    action: definitionAction({...attackDefinition(), damage: [damage]}),
+    source: {actorId: "actor-source"},
+    damage: {abilityModifier: 3},
+    targeting: {required: true, candidates: [{id: "orc", target: target("orc", {defenses: {ac: {value: 12}}}),
+      actor: {id: "actor-orc"}, disposition: "enemy", kind: "creature"}]}
+  });
+  const hit = (waiting, natural) => resumeStagedActionResolution({state: waiting.state, response: {resolutionId: waiting.state.id,
+    requestId: waiting.state.pendingRequests[0].id, type: RESOLUTION_REQUEST_TYPES.ROLL, value: {total: natural + 5, die: natural}}});
+  const sword = {id: "blade", expression: {type: "dice", number: 1, faces: 8}, damageType: "slashing", provenance: "weapon-base"};
+  const formula = state => rollFormulaForRequest(state.pendingRequests[0].payload.rollRequest).formula;
+  assert.equal(formula(hit(strike(sword, "resolution:sword"), 12).state), "1d8 + 3");
+  assert.equal(formula(hit(strike(sword, "resolution:sword-crit"), 20).state), "2d8 + 3", "a critical doubles the dice, not the 3");
+  const fist = hit(strike({id: "fist", expression: {type: "constant", value: 1}, damageType: "bludgeoning", provenance: "weapon-base"},
+    "resolution:fist"), 12);
+  assert.equal(fist.ok, true, JSON.stringify(fist.state.errors));
+  assert.deepEqual(fist.state.results.damageResolution.results.map(entry => entry.total), [4], "an Unarmed Strike's 1 + 3");
 });

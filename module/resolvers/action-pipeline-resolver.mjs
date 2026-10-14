@@ -1340,8 +1340,9 @@ function createDamageRollStage() {
     run(state) {
       const input = preparedResolverInput(state);
       if ( !shouldResolveDamage(input.damage) || damageComponentsHaveAmounts(input.damage?.components) || attackResolvedAsOnlyMisses(state) ) {
+        const damage = attackResolvedAsOnlyMisses(state) ? input.damage : withFixedAbilityModifier(input.damage);
         return continueResolutionStage({
-          state: updateResolutionState(state, {input})
+          state: updateResolutionState(state, {input: {...input, damage}})
         });
       }
 
@@ -2122,6 +2123,8 @@ function damageRollRequestForState(state, input) {
       ...(component.dice ? {dice: {...component.dice, number: (Number(component.dice.number) || 1) * 2}} : {}),
       ...(component.expression ? {expression: withDoubledDice(component.expression)} : {})})) : damage.components ?? [],
     formula: damage.formula ?? damage.rollFormula ?? null,
+    // The weapon's ability modifier is added once, after the dice (a critical hit doubles only the dice).
+    definition: {modifierTotal: Number.isFinite(damage.abilityModifier) ? damage.abilityModifier : 0},
     visibility: damage.visibility ?? input.context?.messageMode,
     source: state.source ?? input.source ?? null,
     target: firstRollTarget(input),
@@ -2132,6 +2135,16 @@ function damageRollRequestForState(state, input) {
       rollKind: "damage"
     }
   });
+}
+
+/** Fixed weapon damage (no dice to roll, e.g. an Unarmed Strike's 1) adds the ability modifier to its first weapon component. */
+function withFixedAbilityModifier(damage) {
+  const bonus = damage?.abilityModifier;
+  const index = (damage?.components ?? []).findIndex(component => component?.provenance === "weapon-base");
+  if ( !Number.isFinite(bonus) || !bonus || (index < 0) || damage.abilityModifierApplied ) return damage;
+  const components = damage.components.map((component, i) => (i === index
+    ? {...component, amount: Math.max((Number(component.amount) || 0) + bonus, 0)} : component));
+  return {...damage, components, abilityModifierApplied: true};
 }
 
 /** A ValueExpression with every dice term's count doubled, wherever it is nested. */
