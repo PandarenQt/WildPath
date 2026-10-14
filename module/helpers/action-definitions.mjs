@@ -111,6 +111,9 @@ export function normalizeActionDefinition(rawDefinition={}, {
     // The creature takes a form when the Action completes: a fixed `formRef`, the form a `choiceId` configuration
     // choice picked, or `revert` to end its transformation (transformations: classes-and-spellcasting.md).
     transform: normalizePlainComponent(raw.transform),
+    // Creatures the Action summons when it completes (companions.md): a fixed `actorRef` or a `choiceId`
+    // configuration choice of creatures, `count`, and optionally `rounds` and `concentration`.
+    summon: normalizePlainComponent(raw.summon),
     configuration: normalizeArray(raw.configuration ?? raw.configurations).map(clonePlain),
     ruleElements: normalizeArray(raw.ruleElements).map(clonePlain),
     policies: clonePlain(raw.policies ?? raw.resolutionPolicies ?? {}) ?? {},
@@ -143,6 +146,7 @@ export function validateActionDefinition(rawDefinition={}, options={}) {
   validateCosts(definition.costs, errors);
   validateCosts(definition.controllerCosts, errors, "controllerCosts");
   validateTransform(definition.transform, errors);
+  validateSummon(definition.summon, errors);
   validatePredicateCandidates(definition, errors);
   validateTargeting(definition, errors);
   validateArea(definition.area, errors);
@@ -530,6 +534,17 @@ function validateTransform(transform, errors) {
     && transform.choiceId, transform.revert === true].filter(Boolean);
   if ( named.length !== 1 ) errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "transform",
     "A transform names exactly one of formRef, choiceId or revert."));
+}
+
+function validateSummon(summon, errors) {
+  if ( !summon ) return;
+  const named = [typeof summon.actorRef === "string" && summon.actorRef, typeof summon.choiceId === "string" && summon.choiceId]
+    .filter(Boolean);
+  if ( named.length !== 1 ) errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "summon",
+    "A summon names exactly one of actorRef or choiceId."));
+  const count = summon.count ?? 1;
+  if ( !Number.isInteger(count) || (count < 1) || (count > 20) ) errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION,
+    "summon.count", "A summon's count is a whole number from 1 to 20."));
 }
 
 function validateCosts(costs, errors, prefix="costs") {

@@ -51,6 +51,12 @@ export default class WildPathCombat extends FoundryCombatDocument {
     // A condition's damage at turn start follows the dying rules too.
     await globalThis.game?.wildpath?.dying?.afterPlans?.(actor, lifecycle.mutationPlans ?? []);
     await this.#applyTurnEvent("turn.started", combatant);
+    // Summons whose rounds have run out leave before the turn goes on.
+    try {
+      await globalThis.game?.wildpath?.summons?.onTurnStart?.(this);
+    } catch (error) {
+      console.warn("Wild Path | Summon expiry failed", error);
+    }
     // 2024: a dying character rolls its death save at the start of its turn.
     try {
       await globalThis.game?.wildpath?.dying?.onTurnStart?.({combatant});

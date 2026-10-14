@@ -268,6 +268,31 @@ export function registerCombatTests(quench) {
         assert.deepEqual([token().width,token().height],[1,1],"Back to its own size");
       });
 
+      it("a summoning Action places its creatures beside the caster as its summons, gone with its concentration", async function () {
+        const enc = await encounter({name:"summoner"});
+        const wolf = await fixtures.createActor({name:"summoned wolf",type:"npc"});
+        const scene = game.scenes.get(enc.scene.id);
+        const before = new Set(scene.tokens.map(token => token.id));
+        const summoned = await game.wildpath.summons.afterResolution({options:{actor:enc.actor},state:{
+          actionDefinition:{label:"Call Wolves",summon:{actorRef:wolf.uuid,count:2,concentration:true}},
+          source:{tokenRef:enc.token.uuid}}});
+        assert.lengthOf(summoned,2);
+        const tokens = scene.tokens.filter(token => !before.has(token.id));
+        assert.lengthOf(tokens,2,"Two wolves arrive");
+        for (const token of tokens) {
+          assert.isFalse(token.actorLink);
+          assert.deepEqual(token.actor.system.companion.controllers,[enc.actor.uuid],"Each is the caster's summon");
+          assert.equal(token.actor.system.companion.kind,"summon");
+          const offset = scene.grid.getOffset({x:token.x,y:token.y}), caster = scene.grid.getOffset({x:enc.token.x,y:enc.token.y});
+          assert.equal(Math.max(Math.abs(offset.i - caster.i),Math.abs(offset.j - caster.j)),1,"beside the caster");
+        }
+        const marker = enc.actor.effects.find(effect => effect.flags?.wildpath?.summonTokens);
+        assert.exists(marker,"The caster concentrates on them");
+        await marker.delete();
+        for (let i = 0; (i < 40) && scene.tokens.some(token => !before.has(token.id)); i++) await new Promise(resolve => setTimeout(resolve,50));
+        assert.isFalse(scene.tokens.some(token => !before.has(token.id)),"Ending the concentration dismisses them");
+      });
+
       /** A feature whose automatic Trigger deals `amount` poison to its owner on `event` (optionally gated). */
       function stingFeature(actor, {event, amount, predicate=null}) {
         return fixtures.createItem(actor, {name:`sting on ${event}`, system:{ruleElements:[{id:"sting", type:"Trigger", data:{

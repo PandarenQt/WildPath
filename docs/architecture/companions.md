@@ -56,6 +56,36 @@ A sidekick is a creature with `kind: "sidekick"`. It levels up through class rec
 [classes-and-spellcasting.md](classes-and-spellcasting.md)), multiclassing included. It is controlled like
 any companion.
 
+## Summoning (2026-10-14)
+
+An ActionDefinition's `summon` brings creatures when the Action completes:
+
+```js
+{summon: {actorRef: "Actor.wolf", count: 2, rounds: 10, concentration: true}}   // or choiceId: a choice of creatures
+```
+
+- **Placement.** The active GM places unlinked Tokens of the creature on the nearest free fields around the
+  caster's Token: a breadth-first search over the grid's own adjacency, so square and hex grids work alike.
+- **Compendium creatures** are imported into the world once, and later summons reuse them.
+- **Control.** Each Token is a `summon` whose controller is the caster, so the caster's Player owns and
+  commands it, through the same shared control as companions.
+- **Ending.**
+  - With `concentration`, the caster gets a concentration marker, and the summons go when it ends. That
+    happens when concentration breaks, including when the caster becomes Incapacitated, or when the marker
+    is removed.
+  - With `rounds`, they leave at the start of the turn they arrived on, that many rounds later, as lasting
+    areas do.
+
+Live (two browsers, 14.369): Player1's summoner used Call Wolves. Two wolves appeared beside it, owned by
+Player1 and controllable, each listing the summoner as its controller. Stunning the summoner broke its
+concentration and both wolves left.
+
+Not yet:
+- choosing where summons appear;
+- adding them to combat;
+- checking that a Large summon's whole footprint is free;
+- walls.
+
 ## Evidence
 
 - **Two browsers, 14.369.** The GM made a wolf the summon of Player1's summoner, and Player1 then owned the
@@ -71,6 +101,5 @@ any companion.
 
 - No prompt asks which controller pays when a Player owns several. The first is used, and `controllerRef`
   chooses one through the API.
-- Summoning creatures from an Action.
 - Sheet controls for controllers and controller costs.
 - A companion's movement paid from its controller's.

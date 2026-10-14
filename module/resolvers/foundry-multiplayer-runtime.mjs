@@ -18,6 +18,7 @@ import {createFoundryPersistentAreas} from "../adapters/foundry-v14-persistent-a
 import {AUTOMATION_QUERY, createFoundryAutomationDispatcher} from "../adapters/foundry-v14-automation-dispatcher.mjs";
 import {COMPANION_QUERY, createFoundryCompanions} from "../adapters/foundry-v14-companions.mjs";
 import {createFoundryDying} from "../adapters/foundry-v14-dying.mjs";
+import {createFoundrySummons} from "../adapters/foundry-v14-summons.mjs";
 import {
   buildFoundryMovementCompletion,
   buildFoundryMovementProgressObservation,
@@ -107,6 +108,7 @@ export function registerFoundryV14MultiplayerResolution({
       await areas.afterResolution(event);
       await dying.afterResolution(event);
       await applyActionTransformation(event, {logger});
+      await summons.afterResolution(event);
     },
     logger
   });
@@ -135,6 +137,9 @@ export function registerFoundryV14MultiplayerResolution({
   // Shared control of companions and summons: ownership follows their controllers (only a GM may change it).
   const companions = createFoundryCompanions({game, fromUuid: globalThis.fromUuid ?? (() => null)});
   if ( globalThis.CONFIG?.queries ) globalThis.CONFIG.queries[COMPANION_QUERY] = companions.handleQuery;
+  // Summoned creatures: placed by the GM, controlled by their caster, gone with its concentration or rounds.
+  const summons = createFoundrySummons({game, companions, logger, fromUuid: globalThis.fromUuid ?? (() => null)});
+  globalThis.Hooks?.on?.("deleteActiveEffect", effect => void summons.onEffectDeleted(effect));
   // Whoever rolls, every client sees the Combatant update; the active GM dispatches it.
   globalThis.Hooks?.on?.("updateCombatant", (combatant, changed) => {
     if ( !Number.isFinite(changed?.initiative) ) return;
@@ -189,6 +194,7 @@ export function registerFoundryV14MultiplayerResolution({
     automation,
     companions,
     dying,
+    summons,
     resolutionTransport: transport,
     executeActionIntent: runtime.executeActionIntent,
     executeMovementIntent: runtime.executeMovementIntent
