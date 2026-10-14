@@ -172,6 +172,11 @@ Effects got the same RuleElements editor. Later the same day:
 - Actions can make the acting creature's own ability check, which decides what they do
   ([action-definitions.md](../architecture/action-definitions.md#ability-checks-2026-10-14)).
 - An ally can stabilize a dying creature.
+- Saves, checks and initiative add the ability modifier automatically (maintainer decision), and concentration
+  saves add the Fortitude save bonus ([rolls.md](../architecture/rolls.md)).
+- The sheets' remaining English moved to `lang/en.json`.
+- An in-play combat carousel shows the running combat's turns
+  ([ui-ux-layer.md](../architecture/ui-ux-layer.md#combat-carousel)).
 
 **M4 — content pack (in progress, 2026-10-14).**
 - **The pack.** `@foundryvtt/foundryvtt-cli` 3.0.4 was approved and added. The built-in **WildPath Actions**
