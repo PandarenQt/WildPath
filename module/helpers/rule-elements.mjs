@@ -11,6 +11,7 @@ export const RULE_ELEMENT_TYPES = Object.freeze({
   GRANT_RESISTANCE: "GrantResistance",
   GRANT_IMMUNITY: "GrantImmunity",
   GRANT_MOVEMENT: "GrantMovement",
+  ROLL_MODE: "RollMode",
   TRIGGER: "Trigger"
 });
 
@@ -48,6 +49,7 @@ const TYPE_ALIASES = Object.freeze({
   immunity: RULE_ELEMENT_TYPES.GRANT_IMMUNITY,
   grantmovement: RULE_ELEMENT_TYPES.GRANT_MOVEMENT,
   movement: RULE_ELEMENT_TYPES.GRANT_MOVEMENT,
+  rollmode: RULE_ELEMENT_TYPES.ROLL_MODE,
   trigger: RULE_ELEMENT_TYPES.TRIGGER
 });
 
@@ -84,6 +86,7 @@ export class RuleElementRegistry {
 export function createDefaultRuleElementRegistry() {
   return new RuleElementRegistry([
     [RULE_ELEMENT_TYPES.MODIFIER, modifierRuleElement],
+    [RULE_ELEMENT_TYPES.ROLL_MODE, rollModeRuleElement],
     [RULE_ELEMENT_TYPES.GRANT_RESOURCE, grantResourceRuleElement],
     [RULE_ELEMENT_TYPES.GRANT_ACTION_ECONOMY_RESOURCE, grantActionEconomyResourceRuleElement],
     [RULE_ELEMENT_TYPES.GRANT_RESISTANCE, grantResistanceRuleElement],
@@ -314,6 +317,17 @@ export function grantedResourcesFromRuleElements(owners=[], context={}) {
     collectRuleElementContributions({ruleElements, context, source}).contributions.resources);
 }
 
+/**
+ * The advantage and disadvantage a creature's owners give in any of `domains` (`RollMode`), each with its
+ * source. A RollMode's predicate sees `context` (for example `attack.adjacent` for "within 5 feet").
+ */
+export function rollModesFromRuleElements(owners=[], {domains=[], context={}}={}) {
+  const wanted = new Set(domains);
+  return owners.flatMap(({ruleElements=[], source=null}) =>
+    collectRuleElementContributions({ruleElements, context, source}).contributions.rollModes
+      .filter(entry => entry.domains.some(domain => wanted.has(domain))));
+}
+
 /** The Speeds a creature's grants give (`GrantMovement`): `{mode, distance}`, one per grant. */
 export function grantedMovementFromRuleElements(owners=[], context={}) {
   return owners.flatMap(({ruleElements=[], source=null}) =>
@@ -458,6 +472,23 @@ function grantMovementRuleElement(ruleElement, context) {
   });
 }
 
+/**
+ * Advantage or disadvantage on d20 rolls in the named domains: a creature's own (`attack`, `attack.melee`,
+ * `save`, `save.agility`, `check`, ...) or attack rolls made against it (`attacked`, `attacked.ranged`, ...).
+ */
+function rollModeRuleElement(ruleElement) {
+  const data = ruleElement.data;
+  const domains = normalizeStrings(data.domains ?? data.domain);
+  if ( !["advantage", "disadvantage"].includes(data.mode) ) {
+    return handlerFailure(RULE_ELEMENT_CODES.INVALID, "RollMode RuleElement mode must be advantage or disadvantage.");
+  }
+  if ( !domains.length ) return handlerFailure(RULE_ELEMENT_CODES.INVALID, "RollMode RuleElement requires domains.");
+  return success({
+    rollModes: [{id: data.id ?? ruleElement.id, mode: data.mode, domains, source: ruleElementSource(ruleElement),
+      metadata: contributionMetadata(ruleElement, data.metadata)}]
+  });
+}
+
 function triggerRuleElement(ruleElement) {
   const data = ruleElement.data;
   const event = data.event ?? data.eventType ?? null;
@@ -540,6 +571,7 @@ function emptyContributions() {
       absorptions: []
     },
     movement: [],
+    rollModes: [],
     triggers: []
   };
 }
@@ -555,6 +587,7 @@ function mergeContributions(target, source={}) {
   target.resources.push(...(source.resources ?? []));
   target.economyResources.push(...(source.economyResources ?? []));
   target.movement.push(...(source.movement ?? source.movements ?? []));
+  target.rollModes.push(...(source.rollModes ?? []));
   target.triggers.push(...(source.triggers ?? []));
 
   const damage = source.damageAdjustments ?? {};
@@ -565,7 +598,7 @@ function mergeContributions(target, source={}) {
 }
 
 function sortContributions(contributions) {
-  for ( const key of ["modifiers", "resources", "economyResources", "movement", "triggers"] ) {
+  for ( const key of ["modifiers", "resources", "economyResources", "movement", "rollModes", "triggers"] ) {
     contributions[key].sort(compareContributions);
   }
   for ( const entries of Object.values(contributions.damageAdjustments) ) {
@@ -591,6 +624,7 @@ function createTrace(ruleElement, status, predicateResult=null, reason=null, con
       economyResources: contributions.economyResources.length,
       damageAdjustments: Object.values(contributions.damageAdjustments).reduce((sum, entries) => sum + entries.length, 0),
       movement: contributions.movement.length,
+      rollModes: contributions.rollModes.length,
       triggers: contributions.triggers.length
     },
     metadata: clonePlain(ruleElement.metadata) ?? {}

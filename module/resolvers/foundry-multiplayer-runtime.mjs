@@ -28,6 +28,8 @@ import {
 } from "../helpers/multiplayer-authority.mjs";
 import {actionDefinitionActivationCost, actionDefinitionFromAction} from "../helpers/action-definitions.mjs";
 import {tokenRef} from "../helpers/entity-refs.mjs";
+import {footprintDistance} from "../helpers/grid-footprints.mjs";
+import {combineRollModes} from "../helpers/rolls.mjs";
 import {
   resolveActorAttackStatistic,
   resolveActorDefense
@@ -495,6 +497,8 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     return {ok: false, code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED, reason: error.message};
   }
   const combatStatistics = combatStatisticsForAction({actor, action});
+  const definitionResult = actionDefinitionFromAction(action, {actorSystem: actor?.system ?? null});
+  const definition = definitionResult.ok ? definitionResult.definition : null;
   const defenseKey = combatStatistics.defenseKey;
   const sourceTokenResolution = resolveFoundrySourceToken({actor, source: intent.source ?? {}, game});
   if ( !sourceTokenResolution.ok ) return {
@@ -525,6 +529,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const systemSnapshots = new Map([[actor, actorSystem]]);
   const targets = [];
   const targetEntries = [];
+  const saveRollModes = {};
   const ambiguousKeys = new Set();
   for ( const ref of area.targetRefs ?? normalizeArray(intent.targetRefs ?? intent.targets) ) {
     const targetRef = targetActorRefFromIntent(ref);
@@ -549,6 +554,10 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       tokenId: targetTokenFor(targetActor, hint, game)?.id ?? hint.tokenId,
       name: publicTargetName(targetActor, hint, game)
     }, targetActor, defenseKey);
+    // 2024: each target's own advantage or disadvantage on the save it makes (`save`, `save.<ability>`), by
+    // Token (unlinked copies of one Actor share its id).
+    if ( definition?.save ) saveRollModes[target.tokenId ?? target.id] = combineRollModes(targetActor.getRollModes?.(
+      ["save", `save.${definition.save.ability ?? definition.save.saveKey}`], {context: {save: {ability: definition.save.ability ?? null}}}) ?? []);
     targets.push(target);
     const keys = uniqueStrings([targetActor.uuid, targetActor.id, `actor:${targetActor.id}`, targetRef,
       ...targetControllerKeys(targetActor, hint, game)]);
@@ -578,6 +587,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   };
 
   const spatial = buildFoundryActionSpatialContext({sourceToken, targetEntries, game, defenseKey});
+  const attackRollMode = definition?.attack ? foundryAttackRollMode({actor, action, definition, targetEntries, spatial}) : null;
   const concentration = foundryConcentrationContext({targetEntries, game, scene: sourceToken?.parent ?? null});
   // Holders of effects a broken concentration ends are committed on too; a key another Actor already owns is
   // ambiguous (copies of one base Actor) and is dropped, so lookups fall through to the holder's uuid.
@@ -611,7 +621,9 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
         ...(spatial ? {spatial: spatial.context} : {}),
         ...(typeof intent.messageMode === "string" ? {messageMode: intent.messageMode} : {})
       },
-      ...(combatStatistics.attack ? {attack: combatStatistics.attack} : {}),
+      ...((combatStatistics.attack || attackRollMode) ? {attack: {...(combatStatistics.attack ?? {}),
+        ...(attackRollMode ? {rollMode: attackRollMode} : {})}} : {}),
+      ...(Object.keys(saveRollModes).length ? {save: {rollModesByTarget: saveRollModes}} : {}),
       // Rules consume plain effective snapshots; commit retains the exact live (possibly synthetic) Actors.
       durability: {targetSystems, ...(Object.keys(targetProfiles).length ? {adjustmentProfiles: targetProfiles} : {})},
       configuration: clonePlainData(intent.configuration ?? null, "intent.configuration"),
@@ -629,6 +641,25 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     },
     ...(reactions ? {services: {...reactions.services, targetActors}} : {})
   };
+}
+
+/**
+ * 2024 advantage and disadvantage on an attack roll: the attacker's own (`attack`, `attack.<type>`, the Action's
+ * included) and the first target's on attacks against it (`attacked`, `attacked.<type>`), combined so any of
+ * each cancel. Predicates see `attack.type` and `attack.adjacent` (the attacker within 5 ft).
+ */
+function foundryAttackRollMode({actor, action, definition, targetEntries, spatial}) {
+  const type = definition.attack.type ?? null;
+  const target = targetEntries[0]?.actor ?? null;
+  const source = spatial?.context?.sourceFootprint ?? null;
+  const entry = spatial?.context?.targetFootprints?.[0] ?? null;
+  const footprint = entry?.footprint ?? (entry?.fields ? entry : null);
+  const fields = source && footprint ? footprintDistance(source, footprint) : null;
+  const context = {attack: {type, ...(Number.isFinite(fields) ? {adjacent: fields * spatial.context.gridDistance <= 5} : {})}};
+  return combineRollModes([
+    ...(actor.getRollModes?.(["attack", `attack.${type}`], {item: action, context}) ?? []),
+    ...(target?.getRollModes?.(["attacked", `attacked.${type}`], {context}) ?? [])
+  ]);
 }
 
 /**

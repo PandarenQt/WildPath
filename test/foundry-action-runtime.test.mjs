@@ -23,7 +23,8 @@ import {createFoundryReactionProvider} from "../module/adapters/foundry-v14-reac
 import {areaCovers, areaExpired, createFoundryPersistentAreas} from "../module/adapters/foundry-v14-persistent-areas.mjs";
 import {createFoundryAutomationDispatcher} from "../module/adapters/foundry-v14-automation-dispatcher.mjs";
 import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
-import {damageProfileFromRuleElements} from "../module/helpers/rule-elements.mjs";
+import {damageProfileFromRuleElements, rollModesFromRuleElements} from "../module/helpers/rule-elements.mjs";
+import {WILDPATH} from "../module/config.mjs";
 import {
   buildFoundryActionUseIntent,
   foundryActionIntentToStagedOptions
@@ -376,6 +377,52 @@ test("ordinary Foundry Action rejects invalid serialized system data at the Foun
   assert.match(resolved.reason, /Cannot snapshot Foundry Actor Actor.invalid-model system/);
   assert.equal(resolved.options, undefined);
   assert.equal(actor.system.resources.action.value, 1);
+});
+
+/** A fake creature under these conditions: its roll modes come from their real 2024 RollMode RuleElements. */
+function withConditions(actor, ...ids) {
+  actor.getRollModes = (domains, {context={}}={}) => rollModesFromRuleElements(
+    ids.map(id => ({ruleElements: WILDPATH.CONDITIONS[id].ruleElements})), {domains, context});
+  return actor;
+}
+
+/** The first roll request an Action asks for, with the target `offset` fields away from the attacker. */
+async function firstRollRequest(definition, {attacker=[], target=[], offset={i: 1, j: 0}}={}) {
+  const scene = fakeScene(new FakeSquareGrid(), {id: "scene-roll-modes"});
+  const sourceActor = withConditions(fakeActor("roll-source", {system: actorSystem(),
+    statistics: {"attack.weapon": runtimeStatistic("attack.weapon", 4)}}), ...attacker);
+  const targetActor = withConditions(fakeActor("roll-target", {system: targetActorSystem(20, 20, {ac: 14})}), ...target);
+  const sourceToken = fakeTokenDocument({id: "source", actor: sourceActor, scene, offset: {i: 0, j: 0}});
+  const targetToken = fakeTokenDocument({id: "enemy", actor: targetActor, scene, offset});
+  sourceActor.tokens = [sourceToken];
+  targetActor.tokens = [targetToken];
+  scene.tokens = [sourceToken, targetToken];
+  const action = actionItem(definition, sourceActor);
+  const resolved = await foundryActionIntentToStagedOptions({senderUserId: "player-a", game: fakeGame({actors: [sourceActor, targetActor],
+    scenes: [scene]}), intent: {actorRef: sourceActor.uuid, actionRef: action.uuid,
+    targetRefs: [{actorRef: targetActor.uuid, tokenId: targetToken.id, sceneId: scene.id}]}});
+  assert.equal(resolved.ok, true, resolved.reason);
+  return planStagedActionResolution(resolved.options).state.rollRequests[0];
+}
+
+test("2024 advantage: an attack on a Prone creature within 5 ft has advantage, cancelled by a Poisoned attacker", async () => {
+  assert.equal((await firstRollRequest(meleeStrikeDefinition())).rollMode, "normal");
+  const prone = await firstRollRequest(meleeStrikeDefinition(), {target: ["prone"]});
+  assert.equal(prone.rollMode, "advantage");
+  assert.equal((await firstRollRequest(meleeStrikeDefinition(), {attacker: ["poisoned"], target: ["prone"]})).rollMode, "normal");
+  const ranged = {...meleeStrikeDefinition(), id: "action:runtime-shot", attack: {type: "ranged", statistic: "weapon", defenseKey: "ac"},
+    range: {type: "ranged", normal: {value: 60, unit: "ft"}}};
+  assert.equal((await firstRollRequest(ranged, {target: ["prone"], offset: {i: 3, j: 0}})).rollMode, "disadvantage",
+    "a Prone creature farther than 5 ft is harder to hit");
+});
+
+test("2024 disadvantage: each target makes its own save with its own conditions", async () => {
+  const save = ability => ({schemaVersion: 1, id: `action:runtime-${ability}-save`, label: "Save", costs: {allOf: []},
+    targeting: {type: "single", required: true, count: 1}, range: {type: "reach", distance: {value: 5, unit: "ft"}},
+    save: {ability, dc: {value: 13}},
+    damage: [{id: "burst", expression: {type: "constant", value: 4}, damageType: "fire", provenance: "spell-base"}]});
+  assert.equal((await firstRollRequest(save("agility"), {target: ["restrained"]})).rollMode, "disadvantage");
+  assert.equal((await firstRollRequest(save("might"), {target: ["restrained"]})).rollMode, "normal");
 });
 
 test("production Action intent conversion snapshots Actor combat statistics into plain staged inputs", async () => {

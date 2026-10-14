@@ -136,7 +136,10 @@ function rollControl(rollRequest) {
   return {
     id: "roll",
     type: natural ? PROMPT_CONTROL_TYPES.ROLL_NATURAL : PROMPT_CONTROL_TYPES.ROLL_TOTAL,
-    label: natural ? "WILDPATH.PROMPT.Roll.Natural" : "WILDPATH.PROMPT.Roll.Total",
+    // With advantage or disadvantage, a physical roller rolls two d20s and enters the one that counts.
+    label: !natural ? "WILDPATH.PROMPT.Roll.Total"
+      : ({advantage: "WILDPATH.PROMPT.Roll.NaturalAdvantage", disadvantage: "WILDPATH.PROMPT.Roll.NaturalDisadvantage"}[
+        request.rollMode] ?? "WILDPATH.PROMPT.Roll.Natural"),
     labelData: {formula: formula ?? "?"},
     description: null,
     required: true,

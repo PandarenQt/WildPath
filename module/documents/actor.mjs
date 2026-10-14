@@ -1,6 +1,7 @@
 import {WildPathModifier, WildPathStatistic} from "../helpers/modifiers.mjs";
 import {
-  damageProfileFromRuleElements, grantedMovementFromRuleElements, grantedResourcesFromRuleElements, modifiersFromRuleElements
+  damageProfileFromRuleElements, grantedMovementFromRuleElements, grantedResourcesFromRuleElements, modifiersFromRuleElements,
+  rollModesFromRuleElements
 } from "../helpers/rule-elements.mjs";
 import {DEFAULT_FORM_STATISTICS, DEFAULT_KEPT_ITEM_TYPES, itemContributesWhileTransformed} from "../helpers/transformations.mjs";
 import WildPathConditionEffect from "../data/active-effect/condition.mjs";
@@ -95,6 +96,18 @@ export default class WildPathActor extends Actor {
    */
   getDamageProfile() {
     return damageProfileFromRuleElements(grantOwners(this), {actor: this, actorSystem: this.system});
+  }
+
+  /**
+   * The advantage and disadvantage this creature's features, gear and effects give in `domains` (`RollMode`),
+   * plus the acting Action's own. `context` is what their predicates see (`attack.adjacent`, ...).
+   * @param {string[]} domains
+   * @param {{item?: Item|null, context?: object}} [options]
+   */
+  getRollModes(domains, {item=null, context={}}={}) {
+    const owners = grantOwners(this);
+    if ( item?.system?.ruleElements?.length ) owners.push({ruleElements: item.system.ruleElements, source: documentRuleElementSource(item, "item")});
+    return rollModesFromRuleElements(owners, {domains, context: {actor: this, actorSystem: this.system, ...context}});
   }
 
   /** The Speeds this creature's grants give (`GrantMovement`), as `{mode, distance}`. */

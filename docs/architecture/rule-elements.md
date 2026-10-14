@@ -246,6 +246,21 @@ rolled, and a long-rest trigger that ignored a short rest. In two browsers, Play
 run its creature's trigger (10 → 7, with a card). The GM refused Player1's forged report for an Actor
 Player1 does not own, and a report of a GM-only event.
 
+**Advantage and disadvantage.** A `RollMode` RuleElement gives advantage or disadvantage on d20 rolls in
+its domains:
+
+- **Own rolls:** `attack`, `attack.melee`, `attack.ranged`, `save`, `save.<ability>` and `check`.
+- **Attacks against the creature:** `attacked`, `attacked.melee` and `attacked.ranged`.
+
+Its predicate sees `attack.type` and `attack.adjacent` (the attacker within 5 ft), so "advantage within
+5 ft, disadvantage beyond" is two RollModes. The 2024 conditions are authored this way in
+`WILDPATH.CONDITIONS` (rolls.md, "Advantage / Disadvantage and Modifiers").
+
+```js
+{type: "RollMode", predicate: {equals: {path: "attack.adjacent", value: true}},
+  data: {domains: ["attacked"], mode: "advantage"}}
+```
+
 **Damage grants.** `GrantResistance` and `GrantImmunity` on a creature's active features, gear and
 enabled effects form its damage profile (`WildPathActor#getDamageProfile`, through the pure
 `damageProfileFromRuleElements`). The Action runtime passes each target's profile into damage

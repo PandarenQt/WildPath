@@ -161,8 +161,17 @@ real Foundry grids. Slice 5 done: lasting areas, auras and hazards, per the main
 - **The pack.** `@foundryvtt/foundryvtt-cli` 3.0.4 was approved and added. The built-in **WildPath Actions**
   pack (nine Actions, one per proven mechanic) is built from JSON sources by `npm run build:packs`
   ([content-packs.md](content-packs.md)).
-- **Conditions.** Under the 2024 rules they need advantage and disadvantage, which rolls do not support
-  yet.
+- **Advantage and disadvantage (2024).** `RollMode` RuleElements and the 2024 cancel rule cover attack
+  rolls (the attacker's own and the target's "attacks against me") and each target's save. The
+  conditions now carry their 2024 advantage and disadvantage:
+  - Prone, including within 5 ft and beyond;
+  - Blinded, Restrained (and its Agility saves), Poisoned, Stunned and Unconscious.
+
+  Still to do for conditions:
+  - incapacitation, automatic save failures and automatic critical hits;
+  - Speed 0;
+  - Exhaustion's d20 and Speed penalties, which need a condition-level value;
+  - removing Poisoned's legacy damage per turn, which needs the maintainer's decision.
 
 **M5 — progression (in progress, 2026-10-14).** The missing-primitive test is
 [progression-primitives.md](progression-primitives.md). Done, each verified in Quench and most in two

@@ -121,6 +121,23 @@ The provider executes the already-resolved roll mechanics. It does not decide wh
 advantage/disadvantage, proficiency, an ability modifier, or another rules contribution. Those are
 resolved by the owning rules domains before the `RollRequest` is created.
 
+**Where advantage comes from (2024 rules, 2026-10-14):**
+
+- **Sources.** `RollMode` RuleElements on a creature's features, gear and effects (see rule-elements.md).
+- **Attack rolls.** The authority combines the attacker's own modes (`attack`, `attack.<type>`, the
+  Action's own included) with the first target's modes on attacks against it (`attacked`,
+  `attacked.<type>`).
+- **Saving throws.** Each target uses its own modes for the save it makes (`save`, `save.<ability>`), keyed
+  by Token.
+- **Combining.** `combineRollModes` applies the 2024 rule: any advantage and any disadvantage cancel,
+  however many of each.
+- **Rolling.** The `RollRequest` carries the result as `rollMode`, so a digital roll is `2d20kh`/`2d20kl`
+  and the kept die is the natural result.
+- **Physical dice.** The prompt tells a physical roller to roll two d20s and enter the higher or the lower.
+
+Live (two browsers, 14.369): Player1's Melee Strike on a Prone goblin standing next to them rolled
+`2d20kh` (2 discarded, 10 kept), hit AC 5, and dealt 2.
+
 ## Future Compatibility
 
 Preserve enough structured result information for future mechanics such as:

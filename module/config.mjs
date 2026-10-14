@@ -123,31 +123,54 @@ WILDPATH.MODIFIER_TYPES_ALWAYS_STACK = new Set(["untyped", "circumstance"]);
  * so conditions are togglable from the Token HUD like any other Foundry status.
  * @type {Record<string, WildPathConditionConfig>}
  */
+/** A 2024 advantage or disadvantage a condition gives, as a RollMode RuleElement. */
+const rollMode = (id, domains, mode, predicate=null) => ({schemaVersion: 1, id: `condition.${id}`, type: "RollMode",
+  label: id, ...(predicate ? {predicate} : {}), data: {domains, mode}});
+const adjacent = value => ({equals: {path: "attack.adjacent", value}});
+
+// The 2024 conditions' advantage and disadvantage (maintainer decision, 2026-10-14: 2024 rules). Not yet:
+// incapacitation, automatic failures and critical hits, Speed 0, and Exhaustion's d20 and Speed penalties.
 WILDPATH.CONDITIONS = {
   prone: {
     id: "prone",
     name: "WILDPATH.CONDITIONS.Prone",
-    img: "icons/svg/falling.svg"
+    img: "icons/svg/falling.svg",
+    ruleElements: [
+      rollMode("prone.own-attacks", ["attack"], "disadvantage"),
+      rollMode("prone.attacked-within-5ft", ["attacked"], "advantage", adjacent(true)),
+      rollMode("prone.attacked-from-farther", ["attacked"], "disadvantage", adjacent(false))
+    ]
   },
   blinded: {
     id: "blinded",
     name: "WILDPATH.CONDITIONS.Blinded",
-    img: "icons/svg/blind.svg"
+    img: "icons/svg/blind.svg",
+    ruleElements: [
+      rollMode("blinded.own-attacks", ["attack"], "disadvantage"),
+      rollMode("blinded.attacked", ["attacked"], "advantage")
+    ]
   },
   restrained: {
     id: "restrained",
     name: "WILDPATH.CONDITIONS.Restrained",
-    img: "icons/svg/net.svg"
+    img: "icons/svg/net.svg",
+    ruleElements: [
+      rollMode("restrained.own-attacks", ["attack"], "disadvantage"),
+      rollMode("restrained.attacked", ["attacked"], "advantage"),
+      rollMode("restrained.agility-saves", ["save.agility"], "disadvantage")
+    ]
   },
   stunned: {
     id: "stunned",
     name: "WILDPATH.CONDITIONS.Stunned",
-    img: "icons/svg/daze.svg"
+    img: "icons/svg/daze.svg",
+    ruleElements: [rollMode("stunned.attacked", ["attacked"], "advantage")]
   },
   unconscious: {
     id: "unconscious",
     name: "WILDPATH.CONDITIONS.Unconscious",
-    img: "icons/svg/unconscious.svg"
+    img: "icons/svg/unconscious.svg",
+    ruleElements: [rollMode("unconscious.attacked", ["attacked"], "advantage")]
   },
   exhaustion: {
     id: "exhaustion",
@@ -160,6 +183,7 @@ WILDPATH.CONDITIONS = {
     id: "poisoned",
     name: "WILDPATH.CONDITIONS.Poisoned",
     img: "icons/svg/poison.svg",
+    ruleElements: [rollMode("poisoned.own-rolls", ["attack", "check"], "disadvantage")],
     generator: (actor, {amount=1}={}) => ({
       dot: [{resource: "health", amount, restoration: false}]
     })

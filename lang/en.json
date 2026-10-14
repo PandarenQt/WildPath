@@ -71,6 +71,8 @@
       "TargetNumber": "Target {number}",
       "Roll": {
         "Natural": "Die result ({formula})",
+      "NaturalAdvantage": "With advantage: roll two d20s and enter the higher ({formula})",
+      "NaturalDisadvantage": "With disadvantage: roll two d20s and enter the lower ({formula})",
         "Total": "Total rolled ({formula})"
       },
       "Title": {

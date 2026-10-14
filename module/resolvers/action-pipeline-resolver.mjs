@@ -1162,6 +1162,10 @@ function selectedSaveTargets(state, input) {
   return normalizeArray(input.targets);
 }
 
+function rollModeTargetKey(target) {
+  return String(target?.tokenId ?? target?.id ?? "");
+}
+
 function saveTargetKey(target) {
   return String(target?.id ?? target?.actorRef ?? target?.uuid ?? "");
 }
@@ -2576,7 +2580,9 @@ function saveRollRequestForState(state, input, {target=null, suffix="save-roll"}
     type: ROLL_TYPES.SAVING_THROW,
     modifier: modifier.value,
     formula: save.formula ?? save.rollFormula ?? null,
-    rollMode: save.rollMode ?? save.advantageState ?? save.roll?.mode,
+    // Each target rolls with its own advantage or disadvantage, which the runtime keys by Token.
+    rollMode: save.rollModesByTarget?.[rollModeTargetKey(target ?? firstRollTarget(input))]
+      ?? save.rollMode ?? save.advantageState ?? save.roll?.mode,
     // Saves keep `system` visibility: the roller's own message mode decides (see withRollerVisibility).
     dc: save.dc ?? null,
     source: target ?? firstRollTarget(input) ?? state.source ?? input.source ?? null,

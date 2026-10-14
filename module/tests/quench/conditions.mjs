@@ -127,6 +127,20 @@ export function registerConditionTests(quench) {
         assert.equal(actor.getResource("health").max,10,"Removing the condition must clear the stale prepared maximum");
         assert.deepEqual(actor.toObject(true).system.resources.health,baseline,"Condition preparation must not pollute resource source");
       });
+
+      it("2024 conditions persist their advantage and disadvantage and the Actor collects them", async function () {
+        const actor = await fixtures.createActor({name:"roll modes"});
+        const modes = (domains,context) => actor.getRollModes(domains,{context}).map(entry => entry.mode);
+        assert.deepEqual(modes(["attacked"],{attack:{adjacent:true}}),[],"No condition: no roll modes");
+        await actor.toggleCondition("prone");
+        assert.deepEqual(modes(["attack"]),["disadvantage"]);
+        assert.deepEqual(modes(["attacked"],{attack:{adjacent:true}}),["advantage"]);
+        assert.deepEqual(modes(["attacked"],{attack:{adjacent:false}}),["disadvantage"]);
+        await actor.toggleCondition("restrained");
+        assert.deepEqual(modes(["save","save.agility"]),["disadvantage"]);
+        await actor.toggleCondition("prone",{levels:-1});
+        assert.deepEqual(modes(["attacked"],{attack:{adjacent:false}}),["advantage"],"Restrained alone: attacks against it have advantage");
+      });
     });
   }, {displayName:"WILDPATH: Real Foundry Conditions",preSelected:false});
 }
