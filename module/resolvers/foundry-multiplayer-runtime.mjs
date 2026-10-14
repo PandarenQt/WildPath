@@ -35,6 +35,7 @@ import {tokenRef} from "../helpers/entity-refs.mjs";
 import {footprintDistance} from "../helpers/grid-footprints.mjs";
 import {combineRollModes, d20Chance} from "../helpers/rolls.mjs";
 import {collectRuleElementContributions} from "../helpers/rule-elements.mjs";
+import {commonAction, commonActionId} from "../helpers/common-actions.mjs";
 import {
   actionCombatStatistics,
   resolveActorCheckStatistic,
@@ -1177,6 +1178,9 @@ export async function foundryCanCommitLocallyForMovement({intent=null, completio
 }
 
 async function resolveFoundryAction(ref, actor, {game=globalThis.game}={}) {
+  // A common action (Dash, Shove...) is built here from its id, never taken from the client.
+  const common = commonActionId(ref);
+  if ( common ) return commonAction(actor, common, {localize: key => game?.i18n?.localize?.(key) ?? key});
   const value = ref && await resolveFoundryDocumentRef(ref, {game, kind: "item"});
   if ( value ) return value;
   const id = stringOrNull(ref)?.replace(/^Item[.]/, "") ?? null;

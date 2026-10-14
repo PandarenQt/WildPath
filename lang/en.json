@@ -156,6 +156,15 @@
       "Round": "Round {round}",
       "EndTurn": "End Turn"
     },
+    "COMMON": {
+      "Dash": "Dash",
+      "Disengage": "Disengage",
+      "Dodge": "Dodge",
+      "Hide": "Hide",
+      "Grapple": "Grapple",
+      "Shove": "Shove",
+      "UnarmedStrike": "Unarmed Strike"
+    },
     "ODDS": {
       "Hit": "{name}: {chance}% to hit ({modifier} vs AC {defense}{mode})",
       "Fails": "{name}: {chance}% to fail its {ability} save (DC {dc}, {modifier}{mode})",
@@ -171,7 +180,8 @@
       "Group": {
         "action": "Actions",
         "bonus": "Bonus Actions",
-        "reaction": "Reactions"
+        "reaction": "Reactions",
+        "common": "Common"
       },
       "Policy": {
         "Ask": "Ask before using this reaction (click to use it automatically)",

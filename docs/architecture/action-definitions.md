@@ -128,6 +128,40 @@ Live (two browsers, 14.369):
 - Player1's barbarian used Rage (a `self` custom effect with slug `raging`). Its feature's
   `{hasCondition: "raging"}` Modifier on `damage.melee` made the axe roll "1d12 + 2".
 
+## Common actions (2026-10-14, after Baldur's Gate 3)
+
+Every creature has the 2024 actions anyone can take, with no Items (`module/helpers/common-actions.mts`):
+
+| Action | What it does |
+| --- | --- |
+| Dash | Dashing until the end of the turn: + the creature's Speed to its movement |
+| Disengage | Disengaged until the end of the turn |
+| Dodge | Dodging until the start of its next turn: attacks against it have disadvantage, its Agility saves advantage |
+| Hide | A DC 15 Agility (Stealth) check; on a success, Invisible |
+| Grapple | The target makes a Might save, DC 8 + Might modifier + Proficiency Bonus; on a failure, Grappled |
+| Shove | The same save; on a failure, Prone |
+| Unarmed Strike | A melee attack for 1 + Might modifier bludgeoning damage |
+
+- **Built by the authority.** An intent names one as `actionRef: "common:<id>"`. The authority builds the Action
+  from the system's own definition, so a client can name a common action but never supply its rules. An unknown id
+  is refused.
+- **On the bar.** The action bar lists them last, in a Common group, with the same availability and odds as any
+  Action.
+
+Shortcuts:
+- the Dash Speed is the creature's own, before Modifiers;
+- Grapple and Shove use a Might save, where 2024 lets the target choose Might or Agility;
+- Shove's push waits for forced movement (G6);
+- Disengage takes effect once Opportunity Attacks check for it.
+
+Not yet: Help, Influence, Magic, Ready, Search, Study and Utilize.
+
+Live (two browsers):
+- Player1's caster used Dash from the bar: Dashing, and movement from 25 to 55.
+- It shoved the Bandit Captain, which made its Might save.
+- It used Dodge: the Captain's attack on the Prone caster then rolled a single d20, the Captain's advantage and
+  Dodge's disadvantage cancelling.
+
 ## Ability checks (2026-10-14)
 
 `check` is the acting creature's own ability check against a DC, the 2024 pattern: stabilizing an ally (DC 10

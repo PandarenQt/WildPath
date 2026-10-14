@@ -1,6 +1,7 @@
 import {actionBarContext} from "../helpers/action-bar-context.mjs";
 import type {OddsEntry} from "../helpers/action-bar-context.mjs";
 import {foundryActionOdds} from "../resolvers/foundry-multiplayer-runtime.mjs";
+import {COMMON_ACTION_IDS, commonAction} from "../helpers/common-actions.mjs";
 import {REACTION_POLICIES, reactionPolicyOf} from "../helpers/automation-events.mjs";
 
 type Data = Record<string, unknown>;
@@ -20,7 +21,8 @@ interface Globals {
   canvas?: {tokens?: {controlled?: BarToken[]}};
   game: {user?: {character?: BarActor | null; isGM?: boolean; targets?: Iterable<BarToken>};
     i18n: {localize(key: string): string; format(key: string, data: Record<string, unknown>): string}};
-  CONFIG: {WILDPATH: {CONDITIONS: Record<string, {id: string; name: string; img: string; stacking?: boolean}>}};
+  CONFIG: {WILDPATH: {CONDITIONS: Record<string, {id: string; name: string; img: string; stacking?: boolean}>};
+    Item: {documentClass: {prototype: {use(this: unknown): Promise<unknown>}}}};
   Hooks: {on(name: string, callback: (...args: unknown[]) => unknown): number};
 }
 
@@ -53,7 +55,9 @@ export class WildPathActionBar extends HandlebarsApplicationMixin(ApplicationV2)
   async _prepareContext() {
     const actor = this.shownActor;
     if ( !actor ) return {shown: false};
-    const context = actionBarContext({actor, conditions: Object.values(globals.CONFIG.WILDPATH.CONDITIONS), odds: this.#odds(actor)});
+    const common = this.#common(actor);
+    const context = actionBarContext({actor, conditions: Object.values(globals.CONFIG.WILDPATH.CONDITIONS),
+      odds: this.#odds(actor, common), common});
     // Each target's odds, one line each, in the button's tooltip.
     const {i18n} = globals.game;
     for ( const action of context.groups.flatMap(group => group.actions) ) {
@@ -65,21 +69,32 @@ export class WildPathActionBar extends HandlebarsApplicationMixin(ApplicationV2)
     return {shown: true, ...context};
   }
 
+  /** The common actions as this creature's Actions (Dash, Shove...). */
+  #common(actor: BarActor) {
+    const localize = (key: string) => globals.game.i18n.localize(key);
+    return COMMON_ACTION_IDS.map(id => commonAction(actor, id, {localize})!);
+  }
+
   /** The odds of each attack and save Action against the user's targets, as far as this user may see them. */
-  #odds(actor: BarActor): Record<string, readonly OddsEntry[]> {
+  #odds(actor: BarActor, common: readonly unknown[]): Record<string, readonly OddsEntry[]> {
     const {user} = globals.game;
     const targets = [...(user?.targets ?? [])].map(token => token.document);
     if ( !targets.length ) return {};
     const sourceToken = globals.canvas?.tokens?.controlled?.find(token => token.actor === actor)?.document
       ?? (actor as {getActiveTokens?(): BarToken[]}).getActiveTokens?.()[0]?.document ?? null;
     const odds = foundryActionOdds as unknown as (options: Record<string, unknown>) => OddsEntry[];
-    return Object.fromEntries([...actor.items].filter(item => (item as {type?: string}).type === "action")
-      .map(item => [item.id ?? "", odds({actor, action: item, sourceToken, targetTokens: targets, user})]));
+    return Object.fromEntries([...actor.items, ...common].filter(item => (item as {type?: string}).type === "action")
+      .map(item => [(item as {id?: string}).id ?? "", odds({actor, action: item, sourceToken, targetTokens: targets, user})]));
   }
 
   static async #onUse(this: WildPathActionBar, event: Event, target: HTMLElement) {
     const id = target.closest<HTMLElement>("[data-item-id]")?.dataset.itemId;
-    if ( id ) await this.shownActor?.items.get(id)?.use();
+    const actor = this.shownActor;
+    if ( !id || !actor ) return;
+    // A common action is no Item: Item#use runs on the Action this creature has for it.
+    const common = id.startsWith("common-") ? this.#common(actor).find(action => action.id === id) : null;
+    if ( common ) await globals.CONFIG.Item.documentClass.prototype.use.call(common);
+    else await actor.items.get(id)?.use();
   }
 
   /** Cycle a reaction between Ask, Always and Never (Baldur's Gate 3's reaction settings). */

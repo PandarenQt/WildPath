@@ -23,7 +23,7 @@ interface BarActor {
   system?: Data;
 }
 
-const viewModel = createActionBarViewModel as unknown as (options: {actor: BarActor}) => BarView;
+const viewModel = createActionBarViewModel as unknown as (options: {actor: BarActor; actions?: readonly unknown[]}) => BarView;
 const policyOf = reactionPolicyOf as (item: unknown) => "ask" | "always" | "never";
 /** How each reaction setting shows on its toggle. */
 const POLICY_VIEWS = {
@@ -64,8 +64,8 @@ export function oddsView(entries: readonly OddsEntry[] = []) {
   };
 }
 
-export function actionBarContext({actor, conditions=[], odds={}}: {actor: BarActor; conditions?: readonly ConditionDefinition[];
-  odds?: Record<string, readonly OddsEntry[]>}) {
+export function actionBarContext({actor, conditions=[], odds={}, common=[]}: {actor: BarActor; conditions?: readonly ConditionDefinition[];
+  odds?: Record<string, readonly OddsEntry[]>; common?: readonly {id: string}[]}) {
   const bar = viewModel({actor});
   const order = (resource: ResourceView) => {
     const index = ECONOMY_ORDER.indexOf(resource.id);
@@ -74,6 +74,13 @@ export function actionBarContext({actor, conditions=[], odds={}}: {actor: BarAct
   // Groups list their Actions by ref; the views carry the rest.
   const byRef = new Map(bar.actions.map(action => [action.ref, action]));
   const items = new Map([...(actor.items ?? [])].map(item => [item.id, item]));
+  const view = (groupId: string) => (action: ActionView) => ({id: action.id, label: action.label,
+    img: action.img ?? "icons/svg/sword.svg", enabled: action.enabled, disabledCode: action.disabledCode,
+    odds: oddsView(odds[action.id ?? ""] ?? []),
+    // A reaction's Always / Ask / Never setting.
+    ...(groupId === "reaction" ? {policy: {id: policyOf(items.get(action.id)), ...POLICY_VIEWS[policyOf(items.get(action.id))]}} : {})});
+  // The actions every creature has come last, in their own group (Baldur's Gate 3's common actions).
+  const commonActions = common.length ? viewModel({actor, actions: common}).actions : [];
   const levels = new Map([...(actor.effects ?? [])].filter(effect => !effect.disabled && effect.system?.type)
     .map(effect => [String(effect.system!.type), Number(effect.system!.level) || null]));
   return {
@@ -81,12 +88,9 @@ export function actionBarContext({actor, conditions=[], odds={}}: {actor: BarAct
     img: actor.img ?? null,
     resources: [...bar.resources].sort((a, b) => order(a) - order(b)).map(resource => ({id: resource.id, label: resource.label,
       current: resource.current, maximum: resource.maximum, depleted: resource.depleted})),
-    groups: bar.groups.map(group => ({id: group.id, label: GROUP_LABELS[group.id] ?? group.label,
-      actions: group.actions.flatMap(ref => byRef.get(ref) ?? []).map(action => ({id: action.id, label: action.label,
-        img: action.img ?? "icons/svg/sword.svg", enabled: action.enabled, disabledCode: action.disabledCode,
-        odds: oddsView(odds[action.id ?? ""] ?? []),
-        // A reaction's Always / Ask / Never setting.
-        ...(group.id === "reaction" ? {policy: {id: policyOf(items.get(action.id)), ...POLICY_VIEWS[policyOf(items.get(action.id))]}} : {})}))})),
+    groups: [...bar.groups.map(group => ({id: group.id, label: GROUP_LABELS[group.id] ?? group.label,
+      actions: group.actions.flatMap(ref => byRef.get(ref) ?? []).map(view(group.id))})),
+    ...(commonActions.length ? [{id: "common", label: "WILDPATH.ACTIONBAR.Group.common", actions: commonActions.map(view("common"))}] : [])],
     conditions: conditions.filter(condition => levels.has(condition.id)).map(condition => ({id: condition.id,
       name: condition.name, img: condition.img, level: condition.stacking ? levels.get(condition.id) ?? null : null}))
   };

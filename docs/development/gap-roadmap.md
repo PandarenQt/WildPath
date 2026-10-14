@@ -201,6 +201,13 @@ Forced movement and elevation join G6, which becomes "space": areas, elevation a
     refused, unspent; at another creature it went through. With `ConditionImmunity` to Grappled, a hit
     applied nothing.
 
+- **B1.4a, common actions (2026-10-14).** Done:
+  - Dash, Disengage, Dodge, Hide, Grapple, Shove and Unarmed Strike for every creature, built by the authority
+    from their id;
+  - verified in Node, Quench (91/91) and two browsers
+    ([action-definitions.md](../architecture/action-definitions.md#common-actions-2026-10-14-after-baldurs-gate-3)).
+  - Next, B1.4b: an Opportunity Attack for every creature, which Disengage prevents. Today only content with its
+    own Trigger makes one.
 - **B1.5, floating combat text (2026-10-14).** Done:
   - damage, healing, Miss, Critical hit and Saved float over Tokens on every client that may see them;
   - verified in Node, Quench (91/91) and two browsers ([ui-ux-layer.md](../architecture/ui-ux-layer.md)).
