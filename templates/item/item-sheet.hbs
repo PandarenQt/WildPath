@@ -8,17 +8,17 @@
   <section class="active-toggle">
     <label>
       <input type="checkbox" name="system.active" {{#if system.active}}checked{{/if}}>
-      Active
+      {{localize "WILDPATH.ITEMSHEET.Active"}}
     </label>
   </section>
 
   {{#if isAction}}
   <section class="action-cost">
-    <h3>Cost</h3>
+    <h3>{{localize "WILDPATH.ITEMSHEET.Cost"}}</h3>
     {{#each actionCostResources as |resource|}}
       <label class="cost">
-        <span>{{resource}}</span>
-        <input type="number" name="system.cost.{{resource}}" value="{{lookup system.cost resource}}">
+        <span>{{localize resource.label}}</span>
+        <input type="number" name="system.cost.{{resource.key}}" value="{{lookup ../system.cost resource.key}}">
       </label>
     {{/each}}
   </section>
@@ -54,14 +54,16 @@
   </section>
 
   <section class="modifiers">
-    <h3>Modifiers</h3>
+    <h3>{{localize "WILDPATH.ITEMSHEET.Modifiers"}}</h3>
     <ol class="modifier-list">
       {{#each modifiers as |modifier|}}
         <li class="modifier">
           <input type="text" name="system.modifiers.{{modifier.index}}.domains" value="{{modifier.domainsText}}"
-                 placeholder="domains (comma separated, e.g. resources.health.max)">
-          <input type="text" name="system.modifiers.{{modifier.index}}.label" value="{{modifier.label}}" placeholder="label">
-          <input type="text" name="system.modifiers.{{modifier.index}}.type" value="{{modifier.type}}" placeholder="type">
+                 placeholder="{{localize "WILDPATH.ITEMSHEET.DomainsPlaceholder"}}">
+          <input type="text" name="system.modifiers.{{modifier.index}}.label" value="{{modifier.label}}"
+                 placeholder="{{localize "WILDPATH.ITEMSHEET.LabelPlaceholder"}}">
+          <input type="text" name="system.modifiers.{{modifier.index}}.type" value="{{modifier.type}}"
+                 placeholder="{{localize "WILDPATH.ITEMSHEET.TypePlaceholder"}}">
           <input type="number" name="system.modifiers.{{modifier.index}}.value" value="{{modifier.value}}">
         </li>
       {{/each}}
@@ -69,7 +71,7 @@
   </section>
 
   <section class="description">
-    <h3>Description</h3>
+    <h3>{{localize "WILDPATH.ITEMSHEET.Description"}}</h3>
     {{editor system.description target="system.description" button=true engine="prosemirror"}}
   </section>
 

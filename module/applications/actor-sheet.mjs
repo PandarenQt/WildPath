@@ -46,6 +46,7 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
     });
     context.sheet = sheet;
     Object.assign(context, sheet);
+    context.typeLabel = CONFIG.Actor.typeLabels?.[this.actor.type] ?? this.actor.type;
     context.dyingModes = {auto: "WILDPATH.SHEET.DyingMode.auto", deathSaves: "WILDPATH.SHEET.DyingMode.deathSaves",
       dies: "WILDPATH.SHEET.DyingMode.dies"};
     return context;

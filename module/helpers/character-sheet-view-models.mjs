@@ -2,12 +2,15 @@ import {createActionBarViewModel} from "./ui-view-models.mjs";
 import {actorRef, itemRef, normalizeEntityRef, uuidRef} from "./entity-refs.mjs";
 
 export const CHARACTER_SHEET_SECTIONS = Object.freeze([
-  {id: "overview", label: "Overview"},
-  {id: "actions", label: "Actions"},
-  {id: "inventory", label: "Inventory"},
-  {id: "effects", label: "Effects"},
-  {id: "biography", label: "Biography"}
+  {id: "overview", label: "WILDPATH.SHEET.Section.Overview"},
+  {id: "actions", label: "WILDPATH.SHEET.Section.Actions"},
+  {id: "inventory", label: "WILDPATH.SHEET.Section.Inventory"},
+  {id: "effects", label: "WILDPATH.SHEET.Section.Effects"},
+  {id: "biography", label: "WILDPATH.SHEET.Section.Biography"}
 ]);
+
+const SPEED_LABELS = Object.freeze({swim: "WILDPATH.SHEET.Speed.Swim", climb: "WILDPATH.SHEET.Speed.Climb",
+  fly: "WILDPATH.SHEET.Speed.Fly", burrow: "WILDPATH.SHEET.Speed.Burrow"});
 
 /* -------------------------------------------- */
 
@@ -96,7 +99,8 @@ function createHeaderView(actor, system, summary) {
     level: Number.isFinite(Number(system?.details?.level)) ? Number(system.details.level) : null,
     threat: Number.isFinite(Number(system?.details?.threat)) ? Number(system.details.threat) : null,
     // Every Speed but walking (shown as movement), e.g. "fly 60".
-    speeds: Object.entries(system?.speeds ?? {}).filter(([mode]) => mode !== "walk").map(([mode, distance]) => ({mode, distance})),
+    speeds: Object.entries(system?.speeds ?? {}).filter(([mode]) => mode !== "walk")
+      .map(([mode, distance]) => ({mode, distance, label: SPEED_LABELS[mode] ?? "WILDPATH.SHEET.Speed.Other"})),
     // Death saves show while the creature is at 0 health or has any marked.
     deathSaves: deathSavesView(system),
     dyingMode: system?.dyingMode ?? "auto",

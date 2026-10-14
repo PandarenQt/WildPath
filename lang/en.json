@@ -134,7 +134,14 @@
     "ITEMSHEET": {
       "Definition": "Action Definition",
       "RuleElements": "Rule Elements",
-      "NotSaved": "Not saved: fix these first."
+      "NotSaved": "Not saved: fix these first.",
+      "Active": "Active",
+      "Cost": "Cost",
+      "Modifiers": "Modifiers",
+      "Description": "Description",
+      "DomainsPlaceholder": "domains (comma separated, e.g. resources.health.max)",
+      "LabelPlaceholder": "label",
+      "TypePlaceholder": "type"
     },
     "SHEET": {
       "AC": "AC",
@@ -155,6 +162,40 @@
       "Failures": "Failures",
       "Stable": "Stable",
       "DyingModeLabel": "At 0 health",
+      "Sections": "Character sheet sections",
+      "Section": {
+        "Overview": "Overview",
+        "Actions": "Actions",
+        "Inventory": "Inventory",
+        "Effects": "Effects",
+        "Biography": "Biography"
+      },
+      "Abilities": "Abilities",
+      "Resources": "Resources",
+      "Conditions": "Conditions",
+      "Features": "Features",
+      "Gear": "Gear",
+      "Other": "Other",
+      "ActiveEffects": "Active Effects",
+      "Empty": {
+        "Actions": "No actions",
+        "Features": "No features",
+        "Gear": "No gear",
+        "Other": "No other items",
+        "Effects": "No active effects"
+      },
+      "Use": "Use",
+      "Health": "HP {value} / {max}",
+      "Move": "Move {distance} ft",
+      "Speed": {
+        "Swim": "Swim {distance} ft",
+        "Climb": "Climb {distance} ft",
+        "Fly": "Fly {distance} ft",
+        "Burrow": "Burrow {distance} ft",
+        "Other": "{mode} {distance} ft"
+      },
+      "ActionCount": "{count} Actions",
+      "ConditionCount": "{count} Conditions",
       "DyingMode": {
         "auto": "Default (characters and Player companions make death saves)",
         "deathSaves": "Makes death saves",

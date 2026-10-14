@@ -85,7 +85,7 @@ test("the sheet header shows AC, level or threat, every non-walking Speed, and d
   dying.resources.health.value = 0;
   const {header} = createActorSheetViewModel({actor: {id: "a", type: "character"}, system: dying});
   assert.deepEqual([header.ac, header.level, header.threat], [15, 4, null]);
-  assert.deepEqual(header.speeds, [{mode: "fly", distance: 60}]);
+  assert.deepEqual(header.speeds, [{mode: "fly", distance: 60, label: "WILDPATH.SHEET.Speed.Fly"}]);
   assert.deepEqual([header.deathSaves.successPips, header.deathSaves.failurePips], [[true, false, false], [true, true, false]]);
   assert.equal(header.dyingMode, "deathSaves");
   const healthy = createActorSheetViewModel({actor: {id: "b"}, system: {...system(), deathSaves: {successes: 0, failures: 0}}});
