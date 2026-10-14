@@ -125,6 +125,11 @@
         "reaction": "Reactions"
       }
     },
+    "ITEMSHEET": {
+      "Definition": "Action Definition",
+      "RuleElements": "Rule Elements",
+      "NotSaved": "Not saved: fix these first."
+    },
     "SHEET": {
       "AC": "AC",
       "Level": "Level",

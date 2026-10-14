@@ -110,8 +110,11 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
   /** @this {WildPathActorSheet} */
   static async #onCreateItem(event, target) {
     const type = target.dataset.type;
-    const [item] = await this.actor.createEmbeddedDocuments("Item", [{type,
-      name: game.i18n.format("WILDPATH.SHEET.NewItem", {type: game.i18n.localize(CONFIG.Item.typeLabels?.[type] ?? type)})}]);
+    const name = game.i18n.format("WILDPATH.SHEET.NewItem", {type: game.i18n.localize(CONFIG.Item.typeLabels?.[type] ?? type)});
+    // A new Action starts from a valid definition (one Action, no effect) for the sheet's editor to build on.
+    const system = type === "action" ? {definition: {schemaVersion: 1, id: `action:${foundry.utils.randomID()}`, label: name,
+      costs: {allOf: [{capability: "action", amount: 1}]}}} : {};
+    const [item] = await this.actor.createEmbeddedDocuments("Item", [{type, name, system}]);
     item?.sheet?.render(true);
   }
 

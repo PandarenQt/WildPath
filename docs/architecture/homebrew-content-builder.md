@@ -5,6 +5,34 @@ It is not a near-term scaffold task. It should be treated as a release-readiness
 automation engine, resolver pipeline, action economy, triggers, effects, areas, and movement
 systems are mature enough to execute the content the builder creates.
 
+## First slice: JSON editors (2026-10-14)
+
+The item sheet edits an Action's `system.definition`, and any Item's `system.ruleElements`, as JSON
+(`module/applications/item-sheet.mjs`):
+
+- **Validation.** The engine's own validators check every edit before it is saved:
+  `validateActionDefinition` for definitions and `validateRuleElementDefinition` for RuleElements.
+  - An invalid draft is not saved. It stays on the sheet with its errors listed above it, and the stored data
+    is unchanged.
+  - A valid definition replaces the stored one whole, so a key it leaves out returns to its initial value.
+- **Summary.** A short summary of the stored definition sits above the editor. It covers costs, controller
+  costs, targets, range, area, attack, save, damage, healing, effects, choices, transform and summon
+  (`module/helpers/action-definition-summary.mts`).
+- **New Actions.** A new Action made from the actor sheet starts from a valid definition costing one Action.
+
+**Evidence (live, GM browser, 14.369).**
+- Adding single targeting and 1d6 fire damage saved, and the summary updated to match.
+- Broken JSON and an empty `id` each showed their error and left the stored definition unchanged.
+- A Modifier RuleElement saved on a feature gave its owner +2 AC.
+- Legacy modifier rows still save.
+- Node covers the summary.
+
+**Not yet:**
+- the structured builder this document describes;
+- friendly, field-level messages (the editor shows the validators' path and reason);
+- Test/Preview;
+- RuleElements on effect sheets.
+
 ## Product Goal
 
 Wild Path should let an ordinary GM create deeply automated homebrew without programming, JSON

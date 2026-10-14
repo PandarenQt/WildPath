@@ -24,6 +24,35 @@
   </section>
   {{/if}}
 
+  {{#if isAction}}
+  <section class="definition-editor">
+    <h3>{{localize "WILDPATH.ITEMSHEET.Definition"}}</h3>
+    {{#if definitionSummary.length}}
+      <dl class="definition-summary">
+        {{#each definitionSummary as |line|}}<dt>{{line.label}}</dt><dd>{{line.text}}</dd>{{/each}}
+      </dl>
+    {{/if}}
+    <textarea name="wildpath.definitionJson" class="json-editor" rows="14" spellcheck="false">{{definitionJson}}</textarea>
+    {{#if definitionErrors.length}}
+      <ul class="json-errors">
+        <li>{{localize "WILDPATH.ITEMSHEET.NotSaved"}}</li>
+        {{#each definitionErrors as |error|}}<li>{{error}}</li>{{/each}}
+      </ul>
+    {{/if}}
+  </section>
+  {{/if}}
+
+  <section class="rule-element-editor">
+    <h3>{{localize "WILDPATH.ITEMSHEET.RuleElements"}}</h3>
+    <textarea name="wildpath.ruleElementsJson" class="json-editor" rows="8" spellcheck="false">{{ruleElementsJson}}</textarea>
+    {{#if ruleElementErrors.length}}
+      <ul class="json-errors">
+        <li>{{localize "WILDPATH.ITEMSHEET.NotSaved"}}</li>
+        {{#each ruleElementErrors as |error|}}<li>{{error}}</li>{{/each}}
+      </ul>
+    {{/if}}
+  </section>
+
   <section class="modifiers">
     <h3>Modifiers</h3>
     <ol class="modifier-list">

@@ -162,8 +162,10 @@ real Foundry grids. Slice 5 done: lasting areas, auras and hazards, per the main
 nested `<form>` that had kept every actor and item sheet field edit from saving. The in-play action bar
 shows the creature in focus and uses its Actions through `Item.use()`. The GM's Rules Inspector explains each
 resolution from the authority's records. Transformations can be started from an Action (Wild Shape), with
-Tokens taking the form's size, and Actions can summon creatures their caster controls. Next: the Homebrew
-Builder, once its prerequisites are mature.
+Tokens taking the form's size, and Actions can summon creatures their caster controls. The Homebrew Builder's
+first slice is on the item sheet. It edits an Action's definition and any Item's RuleElements as JSON, and the
+engine's validators check each edit before it is saved
+([homebrew-content-builder.md](../architecture/homebrew-content-builder.md#first-slice-json-editors-2026-10-14)).
 
 **M4 — content pack (in progress, 2026-10-14).**
 - **The pack.** `@foundryvtt/foundryvtt-cli` 3.0.4 was approved and added. The built-in **WildPath Actions**

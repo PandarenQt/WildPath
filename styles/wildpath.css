@@ -504,3 +504,10 @@
   background: rgba(0, 0, 0, 0.1); font-size: 0.75em; }
 .wildpath.rules-inspector table { width: 100%; font-size: 0.85em; }
 .resolution-card + .wildpath-inspect, .resolution-card .wildpath-inspect { display: block; margin-top: 4px; font-size: 0.8em; text-align: right; cursor: pointer; }
+
+/* Item sheet JSON editors (the first slice of the Homebrew Builder). */
+.wildpath.item .json-editor { width: 100%; font-family: monospace; font-size: 0.8rem; }
+.wildpath.item .json-errors { margin: 4px 0; padding-left: 1rem; color: #9b2c2c; font-size: 0.8rem; }
+.wildpath.item .definition-summary { display: grid; grid-template-columns: max-content 1fr; gap: 0 8px; margin: 4px 0; font-size: 0.85rem; }
+.wildpath.item .definition-summary dt { font-weight: bold; }
+.wildpath.item .definition-summary dd { margin: 0; }
