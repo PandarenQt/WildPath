@@ -213,9 +213,13 @@ Forced movement and elevation join G6, which becomes "space": areas, elevation a
     regained 10 at the start of its turn. Given the Monster Manual Troll's Regeneration, it fell Unconscious at 0 to
     Player1's Fireball and died at the start of its next turn; at 0 without Fire, it regenerated to 10 and woke. An SRD
     Owl flew out of the Bandit Captain's reach unchallenged; walking out offered the Opportunity Attack.
+  - Then the class features: Evasion, Sneak Attack and Extra Attack (with Fighter's Two and Three Extra Attacks).
+    Live: a Rogue 5 duelist's second Rapier attack of the turn was paid from Extra Attack's pool and added 3d6 Sneak
+    Attack; a third was refused. A creature with Evasion took nothing of a Fireball it saved against, and half of
+    one it failed.
   - Not yet, by survey count: Amphibious, Water Breathing and Hold Breath (82, 27, 16: no breathing rules), Spider
-    Climb (50: a listed climb Speed is converted, ceilings are not; 3 SRD creatures list none), Sunlight Sensitivity
-    (20, needs light), Sneak Attack, Extra Attack and Evasion.
+    Climb (50: a listed climb Speed is converted, ceilings are not; 3 SRD creatures list none) and Sunlight Sensitivity
+    (20, needs light).
 - **G4, the monster toolkit (2026-10-14).** Done:
   - Multiattack, monster spellcasting, per-activity uses and Recharge;
   - Action Items' own uses pools now exist. Fire Breath, Second Wind and every "X/Day" Action could not be paid for

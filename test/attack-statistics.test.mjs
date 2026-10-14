@@ -118,3 +118,28 @@ test("extra damage rules join a matching attack's damage, and a once-per-turn ru
   assert.equal(actionCombatStatistics(actor, melee, {turn: "c:1:1"}).damage.extraComponents.length, 1, "the next turn it is back");
   assert.equal(actionCombatStatistics(actor, melee, {turn: null}).damage.extraComponents[0].once, undefined, "no limit outside combat");
 });
+
+test("Sneak Attack: a Finesse or ranged weapon, with Advantage or an ally beside the target, deals extra damage of its own type", async () => {
+  const {actionCombatStatistics} = await import("../module/helpers/combat-statistics.mjs");
+  const sneak = {schemaVersion: 1, id: "sneak-attack", type: "ExtraDamage", predicate: {all: [
+    {tagsAny: ["finesse", "ranged"]},
+    {any: [{equals: {path: "attack.rollMode", value: "advantage"}}, {all: [{equals: {path: "attack.allyNearTarget", value: true}},
+      {not: {equals: {path: "attack.rollMode", value: "disadvantage"}}}]}]}]},
+    data: {domains: ["damage.weapon"], expression: {type: "dice", number: 2, faces: 6}, once: "turn"}};
+  const actor = Object.assign(Object.create(WildPathActor.prototype), {id: "rogue", uuid: "Actor.rogue", effects: [], statuses: new Set(),
+    flags: {}, system: {}, items: [{id: "sneak", uuid: "Actor.rogue.Item.sneak", type: "feature", system: {active: true, modifiers: [],
+      ruleElements: [sneak]}}]});
+  actor.allApplicableEffects = () => [];
+  const rapier = {attack: {type: "melee", statistic: "weapon", properties: ["finesse"]},
+    damage: [{id: "blade", expression: {type: "dice", number: 1, faces: 8}, damageType: "piercing", provenance: "weapon-base"}]};
+  const extra = (definition, attack) => actionCombatStatistics(actor, definition, {context: {attack}}).damage?.extraComponents ?? [];
+  assert.deepEqual(extra(rapier, {rollMode: "advantage"}).map(entry => [entry.damageType, entry.expression.number]), [["piercing", 2]],
+    "the weapon's own damage type");
+  assert.equal(extra(rapier, {rollMode: "normal", allyNearTarget: true}).length, 1, "an ally beside the target");
+  assert.equal(extra(rapier, {rollMode: "disadvantage", allyNearTarget: true}).length, 0, "but not with Disadvantage");
+  assert.equal(extra(rapier, {rollMode: "normal"}).length, 0, "neither");
+  const club = {...rapier, attack: {type: "melee", statistic: "weapon"}};
+  assert.equal(extra(club, {rollMode: "advantage"}).length, 0, "not a Finesse weapon");
+  const bow = {...rapier, attack: {type: "ranged", statistic: "weapon"}};
+  assert.equal(extra(bow, {rollMode: "advantage"}).length, 1, "a ranged weapon");
+});

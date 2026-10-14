@@ -309,6 +309,18 @@ test("common monster traits (G5): Magic Resistance, Pack Tactics and Regeneratio
   assert.equal(regenerate.data.action.healing[0].expression.value, 10);
   assert.equal(validateActionDefinition(regenerate.data.action).ok, true);
   assert.deepEqual(rules("Flyby").map(rule => [rule.type, rule.data]), [["AvoidOpportunityAttacks", {movementModes: ["fly"]}]]);
+  assert.deepEqual(convertItem(trait("two-extra-attacks", "Two Extra Attacks")).items[0].system.ruleElements.map(rule => [rule.type, rule.data]), [
+    ["GrantResource", {resourceId: "extra-attack", label: "Extra Attack", maximum: 1, current: 0, recovery: "none", emptiesAtTurnStart: true}],
+    ["ExtraAttack", {resourceId: "extra-attack"}]], "each Extra Attack feature adds one attack to the same pool");
+  const [evade] = convertItem(trait("evasion", "Evasion")).items[0].system.ruleElements;
+  assert.deepEqual([evade.type, evade.data, evade.predicate.not.any.length], ["RollOutcome", {domains: ["save.agility"], outcome: "evasion"}, 6]);
+  const sneak = convertItem(trait("sneak-attack", "Sneak Attack", {a: activity("damage", {activation: {type: ""},
+    damage: {parts: [{custom: {enabled: true, formula: "@scale.rogue.sneak-attack"}, types: ["piercing"]}]}})}),
+    {scales: {"rogue.sneak-attack": {1: {number: 1, faces: 6}, 3: {number: 2, faces: 6}}}}).items;
+  assert.deepEqual(sneak.map(item => item.type), ["feature"], "its damage activity is the trait's");
+  const [extra] = sneak[0].system.ruleElements;
+  assert.deepEqual([extra.type, extra.data.domains, extra.data.once, extra.data.damageType, extra.data.expression.type],
+    ["ExtraDamage", ["damage.weapon"], "turn", undefined, "table"], "by Rogue level, of the weapon's damage type");
   const wand = convertItem({...weapon, _id: "testMagicSword01", system: {...weapon.system, properties: [...weapon.system.properties, "mgc"]}});
   assert.deepEqual(wand.items[0].system.definition.tags, ["magical"], "a magic item's Action is magical");
   assert.deepEqual(rules("Legendary Resistance").map(rule => rule.data), [{resourceId: "legendary-resistance", label: "Legendary Resistance",

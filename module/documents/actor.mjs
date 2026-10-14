@@ -2,7 +2,7 @@ import {WildPathModifier, WildPathStatistic} from "../helpers/modifiers.mjs";
 import {
   damageProfileFromRuleElements, grantedMovementFromRuleElements, grantedResourcesFromRuleElements, modifiersFromRuleElements,
   resourceCapsFromRuleElements, rollModesFromRuleElements, rollOutcomesFromRuleElements, extraDamageFromRuleElements, aurasFromRuleElements,
-  conditionImmunitiesFromRuleElements, opportunityAttackAvoidanceFromRuleElements, normalizeRuleElementType
+  conditionImmunitiesFromRuleElements, opportunityAttackAvoidanceFromRuleElements, extraAttacksFromRuleElements, normalizeRuleElementType
 } from "../helpers/rule-elements.mjs";
 import {DEFAULT_FORM_STATISTICS, DEFAULT_KEPT_ITEM_TYPES, itemContributesWhileTransformed} from "../helpers/transformations.mjs";
 import WildPathConditionEffect from "../data/active-effect/condition.mjs";
@@ -148,11 +148,11 @@ export default class WildPathActor extends Actor {
    * The extra damage this creature's features, gear and effects, plus the acting Action's own rules, add in
    * `domains` (`ExtraDamage`). Predicates see the roll's tags and the creature's conditions.
    */
-  getExtraDamage(domains, {item=null, tags=[]}={}) {
+  getExtraDamage(domains, {item=null, tags=[], context={}}={}) {
     const owners = grantOwners(this);
     if ( item?.system?.ruleElements?.length ) owners.push({ruleElements: item.system.ruleElements, source: documentRuleElementSource(item, "item")});
     return extraDamageFromRuleElements(owners, {domains, context: {actor: this, actorSystem: this.system, item, tags,
-      conditions: [...(this.statuses ?? [])]}});
+      conditions: [...(this.statuses ?? [])], ...context}});
   }
 
   /** The auras this creature's features, gear and effects give it (`Aura`). */
@@ -164,6 +164,11 @@ export default class WildPathActor extends Actor {
   getConditionImmunities() {
     return conditionImmunitiesFromRuleElements(grantOwners(this), {actor: this, actorSystem: this.system,
       conditions: [...(this.statuses ?? [])]});
+  }
+
+  /** The pools this creature's further attacks of an Attack action are paid from (`ExtraAttack`). */
+  getExtraAttacks() {
+    return extraAttacksFromRuleElements(grantOwners(this), {actor: this, actorSystem: this.system, conditions: [...(this.statuses ?? [])]});
   }
 
   /** Whether this creature's movement provokes Opportunity Attacks (`AvoidOpportunityAttacks`): `{always, movementModes}`. */

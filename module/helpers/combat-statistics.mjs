@@ -148,9 +148,10 @@ export function attackForcesCritical(target, {type=null, context={}}={}) {
  * any damage adds the creature's damage bonuses. The runtime and reaction Actions share this.
  * @param {object|null} actor
  * @param {object|null} definition
- * @param {{item?: object|null, turn?: string|null}} [options] `turn` identifies the current combat turn, for once-per-turn rules.
+ * @param {{item?: object|null, turn?: string|null, context?: object}} [options] `turn` identifies the current combat turn, for
+ *   once-per-turn rules; `context` is what extra damage predicates see of the attack (`attack.rollMode`, `attack.allyNearTarget`).
  */
-export function actionCombatStatistics(actor, definition, {item=null, turn=null}={}) {
+export function actionCombatStatistics(actor, definition, {item=null, turn=null, context={}}={}) {
   const attackDefinition = definition?.attack ?? null;
   const tags = [...(definition?.tags ?? [])];
   const statistic = attackDefinition ? resolveActorAttackStatistic(actor, attackDefinition, {item, tags}) : null;
@@ -161,13 +162,15 @@ export function actionCombatStatistics(actor, definition, {item=null, turn=null}
     ? (resolveActorDamageStatistic(actor, attackDefinition, {item, tags: [...tags, statistic?.ability].filter(Boolean)})?.totalModifier ?? 0) : 0;
   const modifierTotal = (weapon ? statistic.abilityModifier : 0) + bonus;
   // Extra damage rules ("+1d6 fire on a melee hit"), less any once-per-turn rule already used this turn.
-  const extraTags = [attackDefinition?.type, ...tags, statistic?.ability].filter(Boolean);
+  // Its tags include the weapon's properties (`finesse`), so a predicate can ask for them.
+  const extraTags = [attackDefinition?.type, ...tags, statistic?.ability, ...(attackDefinition?.properties ?? [])].filter(Boolean);
   const extra = (components.length && (typeof actor?.getExtraDamage === "function"))
-    ? actor.getExtraDamage(damageDomains(attackDefinition, tags), {item, tags: extraTags})
+    ? actor.getExtraDamage(damageDomains(attackDefinition, tags), {item, tags: extraTags, context})
       .filter(entry => !((entry.once === "turn") && turn && (actor.flags?.wildpath?.onceUsed?.[onceKey(entry)] === turn)))
     : [];
+  // Extra damage with no type of its own is the Action's (Sneak Attack deals the weapon's).
   const extraComponents = extra.map(entry => ({id: `extra:${onceKey(entry)}`, expression: entry.expression,
-    damageType: entry.damageType, provenance: "additional",
+    damageType: entry.damageType ?? components[0]?.damageType ?? "untyped", provenance: "additional",
     ...(((entry.once === "turn") && turn) ? {once: {key: onceKey(entry), turn}} : {})}));
   return {
     defenseKey: attackDefinition ? (attackDefinition.defenseKey ?? "ac") : null,

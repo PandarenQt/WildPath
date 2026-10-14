@@ -1210,6 +1210,13 @@ function componentsForTargetFromSaveOutcomePolicy({damage, saveResolution}) {
 
 function applySaveOutcomeDamagePolicy(components, saveResult, policy) {
   const normalized = normalizeSaveOutcomeDamagePolicy(policy);
+  // Evasion: where a success halves the damage, the creature takes none on a success and only half on a failure.
+  if ( (saveResult.targetContext?.overrides ?? []).some(override => override?.type === "evasion")
+    && (normalized.outcomes.success.multiplier === 0.5) ) {
+    normalized.outcomes = {...normalized.outcomes, success: {multiplier: 0}, criticalSuccess: {multiplier: 0},
+      failure: {multiplier: Math.min(normalized.outcomes.failure.multiplier, 0.5)},
+      criticalFailure: {multiplier: Math.min(normalized.outcomes.criticalFailure?.multiplier ?? 1, 0.5)}};
+  }
   const outcomePolicy = normalized.outcomes[saveResult.outcome]
     ?? normalized.outcomes[saveResult.success ? "success" : "failure"]
     ?? {multiplier: 1};

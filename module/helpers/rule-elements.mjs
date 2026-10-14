@@ -11,6 +11,7 @@ export const RULE_ELEMENT_TYPES = Object.freeze({
   GRANT_VULNERABILITY: "GrantVulnerability",
   CONDITION_IMMUNITY: "ConditionImmunity",
   AVOID_OPPORTUNITY_ATTACKS: "AvoidOpportunityAttacks",
+  EXTRA_ATTACK: "ExtraAttack",
   REVEAL: "Reveal",
   GRANT_MOVEMENT: "GrantMovement",
   ROLL_MODE: "RollMode",
@@ -54,6 +55,7 @@ const TYPE_ALIASES = Object.freeze({
   vulnerability: RULE_ELEMENT_TYPES.GRANT_VULNERABILITY,
   conditionimmunity: RULE_ELEMENT_TYPES.CONDITION_IMMUNITY,
   avoidopportunityattacks: RULE_ELEMENT_TYPES.AVOID_OPPORTUNITY_ATTACKS,
+  extraattack: RULE_ELEMENT_TYPES.EXTRA_ATTACK,
   reveal: RULE_ELEMENT_TYPES.REVEAL,
   grantmovement: RULE_ELEMENT_TYPES.GRANT_MOVEMENT,
   movement: RULE_ELEMENT_TYPES.GRANT_MOVEMENT,
@@ -109,6 +111,7 @@ export function createDefaultRuleElementRegistry() {
     [RULE_ELEMENT_TYPES.GRANT_VULNERABILITY, grantVulnerabilityRuleElement],
     [RULE_ELEMENT_TYPES.CONDITION_IMMUNITY, conditionImmunityRuleElement],
     [RULE_ELEMENT_TYPES.AVOID_OPPORTUNITY_ATTACKS, avoidOpportunityAttacksRuleElement],
+    [RULE_ELEMENT_TYPES.EXTRA_ATTACK, extraAttackRuleElement],
     [RULE_ELEMENT_TYPES.REVEAL, revealRuleElement],
     [RULE_ELEMENT_TYPES.GRANT_MOVEMENT, grantMovementRuleElement],
     [RULE_ELEMENT_TYPES.TRIGGER, triggerRuleElement]
@@ -365,6 +368,12 @@ export function opportunityAttackAvoidanceFromRuleElements(owners=[], context={}
   return {always: entries.some(entry => !entry.movementModes.length), movementModes: [...new Set(entries.flatMap(entry => entry.movementModes))]};
 }
 
+/** The pools a creature's further attacks of an Attack action are paid from (`ExtraAttack`), as resource ids. */
+export function extraAttacksFromRuleElements(owners=[], context={}) {
+  return [...new Set(owners.flatMap(({ruleElements=[], source=null}) =>
+    collectRuleElementContributions({ruleElements, context, source}).contributions.extraAttacks))];
+}
+
 /** The auras (`Aura`) a creature's owners give it: each grants its rules to creatures within its radius. */
 export function aurasFromRuleElements(owners=[], context={}) {
   return owners.flatMap(({ruleElements=[], source=null}) => collectRuleElementContributions({ruleElements, context, source}).contributions.auras);
@@ -518,6 +527,17 @@ function conditionImmunityRuleElement(ruleElement) {
   return success({conditionImmunities: conditions});
 }
 
+/**
+ * 2024 Extra Attack: the creature's weapon attacks that cost the Action may be paid from the `resourceId` pool instead,
+ * and paying one with the Action fills that pool (the other attacks of that Attack action). Its `GrantResource` gives
+ * the pool, empty, emptied at the start of each turn.
+ */
+function extraAttackRuleElement(ruleElement) {
+  const resourceId = ruleElement.data.resourceId ?? ruleElement.data.resource ?? null;
+  if ( !resourceId ) return handlerFailure(RULE_ELEMENT_CODES.INVALID, "ExtraAttack RuleElement requires a resourceId.");
+  return success({extraAttacks: [String(resourceId)]});
+}
+
 /** The creature provokes no Opportunity Attacks: when it moves in one of `movementModes`, or always when none is named. */
 function avoidOpportunityAttacksRuleElement(ruleElement) {
   return success({opportunityAttackAvoidance: [{movementModes: normalizeStrings(ruleElement.data.movementModes)}]});
@@ -570,7 +590,7 @@ function extraDamageRuleElement(ruleElement) {
     return handlerFailure(RULE_ELEMENT_CODES.INVALID, "ExtraDamage RuleElement once must be \"turn\".");
   }
   return success({
-    extraDamage: [{id: data.id ?? ruleElement.id, domains, expression: clonePlain(expression), damageType: data.damageType ?? "untyped",
+    extraDamage: [{id: data.id ?? ruleElement.id, domains, expression: clonePlain(expression), damageType: data.damageType ?? null,
       once: data.once ?? null, source: ruleElementSource(ruleElement), metadata: contributionMetadata(ruleElement, data.metadata)}]
   });
 }
@@ -632,14 +652,15 @@ function resourceCapRuleElement(ruleElement, context) {
 }
 
 /**
- * A forced roll outcome: `automatic-failure` on the creature's saves in its domains (`save.might`), or
- * `critical-on-hit` on attacks against it (`attacked`), each gated by the RuleElement's predicate.
+ * A forced roll outcome: `automatic-failure` on the creature's saves in its domains (`save.might`),
+ * `critical-on-hit` on attacks against it (`attacked`), or `evasion` on its saves (damage a success halves: none on a
+ * success, half on a failure), each gated by the RuleElement's predicate.
  */
 function rollOutcomeRuleElement(ruleElement) {
   const data = ruleElement.data;
   const domains = normalizeStrings(data.domains ?? data.domain);
-  if ( !["automatic-failure", "critical-on-hit"].includes(data.outcome) ) {
-    return handlerFailure(RULE_ELEMENT_CODES.INVALID, "RollOutcome RuleElement outcome must be automatic-failure or critical-on-hit.");
+  if ( !["automatic-failure", "critical-on-hit", "evasion"].includes(data.outcome) ) {
+    return handlerFailure(RULE_ELEMENT_CODES.INVALID, "RollOutcome RuleElement outcome must be automatic-failure, critical-on-hit or evasion.");
   }
   if ( !domains.length ) return handlerFailure(RULE_ELEMENT_CODES.INVALID, "RollOutcome RuleElement requires domains.");
   return success({
@@ -736,6 +757,7 @@ function emptyContributions() {
     auras: [],
     conditionImmunities: [],
     opportunityAttackAvoidance: [],
+    extraAttacks: [],
     reveals: [],
     triggers: []
   };
@@ -758,6 +780,7 @@ function mergeContributions(target, source={}) {
   target.auras.push(...(source.auras ?? []));
   target.conditionImmunities.push(...(source.conditionImmunities ?? []));
   target.opportunityAttackAvoidance.push(...(source.opportunityAttackAvoidance ?? []));
+  target.extraAttacks.push(...(source.extraAttacks ?? []));
   target.reveals.push(...(source.reveals ?? []));
   target.triggers.push(...(source.triggers ?? []));
 

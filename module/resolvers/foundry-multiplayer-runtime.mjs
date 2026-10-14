@@ -607,6 +607,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const saveModifiers = {};
   const saveDice = {};
   const saveOutcomes = {};
+  const evasionByTarget = {};
   const legendaryByTarget = {};
   const ambiguousKeys = new Set();
   // The authority, not the client's selection, decides who a "self" or "no target" Action targets.
@@ -648,8 +649,9 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       const bonus = resolveActorSaveStatistic(targetActor, ability);
       if ( bonus ) saveModifiers[key] = bonus.totalModifier;
       if ( bonus?.dice?.length ) saveDice[key] = bonus.dice;
-      if ( (targetActor.getRollOutcomes?.(["save", `save.${ability}`], saveContext(definition, ability)) ?? [])
-        .some(entry => entry.outcome === "automatic-failure") ) saveOutcomes[key] = "automatic-failure";
+      const forced = targetActor.getRollOutcomes?.(["save", `save.${ability}`], saveContext(definition, ability)) ?? [];
+      if ( forced.some(entry => entry.outcome === "automatic-failure") ) saveOutcomes[key] = "automatic-failure";
+      if ( forced.some(entry => entry.outcome === "evasion") ) evasionByTarget[key] = "evasion";
       const legendary = legendaryResistanceFor(targetActor, systemSnapshots.get(targetActor), game);
       if ( legendary ) legendaryByTarget[key] = legendary;
     }
@@ -691,6 +693,10 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const spatial = buildFoundryActionSpatialContext({sourceToken, targetEntries, game, defenseKey});
   const attackRollMode = definition?.attack ? foundryAttackRollMode({actor, action, definition, targetEntries, spatial, game, sourceToken}) : null;
   const attackOutcomes = definition?.attack ? foundryAttackOutcomes({definition, targets, targetEntries, spatial, game, sourceToken}) : null;
+  // Extra damage that depends on this attack (Sneak Attack: Advantage, or an ally beside the target) sees it.
+  const statistics = definition?.attack ? actionCombatStatistics(actor, definition, {item: action,
+    turn: game.combat?.started ? turnKey(game.combat) : null, context: {attack: {...attackContext(definition.attack.type ?? null, spatial,
+      targetEntries[0], game, sourceToken, actor).attack, rollMode: attackRollMode}}}) : combatStatistics;
   const concentration = foundryConcentrationContext({targetEntries, game, scene: sourceToken?.parent ?? null});
   // Holders of effects a broken concentration ends are committed on too; a key another Actor already owns is
   // ambiguous (copies of one base Actor) and is dropped, so lookups fall through to the holder's uuid.
@@ -724,13 +730,14 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
         ...(spatial ? {spatial: spatial.context} : {}),
         ...(typeof intent.messageMode === "string" ? {messageMode: intent.messageMode} : {})
       },
-      ...(combatStatistics.damage ? {damage: combatStatistics.damage} : {}),
-      ...((combatStatistics.attack || attackRollMode) ? {attack: {...(combatStatistics.attack ?? {}),
+      ...(statistics.damage ? {damage: statistics.damage} : {}),
+      ...((statistics.attack || attackRollMode) ? {attack: {...(statistics.attack ?? {}),
         ...(attackRollMode ? {rollMode: attackRollMode} : {}),
         ...(attackOutcomes ? {outcomesByTarget: attackOutcomes} : {})}} : {}),
       ...(Object.keys(saveRollModes).length ? {save: {rollModesByTarget: saveRollModes, modifiersByTarget: saveModifiers,
         ...(Object.keys(saveDice).length ? {diceByTarget: saveDice} : {}),
         ...(Object.keys(legendaryByTarget).length ? {legendaryByTarget} : {}),
+        ...(Object.keys(evasionByTarget).length ? {evasionByTarget} : {}),
         outcomesByTarget: saveOutcomes}} : {}),
       ...(definition?.check ? {check: actionCheckInput(actor, definition.check)} : {}),
       ...(definition?.summon && Array.isArray(intent.summon?.points) ? {summonPoints: intent.summon.points.slice(0, 20)

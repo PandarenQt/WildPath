@@ -381,8 +381,10 @@ test("ordinary Foundry Action rejects invalid serialized system data at the Foun
  */
 function withConditions(actor, ...ids) {
   const owners = ids.map(id => ({ruleElements: Array.isArray(id) ? id : WILDPATH.CONDITIONS[id].ruleElements}));
-  actor.getRollModes = (domains, {context={}}={}) => rollModesFromRuleElements(owners, {domains, context});
-  actor.getRollOutcomes = (domains, {context={}}={}) => rollOutcomesFromRuleElements(owners, {domains, context});
+  // As the real Actor does, predicates see the creature's conditions.
+  const conditions = ids.filter(id => typeof id === "string");
+  actor.getRollModes = (domains, {context={}}={}) => rollModesFromRuleElements(owners, {domains, context: {conditions, ...context}});
+  actor.getRollOutcomes = (domains, {context={}}={}) => rollOutcomesFromRuleElements(owners, {domains, context: {conditions, ...context}});
   return actor;
 }
 
@@ -393,7 +395,7 @@ async function firstRollRequest(definition, options={}) {
 
 /** The planned resolution of an Action between two conditioned creatures (`attackRoll` answers the attack). */
 async function plannedWithConditions(definition, {attacker=[], target=[], offset={i: 1, j: 0}, targetStatistics={}, attackRoll=null,
-  allies=[], prepareTarget=null}={}) {
+  allies=[], prepareTarget=null, saveRoll=null}={}) {
   const scene = fakeScene(new FakeSquareGrid(), {id: "scene-roll-modes"});
   const sourceActor = withConditions(fakeActor("roll-source", {system: actorSystem(),
     statistics: {"attack.weapon": runtimeStatistic("attack.weapon", 4)}}), ...attacker);
@@ -414,6 +416,7 @@ async function plannedWithConditions(definition, {attacker=[], target=[], offset
     targetRefs: [{actorRef: targetActor.uuid, tokenId: targetToken.id, sceneId: scene.id}]}});
   assert.equal(resolved.ok, true, resolved.reason);
   if ( attackRoll ) resolved.options.attack = {...resolved.options.attack, roll: attackRoll};
+  if ( saveRoll ) resolved.options.save = {...resolved.options.save, roll: saveRoll};
   return planStagedActionResolution(resolved.options);
 }
 
@@ -482,6 +485,23 @@ test("Legendary Resistance: a failed save succeeds instead, at once or when its 
   const spent = await plannedWithConditions(fortitudeBlast("might"), {target: ["stunned"],
     prepareTarget: actor => { legendary("always")(actor); actor.system.pools[0].value = 0; }});
   assert.equal(spent.state.results.saveResolution.failures.length, 1, "no use left");
+});
+
+test("Evasion: an Agility save that halves takes none on a success and half on a failure, unless the creature is Incapacitated", async () => {
+  const evasion = [{schemaVersion: 1, id: "evasion", type: "RollOutcome", data: {domains: ["save.agility"], outcome: "evasion"},
+    predicate: {not: {any: [{hasCondition: "stunned"}, {hasCondition: "incapacitated"}]}}}];
+  const burst = {...fortitudeBlast("agility"), id: "action:runtime-burst", damage: [{id: "burst", expression: {type: "constant", value: 10},
+    damageType: "fire", provenance: "spell-base", saveOutcomePolicy: {success: "half", failure: "full"}}]};
+  const taken = async (roll, conditions=[]) => (await plannedWithConditions(burst, {target: [evasion, ...conditions],
+    saveRoll: {total: roll, natural: roll, die: roll}})).state.results.damageResolution.results[0].total;
+  assert.equal(await taken(15), 0, "a success: none");
+  assert.equal(await taken(5), 5, "a failure: half");
+  assert.equal(await taken(15, ["restrained"]), 0, "Restrained is not Incapacitated");
+  const stunned = await plannedWithConditions(burst, {target: [evasion, "stunned"]});
+  assert.equal(stunned.state.results.damageResolution.results[0].total, 10, "Stunned fails, and takes it all");
+  const wits = {...burst, id: "action:runtime-wits-burst", save: {ability: "wits", dc: {value: 13}}};
+  assert.equal((await plannedWithConditions(wits, {target: [evasion], saveRoll: {total: 15, natural: 15, die: 15}}))
+    .state.results.damageResolution.results[0].total, 5, "only Agility saves");
 });
 
 test("each target adds its own save bonus from its save Modifiers", async () => {

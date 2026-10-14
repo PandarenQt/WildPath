@@ -134,6 +134,9 @@ Live (two browsers, 14.369):
 maximum. It joins the payment's mutation plan, with what each pool held before, so the transaction can roll it
 back. Multiattack uses it: it costs the Action and restores its "Multiattack" pool to its number of attacks.
 
+A payment never refills a pool it drew from. Extra Attack depends on this: an attack paid from its pool must not
+refill it (rule-elements.md, "Extra Attack").
+
 ## Up to N targets (2026-10-14)
 
 A required `count` means exactly that many targets, unless `targeting.refinementPolicy.minSelections` says

@@ -1325,8 +1325,10 @@ function createSaveOutcomeStage() {
       const {actionContext} = planning;
       let {actionResult} = planning;
 
-      const targetContexts = withOutcomeOverrides(withTargetSaveRolls(input.save.targetContexts
-        ?? state.results?.targetResolution?.targetContexts ?? [], input.save.rollsByTarget), input.save.outcomesByTarget);
+      // Evasion (`save.evasionByTarget`) rides along as an override the damage step reads.
+      const targetContexts = withOutcomeOverrides(withOutcomeOverrides(withTargetSaveRolls(input.save.targetContexts
+        ?? state.results?.targetResolution?.targetContexts ?? [], input.save.rollsByTarget), input.save.outcomesByTarget),
+        input.save.evasionByTarget);
       const resolveSaves = contexts => resolveSaveTargets({
         roll: input.save.roll,
         targetContexts: contexts,
