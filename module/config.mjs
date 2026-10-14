@@ -127,6 +127,17 @@ WILDPATH.MODIFIER_TYPES_ALWAYS_STACK = new Set(["untyped", "circumstance"]);
 const rollMode = (id, domains, mode, predicate=null) => ({schemaVersion: 1, id: `condition.${id}`, type: "RollMode",
   label: id, ...(predicate ? {predicate} : {}), data: {domains, mode}});
 const adjacent = value => ({equals: {path: "attack.adjacent", value}});
+/** A ceiling on resource maxima: Incapacitated (no actions) and Speed 0. */
+const cap = (id, resources) => ({schemaVersion: 1, id: `condition.${id}`, type: "ResourceCap", label: id,
+  data: {resources, maximum: 0}});
+const INCAPACITATED = ["action", "bonus", "reaction"];
+/** A forced outcome: automatic failure on saves, or hits against the creature becoming critical. */
+const outcome = (id, domains, forced, predicate=null) => ({schemaVersion: 1, id: `condition.${id}`, type: "RollOutcome",
+  label: id, ...(predicate ? {predicate} : {}), data: {domains, outcome: forced}});
+/** A Modifier scaled by the condition's level (Exhaustion): `perLevel` per level on `domains`. */
+const perLevel = (id, domains, value) => ({schemaVersion: 1, id: `condition.${id}`, type: "Modifier", label: id,
+  data: {domains, modifierType: "untyped",
+    valueExpression: {type: "multiply", terms: [{type: "context", path: "effect.system.level"}, {type: "constant", value}]}}});
 
 /**
  * A damage-over-time condition: at the start of each of its turns the creature takes `amount` damage of
@@ -142,8 +153,9 @@ function damageOverTimeCondition({id, name, img, damageType, amount=1, stacking=
         amount: perTurn, damageType, tags: ["condition", id, "periodic"]}}}]};
 }
 
-// The 2024 conditions' advantage and disadvantage (maintainer decision, 2026-10-14: 2024 rules). Not yet:
-// incapacitation, automatic failures and critical hits, Speed 0, and Exhaustion's d20 and Speed penalties.
+// The 2024 conditions (maintainer decision, 2026-10-14: 2024 rules; advantage and disadvantage cancel source
+// for source). Not yet: Incapacitated ending concentration and giving initiative disadvantage, Unconscious also
+// making the creature Prone, and Exhaustion level 6 killing.
 WILDPATH.CONDITIONS = {
   prone: {
     id: "prone",
@@ -171,27 +183,35 @@ WILDPATH.CONDITIONS = {
     ruleElements: [
       rollMode("restrained.own-attacks", ["attack"], "disadvantage"),
       rollMode("restrained.attacked", ["attacked"], "advantage"),
-      rollMode("restrained.agility-saves", ["save.agility"], "disadvantage")
+      rollMode("restrained.agility-saves", ["save.agility"], "disadvantage"),
+      cap("restrained.speed-0", ["movement"])
     ]
   },
   stunned: {
     id: "stunned",
     name: "WILDPATH.CONDITIONS.Stunned",
     img: "icons/svg/daze.svg",
-    ruleElements: [rollMode("stunned.attacked", ["attacked"], "advantage")]
+    ruleElements: [rollMode("stunned.attacked", ["attacked"], "advantage"), cap("stunned.incapacitated", INCAPACITATED),
+      outcome("stunned.fails-might-agility-saves", ["save.might", "save.agility"], "automatic-failure")]
   },
   unconscious: {
     id: "unconscious",
     name: "WILDPATH.CONDITIONS.Unconscious",
     img: "icons/svg/unconscious.svg",
-    ruleElements: [rollMode("unconscious.attacked", ["attacked"], "advantage")]
+    ruleElements: [rollMode("unconscious.attacked", ["attacked"], "advantage"),
+      cap("unconscious.incapacitated", INCAPACITATED), cap("unconscious.speed-0", ["movement"]),
+      outcome("unconscious.fails-might-agility-saves", ["save.might", "save.agility"], "automatic-failure"),
+      outcome("unconscious.critical-within-5ft", ["attacked"], "critical-on-hit", adjacent(true))]
   },
   exhaustion: {
     id: "exhaustion",
     name: "WILDPATH.CONDITIONS.Exhaustion",
     img: "icons/svg/stoned.svg",
     stacking: true,
-    maxLevel: 6
+    maxLevel: 6,
+    // 2024: d20 tests are reduced by 2 per level, and every Speed by 5 ft per level.
+    ruleElements: [perLevel("exhaustion.d20-tests", ["attack", "save", "check"], -2),
+      perLevel("exhaustion.speed", ["resources.movement.max", "speed"], -5)]
   },
   poisoned: {
     id: "poisoned",

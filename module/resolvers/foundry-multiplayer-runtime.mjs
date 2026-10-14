@@ -32,6 +32,7 @@ import {footprintDistance} from "../helpers/grid-footprints.mjs";
 import {combineRollModes} from "../helpers/rolls.mjs";
 import {
   resolveActorAttackStatistic,
+  resolveActorSaveStatistic,
   resolveActorDefense
 } from "../helpers/combat-statistics.mjs";
 import {createMultiplayerActionCoordinator} from "./multiplayer-action-coordinator.mjs";
@@ -428,9 +429,10 @@ function notifyMultiplayerFailure(event={}, {logger=globalThis.console}={}) {
   const reason = event.error.reason ?? event.error.code ?? "";
   if ( typeof globalThis.ui?.notifications?.warn === "function" ) {
     const i18n = globalThis.game?.i18n;
-    const message = ROLL_REJECTION_CODES.has(event.error.code)
-      ? i18n?.localize?.("WILDPATH.NOTIFY.RollRejected")
-      : i18n?.format?.("WILDPATH.NOTIFY.ActionFailed", {reason});
+    // An unaffordable cost (spent Actions, or a condition that leaves none) reads as plain words, not a code.
+    const message = ROLL_REJECTION_CODES.has(event.error.code) ? i18n?.localize?.("WILDPATH.NOTIFY.RollRejected")
+      : reason === "PAYMENT_UNAVAILABLE" ? i18n?.localize?.("WILDPATH.NOTIFY.PaymentUnavailable")
+        : i18n?.format?.("WILDPATH.NOTIFY.ActionFailed", {reason});
     globalThis.ui.notifications.warn(message ?? `Wild Path | ${reason}`);
   } else {
     logger?.warn?.("Wild Path | Multiplayer action resolution failed", event.error);
@@ -530,6 +532,8 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const targets = [];
   const targetEntries = [];
   const saveRollModes = {};
+  const saveModifiers = {};
+  const saveOutcomes = {};
   const ambiguousKeys = new Set();
   for ( const ref of area.targetRefs ?? normalizeArray(intent.targetRefs ?? intent.targets) ) {
     const targetRef = targetActorRefFromIntent(ref);
@@ -556,8 +560,17 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     }, targetActor, defenseKey);
     // 2024: each target's own advantage or disadvantage on the save it makes (`save`, `save.<ability>`), by
     // Token (unlinked copies of one Actor share its id).
-    if ( definition?.save ) saveRollModes[target.tokenId ?? target.id] = combineRollModes(targetActor.getRollModes?.(
-      ["save", `save.${definition.save.ability ?? definition.save.saveKey}`], {context: {save: {ability: definition.save.ability ?? null}}}) ?? []);
+    if ( definition?.save ) {
+      const ability = definition.save.ability ?? definition.save.saveKey ?? null;
+      const key = target.tokenId ?? target.id;
+      saveRollModes[key] = combineRollModes(targetActor.getRollModes?.(["save", `save.${ability}`],
+        {context: {save: {ability}}}) ?? []);
+      // Each target's own save bonus (Modifiers on save.<ability> and save), and an automatic failure.
+      const bonus = resolveActorSaveStatistic(targetActor, ability);
+      if ( bonus ) saveModifiers[key] = bonus.totalModifier;
+      if ( (targetActor.getRollOutcomes?.(["save", `save.${ability}`], {context: {save: {ability}}}) ?? [])
+        .some(entry => entry.outcome === "automatic-failure") ) saveOutcomes[key] = "automatic-failure";
+    }
     targets.push(target);
     const keys = uniqueStrings([targetActor.uuid, targetActor.id, `actor:${targetActor.id}`, targetRef,
       ...targetControllerKeys(targetActor, hint, game)]);
@@ -587,7 +600,8 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   };
 
   const spatial = buildFoundryActionSpatialContext({sourceToken, targetEntries, game, defenseKey});
-  const attackRollMode = definition?.attack ? foundryAttackRollMode({actor, action, definition, targetEntries, spatial}) : null;
+  const attackRollMode = definition?.attack ? foundryAttackRollMode({actor, action, definition, targetEntries, spatial, game, sourceToken}) : null;
+  const attackOutcomes = definition?.attack ? foundryAttackOutcomes({definition, targets, targetEntries, spatial, game, sourceToken}) : null;
   const concentration = foundryConcentrationContext({targetEntries, game, scene: sourceToken?.parent ?? null});
   // Holders of effects a broken concentration ends are committed on too; a key another Actor already owns is
   // ambiguous (copies of one base Actor) and is dropped, so lookups fall through to the holder's uuid.
@@ -622,8 +636,10 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
         ...(typeof intent.messageMode === "string" ? {messageMode: intent.messageMode} : {})
       },
       ...((combatStatistics.attack || attackRollMode) ? {attack: {...(combatStatistics.attack ?? {}),
-        ...(attackRollMode ? {rollMode: attackRollMode} : {})}} : {}),
-      ...(Object.keys(saveRollModes).length ? {save: {rollModesByTarget: saveRollModes}} : {}),
+        ...(attackRollMode ? {rollMode: attackRollMode} : {}),
+        ...(attackOutcomes ? {outcomesByTarget: attackOutcomes} : {})}} : {}),
+      ...(Object.keys(saveRollModes).length ? {save: {rollModesByTarget: saveRollModes, modifiersByTarget: saveModifiers,
+        outcomesByTarget: saveOutcomes}} : {}),
       // Rules consume plain effective snapshots; commit retains the exact live (possibly synthetic) Actors.
       durability: {targetSystems, ...(Object.keys(targetProfiles).length ? {adjustmentProfiles: targetProfiles} : {})},
       configuration: clonePlainData(intent.configuration ?? null, "intent.configuration"),
@@ -648,18 +664,38 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
  * included) and the first target's on attacks against it (`attacked`, `attacked.<type>`), combined so any of
  * each cancel. Predicates see `attack.type` and `attack.adjacent` (the attacker within 5 ft).
  */
-function foundryAttackRollMode({actor, action, definition, targetEntries, spatial}) {
+function foundryAttackRollMode({actor, action, definition, targetEntries, spatial, game, sourceToken}) {
   const type = definition.attack.type ?? null;
-  const target = targetEntries[0]?.actor ?? null;
-  const source = spatial?.context?.sourceFootprint ?? null;
-  const entry = spatial?.context?.targetFootprints?.[0] ?? null;
-  const footprint = entry?.footprint ?? (entry?.fields ? entry : null);
-  const fields = source && footprint ? footprintDistance(source, footprint) : null;
-  const context = {attack: {type, ...(Number.isFinite(fields) ? {adjacent: fields * spatial.context.gridDistance <= 5} : {})}};
+  const target = targetEntries[0] ?? null;
+  const context = attackContext(type, spatial, target, game, sourceToken);
   return combineRollModes([
     ...(actor.getRollModes?.(["attack", `attack.${type}`], {item: action, context}) ?? []),
-    ...(target?.getRollModes?.(["attacked", `attacked.${type}`], {context}) ?? [])
+    ...(target?.actor?.getRollModes?.(["attacked", `attacked.${type}`], {context}) ?? [])
   ]);
+}
+
+/** Outcomes forced on hits against each target (`critical-on-hit`), keyed by Token like the targets. */
+function foundryAttackOutcomes({definition, targets, targetEntries, spatial, game, sourceToken}) {
+  const type = definition.attack.type ?? null;
+  const outcomes = {};
+  targetEntries.forEach((entry, index) => {
+    const forced = entry.actor?.getRollOutcomes?.(["attacked", `attacked.${type}`], {context: attackContext(type, spatial, entry, game, sourceToken)}) ?? [];
+    if ( forced.some(outcome => outcome.outcome === "critical-on-hit") ) {
+      outcomes[targets[index].tokenId ?? targets[index].id] = "critical-on-hit";
+    }
+  });
+  return Object.keys(outcomes).length ? outcomes : null;
+}
+
+/** What RuleElement predicates see about an attack on one target: its type and whether it is within 5 ft. */
+function attackContext(type, spatial, entry, game, sourceToken) {
+  const token = entry ? resolveFoundryTargetToken({actor: entry.actor, hint: entry.hint, game,
+    preferredSceneId: sourceToken?.parent?.id ?? null}) : null;
+  const source = spatial?.context?.sourceFootprint ?? null;
+  const footprint = source && token?.parent
+    ? createFoundryV14TacticalGridAdapter({scene: token.parent}).tokenToFootprint(token) : null;
+  const fields = footprint?.ok && footprint.footprint ? footprintDistance(source, footprint.footprint) : null;
+  return {attack: {type, ...(Number.isFinite(fields) ? {adjacent: fields * spatial.context.gridDistance <= 5} : {})}};
 }
 
 /**

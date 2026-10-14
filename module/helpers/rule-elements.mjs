@@ -12,6 +12,8 @@ export const RULE_ELEMENT_TYPES = Object.freeze({
   GRANT_IMMUNITY: "GrantImmunity",
   GRANT_MOVEMENT: "GrantMovement",
   ROLL_MODE: "RollMode",
+  RESOURCE_CAP: "ResourceCap",
+  ROLL_OUTCOME: "RollOutcome",
   TRIGGER: "Trigger"
 });
 
@@ -50,6 +52,8 @@ const TYPE_ALIASES = Object.freeze({
   grantmovement: RULE_ELEMENT_TYPES.GRANT_MOVEMENT,
   movement: RULE_ELEMENT_TYPES.GRANT_MOVEMENT,
   rollmode: RULE_ELEMENT_TYPES.ROLL_MODE,
+  resourcecap: RULE_ELEMENT_TYPES.RESOURCE_CAP,
+  rolloutcome: RULE_ELEMENT_TYPES.ROLL_OUTCOME,
   trigger: RULE_ELEMENT_TYPES.TRIGGER
 });
 
@@ -87,6 +91,8 @@ export function createDefaultRuleElementRegistry() {
   return new RuleElementRegistry([
     [RULE_ELEMENT_TYPES.MODIFIER, modifierRuleElement],
     [RULE_ELEMENT_TYPES.ROLL_MODE, rollModeRuleElement],
+    [RULE_ELEMENT_TYPES.RESOURCE_CAP, resourceCapRuleElement],
+    [RULE_ELEMENT_TYPES.ROLL_OUTCOME, rollOutcomeRuleElement],
     [RULE_ELEMENT_TYPES.GRANT_RESOURCE, grantResourceRuleElement],
     [RULE_ELEMENT_TYPES.GRANT_ACTION_ECONOMY_RESOURCE, grantActionEconomyResourceRuleElement],
     [RULE_ELEMENT_TYPES.GRANT_RESISTANCE, grantResistanceRuleElement],
@@ -322,10 +328,30 @@ export function grantedResourcesFromRuleElements(owners=[], context={}) {
  * source. A RollMode's predicate sees `context` (for example `attack.adjacent` for "within 5 feet").
  */
 export function rollModesFromRuleElements(owners=[], {domains=[], context={}}={}) {
+  return contributionsInDomains(owners, "rollModes", domains, context);
+}
+
+/** The forced outcomes (`RollOutcome`) a creature's owners give in any of `domains`. */
+export function rollOutcomesFromRuleElements(owners=[], {domains=[], context={}}={}) {
+  return contributionsInDomains(owners, "rollOutcomes", domains, context);
+}
+
+function contributionsInDomains(owners, key, domains, context) {
   const wanted = new Set(domains);
   return owners.flatMap(({ruleElements=[], source=null}) =>
-    collectRuleElementContributions({ruleElements, context, source}).contributions.rollModes
+    collectRuleElementContributions({ruleElements, context, source}).contributions[key]
       .filter(entry => entry.domains.some(domain => wanted.has(domain))));
+}
+
+/** The lowest ceiling each resource has from a creature's owners (`ResourceCap`), as `{resourceId: maximum}`. */
+export function resourceCapsFromRuleElements(owners=[], context={}) {
+  const caps = {};
+  for ( const {ruleElements=[], source=null} of owners ) {
+    for ( const cap of collectRuleElementContributions({ruleElements, context, source}).contributions.resourceCaps ) {
+      for ( const id of cap.resources ) caps[id] = Math.min(caps[id] ?? Infinity, cap.maximum);
+    }
+  }
+  return caps;
 }
 
 /** The Speeds a creature's grants give (`GrantMovement`): `{mode, distance}`, one per grant. */
@@ -489,6 +515,39 @@ function rollModeRuleElement(ruleElement) {
   });
 }
 
+/**
+ * A ceiling on resource maxima: `{resources: ["action", "bonus", "reaction"], maximum: 0}` is "can't take
+ * actions", `{resources: ["movement"], maximum: 0}` is Speed 0 (every Speed, granted ones included).
+ */
+function resourceCapRuleElement(ruleElement, context) {
+  const data = ruleElement.data;
+  const resources = normalizeStrings(data.resources ?? data.resource);
+  if ( !resources.length ) return handlerFailure(RULE_ELEMENT_CODES.INVALID, "ResourceCap RuleElement requires resources.");
+  const maximum = evaluateNumeric(data.maximum ?? data.max ?? 0, context);
+  if ( !maximum.ok ) return maximum;
+  return success({
+    resourceCaps: [{id: data.id ?? ruleElement.id, resources, maximum: Math.max(maximum.value, 0),
+      source: ruleElementSource(ruleElement), metadata: contributionMetadata(ruleElement, data.metadata)}]
+  });
+}
+
+/**
+ * A forced roll outcome: `automatic-failure` on the creature's saves in its domains (`save.might`), or
+ * `critical-on-hit` on attacks against it (`attacked`), each gated by the RuleElement's predicate.
+ */
+function rollOutcomeRuleElement(ruleElement) {
+  const data = ruleElement.data;
+  const domains = normalizeStrings(data.domains ?? data.domain);
+  if ( !["automatic-failure", "critical-on-hit"].includes(data.outcome) ) {
+    return handlerFailure(RULE_ELEMENT_CODES.INVALID, "RollOutcome RuleElement outcome must be automatic-failure or critical-on-hit.");
+  }
+  if ( !domains.length ) return handlerFailure(RULE_ELEMENT_CODES.INVALID, "RollOutcome RuleElement requires domains.");
+  return success({
+    rollOutcomes: [{id: data.id ?? ruleElement.id, outcome: data.outcome, domains, source: ruleElementSource(ruleElement),
+      metadata: contributionMetadata(ruleElement, data.metadata)}]
+  });
+}
+
 function triggerRuleElement(ruleElement) {
   const data = ruleElement.data;
   const event = data.event ?? data.eventType ?? null;
@@ -572,6 +631,8 @@ function emptyContributions() {
     },
     movement: [],
     rollModes: [],
+    resourceCaps: [],
+    rollOutcomes: [],
     triggers: []
   };
 }
@@ -588,6 +649,8 @@ function mergeContributions(target, source={}) {
   target.economyResources.push(...(source.economyResources ?? []));
   target.movement.push(...(source.movement ?? source.movements ?? []));
   target.rollModes.push(...(source.rollModes ?? []));
+  target.resourceCaps.push(...(source.resourceCaps ?? []));
+  target.rollOutcomes.push(...(source.rollOutcomes ?? []));
   target.triggers.push(...(source.triggers ?? []));
 
   const damage = source.damageAdjustments ?? {};
@@ -598,7 +661,8 @@ function mergeContributions(target, source={}) {
 }
 
 function sortContributions(contributions) {
-  for ( const key of ["modifiers", "resources", "economyResources", "movement", "rollModes", "triggers"] ) {
+  for ( const key of ["modifiers", "resources", "economyResources", "movement", "rollModes", "resourceCaps", "rollOutcomes",
+    "triggers"] ) {
     contributions[key].sort(compareContributions);
   }
   for ( const entries of Object.values(contributions.damageAdjustments) ) {
@@ -625,6 +689,8 @@ function createTrace(ruleElement, status, predicateResult=null, reason=null, con
       damageAdjustments: Object.values(contributions.damageAdjustments).reduce((sum, entries) => sum + entries.length, 0),
       movement: contributions.movement.length,
       rollModes: contributions.rollModes.length,
+      resourceCaps: contributions.resourceCaps.length,
+      rollOutcomes: contributions.rollOutcomes.length,
       triggers: contributions.triggers.length
     },
     metadata: clonePlain(ruleElement.metadata) ?? {}

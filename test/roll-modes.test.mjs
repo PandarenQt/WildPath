@@ -2,7 +2,11 @@ import {test} from "node:test";
 import assert from "node:assert/strict";
 import {WILDPATH} from "../module/config.mjs";
 import {combineRollModes, createD20RollRequest, rollFormulaForRequest} from "../module/helpers/rolls.mjs";
-import {rollModesFromRuleElements, validateRuleElementDefinition} from "../module/helpers/rule-elements.mjs";
+import {
+  modifiersFromRuleElements, resourceCapsFromRuleElements, rollModesFromRuleElements, rollOutcomesFromRuleElements,
+  validateRuleElementDefinition
+} from "../module/helpers/rule-elements.mjs";
+import {WildPathModifier, WildPathStatistic} from "../module/helpers/modifiers.mjs";
 
 const condition = id => ({ruleElements: WILDPATH.CONDITIONS[id].ruleElements});
 const modes = (owners, domains, context={}) => rollModesFromRuleElements(owners, {domains, context}).map(entry => entry.mode);
@@ -52,4 +56,31 @@ test("an advantage d20 request rolls 2d20 and keeps the higher", () => {
   const request = createD20RollRequest({id: "r", resolutionId: "s", type: "attack", modifier: 4, rollMode: "advantage"});
   assert.equal(request.rollMode, "advantage");
   assert.equal(rollFormulaForRequest(request).formula, "2d20kh + 4");
+});
+
+test("2024 Incapacitated and Speed 0 cap resources at 0: Stunned, Unconscious, Restrained", () => {
+  assert.deepEqual(resourceCapsFromRuleElements([condition("stunned")]), {action: 0, bonus: 0, reaction: 0});
+  assert.deepEqual(resourceCapsFromRuleElements([condition("unconscious")]), {action: 0, bonus: 0, reaction: 0, movement: 0});
+  assert.deepEqual(resourceCapsFromRuleElements([condition("restrained")]), {movement: 0});
+});
+
+test("2024 automatic outcomes: Stunned fails Might and Agility saves; hits on an Unconscious creature within 5 ft are critical", () => {
+  const outcomes = (owners, domains, context={}) => rollOutcomesFromRuleElements(owners, {domains, context}).map(entry => entry.outcome);
+  assert.deepEqual(outcomes([condition("stunned")], ["save", "save.might"]), ["automatic-failure"]);
+  assert.deepEqual(outcomes([condition("stunned")], ["save", "save.wits"]), []);
+  assert.deepEqual(outcomes([condition("unconscious")], ["attacked"], {attack: {adjacent: true}}), ["critical-on-hit"]);
+  assert.deepEqual(outcomes([condition("unconscious")], ["attacked"], {attack: {adjacent: false}}), []);
+});
+
+test("2024 Exhaustion: each level takes 2 from d20 tests and 5 ft from every Speed, through its bound level", () => {
+  const value = (domain, level) => {
+    const [modifier] = modifiersFromRuleElements({ruleElements: WILDPATH.CONDITIONS.exhaustion.ruleElements, domain}).modifiers;
+    const bindings = {effect: {system: {level}}};
+    // The statistic re-evaluates its modifiers in its own context; the bound level travels with them.
+    return new WildPathStatistic(domain, [new WildPathModifier({...modifier, bindings}, bindings)]).totalModifier;
+  };
+  assert.equal(value("attack", 1), -2);
+  assert.equal(value("save", 3), -6);
+  assert.equal(value("speed", 2), -10);
+  assert.equal(value("resources.movement.max", 2), -10);
 });

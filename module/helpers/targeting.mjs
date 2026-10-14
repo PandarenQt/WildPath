@@ -29,6 +29,7 @@ export const TARGET_DEFAULT_SELECTION = Object.freeze({
 export const TARGET_OVERRIDE_TYPES = Object.freeze({
   AUTOMATIC_SUCCESS: "automatic-success",
   AUTOMATIC_FAILURE: "automatic-failure",
+  CRITICAL_ON_HIT: "critical-on-hit",
   ADVANTAGE: "advantage",
   DISADVANTAGE: "disadvantage",
   IGNORE_DAMAGE: "ignore-damage",

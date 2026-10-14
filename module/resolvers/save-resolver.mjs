@@ -178,8 +178,23 @@ function resolveSaveTarget({roll, targetContext, dc, dcKey, saveKey, policy, con
     };
   }
 
-  const targetRoll = resolveTargetSaveRoll(normalizedContext, saveKey, roll);
   const targetDC = resolveTargetSaveDC(normalizedContext, dcKey, dc);
+  // An automatic failure (a Stunned creature's Might save) needs no roll.
+  if ( normalizedContext.overrides.some(override => override?.type === "automatic-failure") ) return {
+    ok: true,
+    code: SAVE_RESOLVER_CODES.OK,
+    outcome: SAVE_OUTCOMES.FAILURE,
+    success: false,
+    critical: false,
+    automatic: true,
+    margin: null,
+    roll: null,
+    dc: normalizeSaveDC(targetDC),
+    target: normalizeTargetRef(normalizedContext.target),
+    targetContext: normalizedContext,
+    context: clonePlain(context) ?? {}
+  };
+  const targetRoll = resolveTargetSaveRoll(normalizedContext, saveKey, roll);
   return {
     ...resolveSaveAgainstDC({
       roll: targetRoll,

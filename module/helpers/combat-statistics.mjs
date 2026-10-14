@@ -90,6 +90,13 @@ export function resolveActorAttackStatistic(actor, attack={}, {item=null, tags=[
 
 /* -------------------------------------------- */
 
+/** A creature's save bonus: every Modifier on `save.<ability>` and `save`, as attacks read their domains. */
+export function resolveActorSaveStatistic(actor, ability=null) {
+  const statistic = resolveActorStatisticModifier(actor, [ability ? `save.${ability}` : null, "save"].filter(Boolean),
+    {tags: ability ? [ability] : []});
+  return statistic.known ? {domain: statistic.domain, totalModifier: statistic.value, trace: statistic.trace} : null;
+}
+
 function resolveActorStatisticModifier(actor, domains, options={}) {
   if ( typeof actor?.getStatistic !== "function" ) return {known: false, value: null, trace: null, domain: null};
   const list = uniqueStrings(domains);

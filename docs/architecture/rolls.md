@@ -136,10 +136,20 @@ resolved by the owning rules domains before the `RollRequest` is created.
 - **Rolling.** The `RollRequest` carries the result as `rollMode`, so a digital roll is `2d20kh`/`2d20kl`
   and the kept die is the natural result.
 - **Physical dice.** The prompt tells a physical roller to roll two d20s and enter the higher or the lower.
+- **Save bonuses.** Each target adds its own save bonus: its Modifiers on `save.<ability>` and `save`,
+  the same way attacks read their domains (`resolveActorSaveStatistic`). Before this, live saves rolled a
+  bare d20.
+- **Critical hits (2024).** A critical hit rolls the attack's damage dice twice and adds flat modifiers
+  once. This covers a natural 20 and a forced critical alike. A damage component written as a formula
+  string is not doubled yet.
 
 Live (two browsers, 14.369):
 - Player1's Melee Strike on a Prone goblin standing next to them rolled `2d20kh` (2 discarded, 10 kept),
   hit AC 5, and dealt 2.
+- Player1 struck an Unconscious goblin standing next to them. The roll was `2d20kh` (18 kept), the card read
+  "Critical hit", and the damage was `2d8` = 8.
+- A GM's Might-save Slam on Player1's Stunned hero requested no roll: an automatic failure for 4 damage.
+  The Stunned hero's own strike was refused, because no Action was left to pay.
 - A Blinded and Poisoned attacker struck a Blinded goblin: two disadvantages against one advantage. The
   roll was `2d20kl` (11 kept, 12 discarded). The strike was imported from the WildPath Actions
   compendium.

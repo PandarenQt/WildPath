@@ -141,6 +141,22 @@ export function registerConditionTests(quench) {
         await actor.toggleCondition("prone",{levels:-1});
         assert.deepEqual(modes(["attacked"],{attack:{adjacent:false}}),["advantage"],"Restrained alone: attacks against it have advantage");
       });
+
+      it("2024 Stunned leaves no actions, Restrained has Speed 0 everywhere, and Exhaustion scales with its level", async function () {
+        const actor = await fixtures.createActor({name:"incapacitated"});
+        await fixtures.createItem(actor,{system:{ruleElements:[{schemaVersion:1,id:"wings",type:"GrantMovement",
+          data:{mode:"fly",distance:60}}]}});
+        await actor.toggleCondition("stunned");
+        assert.deepEqual(["action","bonus","reaction"].map(id => actor.getResource(id).max),[0,0,0],"Incapacitated: no actions");
+        await actor.toggleCondition("stunned",{levels:-1});
+        assert.equal(actor.getResource("action").max,1,"Recovered when the condition ends");
+        await actor.toggleCondition("restrained");
+        assert.deepEqual({...actor.system.speeds},{walk:0,fly:0},"Speed 0 includes a granted fly Speed");
+        await actor.toggleCondition("restrained",{levels:-1});
+        await actor.toggleCondition("exhaustion",{levels:3});
+        assert.equal(actor.getStatistic(["save.might","save"]).totalModifier,-6,"Three levels: -6 on saves");
+        assert.deepEqual({...actor.system.speeds},{walk:15,fly:45},"and -15 ft on every Speed");
+      });
     });
   }, {displayName:"WILDPATH: Real Foundry Conditions",preSelected:false});
 }

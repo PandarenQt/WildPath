@@ -175,8 +175,12 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
     this.#deriveClasses();
     this.#applyResourceModifiers();
     this.#finalizeResources();
-    // Walking Speed is the movement maximum; other Speeds come from grants (GrantMovement).
-    this.speeds = movementSpeeds(this.resources.movement.max, this.parent?.getGrantedMovement?.() ?? []);
+    // Walking Speed is the movement maximum; other Speeds come from grants (GrantMovement), and Modifiers on
+    // `speed` (Exhaustion) and a movement cap (Speed 0) reach them too.
+    const speedBonus = this.parent?.getStatistic?.("speed")?.totalModifier ?? 0;
+    const grants = (this.parent?.getGrantedMovement?.() ?? []).map(grant => ({...grant,
+      distance: Math.min(Math.max((Number(grant.distance) || 0) + speedBonus, 0), this.resourceCaps.movement ?? Infinity)}));
+    this.speeds = movementSpeeds(this.resources.movement.max, grants);
   }
 
   /* -------------------------------------------- */
@@ -223,8 +227,9 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
    * helpers/resources.mjs so the same idempotent computation is verifiable outside Foundry.
    */
   #finalizeResources() {
+    this.resourceCaps = this.parent?.getResourceCaps?.() ?? {};
     for ( const [id, resource] of Object.entries(this.resources) ) {
-      resource.max = computeResourceMax(resource, resource.modifierBonus);
+      resource.max = Math.min(computeResourceMax(resource, resource.modifierBonus), this.resourceCaps[id] ?? Infinity);
       resource.value = COUNTED_RESOURCES.includes(id) ? remainingFromSpent(resource.max, resource.spent)
         : clampResourceValue(resource.value, resource.max);
     }

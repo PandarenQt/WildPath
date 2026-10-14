@@ -256,6 +256,21 @@ Its predicate sees `attack.type` and `attack.adjacent` (the attacker within 5 ft
 5 ft, disadvantage beyond" is two RollModes. The 2024 conditions are authored this way in
 `WILDPATH.CONDITIONS` (rolls.md, "Advantage / Disadvantage and Modifiers").
 
+**Resource caps.** A `ResourceCap` RuleElement puts a ceiling on resource maxima:
+- `{resources: ["action", "bonus", "reaction"], maximum: 0}` is Incapacitated: no actions of any kind, so
+  nothing can be paid and no reaction offered.
+- `{resources: ["movement"], maximum: 0}` is Speed 0, and it caps every granted Speed too.
+
+**Forced outcomes.** A `RollOutcome` RuleElement forces a roll's outcome:
+- `automatic-failure` on the creature's saves in its domains (`save.might`). No roll is requested, and the
+  target context carries the `automatic-failure` override.
+- `critical-on-hit` on attacks against it (`attacked`): a hit becomes a critical hit. Its predicate sees
+  `attack.adjacent`, measured per target.
+
+**Leveled Modifiers.** A Modifier on an effect is bound to that effect's level (`effect.system.level`,
+through the modifier's `bindings`). Exhaustion's 2024 penalties scale this way: −2 per level on d20 tests
+(`attack`, `save`, `check`), and −5 ft per level on walking Speed and every other Speed (`speed`).
+
 **Damage over time.** `damageOverTimeCondition({id, damageType, amount, stacking})` in `module/config.mjs`
 builds a condition whose `Trigger` deals `amount` damage of `damageType` at the start of each of its
 creature's turns. A stacking condition deals that amount once per stack (`effect.system.level`), and each

@@ -932,7 +932,8 @@ function createAttackOutcomeStage() {
 
       const attackResolution = resolveAttackTargets({
         roll: attack.roll,
-        targetContexts: attack.targetContexts ?? state.results?.targetResolution?.targetContexts ?? [],
+        targetContexts: withOutcomeOverrides(attack.targetContexts ?? state.results?.targetResolution?.targetContexts ?? [],
+          attack.outcomesByTarget),
         targets: attack.targets ?? (state.results?.targetResolution ? [] : actionContext.targets),
         defense: attack.defense ?? null,
         defenseKey: attack.defenseKey ?? "ac",
@@ -986,6 +987,12 @@ function createSaveRollStage() {
     run(state) {
       const input = preparedResolverInput(state);
       const saveTargets = input.save ? selectedSaveTargets(state, input) : [];
+      // A target that fails automatically rolls nothing; the others roll their own saves.
+      const rolling = saveTargets.filter(target => !input.save?.outcomesByTarget?.[rollModeTargetKey(target)]);
+      if ( rolling.length < saveTargets.length ) {
+        return rolling.length ? requestPerTargetSaves(state, input, rolling)
+          : continueResolutionStage({state: updateResolutionState(state, {input})});
+      }
       if ( (saveTargets.length > 1) && !hasSaveRollInput(input.save, input) ) {
         return requestPerTargetSaves(state, input, saveTargets);
       }
@@ -1162,8 +1169,18 @@ function selectedSaveTargets(state, input) {
   return normalizeArray(input.targets);
 }
 
+/** The Token a target (a ref, a candidate, or a candidate's target) stands for: how the runtime keys per-target data. */
 function rollModeTargetKey(target) {
-  return String(target?.tokenId ?? target?.id ?? "");
+  return String(target?.tokenId ?? target?.target?.tokenId ?? target?.metadata?.foundry?.tokenId ?? target?.id ?? "");
+}
+
+/** Target contexts with the outcome the runtime forced on them (keyed by Token) added as an override. */
+function withOutcomeOverrides(entries, outcomesByTarget) {
+  if ( !outcomesByTarget ) return entries;
+  return normalizeArray(entries).map(entry => {
+    const outcome = outcomesByTarget[rollModeTargetKey(entry?.target ?? entry)];
+    return outcome ? {...entry, overrides: [...(entry?.overrides ?? []), {type: outcome}]} : entry;
+  });
 }
 
 function saveTargetKey(target) {
@@ -1194,8 +1211,8 @@ function createSaveOutcomeStage() {
 
       const saveResolution = resolveSaveTargets({
         roll: input.save.roll,
-        targetContexts: withTargetSaveRolls(input.save.targetContexts ?? state.results?.targetResolution?.targetContexts ?? [],
-          input.save.rollsByTarget),
+        targetContexts: withOutcomeOverrides(withTargetSaveRolls(input.save.targetContexts
+          ?? state.results?.targetResolution?.targetContexts ?? [], input.save.rollsByTarget), input.save.outcomesByTarget),
         targets: withTargetSaveRolls(input.save.targets ?? (state.results?.targetResolution ? [] : actionContext.targets),
           input.save.rollsByTarget),
         dc: input.save.dc ?? null,
@@ -2021,11 +2038,15 @@ function attackResolvedAsOnlyMisses(state) {
 
 function damageRollRequestForState(state, input) {
   const damage = input.damage ?? {};
+  // 2024: a critical hit rolls the attack's damage dice twice (flat modifiers once).
+  const critical = (state.results?.attackResolution?.hits ?? []).some(hit => hit.outcome === "criticalHit");
   return createDamageRollRequest({
     id: requestIdFor(state, "damage-roll"),
     resolutionId: state.id,
     type: ROLL_TYPES.DAMAGE,
-    components: damage.components ?? [],
+    components: critical ? (damage.components ?? []).map(component => ({...component,
+      ...(component.dice ? {dice: {...component.dice, number: (Number(component.dice.number) || 1) * 2}} : {}),
+      ...(component.expression ? {expression: withDoubledDice(component.expression)} : {})})) : damage.components ?? [],
     formula: damage.formula ?? damage.rollFormula ?? null,
     visibility: damage.visibility ?? input.context?.messageMode,
     source: state.source ?? input.source ?? null,
@@ -2037,6 +2058,14 @@ function damageRollRequestForState(state, input) {
       rollKind: "damage"
     }
   });
+}
+
+/** A ValueExpression with every dice term's count doubled, wherever it is nested. */
+function withDoubledDice(expression) {
+  if ( !expression || (typeof expression !== "object") ) return expression;
+  if ( Array.isArray(expression) ) return expression.map(withDoubledDice);
+  const doubled = Object.fromEntries(Object.entries(expression).map(([key, value]) => [key, withDoubledDice(value)]));
+  return expression.type === "dice" ? {...doubled, number: (Number(expression.number) || 1) * 2} : doubled;
 }
 
 /* -------------------------------------------- */
@@ -2573,7 +2602,10 @@ function attackRollRequestForState(state, input) {
 
 function saveRollRequestForState(state, input, {target=null, suffix="save-roll"}={}) {
   const save = input.save ?? {};
-  const modifier = rollModifierInfo(save, ["saveBonus", "modifierTotal", "totalModifier", "modifier", "bonus"]);
+  // Each target adds its own save bonus, which the runtime keys by Token.
+  const targetBonus = save.modifiersByTarget?.[rollModeTargetKey(target ?? firstRollTarget(input))];
+  const modifier = Number.isFinite(targetBonus) ? {known: true, value: targetBonus}
+    : rollModifierInfo(save, ["saveBonus", "modifierTotal", "totalModifier", "modifier", "bonus"]);
   return createD20RollRequest({
     id: requestIdFor(state, suffix),
     resolutionId: state.id,

@@ -175,14 +175,18 @@ function resolveAttackTarget({roll, targetContext, defense, defenseKey, policy, 
   }
 
   const targetDefense = resolveTargetDefense(normalizedContext, defenseKey, defense);
+  const result = resolveAttackAgainstDefense({
+    roll,
+    defense: targetDefense,
+    target: normalizedContext.target,
+    policy,
+    context
+  });
+  // A hit on this target is a critical hit (an Unconscious creature struck from within 5 ft).
+  const critical = result.ok && result.hit && normalizedContext.overrides.some(override => override?.type === "critical-on-hit");
   return {
-    ...resolveAttackAgainstDefense({
-      roll,
-      defense: targetDefense,
-      target: normalizedContext.target,
-      policy,
-      context
-    }),
+    ...result,
+    ...(critical ? {outcome: ATTACK_OUTCOMES.CRITICAL_HIT, critical: true} : {}),
     targetContext: normalizedContext
   };
 }

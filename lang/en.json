@@ -112,6 +112,7 @@
     "NOTIFY": {
       "RollRejected": "That result is not possible for these dice. Check the roll and enter it again.",
       "ActionFailed": "The action could not be completed: {reason}",
+      "PaymentUnavailable": "This creature can't pay what this action costs right now.",
       "MovementFailed": "The movement could not be completed: {reason}",
       "MovementStoppedByArea": "You stopped on entering {area}. Your remaining movement is kept."
     }

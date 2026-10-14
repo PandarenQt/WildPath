@@ -170,10 +170,19 @@ real Foundry grids. Slice 5 done: lasting areas, auras and hazards, per the main
   Advantage and disadvantage cancel source for source (maintainer decision). Poisoned's old damage each
   turn is now Envenomed, a stacking poison condition built from a reusable damage-over-time structure.
 
+  The 2024 conditions also have, verified in Node, Quench and two browsers:
+  - incapacitation: Stunned and Unconscious have no actions, bonus actions or reactions;
+  - Speed 0 on Restrained and Unconscious, including granted Speeds;
+  - automatic failure of Might and Agility saves (Stunned, Unconscious), with no roll requested;
+  - critical hits on an Unconscious creature from within 5 ft;
+  - Exhaustion's −2 per level on d20 tests and −5 ft per level on every Speed.
+
+  Alongside them: per-target save bonuses, and critical damage that rolls the dice twice.
+
   Still to do for conditions:
-  - incapacitation, automatic save failures and automatic critical hits;
-  - Speed 0;
-  - Exhaustion's d20 and Speed penalties.
+  - Incapacitated ending concentration and giving disadvantage on initiative;
+  - Unconscious also making the creature Prone;
+  - Exhaustion level 6 being death.
 
   The pack loads live after the relaunch.
 

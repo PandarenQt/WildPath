@@ -1,7 +1,7 @@
 import {WildPathModifier, WildPathStatistic} from "../helpers/modifiers.mjs";
 import {
   damageProfileFromRuleElements, grantedMovementFromRuleElements, grantedResourcesFromRuleElements, modifiersFromRuleElements,
-  rollModesFromRuleElements
+  resourceCapsFromRuleElements, rollModesFromRuleElements, rollOutcomesFromRuleElements
 } from "../helpers/rule-elements.mjs";
 import {DEFAULT_FORM_STATISTICS, DEFAULT_KEPT_ITEM_TYPES, itemContributesWhileTransformed} from "../helpers/transformations.mjs";
 import WildPathConditionEffect from "../data/active-effect/condition.mjs";
@@ -75,7 +75,9 @@ export default class WildPathActor extends Actor {
         actor: this,
         domain: entry,
         source: documentRuleElementSource(effect, "effect"),
-        context: {effect}
+        context: {effect},
+        // A leveled condition (Exhaustion) scales its modifiers by `effect.system.level`.
+        bindings: {effect: {system: {level: effect.system?.level ?? null}}}
       }));
     }
 
@@ -108,6 +110,16 @@ export default class WildPathActor extends Actor {
     const owners = grantOwners(this);
     if ( item?.system?.ruleElements?.length ) owners.push({ruleElements: item.system.ruleElements, source: documentRuleElementSource(item, "item")});
     return rollModesFromRuleElements(owners, {domains, context: {actor: this, actorSystem: this.system, ...context}});
+  }
+
+  /** The outcomes forced on this creature's rolls in `domains` (`RollOutcome`), e.g. automatic failure. */
+  getRollOutcomes(domains, {context={}}={}) {
+    return rollOutcomesFromRuleElements(grantOwners(this), {domains, context: {actor: this, actorSystem: this.system, ...context}});
+  }
+
+  /** Ceilings on this creature's resource maxima (`ResourceCap`): `{action: 0, movement: 0, ...}`. */
+  getResourceCaps() {
+    return resourceCapsFromRuleElements(grantOwners(this), {actor: this, actorSystem: this.system});
   }
 
   /** The Speeds this creature's grants give (`GrantMovement`), as `{mode, distance}`. */
@@ -518,7 +530,7 @@ function actorLifecycleCommitAuthority(actor) {
   };
 }
 
-function collectRuleElementModifiers(ruleElements, {actor, domain, source, context={}}) {
+function collectRuleElementModifiers(ruleElements, {actor, domain, source, context={}, bindings=null}) {
   if ( !ruleElements?.length ) return [];
   const result = modifiersFromRuleElements({
     ruleElements,
@@ -531,7 +543,7 @@ function collectRuleElementModifiers(ruleElements, {actor, domain, source, conte
     source
   });
   if ( !result.ok ) console.warn("Wild Path | RuleElement modifier collection failed", result);
-  return result.modifiers.map(modifier => new WildPathModifier(modifier));
+  return result.modifiers.map(modifier => new WildPathModifier(bindings ? {...modifier, bindings} : modifier, bindings ?? {}));
 }
 
 function modifierTargetsDomain(modifier, domain) {

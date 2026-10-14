@@ -23,7 +23,7 @@ import {createFoundryReactionProvider} from "../module/adapters/foundry-v14-reac
 import {areaCovers, areaExpired, createFoundryPersistentAreas} from "../module/adapters/foundry-v14-persistent-areas.mjs";
 import {createFoundryAutomationDispatcher} from "../module/adapters/foundry-v14-automation-dispatcher.mjs";
 import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
-import {damageProfileFromRuleElements, rollModesFromRuleElements} from "../module/helpers/rule-elements.mjs";
+import {damageProfileFromRuleElements, rollModesFromRuleElements, rollOutcomesFromRuleElements} from "../module/helpers/rule-elements.mjs";
 import {WILDPATH} from "../module/config.mjs";
 import {
   buildFoundryActionUseIntent,
@@ -381,17 +381,24 @@ test("ordinary Foundry Action rejects invalid serialized system data at the Foun
 
 /** A fake creature under these conditions: its roll modes come from their real 2024 RollMode RuleElements. */
 function withConditions(actor, ...ids) {
-  actor.getRollModes = (domains, {context={}}={}) => rollModesFromRuleElements(
-    ids.map(id => ({ruleElements: WILDPATH.CONDITIONS[id].ruleElements})), {domains, context});
+  const owners = ids.map(id => ({ruleElements: WILDPATH.CONDITIONS[id].ruleElements}));
+  actor.getRollModes = (domains, {context={}}={}) => rollModesFromRuleElements(owners, {domains, context});
+  actor.getRollOutcomes = (domains, {context={}}={}) => rollOutcomesFromRuleElements(owners, {domains, context});
   return actor;
 }
 
 /** The first roll request an Action asks for, with the target `offset` fields away from the attacker. */
-async function firstRollRequest(definition, {attacker=[], target=[], offset={i: 1, j: 0}}={}) {
+async function firstRollRequest(definition, options={}) {
+  return (await plannedWithConditions(definition, options)).state.rollRequests[0];
+}
+
+/** The planned resolution of an Action between two conditioned creatures (`attackRoll` answers the attack). */
+async function plannedWithConditions(definition, {attacker=[], target=[], offset={i: 1, j: 0}, targetStatistics={}, attackRoll=null}={}) {
   const scene = fakeScene(new FakeSquareGrid(), {id: "scene-roll-modes"});
   const sourceActor = withConditions(fakeActor("roll-source", {system: actorSystem(),
     statistics: {"attack.weapon": runtimeStatistic("attack.weapon", 4)}}), ...attacker);
-  const targetActor = withConditions(fakeActor("roll-target", {system: targetActorSystem(20, 20, {ac: 14})}), ...target);
+  const targetActor = withConditions(fakeActor("roll-target", {system: targetActorSystem(20, 20, {ac: 14}),
+    statistics: targetStatistics}), ...target);
   const sourceToken = fakeTokenDocument({id: "source", actor: sourceActor, scene, offset: {i: 0, j: 0}});
   const targetToken = fakeTokenDocument({id: "enemy", actor: targetActor, scene, offset});
   sourceActor.tokens = [sourceToken];
@@ -402,7 +409,8 @@ async function firstRollRequest(definition, {attacker=[], target=[], offset={i: 
     scenes: [scene]}), intent: {actorRef: sourceActor.uuid, actionRef: action.uuid,
     targetRefs: [{actorRef: targetActor.uuid, tokenId: targetToken.id, sceneId: scene.id}]}});
   assert.equal(resolved.ok, true, resolved.reason);
-  return planStagedActionResolution(resolved.options).state.rollRequests[0];
+  if ( attackRoll ) resolved.options.attack = {...resolved.options.attack, roll: attackRoll};
+  return planStagedActionResolution(resolved.options);
 }
 
 test("2024 advantage: an attack on a Prone creature within 5 ft has advantage, cancelled by a Poisoned attacker", async () => {
@@ -414,6 +422,41 @@ test("2024 advantage: an attack on a Prone creature within 5 ft has advantage, c
     range: {type: "ranged", normal: {value: 60, unit: "ft"}}};
   assert.equal((await firstRollRequest(ranged, {target: ["prone"], offset: {i: 3, j: 0}})).rollMode, "disadvantage",
     "a Prone creature farther than 5 ft is harder to hit");
+});
+
+const fortitudeBlast = ability => ({schemaVersion: 1, id: `action:runtime-${ability}-blast`, label: "Blast", costs: {allOf: []},
+  targeting: {type: "single", required: true, count: 1}, range: {type: "reach", distance: {value: 5, unit: "ft"}},
+  save: {ability, dc: {value: 13}},
+  damage: [{id: "blast", expression: {type: "constant", value: 4}, damageType: "force", provenance: "spell-base"}]});
+
+test("each target adds its own save bonus from its save Modifiers", async () => {
+  const request = await firstRollRequest(fortitudeBlast("might"), {targetStatistics: {"save.might": runtimeStatistic("save.might", 3)}});
+  assert.equal(request.expected.modifierTotal, 3);
+});
+
+test("2024 Stunned: a Might save fails automatically, with no roll asked of anyone", async () => {
+  const planned = await plannedWithConditions(fortitudeBlast("might"), {target: ["stunned"]});
+  assert.equal(planned.state.rollRequests.length, 0, "nobody rolls");
+  const [failure] = planned.state.results.saveResolution.failures;
+  assert.deepEqual([failure.automatic, failure.outcome], [true, "failure"]);
+  assert.equal(planned.state.status, "ready-to-commit");
+  assert.equal((await firstRollRequest(fortitudeBlast("wits"), {target: ["stunned"]})).type, "saving-throw",
+    "a Wits save is still rolled");
+});
+
+test("2024 Unconscious: a hit from within 5 ft is a critical hit, and a critical rolls the damage dice twice", async () => {
+  const hit = {total: 15, natural: 11, die: 11};
+  const critical = await plannedWithConditions(meleeStrikeDefinition(), {target: ["unconscious"], attackRoll: hit});
+  assert.equal(critical.state.results.attackResolution.hits[0].outcome, "criticalHit");
+  const dice = {...meleeStrikeDefinition(), id: "action:runtime-dice-strike",
+    damage: [{id: "blade", expression: {type: "dice", number: 1, faces: 8}, damageType: "slashing", provenance: "weapon-base"}]};
+  const doubled = await plannedWithConditions(dice, {target: ["unconscious"], attackRoll: hit});
+  assert.deepEqual(doubled.state.rollRequests.find(request => request.type === "damage").definition.dice.map(die => [die.number, die.faces]),
+    [[2, 8]], "1d8 becomes 2d8");
+  const shot = {...dice, id: "action:runtime-dice-shot", attack: {type: "ranged", statistic: "weapon", defenseKey: "ac"},
+    range: {type: "ranged", normal: {value: 60, unit: "ft"}}};
+  const normal = await plannedWithConditions(shot, {target: ["unconscious"], attackRoll: hit, offset: {i: 3, j: 0}});
+  assert.equal(normal.state.results.attackResolution.hits[0].outcome, "hit", "from farther it is a normal hit");
 });
 
 test("2024 disadvantage: each target makes its own save with its own conditions", async () => {

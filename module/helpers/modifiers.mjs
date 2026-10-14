@@ -54,6 +54,8 @@ export class WildPathModifier {
     this.metadata = clonePlain(data.metadata ?? {});
     this.enabled = data.enabled !== false;
     this.suppressed = data.suppressed === true;
+    // Plain values from where the modifier came from (its effect's level), kept when a statistic re-evaluates it.
+    this.bindings = data.bindings ? clonePlain(data.bindings) : null;
 
     const evaluation = this.evaluate(context);
     this.value = evaluation.valueResult.ok ? evaluation.valueResult.value : 0;
@@ -73,6 +75,7 @@ export class WildPathModifier {
    */
   evaluate(context={}) {
     const evaluationContext = {
+      ...(this.bindings ?? {}),
       ...context,
       domain: context.domain ?? this.selector,
       modifier: this,
@@ -104,6 +107,7 @@ export class WildPathModifier {
       type: this.type,
       valueExpression: clonePlain(this.valueExpression),
       value: this.value,
+      ...(this.bindings ? {bindings: clonePlain(this.bindings)} : {}),
       predicate: clonePlain(this.predicate),
       priority: this.priority,
       order: this.order,
