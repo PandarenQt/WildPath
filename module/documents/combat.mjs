@@ -48,7 +48,15 @@ export default class WildPathCombat extends FoundryCombatDocument {
     if ( !lifecycle.ok ) {
       console.warn("Wild Path | Managed Combat turn lifecycle commit failed", lifecycle);
     }
+    // A condition's damage at turn start follows the dying rules too.
+    await globalThis.game?.wildpath?.dying?.afterPlans?.(actor, lifecycle.mutationPlans ?? []);
     await this.#applyTurnEvent("turn.started", combatant);
+    // 2024: a dying character rolls its death save at the start of its turn.
+    try {
+      await globalThis.game?.wildpath?.dying?.onTurnStart?.({combatant});
+    } catch (error) {
+      console.warn("Wild Path | Death save failed", error);
+    }
 
     return {
       ok: recovery?.ok !== false && lifecycle.ok !== false,

@@ -219,6 +219,13 @@ WILDPATH.CONDITIONS = {
     img: "icons/svg/poison.svg",
     ruleElements: [rollMode("poisoned.own-rolls", ["attack", "check"], "disadvantage")]
   },
+  // Foundry's Defeated status (CONFIG.specialStatusEffects.DEFEATED): a dead creature neither acts nor moves.
+  dead: {
+    id: "dead",
+    name: "WILDPATH.CONDITIONS.Dead",
+    img: "icons/svg/skull.svg",
+    ruleElements: [cap("dead.no-actions", [...INCAPACITATED, "movement"])]
+  },
   // Poisoned's former damage each turn, kept by the maintainer (2026-10-14) as its own stacking condition.
   envenomed: damageOverTimeCondition({id: "envenomed", name: "WILDPATH.CONDITIONS.Envenomed",
     img: "icons/skills/wounds/blood-cells-disease-green.webp", damageType: "poison", label: "Envenomed Turn Damage"}),

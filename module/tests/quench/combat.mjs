@@ -227,6 +227,18 @@ export function registerCombatTests(quench) {
         assert.equal(liveToken(enc).actor.getResource("health").value,7,"Three stacks deal 3 at turn start");
       });
 
+      it("2024: a dying character rolls its death save when its turn starts", async function () {
+        const enc = await encounter({name:"death save"});
+        await begin(enc);
+        await enc.actor.update({"system.resources.health.value":0});
+        await enc.actor.toggleCondition("unconscious");
+        await advance(enc);
+        const live = liveToken(enc).actor;
+        const saves = live.system.deathSaves;
+        assert.isTrue((saves.successes + saves.failures > 0) || (live.getResource("health").value === 1),
+          `The death save counted (${JSON.stringify(saves)}, health ${live.getResource("health").value})`);
+      });
+
       /** A feature whose automatic Trigger deals `amount` poison to its owner on `event` (optionally gated). */
       function stingFeature(actor, {event, amount, predicate=null}) {
         return fixtures.createItem(actor, {name:`sting on ${event}`, system:{ruleElements:[{id:"sting", type:"Trigger", data:{

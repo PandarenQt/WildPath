@@ -16,6 +16,7 @@ import {foundryAreaFootprint, foundryAreaTargetTokens} from "../adapters/foundry
 import {createFoundryPersistentAreas} from "../adapters/foundry-v14-persistent-areas.mjs";
 import {AUTOMATION_QUERY, createFoundryAutomationDispatcher} from "../adapters/foundry-v14-automation-dispatcher.mjs";
 import {COMPANION_QUERY, createFoundryCompanions} from "../adapters/foundry-v14-companions.mjs";
+import {createFoundryDying} from "../adapters/foundry-v14-dying.mjs";
 import {
   buildFoundryMovementCompletion,
   buildFoundryMovementProgressObservation,
@@ -103,6 +104,7 @@ export function registerFoundryV14MultiplayerResolution({
     afterCompleted: async event => {
       await areas.create(event);
       await areas.afterResolution(event);
+      await dying.afterResolution(event);
     },
     logger
   });
@@ -120,6 +122,11 @@ export function registerFoundryV14MultiplayerResolution({
   const automation = createFoundryAutomationDispatcher({game, coordinator, logger, fromUuid: globalThis.fromUuid ?? null,
     resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});
   if ( globalThis.CONFIG?.queries ) globalThis.CONFIG.queries[AUTOMATION_QUERY] = automation.handleQuery;
+  // Dying and death (2024 death saves): after Actions, at turn start, and when Exhaustion reaches 6.
+  const dying = createFoundryDying({game, coordinator, logger,
+    resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});
+  globalThis.Hooks?.on?.("createActiveEffect", effect => void dying.onEffectChanged(effect));
+  globalThis.Hooks?.on?.("updateActiveEffect", effect => void dying.onEffectChanged(effect));
   // Shared control of companions and summons: ownership follows their controllers (only a GM may change it).
   const companions = createFoundryCompanions({game, fromUuid: globalThis.fromUuid ?? (() => null)});
   if ( globalThis.CONFIG?.queries ) globalThis.CONFIG.queries[COMPANION_QUERY] = companions.handleQuery;
@@ -176,6 +183,7 @@ export function registerFoundryV14MultiplayerResolution({
     areas,
     automation,
     companions,
+    dying,
     resolutionTransport: transport,
     executeActionIntent: runtime.executeActionIntent,
     executeMovementIntent: runtime.executeMovementIntent

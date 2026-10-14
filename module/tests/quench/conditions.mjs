@@ -157,6 +157,26 @@ export function registerConditionTests(quench) {
         assert.equal(actor.getStatistic(["save.might","save"]).totalModifier,-6,"Three levels: -6 on saves");
         assert.deepEqual({...actor.system.speeds},{walk:15,fly:45},"and -15 ft on every Speed");
       });
+
+      it("2024 dying: 0 health is Unconscious, failed death saves at 0 are death, and Exhaustion 6 kills", async function () {
+        const dying = game.wildpath.dying;
+        const hero = await fixtures.createActor({name:"dying hero"});
+        const has = (actor,id) => actor.effects.some(effect => effect.system?.type === id);
+        await hero.update({"system.resources.health.value":0});
+        await dying.afterPlans(hero,[{type:"damage",from:4,to:0,max:10,amount:6,overflow:2}]);
+        assert.isTrue(has(hero,"unconscious"),"Dropped to 0: Unconscious");
+        await dying.afterPlans(hero,[{type:"damage",from:0,to:0,max:10,amount:2}],{critical:true});
+        assert.equal(hero.system.deathSaves.failures,2,"A critical hit at 0 is two failed death saves");
+        await dying.afterPlans(hero,[{type:"damage",from:0,to:0,max:10,amount:2}]);
+        assert.deepEqual([hero.system.deathSaves.failures,hero.system.resources.health.value],[3,0]);
+        assert.isTrue(has(hero,"dead"),"Dead is Defeated");
+        assert.equal(hero.system.resources.action.max,0,"The dead do not act");
+        const tired = await fixtures.createActor({name:"exhausted"});
+        await tired.toggleCondition("exhaustion",{levels:6});
+        for (let i = 0; (i < 40) && !has(tired,"dead"); i++) await new Promise(resolve => setTimeout(resolve,50));
+        assert.isTrue(has(tired,"dead"),"Exhaustion 6 is death");
+        assert.equal(tired.system.deathSaves.failures,3);
+      });
     });
   }, {displayName:"WILDPATH: Real Foundry Conditions",preSelected:false});
 }

@@ -59,7 +59,8 @@
       "Exhaustion": "Exhaustion",
       "Poisoned": "Poisoned",
       "Bleeding": "Bleeding",
-      "Envenomed": "Envenomed"
+      "Envenomed": "Envenomed",
+      "Dead": "Dead"
     },
     "PROMPT": {
       "Confirm": "Confirm",
@@ -99,6 +100,9 @@
       "NotOnEdge": "Start the area at a corner on your Token's edge.",
       "NeedDirection": "Choose the area's direction.",
       "BadDirection": "That direction is not allowed."
+    },
+    "DYING": {
+      "DeathSave": "Death Saving Throw"
     },
     "PACKS": {
       "Actions": "WildPath Actions"

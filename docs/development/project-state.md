@@ -179,10 +179,14 @@ real Foundry grids. Slice 5 done: lasting areas, auras and hazards, per the main
 
   Alongside them: per-target save bonuses, and critical damage that rolls the dice twice.
 
+  Dying and death follow 2024, with PF2e conventions where 2024 leaves room
+  ([dying-and-death.md](../architecture/dying-and-death.md)). Dead is 0 health, Defeated and three failed
+  death saves. That covers death saves at turn start, failures from damage at 0, massive damage, waking by
+  healing, NPCs dying at 0, and Exhaustion 6.
+
   Still to do for conditions:
   - Incapacitated ending concentration and giving disadvantage on initiative;
-  - Unconscious also making the creature Prone;
-  - Exhaustion level 6 being death.
+  - Unconscious also making the creature Prone.
 
   The pack loads live after the relaunch.
 

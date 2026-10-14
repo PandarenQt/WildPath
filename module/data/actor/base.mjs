@@ -63,6 +63,11 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
         kind: new StringField({required: true, initial: "companion", choices: ["companion", "summon", "sidekick"]}),
         controllers: new ArrayField(new StringField({required: true, blank: false}))
       }),
+      // Death saves while at 0 health (2024): three successes stabilize, three failures are death.
+      deathSaves: new SchemaField({
+        successes: new NumberField({required: true, integer: true, initial: 0, min: 0, max: 3}),
+        failures: new NumberField({required: true, integer: true, initial: 0, min: 0, max: 3})
+      }),
       status: new SchemaField({
         turnsTaken: new NumberField({required: true, integer: true, initial: 0, min: 0})
       })
