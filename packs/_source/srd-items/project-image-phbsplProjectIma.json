@@ -60,7 +60,8 @@
       "summon": {
         "actorRef": "Compendium.wildpath.srd-creatures.Actor.dmgIllusoryCreat",
         "count": 1,
-        "concentration": true
+        "concentration": true,
+        "spellLevel": 7
       },
       "label": "Project Image"
     },

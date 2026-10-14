@@ -537,7 +537,7 @@ function summonDefinition({document, activity, system, spell, level, notes, pool
   }
   if ( lost.length ) notes.push(`summon: what it gains with the spell's level (${lost.join(", ")}) is not added`);
   const timing = {count: counts[0], ...(rounds ? {rounds} : {}), ...(concentration ? {concentration: true} : {}),
-    ...(Object.keys(bonuses).length ? {bonuses, spellLevel: level} : {})};
+    ...(Object.keys(bonuses).length ? {bonuses} : {}), ...((spell && level) ? {spellLevel: level} : {})};
   if ( profiles.length === 1 ) return {...definition, ...(range ? {range} : {}), summon: {actorRef: profiles[0].ref, ...timing}};
   const choice = {id: "summon-creature", type: "select-one", label: "Creature", required: true,
     options: profiles.map(({profile, ref}) => ({id: ref, label: profile.name || names[String(profile.uuid).split(".").pop()] || ref}))};
@@ -943,6 +943,10 @@ export function multiattackPlans(description, attackNames=[]) {
   return plans.length ? plans : null;
 }
 
+/** Half the level its creature was summoned at, rounded down. */
+const HALF_SUMMON_LEVEL = Object.freeze({type: "divide", numerator: {type: "context", path: "actor.flags.wildpath.summonLevel"},
+  denominator: {type: "constant", value: 2}, round: "floor"});
+
 /**
  * What a Multiattack lets its creature do besides, or instead of, its attacks, as the Actions its text names:
  * - `uses`: "makes two Tentacle attacks and uses Constrict" (or "either A or B"): one use, shared by those Actions;
@@ -998,11 +1002,16 @@ const SPELLS = "*spells*";
 function multiattack(items, notes) {
   const item = items.find(entry => (entry.name === "Multiattack") && (entry.type === "action"));
   const count = item ? multiattackCount(item.system.description) : null;
-  if ( !count ) return;
+  // A summoned spirit's: "a number of attacks equal to half this spell's level (round down)", by the level it was
+  // summoned at (`flags.wildpath.summonLevel`, set when it is summoned).
+  const byLevel = !count && item && /half (?:this|the) spell['’]s level/i.test(String(item.system.description).replace(/<[^>]+>/g, " "));
+  if ( !count && !byLevel ) return;
   // A spell the creature casts is not one of its Multiattack's attacks.
   const attacks = items.filter(action => (action !== item) && action.system?.definition?.attack && !action.flags?.wildpath?.source?.castBy
     && (action.system.definition.costs?.allOf ?? []).some(cost => cost.capability === "action"));
-  const plans = multiattackPlans(item.system.description, attacks.map(action => action.name)) ?? [[{names: null, amount: count}]];
+  // At most half of 9th level: a restore that fills the spirit's pool whatever its size.
+  const plans = (byLevel ? null : multiattackPlans(item.system.description, attacks.map(action => action.name)))
+    ?? [[{names: null, amount: count ?? 4}]];
   const bare = name => name.replace(/\s*\(.*\)\s*$/, "");
   const poolOf = group => (group.names?.length === 1 ? `multiattack-${slugify(bare(group.names[0]))}` : "multiattack");
   const labelOf = group => (group.names?.length === 1 ? `Multiattack (${bare(group.names[0])})` : "Multiattack");
@@ -1047,8 +1056,8 @@ function multiattack(items, notes) {
     return action;
   });
   multiattacks[0].system.ruleElements.push(...[...pools.values()].map(pool => ({schemaVersion: 1, id: `${pool.id}-uses`,
-    type: "GrantResource", data: {resourceId: pool.id, label: pool.label, maximum: pool.maximum, current: 0, recovery: "none",
-      emptiesAtTurnStart: true}})));
+    type: "GrantResource", data: {resourceId: pool.id, label: pool.label, maximum: (byLevel && !pool.names) ? HALF_SUMMON_LEVEL : pool.maximum,
+      current: 0, recovery: "none", emptiesAtTurnStart: true}})));
   items.splice(items.indexOf(item) + 1, 0, ...multiattacks.slice(1));
   notes.splice(0, notes.length, ...notes.filter(entry => !entry.startsWith("Multiattack: not automated")), ...(note ? [`Multiattack: ${note.slice(13)}`] : []));
   const attackPools = [...pools.values()].filter(pool => ![usesPool?.id, replacePool?.id].includes(pool.id));

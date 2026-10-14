@@ -89,7 +89,8 @@
         "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbsplArcaneEye0",
         "count": 1,
         "rounds": 600,
-        "concentration": true
+        "concentration": true,
+        "spellLevel": 4
       },
       "label": "Arcane Eye"
     },

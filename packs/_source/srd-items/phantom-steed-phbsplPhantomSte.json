@@ -90,7 +90,8 @@
       "summon": {
         "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbsumPhantomSte",
         "count": 1,
-        "rounds": 600
+        "rounds": 600,
+        "spellLevel": 3
       },
       "label": "Phantom Steed"
     },

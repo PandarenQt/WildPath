@@ -241,7 +241,8 @@ Forced movement and elevation join G6, which becomes "space": areas, elevation a
     emptied, and Acid Breath recharged on a 5, whispered to the GM.
   - Summons (2026-10-15): "summon activity not automated" fell from 267 documents to 47 (32 SRD Actions summon,
     from Arcane Eye to Summon Dragon). What the creature gains with the spell's level is applied.
-  - Not yet: Lair Actions, and a summoned spirit's attack count by spell level.
+  - A summoned spirit's Multiattack by spell level: "Multiattack not automated" fell from 80 documents to 10.
+  - Not yet: Lair Actions (8 documents, all 2014).
   - Multiattack's named attacks (2026-10-15): "shortcut: named attacks not enforced" fell from 515 documents to 11.
     Each named attack has its own count, and each alternative is an Action of its own. Live: an SRD Brown Bear's
     Multiattack filled Bite 1 and Claw 1; a second Bite was refused, and the Claw went through.

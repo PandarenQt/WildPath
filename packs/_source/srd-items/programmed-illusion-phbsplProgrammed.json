@@ -93,7 +93,8 @@
       },
       "summon": {
         "choiceId": "summon-creature",
-        "count": 1
+        "count": 1,
+        "spellLevel": 6
       },
       "label": "Programmed Illusion"
     },
