@@ -181,3 +181,15 @@ test("the Foundry persistence adapter folds pool element paths into one whole-ar
   assert.deepEqual(foldArrayElementUpdates(actor, {"system.pools.7.value": 0}), {"system.pools.7.value": 0},
     "a path to a missing element is left for Foundry to reject or ignore");
 });
+
+test("2024 long rest: all health back, but only for a creature with at least 1 health when it starts", async () => {
+  const awake = fixture({recovery: "longRest"});
+  awake.source.system.resources.health = {base: 20, bonus: 0, max: 20, value: 7, recovery: "none"};
+  awake.actor.system = {...awake.actor.system, resources: {...awake.actor.system.resources, health: {max: 20, value: 7}}};
+  await awake.actor.rest("longRest");
+  assert.equal(awake.calls[0]["system.resources.health.value"], 20);
+  const down = fixture({recovery: "longRest"});
+  down.actor.system = {...down.actor.system, resources: {...down.actor.system.resources, health: {max: 20, value: 0}}};
+  await down.actor.rest("longRest");
+  assert.deepEqual(down.calls, [], "at 0 health a long rest gives no benefit");
+});

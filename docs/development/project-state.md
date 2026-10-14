@@ -225,6 +225,15 @@ the smaller product gaps (Phase E).
   preview of what they spend and roll, then sends them with the intent
   ([ui-ux-layer.md](../architecture/ui-ux-layer.md#action-configuration-and-preview)).
   Live: a Player picked a 2nd-level slot from the action bar and the spell rolled 3d6.
+- **Rests (2024, world time).**
+  - A long rest restores all health and removes a level of Exhaustion, but gives no benefit to a creature at 0
+    health; its hours still pass.
+  - A stable creature regains 1 health after 1d4 hours, counting world time and rests (1 or 8 hours)
+    ([dying-and-death.md](../architecture/dying-and-death.md#the-rules)).
+  - Live: Spare the Dying stabilized the caster, and an hour of world time later they woke with 1 health. A Player's
+    long rest at 0 health gave no benefit, but its 8 hours woke the stable caster. The next long rest restored full
+    health and took Exhaustion from 2 to 1.
+  Phase E is done. Next: Phase F, content (2024 SRD first).
 
 **M4 — content pack (in progress, 2026-10-14).**
 - **The pack.** `@foundryvtt/foundryvtt-cli` 3.0.4 was approved and added. The built-in **WildPath Actions**

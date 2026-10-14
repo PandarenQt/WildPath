@@ -453,9 +453,17 @@ export default class WildPathActor extends Actor {
    * @returns {Promise<void>}
    */
   async rest(recovery) {
-    // 2024: a long rest also restores what a short rest does.
-    const recovers = value => (value === recovery) || ((recovery === "longRest") && (value === "shortRest"));
+    const long = recovery === "longRest";
+    const health = this.system.resources?.health;
+    // 2024: a long rest needs at least 1 health at its start; at 0 it gives no benefit, but its hours still pass.
+    const benefits = !long || !health || ((Number(health.value) || 0) >= 1);
+    if ( !benefits ) globalThis.ui?.notifications?.warn?.(globalThis.game?.i18n?.format("WILDPATH.REST.NoBenefit", {name: this.name}));
+    await globalThis.game?.wildpath?.dying?.restHours?.(this, long ? 8 : 1);
+    if ( !benefits ) return;
+    // 2024: a long rest also restores what a short rest does, and all health.
+    const recovers = value => (value === recovery) || (long && (value === "shortRest"));
     const updates = {};
+    if ( long && health && (health.value < health.max) ) updates["system.resources.health.value"] = health.max;
     for ( const [id, resource] of Object.entries(this.system.resources) ) {
       if ( recovers(resource.recovery) ) updates[`system.resources.${id}.value`] = resource.max;
     }
@@ -466,6 +474,8 @@ export default class WildPathActor extends Actor {
       updates["system.pools"] = pools;
     }
     if ( !foundry.utils.isEmpty(updates) ) await this.update(updates);
+    // 2024: a long rest removes one level of Exhaustion.
+    if ( long && this.statuses?.has?.("exhaustion") ) await this.toggleCondition("exhaustion", {levels: -1});
     // The creature's own automatic triggers on a rest (the GM runs them; a Player's client reports the rest).
     await globalThis.game?.wildpath?.automation?.report?.("rest.completed", {actor: this, data: {restType: recovery}});
 

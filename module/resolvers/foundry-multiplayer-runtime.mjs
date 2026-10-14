@@ -150,6 +150,10 @@ export function registerFoundryV14MultiplayerResolution({
   const dying = createFoundryDying({game, coordinator, logger,
     resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});
   globalThis.Hooks?.on?.("createActiveEffect", effect => void dying.onEffectChanged(effect));
+  // 2024: a stable creature regains 1 health after 1d4 hours; world time moving on (or a rest, Actor#rest) counts.
+  globalThis.Hooks?.on?.("updateWorldTime", worldTime => void dying.onWorldTime(worldTime)
+    .catch(error => logger?.warn?.("Wild Path | Stable recovery failed", error)));
+  game.wildpath = {...(game.wildpath ?? {}), dying};
   // 2024: an Incapacitated creature's concentration ends; everything it sustains ends with it (active GM).
   globalThis.Hooks?.on?.("createActiveEffect", effect => void endConcentrationOnIncapacitation(effect, game)
     .catch(error => logger?.warn?.("Wild Path | Ending concentration failed", error)));

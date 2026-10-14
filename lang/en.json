@@ -168,6 +168,9 @@
         "description": "Description"
       }
     },
+    "REST": {
+      "NoBenefit": "{name} has 0 Hit Points, so the long rest gives no benefit (its hours still count toward a stable creature's recovery)."
+    },
     "TEST": {
       "IntroOwner": "Try the Action as {owner} would use it now, against a sample target; costs are checked against what {owner} has left. Nothing is changed or spent.",
       "IntroSample": "Try the Action as a sample creature would use it (proficiency +2, spellcasting +3, every ability score 10), against a sample target. Nothing is changed or spent.",

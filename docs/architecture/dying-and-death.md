@@ -37,6 +37,13 @@ The rules are in `module/adapters/foundry-v14-dying.mts`: a pure core (`dyingAft
   - Damage of at least the maximum health kills outright.
 - **Healing at 0** wakes the creature, and its death saves reset.
 - **Exhaustion 6** is death.
+- **Regaining 1 health while stable (2024, 2026-10-14).** Becoming stable stores
+  `flags.wildpath.stableSince {worldTime, hours}`; the hours are 1d4, rolled then. This happens on the third success
+  or from a `stabilize` Action.
+  - The creature regains 1 health, wakes, and its death saves reset once enough time has passed. World time moving
+    on counts (the active GM's `updateWorldTime` hook). So do its rests: a short rest is 1 hour and a long rest 8
+    (`restHours`, added to the flag). Tables that never advance world time still recover.
+  - Damage while stable starts the death saves over and ends the wait. So do healing, waking and death.
 
 ## Dead
 
@@ -96,5 +103,4 @@ Medicine, the card said "Check failed", the ally stayed dying and the Action was
 
 ## Not yet
 
-- Regaining 1 health after being stable for a while.
 - PF2e's dying values, wounded and doomed: WildPath uses 2024 death saves instead.

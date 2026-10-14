@@ -1,6 +1,6 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import {createFoundryDying, deathSaveResult, dyingAfterChange, makesDeathSaves} from "../module/adapters/foundry-v14-dying.mjs";
+import {createFoundryDying, deathSaveResult, dyingAfterChange, makesDeathSaves, stableRecovered} from "../module/adapters/foundry-v14-dying.mjs";
 
 const damage = (from, amount, max=20) => ({type: "damage", from, to: Math.max(from - amount, 0), max, amount,
   overflow: Math.max(amount - from, 0)});
@@ -53,7 +53,10 @@ function creature({type="character", health=0, saves={successes: 0, failures: 0}
       if ( levels > 0 ) this.effects.push({system: {type: id}});
       else this.effects = this.effects.filter(effect => effect.system.type !== id);
     },
-    async toggleStatusEffect(id, options) { this.calls.push(["status", id, options]); this.effects.push({system: {type: id}}); }};
+    async toggleStatusEffect(id, options) { this.calls.push(["status", id, options]); this.effects.push({system: {type: id}}); },
+    flags: {},
+    async setFlag(scope, key, value) { this.flags[scope] = {...(this.flags[scope] ?? {}), [key]: value}; },
+    async unsetFlag(scope, key) { delete this.flags[scope]?.[key]; }};
   return actor;
 }
 
@@ -132,4 +135,44 @@ test("a stabilize Action makes a dying target stable, unless its check failed; t
   await dying.afterResolution(event({success: true}, ["hero", "standing"]));
   assert.deepEqual(hero.system.deathSaves, {successes: 3, failures: 0});
   assert.equal(standing.calls.length, 0, "a creature above 0 health is not touched");
+});
+
+test("2024: a stable creature regains 1 health after 1d4 hours; world time and rests both count", async () => {
+  assert.equal(stableRecovered({worldTime: 100, hours: 2}, 100 + 7199), false);
+  assert.equal(stableRecovered({worldTime: 100, hours: 2}, 100 + 7200), true);
+  assert.equal(stableRecovered({worldTime: 100, hours: 2, restHours: 1}, 100 + 3600), true, "a short rest's hour counts");
+  assert.equal(stableRecovered(null, 1e9), false);
+
+  const game = {user: {id: "gm"}, users: {activeGM: {id: "gm"}}, combats: [], time: {worldTime: 1000}, actors: [], scenes: []};
+  const dying = createFoundryDying({game, coordinator: {}, resolveAction: async () => ({ok: false}), rollHours: async () => 2});
+  const hero = creature({health: 0, saves: {successes: 1, failures: 1}, conditions: ["unconscious"]});
+  game.actors.push(hero);
+  const stabilize = {options: {targetActors: {"token:hero": hero}}, state: {actionDefinition: {stabilize: true}, mutationPlans: [],
+    results: {actionResult: {context: {targets: [{actorRef: "Actor.hero", tokenId: "hero"}]}}}}};
+  await dying.afterResolution(stabilize);
+  assert.deepEqual(hero.flags.wildpath.stableSince, {worldTime: 1000, hours: 2}, "becoming stable starts the 1d4-hour wait");
+
+  await dying.onWorldTime(1000 + 3600);
+  assert.equal(hero.system.resources.health.value, 0, "one hour is not enough");
+  await dying.onWorldTime(1000 + 7200);
+  assert.equal(hero.system.resources.health.value, 1, "after the rolled hours it regains 1 health");
+  assert.deepEqual(hero.effects.map(effect => effect.system.type), [], "and wakes");
+  assert.deepEqual(hero.system.deathSaves, {successes: 0, failures: 0});
+  assert.equal(hero.flags.wildpath.stableSince, undefined, "and stops waiting");
+
+  // A table that does not advance world time: a long rest's 8 hours count.
+  const resting = creature({health: 0, saves: {successes: 3, failures: 0}, conditions: ["unconscious"]});
+  resting.flags.wildpath = {stableSince: {worldTime: 1000, hours: 4}};
+  assert.equal(await dying.restHours(resting, 1), false);
+  assert.equal(await dying.restHours(resting, 8), true);
+  assert.equal(resting.system.resources.health.value, 1);
+
+  // Damage while stable starts the death saves over, and the wait with them.
+  const hurt = creature({health: 0, saves: {successes: 3, failures: 0}});
+  hurt.flags.wildpath = {stableSince: {worldTime: 1000, hours: 1}};
+  const target = {actorRef: "Actor.hero", tokenId: "hero-token"};
+  await dying.afterResolution({options: {targetActors: {"token:hero-token": hurt}}, state: {mutationPlans: [{type: "durabilityDamage",
+    target, plan: damage(0, 2)}], results: {}}});
+  assert.deepEqual(hurt.system.deathSaves, {successes: 0, failures: 1});
+  assert.equal(hurt.flags.wildpath.stableSince, undefined);
 });

@@ -46,6 +46,13 @@ export function dyingAfterChange({ change, critical = false, character = true, d
         return { wake: true, deathSaves: { ...RESET } };
     return null;
 }
+/** 2024: a stable creature regains 1 health after 1d4 hours. World time counts, and so do the hours of its rests. */
+export function stableRecovered(since, worldTime) {
+    if (!since)
+        return false;
+    const waited = ((Number(worldTime) || 0) - (Number(since.worldTime) || 0)) + ((Number(since.restHours) || 0) * 3600);
+    return waited >= (Math.max(1, Number(since.hours) || 1) * 3600);
+}
 /** A death save: 10 or higher succeeds; a natural 1 is two failures; a natural 20 brings the creature back with 1. */
 export function deathSaveResult({ natural, total, deathSaves = RESET }) {
     if (natural === 20)
@@ -62,13 +69,30 @@ const deathSavesOf = (actor) => ({ successes: Number(actor.system.deathSaves?.su
     failures: Number(actor.system.deathSaves?.failures) || 0 });
 const savesForDeath = (actor) => makesDeathSaves({ type: actor.type, dyingMode: actor.system.dyingMode,
     companion: actor.system.companion ?? null, playerControlled: actor.hasPlayerOwner === true });
-export function createFoundryDying({ game, coordinator, resolveAction, logger = globalThis.console }) {
+/** 1d4 hours, rolled with Foundry's dice. */
+async function rollStableHours() {
+    const Roll = globalThis.Roll;
+    return Roll ? (await new Roll("1d4").evaluate()).total : 1 + Math.floor(Math.random() * 4);
+}
+export function createFoundryDying({ game, coordinator, resolveAction, logger = globalThis.console, rollHours = rollStableHours }) {
     let sequence = 0;
     const isActiveGM = () => game.users?.activeGM?.id === game.user.id;
     const isDead = (actor) => hasCondition(actor, "dead") || (deathSavesOf(actor).failures >= 3);
+    const worldTime = () => Number(game.time?.worldTime) || 0;
+    /** A creature just became stable: it starts waiting 1d4 hours to regain 1 health. */
+    async function markStable(actor) {
+        if (actor.flags?.wildpath?.stableSince)
+            return;
+        await actor.setFlag("wildpath", "stableSince", { worldTime: worldTime(), hours: await rollHours() });
+    }
+    async function clearStable(actor) {
+        if (actor.flags?.wildpath?.stableSince)
+            await actor.unsetFlag("wildpath", "stableSince");
+    }
     /** Dead: 0 health, three failed death saves, and Defeated (the Token's dead overlay and every Combatant). */
     async function die(actor) {
         await actor.update({ "system.resources.health.value": 0, "system.deathSaves": { successes: 0, failures: 3 } });
+        await clearStable(actor);
         const defeated = globalThis.CONFIG?.specialStatusEffects?.DEFEATED ?? "dead";
         if (!hasCondition(actor, defeated))
             await actor.toggleStatusEffect(defeated, { active: true, overlay: true });
@@ -91,6 +115,11 @@ export function createFoundryDying({ game, coordinator, resolveAction, logger = 
             update["system.resources.health.value"] = consequence.heal;
         if (Object.keys(update).length)
             await actor.update(update);
+        // Stability starts the wait for 1 health; healing, waking or a death save starting over ends it.
+        if ((consequence.deathSaves?.successes ?? 0) >= 3)
+            await markStable(actor);
+        else if (consequence.deathSaves || consequence.heal || consequence.wake)
+            await clearStable(actor);
         if (consequence.unconscious && !hasCondition(actor, "unconscious"))
             await actor.toggleCondition("unconscious");
         if (consequence.wake && hasCondition(actor, "unconscious"))
@@ -136,6 +165,7 @@ export function createFoundryDying({ game, coordinator, resolveAction, logger = 
             if (!actor || !savesForDeath(actor) || isDead(actor) || ((Number(actor.system.resources?.health?.value) || 0) > 0))
                 continue;
             await actor.update({ "system.deathSaves": { ...STABLE } });
+            await markStable(actor);
         }
     }
     /** At the start of its turn a dying character (0 health, not stable, not dead) rolls its death save. */
@@ -160,11 +190,47 @@ export function createFoundryDying({ game, coordinator, resolveAction, logger = 
         await apply(actor, consequence);
         return consequence;
     }
+    /** A stable creature that has waited long enough regains 1 health and wakes (2024); one no longer dying stops waiting. */
+    async function recoverIfDue(actor, now = worldTime()) {
+        const since = actor.flags?.wildpath?.stableSince;
+        if (!since)
+            return false;
+        if (isDead(actor) || ((Number(actor.system.resources?.health?.value) || 0) > 0)) {
+            await clearStable(actor);
+            return false;
+        }
+        if (!stableRecovered(since, now))
+            return false;
+        await apply(actor, { heal: 1, wake: true, deathSaves: { ...RESET } });
+        return true;
+    }
+    /** A rest's hours count toward a stable creature's wait (tables that do not advance world time still recover). */
+    async function restHours(actor, hours) {
+        const since = actor.flags?.wildpath?.stableSince;
+        if (!since)
+            return false;
+        await actor.setFlag("wildpath", "stableSince", { ...since, restHours: (Number(since.restHours) || 0) + hours });
+        return recoverIfDue(actor);
+    }
+    /** World time moved on (the active GM): every stable creature that has waited long enough regains 1 health. */
+    async function onWorldTime(now = worldTime()) {
+        if (!isActiveGM())
+            return;
+        const actors = new Set([...(game.actors ?? [])]);
+        for (const scene of game.scenes ?? []) {
+            for (const token of scene.tokens)
+                if (!token.actorLink && token.actor)
+                    actors.add(token.actor);
+        }
+        for (const actor of actors)
+            if (actor.flags?.wildpath?.stableSince)
+                await recoverIfDue(actor, now);
+    }
     /** Exhaustion's sixth level is death. */
     async function onEffectChanged(effect) {
         if (!isActiveGM() || (effect.system?.type !== "exhaustion") || ((Number(effect.system.level) || 0) < 6))
             return;
         await apply(effect.parent, { die: true });
     }
-    return { afterResolution, afterPlans, onTurnStart, onEffectChanged, die };
+    return { afterResolution, afterPlans, onTurnStart, onEffectChanged, die, restHours, onWorldTime };
 }
