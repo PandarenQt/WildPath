@@ -41,7 +41,9 @@ export interface AreaFlag {
 }
 interface Placement {footprint: {topology: string; fields: Field[]}; definition: Data; sourceTokenId: string; sceneId: string}
 
-export const AREA_EVENTS = Object.freeze({ENTERED: "area.entered", TURN_STARTED: "turn.started", TURN_ENDED: "turn.ended"});
+export const AREA_EVENTS = Object.freeze({ENTERED: "area.entered", EXITED: "area.exited", TURN_STARTED: "turn.started",
+  TURN_ENDED: "turn.ended"});
+const answers = (flag: AreaFlag, event: string) => flag.persistence.triggers.some(trigger => trigger.on.includes(event));
 const reachFootprint = createReachFootprint as unknown as (options: Data) => {fields: Field[]};
 const keyOf = fieldKey as unknown as (field: Field, topology?: string) => string;
 const toOffset = gridFieldToFoundryOffset as unknown as (field: Field, options: {grid: unknown}) => {offset?: Data};
@@ -249,30 +251,41 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
     return applied;
   }
 
-  /** Areas a Token enters by standing on `position` after `previous`: covered now, not covered before. */
-  function entered(token: AreaToken, {previous, position}: {previous: Data; position: Data}) {
-    return sceneAreas(token.parent).filter(({flag}) => flag.persistence.triggers.some(trigger => trigger.on.includes(AREA_EVENTS.ENTERED))
-      && areaCovers(flag, token, {position}) && !areaCovers(flag, token, {position: previous}));
+  /**
+   * Areas a Token enters by stepping from `previous` to `position` (covered after, not before), or with
+   * `area.exited` leaves (covered before, not after). Only areas that answer that event count.
+   */
+  function crossed(token: AreaToken, {previous, position}: {previous: Data; position: Data}, event: string) {
+    const [inside, outside] = event === AREA_EVENTS.EXITED ? [previous, position] : [position, previous];
+    return sceneAreas(token.parent).filter(({flag}) => answers(flag, event)
+      && areaCovers(flag, token, {position: inside}) && !areaCovers(flag, token, {position: outside}));
   }
+  const entered = (token: AreaToken, step: {previous: Data; position: Data}) => crossed(token, step, AREA_EVENTS.ENTERED);
+  const exited = (token: AreaToken, step: {previous: Data; position: Data}) => crossed(token, step, AREA_EVENTS.EXITED);
 
-  /** Creatures an aura newly covers as its caster steps from `previous` to `position`: the aura enters them. */
+  /**
+   * Creatures an aura newly covers as its caster steps from `previous` to `position` (the aura enters them),
+   * and creatures it stops covering (they exit it), each with that event.
+   */
   function swept(owner: AreaToken, {previous, position}: {previous: Data; position: Data}) {
     const scene = owner.parent;
-    return sceneAreas(scene).filter(({flag}) => flag.attached && (flag.sourceTokenId === owner.id)
-      && flag.persistence.triggers.some(trigger => trigger.on.includes(AREA_EVENTS.ENTERED)))
-      .map(({region, flag}) => {
+    return sceneAreas(scene).filter(({flag}) => flag.attached && (flag.sourceTokenId === owner.id))
+      .flatMap(({region, flag}) => {
         const before = areaFields(flag, scene, {position: previous});
         const after = areaFields(flag, scene, {position});
-        const tokens = [...scene.tokens].filter(token => (token.id !== owner.id)
-          && areaCovers(flag, token, {fields: after}) && !areaCovers(flag, token, {fields: before}));
-        return {region, flag, tokens};
+        return [AREA_EVENTS.ENTERED, AREA_EVENTS.EXITED].filter(event => answers(flag, event)).map(event => {
+          const [inside, outside] = event === AREA_EVENTS.EXITED ? [before, after] : [after, before];
+          const tokens = [...scene.tokens].filter(token => (token.id !== owner.id)
+            && areaCovers(flag, token, {fields: inside}) && !areaCovers(flag, token, {fields: outside}));
+          return {region, flag, tokens, event};
+        });
       }).filter(entry => entry.tokens.length);
   }
 
-  /** Whether any lasting area on the Scene answers `area.entered`; moves there are then checkpointed per step. */
-  function hasEntryAreas(scene: AreaScene) {
-    return sceneAreas(scene).some(({flag}) => flag.persistence.triggers.some(trigger => trigger.on.includes(AREA_EVENTS.ENTERED)));
+  /** Whether any lasting area on the Scene answers entering or leaving it; moves there are then checkpointed per step. */
+  function hasCrossingAreas(scene: AreaScene) {
+    return sceneAreas(scene).some(({flag}) => answers(flag, AREA_EVENTS.ENTERED) || answers(flag, AREA_EVENTS.EXITED));
   }
 
-  return {create, apply, onTurn, entered, swept, hasEntryAreas, afterResolution, onEffectDeleted, onRegionDeleted};
+  return {create, apply, onTurn, entered, exited, swept, hasCrossingAreas, afterResolution, onEffectDeleted, onRegionDeleted};
 }

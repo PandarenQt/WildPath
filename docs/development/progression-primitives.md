@@ -50,7 +50,10 @@ the code. Payment discovery reads only the Actor's stored resources and pools
      full when the grant arrives (rule-elements.md, "Resource grants").
    - `GrantResistance` / `GrantImmunity` build the target's damage profile: **done 2026-10-14** (Node and
      Quench).
-   - `GrantMovement` feeds movement modes and budgets.
+   - `GrantMovement` feeds movement modes and budgets. **Needs a rules decision:** movement is one pool
+     whatever the mode today, and how several speeds share a move (the 2024 rule subtracts what was
+     already moved when switching) and what a mode without a speed costs (2024 swimming and climbing cost
+     extra rather than being refused) are core rules semantics.
    - Extra Actions: **decided and done 2026-10-14**. Actions, Bonus Actions and Reactions are counters:
      the spent count is stored, the available count is the maximum effects modify, and what remains is
      available − spent (action-economy.md). An effect that grants an extra Action raises the maximum;
@@ -59,8 +62,8 @@ the code. Payment discovery reads only the Actor's stored resources and pools
    This unlocks extra Actions, resistances and slot pools as authored data.
 2. **A general automation dispatcher, then the missing events: done 2026-10-14** for Items and
    non-condition effects on `turn.started`, `turn.ended`, `initiative.rolled` (new) and `rest.completed`
-   (rule-elements.md, "Automatic triggers"). Still open: `area.exited`, moving the legacy condition ticks
-   onto the dispatcher, and `once`. The original analysis follows. Today an event such as
+   (rule-elements.md, "Automatic triggers"). `area.exited` is also done (areas.md, "Leaving"). Still open:
+   moving the legacy condition ticks onto the dispatcher, and `once`. The original analysis follows. Today an event such as
    `turn.started`, `rest.completed` or `area.entered` reaches only condition triggers, reactions and
    lasting areas.
    - Missing: running an Item's or effect's non-optional `Trigger` (for example "when you roll

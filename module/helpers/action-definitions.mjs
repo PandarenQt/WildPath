@@ -574,7 +574,7 @@ function validateArea(area, errors) {
 }
 
 /** Events a lasting area answers; each trigger's `action` resolves against the affected creature. */
-export const AREA_PERSISTENCE_EVENTS = Object.freeze(["area.entered", "turn.started", "turn.ended"]);
+export const AREA_PERSISTENCE_EVENTS = Object.freeze(["area.entered", "area.exited", "turn.started", "turn.ended"]);
 
 /**
  * A lasting area: `{duration: {unit: "round", value}, concentration, oncePerTurn, elevation: {bottom, top},

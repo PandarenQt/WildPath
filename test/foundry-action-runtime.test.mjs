@@ -931,9 +931,9 @@ test("a lasting area's persistence is validated: rounds, an elevation band, and 
 });
 
 /** A burst whose ground keeps burning; the Scene can hold Regions and the GM runs the turn. */
-function lastingAreaFixture(t, {shape="radial", range=60, rounds=10, concentration=false}={}) {
+function lastingAreaFixture(t, {shape="radial", range=60, rounds=10, concentration=false, on=["turn.started"]}={}) {
   const fixture = areaFixture(t, {shape, range, persistence: {duration: {unit: "round", value: rounds}, elevation: {bottom: 0, top: 0},
-    concentration, triggers: [{on: ["turn.started"], action: BURNING}]}});
+    concentration, triggers: [{on, action: BURNING}]}});
   const {scene, game} = fixture;
   scene.regions = [];
   scene.createEmbeddedDocuments = async (type, data) => data.map(source => {
@@ -1035,6 +1035,30 @@ test("an area that catches nobody still happens and leaves its lasting area", as
   assert.equal(state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(state.errors));
   assert.equal(scene.regions.length, 1);
   assert.equal(targetActor.system.resources.health.value, 30);
+});
+
+test("a creature that steps out of a lasting area exits it, and only an area answering exits notices", async t => {
+  const {scene, targetActor, targetToken, player, areas, intent} = lastingAreaFixture(t, {on: ["area.exited"]});
+  await player.declareActionIntent({...intent, area: {points: [{x: 125, y: 25}]}});
+  const [region] = scene.regions;
+  targetToken.getOccupiedGridSpaceOffsets = position => [position ? scene.grid.getOffset(position) : {i: 1, j: 0}];
+  const inside = {x: 50, y: 0};
+  const outside = {x: 500, y: 0};
+  assert.deepEqual(areas.exited(targetToken, {previous: inside, position: outside}).map(entry => entry.region.id), [region.id]);
+  assert.deepEqual(areas.exited(targetToken, {previous: outside, position: inside}), [], "walking in is not leaving");
+  assert.deepEqual(areas.entered(targetToken, {previous: outside, position: inside}), [], "an exit-only area ignores entries");
+  await areas.apply(region, region.flags.wildpath.area, targetToken, "area.exited");
+  assert.equal(targetActor.system.resources.health.value, 20, "leaving it burns (after the cast's own 6)");
+});
+
+test("an aura whose caster walks away exits the creatures it leaves behind", async t => {
+  const {scene, sourceToken, targetToken, player, areas, intent} = lastingAreaFixture(t, {shape: "emanation", on: ["area.exited"]});
+  await player.declareActionIntent({...intent, area: {points: []}});
+  sourceToken.getOccupiedGridSpaceOffsets = position => [position ? scene.grid.getOffset(position) : {i: 0, j: 0}];
+  const sweeps = areas.swept(sourceToken, {previous: {x: 0, y: 0}, position: {x: 500, y: 0}});
+  assert.deepEqual(sweeps.map(({event, tokens}) => [event, tokens.map(token => token.id)]), [["area.exited", [targetToken.id]]]);
+  assert.deepEqual(areas.swept(sourceToken, {previous: {x: 500, y: 0}, position: {x: 0, y: 0}}), [],
+    "walking back covers the creature again, which an exit-only aura does not answer");
 });
 
 /** A feature carrying one Trigger RuleElement whose inline Action is BURNING. */

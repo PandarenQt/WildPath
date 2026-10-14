@@ -145,7 +145,7 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
   WildPath's fields, not Foundry's drawing, decide who is inside (`foundry-v14-persistent-areas.mts`).
 - **Triggers.** Each trigger's `action` resolves through the authority, with the caster as source and
   the affected creature as its only target. Saves route to that creature's controller, and the result
-  posts its own card. Triggers answer `area.entered`, `turn.started` or `turn.ended`.
+  posts its own card. Triggers answer `area.entered`, `area.exited`, `turn.started` or `turn.ended`.
 - **Once per turn.** By default a creature is affected by one area at most once per combat turn, even if
   it both enters and starts its turn there. `oncePerTurn: false` turns this off. Outside combat there
   is no limit.
@@ -159,6 +159,11 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
   - Each step's approval records the areas that step enters (fields and band).
   - The after-step pause holds the Token while the area acts.
   - The stop is an ordinary interruption (`reason: "entered-area"`).
+- **Leaving.** A step out of an area answers `area.exited`, and so does a creature an aura stops
+  covering because its caster moved on. Leaving never holds or stops the mover: the creature is already
+  on its way out. It applies before any area the same step enters. Once per turn is shared with the
+  area's other triggers, so a creature the area already affected this turn is not affected again on
+  leaving.
 - **Auras.** An `emanation` surrounds its caster with no placement clicks, and its Region is attached to
   the caster's Token, so Foundry carries the drawn cells along. Who is inside is recomputed around the
   caster's current footprint. When the caster's step carries the aura over a creature, the aura has
@@ -195,8 +200,12 @@ Live (two browsers, 14.369, 2026-10-14): Player1 cast Burning Ground (2 fire on 
   with the caster, and the aura entering the goblin hit it for 3 ("Radiance"). The caster's move was not
   held.
 
+Live (two browsers, 14.369): Player1's creature stood in a one-field Clinging Mire (3 acid on
+`area.exited`) and made a two-field native move out. The mire hit on the first step (10→7, with a card),
+and the move went on to its end (30→20 ft) without stopping.
+
 Not yet: the staged (programmatic) movement path, falling through an area (vertical movement is not
-modelled), hidden areas such as traps, and `area.exited` triggers.
+modelled), and hidden areas such as traps.
 
 ## Auras and Emanations
 

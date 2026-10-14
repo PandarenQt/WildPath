@@ -517,7 +517,7 @@ export function createMultiplayerMovementAuthority({
       const triggers = typeof services.reactions?.triggers === "function"
         ? services.reactions.triggers({intent}) : services.reactions?.triggers ?? [];
       const beforeStepReactions = needsBeforeStepReactions(triggers);
-      const entryAreas = documents.ok && (areas?.hasEntryAreas?.(documents.scene) === true);
+      const entryAreas = documents.ok && (areas?.hasCrossingAreas?.(documents.scene) === true);
       // Foundry has not constrained/split this route yet. This is only a preparation
       // capability, never approval of its speculative geometry, budget, or eligibility.
       return {approved: true, ok: true, movementId: intent.movementId, resolutionId: intent.resolutionId,
@@ -556,6 +556,7 @@ export function createMultiplayerMovementAuthority({
     let afterStepReactions = false;
     let stepReactions = null;
     let areaEntries = [];
+    let areaExits = [];
     let auraSweeps = [];
     try {
       approval = await authorizeMovement({
@@ -593,7 +594,7 @@ export function createMultiplayerMovementAuthority({
           ? services.reactions.triggers({intent}) : services.reactions?.triggers ?? [];
         afterStepReactions = needsMovementReactionCheckpoints(triggers);
         const beforeStep = needsBeforeStepReactions(triggers);
-        const entryAreas = documents.ok && (areas?.hasEntryAreas?.(documents.scene) === true);
+        const entryAreas = documents.ok && (areas?.hasCrossingAreas?.(documents.scene) === true);
         const checkpointed = afterStepReactions || beforeStep || entryAreas;
         reactionTriggers = clonePlainData(triggers, "movementReactionTriggers");
         approval.reactionCheckpoints = checkpointed;
@@ -611,8 +612,9 @@ export function createMultiplayerMovementAuthority({
           if ( entryAreas ) {
             const step = {previous: intent.origin, position: {...intent.origin, ...(intent.foundry?.passedWaypoints?.[0] ?? {})}};
             areaEntries = areas.entered(documents.token, step).map(({region}) => region.id);
+            areaExits = (areas.exited?.(documents.token, step) ?? []).map(({region}) => region.id);
             auraSweeps = (areas.swept?.(documents.token, step) ?? [])
-              .map(({region, tokens}) => ({regionId: region.id, tokenIds: tokens.map(token => token.id)}));
+              .map(({region, tokens, event}) => ({regionId: region.id, tokenIds: tokens.map(token => token.id), event}));
           }
           if ( (afterStepReactions || areaEntries.length) && (approval.evaluation.transitions.length > 1) ) {
             approval.reactionBoundary = movementReactionBoundary(record?.progress ?? progress, intent.movementId, baseTransitionCount);
@@ -646,7 +648,7 @@ export function createMultiplayerMovementAuthority({
       const currentAuthority = verifyCurrentAuthority(authorityContext, intent);
       if ( !currentAuthority.ok ) return {...currentAuthority, approved: false, resolutionId: intent.resolutionId};
       const operation = {id: intent.movementId, chain, subpathId: intent.foundry?.subpathId ?? null,
-        reactionTriggers, afterStepReactions, areaEntries, auraSweeps,
+        reactionTriggers, afterStepReactions, areaEntries, areaExits, auraSweeps,
         baseTransitionCount, observedTransitionCount: null,
         intent: clonePlainData(intent), approval: clonePlainData(approval)};
       if ( chain.length ) record.operations.push(operation);
@@ -961,6 +963,8 @@ export function createMultiplayerMovementAuthority({
       if ( event.type !== "movement.transition" || record.handledReactionEventIds.includes(event.id) ) continue;
       const operation = record.operations.find(entry => entry.baseTransitionCount === event.data.transitionIndex);
       record.handledReactionEventIds.push(event.id);
+      // Leaving an area never holds the mover; it applies before any area this step enters.
+      if ( operation?.areaExits?.length ) await resolveAreaCrossings(operation, operation.areaExits, "area.exited");
       if ( operation?.auraSweeps?.length ) await resolveAuraSweeps(operation);
       // Only after-step subscriptions and entered areas pause here; before-step reactions resolved in the approval.
       if ( !operation?.afterStepReactions && !operation?.areaEntries?.length ) continue;
@@ -969,7 +973,7 @@ export function createMultiplayerMovementAuthority({
       if ( !terminal ) record.reactionPending = boundary;
       if ( operation.areaEntries?.length ) {
         // A voluntary move stops where a lasting area affected the mover; the rest of the move stays unspent.
-        const stoppedBy = await resolveAreaEntries(operation);
+        const stoppedBy = await resolveAreaCrossings(operation, operation.areaEntries, "area.entered");
         const stop = stoppedBy && ((record.approval.path?.movementKind ?? "voluntary") === "voluntary");
         await closeMovementReaction(record, boundary, {status: stop ? "cancelled" : "completed", metadata: {}},
           stop ? {reason: "entered-area", stoppedBy} : {});
@@ -990,36 +994,36 @@ export function createMultiplayerMovementAuthority({
     }
   }
 
-  /** Applies each lasting area the step entered; returns the name of the first that affected the mover. */
-  async function resolveAreaEntries(operation) {
+  /** Applies each lasting area the step entered (or left); returns the name of the first that affected the mover. */
+  async function resolveAreaCrossings(operation, regionIds, event) {
     const documents = await resolveMovementCompletionDocuments({completion: operation.intent, game});
     if ( !documents.ok ) return null;
     let stoppedBy = null;
-    for ( const regionId of operation.areaEntries ) {
+    for ( const regionId of regionIds ) {
       const region = documents.scene.regions?.get?.(regionId);
       const flag = region?.flags?.wildpath?.area;
       if ( !flag ) continue;
       try {
-        const results = await areas.apply(region, flag, documents.token, "area.entered");
+        const results = await areas.apply(region, flag, documents.token, event);
         if ( results.length ) stoppedBy ??= flag.label;
       } catch (error) {
-        logger?.error?.("Wild Path | A lasting area failed on entry", error);
+        logger?.error?.(`Wild Path | A lasting area failed on ${event}`, error);
       }
     }
     return stoppedBy;
   }
 
-  /** The mover's aura entered these creatures on this step; each is affected as if it had walked in. */
+  /** The mover's aura entered (or left) these creatures on this step; each is affected as if it had walked in (or out). */
   async function resolveAuraSweeps(operation) {
     const documents = await resolveMovementCompletionDocuments({completion: operation.intent, game});
     if ( !documents.ok ) return;
-    for ( const {regionId, tokenIds} of operation.auraSweeps ) {
+    for ( const {regionId, tokenIds, event="area.entered"} of operation.auraSweeps ) {
       const region = documents.scene.regions?.get?.(regionId);
       const flag = region?.flags?.wildpath?.area;
       for ( const token of tokenIds.map(id => documents.scene.tokens?.get?.(id)).filter(Boolean) ) {
         if ( !flag ) break;
-        try { await areas.apply(region, flag, token, "area.entered"); }
-        catch (error) { logger?.error?.("Wild Path | An aura failed on entry", error); }
+        try { await areas.apply(region, flag, token, event); }
+        catch (error) { logger?.error?.(`Wild Path | An aura failed on ${event}`, error); }
       }
     }
   }

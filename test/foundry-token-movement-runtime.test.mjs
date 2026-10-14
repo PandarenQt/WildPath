@@ -645,7 +645,7 @@ function burningGround() {
   const region = {id: "fire", flags: {wildpath: {area: flag}}};
   const inside = position => Number(position?.x) >= 50;
   return {applied, region, port: {
-    hasEntryAreas: () => true,
+    hasCrossingAreas: () => true,
     entered: (token, {previous, position}) => (inside(position) && !inside(previous) ? [{region, flag}] : []),
     async apply(area, areaFlag, token, event) { applied.push([area.id, token.id, event]); return [{status: "completed"}]; }
   }};
@@ -677,7 +677,7 @@ test("a mover's own aura enters a creature it sweeps over, without holding the m
   const aura = {id: "aura", flags: {wildpath: {area: flag}}};
   const goblin = {id: "goblin"};
   const port = {
-    hasEntryAreas: () => true,
+    hasCrossingAreas: () => true,
     entered: () => [],
     swept: (token, {position}) => (Number(position?.x) === 50 ? [{region: aura, flag, tokens: [goblin]}] : []),
     async apply(area, areaFlag, token, event) { applied.push([area.id, token.id, event]); return [{status: "completed"}]; }
@@ -694,6 +694,30 @@ test("a mover's own aura enters a creature it sweeps over, without holding the m
   assert.equal((await onFoundryV14MoveToken(fixture.token, operation, {}, PLAYER, {game: fixture.gmGame})).ok, true);
   assert.deepEqual(applied, [["aura", "goblin", "area.entered"]]);
   assert.equal(fixture.stopCount(), 0, "the mover's own aura never stops it");
+});
+
+test("a step out of a lasting area is affected on leaving it, and the mover goes on", async () => {
+  const applied = [];
+  const flag = {label: "Clinging Mire"};
+  const mire = {id: "mire", flags: {wildpath: {area: flag}}};
+  const inside = position => Number(position?.x) < 50;
+  const port = {
+    hasCrossingAreas: () => true,
+    entered: () => [],
+    exited: (token, {previous, position}) => (inside(previous) && !inside(position) ? [{region: mire, flag}] : []),
+    async apply(area, areaFlag, token, event) { applied.push([area.id, token.id, event]); return [{status: "completed"}]; }
+  };
+  const fixture = movementReactionFixture({count: 0, areas: port});
+  fixture.scene.regions = new Map([["mire", mire]]);
+  const operation = checkpointOperation(fixture.token, {passedCount: 1, offsets: [{i: 1, j: 0}, {i: 2, j: 0}]});
+  await approveCheckpoint(fixture, operation);
+  fixture.token.setOffset({i: 1, j: 0});
+  fixture.token.movement = {...operation, user: PLAYER, state: "pending"};
+  await onFoundryV14MoveToken(fixture.token, operation, {}, PLAYER, {game: fixture.playerGame});
+  assert.equal(fixture.token.movement.state, "pending", "leaving an area does not hold the mover");
+  assert.equal((await onFoundryV14MoveToken(fixture.token, operation, {}, PLAYER, {game: fixture.gmGame})).ok, true);
+  assert.deepEqual(applied, [["mire", fixture.token.id, "area.exited"]]);
+  assert.equal(fixture.stopCount(), 0, "nor stops it");
 });
 
 test("movement with an empty reaction provider retains the uninterrupted no-trigger path", async () => {

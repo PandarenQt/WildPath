@@ -171,12 +171,12 @@ browsers:
 - Transformations that keep the creature's feats and gear.
 - The general automation dispatcher for Items' and effects' automatic triggers (turns, initiative, rests).
 - `GrantResource` pools, created full when the grant arrives.
+- `area.exited`, for steps out of an area and for creatures an aura leaves behind.
 
 Open:
 
 - Companions and sidekicks, which need the maintainer's decision.
-- `area.exited`.
-- Wiring for `GrantMovement`.
+- Wiring for `GrantMovement`, which needs a rules decision on how several speeds share one move.
 
 **Authority and disclosure hardening (M0) — CLOSED on 2026-10-13.** A review found that the
 authority trusted more than it could verify: any player could act through an Actor or Item they did
