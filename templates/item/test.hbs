@@ -1,0 +1,18 @@
+<section class="tab test builder {{tab.cssClass}}" data-group="sheet" data-tab="test">
+  <p class="hint">{{#if t.owner}}{{localize "WILDPATH.TEST.IntroOwner" owner=t.owner}}{{else}}{{localize "WILDPATH.TEST.IntroSample"}}{{/if}}</p>
+  <fieldset>
+    <legend>{{localize "WILDPATH.TEST.Legend"}}</legend>
+    <label>{{localize "WILDPATH.SHEET.AC"}} <input type="number" name="wildpath.test.ac" value="{{t.ac}}" step="1"></label>
+    <label>{{localize "WILDPATH.TEST.Health"}} <input type="number" name="wildpath.test.health" value="{{t.health}}" min="1" step="1"></label>
+    <label>{{localize "WILDPATH.TEST.SaveBonus"}} <input type="number" name="wildpath.test.saveBonus" value="{{t.saveBonus}}" step="1"></label>
+    <label>{{localize "WILDPATH.TEST.Dice"}} <input type="number" name="wildpath.test.d20" value="{{t.d20}}" min="1" max="20" step="1"></label>
+    <button type="button" data-action="builderTest">{{localize "WILDPATH.TEST.Run"}}</button>
+  </fieldset>
+  {{#if t.result}}
+  <section class="inspector-detail test-result">
+    <h3>{{t.result.label}} <span class="entry-status">{{t.statusText}}</span></h3>
+    <p class="hint">{{localize "WILDPATH.TEST.NothingChanged"}}</p>
+    {{> "systems/wildpath/templates/apps/resolution-detail.hbs" selected=t.result}}
+  </section>
+  {{/if}}
+</section>

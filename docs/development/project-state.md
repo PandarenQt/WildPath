@@ -209,7 +209,11 @@ Action's custom effects, and on the effect sheet. The rows cover bonuses, advant
 resource pools, extra damage once per turn, and auras with their own rows, each optionally "while" a condition
 ([homebrew-content-builder.md](../architecture/homebrew-content-builder.md#third-slice-rule-rows-2026-10-14)).
 Live: an aura feature and a Shield reaction were built through the UI alone and worked.
-Next in Phase C: Test/Preview, spell-slot scaling, and more templates.
+Then the Test tab dry-runs an Action through the real pipeline against a sample target and commits nothing; spells
+can use a spell slot with upcast dice; and buff, debuff, aura, reaction and Legendary Action templates were added
+([homebrew-content-builder.md](../architecture/homebrew-content-builder.md#fourth-slice-test-tab-spell-slots-and-more-templates-2026-10-14)).
+Phase C is done; Phase D (duplicate, export and import, trigger and monster builders) is next in the plan, after
+the smaller product gaps (Phase E).
 
 **M4 — content pack (in progress, 2026-10-14).**
 - **The pack.** `@foundryvtt/foundryvtt-cli` 3.0.4 was approved and added. The built-in **WildPath Actions**

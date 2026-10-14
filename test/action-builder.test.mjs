@@ -13,7 +13,7 @@ const packDefinitions = readdirSync(folder).filter(name => name.endsWith(".json"
 function asForm(builder) {
   const rows = list => Object.fromEntries(list.map((row, index) => [index, row]));
   return {basics: builder.basics, costs: rows(builder.costs), range: builder.range, targets: builder.targets, area: builder.area,
-    roll: builder.roll, damage: rows(builder.damage), healing: rows(builder.healing), effects: rows(builder.effects)};
+    roll: builder.roll, slot: builder.slot, damage: rows(builder.damage), healing: rows(builder.healing), effects: rows(builder.effects)};
 }
 
 /** Submit `changes` (section → fields, or rows by index) over the definition's current builder values. */
@@ -154,4 +154,30 @@ test("templates are valid Actions, rows are added with valid defaults, and issue
   const issues = builderIssues({schemaVersion: 1, id: "a", damage: [{id: "x", expression: {type: "constant", value: 1}, damageType: "fire!"}]});
   assert.deepEqual(issues.map(issue => [issue.level, issue.section, issue.key ?? issue.path]), [["error", "damage", "damage.0.damageType"],
     ["warning", "targets", "NoTargets"]]);
+});
+
+test("a spell slot level and its upcast dice scale the first damage row through the engine's own preview", async () => {
+  const {createResolvedActionPreview} = await import("../module/helpers/action-configuration.mjs");
+  const stored = packDefinitions.find(([file]) => file === "venom-burst.json")[1];
+  const result = submit(stored, {slot: {level: 3, upcast: "1d6"}});
+  assert.deepEqual(result.errors, []);
+  const choice = result.definition.configuration[0];
+  assert.deepEqual(choice.cost.anyOf.map(branch => branch[0].capability), [3, 4, 5, 6, 7, 8, 9].map(level => `spell-slot.${level}`));
+  assert.deepEqual(choice.effects, [{type: "scaleDamage", levelChoiceId: "spell-slot", baseLevel: 3, componentIds: ["venom"],
+    dice: {number: 1, faces: 6}}]);
+  assert.equal(validateActionDefinition(result.definition).ok, true);
+  const preview = createResolvedActionPreview({definition: result.definition, choices: {"spell-slot": {resourceId: "spell-slot.5"}},
+    actorSystem: {resources: {action: {value: 1, max: 1}}, pools: [{id: "spell-slot.5", label: "5th", value: 1, max: 1}]}});
+  assert.equal(preview.ok, true);
+  assert.equal(preview.preview.damage.components[0].formula, "4d6", "two levels above the 3rd add 2d6");
+
+  // Foundry stores `{"spell-slot.3": 3}` nested; the builder reads both, and an unchanged form writes nothing.
+  const nested = {...result.definition, configuration: [{...choice, levelByResourceId: {"spell-slot": {3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9}}}]};
+  assert.deepEqual(definitionToBuilder(nested).slot, {level: 3, upcast: "1d6"});
+  assert.equal(builderToDefinition(asForm(definitionToBuilder(nested)), nested).changed, false);
+
+  assert.deepEqual(submit(result.definition, {slot: {upcast: "1d6 + 1"}}).errors.map(error => error.key), ["DiceOnly"]);
+  assert.deepEqual(submit(result.definition, {slot: {level: ""}}).definition.configuration, [], "no slot removes the choice");
+  const scaling = packDefinitions.find(([file]) => file === "scaling-bolt.json")[1];
+  assert.deepEqual(definitionToBuilder(scaling).slot, {level: 1, upcast: "1d6"});
 });

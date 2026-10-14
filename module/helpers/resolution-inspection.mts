@@ -6,28 +6,35 @@ import {rollFormulaForRequest} from "./rolls.mjs";
  */
 
 type Data = Record<string, unknown>;
-interface Named {name?: string; tokenId?: string; actorRef?: string}
+interface Named {name?: string; tokenId?: string; actorRef?: string; uuid?: string; id?: string; actorId?: string; target?: Named}
 interface Roll {total?: number; natural?: number; die?: number}
 interface RollEntry {type?: string; semanticType?: string; rollRequest?: Data & {rollMode?: string; metadata?: Data};
   rollResult?: Roll & {provenance?: {method?: string}}; targetKey?: string}
 interface AttackResult {target?: Named; roll?: Roll; defense?: {value?: number}; outcome?: string; ok?: boolean}
 interface SaveResult {target?: Named; roll?: Roll | null; dc?: {value?: number}; outcome?: string; automatic?: boolean}
-interface Plan {type?: string; target?: Named; payerRef?: string;
+interface Plan {type?: string; target?: Named; payerRef?: string; conditionId?: string; action?: string; definition?: {name?: string};
   plan?: {from?: number; to?: number; amount?: number; target?: Named; payments?: Array<{resourceId?: string; from?: number; to?: number}>}}
 interface State {
   id?: string; status?: string; actionDefinition?: {label?: string} | null; source?: Named | null;
   completedStageIds?: string[]; rollResults?: RollEntry[]; mutationPlans?: Plan[];
   results?: {attackResolution?: {results?: AttackResult[]}; saveResolution?: {results?: SaveResult[]}};
   errors?: Array<{code?: string; reason?: string}>;
+  targets?: Named[]; input?: {targets?: Named[]};
 }
 interface ResolutionRecord {resolutionId?: string; initiatorUserId?: string; state?: State | null; options?: {action?: {name?: string}}}
 
 const formulaOf = rollFormulaForRequest as unknown as (request: Data) => {formula?: string | null};
-const nameOf = (target: Named | undefined) => target?.name ?? target?.tokenId ?? target?.actorRef ?? "?";
+const refsOf = (target: Named | undefined) => [target?.id, target?.uuid, target?.actorRef, target?.actorId, target?.tokenId].filter(Boolean);
 const DURABILITY = new Set(["durabilityDamage", "durabilityHealing", "durabilityAbsorption"]);
 
 export function inspectResolution(record: ResolutionRecord) {
   const state = record.state ?? {};
+  // A plan's target may be a target context (the target one level down) or a bare reference; the resolution's own
+  // targets carry the names.
+  const known = [...(state.targets ?? []), ...(state.input?.targets ?? [])];
+  const nameOf = (target: Named | undefined) => target?.name ?? target?.target?.name
+    ?? known.find(entry => entry.name && refsOf(entry).some(ref => refsOf(target).includes(ref)))?.name
+    ?? target?.tokenId ?? target?.actorRef ?? target?.uuid ?? "?";
   return {
     id: record.resolutionId ?? state.id ?? null,
     label: state.actionDefinition?.label ?? record.options?.action?.name ?? record.resolutionId ?? "",
@@ -52,6 +59,10 @@ export function inspectResolution(record: ResolutionRecord) {
     changes: (state.mutationPlans ?? []).filter(plan => DURABILITY.has(String(plan.type))).map(plan => ({
       target: nameOf(plan.target ?? plan.plan?.target), type: String(plan.type).replace("durability", "").toLowerCase(),
       amount: plan.plan?.amount ?? null, from: plan.plan?.from ?? null, to: plan.plan?.to ?? null
+    })),
+    // Conditions and custom effects the Action applies; a condition's name is a lang key the template localizes.
+    effects: (state.mutationPlans ?? []).filter(plan => plan.type === "conditionEffect").map(plan => ({
+      target: nameOf(plan.target), effect: plan.definition?.name ?? plan.conditionId ?? "?", action: plan.action ?? null
     })),
     payments: (state.mutationPlans ?? []).filter(plan => plan.type === "resourcePayment").flatMap(plan =>
       (plan.plan?.payments ?? []).map(payment => ({payer: plan.payerRef ? "controller" : "source",

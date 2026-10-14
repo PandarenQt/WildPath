@@ -15,7 +15,8 @@ export class WildPathRulesInspector extends HandlebarsApplicationMixin(Applicati
         position: { width: 760, height: 560 },
         actions: { select: WildPathRulesInspector.#onSelect, answer: WildPathRulesInspector.#onAnswer }
     };
-    static PARTS = { body: { template: "systems/wildpath/templates/apps/rules-inspector.hbs" } };
+    static PARTS = { body: { template: "systems/wildpath/templates/apps/rules-inspector.hbs",
+            templates: ["systems/wildpath/templates/apps/resolution-detail.hbs"] } };
     selectedId = null;
     async _prepareContext() {
         const coordinator = globals.game.wildpath?.multiplayer?.coordinator;

@@ -1,10 +1,13 @@
 import {CUSTOM_EFFECT_DURATION_UNITS, CUSTOM_EFFECT_EXPIRY_EVENTS, validateActionDefinition} from "../helpers/action-definitions.mjs";
 import {summarizeActionDefinition} from "../helpers/action-definition-summary.mjs";
 import {ACTION_TEMPLATES, addBuilderRow, applyActionTemplate, builderIssues, builderToDefinition, definitionToBuilder,
-  removeBuilderRow} from "../helpers/action-builder.mjs";
+  removeBuilderRow, spellSlotChoice} from "../helpers/action-builder.mjs";
 import {DEFAULT_RULE_ELEMENT_REGISTRY, validateRuleElementDefinition} from "../helpers/rule-elements.mjs";
 import {addRule, removeRule, ruleIssues, rowsToRules} from "../helpers/rule-builder.mjs";
 import {RULE_ROWS_TEMPLATE, ruleButtonPath, ruleRowsContext} from "./rule-rows.mjs";
+import {previewAction} from "../helpers/action-preview.mjs";
+import {actionCombatStatistics, resolveActorCheckStatistic} from "../helpers/combat-statistics.mjs";
+import {foundryActorSystemSnapshot} from "../adapters/foundry-v14-actor-system-adapter.mjs";
 
 const {HandlebarsApplicationMixin} = foundry.applications.api;
 const {ItemSheetV2} = foundry.applications.sheets;
@@ -43,6 +46,7 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
       builderAdd: WildPathItemSheet.#onBuilderAdd,
       builderRemove: WildPathItemSheet.#onBuilderRemove,
       builderTemplate: WildPathItemSheet.#onBuilderTemplate,
+      builderTest: WildPathItemSheet.#onBuilderTest,
       ruleAdd: WildPathItemSheet.#onRuleAdd,
       ruleRemove: WildPathItemSheet.#onRuleRemove
     }
@@ -54,6 +58,8 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
     tabs: {template: "templates/generic/tab-navigation.hbs"},
     builder: {template: "systems/wildpath/templates/item/builder.hbs", templates: [RULE_ROWS_TEMPLATE], scrollable: [""]},
     rules: {template: "systems/wildpath/templates/item/rules.hbs", templates: [RULE_ROWS_TEMPLATE], scrollable: [""]},
+    test: {template: "systems/wildpath/templates/item/test.hbs", templates: ["systems/wildpath/templates/apps/resolution-detail.hbs"],
+      scrollable: [""]},
     advanced: {template: "systems/wildpath/templates/item/advanced.hbs", scrollable: [""]},
     description: {template: "systems/wildpath/templates/item/description.hbs"}
   };
@@ -61,7 +67,7 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
   /** @override */
   static TABS = {
     sheet: {tabs: [{id: "builder", label: "WILDPATH.ITEMSHEET.Tab.builder"}, {id: "rules", label: "WILDPATH.ITEMSHEET.Tab.rules"},
-      {id: "advanced", label: "WILDPATH.ITEMSHEET.Tab.advanced"}, {id: "description", label: "WILDPATH.ITEMSHEET.Tab.description"}],
+      {id: "test", label: "WILDPATH.ITEMSHEET.Tab.test"}, {id: "advanced", label: "WILDPATH.ITEMSHEET.Tab.advanced"}, {id: "description", label: "WILDPATH.ITEMSHEET.Tab.description"}],
     initial: "builder"}
   };
 
@@ -71,6 +77,9 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
    */
   #drafts = {};
 
+  /** The Test tab's sample target and d20, and its last preview (`previewAction`). */
+  #test = {ac: 13, health: 30, saveBonus: 0, d20: 10, result: null};
+
   /** Options the builder reads formulas and fills defaults with. */
   get #builderOptions() {
     return {abilities: Object.keys(CONFIG.WILDPATH.ABILITIES), conditions: Object.keys(CONFIG.WILDPATH.CONDITIONS),
@@ -79,10 +88,13 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
 
   /* -------------------------------------------- */
 
-  /** Only an Action has a Builder. @override */
+  /** Only an Action has a Builder and a Test tab. @override */
   _configureRenderParts(options) {
     const parts = super._configureRenderParts(options);
-    if ( this.item.type !== "action" ) delete parts.builder;
+    if ( this.item.type !== "action" ) {
+      delete parts.builder;
+      delete parts.test;
+    }
     return parts;
   }
 
@@ -90,7 +102,7 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
   _getTabsConfig(group) {
     const config = super._getTabsConfig(group);
     if ( (group !== "sheet") || (this.item.type === "action") ) return config;
-    return {...config, tabs: config.tabs.filter(tab => tab.id !== "builder"), initial: "rules"};
+    return {...config, tabs: config.tabs.filter(tab => !["builder", "test"].includes(tab.id)), initial: "rules"};
   }
 
   /** @override */
@@ -269,6 +281,34 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
     return this.item.update({system: {ruleElements: change(result.ruleElements, path)}});
   }
 
+  /**
+   * Run the Action against the Test tab's sample target: the owner's own statistics (or a sample creature for an
+   * unowned Action), fixed dice, and nothing committed.
+   */
+  static async #onBuilderTest() {
+    const values = foundry.utils.expandObject(new foundry.applications.ux.FormDataExtended(this.form).object).wildpath?.test ?? {};
+    for ( const key of ["ac", "health", "saveBonus", "d20"] ) {
+      if ( Number.isFinite(Number(values[key])) && (values[key] !== null) ) this.#test[key] = Number(values[key]);
+    }
+    const definition = this.item.toObject(true).system.definition;
+    const actor = this.item.actor;
+    let actorSystem = null;
+    const statistics = {};
+    if ( actor ) {
+      actorSystem = foundryActorSystemSnapshot(actor);
+      const normalized = this.item.system.getActionDefinition().definition ?? definition;
+      Object.assign(statistics, actionCombatStatistics(actor, normalized, {item: this.item}));
+      if ( normalized.check ) {
+        const bonus = resolveActorCheckStatistic(actor, {ability: normalized.check.ability ?? null, skill: normalized.check.skill ?? null});
+        statistics.check = bonus ? {modifier: bonus.totalModifier} : {};
+      }
+    }
+    this.#test.result = await previewAction(definition, {actorSystem, statistics, d20: this.#test.d20, label: this.item.name,
+      target: {ac: this.#test.ac, health: this.#test.health, saveBonus: this.#test.saveBonus,
+        name: game.i18n.localize("WILDPATH.TEST.Target")}});
+    await this.render({parts: ["test"]});
+  }
+
   static async #onRuleAdd(event, target) {
     await this.#editRules(target, (rules, path) => addRule(rules, "bonus", path));
   }
@@ -319,6 +359,9 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
       context.definitionJson = this.#drafts.definition?.text ?? JSON.stringify(definition, null, 2);
       context.definitionErrors = this.#drafts.definition?.errors ?? [];
       context.b = this.#builderContext(definition);
+      const status = this.#test.result?.status;
+      context.t = {...this.#test, owner: this.item.actor?.name ?? null,
+        statusText: game.i18n.has(`WILDPATH.TEST.Status.${status}`) ? game.i18n.localize(`WILDPATH.TEST.Status.${status}`) : status};
     }
     context.ruleElementsJson = this.#drafts.ruleElements?.text ?? JSON.stringify(source.ruleElements ?? [], null, 2);
     context.ruleElementErrors = this.#drafts.ruleElements?.errors ?? [];
@@ -346,12 +389,13 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
     const sectionLabel = section => game.i18n.localize(`WILDPATH.BUILDER.Section.${section}`);
     const issues = (draft?.issues ?? builderIssues(definition)).map(issue => ({level: issue.level,
       text: `${sectionLabel(issue.section)}: ${issue.key ? game.i18n.localize(`WILDPATH.BUILDER.Issue.${issue.key}`) : issue.text}`}));
-    const {range, targets, area, roll} = values;
+    const {range, targets, area, roll, slot} = values;
     const conditions = CONFIG.WILDPATH.CONDITIONS;
     // A stored value the choices do not list is still shown, as itself.
     const keep = (map, value) => ((value && !(value in map)) ? {...map, [value]: value} : map);
     const abilities = Object.fromEntries(Object.entries(CONFIG.WILDPATH.ABILITIES).map(([key, ability]) => [key, ability.label]));
-    const advancedOnly = [["configuration", definition.configuration?.length], ["transform", definition.transform],
+    const choiceCount = (definition.configuration?.length ?? 0) - (spellSlotChoice(definition.configuration) ? 1 : 0);
+    const advancedOnly = [["configuration", choiceCount], ["transform", definition.transform],
       ["summon", definition.summon], ["controllerCosts", definition.controllerCosts?.allOf?.length || definition.controllerCosts?.anyOf],
       ["stabilize", definition.stabilize], ["ruleElements", definition.ruleElements?.length], ["duration", definition.duration]]
       .filter(([, present]) => present).map(([key]) => game.i18n.localize(`WILDPATH.BUILDER.Part.${key}`));
@@ -375,6 +419,9 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
       rollIsCheck: roll.kind === "check",
       rollHasDC: ["save", "check"].includes(roll.kind),
       dcError: fieldErrors["roll.dc"],
+      upcastError: fieldErrors["slot.upcast"],
+      showSlot: values.basics.spell || Boolean(slot.level),
+      showUpcast: Boolean(slot.level) && (values.damage.length > 0),
       damage: rows("damage"),
       healing: rows("healing"),
       effects: values.effects.map((row, index) => ({...row, isCondition: row.kind !== "effect", stacks: Boolean(conditions[row.conditionId]?.stacking),
@@ -383,6 +430,8 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
           editable: this.isEditable}) : null})),
       advancedOnly: advancedOnly.join(", "),
       choices: {
+        slotLevels: {"": "WILDPATH.BUILDER.Slot.None", ...Object.fromEntries(Array.from({length: 9}, (_, i) => [i + 1,
+          game.i18n.format("WILDPATH.BUILDER.Slot.Level", {level: i + 1})]))},
         rangeTypes: choices(["", "self", "touch", "reach", "ranged", "sight", "special"], "WILDPATH.BUILDER.Range."),
         targetTypes: choices(["", "self", "single", "multiple", "area", "none"], "WILDPATH.BUILDER.Targets."),
         areaShapes: choices(["radial", "emanation", "cone", "line"], "WILDPATH.BUILDER.Area."),

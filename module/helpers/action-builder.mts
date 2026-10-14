@@ -67,6 +67,25 @@ function saveSuccessDamage(damage: Data[]) {
   return values.size > 1 ? "mixed" : ([...values][0] ?? "half");
 }
 
+/** Spell slot levels a resource choice offers, by `spell-slot.<level>` (Foundry may store the map nested). */
+function slotLevels(map: unknown): number[] {
+  if ( !map || (typeof map !== "object") ) return [];
+  const entries = Object.entries(map as Data).flatMap(([key, value]) => (key === "spell-slot" && value && (typeof value === "object")
+    ? Object.keys(value).map(level => `spell-slot.${level}`) : [key]));
+  const levels = entries.map(key => /^spell-slot\.(\d)$/.exec(key)?.[1]).map(Number);
+  return levels.every(level => level >= 1) ? levels : [];
+}
+
+/** The configuration choice that spends a spell slot, its levels and its damage scaling, when the Action has one. */
+export function spellSlotChoice(configuration: unknown) {
+  const list: Data[] = Array.isArray(configuration) ? configuration : [];
+  const index = list.findIndex(entry => (entry?.type === "resource") && slotLevels(entry.levelByResourceId).length);
+  if ( index < 0 ) return null;
+  const entry = list[index]!;
+  const scale = (entry.effects ?? []).find((effect: Data) => ["scaleDamage", "scale-damage"].includes(effect?.type));
+  return {index, entry, levels: slotLevels(entry.levelByResourceId), scale: scale ?? null};
+}
+
 const isFailureOnly = (policy: unknown) => ["failure", "failed", "fail"].includes(String(policy ?? "").toLowerCase());
 
 /** The builder's form values for a stored definition, plus what the form needs to show (`readOnly`, counts). */
@@ -83,6 +102,8 @@ export function definitionToBuilder(definition: Data | null | undefined, {abilit
   const rolls = [d.attack && "attack", d.save && "save", d.check && "check"].filter(Boolean) as string[];
   const damage: Data[] = Array.isArray(d.damage) ? d.damage : [];
   const dc = dcText(d.save?.dc ?? d.check?.dc);
+  const slot = spellSlotChoice(d.configuration);
+  const upcast = slot?.scale ? formatFormula({type: "dice", number: slot.scale.dice?.number ?? 1, faces: slot.scale.dice?.faces}) : "";
 
   return {
     basics: {spell: (d.tags ?? []).includes("spell")},
@@ -117,6 +138,8 @@ export function definitionToBuilder(definition: Data | null | undefined, {abilit
       onSuccess: saveSuccessDamage(damage)
     },
     dcReadOnly: dc === null,
+    slot: {level: slot ? Math.min(...slot.levels) : "", upcast: upcast ?? ""},
+    upcastReadOnly: Boolean(slot?.scale) && ((upcast === null) || !slot!.scale.dice),
     damage: damage.map(component => {
       const formula = formatFormula(component.expression);
       return {id: component.id ?? "", formula: formula ?? "", formulaReadOnly: formula === null,
@@ -322,6 +345,39 @@ const WRITERS = {
     }
   },
 
+  /** A spell slot of the chosen level or higher pays for it; each level above adds the upcast dice to the first damage row. */
+  slot({next, submitted, model, options, errors, view}: WriteContext) {
+    const {value, changed} = fields(submitted, model);
+    const level = Math.min(9, Math.max(0, Math.trunc(number(value("level")) ?? 0)));
+    const configuration: Data[] = [...(next.configuration ?? [])];
+    const found = spellSlotChoice(configuration);
+    if ( !level ) {
+      if ( found ) configuration.splice(found.index, 1);
+      next.configuration = configuration;
+      return;
+    }
+    const id = found?.entry.id ?? "spell-slot";
+    const entry: Data = {...(found?.entry ?? {id, type: "resource", label: "Spell slot", required: true})};
+    if ( !found || changed("level") ) {
+      const levels = Array.from({length: 10 - level}, (_, offset) => level + offset);
+      entry.cost = {anyOf: levels.map(each => [{capability: `spell-slot.${each}`, amount: 1}])};
+      entry.levelByResourceId = Object.fromEntries(levels.map(each => [`spell-slot.${each}`, each]));
+    }
+    let scale: Data | null = found?.scale ? {...found.scale, baseLevel: level} : null;
+    if ( changed("upcast") && !view.upcastReadOnly ) {
+      const text = String(value("upcast") ?? "").trim();
+      const expression = text ? readFormula(text, "slot.upcast", errors, {abilities: options.abilities ?? null}) : null;
+      if ( expression && (expression.type !== "dice") ) errors.push({field: "slot.upcast", key: "DiceOnly", data: {}});
+      else if ( !text ) scale = null;
+      else if ( expression ) scale = {...(scale ?? {type: "scaleDamage", levelChoiceId: id, baseLevel: level}),
+        componentIds: [next.damage?.[0]?.id].filter(Boolean), dice: {number: expression.number, faces: expression.faces}};
+    }
+    const others = (entry.effects ?? []).filter((effect: Data) => !["scaleDamage", "scale-damage"].includes(effect?.type));
+    entry.effects = scale ? [...others, scale] : others;
+    configuration[found ? found.index : configuration.length] = entry;
+    next.configuration = configuration;
+  },
+
   damage({next, submitted, model, options, errors}: WriteContext) {
     const stored = new Map<string, Data>((next.damage ?? []).map((component: Data) => [component.id, component]));
     next.damage = rowsOf(submitted).map((row, index) => {
@@ -487,6 +543,24 @@ export const ACTION_TEMPLATES: Record<string, Data> = {
   healing: {tags: ["spell"], costs: ACTION, targeting: {type: "single", required: true, count: 1},
     range: {type: "touch", distance: {value: 5, unit: "ft"}},
     healing: [{id: "healing-1", expression: {type: "add", terms: [dice(2, 8), {type: "spellcasting-modifier"}]}, healingType: "healing"}]},
+  buff: {tags: ["spell"], costs: ACTION, targeting: {type: "multiple", required: true, count: 3}, range: {type: "ranged", normal: {value: 30, unit: "ft"}},
+    effects: [{id: "effect-1", type: "effect", name: "Inspired", duration: {value: 10, units: "rounds"},
+      ruleElements: [{schemaVersion: 1, id: "rule-1", type: "Modifier", data: {domains: ["attack"], value: 1, modifierType: "status"}},
+        {schemaVersion: 1, id: "rule-2", type: "Modifier", data: {domains: ["save"], value: 1, modifierType: "status"}}]}]},
+  debuff: {tags: ["spell"], costs: ACTION, targeting: {type: "single", required: true, count: 1}, range: {type: "ranged", normal: {value: 60, unit: "ft"}},
+    save: {ability: "wits", dc: SPELL_DC},
+    effects: [{id: "effect-1", type: "effect", name: "Hexed", saveOutcomePolicy: "failure", duration: {value: 10, units: "rounds"},
+      ruleElements: [{schemaVersion: 1, id: "rule-1", type: "RollMode", data: {domains: ["attack"], mode: "disadvantage"}}]}]},
+  aura: {tags: ["spell"], costs: ACTION, targeting: {type: "self"}, range: {type: "self"},
+    effects: [{id: "effect-1", type: "effect", name: "Warding Aura", duration: {value: 10, units: "rounds"},
+      ruleElements: [{schemaVersion: 1, id: "rule-1", type: "Aura", data: {radius: 10, affects: "allies",
+        ruleElements: [{schemaVersion: 1, id: "rule-1-1", type: "Modifier", data: {domains: ["defense.ac"], value: 1, modifierType: "untyped"}}]}}]}]},
+  reaction: {tags: ["spell"], costs: {allOf: [{capability: "reaction", amount: 1}]}, targeting: {type: "self"}, range: {type: "self"},
+    effects: [{id: "effect-1", type: "effect", name: "Shield", duration: {value: 1, units: "rounds", expiry: "turnStart"},
+      ruleElements: [{schemaVersion: 1, id: "rule-1", type: "Modifier", data: {domains: ["defense.ac"], value: 5, modifierType: "untyped"}}]}]},
+  legendary: {costs: {allOf: [{capability: "legendary-action", amount: 1}]}, targeting: {type: "single", required: true, count: 1},
+    range: {type: "reach", distance: {value: 10, unit: "ft"}}, attack: {type: "melee", statistic: "weapon", defenseKey: "ac"},
+    damage: [{id: "damage-1", expression: dice(2, 8), damageType: "bludgeoning", provenance: "weapon-base"}]},
   custom: {costs: ACTION}
 };
 

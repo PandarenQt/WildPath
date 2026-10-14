@@ -84,10 +84,7 @@ modifier rows) and **Description** beside it. Other Items have Advanced and Desc
 - Quench covers a builder edit that keeps hidden data, a bad formula kept as a marked draft, a template on a blank
   Action, and no raw keys on the sheet.
 
-**Not yet (later phases):**
-- Test/Preview;
-- scaling;
-- trigger, summon, transform and choice editors.
+**Not yet (later phases):** trigger, summon, transform and choice editors.
 
 ## Third slice: rule rows (2026-10-14)
 
@@ -131,6 +128,41 @@ RuleElements are rows a non-programmer fills in (`module/helpers/rule-builder.mt
   1 round, ends at turn start). Using it raised the caster's AC by 5.
 - Quench covers adding a row and editing its amount on the Rules tab (the owner's AC follows), and editing and
   saving an effect's rows.
+
+## Fourth slice: Test tab, spell slots and more templates (2026-10-14)
+
+**Test tab** (`module/helpers/action-preview.mts`). An Action's sheet has a Test tab that dry-runs the Action
+through the engine's own staged pipeline. It uses one sample target, with an AC, Hit Points and a save bonus the
+user sets.
+- **Dice.** Every d20 shows a number the user picks, and other dice show their average.
+- **Choices.** A required choice, such as a spell slot, takes its first option.
+- **Who uses it.** It runs as the Action's owner would use it now, with the owner's statistics, and its costs are
+  checked against what the owner has left. An unowned Action runs as a sample creature: proficiency +2,
+  spellcasting +3, every ability score 10, level 1.
+- **Stops before commit.** Nothing is changed or spent.
+- **Results.** It shows the Rules Inspector's view: rolls, attacks, saves, health changes, effects, payments and
+  errors. The two share `templates/apps/resolution-detail.hbs`, and the inspector now also lists effects.
+- Shortcut: there is no Scene, so range, area shape and placement are not previewed; an area is treated as
+  catching the target.
+
+**Spell slots.** A spell's Builder asks whether it uses a spell slot:
+- "level N or higher" writes a resource choice for slots N through 9;
+- "each slot level above adds XdY" writes `scaleDamage` on the first damage row;
+- the engine already asks the caster which slot to spend;
+- the choice is read back whether Foundry stores its level map flat or nested.
+
+**Templates.** Buff, debuff (save or suffer), aura around the user, reaction (Shield) and Legendary Action join
+the others.
+
+**Evidence.**
+- Node runs every pack Action through the preview: a hit and a miss, half damage on a success, full damage and
+  Poisoned on a failure, a slot spell, and a builder-made area save.
+- Node also runs a builder-made slot spell through the engine's own configuration preview: a 3rd-level base cast
+  at 5th deals 4d6.
+- Quench: the Test tab previews a natural 20 as a critical hit and changes nothing on the Actor.
+- Live: Flame Burst's Test tab used QA Caster's own state. A failed save took 28 of 30 Hit Points, and the Action
+  would fail because the caster had already spent their Action that turn. The Rules Inspector names the target of
+  an effect it applied.
 
 ## Product Goal
 

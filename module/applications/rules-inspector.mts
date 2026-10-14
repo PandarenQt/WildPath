@@ -35,7 +35,8 @@ export class WildPathRulesInspector extends HandlebarsApplicationMixin(Applicati
     actions: {select: WildPathRulesInspector.#onSelect, answer: WildPathRulesInspector.#onAnswer}
   };
 
-  static PARTS = {body: {template: "systems/wildpath/templates/apps/rules-inspector.hbs"}};
+  static PARTS = {body: {template: "systems/wildpath/templates/apps/rules-inspector.hbs",
+    templates: ["systems/wildpath/templates/apps/resolution-detail.hbs"]}};
 
   selectedId: string | null = null;
 

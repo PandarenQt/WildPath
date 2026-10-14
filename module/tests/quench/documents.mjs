@@ -160,6 +160,28 @@ export function registerDocumentTests(quench) {
           assert.equal(actor.getStatistic("save").totalModifier,1,"the rule applies to saves");
         } finally { await effect.sheet.close(); }
       });
+      it("the Test tab previews an Action against a sample target and changes nothing", async function () {
+        const actor = await fixtures.createActor({name:"test tab"});
+        const definition = {schemaVersion:1,id:"action:quench-test-tab",label:"Club",costs:{allOf:[{capability:"action",amount:1}]},
+          targeting:{type:"single",required:true,count:1},range:{type:"reach",distance:{value:5,unit:"ft"}},
+          attack:{type:"melee",statistic:"weapon",defenseKey:"ac"},
+          damage:[{id:"club",expression:{type:"dice",number:1,faces:4},damageType:"bludgeoning",provenance:"weapon-base"}]};
+        const item = await fixtures.createItem(actor,{name:"Club",type:"action",system:{definition}});
+        const before = actor.toObject(true).system;
+        await item.sheet.render(true);
+        const wait = async test => { for (let i = 0; (i < 40) && !test(); i++) await new Promise(r => setTimeout(r,50)); };
+        try {
+          item.sheet.changeTab("test","sheet");
+          const d20 = item.sheet.element.querySelector("input[name='wildpath.test.d20']");
+          d20.value = "20";
+          item.sheet.element.querySelector("[data-action='builderTest']").click();
+          await wait(() => item.sheet.element.querySelector(".test-result"));
+          const text = item.sheet.element.querySelector(".test-result").textContent;
+          assert.include(text,"critical","a natural 20 is previewed as a critical hit");
+          assert.deepEqual(actor.toObject(true).system,before,"nothing was spent or changed");
+          assert.notInclude(item.sheet.element.textContent,"WILDPATH.","every label is localized");
+        } finally { await item.sheet.close(); }
+      });
       it("the built-in Actions pack loads, and each of its Actions imports onto an Actor with a valid definition", async function () {
         const pack = game.packs.get("wildpath.actions");
         if (!pack) this.skip(); // The world loads a new pack only when it is launched again.

@@ -120,6 +120,7 @@
       "Automatic": "automatic",
       "Changes": "Health changes",
       "Payments": "Payments",
+      "Effects": "Effects",
       "Errors": "Errors",
       "WaitingOn": "Waiting on {user} ({type})",
       "AnswerFor": "Answer for them",
@@ -152,9 +153,26 @@
       "Tab": {
         "builder": "Builder",
         "rules": "Rules",
+        "test": "Test",
         "advanced": "Advanced",
         "description": "Description"
       }
+    },
+    "TEST": {
+      "IntroOwner": "Try the Action as {owner} would use it now, against a sample target; costs are checked against what {owner} has left. Nothing is changed or spent.",
+      "IntroSample": "Try the Action as a sample creature would use it (proficiency +2, spellcasting +3, every ability score 10), against a sample target. Nothing is changed or spent.",
+      "Legend": "The sample target and the dice",
+      "Health": "Hit Points",
+      "SaveBonus": "Save bonus",
+      "Dice": "Every d20 shows",
+      "Run": "Try it",
+      "Target": "Sample target",
+      "Status": {
+        "ready-to-commit": "would resolve like this",
+        "failed": "would fail",
+        "cancelled": "was cancelled"
+      },
+      "NothingChanged": "A dry run: d20s show the number above, other dice their average, and a choice takes its first option. Range and area shape are not checked."
     },
     "RULES": {
       "Intro": "What this gives its owner while it is active.",
@@ -242,6 +260,7 @@
       "Concentration": "Needs concentration",
       "Section": {
         "basics": "Basics",
+        "slot": "Spell slot",
         "costs": "Cost",
         "range": "Range",
         "targets": "Targets",
@@ -272,7 +291,8 @@
         "Unbalanced": "Unbalanced parentheses.",
         "DiceNotAllowed": "No dice here ({token}).",
         "UnknownWord": "Unknown word \"{word}\". Use prof, level, level(class), mod(ability), spellmod, resource(id), floor() or ceil().",
-        "UnknownAbility": "Unknown ability \"{ability}\". Use one of: {abilities}."
+        "UnknownAbility": "Unknown ability \"{ability}\". Use one of: {abilities}.",
+        "DiceOnly": "Only dice here, such as 1d6."
       },
       "Template": {
         "Legend": "Start from a template",
@@ -284,7 +304,18 @@
         "save": "Saving throw",
         "areaSave": "Area saving throw",
         "healing": "Healing",
+        "buff": "Buff (allies' rolls)",
+        "debuff": "Debuff (save or suffer)",
+        "aura": "Aura around the user",
+        "reaction": "Reaction (Shield)",
+        "legendary": "Legendary Action",
         "custom": "Custom"
+      },
+      "Slot": {
+        "Legend": "Does it use a spell slot?",
+        "None": "No (a cantrip, or free)",
+        "Level": "Level {level} or higher",
+        "Upcast": "Each slot level above adds"
       },
       "Basics": {
         "Legend": "What is it?",

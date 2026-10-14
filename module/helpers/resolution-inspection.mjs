@@ -1,9 +1,15 @@
 import { rollFormulaForRequest } from "./rolls.mjs";
 const formulaOf = rollFormulaForRequest;
-const nameOf = (target) => target?.name ?? target?.tokenId ?? target?.actorRef ?? "?";
+const refsOf = (target) => [target?.id, target?.uuid, target?.actorRef, target?.actorId, target?.tokenId].filter(Boolean);
 const DURABILITY = new Set(["durabilityDamage", "durabilityHealing", "durabilityAbsorption"]);
 export function inspectResolution(record) {
     const state = record.state ?? {};
+    // A plan's target may be a target context (the target one level down) or a bare reference; the resolution's own
+    // targets carry the names.
+    const known = [...(state.targets ?? []), ...(state.input?.targets ?? [])];
+    const nameOf = (target) => target?.name ?? target?.target?.name
+        ?? known.find(entry => entry.name && refsOf(entry).some(ref => refsOf(target).includes(ref)))?.name
+        ?? target?.tokenId ?? target?.actorRef ?? target?.uuid ?? "?";
     return {
         id: record.resolutionId ?? state.id ?? null,
         label: state.actionDefinition?.label ?? record.options?.action?.name ?? record.resolutionId ?? "",
@@ -28,6 +34,10 @@ export function inspectResolution(record) {
         changes: (state.mutationPlans ?? []).filter(plan => DURABILITY.has(String(plan.type))).map(plan => ({
             target: nameOf(plan.target ?? plan.plan?.target), type: String(plan.type).replace("durability", "").toLowerCase(),
             amount: plan.plan?.amount ?? null, from: plan.plan?.from ?? null, to: plan.plan?.to ?? null
+        })),
+        // Conditions and custom effects the Action applies; a condition's name is a lang key the template localizes.
+        effects: (state.mutationPlans ?? []).filter(plan => plan.type === "conditionEffect").map(plan => ({
+            target: nameOf(plan.target), effect: plan.definition?.name ?? plan.conditionId ?? "?", action: plan.action ?? null
         })),
         payments: (state.mutationPlans ?? []).filter(plan => plan.type === "resourcePayment").flatMap(plan => (plan.plan?.payments ?? []).map(payment => ({ payer: plan.payerRef ? "controller" : "source",
             resource: payment.resourceId ?? "", from: payment.from ?? null, to: payment.to ?? null }))),

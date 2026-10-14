@@ -25,6 +25,22 @@
       {{localize "WILDPATH.BUILDER.Basics.Spell"}}</label>
   </fieldset>
 
+  {{#if b.showSlot}}
+  <fieldset>
+    <legend>{{localize "WILDPATH.BUILDER.Slot.Legend"}}</legend>
+    <select name="wildpath.builder.slot.level" aria-label="{{localize "WILDPATH.BUILDER.Slot.Legend"}}">
+      {{selectOptions b.choices.slotLevels selected=b.values.slot.level}}</select>
+    {{#if b.showUpcast}}
+      {{#if b.values.upcastReadOnly}}<span class="hint">{{localize "WILDPATH.BUILDER.EditInAdvanced"}}</span>{{else}}
+      <label>{{localize "WILDPATH.BUILDER.Slot.Upcast"}}
+        <input type="text" class="formula" name="wildpath.builder.slot.upcast" value="{{b.values.slot.upcast}}" placeholder="1d6"
+               {{#if b.upcastError}}aria-invalid="true"{{/if}}></label>
+      {{#if b.upcastError}}<span class="field-error">{{b.upcastError}}</span>{{/if}}
+      {{/if}}
+    {{/if}}
+  </fieldset>
+  {{/if}}
+
   <fieldset>
     <legend>{{localize "WILDPATH.BUILDER.Costs.Legend"}}</legend>
     {{#if b.values.costsReadOnly}}
