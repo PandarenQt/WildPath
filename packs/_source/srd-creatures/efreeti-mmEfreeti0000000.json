@@ -1113,7 +1113,6 @@
           "conversion": {
             "notes": [
               "not automated (utility): using it spends its cost; its description says the rest",
-              "targets: count \"@item.level - 2\" not converted",
               "effect: transformed is not a WildPath condition yet",
               "concentration: nothing it sustains was converted"
             ]
@@ -1233,7 +1232,6 @@
           "conversion": {
             "notes": [
               "not automated (utility): using it spends its cost; its description says the rest",
-              "targets: count \"@item.level - 1\" not converted",
               "effect: invisible is not a WildPath condition yet",
               "concentration: nothing it sustains was converted"
             ]
@@ -1582,21 +1580,7 @@
           "save": {
             "ability": "agility",
             "dc": {
-              "valueExpression": {
-                "type": "add",
-                "terms": [
-                  {
-                    "type": "constant",
-                    "value": 8
-                  },
-                  {
-                    "type": "proficiency-bonus"
-                  },
-                  {
-                    "type": "spellcasting-modifier"
-                  }
-                ]
-              }
+              "value": 16
             }
           },
           "damage": [
@@ -1752,21 +1736,7 @@
           "save": {
             "ability": "agility",
             "dc": {
-              "valueExpression": {
-                "type": "add",
-                "terms": [
-                  {
-                    "type": "constant",
-                    "value": 8
-                  },
-                  {
-                    "type": "proficiency-bonus"
-                  },
-                  {
-                    "type": "spellcasting-modifier"
-                  }
-                ]
-              }
+              "value": 16
             }
           },
           "damage": [
@@ -1946,11 +1916,9 @@
           "Elementalism: area: 5-ft cube is not supported; the user picks the targets",
           "Elementalism: area: 1-ft cube is not supported; the user picks the targets",
           "Gaseous Form: not automated (utility): using it spends its cost; its description says the rest",
-          "Gaseous Form: targets: count \"@item.level - 2\" not converted",
           "Gaseous Form: effect: transformed is not a WildPath condition yet",
           "Gaseous Form: concentration: nothing it sustains was converted",
           "Invisibility: not automated (utility): using it spends its cost; its description says the rest",
-          "Invisibility: targets: count \"@item.level - 1\" not converted",
           "Invisibility: effect: invisible is not a WildPath condition yet",
           "Invisibility: concentration: nothing it sustains was converted",
           "Major Image: not automated (summon): using it spends its cost; its description says the rest",

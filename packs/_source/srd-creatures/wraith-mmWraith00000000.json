@@ -152,9 +152,18 @@
             {
               "id": "damage-1",
               "expression": {
-                "type": "dice",
-                "number": 4,
-                "faces": 8
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "dice",
+                    "number": 4,
+                    "faces": 8
+                  },
+                  {
+                    "type": "ability-modifier",
+                    "ability": "agility"
+                  }
+                ]
               },
               "damageType": "necrotic",
               "provenance": "additional"
@@ -176,9 +185,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "damage 1: bonus \"@abilities.dex.mod\" not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -296,7 +303,6 @@
       },
       "conversion": {
         "notes": [
-          "Life Drain: damage 1: bonus \"@abilities.dex.mod\" not converted",
           "Create Specter: not automated (summon): using it spends its cost; its description says the rest",
           "condition immunities (charmed, exhaustion, grappled, paralyzed, petrified, poisoned, prone, restrained, unconscious) not converted"
         ]

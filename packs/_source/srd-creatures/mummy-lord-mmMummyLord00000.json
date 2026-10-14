@@ -829,21 +829,7 @@
           "save": {
             "ability": "fortitude",
             "dc": {
-              "valueExpression": {
-                "type": "add",
-                "terms": [
-                  {
-                    "type": "constant",
-                    "value": 8
-                  },
-                  {
-                    "type": "proficiency-bonus"
-                  },
-                  {
-                    "type": "spellcasting-modifier"
-                  }
-                ]
-              }
+              "value": 17
             }
           },
           "damage": [
@@ -902,7 +888,20 @@
                 "spell-slot.8": 8,
                 "spell-slot.9": 9
               },
-              "effects": []
+              "effects": [
+                {
+                  "type": "scaleDamage",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 6,
+                  "componentIds": [
+                    "damage-1"
+                  ],
+                  "dice": {
+                    "number": 1,
+                    "faces": 6
+                  }
+                }
+              ]
             }
           ],
           "label": "Harm"
@@ -969,21 +968,7 @@
           "save": {
             "ability": "fortitude",
             "dc": {
-              "valueExpression": {
-                "type": "add",
-                "terms": [
-                  {
-                    "type": "constant",
-                    "value": 8
-                  },
-                  {
-                    "type": "proficiency-bonus"
-                  },
-                  {
-                    "type": "spellcasting-modifier"
-                  }
-                ]
-              }
+              "value": 17
             }
           },
           "damage": [
@@ -1427,8 +1412,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "targets: count \"@item.level\" not converted"
+              "not automated (save): using it spends its cost; its description says the rest"
             ]
           }
         }
@@ -1627,7 +1611,6 @@
           "Whirlwind of Sand: effect: \"+2 AC\" (its own changes) not converted",
           "Dread Command: not automated (cast): using it spends its cost; its description says the rest",
           "Command: not automated (save): using it spends its cost; its description says the rest",
-          "Command: targets: count \"@item.level\" not converted",
           "Necrotic Strike: not automated (utility): using it spends its cost; its description says the rest",
           "Dreadful Glare: effect: paralyzed is not a WildPath condition yet",
           "vulnerabilities (fire) not converted",

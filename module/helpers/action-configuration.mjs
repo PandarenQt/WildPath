@@ -913,6 +913,10 @@ function applyConfigurationEffect({definition, effect, selection, selectionsById
       return applyAddCostEffect({definition, effect, selection});
     case "scale-damage":
       return applyScaleDamageEffect({definition, effect, selection, selectionsById, context});
+    case "scale-healing":
+      return applyScaleDamageEffect({definition, effect, selection, selectionsById, context, collection: "healing"});
+    case "scale-targets":
+      return applyScaleTargetsEffect({definition, effect, selection, selectionsById});
     case "replace-damage-type":
       return applyReplaceDamageTypeEffect({definition, effect, selection, selectionsById});
     default:
@@ -929,6 +933,12 @@ function normalizeEffectType(type) {
     case "scaleDamage":
     case "scale-damage":
       return "scale-damage";
+    case "scaleHealing":
+    case "scale-healing":
+      return "scale-healing";
+    case "scaleTargets":
+    case "scale-targets":
+      return "scale-targets";
     case "replaceDamageType":
     case "setDamageType":
     case "replace-damage-type":
@@ -952,11 +962,30 @@ function applyAddCostEffect({definition, effect, selection}) {
   };
 }
 
-function applyScaleDamageEffect({definition, effect, selection, selectionsById}) {
+/** The casting level a scaling effect reads: its own, or the level its choice (a spell slot) selected. */
+function scalingLevel(effect, selection, selectionsById) {
   const levelChoiceId = effect.levelChoiceId ?? effect.choiceId ?? effect.fromChoice ?? selection.id;
-  const selectedLevel = finiteNumber(effect.selectedLevel ?? effect.level)
+  return finiteNumber(effect.selectedLevel ?? effect.level)
     ?? finiteNumber(selectionsById.get(levelChoiceId)?.metadata?.castingLevel)
     ?? finiteNumber(selectionsById.get(levelChoiceId)?.value);
+}
+
+/** A spell that targets more creatures per slot level above its own (2024 Hold Person, Scorching Ray's rays). */
+function applyScaleTargetsEffect({definition, effect, selection, selectionsById}) {
+  const selectedLevel = scalingLevel(effect, selection, selectionsById);
+  const baseLevel = finiteNumber(effect.baseLevel ?? effect.minimumLevel ?? effect.fromLevel) ?? 0;
+  const added = Math.max((selectedLevel ?? baseLevel) - baseLevel, 0) * (finiteNumber(effect.perLevel) ?? 1);
+  if ( !added || !definition.targeting ) {
+    return {ok: true, trace: [appliedTrace(selection, "target-scaling-noop", {selectedLevel, baseLevel})], errors: []};
+  }
+  const before = finiteNumber(definition.targeting.count) ?? 1;
+  definition.targeting = {...definition.targeting, type: definition.targeting.type === "single" ? "multiple" : definition.targeting.type,
+    count: before + added};
+  return {ok: true, trace: [appliedTrace(selection, "scaled-targets", {before, after: before + added, selectedLevel, baseLevel})], errors: []};
+}
+
+function applyScaleDamageEffect({definition, effect, selection, selectionsById, collection="damage"}) {
+  const selectedLevel = scalingLevel(effect, selection, selectionsById);
   if ( selectedLevel == null ) return {
     ok: false,
     trace: [],
@@ -985,7 +1014,7 @@ function applyScaleDamageEffect({definition, effect, selection, selectionsById})
     };
   }
 
-  const matches = matchingDamageComponents(definition.damage, effect);
+  const matches = matchingDamageComponents(definition[collection] ?? [], effect);
   const trace = [];
   for ( const component of matches ) {
     const before = clonePlain(component.expression);
@@ -995,7 +1024,7 @@ function applyScaleDamageEffect({definition, effect, selection, selectionsById})
       configurationChanges: [
         ...normalizeArray(component.metadata?.configurationChanges),
         {
-          type: "scale-damage",
+          type: collection === "healing" ? "scale-healing" : "scale-damage",
           choiceId: selection.id,
           source: clonePlain(selection.source),
           before,
@@ -1006,7 +1035,7 @@ function applyScaleDamageEffect({definition, effect, selection, selectionsById})
         }
       ]
     };
-    trace.push(appliedTrace(selection, "scaled-damage", {
+    trace.push(appliedTrace(selection, collection === "healing" ? "scaled-healing" : "scaled-damage", {
       componentId: component.id,
       before,
       after: component.expression,

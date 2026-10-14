@@ -288,9 +288,18 @@
             {
               "id": "healing-1",
               "expression": {
-                "type": "dice",
-                "number": 1,
-                "faces": 10
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "dice",
+                    "number": 1,
+                    "faces": 10
+                  },
+                  {
+                    "type": "ability-modifier",
+                    "ability": "might"
+                  }
+                ]
               },
               "healingType": "healing"
             }
@@ -327,8 +336,7 @@
           },
           "conversion": {
             "notes": [
-              "uses: Recharge 5–6 is not rolled; refill the pool by hand",
-              "healing: bonus \"@abilities.str.mod\" not converted"
+              "uses: Recharge 5–6 is not rolled; refill the pool by hand"
             ]
           }
         }
@@ -351,7 +359,6 @@
         "notes": [
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
           "Deflect Missile: uses: Recharge 5–6 is not rolled; refill the pool by hand",
-          "Deflect Missile: healing: bonus \"@abilities.str.mod\" not converted",
           "Deflect Missile: \"Save\" is passive or triggered: not automated"
         ]
       }

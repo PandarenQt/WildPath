@@ -129,7 +129,14 @@
             "spell-slot.8": 8,
             "spell-slot.9": 9
           },
-          "effects": []
+          "effects": [
+            {
+              "type": "scaleTargets",
+              "levelChoiceId": "spell-slot",
+              "baseLevel": 2,
+              "perLevel": 1
+            }
+          ]
         }
       ],
       "label": "Blindness/Deafness"
@@ -149,7 +156,6 @@
       },
       "conversion": {
         "notes": [
-          "targets: count \"@item.level - 1\" not converted",
           "effect: deafened is not a WildPath condition yet"
         ]
       }

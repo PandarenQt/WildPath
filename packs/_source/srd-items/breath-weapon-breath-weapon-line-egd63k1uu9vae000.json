@@ -54,7 +54,7 @@
       "conversion": {
         "notes": [
           "not automated (save): using it spends its cost; its description says the rest",
-          "save: dex DC (con) not converted"
+          "damage 1: custom formula \"@scale.dragonborn.breath\" not converted"
         ]
       }
     }

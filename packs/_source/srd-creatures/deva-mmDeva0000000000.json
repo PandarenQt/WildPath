@@ -799,7 +799,6 @@
           "conversion": {
             "notes": [
               "activation: 1 hour is not an action-economy cost",
-              "healing: more healing at higher levels not converted",
               "effect: \"Resurrection Sickness (Day 1)\" (its own changes) not converted",
               "effect: \"Resurrection Sickness (Day 2)\" (its own changes) not converted",
               "effect: \"Resurrection Sickness (Day 3)\" (its own changes) not converted",
@@ -1055,7 +1054,20 @@
                 "spell-slot.8": 8,
                 "spell-slot.9": 9
               },
-              "effects": []
+              "effects": [
+                {
+                  "type": "scaleHealing",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 1,
+                  "componentIds": [
+                    "healing-1"
+                  ],
+                  "dice": {
+                    "number": 2,
+                    "faces": 8
+                  }
+                }
+              ]
             }
           ],
           "label": "Cure Wounds"
@@ -1074,9 +1086,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "healing: more healing at higher levels not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -1256,14 +1266,12 @@
           "Commune: not automated (utility): using it spends its cost; its description says the rest",
           "Commune: activation: 1 minute is not an action-economy cost",
           "Raise Dead: activation: 1 hour is not an action-economy cost",
-          "Raise Dead: healing: more healing at higher levels not converted",
           "Raise Dead: effect: \"Resurrection Sickness (Day 1)\" (its own changes) not converted",
           "Raise Dead: effect: \"Resurrection Sickness (Day 2)\" (its own changes) not converted",
           "Raise Dead: effect: \"Resurrection Sickness (Day 3)\" (its own changes) not converted",
           "Raise Dead: effect: \"Resurrection Sickness (Day 4)\" (its own changes) not converted",
           "Divine Aid: not SRD 5.2 (CC-BY-4.0)",
           "Lesser Restoration: not automated (utility): using it spends its cost; its description says the rest",
-          "Cure Wounds: healing: more healing at higher levels not converted",
           "Remove Curse: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }

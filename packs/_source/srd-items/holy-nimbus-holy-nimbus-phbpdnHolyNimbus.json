@@ -22,6 +22,31 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "ability-modifier",
+                "ability": "presence"
+              },
+              {
+                "type": "proficiency-bonus"
+              }
+            ]
+          },
+          "damageType": "radiant",
+          "provenance": "additional"
+        }
+      ],
       "label": "Holy Nimbus (Holy Nimbus)"
     },
     "ruleElements": [
@@ -53,10 +78,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (damage): using it spends its cost; its description says the rest",
-          "damage 1: custom formula \"@abilities.cha.mod + @prof\" not converted"
-        ]
+        "notes": []
       }
     }
   }

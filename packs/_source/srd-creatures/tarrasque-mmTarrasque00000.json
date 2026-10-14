@@ -441,6 +441,55 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "cone",
+            "size": {
+              "value": 150,
+              "unit": "ft"
+            }
+          },
+          "save": {
+            "ability": "fortitude",
+            "dc": {
+              "valueExpression": {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "constant",
+                    "value": 8
+                  },
+                  {
+                    "type": "spellcasting-modifier"
+                  },
+                  {
+                    "type": "proficiency-bonus"
+                  }
+                ]
+              }
+            }
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 12,
+                "faces": 12
+              },
+              "damageType": "thunder",
+              "provenance": "additional",
+              "saveOutcomePolicy": {
+                "success": "half",
+                "failure": "full"
+              }
+            }
+          ],
           "label": "Thunderous Bellow"
         },
         "ruleElements": [
@@ -473,9 +522,9 @@
           },
           "conversion": {
             "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
               "uses: Recharge 6 is not rolled; refill the pool by hand",
-              "save: con DC (8 + @mod + @prof) not converted"
+              "effect: deafened is not a WildPath condition yet",
+              "effect: frightened is not a WildPath condition yet"
             ]
           }
         }
@@ -774,9 +823,9 @@
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
           "Bite: effect: grappled is not a WildPath condition yet",
           "Bite: \"Escape Check\" is passive or triggered: not automated",
-          "Thunderous Bellow: not automated (save): using it spends its cost; its description says the rest",
           "Thunderous Bellow: uses: Recharge 6 is not rolled; refill the pool by hand",
-          "Thunderous Bellow: save: con DC (8 + @mod + @prof) not converted",
+          "Thunderous Bellow: effect: deafened is not a WildPath condition yet",
+          "Thunderous Bellow: effect: frightened is not a WildPath condition yet",
           "Swallow: effect: coverTotal is not a WildPath condition yet",
           "Swallow: \"Damage: Swallowed\" is passive or triggered: not automated",
           "Swallow: \"Regurgitate: Save\" is passive or triggered: not automated",

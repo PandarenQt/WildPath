@@ -54,6 +54,14 @@ itself is `dnd5e-to-wildpath.mjs`.
   - A creature keeps its abilities, Hit Points, AC (natural, or worn armor and shield), Speeds and size.
     Resistances, immunities and Legendary Actions go on a Traits feature, and an ability-based save DC is fixed
     from its Challenge Rating.
+- **Formulas and scaling (2026-10-14).** dnd5e roll data translates into WildPath formulas (`formulaExpression`):
+  - ability modifiers, proficiency, class and character levels, `max`/`min`/`floor`/`ceil`, and spell save DCs;
+  - class scale values as tables on the class level (Sneak Attack's dice, Martial Arts' die).
+  - Cantrips are tables of dice on character level, which the engine resolves before rolling.
+  - A higher slot adds damage and healing dice and targets (`scaleDamage`, `scaleHealing`, `scaleTargets`).
+- **Older dnd5e data.** `upgradeLegacy` reads items stored before activities (dnd5e 3.x and earlier, as 2014
+  modules are), so 2014 content converts like the rest. A save's damage is halved on a success there, as dnd5e's
+  own migration assumes.
 - **Three kinds of Item.** Each converted Item is one of these:
   - **Automated:** an Action that resolves fully.
   - **Manual:** something the creature uses that WildPath cannot automate, such as Multiattack, Parry, or a spell

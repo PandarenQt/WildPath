@@ -1084,7 +1084,6 @@
           "conversion": {
             "notes": [
               "not automated (save): using it spends its cost; its description says the rest",
-              "targets: count \"@item.level - 4\" not converted",
               "effect: paralyzed is not a WildPath condition yet",
               "concentration: nothing it sustains was converted"
             ]
@@ -1502,21 +1501,7 @@
           "save": {
             "ability": "agility",
             "dc": {
-              "valueExpression": {
-                "type": "add",
-                "terms": [
-                  {
-                    "type": "constant",
-                    "value": 8
-                  },
-                  {
-                    "type": "proficiency-bonus"
-                  },
-                  {
-                    "type": "spellcasting-modifier"
-                  }
-                ]
-              }
+              "value": 23
             }
           },
           "damage": [
@@ -1614,6 +1599,18 @@
                   "dice": {
                     "number": 1,
                     "faces": 10
+                  }
+                },
+                {
+                  "type": "scaleDamage",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 4,
+                  "componentIds": [
+                    "damage-2"
+                  ],
+                  "dice": {
+                    "number": 1,
+                    "faces": 6
                   }
                 }
               ]
@@ -1933,7 +1930,6 @@
           "conversion": {
             "notes": [
               "not automated (save): using it spends its cost; its description says the rest",
-              "targets: count \"@item.level - 4\" not converted",
               "effect: paralyzed is not a WildPath condition yet",
               "concentration: nothing it sustains was converted"
             ]
@@ -2021,7 +2017,6 @@
           "Detect Magic: effect: \"Detect Magic\" (its own changes) not converted",
           "Detect Magic: concentration: nothing it sustains was converted",
           "Hold Monster: not automated (save): using it spends its cost; its description says the rest",
-          "Hold Monster: targets: count \"@item.level - 4\" not converted",
           "Hold Monster: effect: paralyzed is not a WildPath condition yet",
           "Hold Monster: concentration: nothing it sustains was converted",
           "Ice Knife: \"Shard Explosion\" is passive or triggered: not automated",
@@ -2035,7 +2030,6 @@
           "Zone of Truth: not automated (save): using it spends its cost; its description says the rest",
           "Zone of Truth: effect: \"Cannot Lie\" (its own changes) not converted",
           "Hold Monster: not automated (save): using it spends its cost; its description says the rest",
-          "Hold Monster: targets: count \"@item.level - 4\" not converted",
           "Hold Monster: effect: paralyzed is not a WildPath condition yet",
           "Hold Monster: concentration: nothing it sustains was converted"
         ]

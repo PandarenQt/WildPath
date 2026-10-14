@@ -1531,21 +1531,7 @@
           "save": {
             "ability": "agility",
             "dc": {
-              "valueExpression": {
-                "type": "add",
-                "terms": [
-                  {
-                    "type": "constant",
-                    "value": 8
-                  },
-                  {
-                    "type": "proficiency-bonus"
-                  },
-                  {
-                    "type": "spellcasting-modifier"
-                  }
-                ]
-              }
+              "value": 14
             }
           },
           "damage": [
@@ -1774,7 +1760,6 @@
           "conversion": {
             "notes": [
               "not automated (utility): using it spends its cost; its description says the rest",
-              "targets: count \"@item.level - 1\" not converted",
               "effect: invisible is not a WildPath condition yet",
               "concentration: nothing it sustains was converted"
             ]
@@ -1821,21 +1806,7 @@
           "save": {
             "ability": "fortitude",
             "dc": {
-              "valueExpression": {
-                "type": "add",
-                "terms": [
-                  {
-                    "type": "constant",
-                    "value": 8
-                  },
-                  {
-                    "type": "proficiency-bonus"
-                  },
-                  {
-                    "type": "spellcasting-modifier"
-                  }
-                ]
-              }
+              "value": 14
             }
           },
           "damage": [
@@ -2043,7 +2014,6 @@
           "conversion": {
             "notes": [
               "not automated (utility): using it spends its cost; its description says the rest",
-              "targets: count \"@item.level - 2\" not converted",
               "effect: \"Flight\" (its own changes) not converted",
               "concentration: nothing it sustains was converted"
             ]
@@ -2084,11 +2054,9 @@
           "Mage Hand: not automated (summon): using it spends its cost; its description says the rest",
           "Prestidigitation: not automated (utility): using it spends its cost; its description says the rest",
           "Invisibility: not automated (utility): using it spends its cost; its description says the rest",
-          "Invisibility: targets: count \"@item.level - 1\" not converted",
           "Invisibility: effect: invisible is not a WildPath condition yet",
           "Invisibility: concentration: nothing it sustains was converted",
           "Fly: not automated (utility): using it spends its cost; its description says the rest",
-          "Fly: targets: count \"@item.level - 2\" not converted",
           "Fly: effect: \"Flight\" (its own changes) not converted",
           "Fly: concentration: nothing it sustains was converted"
         ]

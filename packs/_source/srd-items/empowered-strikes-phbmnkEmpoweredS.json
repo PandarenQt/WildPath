@@ -18,6 +18,63 @@
           }
         ]
       },
+      "attack": {
+        "type": "melee",
+        "statistic": "weapon",
+        "defenseKey": "ac",
+        "proficient": true,
+        "ability": "agility"
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "table",
+                "key": {
+                  "type": "class-level",
+                  "class": "monk"
+                },
+                "rows": {
+                  "1": {
+                    "type": "dice",
+                    "number": 1,
+                    "faces": 6
+                  },
+                  "5": {
+                    "type": "dice",
+                    "number": 1,
+                    "faces": 8
+                  },
+                  "11": {
+                    "type": "dice",
+                    "number": 1,
+                    "faces": 10
+                  },
+                  "17": {
+                    "type": "dice",
+                    "number": 1,
+                    "faces": 12
+                  }
+                }
+              },
+              {
+                "type": "spellcasting-modifier"
+              }
+            ]
+          },
+          "damageType": "bludgeoning",
+          "provenance": "additional"
+        }
+      ],
       "label": "Empowered Strikes"
     },
     "ruleElements": []
@@ -35,8 +92,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (attack): using it spends its cost; its description says the rest",
-          "damage 1: custom formula \"@scale.monk.die + @mod\" not converted"
+          "damage 1: a choice of bludgeoning/force uses bludgeoning"
         ]
       }
     }

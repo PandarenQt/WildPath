@@ -593,7 +593,6 @@
           "conversion": {
             "notes": [
               "not automated (save): using it spends its cost; its description says the rest",
-              "targets: count \"@item.level\" not converted",
               "effect: charmed is not a WildPath condition yet"
             ]
           }
@@ -804,8 +803,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "targets: count \"@item.level\" not converted"
+              "not automated (save): using it spends its cost; its description says the rest"
             ]
           }
         }
@@ -960,12 +958,10 @@
           "Charm: not automated (cast): using it spends its cost; its description says the rest",
           "Charm: uses: Recharge 5–6 is not rolled; refill the pool by hand",
           "Charm Person: not automated (save): using it spends its cost; its description says the rest",
-          "Charm Person: targets: count \"@item.level\" not converted",
           "Charm Person: effect: charmed is not a WildPath condition yet",
           "Shape-Shift: not automated (summon): using it spends its cost; its description says the rest",
           "Beguile: not automated (cast): using it spends its cost; its description says the rest",
           "Command: not automated (save): using it spends its cost; its description says the rest",
-          "Command: targets: count \"@item.level\" not converted",
           "Deathless Strike: not automated (utility): using it spends its cost; its description says the rest",
           "Vampire Weakness: \"Damage: Running Water\" is passive or triggered: not automated",
           "Vampire Weakness: \"Staked to the Heart\" is passive or triggered: not automated",

@@ -107,7 +107,20 @@
             "spell-slot.8": 8,
             "spell-slot.9": 9
           },
-          "effects": []
+          "effects": [
+            {
+              "type": "scaleHealing",
+              "levelChoiceId": "spell-slot",
+              "baseLevel": 2,
+              "componentIds": [
+                "healing-1"
+              ],
+              "dice": {
+                "number": 1,
+                "faces": 8
+              }
+            }
+          ]
         }
       ],
       "label": "Prayer of Healing"
@@ -128,7 +141,6 @@
       "conversion": {
         "notes": [
           "activation: 10 minute is not an action-economy cost",
-          "healing: more healing at higher levels not converted",
           "effect: \"Healed by Prayer\" (its own changes) not converted"
         ]
       }

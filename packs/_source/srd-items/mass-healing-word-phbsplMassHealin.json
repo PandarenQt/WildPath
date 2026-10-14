@@ -113,7 +113,20 @@
             "spell-slot.8": 8,
             "spell-slot.9": 9
           },
-          "effects": []
+          "effects": [
+            {
+              "type": "scaleHealing",
+              "levelChoiceId": "spell-slot",
+              "baseLevel": 3,
+              "componentIds": [
+                "healing-1"
+              ],
+              "dice": {
+                "number": 1,
+                "faces": 4
+              }
+            }
+          ]
         }
       ],
       "label": "Mass Healing Word"
@@ -132,9 +145,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "healing: more healing at higher levels not converted"
-        ]
+        "notes": []
       }
     }
   }

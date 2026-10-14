@@ -67,3 +67,12 @@ test("bad formulas name what is wrong and where", () => {
   assert.equal(error("1 + + 2"), "Unexpected");
   assert.equal(error("2 $ 3"), "Unexpected");
 });
+
+test("min, max and caller-supplied variables", () => {
+  assert.deepEqual(parse("max(1, mod(wits))"), {type: "max", terms: [constant(1), {type: "ability-modifier", ability: "wits"}]});
+  assert.deepEqual(parse("min(level, 5) + 1"), {type: "add", terms: [{type: "min", terms: [{type: "character-level"}, constant(5)]}, constant(1)]});
+  const table = {type: "table", key: {type: "class-level", class: "rogue"}, rows: {1: dice(1, 6), 3: dice(2, 6)}};
+  assert.deepEqual(parse("sneak + 2", {variables: {sneak: table}}), {type: "add", terms: [table, constant(2)]});
+  for ( const text of ["max(1, mod(wits))", "min(level, 5) + 1"] ) assert.deepEqual(parse(formatFormula(parse(text))), parse(text));
+  assert.equal(parseFormula("max(1,").ok, false);
+});

@@ -11,6 +11,9 @@
  * - What WildPath cannot automate is listed in `flags.wildpath.conversion.notes`. It is never approximated.
  */
 
+import {parseFormula} from "../../module/helpers/formula.mjs";
+import {evaluateValueExpression} from "../../module/helpers/value-expressions.mjs";
+
 /** dnd5e ability keys to WildPath's. */
 export const ABILITY_MAP = Object.freeze({str: "might", dex: "agility", con: "fortitude", int: "intellect", wis: "wits", cha: "presence"});
 /** dnd5e statuses WildPath has conditions for. */
@@ -48,28 +51,65 @@ const add = terms => (terms.length === 1 ? terms[0] : {type: "add", terms});
 
 /**
  * A dnd5e roll-data formula as a WildPath ValueExpression, or null when it uses something WildPath cannot read.
- * `@mod` is the spellcasting modifier for a spell and the ability modifier otherwise.
+ * - Ability modifiers, the proficiency bonus, class and character levels and `max`/`min`/`floor`/`ceil` translate.
+ * - A class scale value becomes a table on its class level: numbers, or dice (Sneak Attack, Martial Arts).
+ * - `@mod` is the spellcasting modifier for a spell and the ability modifier otherwise.
+ * - `@item.level` is `castLevel` when given (a spell's level, to work out what a higher slot changes).
+ * - `@attributes.spell.dc` is `spellDC` when given (a creature's), else the caster's own spell save DC.
  */
-export function formulaExpression(formula, {spell=false, ability=null, scales={}}={}) {
-  const text = String(formula ?? "").trim();
+export function formulaExpression(formula, {spell=false, ability=null, scales={}, castLevel=null, challenge=null, spellDC=null}={}) {
+  let text = String(formula ?? "").trim();
   if ( !text ) return null;
-  if ( /^-?\d+$/.test(text) ) return {type: "constant", value: Number(text)};
-  if ( text === "@prof" ) return {type: "proficiency-bonus"};
-  if ( text === "@mod" ) return spell || !ability ? {type: "spellcasting-modifier"} : {type: "ability-modifier", ability};
-  const classLevels = /^@classes\.([a-z-]+)\.levels$/.exec(text);
-  if ( classLevels ) return {type: "class-level", class: classLevels[1]};
-  const scale = /^@scale\.([a-z-]+)\.([a-z0-9-]+)$/.exec(text);
-  if ( scale && scales[`${scale[1]}.${scale[2]}`] ) {
-    return {type: "table", key: {type: "class-level", class: scale[1]}, rows: {...scales[`${scale[1]}.${scale[2]}`]}};
-  }
-  return null;
+  const variables = {};
+  const variable = expression => {
+    const name = `scale${Object.keys(variables).length}x`;
+    variables[name] = expression;
+    return ` ${name} `;
+  };
+  text = text
+    .replace(/(\d*)@scale\.([a-z0-9-]+)\.([a-z0-9-]+)(?:\.(value|die|faces|number|formula))?/gi, (match, count, owner, id, part) => {
+      const rows = scales[`${owner}.${id}`];
+      if ( !rows ) return match;
+      const row = value => {
+        if ( typeof value !== "object" ) return value;
+        if ( part === "number" ) return value.number ?? 1;
+        if ( part === "faces" ) return value.faces;
+        return dice(Number(count) || (part === "die" ? 1 : (value.number ?? 1)), value.faces);
+      };
+      return variable({type: "table", key: {type: "class-level", class: owner}, rows: Object.fromEntries(Object.entries(rows)
+        .map(([level, value]) => [level, row(value)]))});
+    })
+    // A creature's spell save DC is its number; a character's is 8 + proficiency + spellcasting modifier.
+    .replace(/@attributes\.spell\.dc/g, spellDC == null ? "(8 + prof + spellmod)" : String(spellDC))
+    .replace(/@abilities\.(str|dex|con|int|wis|cha)\.mod/gi, (_, key) => `mod(${ABILITY_MAP[key.toLowerCase()]})`)
+    .replace(/@mod\b/g, (spell || !ability) ? "spellmod" : `mod(${ability})`)
+    .replace(/@(?:attributes\.)?prof\b/g, "prof")
+    .replace(/@classes\.([a-z0-9-]+)\.levels/gi, (_, id) => `level(${id.toLowerCase()})`)
+    .replace(/@details\.level/g, "level")
+    .replace(/@item\.level/g, castLevel == null ? "@item.level" : String(castLevel))
+    .replace(/@details\.cr/g, challenge == null ? "@details.cr" : String(challenge));
+  if ( text.includes("@") ) return null;
+  const result = parseFormula(text, {variables});
+  return result.ok ? result.expression : null;
 }
+
+/** The expression with every dice count multiplied by `factor` (a cantrip's dice at 5th, 11th and 17th level). */
+function multiplyDice(expression, factor) {
+  if ( !expression || (typeof expression !== "object") ) return expression;
+  if ( expression.type === "dice" ) return {...expression, number: (expression.number ?? 1) * factor};
+  return {...expression, ...(Array.isArray(expression.terms) ? {terms: expression.terms.map(term => multiplyDice(term, factor))} : {})};
+}
+
+/** 2024 cantrips: more dice at character levels 5, 11 and 17. */
+const cantripTable = expression => ({type: "table", key: {type: "character-level"},
+  rows: {1: expression, 5: multiplyDice(expression, 2), 11: multiplyDice(expression, 3), 17: multiplyDice(expression, 4)}});
 
 /** A dnd5e damage or healing part as a ValueExpression; notes what it leaves out. */
 function partExpression(part, {spell, ability, scales, notes, label}) {
   if ( part?.custom?.enabled ) {
-    notes.push(`${label}: custom formula "${part.custom.formula}" not converted`);
-    return null;
+    const custom = formulaExpression(part.custom.formula, {spell, ability, scales});
+    if ( !custom ) notes.push(`${label}: custom formula "${part.custom.formula}" not converted`);
+    return custom;
   }
   const count = number(part?.number);
   const faces = number(part?.denomination);
@@ -109,7 +149,7 @@ function rangeOf({activity, system, document, attack}) {
 }
 
 /** Targeting and area; an unsupported shape leaves the targets to the user and is noted. */
-function targetingOf({activity, system, notes}) {
+function targetingOf({activity, system, notes, level=0, scales={}}) {
   const target = pick(activity, system, "target");
   const template = target.template ?? {};
   const affects = target.affects ?? {};
@@ -126,10 +166,77 @@ function targetingOf({activity, system, notes}) {
     return {targeting: {type: "multiple", required: true, count: 20}};
   }
   if ( (affects.type === "self") || (rangeUnits === "self") ) return {targeting: {type: "self"}};
-  const count = number(affects.count);
-  if ( (affects.count && (count == null)) ) notes.push(`targets: count "${affects.count}" not converted`);
-  if ( count && (count > 1) ) return {targeting: {type: "multiple", required: true, count}};
+  // A count may be a formula, and grow with the spell's level ("@item.level - 1"): its value at the spell's own level,
+  // and what each level above adds.
+  const at = castLevel => {
+    const expression = formulaExpression(affects.count, {scales, castLevel});
+    const value = expression ? evaluateValueExpression(expression, {}) : null;
+    return value?.ok ? value.value : (expression ?? null);
+  };
+  const count = number(affects.count) ?? (affects.count ? at(level) : null);
+  const perLevel = (typeof count === "number") && String(affects.count).includes("@item.level") && (typeof at(level + 1) === "number")
+    ? at(level + 1) - count : 0;
+  if ( affects.count && (count == null) ) notes.push(`targets: count "${affects.count}" not converted`);
+  if ( count && (typeof count === "object") ) return {targeting: {type: "multiple", required: true, count}};
+  if ( (count > 1) || perLevel ) return {targeting: {type: (count > 1) ? "multiple" : "single", required: true, count: Math.max(count, 1)}, perLevel};
   return {targeting: {type: "single", required: true, count: 1}};
+}
+
+const LEGACY_ACTIONS = Object.freeze({mwak: ["attack", "melee", "weapon"], rwak: ["attack", "ranged", "weapon"],
+  msak: ["attack", "melee", "spell"], rsak: ["attack", "ranged", "spell"], save: ["save"], heal: ["heal"], abil: ["check"],
+  util: ["utility"], other: ["utility"], summ: ["summon"], ench: ["enchant"]});
+const LEGACY_PERIODS = Object.freeze({sr: "sr", lr: "lr", day: "lr", dawn: "lr", dusk: "lr"});
+const TEMPLATE_TYPES = new Set(["sphere", "cone", "line", "cube", "cylinder", "radius", "square", "wall"]);
+
+/**
+ * An item in dnd5e's older data (before activities, dnd5e 3.x and earlier, as 2014 modules store it) in the shape the
+ * converter reads: one activity from its action type, damage parts from their formulas, uses, Recharge, the template,
+ * and concentration from its components. A save's damage is halved on a success, as dnd5e's own migration assumes.
+ */
+export function upgradeLegacy(document) {
+  const system = document.system ?? {};
+  if ( system.activities || (system.actionType === undefined) ) return document;
+  const upgraded = structuredClone(document);
+  const s = upgraded.system;
+  const [type, attackType, classification] = LEGACY_ACTIONS[system.actionType] ?? (system.activation?.type ? ["utility"] : []);
+  const parts = (system.damage?.parts ?? []).map(([formula, damageType]) => ({custom: {enabled: true, formula: String(formula ?? "")},
+    types: damageType ? [damageType] : []}));
+  s.activation = {...(system.activation ?? {}), value: system.activation?.cost ?? system.activation?.value ?? null};
+  if ( system.properties && !Array.isArray(system.properties) ) {
+    s.properties = Object.entries(system.properties).filter(([, on]) => on).map(([key]) => key);
+  }
+  if ( system.components?.concentration ) s.properties = [...new Set([...(s.properties ?? []), "concentration"])];
+  // A weapon's first part ("1d8 + @mod") is its own damage, which the ability modifier joins.
+  let includeBase = false;
+  const weaponBase = (document.type === "weapon") && /^\s*(\d+)d(\d+)\s*(?:\+\s*@mod\s*)?$/.exec(parts[0]?.custom.formula ?? "");
+  if ( weaponBase ) {
+    s.damage = {base: {number: Number(weaponBase[1]), denomination: Number(weaponBase[2]), types: parts[0].types}};
+    parts.shift();
+    includeBase = true;
+  }
+  const scaling = system.scaling ?? {};
+  const levelDice = /^(\d+)d(\d+)$/.exec(scaling.formula ?? "");
+  if ( parts[0] && (scaling.mode === "cantrip") ) parts[0].scaling = {mode: "whole"};
+  if ( parts[0] && (scaling.mode === "level") && levelDice ) parts[0].scaling = {mode: "whole", number: Number(levelDice[1]), faces: Number(levelDice[2])};
+  const target = system.target ?? {};
+  s.target = TEMPLATE_TYPES.has(target.type) ? {template: {type: target.type, size: String(target.value ?? ""), width: target.width, units: target.units},
+    affects: {type: "creature"}} : {template: {}, affects: {type: target.type ?? "", count: target.value ? String(target.value) : ""}};
+  if ( system.recharge?.value ) s.uses = {max: "1", recovery: [{period: "recharge", formula: String(system.recharge.value)}]};
+  else if ( system.uses?.max ) s.uses = {max: String(system.uses.max), recovery: LEGACY_PERIODS[system.uses.per]
+    ? [{period: LEGACY_PERIODS[system.uses.per], type: "recoverAll"}] : []};
+  else s.uses = {};
+  const save = system.save ?? {};
+  s.activities = {legacy: {_id: "legacy", type: type ?? "utility", sort: 0, activation: {override: false}, range: {override: false},
+    target: {override: false}, consumption: {targets: s.uses.max ? [{type: "itemUses", value: "1"}] : []},
+    ...(type === "attack" ? {attack: {type: {value: attackType, classification}, ability: system.ability || "",
+      bonus: system.attack?.bonus ?? system.attackBonus ?? ""}} : {}),
+    damage: {includeBase, parts: type === "heal" ? [] : parts,
+      onSave: type === "save" ? (((document.type === "spell") && !Number(system.level)) ? "none" : "half") : undefined},
+    ...(type === "heal" ? {healing: parts[0] ?? null} : {}),
+    ...(type === "save" ? {save: {ability: save.ability ? [save.ability] : [], dc: {calculation: save.scaling === "spell" ? "spellcasting"
+      : (save.scaling === "flat" ? "" : (save.scaling ?? "")), formula: String(save.dc ?? "")}}} : {}),
+    effects: (document.effects ?? []).filter(effect => !effect.transfer).map(effect => ({_id: effect._id, onSave: false}))}};
+  return upgraded;
 }
 
 /**
@@ -140,6 +247,7 @@ function targetingOf({activity, system, notes}) {
 export function convertItem(document, {scales={}, pack=null, saveDC=null, names={}, creature=null, licensed=isSrd2024, book="SRD 5.2",
   images=["icons/"]}={}) {
   if ( !licensed(document) ) return {ok: false, reason: "not SRD 5.2 (CC-BY-4.0)"};
+  document = upgradeLegacy(document);
   const system = document.system ?? {};
   const activities = Object.values(system.activities ?? {}).sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0));
   const spell = document.type === "spell";
@@ -162,7 +270,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, names=
       allNotes.push(`"${label}" is passive or triggered: not automated`);
       continue;
     }
-    let definition = ACTIVITIES.has(activity.type) ? convertActivity({document, activity, system, spell, level, scales, notes, pool, saveDC}) : null;
+    let definition = ACTIVITIES.has(activity.type)
+      ? convertActivity({document, activity, system, spell, level, scales, notes, pool, saveDC, creature}) : null;
     if ( !definition ) {
       // Used but not automated: using it spends its cost (and a spell's slot); its description says the rest.
       notes.unshift(`not automated${activity.type === "manual" ? "" : ` (${activity.type})`}: using it spends its cost; its description says the rest`);
@@ -234,17 +343,22 @@ function baseDefinition({document, activity, system, spell, notes, pool}) {
   return definition;
 }
 
-/** A spell of `level` spends a slot of that level or higher; `damage` components with scaling dice grow per level above. */
-function slotConfiguration(level, damage) {
+/**
+ * A spell of `level` spends a slot of that level or higher. Per level above, damage and healing with scaling dice grow,
+ * and `perLevel` more creatures can be targeted.
+ */
+function slotConfiguration(level, damage, {healing=[], perLevel=0}={}) {
   const levels = Array.from({length: 10 - level}, (_, offset) => level + offset);
-  const scaling = damage.filter(component => component.scaleDice).map(component => ({type: "scaleDamage", levelChoiceId: "spell-slot",
+  const scale = (type, components) => components.filter(component => component.scaleDice).map(component => ({type, levelChoiceId: "spell-slot",
     baseLevel: level, componentIds: [component.id], dice: component.scaleDice}));
+  const scaling = [...scale("scaleDamage", damage), ...scale("scaleHealing", healing),
+    ...(perLevel ? [{type: "scaleTargets", levelChoiceId: "spell-slot", baseLevel: level, perLevel}] : [])];
   return [{id: "spell-slot", type: "resource", label: "Spell slot", required: true,
     cost: {anyOf: levels.map(each => [{capability: `spell-slot.${each}`, amount: 1}])},
     levelByResourceId: Object.fromEntries(levels.map(each => [`spell-slot.${each}`, each])), effects: scaling}];
 }
 
-function convertActivity({document, activity, system, spell, level, scales, notes, pool, saveDC}) {
+function convertActivity({document, activity, system, spell, level, scales, notes, pool, saveDC, creature=null}) {
   const definition = baseDefinition({document, activity, system, spell, notes, pool});
 
   const attackData = activity.type === "attack" ? activity.attack ?? {} : null;
@@ -261,17 +375,21 @@ function convertActivity({document, activity, system, spell, level, scales, note
   }
   const range = rangeOf({activity, system, document, attack});
   if ( range ) definition.range = range;
-  Object.assign(definition, targetingOf({activity, system, notes}));
+  const {perLevel=0, ...targets} = targetingOf({activity, system, notes, level, scales});
+  Object.assign(definition, targets);
 
   if ( activity.type === "save" ) {
     const abilities = [].concat(activity.save?.ability ?? []);
     const ability = ABILITY_MAP[abilities[0]] ?? null;
     if ( abilities.length > 1 ) notes.push(`save: a choice of ${abilities.join("/")} uses ${abilities[0]}`);
     const dc = activity.save?.dc ?? {};
-    const flat = number(dc.formula);
-    // An ability calculation wins: dnd5e keeps a stale `formula` beside it.
-    const value = dc.calculation === "spellcasting" ? {valueExpression: SPELL_DC}
-      : ((ABILITY_MAP[dc.calculation] ? saveDC?.(dc.calculation) : null) ?? (flat != null ? {value: flat} : null));
+    // An ability calculation wins (dnd5e keeps a stale `formula` beside it): a creature's is fixed from its numbers, a
+    // character's is 8 + proficiency + that ability's modifier. Else a written formula ("@attributes.spell.dc + 2").
+    const fromAbility = ABILITY_MAP[dc.calculation] ? (saveDC?.(dc.calculation) ?? {valueExpression: {type: "add", terms: [
+      {type: "constant", value: 8}, {type: "proficiency-bonus"}, {type: "ability-modifier", ability: ABILITY_MAP[dc.calculation]}]}}) : null;
+    const written = dc.formula ? formulaExpression(dc.formula, {spell, scales, spellDC: creature?.spellDC, challenge: creature?.challenge}) : null;
+    const value = dc.calculation === "spellcasting" ? (creature?.spellDC ? {value: creature.spellDC} : {valueExpression: SPELL_DC})
+      : (fromAbility ?? (written ? (written.type === "constant" ? {value: written.value} : {valueExpression: written}) : null));
     if ( !ability || !value ) {
       notes.push(`save: ${abilities.join("/") || "?"} DC (${dc.calculation || dc.formula || "?"}) not converted`);
       return null;
@@ -294,9 +412,10 @@ function convertActivity({document, activity, system, spell, level, scales, note
     const expression = partExpression(part, {spell, ability: null, scales, notes, label: `damage ${index + 1}`});
     if ( !expression ) continue;
     if ( (part.types ?? []).length > 1 ) notes.push(`damage ${index + 1}: a choice of ${part.types.join("/")} uses ${part.types[0]}`);
-    const scale = scaledDice(part, {spell, level, notes, label: `damage ${index + 1}`});
-    damage.push({id: `damage-${index + 1}`, expression, damageType: part.types?.[0] ?? "untyped", provenance: spell ? "spell-base" : "additional",
-      ...(scale ? {scaleDice: scale} : {})});
+    const scale = scaledDice(part, {spell, level});
+    const cantrip = spell && !level && (part.scaling?.mode === "whole");
+    damage.push({id: `damage-${index + 1}`, expression: cantrip ? cantripTable(expression) : expression, damageType: part.types?.[0] ?? "untyped",
+      provenance: spell ? "spell-base" : "additional", ...(scale ? {scaleDice: scale} : {})});
   }
   const onSave = activity.damage?.onSave;
   if ( definition.save && damage.length && (onSave === "half" || onSave === "none") ) {
@@ -306,9 +425,9 @@ function convertActivity({document, activity, system, spell, level, scales, note
   const healing = [];
   if ( activity.type === "heal" && activity.healing ) {
     const expression = partExpression(activity.healing, {spell, ability: null, scales, notes, label: "healing"});
+    const scale = scaledDice(activity.healing, {spell, level});
     if ( (activity.healing.types ?? []).includes("temphp") ) notes.push("healing: temporary Hit Points not converted");
-    else if ( expression ) healing.push({id: "healing-1", expression, healingType: "healing"});
-    if ( spell && level && activity.healing.scaling?.number ) notes.push("healing: more healing at higher levels not converted");
+    else if ( expression ) healing.push({id: "healing-1", expression, healingType: "healing", ...(scale ? {scaleDice: scale} : {})});
   }
 
   const effects = [];
@@ -327,25 +446,24 @@ function convertActivity({document, activity, system, spell, level, scales, note
   }
 
   if ( damage.length ) definition.damage = damage.map(({scaleDice: _scale, ...component}) => component);
-  if ( healing.length ) definition.healing = healing;
+  if ( healing.length ) definition.healing = healing.map(({scaleDice: _scale, ...component}) => component);
   if ( effects.length ) definition.effects = effects;
 
   // A spell of level 1 or higher spends a slot of its level or higher; damage dice that scale grow per level above.
-  if ( spell && level && SLOT_MODES.has(system.preparation?.mode ?? "prepared") ) definition.configuration = slotConfiguration(level, damage);
+  if ( spell && level && SLOT_MODES.has(system.preparation?.mode ?? "prepared") ) {
+    definition.configuration = slotConfiguration(level, damage, {healing, perLevel});
+  }
   if ( concentration && !effects.length ) notes.push("concentration: nothing it sustains was converted");
   // An attack or save with nothing converted on it would roll for nothing: such an Action is left out and noted.
   return (damage.length || healing.length || effects.length) ? definition : null;
 }
 
-/** A damage part's dice per spell level above its own (`scaling.mode: "whole"`), or null. Cantrips are noted. */
-function scaledDice(part, {spell, level, notes, label}) {
-  if ( !spell || (part.scaling?.mode !== "whole") ) return null;
-  if ( !level ) {
-    notes.push(`${label}: cantrip damage growing with character level not converted`);
-    return null;
-  }
-  const count = number(part.scaling?.number) ?? 1;
-  const faces = number(part.denomination);
+/** A damage or healing part's dice per spell level above its own, or null (a cantrip grows by character level instead). */
+function scaledDice(part, {spell, level}) {
+  if ( !spell || !level || !part?.scaling ) return null;
+  if ( (part.scaling.mode !== "whole") && !number(part.scaling.number) ) return null;
+  const count = number(part.scaling.number) ?? 1;
+  const faces = number(part.scaling.faces) ?? number(part.denomination);
   return faces ? {number: count, faces} : null;
 }
 
@@ -356,10 +474,13 @@ export function scaleTables(classDocuments=[]) {
     const owner = document.system?.identifier ?? slugify(document.name);
     // Stored sources keep advancements by id; prepared documents as a list.
     for ( const advancement of Object.values(document.system?.advancement ?? {}) ) {
-      if ( (advancement.type !== "ScaleValue") || (advancement.configuration?.type !== "number") ) continue;
+      const kind = advancement.configuration?.type;
+      if ( (advancement.type !== "ScaleValue") || !["number", "dice"].includes(kind) ) continue;
       const id = advancement.configuration.identifier || slugify(advancement.title);
+      // A number scale is its numbers; a dice scale is {number, faces} (Sneak Attack 1d6 ... 10d6; Martial Arts d6 ... d12).
       tables[`${owner}.${id}`] = Object.fromEntries(Object.entries(advancement.configuration.scale ?? {})
-        .map(([level, entry]) => [level, Number(entry.value)]).filter(([, value]) => Number.isFinite(value)));
+        .map(([level, entry]) => [level, kind === "dice" ? {number: number(entry.number) ?? 1, faces: number(entry.faces)} : Number(entry.value)])
+        .filter(([, value]) => (typeof value === "object") ? Number.isFinite(value.faces) : Number.isFinite(value)));
     }
   }
   return tables;
@@ -390,7 +511,9 @@ export function convertActor(document, {scales={}, pack=null, names={}, licensed
   const saveDC = calculation => (ABILITY_MAP[calculation] ? {value: 8 + proficiency + modifier(calculation)} : null);
   const actorId = document._id;
   // What a stat block's text reads from its creature: its name, numbers and its own items' names.
-  const creature = {name: document.name, modifier, proficiency, saveDC,
+  const casting = system.attributes?.spellcasting;
+  const creature = {name: document.name, modifier, proficiency, saveDC, challenge,
+    spellDC: ABILITY_MAP[casting] ? 8 + proficiency + modifier(casting) : null,
     itemNames: Object.fromEntries((document.items ?? []).map(item => [item._id, item.name]))};
 
   const items = [];

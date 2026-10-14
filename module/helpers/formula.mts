@@ -7,7 +7,7 @@
  *   term   := unary (("*" | "/") unary)*
  *   unary  := "-" NUMBER | factor
  *   factor := NUMBER | [INT] "d" INT | "(" expr ")" | prof | level | level(class) | mod(ability) | spellmod
- *           | resource(id) | resourcemax(id) | floor(expr) | ceil(expr)
+ *           | resource(id) | resourcemax(id) | floor(expr) | ceil(expr) | min(expr, ...) | max(expr, ...) | variable
  */
 
 export type Expression = Record<string, unknown>;
@@ -50,7 +50,8 @@ function tokenize(text: string): Token[] {
  * Parse builder text into a ValueExpression. `dice: false` refuses dice (a DC, a rule's amount); `abilities` lists
  * the ability keys `mod(...)` accepts.
  */
-export function parseFormula(text: string, {dice=true, abilities=null}: {dice?: boolean; abilities?: readonly string[] | null}={}): FormulaResult {
+export function parseFormula(text: string, {dice=true, abilities=null, variables={}}: {dice?: boolean; abilities?: readonly string[] | null;
+  variables?: Record<string, Expression>}={}): FormulaResult {
   try {
     const source = String(text ?? "");
     if ( !source.trim() ) throw new FormulaFailure("Empty", {}, 0);
@@ -108,7 +109,21 @@ export function parseFormula(text: string, {dice=true, abilities=null}: {dice?: 
           if ( (inner.type === "divide") && (inner.round === "floor") ) return {...inner, round: token.text};
           return {type: token.text, value: inner};
         }
-        default: throw new FormulaFailure("UnknownWord", {word: token.text}, token.at);
+        case "min":
+        case "max": {
+          expect("open");
+          const terms = [expression()];
+          while ( peek()?.kind === "comma" ) {
+            take();
+            terms.push(expression());
+          }
+          expect("close");
+          return {type: token.text, terms};
+        }
+        default:
+          // A named value the caller supplies (a converter's class scale table, for one).
+          if ( Object.hasOwn(variables, token.text) ) return structuredClone(variables[token.text]!);
+          throw new FormulaFailure("UnknownWord", {word: token.text}, token.at);
       }
     };
     const unary = (): Expression => {
@@ -198,6 +213,9 @@ function format(expression: unknown, parent: number): string {
       const inner = format(e.value, 0);
       return `${e.type}(${inner})`;
     }
+    case "min":
+    case "max": if ( terms.length < 1 ) throw new Error("not a formula");
+      return `${e.type}(${terms.map(term => format(term, 0)).join(", ")})`;
     default: throw new Error("not a formula");
   }
 }

@@ -162,9 +162,18 @@
             {
               "id": "damage-1",
               "expression": {
-                "type": "dice",
-                "number": 1,
-                "faces": 8
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "dice",
+                    "number": 1,
+                    "faces": 8
+                  },
+                  {
+                    "type": "ability-modifier",
+                    "ability": "might"
+                  }
+                ]
               },
               "damageType": "slashing",
               "provenance": "additional"
@@ -196,9 +205,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "damage 1: bonus \"@abilities.str.mod\" not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -260,7 +267,6 @@
         "notes": [
           "Incorporeal Movement: \"Self Damage\" is passive or triggered: not automated",
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Reaping Scythe: damage 1: bonus \"@abilities.str.mod\" not converted",
           "condition immunities (charmed, exhaustion, frightened, paralyzed, petrified, poisoned, unconscious) not converted"
         ]
       }

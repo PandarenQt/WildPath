@@ -18,6 +18,40 @@
           }
         ]
       },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "save": {
+        "ability": "might",
+        "dc": {
+          "valueExpression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 8
+              },
+              {
+                "type": "proficiency-bonus"
+              },
+              {
+                "type": "ability-modifier",
+                "ability": "might"
+              }
+            ]
+          }
+        }
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "prone",
+          "saveOutcomePolicy": "failure"
+        }
+      ],
       "label": "Unarmed Strike (Grapple/Shove)"
     },
     "ruleElements": []
@@ -35,9 +69,8 @@
       },
       "conversion": {
         "notes": [
-          "not automated (save): using it spends its cost; its description says the rest",
           "save: a choice of str/dex uses str",
-          "save: str/dex DC (str) not converted"
+          "effect: grappled is not a WildPath condition yet"
         ]
       }
     }

@@ -283,7 +283,7 @@
             "notes": [
               "not automated (save): using it spends its cost; its description says the rest",
               "uses: Recharge 6 is not rolled; refill the pool by hand",
-              "save: wis DC (8 + @prof) not converted"
+              "effect: deafened is not a WildPath condition yet"
             ]
           }
         }
@@ -347,7 +347,7 @@
         "notes": [
           "Cacophony: not automated (save): using it spends its cost; its description says the rest",
           "Cacophony: uses: Recharge 6 is not rolled; refill the pool by hand",
-          "Cacophony: save: wis DC (8 + @prof) not converted",
+          "Cacophony: effect: deafened is not a WildPath condition yet",
           "condition immunities (charmed, frightened, grappled, paralyzed, petrified, prone, restrained, stunned) not converted"
         ]
       }

@@ -57,9 +57,32 @@
         {
           "id": "damage-1",
           "expression": {
-            "type": "dice",
-            "number": 1,
-            "faces": 8
+            "type": "table",
+            "key": {
+              "type": "character-level"
+            },
+            "rows": {
+              "1": {
+                "type": "dice",
+                "number": 1,
+                "faces": 8
+              },
+              "5": {
+                "type": "dice",
+                "number": 2,
+                "faces": 8
+              },
+              "11": {
+                "type": "dice",
+                "number": 3,
+                "faces": 8
+              },
+              "17": {
+                "type": "dice",
+                "number": 4,
+                "faces": 8
+              }
+            }
           },
           "damageType": "radiant",
           "provenance": "spell-base",
@@ -85,9 +108,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "damage 1: cantrip damage growing with character level not converted"
-        ]
+        "notes": []
       }
     }
   }

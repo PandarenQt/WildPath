@@ -905,7 +905,7 @@
             "notes": [
               "not automated (save): using it spends its cost; its description says the rest",
               "activation: 10 minute is not an action-economy cost",
-              "save: wis DC (@attributes.spell.dc - 5 + 2) not converted",
+              "concentration: nothing it sustains was converted",
               "activation: 10 minute is not an action-economy cost"
             ]
           }
@@ -999,7 +999,7 @@
             "notes": [
               "not automated (save): using it spends its cost; its description says the rest",
               "activation: 10 minute is not an action-economy cost",
-              "save: wis DC (@attributes.spell.dc - 5 + 4) not converted",
+              "concentration: nothing it sustains was converted",
               "activation: 10 minute is not an action-economy cost"
             ]
           }
@@ -1093,7 +1093,7 @@
             "notes": [
               "not automated (save): using it spends its cost; its description says the rest",
               "activation: 10 minute is not an action-economy cost",
-              "save: wis DC (@attributes.spell.dc - 5 + 10) not converted",
+              "concentration: nothing it sustains was converted",
               "activation: 10 minute is not an action-economy cost"
             ]
           }
@@ -1187,7 +1187,7 @@
             "notes": [
               "not automated (save): using it spends its cost; its description says the rest",
               "activation: 10 minute is not an action-economy cost",
-              "save: wis DC (@attributes.spell.dc - 0 + 2) not converted",
+              "concentration: nothing it sustains was converted",
               "activation: 10 minute is not an action-economy cost"
             ]
           }
@@ -1281,7 +1281,7 @@
             "notes": [
               "not automated (save): using it spends its cost; its description says the rest",
               "activation: 10 minute is not an action-economy cost",
-              "save: wis DC (@attributes.spell.dc - 0 + 4) not converted",
+              "concentration: nothing it sustains was converted",
               "activation: 10 minute is not an action-economy cost"
             ]
           }
@@ -1375,7 +1375,7 @@
             "notes": [
               "not automated (save): using it spends its cost; its description says the rest",
               "activation: 10 minute is not an action-economy cost",
-              "save: wis DC (@attributes.spell.dc - 0 + 10) not converted",
+              "concentration: nothing it sustains was converted",
               "activation: 10 minute is not an action-economy cost"
             ]
           }
@@ -1469,7 +1469,7 @@
             "notes": [
               "not automated (save): using it spends its cost; its description says the rest",
               "activation: 10 minute is not an action-economy cost",
-              "save: wis DC (@attributes.spell.dc + 5 + 2) not converted",
+              "concentration: nothing it sustains was converted",
               "activation: 10 minute is not an action-economy cost"
             ]
           }
@@ -1563,7 +1563,7 @@
             "notes": [
               "not automated (save): using it spends its cost; its description says the rest",
               "activation: 10 minute is not an action-economy cost",
-              "save: wis DC (@attributes.spell.dc + 5 + 4) not converted",
+              "concentration: nothing it sustains was converted",
               "activation: 10 minute is not an action-economy cost"
             ]
           }
@@ -1657,7 +1657,7 @@
             "notes": [
               "not automated (save): using it spends its cost; its description says the rest",
               "activation: 10 minute is not an action-economy cost",
-              "save: wis DC (@attributes.spell.dc + 5 + 10) not converted",
+              "concentration: nothing it sustains was converted",
               "activation: 10 minute is not an action-economy cost"
             ]
           }
@@ -2500,7 +2500,6 @@
           "conversion": {
             "notes": [
               "not automated (utility): using it spends its cost; its description says the rest",
-              "targets: count \"@item.level - 1\" not converted",
               "effect: invisible is not a WildPath condition yet",
               "concentration: nothing it sustains was converted"
             ]
@@ -2775,15 +2774,7 @@
           "Locate Object: concentration: nothing it sustains was converted",
           "Scrying: not automated (save): using it spends its cost; its description says the rest",
           "Scrying: activation: 10 minute is not an action-economy cost",
-          "Scrying: save: wis DC (@attributes.spell.dc - 5 + 2) not converted",
-          "Scrying: save: wis DC (@attributes.spell.dc - 5 + 4) not converted",
-          "Scrying: save: wis DC (@attributes.spell.dc - 5 + 10) not converted",
-          "Scrying: save: wis DC (@attributes.spell.dc - 0 + 2) not converted",
-          "Scrying: save: wis DC (@attributes.spell.dc - 0 + 4) not converted",
-          "Scrying: save: wis DC (@attributes.spell.dc - 0 + 10) not converted",
-          "Scrying: save: wis DC (@attributes.spell.dc + 5 + 2) not converted",
-          "Scrying: save: wis DC (@attributes.spell.dc + 5 + 4) not converted",
-          "Scrying: save: wis DC (@attributes.spell.dc + 5 + 10) not converted",
+          "Scrying: concentration: nothing it sustains was converted",
           "Scrying: \"Create Sensor\" is passive or triggered: not automated",
           "Unseen Servant: not automated (summon): using it spends its cost; its description says the rest",
           "Mimicry: not automated (check): using it spends its cost; its description says the rest",
@@ -2795,7 +2786,6 @@
           "Disguise Self: not automated (utility): using it spends its cost; its description says the rest",
           "Disguise Self: effect: \"Disguised\" (its own changes) not converted",
           "Invisibility: not automated (utility): using it spends its cost; its description says the rest",
-          "Invisibility: targets: count \"@item.level - 1\" not converted",
           "Invisibility: effect: invisible is not a WildPath condition yet",
           "Invisibility: concentration: nothing it sustains was converted",
           "Minor Illusion: not automated (summon): using it spends its cost; its description says the rest"

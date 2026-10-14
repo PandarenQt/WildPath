@@ -1324,7 +1324,6 @@
           "conversion": {
             "notes": [
               "activation: 1 hour is not an action-economy cost",
-              "healing: more healing at higher levels not converted",
               "effect: \"Resurrection Sickness (Day 1)\" (its own changes) not converted",
               "effect: \"Resurrection Sickness (Day 2)\" (its own changes) not converted",
               "effect: \"Resurrection Sickness (Day 3)\" (its own changes) not converted",
@@ -1949,7 +1948,6 @@
           "conversion": {
             "notes": [
               "not automated (utility): using it spends its cost; its description says the rest",
-              "targets: count \"2 + @item.level\" not converted",
               "effect: \"Blessed\" (its own changes) not converted",
               "concentration: nothing it sustains was converted"
             ]
@@ -2196,7 +2194,20 @@
                 "spell-slot.8": 8,
                 "spell-slot.9": 9
               },
-              "effects": []
+              "effects": [
+                {
+                  "type": "scaleHealing",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 1,
+                  "componentIds": [
+                    "healing-1"
+                  ],
+                  "dice": {
+                    "number": 2,
+                    "faces": 4
+                  }
+                }
+              ]
             }
           ],
           "label": "Healing Word"
@@ -2215,9 +2226,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "healing: more healing at higher levels not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -2468,7 +2477,20 @@
                 "spell-slot.8": 8,
                 "spell-slot.9": 9
               },
-              "effects": []
+              "effects": [
+                {
+                  "type": "scaleHealing",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 1,
+                  "componentIds": [
+                    "healing-1"
+                  ],
+                  "dice": {
+                    "number": 2,
+                    "faces": 8
+                  }
+                }
+              ]
             }
           ],
           "label": "Cure Wounds"
@@ -2487,9 +2509,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "healing: more healing at higher levels not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -2606,7 +2626,6 @@
           "conversion": {
             "notes": [
               "not automated (utility): using it spends its cost; its description says the rest",
-              "targets: count \"@item.level - 1\" not converted",
               "effect: invisible is not a WildPath condition yet",
               "concentration: nothing it sustains was converted"
             ]
@@ -2911,22 +2930,17 @@
           "Dispel Evil and Good: concentration: nothing it sustains was converted",
           "Dispel Evil and Good: not automated (save): using it spends its cost; its description says the rest",
           "Raise Dead: activation: 1 hour is not an action-economy cost",
-          "Raise Dead: healing: more healing at higher levels not converted",
           "Raise Dead: effect: \"Resurrection Sickness (Day 1)\" (its own changes) not converted",
           "Raise Dead: effect: \"Resurrection Sickness (Day 2)\" (its own changes) not converted",
           "Raise Dead: effect: \"Resurrection Sickness (Day 3)\" (its own changes) not converted",
           "Raise Dead: effect: \"Resurrection Sickness (Day 4)\" (its own changes) not converted",
           "Divine Aid: not automated (cast): using it spends its cost; its description says the rest",
           "Bless: not automated (utility): using it spends its cost; its description says the rest",
-          "Bless: targets: count \"2 + @item.level\" not converted",
           "Bless: effect: \"Blessed\" (its own changes) not converted",
           "Bless: concentration: nothing it sustains was converted",
           "Dispel Magic: not automated (utility): using it spends its cost; its description says the rest",
-          "Healing Word: healing: more healing at higher levels not converted",
           "Lesser Restoration: not automated (utility): using it spends its cost; its description says the rest",
-          "Cure Wounds: healing: more healing at higher levels not converted",
           "Invisibility: not automated (utility): using it spends its cost; its description says the rest",
-          "Invisibility: targets: count \"@item.level - 1\" not converted",
           "Invisibility: effect: invisible is not a WildPath condition yet",
           "Invisibility: concentration: nothing it sustains was converted",
           "Lesser Restoration: not automated (utility): using it spends its cost; its description says the rest",

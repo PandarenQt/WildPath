@@ -1225,21 +1225,7 @@
           "save": {
             "ability": "might",
             "dc": {
-              "valueExpression": {
-                "type": "add",
-                "terms": [
-                  {
-                    "type": "constant",
-                    "value": 8
-                  },
-                  {
-                    "type": "proficiency-bonus"
-                  },
-                  {
-                    "type": "spellcasting-modifier"
-                  }
-                ]
-              }
+              "value": 14
             }
           },
           "effects": [
@@ -1990,7 +1976,20 @@
                 "spell-slot.8": 8,
                 "spell-slot.9": 9
               },
-              "effects": []
+              "effects": [
+                {
+                  "type": "scaleHealing",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 1,
+                  "componentIds": [
+                    "healing-1"
+                  ],
+                  "dice": {
+                    "number": 2,
+                    "faces": 8
+                  }
+                }
+              ]
             }
           ],
           "label": "Cure Wounds"
@@ -2009,9 +2008,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "healing: more healing at higher levels not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -2216,7 +2213,6 @@
           "Shimmering Shield: healing: temporary Hit Points not converted",
           "Shimmering Shield: effect: \"Shielded\" (its own changes) not converted",
           "Unicorn's Blessing: not automated (cast): using it spends its cost; its description says the rest",
-          "Cure Wounds: healing: more healing at higher levels not converted",
           "Lesser Restoration: not automated (utility): using it spends its cost; its description says the rest",
           "condition immunities (charmed, paralyzed, poisoned) not converted"
         ]

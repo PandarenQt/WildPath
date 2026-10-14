@@ -280,7 +280,7 @@
           "conversion": {
             "notes": [
               "not automated (save): using it spends its cost; its description says the rest",
-              "save: con DC (8 + @mod + @prof) not converted"
+              "effect: cursed is not a WildPath condition yet"
             ]
           }
         }
@@ -460,7 +460,7 @@
         "notes": [
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
           "Bite (Bear or Hybrid Form Only): not automated (save): using it spends its cost; its description says the rest",
-          "Bite (Bear or Hybrid Form Only): save: con DC (8 + @mod + @prof) not converted",
+          "Bite (Bear or Hybrid Form Only): effect: cursed is not a WildPath condition yet",
           "Bite (Bear or Hybrid Form Only): not automated (summon): using it spends its cost; its description says the rest",
           "Shape-Shift: not automated (utility): using it spends its cost; its description says the rest"
         ]

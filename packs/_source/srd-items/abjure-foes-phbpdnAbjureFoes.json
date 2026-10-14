@@ -37,7 +37,6 @@
         "notes": [
           "not automated (save): using it spends its cost; its description says the rest",
           "consumption: itemUses 1 not converted",
-          "targets: count \"(max(1,@abilities.cha.mod))\" not converted",
           "effect: frightened is not a WildPath condition yet",
           "consumption: itemUses 1 not converted"
         ]

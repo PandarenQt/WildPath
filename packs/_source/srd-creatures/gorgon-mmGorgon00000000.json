@@ -263,9 +263,18 @@
             {
               "id": "damage-1",
               "expression": {
-                "type": "dice",
-                "number": 2,
-                "faces": 10
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "dice",
+                    "number": 2,
+                    "faces": 10
+                  },
+                  {
+                    "type": "ability-modifier",
+                    "ability": "might"
+                  }
+                ]
               },
               "damageType": "bludgeoning",
               "provenance": "additional",
@@ -291,9 +300,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "damage 1: bonus \"@abilities.str.mod\" not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -314,8 +321,7 @@
       "conversion": {
         "notes": [
           "Petrifying Breath: uses: Recharge 5–6 is not rolled; refill the pool by hand",
-          "Petrifying Breath: effect: petrified is not a WildPath condition yet",
-          "Trample: damage 1: bonus \"@abilities.str.mod\" not converted"
+          "Petrifying Breath: effect: petrified is not a WildPath condition yet"
         ]
       }
     }

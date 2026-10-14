@@ -766,21 +766,7 @@
           "save": {
             "ability": "might",
             "dc": {
-              "valueExpression": {
-                "type": "add",
-                "terms": [
-                  {
-                    "type": "constant",
-                    "value": 8
-                  },
-                  {
-                    "type": "proficiency-bonus"
-                  },
-                  {
-                    "type": "spellcasting-modifier"
-                  }
-                ]
-              }
+              "value": 13
             }
           },
           "effects": [
@@ -927,21 +913,7 @@
           "save": {
             "ability": "fortitude",
             "dc": {
-              "valueExpression": {
-                "type": "add",
-                "terms": [
-                  {
-                    "type": "constant",
-                    "value": 8
-                  },
-                  {
-                    "type": "proficiency-bonus"
-                  },
-                  {
-                    "type": "spellcasting-modifier"
-                  }
-                ]
-              }
+              "value": 13
             }
           },
           "damage": [
@@ -1311,7 +1283,6 @@
           "conversion": {
             "notes": [
               "not automated (utility): using it spends its cost; its description says the rest",
-              "targets: count \"@item.level\" not converted",
               "effect: \"Longstrider\" (its own changes) not converted"
             ]
           }
@@ -1361,21 +1332,7 @@
           "save": {
             "ability": "fortitude",
             "dc": {
-              "valueExpression": {
-                "type": "add",
-                "terms": [
-                  {
-                    "type": "constant",
-                    "value": 8
-                  },
-                  {
-                    "type": "proficiency-bonus"
-                  },
-                  {
-                    "type": "spellcasting-modifier"
-                  }
-                ]
-              }
+              "value": 13
             }
           },
           "damage": [
@@ -1529,7 +1486,6 @@
           "Animal Messenger: not automated (save): using it spends its cost; its description says the rest",
           "Animal Messenger: effect: \"Carrying Message\" (its own changes) not converted",
           "Longstrider: not automated (utility): using it spends its cost; its description says the rest",
-          "Longstrider: targets: count \"@item.level\" not converted",
           "Longstrider: effect: \"Longstrider\" (its own changes) not converted",
           "Moonbeam: area: a cylinder's height is not modeled",
           "Moonbeam: concentration: nothing it sustains was converted"

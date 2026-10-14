@@ -32,7 +32,19 @@
         "data": {
           "resourceId": "lay-on-hands",
           "label": "Lay on Hands",
-          "maximum": 1,
+          "maximum": {
+            "type": "multiply",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 5
+              },
+              {
+                "type": "class-level",
+                "class": "paladin"
+              }
+            ]
+          },
           "recovery": "longRest"
         }
       }
@@ -52,7 +64,6 @@
       "conversion": {
         "notes": [
           "not automated (heal): using it spends its cost; its description says the rest",
-          "uses: maximum \"5 * @classes.paladin.levels\" not converted",
           "healing: custom formula \"@scaling\" not converted"
         ]
       }

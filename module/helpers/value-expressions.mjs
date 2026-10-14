@@ -86,6 +86,29 @@ export function evaluateValueExpression(expression, context={}) {
 
 /* -------------------------------------------- */
 
+/**
+ * The expression with each table replaced by its row, wherever the table's key evaluates. A table of dice (a
+ * cantrip's damage by character level, Sneak Attack by Rogue level) becomes the dice that are rolled.
+ */
+export function selectTableRows(expression, context={}) {
+  if ( !expression || (typeof expression !== "object") ) return expression;
+  if ( expression.type === "table" ) {
+    const key = evaluateValueExpression(expression.key, context);
+    if ( !key.ok ) return expression;
+    const thresholds = Object.keys(expression.rows ?? {}).map(Number).filter(Number.isFinite).sort((a, b) => b - a);
+    const row = thresholds.find(threshold => threshold <= key.value);
+    const chosen = row === undefined ? expression.default : (expression.rows[String(row)] ?? expression.rows[row]);
+    if ( chosen === undefined ) return expression;
+    return selectTableRows(typeof chosen === "number" ? {type: "constant", value: chosen} : chosen, context);
+  }
+  const next = {...expression};
+  if ( Array.isArray(next.terms) ) next.terms = next.terms.map(term => selectTableRows(term, context));
+  for ( const key of ["value", "numerator", "denominator", "bonus"] ) {
+    if ( next[key] && (typeof next[key] === "object") ) next[key] = selectTableRows(next[key], context);
+  }
+  return next;
+}
+
 export function evaluateValueExpressionNumber(expression, context={}, fallback=0) {
   const result = evaluateValueExpression(expression, context);
   return result.ok ? result.value : fallback;

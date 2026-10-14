@@ -117,3 +117,15 @@ test("a creature without a character level takes its proficiency bonus from its 
   assert.equal(evaluateValueExpression({type: "proficiency-bonus"}, {actorSystem: {details: {threat: 9}}}).value, 4);
   assert.equal(evaluateValueExpression({type: "proficiency-bonus"}, {actorSystem: {details: {threat: 9}, proficiencyBonus: 6}}).value, 6);
 });
+
+test("a table of dice becomes the row for the creature's level before it is rolled", async () => {
+  const {selectTableRows} = await import("../module/helpers/value-expressions.mjs");
+  const dice = (number, faces) => ({type: "dice", number, faces});
+  const cantrip = {type: "table", key: {type: "character-level"}, rows: {1: dice(1, 10), 5: dice(2, 10), 11: dice(3, 10), 17: dice(4, 10)}};
+  const at = level => ({actorSystem: {details: {level}}});
+  assert.deepEqual(selectTableRows(cantrip, at(4)), dice(1, 10));
+  assert.deepEqual(selectTableRows(cantrip, at(11)), dice(3, 10));
+  assert.deepEqual(selectTableRows({type: "add", terms: [cantrip, {type: "constant", value: 2}]}, at(5)),
+    {type: "add", terms: [dice(2, 10), {type: "constant", value: 2}]});
+  assert.deepEqual(selectTableRows(cantrip, {}), cantrip, "without a level the table stays");
+});
