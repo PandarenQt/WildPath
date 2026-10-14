@@ -12,7 +12,6 @@ Only two RuleElement types reach live play: `Modifier` (through `WildPathActor#g
 contributions, but nothing applies them:
 
 - `GrantResource`: pool maxima, which can come from a ValueExpression.
-- `GrantActionEconomyResource`: extra Actions, Bonus Actions and Reactions.
 - `GrantResistance` and `GrantImmunity`.
 - `GrantMovement`.
 
@@ -26,7 +25,7 @@ the code. Payment discovery reads only the Actor's stored resources and pools
 
 | §11 requirement | Verdict | Evidence / gap |
 | --- | --- | --- |
-| Features that grant additional Actions or Bonus Actions | **Primitive exists, not wired** | `GrantActionEconomyResource` (rule-elements.mjs). Payment discovery never collects it. |
+| Features that grant additional Actions or Bonus Actions | **Done** | The Action, Bonus Action and Reaction counters' maximum, raised by a Modifier (action-economy.md). `GrantActionEconomyResource` was removed, unused. |
 | Spending an Action for a Bonus-Action activity | **Composable** | `maybeFindAlternativeCandidates`, policy `allowActionForSpentBonusAction` (action-economy.mjs). |
 | Mutable/configurable damage types | **Composable** | Configuration choice type `damageType` (action-configuration.mjs). |
 | Short-rest and long-rest hooks | **Partly** | Pools recover by cadence and rests emit lifecycle events (`WildPathActor#rest`). An Item's `Trigger` on `rest.completed` is not dispatched; only condition effects listen. |
@@ -54,8 +53,7 @@ the code. Payment discovery reads only the Actor's stored resources and pools
      movement-paths.md "Movement modes (2024)").
    - Extra Actions: **decided and done 2026-10-14**. Actions, Bonus Actions and Reactions are counters:
      the spent count is stored, the available count is the maximum effects modify, and what remains is
-     available − spent (action-economy.md). An effect that grants an extra Action raises the maximum;
-     `GrantActionEconomyResource` is not needed for this.
+     available − spent (action-economy.md). An effect that grants an extra Action raises the maximum.
 
    This unlocks extra Actions, resistances and slot pools as authored data.
 2. **A general automation dispatcher, then the missing events: done 2026-10-14** for Items and

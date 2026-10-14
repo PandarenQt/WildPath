@@ -453,13 +453,15 @@ export default class WildPathActor extends Actor {
    * @returns {Promise<void>}
    */
   async rest(recovery) {
+    // 2024: a long rest also restores what a short rest does.
+    const recovers = value => (value === recovery) || ((recovery === "longRest") && (value === "shortRest"));
     const updates = {};
     for ( const [id, resource] of Object.entries(this.system.resources) ) {
-      if ( resource.recovery === recovery ) updates[`system.resources.${id}.value`] = resource.max;
+      if ( recovers(resource.recovery) ) updates[`system.resources.${id}.value`] = resource.max;
     }
     const pools = this.toObject(true).system.pools;
     for ( const [index, resource] of this.system.pools.entries() ) {
-      if ( resource.recovery !== recovery ) continue;
+      if ( !recovers(resource.recovery) ) continue;
       pools[index].value = resource.max;
       updates["system.pools"] = pools;
     }

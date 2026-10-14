@@ -183,6 +183,22 @@ Effects got the same RuleElements editor. Later the same day:
 - The GM can answer for a Player who leaves a request waiting, from the Rules Inspector (Shift+I)
   ([multiplayer-authority.md](../architecture/multiplayer-authority.md)).
 
+**Homebrew Builder, Phase A: engine fixes and primitives (2026-10-14, done).** The builder's release examples
+needed engine work first (plan: builder in the sheets, engine first). Each item is live-verified in two browsers on
+14.369:
+- A whole-definition save replaces nested objects.
+- Damage and healing roll per component, so the Flaming Longsword works and dice healing works; formula bonuses
+  are kept.
+- RuleElement predicates see the roll's tags and the creature's conditions.
+- Damage bonuses (`damage.*` Modifiers; Rage +2), and reaction attacks get their damage modifier.
+- Custom effects (an Action's buffs and debuffs, V14-native durations, refreshed rather than stacked). `ref`
+  effects are refused, and `self` and `none` targeting are enforced.
+- Shield as a real reaction effect.
+- `ExtraDamage` with once-per-turn.
+- `Aura`.
+- Long rests restore short-rest resources, and the unused `GrantActionEconomyResource` was removed.
+Next: Phase B, the structured builder in the item sheet.
+
 **M4 — content pack (in progress, 2026-10-14).**
 - **The pack.** `@foundryvtt/foundryvtt-cli` 3.0.4 was approved and added. The built-in **WildPath Actions**
   pack (nine Actions, one per proven mechanic) is built from JSON sources by `npm run build:packs`

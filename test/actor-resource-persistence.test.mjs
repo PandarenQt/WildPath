@@ -150,6 +150,15 @@ for (const recovery of ["shortRest", "longRest"]) {
   });
 }
 
+test("a long rest also restores what a short rest does, and a short rest does not restore long-rest resources (2024)", async () => {
+  const short = fixture({recovery: "shortRest"});
+  await short.actor.rest("longRest");
+  assert.deepEqual(short.source.system.pools.map(pool => pool.value), [2, 9, 6], "short-rest pools refill on a long rest");
+  const long = fixture({recovery: "longRest"});
+  await long.actor.rest("shortRest");
+  assert.deepEqual(long.calls, [], "a short rest leaves long-rest resources alone");
+});
+
 test("the Foundry persistence adapter folds pool element paths into one whole-array source write", async () => {
   const source = {system: {pools: [{id: "spell-slot.1", base: 1, value: 1}, {id: "spell-slot.2", base: 1, value: 1}]}};
   const calls = [];

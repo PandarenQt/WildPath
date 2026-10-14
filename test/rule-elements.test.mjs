@@ -233,15 +233,6 @@ test("resource RuleElements evaluate ValueExpressions without mutating Actor res
           current: {type: "resource-current", resource: "focus"},
           recovery: "shortRest"
         }
-      },
-      {
-        id: "quickened-bonus",
-        type: "GrantActionEconomyResource",
-        data: {
-          category: "bonus-action",
-          maximum: 1,
-          refresh: ["turnStart"]
-        }
       }
     ]
   });
@@ -258,8 +249,6 @@ test("resource RuleElements evaluate ValueExpressions without mutating Actor res
     maximum: 5,
     recovery: "shortRest"
   }]);
-  assert.equal(result.contributions.economyResources[0].id, "quickened-bonus");
-  assert.deepEqual(result.contributions.economyResources[0].paymentCapabilities, ["bonus-action"]);
 });
 
 test("RuleElement evaluation is repeatable and does not mutate definitions or contexts", () => {

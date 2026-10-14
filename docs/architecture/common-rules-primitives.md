@@ -100,7 +100,6 @@ The initial contribution types are:
 
 - `Modifier`
 - `GrantResource`
-- `GrantActionEconomyResource`
 - `GrantResistance`
 - `GrantImmunity`
 - `GrantMovement`

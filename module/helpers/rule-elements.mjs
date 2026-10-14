@@ -1,4 +1,3 @@
-import {createEconomyResource} from "./action-economy.mjs";
 import {createTriggerDefinition} from "./automation-events.mjs";
 import {createMovementCapability} from "./movement.mjs";
 import {PREDICATE_CODES, evaluatePredicate} from "./predicates.mjs";
@@ -7,7 +6,6 @@ import {evaluateValueExpression} from "./value-expressions.mjs";
 export const RULE_ELEMENT_TYPES = Object.freeze({
   MODIFIER: "Modifier",
   GRANT_RESOURCE: "GrantResource",
-  GRANT_ACTION_ECONOMY_RESOURCE: "GrantActionEconomyResource",
   GRANT_RESISTANCE: "GrantResistance",
   GRANT_IMMUNITY: "GrantImmunity",
   GRANT_MOVEMENT: "GrantMovement",
@@ -44,9 +42,6 @@ const TYPE_ALIASES = Object.freeze({
   modifier: RULE_ELEMENT_TYPES.MODIFIER,
   grantresource: RULE_ELEMENT_TYPES.GRANT_RESOURCE,
   resource: RULE_ELEMENT_TYPES.GRANT_RESOURCE,
-  grantactioneconomyresource: RULE_ELEMENT_TYPES.GRANT_ACTION_ECONOMY_RESOURCE,
-  actioneconomyresource: RULE_ELEMENT_TYPES.GRANT_ACTION_ECONOMY_RESOURCE,
-  economyresource: RULE_ELEMENT_TYPES.GRANT_ACTION_ECONOMY_RESOURCE,
   grantresistance: RULE_ELEMENT_TYPES.GRANT_RESISTANCE,
   resistance: RULE_ELEMENT_TYPES.GRANT_RESISTANCE,
   grantimmunity: RULE_ELEMENT_TYPES.GRANT_IMMUNITY,
@@ -100,7 +95,6 @@ export function createDefaultRuleElementRegistry() {
     [RULE_ELEMENT_TYPES.EXTRA_DAMAGE, extraDamageRuleElement],
     [RULE_ELEMENT_TYPES.AURA, auraRuleElement],
     [RULE_ELEMENT_TYPES.GRANT_RESOURCE, grantResourceRuleElement],
-    [RULE_ELEMENT_TYPES.GRANT_ACTION_ECONOMY_RESOURCE, grantActionEconomyResourceRuleElement],
     [RULE_ELEMENT_TYPES.GRANT_RESISTANCE, grantResistanceRuleElement],
     [RULE_ELEMENT_TYPES.GRANT_IMMUNITY, grantImmunityRuleElement],
     [RULE_ELEMENT_TYPES.GRANT_MOVEMENT, grantMovementRuleElement],
@@ -440,33 +434,6 @@ function grantResourceRuleElement(ruleElement, context) {
   });
 }
 
-function grantActionEconomyResourceRuleElement(ruleElement, context) {
-  const data = ruleElement.data;
-  const id = data.resourceId ?? data.id ?? ruleElement.id;
-  const category = data.category ?? data.capability ?? id;
-  const paymentCapabilities = normalizeStrings(data.paymentCapabilities ?? data.capabilities ?? data.capability ?? data.category);
-  const maximum = evaluateNumeric(data.maximum ?? data.max ?? data.value ?? data.amount ?? 1, context);
-  if ( !maximum.ok ) return maximum;
-  const current = data.current == null ? maximum : evaluateNumeric(data.current, context);
-  if ( !current.ok ) return current;
-
-  return success({
-    economyResources: [createEconomyResource({
-      id,
-      category,
-      current: current.value,
-      maximum: maximum.value,
-      unit: data.unit ?? "uses",
-      paymentCapabilities: paymentCapabilities.length ? paymentCapabilities : [category],
-      predicate: data.resourcePredicate ?? data.paymentPredicate ?? data.predicate ?? null,
-      refreshPolicies: normalizeRefreshPolicies(data.refreshPolicies ?? data.refresh ?? []),
-      source: ruleElementSource(ruleElement),
-      priority: finiteNumber(data.priority ?? ruleElement.priority) ?? 100,
-      metadata: contributionMetadata(ruleElement, data.metadata)
-    })]
-  });
-}
-
 function grantResistanceRuleElement(ruleElement) {
   const data = ruleElement.data;
   return success({
@@ -686,7 +653,6 @@ function emptyContributions() {
   return {
     modifiers: [],
     resources: [],
-    economyResources: [],
     damageAdjustments: {
       immunities: [],
       resistances: [],
@@ -713,7 +679,6 @@ function normalizeContributions(contributions={}) {
 function mergeContributions(target, source={}) {
   target.modifiers.push(...(source.modifiers ?? []));
   target.resources.push(...(source.resources ?? []));
-  target.economyResources.push(...(source.economyResources ?? []));
   target.movement.push(...(source.movement ?? source.movements ?? []));
   target.rollModes.push(...(source.rollModes ?? []));
   target.resourceCaps.push(...(source.resourceCaps ?? []));
@@ -730,7 +695,7 @@ function mergeContributions(target, source={}) {
 }
 
 function sortContributions(contributions) {
-  for ( const key of ["modifiers", "resources", "economyResources", "movement", "rollModes", "resourceCaps", "rollOutcomes",
+  for ( const key of ["modifiers", "resources", "movement", "rollModes", "resourceCaps", "rollOutcomes",
     "extraDamage", "auras", "triggers"] ) {
     contributions[key].sort(compareContributions);
   }
@@ -754,7 +719,6 @@ function createTrace(ruleElement, status, predicateResult=null, reason=null, con
     contributionCounts: {
       modifiers: contributions.modifiers.length,
       resources: contributions.resources.length,
-      economyResources: contributions.economyResources.length,
       damageAdjustments: Object.values(contributions.damageAdjustments).reduce((sum, entries) => sum + entries.length, 0),
       movement: contributions.movement.length,
       rollModes: contributions.rollModes.length,
@@ -798,10 +762,6 @@ function contributionMetadata(ruleElement, metadata={}) {
       source: clonePlain(ruleElement.source)
     }
   };
-}
-
-function normalizeRefreshPolicies(policies) {
-  return normalizeArray(policies).map(policy => typeof policy === "string" ? {event: policy} : clonePlain(policy));
 }
 
 function modifierMatchesDomain(modifier, domain) {

@@ -23,20 +23,25 @@ The default registry currently supports these contribution types:
 
 - `Modifier`
 - `GrantResource`
-- `GrantActionEconomyResource`
 - `GrantResistance`
 - `GrantImmunity`
 - `GrantMovement`
+- `RollMode`, `ResourceCap`, `RollOutcome`
+- `ExtraDamage`, `Aura`
 - `Trigger`
 
 Handlers return contribution bundles only:
 
 - `modifiers`
 - `resources`
-- `economyResources`
 - `damageAdjustments`
 - `movement`
+- `rollModes`, `resourceCaps`, `rollOutcomes`
+- `extraDamage`, `auras`
 - `triggers`
+
+`GrantActionEconomyResource` was removed on 2026-10-14: nothing read it. Extra Actions are counters whose maximum
+effects raise (action-economy.md).
 
 Owning domains consume those bundles. For example, `Modifier` RuleElements feed
 `WildPathStatistic`; damage adjustment RuleElements produce a profile for
@@ -337,8 +342,16 @@ own creature stored Ki 3/3 from their own client.
 **Movement grants.** `GrantMovement` gives a Speed for a mode (`{mode: "fly", distance: 60}`), prepared into
 `system.speeds`; movement in that mode uses it (movement-paths.md, "Movement modes (2024)").
 
-`GrantActionEconomyResource` is still only pure collected data. Extra Actions are counters instead
-(action-economy.md). Future resolvers should request the relevant RuleElement bundle
+**Custom resources and Legendary Actions (2024).** Both are `GrantResource` pools:
+- Spirit Points, maximum 2 × proficiency bonus, recovered on a long rest:
+  `{type: "GrantResource", data: {resourceId: "spirit-points", label: "Spirit Points", maximum: {type: "multiply",
+  terms: [2, {type: "proficiency-bonus"}]}, recovery: "longRest"}}`.
+- A monster's Legendary Actions: `{resourceId: "legendary-action", maximum: 3, recovery: "turn"}`, which refills at
+  the start of the monster's own turn. Its legendary Actions cost `{capability: "legendary-action", amount: 1}`; a
+  pool pays for its own id. Nothing yet enforces "only right after another creature's turn"; the GM decides.
+- A long rest also restores what a short rest does.
+
+Future resolvers should request the relevant RuleElement bundle
 and interpret it inside their own domain boundary instead of adding item-, spell-, class-, or
 condition-name branches.
 
