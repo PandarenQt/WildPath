@@ -166,6 +166,12 @@ Tokens taking the form's size, and Actions can summon creatures their caster con
 first slice is on the item sheet. It edits an Action's definition and any Item's RuleElements as JSON, and the
 engine's validators check each edit before it is saved
 ([homebrew-content-builder.md](../architecture/homebrew-content-builder.md#first-slice-json-editors-2026-10-14)).
+Effects got the same RuleElements editor. Later the same day:
+- Summons join their caster's combat right after it.
+- A transformed creature can't cast spells.
+- Actions can make the acting creature's own ability check, which decides what they do
+  ([action-definitions.md](../architecture/action-definitions.md#ability-checks-2026-10-14)).
+- An ally can stabilize a dying creature.
 
 **M4 — content pack (in progress, 2026-10-14).**
 - **The pack.** `@foundryvtt/foundryvtt-cli` 3.0.4 was approved and added. The built-in **WildPath Actions**
