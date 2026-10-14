@@ -10,6 +10,9 @@
     "definition": {
       "schemaVersion": 1,
       "id": "action:srd-staff-of-thunder-and-lightning-thunderclap",
+      "tags": [
+        "magical"
+      ],
       "costs": {
         "allOf": [
           {

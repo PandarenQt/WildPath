@@ -119,7 +119,7 @@
       "img": "icons/skills/wounds/injury-stitched-flesh-red.webp",
       "system": {
         "active": true,
-        "description": "<p>The troll regains  Hit Points at the start of each of its turns if it has at least 1 Hit Point.</p>",
+        "description": "<p>The troll regains 10 Hit Points at the start of each of its turns if it has at least 1 Hit Point.</p>",
         "ruleElements": [
           {
             "schemaVersion": 1,
@@ -174,9 +174,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Regeneration: the damage that stops it for a turn is not tracked; turn the feature off by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -385,7 +383,6 @@
       "conversion": {
         "notes": [
           "Loathsome Limbs: not automated (summon): using it spends its cost; its description says the rest",
-          "Regeneration: Regeneration: the damage that stops it for a turn is not tracked; turn the feature off by hand",
           "Charge: not automated (utility): using it spends its cost; its description says the rest",
           "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
         ]

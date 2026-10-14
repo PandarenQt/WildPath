@@ -10,6 +10,9 @@
     "definition": {
       "schemaVersion": 1,
       "id": "action:srd-vicious-weapon-vicious-weapon",
+      "tags": [
+        "magical"
+      ],
       "costs": {
         "allOf": [
           {

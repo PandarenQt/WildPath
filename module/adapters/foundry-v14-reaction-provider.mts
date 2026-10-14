@@ -16,6 +16,7 @@ interface ActorLike {
   readonly uuid: string;
   readonly items?: Iterable<ItemLike>;
   readonly statuses?: Set<string>;
+  getOpportunityAttackAvoidance?(): {always: boolean; movementModes: string[]};
 }
 
 interface TokenLike {
@@ -66,14 +67,15 @@ export function createFoundryReactionProvider({resolve = defaultResolve} = {}) {
     if ( !scene?.tokens || !mover ) return {};
     const triggers: Data[] = [];
     const observers: Data[] = [];
-    // 2024 Disengage: the mover's movement provokes no Opportunity Attacks this turn.
-    const disengaged = mover.actor?.statuses?.has("disengaged") === true;
+    // 2024 Disengage: the mover's movement provokes no Opportunity Attacks this turn; Flyby: none while it flies.
+    const avoidance = mover.actor?.getOpportunityAttackAvoidance?.() ?? {always: false, movementModes: []};
+    const disengaged = (mover.actor?.statuses?.has("disengaged") === true) || avoidance.always;
     for ( const token of scene.tokens ) {
       if ( (token.id === mover.id) || !token.actor ) continue;
       const reactions = tokenReactions(token);
       // Every creature makes Opportunity Attacks (Baldur's Gate 3), unless an Item of its own reacts to movement,
       // even one switched off or set to Never.
-      if ( !disengaged && !ownsMovementReaction(token) ) reactions.push(...opportunityAttack(token));
+      if ( !disengaged && !ownsMovementReaction(token) ) reactions.push(...opportunityAttack(token, avoidance.movementModes));
       triggers.push(...reactions.map(entry => entry.trigger));
       const watching = reactions.filter(entry => entry.event === MOVEMENT_EVENT);
       if ( watching.length ) observers.push({
@@ -127,8 +129,8 @@ function ownsMovementReaction(token: TokenLike) {
     && ((element.data as Data | undefined)?.kind === "reaction") && ((element.data as Data | undefined)?.event === MOVEMENT_EVENT)));
 }
 
-/** The common Opportunity Attack of `token`'s creature, unless it is set to Never. */
-function opportunityAttack(token: TokenLike) {
+/** The common Opportunity Attack of `token`'s creature, unless it is set to Never; never against movement in `avoidedModes`. */
+function opportunityAttack(token: TokenLike, avoidedModes: readonly string[] = []) {
   const localize = (key: string) => (globalThis as {game?: {i18n?: {localize(key: string): string}}}).game?.i18n?.localize(key) ?? key;
   const action = common(token.actor, "opportunity", {localize});
   const definition = action ? definitionFor(action) : null;
@@ -142,7 +144,8 @@ function opportunityAttack(token: TokenLike) {
     tokenId: token.id,
     action: definition.definition,
     actionId: definition.definition.id ?? null,
-    predicate: bindSelf(OPPORTUNITY_PREDICATE, token.id),
+    predicate: bindSelf(avoidedModes.length ? {all: [...OPPORTUNITY_PREDICATE.all,
+      {not: {oneOf: {path: "event.data.movementMode", values: [...avoidedModes]}}}]} : OPPORTUNITY_PREDICATE, token.id),
     ...(policy === "always" ? {metadata: {reactionPolicy: policy}} : {})
   });
   return [{trigger, event: MOVEMENT_EVENT, definition: definition.definition}];

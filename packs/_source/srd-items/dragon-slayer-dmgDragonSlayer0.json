@@ -10,6 +10,9 @@
     "definition": {
       "schemaVersion": 1,
       "id": "action:srd-dragon-slayer-dragon-slayer",
+      "tags": [
+        "magical"
+      ],
       "costs": {
         "allOf": [
           {

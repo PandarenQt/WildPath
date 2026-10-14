@@ -139,7 +139,7 @@
             "type": "RollMode",
             "predicate": {
               "tagsAny": [
-                "spell"
+                "magical"
               ]
             },
             "data": {
@@ -163,9 +163,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Magic Resistance: Advantage on saves against spells; other magical effects are not told apart"
-            ]
+            "notes": []
           }
         }
       }
@@ -1240,7 +1238,6 @@
       },
       "conversion": {
         "notes": [
-          "Magic Resistance: Magic Resistance: Advantage on saves against spells; other magical effects are not told apart",
           "Rotting Fist: effect: cursed is not a WildPath condition yet",
           "Rotting Fist: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",

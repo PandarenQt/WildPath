@@ -271,8 +271,18 @@ the GM with the V14 user query `wildpath.automationEvent`. Foundry's server name
 only `rest.completed`, only for an Actor that sender owns, and takes only the rest type from the data. A
 rest on the GM's own client runs before `rest()` returns.
 
-A trigger's predicate also sees its creature as `actor`. Regeneration is a `turn.started` trigger with
-`{not: {equals: {path: "actor.system.resources.health.value", value: 0}}}`.
+A trigger's predicate also sees its creature as `actor`. Regeneration is a `turn.started` trigger whose inline
+Action heals its creature. Its predicate holds only what its own text says:
+- "if it has at least 1 Hit Point": `{not: {equals: {path: "actor.system.resources.health.value", value: 0}}}`;
+- "if the troll takes Acid or Fire damage, this trait doesn't function on its next turn": `data.stoppedBy:
+  ["acid", "fire"]` and `{not: {equals: {path: "actor.flags.wildpath.damageTaken.fire", value: true}}}` per type. The
+  dying rules record those types when the creature takes more than 0 of them, and clear the record when its next
+  turn starts, after the trigger.
+- "the troll dies only if it starts its turn with 0 Hit Points and doesn't regenerate": `data.deferDeath: true`. At 0
+  it falls Unconscious instead of dying, and at the start of its turn it dies if it is still at 0
+  ([dying-and-death.md](dying-and-death.md)).
+
+A Regeneration that names none of these (the Tarrasque's kind) heals every turn.
 
 Not yet: `once` is ignored (triggers fire every time), and a trigger cannot target anyone but its owner.
 
@@ -291,8 +301,11 @@ Its predicate sees `attack.type` and `attack.adjacent` (the attacker within 5 ft
 5 ft, disadvantage beyond" is two RollModes. It also sees:
 - `attack.allyNearTarget`: one of the attacker's allies (its disposition, not Incapacitated) stands within 5 ft of
   the target. Pack Tactics is `{equals: {path: "attack.allyNearTarget", value: true}}` on `attack`.
-- on a save, the Action's `tags`. Magic Resistance is `{tagsAny: ["spell"]}` on `save`. The 2024 conditions are authored this way in
-`WILDPATH.CONDITIONS` (rolls.md, "Advantage / Disadvantage and Modifiers").
+- on a save, the Action's `tags`, where every spell is also `magical`. Magic Resistance is `{tagsAny: ["magical"]}` on
+  `save`: it covers spells and any Action tagged `magical` (the converter tags a magic item's Actions).
+
+The 2024 conditions are authored this way in `WILDPATH.CONDITIONS` (rolls.md, "Advantage / Disadvantage and
+Modifiers").
 
 **Resource caps.** A `ResourceCap` RuleElement puts a ceiling on resource maxima:
 - `{resources: ["action", "bonus", "reaction"], maximum: 0}` is Incapacitated: no actions of any kind, so
@@ -304,6 +317,14 @@ Its predicate sees `attack.type` and `attack.adjacent` (the attacker within 5 ft
   target context carries the `automatic-failure` override.
 - `critical-on-hit` on attacks against it (`attacked`): a hit becomes a critical hit. Its predicate sees
   `attack.adjacent`, measured per target.
+
+**Avoiding Opportunity Attacks (2026-10-14, G5).** `AvoidOpportunityAttacks {movementModes: ["fly"]}` on a creature's
+active features, gear and effects: its movement in those modes provokes no common Opportunity Attack (Flyby). With no
+modes it provokes none at all, like Disengage (`WildPathActor#getOpportunityAttackAvoidance`). A creature's own
+movement reactions keep their own predicates.
+
+Live (two browsers, 14.369): an SRD Owl flew out of the Bandit Captain's reach with no prompt; walking out, the GM was
+offered the Captain's Opportunity Attack.
 
 **Legendary Resistance (2026-10-14, G5).** A creature with a `legendary-resistance` pool (a `GrantResource`) that
 fails a save may succeed instead.

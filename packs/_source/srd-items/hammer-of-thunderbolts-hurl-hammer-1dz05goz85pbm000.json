@@ -10,6 +10,9 @@
     "definition": {
       "schemaVersion": 1,
       "id": "action:srd-hammer-of-thunderbolts-hurl-hammer",
+      "tags": [
+        "magical"
+      ],
       "costs": {
         "allOf": [
           {

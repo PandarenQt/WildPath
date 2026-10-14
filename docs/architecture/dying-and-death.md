@@ -45,6 +45,11 @@ The rules are in `module/adapters/foundry-v14-dying.mts`: a pure core (`dyingAft
     (`restHours`, added to the flag). Tables that never advance world time still recover.
   - Damage while stable starts the death saves over and ends the wait. So do healing, waking and death.
 
+- **Regeneration that puts off death (2026-10-14).** A creature whose Regeneration says it "dies only if it starts
+  its turn with 0 Hit Points and doesn't regenerate" (`deferDeath`, rule-elements.md) falls Unconscious at 0 instead
+  of dying. At the start of its turn, after its Regeneration has run, it dies if it is still at 0. Healing wakes it as
+  it wakes anyone. Exhaustion 6 still kills it.
+
 ## Dead
 
 `die(actor)` sets health to 0 and three failed death saves. It applies the **Dead** condition, which is

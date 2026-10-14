@@ -83,9 +83,11 @@ export function deathSaveResult({natural, total, deathSaves=RESET}: {natural: nu
   return failures >= 3 ? {die: true} : {deathSaves: {...deathSaves, failures}};
 }
 
+interface RegenerationRule {type?: string; enabled?: boolean; data?: {stoppedBy?: string[]; deferDeath?: boolean}}
 interface DyingActor {
   uuid: string; id: string; type?: string; name?: string; hasPlayerOwner?: boolean;
-  flags?: {wildpath?: {stableSince?: StableSince}};
+  flags?: {wildpath?: {stableSince?: StableSince; damageTaken?: Record<string, boolean>}};
+  items?: Iterable<{system?: {active?: boolean; ruleElements?: RegenerationRule[]}}>;
   setFlag(scope: string, key: string, value: unknown): Promise<unknown>;
   unsetFlag(scope: string, key: string): Promise<unknown>;
   system: {resources?: {health?: {value?: number}}; deathSaves?: DeathSaves; dyingMode?: string;
@@ -97,6 +99,14 @@ interface DyingActor {
 }
 interface Combatant {actor?: DyingActor | null; token?: {id: string; parent?: {id: string} | null} | null; defeated?: boolean;
   update(data: Data): Promise<unknown>}
+
+/**
+ * A creature's Regeneration: `turn.started` Triggers on its active features that name the damage that stops them
+ * (`stoppedBy`) or put off its death at 0 health until its turn starts (`deferDeath`).
+ */
+const regenerationsOf = (actor: DyingActor) => [...(actor.items ?? [])].filter(item => item.system?.active !== false)
+  .flatMap(item => item.system?.ruleElements ?? [])
+  .filter(rule => (rule.type === "Trigger") && (rule.enabled !== false) && (rule.data?.stoppedBy?.length || rule.data?.deferDeath));
 
 const hasCondition = (actor: DyingActor, id: string) => [...actor.effects].some(effect => effect.system?.type === id);
 const deathSavesOf = (actor: DyingActor): DeathSaves => ({successes: Number(actor.system.deathSaves?.successes) || 0,
@@ -161,14 +171,33 @@ export function createFoundryDying({game, coordinator, resolveAction, logger=glo
     if ( consequence.wake && hasCondition(actor, "unconscious") ) await actor.toggleCondition("unconscious", {levels: -1});
   }
 
+  /**
+   * The damage types that stop a creature's Regeneration, recorded when it takes them (more than 0); they count until
+   * its next turn starts.
+   */
+  async function recordStoppingDamage(actor: DyingActor, entry: Data) {
+    const stopping = new Set(regenerationsOf(actor).flatMap(rule => rule.data?.stoppedBy ?? []));
+    const taken = ((entry.plan as {metadata?: {damageResult?: {byDamageType?: Record<string, number>}}} | undefined)
+      ?.metadata?.damageResult?.byDamageType) ?? {};
+    const types = Object.entries(taken).filter(([type, amount]) => stopping.has(type) && (Number(amount) > 0)
+      && !actor.flags?.wildpath?.damageTaken?.[type]).map(([type]) => type);
+    if ( types.length ) await actor.update(Object.fromEntries(types.map(type => [`flags.wildpath.damageTaken.${type}`, true])));
+  }
+
   /** The health changes `plans` committed on `actor` (a condition's damage at turn start). */
   async function afterPlans(actor: DyingActor | null, plans: readonly Data[] = [], {critical=false}={}) {
     if ( !actor || !isActiveGM() ) return;
     for ( const entry of plans ) {
       const change = ((entry.plan as DurabilityChange | undefined) ?? entry) as DurabilityChange & {type?: string};
       const type = String((entry.plan ? (change.type ?? entry.type) : entry.type) ?? "");
-      await apply(actor, dyingAfterChange({change: {...change, type}, critical, character: savesForDeath(actor),
-        deathSaves: deathSavesOf(actor)}));
+      if ( DAMAGE.has(type) ) await recordStoppingDamage(actor, entry);
+      let consequence = dyingAfterChange({change: {...change, type}, critical, character: savesForDeath(actor),
+        deathSaves: deathSavesOf(actor)});
+      // A creature whose Regeneration puts off its death lies at 0 until its turn starts.
+      if ( consequence?.die && !savesForDeath(actor) && regenerationsOf(actor).some(rule => rule.data?.deferDeath) ) {
+        consequence = {unconscious: true};
+      }
+      await apply(actor, consequence);
     }
   }
 
@@ -207,7 +236,16 @@ export function createFoundryDying({game, coordinator, resolveAction, logger=glo
   /** At the start of its turn a dying character (0 health, not stable, not dead) rolls its death save. */
   async function onTurnStart({combatant}: {combatant?: Combatant | null}) {
     const actor = combatant?.actor ?? null;
-    if ( !actor || !isActiveGM() || !savesForDeath(actor) || isDead(actor) ) return null;
+    if ( !actor || !isActiveGM() ) return null;
+    const regenerations = regenerationsOf(actor);
+    if ( regenerations.length ) {
+      // "It dies only if it starts its turn with 0 Hit Points and doesn't regenerate": its Regeneration has run by now.
+      if ( regenerations.some(rule => rule.data?.deferDeath) && !savesForDeath(actor) && !isDead(actor)
+        && ((Number(actor.system.resources?.health?.value) || 0) === 0) ) await die(actor);
+      // The damage that stopped it counted for this turn only.
+      if ( actor.flags?.wildpath?.damageTaken ) await actor.unsetFlag("wildpath", "damageTaken");
+    }
+    if ( !savesForDeath(actor) || isDead(actor) ) return null;
     if ( (Number(actor.system.resources?.health?.value) || 0) > 0 || (deathSavesOf(actor).successes >= 3) ) return null;
     const token = combatant?.token ?? null;
     const label = game.i18n?.localize("WILDPATH.DYING.DeathSave") ?? "Death Saving Throw";

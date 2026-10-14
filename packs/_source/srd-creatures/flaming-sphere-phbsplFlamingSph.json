@@ -95,6 +95,9 @@
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-roll-move-and-save",
+          "tags": [
+            "magical"
+          ],
           "costs": {
             "allOf": [
               {

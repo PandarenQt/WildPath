@@ -140,17 +140,21 @@ in Foundry yet; that waits for the next world launch.
 ### Common monster traits (G5)
 
 A feature is matched by its dnd5e identifier (or its name) and gets the rules of that trait:
-- **Magic Resistance:** Advantage on saves against spells (a `RollMode` on `save` for Actions tagged `spell`).
-  Shortcut: other magical effects are not told apart.
+- **Magic Resistance:** Advantage on saves against magical effects: every spell, and any Action tagged `magical`. A
+  magic item's Actions (dnd5e's `mgc` property) are tagged `magical`.
 - **Pack Tactics:** Advantage on attacks while one of the creature's allies, not Incapacitated, is within 5 ft of the
   target.
-- **Regeneration:** its healing at the start of each of its turns, while it has at least 1 Hit Point. Shortcut: the
-  damage that stops it for a turn (Acid, Fire) is not tracked, so the GM turns the feature off for that turn.
+- **Regeneration:** its healing at the start of each of its turns, on the terms its own text sets: "at least 1 Hit
+  Point", the damage types that stop it for a turn (Acid or Fire for a Troll, Fire or Radiant for a Revenant), and
+  "dies only if it starts its turn with 0 Hit Points and doesn't regenerate". Its healing activity is the trait's,
+  however dnd5e activates it ("special" or "turnStart"). Shortcut: a Vampire's sunlight and running water are not
+  checked.
+- **Flyby:** no Opportunity Attacks when it flies out of reach (`AvoidOpportunityAttacks` for `fly`).
 - **Legendary Resistance:** a pool of the creature's uses ("3/Day", from its stat block). A failed save may succeed
   instead, spending one; its controller is asked unless its setting says Always or Never.
 
-Converted on 2026-10-14, the SRD has Legendary Resistance on 32 creatures, Magic Resistance on 34, Pack Tactics on 18
-and Regeneration on 4. The book packages convert the same way.
+Converted on 2026-10-14, the SRD has Legendary Resistance on 32 creatures, Magic Resistance on 34, Pack Tactics on 18,
+Flyby on 6 and Regeneration on 4. The book packages convert the same way.
 
 ### The monster toolkit (G4)
 

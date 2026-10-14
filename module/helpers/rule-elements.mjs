@@ -10,6 +10,7 @@ export const RULE_ELEMENT_TYPES = Object.freeze({
   GRANT_IMMUNITY: "GrantImmunity",
   GRANT_VULNERABILITY: "GrantVulnerability",
   CONDITION_IMMUNITY: "ConditionImmunity",
+  AVOID_OPPORTUNITY_ATTACKS: "AvoidOpportunityAttacks",
   REVEAL: "Reveal",
   GRANT_MOVEMENT: "GrantMovement",
   ROLL_MODE: "RollMode",
@@ -52,6 +53,7 @@ const TYPE_ALIASES = Object.freeze({
   grantvulnerability: RULE_ELEMENT_TYPES.GRANT_VULNERABILITY,
   vulnerability: RULE_ELEMENT_TYPES.GRANT_VULNERABILITY,
   conditionimmunity: RULE_ELEMENT_TYPES.CONDITION_IMMUNITY,
+  avoidopportunityattacks: RULE_ELEMENT_TYPES.AVOID_OPPORTUNITY_ATTACKS,
   reveal: RULE_ELEMENT_TYPES.REVEAL,
   grantmovement: RULE_ELEMENT_TYPES.GRANT_MOVEMENT,
   movement: RULE_ELEMENT_TYPES.GRANT_MOVEMENT,
@@ -106,6 +108,7 @@ export function createDefaultRuleElementRegistry() {
     [RULE_ELEMENT_TYPES.GRANT_IMMUNITY, grantImmunityRuleElement],
     [RULE_ELEMENT_TYPES.GRANT_VULNERABILITY, grantVulnerabilityRuleElement],
     [RULE_ELEMENT_TYPES.CONDITION_IMMUNITY, conditionImmunityRuleElement],
+    [RULE_ELEMENT_TYPES.AVOID_OPPORTUNITY_ATTACKS, avoidOpportunityAttacksRuleElement],
     [RULE_ELEMENT_TYPES.REVEAL, revealRuleElement],
     [RULE_ELEMENT_TYPES.GRANT_MOVEMENT, grantMovementRuleElement],
     [RULE_ELEMENT_TYPES.TRIGGER, triggerRuleElement]
@@ -352,6 +355,16 @@ export function conditionImmunitiesFromRuleElements(owners=[], context={}) {
     collectRuleElementContributions({ruleElements, context, source}).contributions.conditionImmunities))];
 }
 
+/**
+ * Whether a creature's movement provokes Opportunity Attacks (`AvoidOpportunityAttacks`): `always` when one of its rules
+ * names no movement mode, else the modes in which it does not (`["fly"]`: Flyby).
+ */
+export function opportunityAttackAvoidanceFromRuleElements(owners=[], context={}) {
+  const entries = owners.flatMap(({ruleElements=[], source=null}) =>
+    collectRuleElementContributions({ruleElements, context, source}).contributions.opportunityAttackAvoidance);
+  return {always: entries.some(entry => !entry.movementModes.length), movementModes: [...new Set(entries.flatMap(entry => entry.movementModes))]};
+}
+
 /** The auras (`Aura`) a creature's owners give it: each grants its rules to creatures within its radius. */
 export function aurasFromRuleElements(owners=[], context={}) {
   return owners.flatMap(({ruleElements=[], source=null}) => collectRuleElementContributions({ruleElements, context, source}).contributions.auras);
@@ -503,6 +516,11 @@ function conditionImmunityRuleElement(ruleElement) {
   const conditions = normalizeStrings(ruleElement.data.conditions ?? ruleElement.data.conditionIds);
   if ( !conditions.length ) return handlerFailure(RULE_ELEMENT_CODES.INVALID, "ConditionImmunity RuleElement requires conditions.");
   return success({conditionImmunities: conditions});
+}
+
+/** The creature provokes no Opportunity Attacks: when it moves in one of `movementModes`, or always when none is named. */
+function avoidOpportunityAttacksRuleElement(ruleElement) {
+  return success({opportunityAttackAvoidance: [{movementModes: normalizeStrings(ruleElement.data.movementModes)}]});
 }
 
 /**
@@ -717,6 +735,7 @@ function emptyContributions() {
     extraDamage: [],
     auras: [],
     conditionImmunities: [],
+    opportunityAttackAvoidance: [],
     reveals: [],
     triggers: []
   };
@@ -738,6 +757,7 @@ function mergeContributions(target, source={}) {
   target.extraDamage.push(...(source.extraDamage ?? []));
   target.auras.push(...(source.auras ?? []));
   target.conditionImmunities.push(...(source.conditionImmunities ?? []));
+  target.opportunityAttackAvoidance.push(...(source.opportunityAttackAvoidance ?? []));
   target.reveals.push(...(source.reveals ?? []));
   target.triggers.push(...(source.triggers ?? []));
 

@@ -202,16 +202,20 @@ Forced movement and elevation join G6, which becomes "space": areas, elevation a
     applied nothing.
 
 - **G5, common traits, first part (2026-10-14).** Done:
-  - Magic Resistance, Pack Tactics, Regeneration and Legendary Resistance, matched by dnd5e identifier. By the trait
-    survey these are 142, 52, 21 and 82 stat-block features across the SRD and the four books.
+  - Magic Resistance, Pack Tactics, Regeneration, Legendary Resistance and Flyby, matched by dnd5e identifier. By the
+    trait survey these are 142, 52, 21, 82 and 25 stat-block features across the SRD and the four books.
+  - Magic Resistance covers every spell and any Action tagged `magical` (maintainer, 2026-10-14). Regeneration stops
+    only for the damage its own text names, and a Troll at 0 dies only if it starts its turn without regenerating.
   - Legendary Resistance asks the creature's controller after a failed save, or follows its Always or Never setting
     on the action bar.
   - Live (two browsers): Player1's Fireball and an SRD Unicorn (asked, then Always). The Unicorn's save against the
     spell rolled `2d20kh`. An SRD Wolf's Bite showed 94% with an ally beside the target and 75% without. An SRD Troll
-    regained 10 at the start of its turn.
+    regained 10 at the start of its turn. Given the Monster Manual Troll's Regeneration, it fell Unconscious at 0 to
+    Player1's Fireball and died at the start of its next turn; at 0 without Fire, it regenerated to 10 and woke. An SRD
+    Owl flew out of the Bandit Captain's reach unchallenged; walking out offered the Opportunity Attack.
   - Not yet, by survey count: Amphibious, Water Breathing and Hold Breath (82, 27, 16: no breathing rules), Spider
-    Climb (50: a listed climb Speed is converted, ceilings are not; 3 SRD creatures list none), Flyby (25), Sunlight Sensitivity (20, needs light),
-    Sneak Attack, Extra Attack and Evasion.
+    Climb (50: a listed climb Speed is converted, ceilings are not; 3 SRD creatures list none), Sunlight Sensitivity
+    (20, needs light), Sneak Attack, Extra Attack and Evasion.
 - **G4, the monster toolkit (2026-10-14).** Done:
   - Multiattack, monster spellcasting, per-activity uses and Recharge;
   - Action Items' own uses pools now exist. Fire Breath, Second Wind and every "X/Day" Action could not be paid for

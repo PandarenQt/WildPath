@@ -61,7 +61,7 @@
       "img": "icons/skills/wounds/injury-stitched-flesh-red.webp",
       "system": {
         "active": true,
-        "description": "<p>The troll limb regains  Hit Points at the start of each of its turns if it has at least 1 Hit Point.</p>",
+        "description": "<p>The troll limb regains 10 Hit Points at the start of each of its turns if it has at least 1 Hit Point.</p>",
         "ruleElements": [
           {
             "schemaVersion": 1,
@@ -116,9 +116,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Regeneration: the damage that stops it for a turn is not tracked; turn the feature off by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -239,7 +237,6 @@
       },
       "conversion": {
         "notes": [
-          "Regeneration: Regeneration: the damage that stops it for a turn is not tracked; turn the feature off by hand",
           "Troll Spawn: \"Troll\" is passive or triggered: not automated"
         ]
       }

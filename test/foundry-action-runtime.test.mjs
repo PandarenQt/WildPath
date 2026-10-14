@@ -434,11 +434,13 @@ const fortitudeBlast = ability => ({schemaVersion: 1, id: `action:runtime-${abil
   damage: [{id: "blast", expression: {type: "constant", value: 4}, damageType: "force", provenance: "spell-base"}]});
 
 test("common traits (G5): Magic Resistance is Advantage on saves against spells, Pack Tactics needs an ally by the target", async () => {
-  const magicResistance = [{schemaVersion: 1, id: "magic-resistance", type: "RollMode", predicate: {tagsAny: ["spell"]},
+  const magicResistance = [{schemaVersion: 1, id: "magic-resistance", type: "RollMode", predicate: {tagsAny: ["magical"]},
     data: {domains: ["save"], mode: "advantage"}}];
   const spell = {...fortitudeBlast("wits"), id: "action:runtime-spell-blast", tags: ["spell"]};
-  assert.equal((await firstRollRequest(spell, {target: [magicResistance]})).rollMode, "advantage");
-  assert.equal((await firstRollRequest(fortitudeBlast("wits"), {target: [magicResistance]})).rollMode, "normal", "not against a non-spell");
+  const wand = {...fortitudeBlast("wits"), id: "action:runtime-wand-blast", tags: ["magical"]};
+  assert.equal((await firstRollRequest(spell, {target: [magicResistance]})).rollMode, "advantage", "every spell is magical");
+  assert.equal((await firstRollRequest(wand, {target: [magicResistance]})).rollMode, "advantage", "a magic item's Action");
+  assert.equal((await firstRollRequest(fortitudeBlast("wits"), {target: [magicResistance]})).rollMode, "normal", "nothing magical");
 
   const packTactics = [{schemaVersion: 1, id: "pack-tactics", type: "RollMode", predicate: {equals: {path: "attack.allyNearTarget", value: true}},
     data: {domains: ["attack"], mode: "advantage"}}];
