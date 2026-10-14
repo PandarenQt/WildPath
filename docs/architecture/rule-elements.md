@@ -212,6 +212,40 @@ leaving its reach (6 damage, reaction spent, movement finished), with no injecte
 browsers: the same guard attacked a player's native move before its first step
 ([movement-paths.md](movement-paths.md#before-step-reactions-in-native-drags)).
 
+**Automatic triggers.** A `Trigger` of kind `automation` (the default) on a creature's active Item or
+enabled non-condition effect runs without asking anyone. The general automation dispatcher
+(`module/adapters/foundry-v14-automation-dispatcher.mts`, `game.wildpath.automation`) runs it when its event
+happens to that creature:
+
+- `turn.started` and `turn.ended` come from `WildPathCombat`.
+- `initiative.rolled` comes from any client's roll, through the Combatant update the GM sees
+  (`event.data.initiative`).
+- `rest.completed` comes from `Actor#rest` (`event.data.restType`, `shortRest` or `longRest`).
+
+The Action is the trigger's inline `data.action`, the Item itself when it is an Action, or the Action Item
+named by `data.actionId`. It resolves as an authority Action with the creature as source and only target,
+exactly like a lasting area's effect, and it shares that code (`runAuthorityAction`). Put the event
+predicate in `data.predicate` or `data.triggerPredicate`. Condition effects keep their own path (below), so
+nothing fires twice.
+
+```js
+{type: "Trigger", data: {event: "rest.completed",
+  predicate: {equals: {path: "event.data.restType", value: "longRest"}},
+  action: {schemaVersion: 1, id: "action:renewal", label: "Renewal", costs: {allOf: []}, healing: [/* ... */]}}}
+```
+
+Only the active GM dispatches. A rest happens on the resting client, so a Player's client reports it to
+the GM with the V14 user query `wildpath.automationEvent`. Foundry's server names the sender. The GM accepts
+only `rest.completed`, only for an Actor that sender owns, and takes only the rest type from the data. A
+rest on the GM's own client runs before `rest()` returns.
+
+Not yet: `once` is ignored (triggers fire every time), and a trigger cannot target anyone but its owner.
+
+Live (14.369): Quench ran a turn-start trigger once per turn, an initiative trigger when the Combatant
+rolled, and a long-rest trigger that ignored a short rest. In two browsers, Player1's long rest made the GM
+run its creature's trigger (10 → 7, with a card). The GM refused Player1's forged report for an Actor
+Player1 does not own, and a report of a GM-only event.
+
 **Damage grants.** `GrantResistance` and `GrantImmunity` on a creature's active features, gear and
 enabled effects form its damage profile (`WildPathActor#getDamageProfile`, through the pure
 `damageProfileFromRuleElements`). The Action runtime passes each target's profile into damage

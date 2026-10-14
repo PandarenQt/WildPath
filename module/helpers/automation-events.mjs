@@ -34,6 +34,7 @@ export const AUTOMATION_EVENT_TYPES = Object.freeze({
   MOVEMENT_INTERRUPTED: "movement.interrupted",
   AREA_ENTERED: "area.entered",
   AREA_EXITED: "area.exited",
+  INITIATIVE_ROLLED: "initiative.rolled",
   TURN_STARTED: "turn.started",
   TURN_ENDED: "turn.ended",
   ROUND_STARTED: "round.started",

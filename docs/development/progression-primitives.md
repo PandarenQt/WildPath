@@ -56,7 +56,10 @@ the code. Payment discovery reads only the Actor's stored resources and pools
      `GrantActionEconomyResource` is not needed for this.
 
    This unlocks extra Actions, resistances and slot pools as authored data.
-2. **A general automation dispatcher, then the missing events.** Today an event such as
+2. **A general automation dispatcher, then the missing events: done 2026-10-14** for Items and
+   non-condition effects on `turn.started`, `turn.ended`, `initiative.rolled` (new) and `rest.completed`
+   (rule-elements.md, "Automatic triggers"). Still open: `area.exited`, moving the legacy condition ticks
+   onto the dispatcher, and `once`. The original analysis follows. Today an event such as
    `turn.started`, `rest.completed` or `area.entered` reaches only condition triggers, reactions and
    lasting areas.
    - Missing: running an Item's or effect's non-optional `Trigger` (for example "when you roll

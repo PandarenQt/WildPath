@@ -21,6 +21,7 @@ import {createTestRollProvider} from "../module/resolvers/roll-provider-resolver
 import {createTestPromptAdapter} from "../module/adapters/test-prompt-adapter.mjs";
 import {createFoundryReactionProvider} from "../module/adapters/foundry-v14-reaction-provider.mjs";
 import {areaCovers, areaExpired, createFoundryPersistentAreas} from "../module/adapters/foundry-v14-persistent-areas.mjs";
+import {createFoundryAutomationDispatcher} from "../module/adapters/foundry-v14-automation-dispatcher.mjs";
 import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
 import {damageProfileFromRuleElements} from "../module/helpers/rule-elements.mjs";
 import {
@@ -973,11 +974,13 @@ function lastingAreaFixture(t, {shape="radial", range=60, rounds=10, concentrati
       senderUserId: envelope.senderUserId, game, persistencePort})});
   areas = createFoundryPersistentAreas({game, coordinator: gm,
     resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});
+  const automation = createFoundryAutomationDispatcher({game, coordinator: gm, fromUuid: globalThis.fromUuid,
+    resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});
   const player = createMultiplayerActionCoordinator({userId: "player-a", users: () => hub.userDirectory(),
     activeGMUserId: "gm-a", transport: hub.createEndpoint({userId: "player-a"})});
   gm.register();
   player.register();
-  return {...fixture, gm, player, areas};
+  return {...fixture, gm, player, areas, automation};
 }
 
 test("a lasting area becomes a Region and burns a creature that starts its turn in it, once per turn", async t => {
@@ -1032,6 +1035,45 @@ test("an area that catches nobody still happens and leaves its lasting area", as
   assert.equal(state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(state.errors));
   assert.equal(scene.regions.length, 1);
   assert.equal(targetActor.system.resources.health.value, 30);
+});
+
+/** A feature carrying one Trigger RuleElement whose inline Action is BURNING. */
+const triggerFeature = (id, data, {active=true}={}) => ({id, type: "feature", name: id,
+  system: {active, ruleElements: [{id: "trigger", type: "Trigger", data: {action: BURNING, ...data}}]}});
+
+test("an Item's automatic trigger runs its Action on its owner through the authority when its event happens", async t => {
+  const {targetActor, targetToken, automation} = lastingAreaFixture(t);
+  targetActor.items = [
+    triggerFeature("cursed-blood", {event: "turn.started"}),
+    triggerFeature("inactive", {event: "turn.started"}, {active: false}),
+    triggerFeature("a-reaction", {event: "turn.started", kind: "reaction"}),
+    triggerFeature("never", {event: "turn.started", predicate: {equals: {path: "event.data.never", value: true}}})
+  ];
+  await automation.dispatch("turn.ended", {actor: targetActor, token: targetToken});
+  assert.equal(targetActor.system.resources.health.value, 30, "another event reaches nothing");
+  const states = await automation.dispatch("turn.started", {actor: targetActor, token: targetToken});
+  assert.deepEqual(states.map(state => state.status), [RESOLUTION_STATE_STATUS.COMPLETED],
+    "only the active automatic trigger whose predicate holds runs");
+  assert.equal(targetActor.system.resources.health.value, 26);
+});
+
+test("a rest a Player reports is dispatched only for an Actor that Player owns, with only the rest type taken", async t => {
+  const {targetActor, game, automation} = lastingAreaFixture(t);
+  targetActor.items = [triggerFeature("long-rest-curse", {event: "rest.completed",
+    predicate: {equals: {path: "event.data.restType", value: "longRest"}}})];
+  const owner = game.users.get("player-a");
+  const stranger = {id: "player-b", isGM: false};
+  assert.deepEqual(await automation.handleQuery({type: "turn.started", actorUuid: targetActor.uuid}, {user: owner}), {ok: false},
+    "a client cannot raise the GM's own events");
+  assert.deepEqual(await automation.handleQuery({type: "rest.completed", actorUuid: targetActor.uuid,
+    data: {restType: "longRest"}}, {user: stranger}), {ok: false}, "nor rest someone else's creature");
+  assert.deepEqual(await automation.handleQuery({type: "rest.completed", actorUuid: targetActor.uuid,
+    data: {restType: "shortRest"}}, {user: owner}), {ok: true});
+  await new Promise(resolve => setTimeout(resolve, 20));
+  assert.equal(targetActor.system.resources.health.value, 30, "a short rest does not match the long-rest trigger");
+  await automation.handleQuery({type: "rest.completed", actorUuid: targetActor.uuid, data: {restType: "longRest"}}, {user: owner});
+  await new Promise(resolve => setTimeout(resolve, 20));
+  assert.equal(targetActor.system.resources.health.value, 26);
 });
 
 test("a lasting area runs out after its rounds, at the turn it was created on", () => {

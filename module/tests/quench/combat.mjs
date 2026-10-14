@@ -217,6 +217,43 @@ export function registerCombatTests(quench) {
         assert.equal(live.actor.getResource("action").value,1,"Recovery and trigger dispatch must occur in the same managed turn start");
       });
 
+      /** A feature whose automatic Trigger deals `amount` poison to its owner on `event` (optionally gated). */
+      function stingFeature(actor, {event, amount, predicate=null}) {
+        return fixtures.createItem(actor, {name:`sting on ${event}`, system:{ruleElements:[{id:"sting", type:"Trigger", data:{
+          event, ...(predicate ? {predicate} : {}),
+          action:{schemaVersion:1, id:`action:qa-sting-${amount}`, label:"QA Sting", costs:{allOf:[]},
+            damage:[{id:"sting", expression:{type:"constant", value:amount}, damageType:"poison", provenance:"spell-base"}]}}}]}});
+      }
+      async function until(condition, message) {
+        for (let waited = 0; waited < TURN_EVENT_TIMEOUT; waited += 50) {
+          if (condition()) return;
+          await new Promise(resolve => setTimeout(resolve, 50));
+        }
+        assert.fail(message);
+      }
+
+      it("an Item's automatic Trigger runs as an authority Action at turn start, and another when initiative is rolled", async function () {
+        const enc = await encounter({name:"automatic triggers"});
+        await begin(enc); // Round 1 starts before the features exist.
+        await stingFeature(enc.actor, {event:"turn.started", amount:1});
+        await stingFeature(enc.actor, {event:"initiative.rolled", amount:2});
+        await advance(enc);
+        assert.equal(liveToken(enc).actor.getResource("health").value, 9, "the turn-start sting lands once");
+        await enc.combat.rollInitiative([enc.combatant.id]);
+        await until(() => liveToken(enc).actor.getResource("health").value === 7, "the initiative sting must land");
+        assert.equal(baseSource(enc).resources.health.value, 10, "the base world Actor is untouched");
+      });
+
+      it("Actor#rest runs a rest Trigger whose predicate names the rest it answers", async function () {
+        const enc = await encounter({name:"rest trigger"});
+        await stingFeature(enc.actor, {event:"rest.completed", amount:3,
+          predicate:{equals:{path:"event.data.restType", value:"longRest"}}});
+        await enc.actor.rest("shortRest");
+        assert.equal(liveToken(enc).actor.getResource("health").value, 10, "a short rest does not answer it");
+        await enc.actor.rest("longRest");
+        assert.equal(liveToken(enc).actor.getResource("health").value, 7, "the long rest does, before rest() returns on the GM");
+      });
+
       it("Actor#startTurn rejects a stale turn context and a non-incoming Actor without mutating resources", async function () {
         const enc = await encounter({name:"guard",baseSystem:{resources:{action:{value:0}}}});
         await begin(enc);

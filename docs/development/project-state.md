@@ -158,6 +158,25 @@ real Foundry grids. Slice 5 done: lasting areas, auras and hazards, per the main
 **M3 — CLOSED on 2026-10-14.** Next: M4, the content pack. It needs approval for the
 `@foundryvtt/foundryvtt-cli` devDependency and the maintainer's condition numbers.
 
+**M5 — progression (in progress, 2026-10-14).** The missing-primitive test is
+[progression-primitives.md](progression-primitives.md). Done, each verified in Quench and most in two
+browsers:
+
+- Damage grants (`GrantResistance`, `GrantImmunity`).
+- A table ValueExpression.
+- Action, Bonus Action and Reaction counters: spent is stored, and effects raise or lower the available
+  count.
+- Class records with multiclassing, and 2024 full- and half-caster slots
+  ([classes-and-spellcasting.md](../architecture/classes-and-spellcasting.md)).
+- Transformations that keep the creature's feats and gear.
+- The general automation dispatcher for Items' and effects' automatic triggers (turns, initiative, rests).
+
+Open:
+
+- Companions and sidekicks, which need the maintainer's decision.
+- `area.exited`.
+- Wiring for `GrantResource` and `GrantMovement`.
+
 **Authority and disclosure hardening (M0) — CLOSED on 2026-10-13.** A review found that the
 authority trusted more than it could verify: any player could act through an Actor or Item they did
 not own; a target answer replaced the candidates and selection policy; the chooser's roll request

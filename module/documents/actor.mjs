@@ -385,6 +385,8 @@ export default class WildPathActor extends Actor {
       updates["system.pools"] = pools;
     }
     if ( !foundry.utils.isEmpty(updates) ) await this.update(updates);
+    // The creature's own automatic triggers on a rest (the GM runs them; a Player's client reports the rest).
+    await globalThis.game?.wildpath?.automation?.report?.("rest.completed", {actor: this, data: {restType: recovery}});
 
     const events = getRestLifecycleEvents({actor: this, restType: recovery});
     if ( !events.length ) return;

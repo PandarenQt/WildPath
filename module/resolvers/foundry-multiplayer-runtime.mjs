@@ -14,6 +14,7 @@ import {createFoundryReactionProvider} from "../adapters/foundry-v14-reaction-pr
 import {foundryActionReactionServices} from "../adapters/foundry-v14-reaction-services.mjs";
 import {foundryAreaFootprint, foundryAreaTargetTokens} from "../adapters/foundry-v14-area-placement.mjs";
 import {createFoundryPersistentAreas} from "../adapters/foundry-v14-persistent-areas.mjs";
+import {AUTOMATION_QUERY, createFoundryAutomationDispatcher} from "../adapters/foundry-v14-automation-dispatcher.mjs";
 import {
   buildFoundryMovementCompletion,
   buildFoundryMovementProgressObservation,
@@ -111,6 +112,16 @@ export function registerFoundryV14MultiplayerResolution({
   });
   globalThis.Hooks?.on?.("deleteActiveEffect", effect => areas.onEffectDeleted(effect));
   globalThis.Hooks?.on?.("deleteRegion", region => areas.onRegionDeleted(region));
+  // Items' and effects' automatic triggers: turns and rests reach them from Combat and Actor#rest.
+  const automation = createFoundryAutomationDispatcher({game, coordinator, logger, fromUuid: globalThis.fromUuid ?? null,
+    resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});
+  if ( globalThis.CONFIG?.queries ) globalThis.CONFIG.queries[AUTOMATION_QUERY] = automation.handleQuery;
+  // Whoever rolls, every client sees the Combatant update; the active GM dispatches it.
+  globalThis.Hooks?.on?.("updateCombatant", (combatant, changed) => {
+    if ( !Number.isFinite(changed?.initiative) ) return;
+    void automation.dispatch("initiative.rolled", {actor: combatant.actor, token: combatant.token,
+      data: {initiative: changed.initiative}}).catch(error => logger?.warn?.("Wild Path | initiative.rolled automation failed", error));
+  });
   const movement = createMultiplayerMovementAuthority({
     userId: game.user?.id ?? game.userId ?? null,
     users: () => foundryUserDirectory(game),
@@ -156,6 +167,7 @@ export function registerFoundryV14MultiplayerResolution({
     multiplayer: runtime,
     movement,
     areas,
+    automation,
     resolutionTransport: transport,
     executeActionIntent: runtime.executeActionIntent,
     executeMovementIntent: runtime.executeMovementIntent

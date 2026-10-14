@@ -1,6 +1,7 @@
 import {createFoundryV14TacticalGridAdapter, gridFieldToFoundryOffset} from "./foundry-v14-tactical-grid-adapter.mjs";
 import {createReachFootprint, fieldKey} from "../helpers/grid-footprints.mjs";
 import {AREA_SHAPES} from "../helpers/tactical-areas.mjs";
+import {runAuthorityAction} from "./foundry-v14-automation-dispatcher.mjs";
 
 type Data = Record<string, unknown>;
 interface Field {[key: string]: unknown}
@@ -223,22 +224,11 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
     if ( key ) await region.update({[`flags.wildpath.area.applied.${token.id}`]: key});
     const results = [];
     for ( const trigger of triggers ) {
-      const action = {id: String(trigger.action.id), uuid: null, type: "action", name: String(trigger.action.label ?? flag.label),
-        system: {definition: {...trigger.action, targeting: {type: "single", required: true, count: 1}}}};
-      const resolved = await resolveAction({intent: {actorRef: flag.sourceActorRef,
-        source: flag.sourceTokenId ? {tokenId: flag.sourceTokenId, sceneId: token.parent.id} : {},
-        targetRefs: [{actorRef: token.actor.uuid, tokenId: token.id, sceneId: token.parent.id}]},
-      senderUserId: game.user.id, action});
-      if ( !resolved.ok ) {
-        logger.warn("Wild Path | A lasting area could not resolve its effect", resolved.reason ?? resolved);
-        continue;
-      }
-      let finish: (state: unknown) => void = () => {};
-      const finished = new Promise(resolve => { finish = resolve; });
-      const hosted = await coordinator.resolveAuthorityAction({resolutionId: `area:${region.id}:${token.id}:${++sequence}`,
-        resolved, onComplete: ({state}: {state: unknown}) => finish(state)});
-      const terminal = ["completed", "failed", "cancelled"].includes(String(hosted.state?.status));
-      results.push((hosted.ok || terminal) ? await finished : hosted.state ?? {status: "failed"});
+      const state = await runAuthorityAction({coordinator, resolveAction, logger, senderUserId: game.user.id,
+        resolutionId: `area:${region.id}:${token.id}:${++sequence}`, definition: trigger.action, label: flag.label,
+        actorRef: flag.sourceActorRef, source: flag.sourceTokenId ? {tokenId: flag.sourceTokenId, sceneId: token.parent.id} : {},
+        target: {actorRef: token.actor.uuid, tokenId: token.id, sceneId: token.parent.id}});
+      if ( state ) results.push(state);
     }
     return results;
   }
