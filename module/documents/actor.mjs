@@ -187,10 +187,18 @@ export default class WildPathActor extends Actor {
    */
   async transform(form, {takes=DEFAULT_FORM_STATISTICS, keepItemTypes=DEFAULT_KEPT_ITEM_TYPES}={}) {
     if ( this.transformation ) await this.revertTransformation();
+    // The creature's Tokens take the form's size; each one's own is kept to restore on revert.
+    const tokens = tokensOf(this);
+    const size = {width: form.prototypeToken?.width ?? 1, height: form.prototypeToken?.height ?? 1};
     const [effect] = await this.createEmbeddedDocuments("ActiveEffect", [{
       name: game.i18n.format("WILDPATH.TRANSFORMATION.Effect", {form: form.name}), type: "effect", system: {}, img: form.img,
-      flags: {wildpath: {transformation: {formRef: form.uuid, takes: [...takes], keepItemTypes: [...keepItemTypes]}}}
+      flags: {wildpath: {transformation: {formRef: form.uuid, takes: [...takes], keepItemTypes: [...keepItemTypes],
+        tokenSizes: tokens.map(token => ({uuid: token.uuid, width: token.width, height: token.height}))}}}
     }]);
+    // A pure resize is a "displace" movement in V14; the movement authority approves it without cost.
+    for ( const token of tokens ) {
+      if ( (token.width !== size.width) || (token.height !== size.height) ) await token.move([{...size, action: "displace"}]);
+    }
     const copies = form.items.filter(entry => ["feature", "action"].includes(entry.type)).map(entry => {
       const data = entry.toObject();
       delete data._id;
@@ -210,10 +218,15 @@ export default class WildPathActor extends Actor {
     return true;
   }
 
-  /** Remove the Items a transformation copied from its form. */
-  async deleteTransformationCopies(effectId) {
+  /** Remove the Items a transformation copied from its form, and give the creature's Tokens their size back. */
+  async deleteTransformationCopies(effectId, deletedEffect=null) {
     const copies = this.items.filter(entry => entry.flags?.wildpath?.transformedBy === effectId).map(entry => entry.id);
     if ( copies.length ) await this.deleteEmbeddedDocuments("Item", copies);
+    const effect = deletedEffect ?? this.effects.get(effectId) ?? null;
+    for ( const {uuid, width, height} of effect?.flags?.wildpath?.transformation?.tokenSizes ?? [] ) {
+      const token = globalThis.fromUuidSync?.(uuid);
+      if ( token && ((token.width !== width) || (token.height !== height)) ) await token.move([{width, height, action: "displace"}]);
+    }
   }
 
   /* -------------------------------------------- */
@@ -561,6 +574,13 @@ function normalizeDomains(value) {
 
 // Module functions, not #private methods: Foundry prepares data inside the base Document constructor, before a
 // subclass's private methods exist on the instance.
+
+/** This creature's Tokens on every Scene: its own (a synthetic Actor), or every Token linked to it. */
+function tokensOf(actor) {
+  if ( actor.isToken ) return actor.token ? [actor.token] : [];
+  return [...(globalThis.game?.scenes ?? [])].flatMap(scene => [...scene.tokens])
+    .filter(token => token.actorLink && (token.actorId === actor.id));
+}
 
 /** Grants count from active features and gear (those a transformation keeps) and enabled effects. */
 function grantOwners(actor) {

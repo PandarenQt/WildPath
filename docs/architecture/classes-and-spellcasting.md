@@ -63,10 +63,29 @@ block:
 - **What does not change.** Health is not replaced. 2024 Wild Shape and Polymorph grant temporary hit
   points instead, which is a separate effect.
 
+- **Token size.** The creature's Tokens on every Scene take the form's size (its prototype Token's width and
+  height), and reverting restores each one's own. A resize is a V14 `displace` movement, which the movement
+  authority approves as a pure resize without cost.
+- **From an Action** (2026-10-14). An ActionDefinition's `transform` names exactly one of:
+  - `formRef`, a fixed form;
+  - `choiceId`, a configuration choice whose options are the forms. Wild Shape is a `select-one` choice of
+    form uuids, and the authority holds the answer to those options.
+  - `revert: true`.
+
+  When the Action completes, the GM applies it to the Action's creature (`applyActionTransformation`).
+
+```js
+{transform: {choiceId: "form"}, costs: {allOf: [{capability: "bonus-action", amount: 1}]},
+ configuration: [{id: "form", type: "select-one", label: "Form", required: true,
+   options: [{id: "Actor.bear", label: "Bear"}, {id: "Actor.wolf", label: "Wolf"}]}]}
+```
+
+Live (two browsers, 14.369): Player1's druid used Wild Shape and picked Bear in the configuration dialog. The
+druid took Might 19, its Token became 2×2 and the Bonus Action was spent. A Revert Action restored Might 8 and
+the 1×1 Token.
+
 Not yet:
 
-- Token size: footprints follow the Token's dimensions, and a transformation does not resize them.
-- Starting a transformation from an Action (a Wild Shape Action choosing a form).
 - Stopping spellcasting while transformed.
 
 Live (two browsers, 14.369): Player1 turned their Shifter into a Bear, which gave Might 18 and AC 13, and

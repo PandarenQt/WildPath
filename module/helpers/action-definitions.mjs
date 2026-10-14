@@ -108,6 +108,9 @@ export function normalizeActionDefinition(rawDefinition={}, {
     healing: normalizeArray(raw.healing ?? raw.healingDefinitions ?? raw.healingComponents).map(normalizeHealingDefinition),
     effects: normalizeArray(raw.effects ?? raw.effectApplications ?? raw.effectApplicationDefinitions).map(normalizeEffectApplicationDefinition),
     duration: normalizeDurationDefinition(raw.duration),
+    // The creature takes a form when the Action completes: a fixed `formRef`, the form a `choiceId` configuration
+    // choice picked, or `revert` to end its transformation (transformations: classes-and-spellcasting.md).
+    transform: normalizePlainComponent(raw.transform),
     configuration: normalizeArray(raw.configuration ?? raw.configurations).map(clonePlain),
     ruleElements: normalizeArray(raw.ruleElements).map(clonePlain),
     policies: clonePlain(raw.policies ?? raw.resolutionPolicies ?? {}) ?? {},
@@ -139,6 +142,7 @@ export function validateActionDefinition(rawDefinition={}, options={}) {
 
   validateCosts(definition.costs, errors);
   validateCosts(definition.controllerCosts, errors, "controllerCosts");
+  validateTransform(definition.transform, errors);
   validatePredicateCandidates(definition, errors);
   validateTargeting(definition, errors);
   validateArea(definition.area, errors);
@@ -518,6 +522,14 @@ function costRequirementForPayment(requirement) {
     amount: requirement.amount,
     unit: requirement.unit ?? null
   };
+}
+
+function validateTransform(transform, errors) {
+  if ( !transform ) return;
+  const named = [typeof transform.formRef === "string" && transform.formRef, typeof transform.choiceId === "string"
+    && transform.choiceId, transform.revert === true].filter(Boolean);
+  if ( named.length !== 1 ) errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "transform",
+    "A transform names exactly one of formRef, choiceId or revert."));
 }
 
 function validateCosts(costs, errors, prefix="costs") {

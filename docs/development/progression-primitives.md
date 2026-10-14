@@ -86,7 +86,8 @@ the code. Payment discovery reads only the Actor's stored resources and pools
      between 2014 and 2024 rules, so it belongs in a rule provider, not inline (AGENTS §10).
    - Pact slots stay a separate pool with a short-rest cadence.
 6. **Transformations: approved and done 2026-10-14** (`classes-and-spellcasting.md`). The creature keeps
-   its feats and the items that still apply. Not yet: Token resizing, or starting one from an Action.
+   its feats and the items that still apply; its Tokens take the form's size, and an Action can start or
+   end one (Wild Shape with a choice of forms).
    Originally proposed: Smallest form: a `transformation` effect type that carries a
    statistic source (an Actor or a statistic block) and a merge policy. The policy says, for example,
    "physical abilities, health pool and Actions from the form; mental abilities and proficiencies from

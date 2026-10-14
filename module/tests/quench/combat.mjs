@@ -257,6 +257,17 @@ export function registerCombatTests(quench) {
         assert.isTrue(has("prone"),"and the creature is still Prone when it wakes");
       });
 
+      it("a transformation gives the creature's Token the form's size, and reverting gives its own back", async function () {
+        const enc = await encounter({name:"shifter"});
+        const bear = await fixtures.createActor({name:"large bear",type:"npc"});
+        await bear.update({"prototypeToken.width":2,"prototypeToken.height":2});
+        await enc.actor.transform(bear);
+        const token = () => game.scenes.get(enc.scene.id).tokens.get(enc.token.id);
+        assert.deepEqual([token().width,token().height],[2,2],"The form is Large");
+        await enc.actor.revertTransformation();
+        assert.deepEqual([token().width,token().height],[1,1],"Back to its own size");
+      });
+
       /** A feature whose automatic Trigger deals `amount` poison to its owner on `event` (optionally gated). */
       function stingFeature(actor, {event, amount, predicate=null}) {
         return fixtures.createItem(actor, {name:`sting on ${event}`, system:{ruleElements:[{id:"sting", type:"Trigger", data:{

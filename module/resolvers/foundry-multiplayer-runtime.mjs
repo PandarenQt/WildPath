@@ -106,6 +106,7 @@ export function registerFoundryV14MultiplayerResolution({
       await areas.create(event);
       await areas.afterResolution(event);
       await dying.afterResolution(event);
+      await applyActionTransformation(event, {logger});
     },
     logger
   });
@@ -669,6 +670,29 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     },
     ...(reactions ? {services: {...reactions.services, targetActors}} : {})
   };
+}
+
+/**
+ * An Action that transforms its creature (Wild Shape): once it completes, the source takes the fixed form, or the
+ * form its configuration choice picked (the authority already held that choice to the Action's own options), or
+ * returns to itself.
+ */
+export async function applyActionTransformation({options, state}={}, {logger=globalThis.console, fromUuid=globalThis.fromUuid}={}) {
+  const spec = state?.actionDefinition?.transform;
+  const actor = options?.actor ?? null;
+  if ( !spec || (typeof actor?.transform !== "function") ) return null;
+  if ( spec.revert ) return actor.revertTransformation();
+  // A resolved configuration lists its selections; each names its choice and the option chosen.
+  const choices = state.configuration?.choices;
+  const chosen = !spec.choiceId ? null : Array.isArray(choices) ? choices.find(entry => entry?.id === spec.choiceId)
+    : choices?.[spec.choiceId];
+  const formRef = spec.formRef ?? (typeof chosen === "string" ? chosen : chosen?.value ?? chosen?.optionId ?? null);
+  const form = formRef ? await fromUuid?.(formRef) : null;
+  if ( !form ) {
+    logger?.warn?.("Wild Path | The form an Action named could not be found", formRef);
+    return null;
+  }
+  return actor.transform(form, {...(spec.takes ? {takes: spec.takes} : {}), ...(spec.keepItemTypes ? {keepItemTypes: spec.keepItemTypes} : {})});
 }
 
 /**
