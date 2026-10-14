@@ -313,6 +313,14 @@ test("common monster traits (G5): Magic Resistance, Pack Tactics and Regeneratio
   assert.equal(regenerate.data.action.healing[0].expression.value, 10);
   assert.equal(validateActionDefinition(regenerate.data.action).ok, true);
   assert.deepEqual(rules("Flyby").map(rule => [rule.type, rule.data]), [["AvoidOpportunityAttacks", {movementModes: ["fly"]}]]);
+  // 2014 Lair Actions: one a round, from a pool its lair gives it.
+  const lair = convertActor({...troll, _id: "testLair00000001", system: {...troll.system, resources: {lair: {value: true}}},
+    items: [{_id: "lairEyeRay000001", name: "Lair Action: Eye Ray", type: "feat", system: {source: SRD,
+      activities: {a: activity("utility", {activation: {type: "lair", value: 1}})}}}]}).actor;
+  assert.deepEqual(lair.items.find(item => item.name === "Lair Action: Eye Ray").system.definition.costs,
+    {allOf: [{capability: "lair-action", amount: 1}]});
+  assert.deepEqual(lair.items.find(item => item.name === "Traits").system.ruleElements.find(rule => rule.id === "lair-actions").data,
+    {resourceId: "lair-action", label: "Lair Action", maximum: 1, recovery: "turn"});
   assert.deepEqual(convertItem(trait("two-extra-attacks", "Two Extra Attacks")).items[0].system.ruleElements.map(rule => [rule.type, rule.data]), [
     ["GrantResource", {resourceId: "extra-attack", label: "Extra Attack", maximum: 1, current: 0, recovery: "none", emptiesAtTurnStart: true}],
     ["ExtraAttack", {resourceId: "extra-attack"}]], "each Extra Attack feature adds one attack to the same pool");

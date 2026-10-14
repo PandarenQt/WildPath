@@ -1204,6 +1204,17 @@
               "maximum": 3,
               "recovery": "turn"
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "lair-actions",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "lair-action",
+              "label": "Lair Action",
+              "maximum": 1,
+              "recovery": "turn"
+            }
           }
         ]
       },

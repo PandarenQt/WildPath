@@ -20,7 +20,8 @@ export const ABILITY_MAP = Object.freeze({str: "might", dex: "agility", con: "fo
 const CONDITION_MAP = Object.freeze(Object.fromEntries(["prone", "blinded", "restrained", "stunned", "unconscious", "poisoned",
   "exhaustion", "charmed", "deafened", "frightened", "grappled", "incapacitated", "invisible", "paralyzed", "petrified", "dead"]
   .map(id => [id, id])));
-const ACTIVATION_COST = Object.freeze({action: "action", bonus: "bonus-action", reaction: "reaction", legendary: "legendary-action"});
+const ACTIVATION_COST = Object.freeze({action: "action", bonus: "bonus-action", reaction: "reaction", legendary: "legendary-action",
+  lair: "lair-action"});
 const RECOVERY = Object.freeze({lr: "longRest", sr: "shortRest", day: "longRest", dawn: "longRest", dusk: "longRest", turn: "turn", turnStart: "turn",
   round: "turn"});
 const ACTIVITIES = new Set(["attack", "save", "damage", "heal", "utility"]);
@@ -1107,6 +1108,9 @@ function traitRules(system, notes) {
   const legendary = number(system.resources?.legact?.max);
   if ( legendary ) rules.push({schemaVersion: 1, id: "legendary-actions", type: "GrantResource",
     data: {resourceId: "legendary-action", label: "Legendary Actions", maximum: legendary, recovery: "turn"}});
+  // 2014: in its lair, one Lair Action a round (on initiative 20); shortcut: it comes back at the start of its turn.
+  if ( system.resources?.lair?.value ) rules.push({schemaVersion: 1, id: "lair-actions", type: "GrantResource",
+    data: {resourceId: "lair-action", label: "Lair Action", maximum: 1, recovery: "turn"}});
   return rules;
 }
 
