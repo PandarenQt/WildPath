@@ -69,9 +69,9 @@ the code. Payment discovery reads only the Actor's stored resources and pools
    `system.classes: [{id, slug, level, original, subclasses: [...], spellcasting: {ability, progression}}]`.
    - The total level is derived from these records, replacing `details.level`. That needs a migration.
    - The `class-level` and `spellcasting-modifier` ValueExpressions already read this shape.
-4. **A table ValueExpression** (`{type: "table", key: <expression>, rows: {...}}`). It turns a class
-   level, or a combined caster level, into a slot count. It is a pure, reusable lookup, also usable for
-   sneak-attack dice and other level-scaled features.
+4. **A table ValueExpression: done 2026-10-14** (`{type: "table", key, rows, default}`, see
+   common-rules-primitives.md). It turns a class level, or a combined caster level, into a slot count,
+   extra dice or any other level-scaled value.
 5. **Spellcasting progression (rules decision: your numbers).**
    - Full casters count 1, half 1/2 and third 1/3 toward a combined caster level. The rounding differs
      between 2014 and 2024 rules, so it belongs in a rule provider, not inline (AGENTS §10).

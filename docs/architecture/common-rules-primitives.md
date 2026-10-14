@@ -56,6 +56,9 @@ ValueExpressions are serializable rules data. They can represent:
 - resource current and max values
 - addition, subtraction, multiplication, division, min, max, floor, and ceil
 - dice expressions when a numeric total is supplied or an explicit average policy is requested
+- step tables: `{type: "table", key, rows: {threshold: value}, default}`. The result is the row with the
+  highest threshold at or below `key`, for level-scaled values such as slot counts or extra dice. Rows
+  may be expressions. Below every threshold the table yields `default`, or fails without one.
 
 The evaluator does not parse or execute formula strings. Dice expressions without a supplied total
 or explicit average mode remain representable data, but they do not evaluate to a number.

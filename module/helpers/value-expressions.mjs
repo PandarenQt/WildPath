@@ -76,6 +76,8 @@ export function evaluateValueExpression(expression, context={}) {
     }
     case "dice":
       return evaluateDiceExpression(expression, context);
+    case "table":
+      return evaluateTable(expression, context);
     default:
       return fail(VALUE_EXPRESSION_CODES.INVALID_EXPRESSION, `Unknown ValueExpression type: ${expression.type}`);
   }
@@ -89,6 +91,24 @@ export function evaluateValueExpressionNumber(expression, context={}, fallback=0
 }
 
 /* -------------------------------------------- */
+
+/**
+ * A step table: the row with the highest threshold at or below `key` (e.g. class level), so
+ * `{key: {type: "class-level", class: "rogue"}, rows: {1: 1, 3: 2, 5: 3}}` is 2 at level 4.
+ * Below every threshold the table yields `default`, or fails when none is given.
+ */
+function evaluateTable(expression, context) {
+  const key = evaluateValueExpression(expression.key, context);
+  if ( !key.ok ) return key;
+  const thresholds = Object.keys(expression.rows ?? {}).map(Number).filter(Number.isFinite).sort((a, b) => b - a);
+  const row = thresholds.find(threshold => threshold <= key.value);
+  if ( row === undefined ) {
+    return expression.default === undefined
+      ? fail(VALUE_EXPRESSION_CODES.INVALID_EXPRESSION, `No table row at or below ${key.value}.`)
+      : evaluateValueExpression(expression.default, context);
+  }
+  return evaluateValueExpression(expression.rows[String(row)] ?? expression.rows[row], context);
+}
 
 function evaluateTerms(terms, context, reducer) {
   const values = [];

@@ -81,3 +81,23 @@ test("ValueExpression numeric wrapper returns fallback for unresolved expression
   assert.equal(value, 99);
 });
 
+
+test("a table ValueExpression steps by its key, e.g. a class level, with a default below its first row", () => {
+  const sneak = {type: "table", key: {type: "class-level", class: "rogue"}, rows: {1: 1, 3: 2, 5: 3}};
+  const at = level => evaluateValueExpression(sneak, {classLevels: [{slug: "rogue", level}]});
+  assert.deepEqual([1, 2, 3, 4, 5, 20].map(level => at(level).value), [1, 1, 2, 2, 3, 3]);
+  assert.equal(evaluateValueExpression({...sneak, key: 0}).ok, false, "no row at or below the key and no default");
+  assert.equal(evaluateValueExpression({...sneak, key: 0, default: 0}).value, 0);
+  assert.equal(evaluateValueExpression({type: "table", key: 2, rows: {1: {type: "add", terms: [1, 1]}}}).value, 2,
+    "rows may themselves be expressions");
+});
+
+test("ActionDefinition validation accepts a table ValueExpression and rejects one without numeric rows or a key", async () => {
+  const {validateActionDefinition} = await import("../module/helpers/action-definitions.mjs");
+  const strike = expression => ({schemaVersion: 1, id: "action:t", label: "T", costs: {allOf: []},
+    targeting: {type: "single", required: true, count: 1},
+    damage: [{id: "d", expression, damageType: "fire"}]});
+  assert.equal(validateActionDefinition(strike({type: "table", key: {type: "character-level"}, rows: {1: 2, 5: 4}})).ok, true);
+  assert.equal(validateActionDefinition(strike({type: "table", key: 3, rows: {one: 2}})).ok, false);
+  assert.equal(validateActionDefinition(strike({type: "table", rows: {1: 2}})).ok, false);
+});

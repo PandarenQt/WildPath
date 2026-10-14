@@ -749,6 +749,18 @@ function validateExpressionShape(expression) {
       return validateExpressionShape(expression.value);
     case "dice":
       return validateDiceExpressionShape(expression);
+    case "table": {
+      const rows = Object.entries(isPlainObject(expression.rows) ? expression.rows : {});
+      if ( !rows.length || rows.some(([threshold]) => !Number.isFinite(Number(threshold))) ) {
+        return {ok: false, reason: "Table ValueExpression requires rows keyed by numeric thresholds."};
+      }
+      for ( const nested of [expression.key, ...rows.map(([, value]) => value), expression.default] ) {
+        if ( nested === undefined ) continue;
+        const result = validateExpressionShape(nested);
+        if ( !result.ok ) return result;
+      }
+      return expression.key == null ? {ok: false, reason: "Table ValueExpression requires a key."} : {ok: true};
+    }
     default:
       return {ok: false, reason: `Unknown ValueExpression type: ${expression.type}`};
   }
