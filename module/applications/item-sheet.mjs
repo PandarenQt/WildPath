@@ -66,9 +66,10 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
     if ( typeof drafts.definitionJson === "string" ) {
       const definition = this.#parseDraft("definition", drafts.definitionJson, parsed => validateActionDefinition(parsed).errors
         ?.map(entry => `${entry.path}: ${entry.reason}`) ?? []);
-      // The edited definition replaces the stored one whole: keys it leaves out return to their initial value.
-      if ( definition ) foundry.utils.setProperty(submitData, "system.definition",
-        {...this.item.system.schema.fields.definition.getInitialValue(), ...definition});
+      // The edited definition replaces the stored one whole: keys it leaves out return to their initial value. Without
+      // ForcedReplacement, V14 merges nested objects, so a key removed inside one (attack.properties) would survive.
+      if ( definition ) foundry.utils.setProperty(submitData, "system.definition", foundry.data.operators.ForcedReplacement
+        .create({...this.item.system.schema.fields.definition.getInitialValue(), ...definition}));
     }
     if ( typeof drafts.ruleElementsJson === "string" ) {
       const ruleElements = this.#parseDraft("ruleElements", drafts.ruleElementsJson, ruleElementListErrors);

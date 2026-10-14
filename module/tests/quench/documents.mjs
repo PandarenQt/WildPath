@@ -64,6 +64,23 @@ export function registerDocumentTests(quench) {
         assert.equal(actor.system.resources.health.value,10,"Editing an exported source must not mutate the Actor");
         assert.isTrue(item.system.active,"Editing an exported source must not mutate the embedded Item");
       });
+      it("saving an Action's definition from its sheet replaces it whole, so a removed nested key is gone", async function () {
+        const actor = await fixtures.createActor({name:"definition replace"});
+        const definition = {schemaVersion:1,id:"action:quench-dagger",label:"Dagger",costs:{allOf:[{capability:"action",amount:1}]},
+          attack:{type:"melee",statistic:"weapon",defenseKey:"ac",properties:["finesse"]},range:{type:"ranged",normal:{value:20},long:{value:60}}};
+        const item = await fixtures.createItem(actor,{name:"Dagger",type:"action",system:{definition}});
+        await item.sheet.render(true);
+        try {
+          const area = item.sheet.element.querySelector("textarea[name='wildpath.definitionJson']");
+          const {properties:_finesse,...attack} = definition.attack;
+          area.value = JSON.stringify({...definition,attack,range:{type:"reach",distance:{value:5}}});
+          area.dispatchEvent(new Event("change",{bubbles:true}));
+          for (let i = 0; (i < 40) && item.system.definition.attack?.properties; i++) await new Promise(r => setTimeout(r,50));
+          const stored = item.toObject(true).system.definition;
+          assert.notProperty(stored.attack,"properties","finesse was removed");
+          assert.deepEqual(stored.range,{type:"reach",distance:{value:5}},"the old long range is gone");
+        } finally { await item.sheet.close(); }
+      });
       it("the built-in Actions pack loads, and each of its Actions imports onto an Actor with a valid definition", async function () {
         const pack = game.packs.get("wildpath.actions");
         if (!pack) this.skip(); // The world loads a new pack only when it is launched again.
