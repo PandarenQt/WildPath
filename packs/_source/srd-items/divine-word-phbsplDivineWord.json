@@ -57,11 +57,23 @@
         {
           "id": "effect-1",
           "type": "condition",
-          "conditionId": "blinded",
+          "conditionId": "dead",
           "saveOutcomePolicy": "failure"
         },
         {
           "id": "effect-2",
+          "type": "condition",
+          "conditionId": "blinded",
+          "saveOutcomePolicy": "failure"
+        },
+        {
+          "id": "effect-3",
+          "type": "condition",
+          "conditionId": "deafened",
+          "saveOutcomePolicy": "failure"
+        },
+        {
+          "id": "effect-4",
           "type": "condition",
           "conditionId": "stunned",
           "saveOutcomePolicy": "failure"
@@ -120,8 +132,6 @@
       },
       "conversion": {
         "notes": [
-          "effect: dead is not a WildPath condition yet",
-          "effect: deafened is not a WildPath condition yet",
           "effect: \"Blinded, Deafened\" (its own changes) not converted",
           "effect: \"Deafened\" (its own changes) not converted"
         ]

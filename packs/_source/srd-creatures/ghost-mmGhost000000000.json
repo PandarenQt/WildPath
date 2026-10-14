@@ -414,6 +414,14 @@
               }
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "frightened",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "label": "Horrific Visage"
         },
         "ruleElements": []
@@ -430,9 +438,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: frightened is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -457,6 +463,32 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "presence",
+            "dc": {
+              "value": 13
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "incapacitated",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "label": "Possession"
         },
         "ruleElements": []
@@ -473,10 +505,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "effect: incapacitated is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -521,6 +550,24 @@
           },
           {
             "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "charmed",
+                "exhaustion",
+                "frightened",
+                "grappled",
+                "paralyzed",
+                "petrified",
+                "poisoned",
+                "prone",
+                "restrained"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
             "id": "speed-fly",
             "type": "GrantMovement",
             "data": {
@@ -556,11 +603,7 @@
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
           "Etherealness: not automated (cast): using it spends its cost; its description says the rest",
           "Etherealness: not automated (utility): using it spends its cost; its description says the rest",
-          "Etherealness: effect: ethereal is not a WildPath condition yet",
-          "Horrific Visage: effect: frightened is not a WildPath condition yet",
-          "Possession: not automated (save): using it spends its cost; its description says the rest",
-          "Possession: effect: incapacitated is not a WildPath condition yet",
-          "condition immunities (charmed, exhaustion, frightened, grappled, paralyzed, petrified, poisoned, prone, restrained) not converted"
+          "Etherealness: effect: ethereal is not a WildPath condition yet"
         ]
       }
     }

@@ -213,6 +213,16 @@
                 "poison"
               ]
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "poisoned"
+              ]
+            }
           }
         ]
       },
@@ -239,8 +249,7 @@
       },
       "conversion": {
         "notes": [
-          "Fire Aura: \"damage\" is passive or triggered: not automated",
-          "condition immunities (poisoned) not converted"
+          "Fire Aura: \"damage\" is passive or triggered: not automated"
         ]
       }
     }

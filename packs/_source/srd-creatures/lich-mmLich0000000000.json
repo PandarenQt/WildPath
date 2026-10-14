@@ -1495,6 +1495,26 @@
               }
             ]
           },
+          "range": {
+            "type": "touch",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "invisible",
+              "concentration": true
+            }
+          ],
           "configuration": [
             {
               "id": "spell-slot",
@@ -1563,7 +1583,14 @@
                 "spell-slot.8": 8,
                 "spell-slot.9": 9
               },
-              "effects": []
+              "effects": [
+                {
+                  "type": "scaleTargets",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 2,
+                  "perLevel": 1
+                }
+              ]
             }
           ],
           "label": "Invisibility"
@@ -1582,11 +1609,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "effect: invisible is not a WildPath condition yet",
-              "concentration: nothing it sustains was converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -3924,6 +3947,34 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "cone",
+            "size": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "value": 20
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "frightened",
+              "saveOutcomePolicy": "failure",
+              "concentration": true
+            }
+          ],
           "configuration": [
             {
               "id": "spell-slot",
@@ -4004,11 +4055,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "effect: frightened is not a WildPath condition yet",
-              "concentration: nothing it sustains was converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -4136,6 +4183,13 @@
               "provenance": "weapon-base"
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "paralyzed"
+            }
+          ],
           "label": "Paralyzing Touch"
         },
         "ruleElements": []
@@ -4152,9 +4206,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: paralyzed is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -4188,6 +4240,20 @@
               "damageTypes": [
                 "necrotic",
                 "poison"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "charmed",
+                "exhaustion",
+                "frightened",
+                "paralyzed",
+                "poisoned"
               ]
             }
           },
@@ -4239,9 +4305,6 @@
           "Detect Thoughts: concentration: nothing it sustains was converted",
           "Detect Thoughts: not automated (save): using it spends its cost; its description says the rest",
           "Dispel Magic: not automated (utility): using it spends its cost; its description says the rest",
-          "Invisibility: not automated (utility): using it spends its cost; its description says the rest",
-          "Invisibility: effect: invisible is not a WildPath condition yet",
-          "Invisibility: concentration: nothing it sustains was converted",
           "Mage Hand: not automated (summon): using it spends its cost; its description says the rest",
           "Prestidigitation: not automated (utility): using it spends its cost; its description says the rest",
           "Animate Dead: not automated (summon): using it spends its cost; its description says the rest",
@@ -4257,12 +4320,7 @@
           "Shield: not automated (utility): using it spends its cost; its description says the rest",
           "Shield: effect: \"Imperceptible Barrier\" (its own changes) not converted",
           "Deathly Teleport: area: 10-ft circle is not supported; the user picks the targets",
-          "Frightening Gaze: not automated (cast): using it spends its cost; its description says the rest",
-          "Fear: not automated (save): using it spends its cost; its description says the rest",
-          "Fear: effect: frightened is not a WildPath condition yet",
-          "Fear: concentration: nothing it sustains was converted",
-          "Paralyzing Touch: effect: paralyzed is not a WildPath condition yet",
-          "condition immunities (charmed, exhaustion, frightened, paralyzed, poisoned) not converted"
+          "Frightening Gaze: not automated (cast): using it spends its cost; its description says the rest"
         ]
       }
     }

@@ -292,6 +292,33 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "emanation",
+            "size": {
+              "value": 10,
+              "unit": "ft"
+            }
+          },
+          "save": {
+            "ability": "agility",
+            "dc": {
+              "value": 12
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "grappled",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "label": "Quick Grapple (Save)"
         },
         "ruleElements": []
@@ -308,10 +335,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "effect: grappled is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -332,8 +356,6 @@
       "conversion": {
         "notes": [
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Quick Grapple: not automated (save): using it spends its cost; its description says the rest",
-          "Quick Grapple: effect: grappled is not a WildPath condition yet",
           "Quick Grapple: \"Escape Check\" is passive or triggered: not automated"
         ]
       }

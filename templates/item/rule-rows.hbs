@@ -27,6 +27,10 @@
         <input type="text" name="{{row.name}}.damageTypes" value="{{row.damageTypes}}" placeholder="fire, cold"
                aria-label="{{localize "WILDPATH.RULES.DamageTypes"}}">
       {{/if}}
+      {{#if row.isConditions}}
+        <input type="text" name="{{row.name}}.conditions" value="{{row.conditions}}" placeholder="charmed, frightened"
+               aria-label="{{localize "WILDPATH.RULES.Conditions"}}">
+      {{/if}}
       {{#if row.isSpeed}}
         <select name="{{row.name}}.mode" aria-label="{{localize "WILDPATH.RULES.MovementLabel"}}">
           {{selectOptions ../ctx.movementModes selected=row.mode localize=true}}</select>

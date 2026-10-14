@@ -269,6 +269,32 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "value": 14
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "charmed",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "label": "Captain's Charm"
         },
         "ruleElements": []
@@ -285,10 +311,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "effect: charmed is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -353,8 +376,6 @@
       "conversion": {
         "notes": [
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Captain's Charm: not automated (save): using it spends its cost; its description says the rest",
-          "Captain's Charm: effect: charmed is not a WildPath condition yet",
           "Riposte: not automated (utility): using it spends its cost; its description says the rest",
           "Riposte: effect: \"+3 AC\" (its own changes) not converted"
         ]

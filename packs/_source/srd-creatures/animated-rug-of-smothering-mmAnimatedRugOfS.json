@@ -108,10 +108,15 @@
             {
               "id": "effect-1",
               "type": "condition",
-              "conditionId": "blinded"
+              "conditionId": "grappled"
             },
             {
               "id": "effect-2",
+              "type": "condition",
+              "conditionId": "blinded"
+            },
+            {
+              "id": "effect-3",
               "type": "condition",
               "conditionId": "restrained"
             }
@@ -133,7 +138,6 @@
           },
           "conversion": {
             "notes": [
-              "effect: grappled is not a WildPath condition yet",
               "effect: suffocation is not a WildPath condition yet"
             ]
           }
@@ -227,6 +231,22 @@
                 "psychic"
               ]
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "charmed",
+                "deafened",
+                "exhaustion",
+                "frightened",
+                "paralyzed",
+                "petrified",
+                "poisoned"
+              ]
+            }
           }
         ]
       },
@@ -253,9 +273,7 @@
       },
       "conversion": {
         "notes": [
-          "Smother: effect: grappled is not a WildPath condition yet",
-          "Smother: effect: suffocation is not a WildPath condition yet",
-          "condition immunities (charmed, deafened, exhaustion, frightened, paralyzed, petrified, poisoned) not converted"
+          "Smother: effect: suffocation is not a WildPath condition yet"
         ]
       }
     }

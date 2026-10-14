@@ -268,6 +268,13 @@
               "provenance": "weapon-base"
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "grappled"
+            }
+          ],
           "label": "Claws (attack)"
         },
         "ruleElements": []
@@ -284,9 +291,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: grappled is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -467,6 +472,16 @@
           },
           {
             "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "poisoned"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
             "id": "speed-climb",
             "type": "GrantMovement",
             "data": {
@@ -501,9 +516,7 @@
         "notes": [
           "Barbed Hide: activation: turnStart is not an action-economy cost",
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Claws: effect: grappled is not a WildPath condition yet",
-          "Claws: \"Escape Check\" is passive or triggered: not automated",
-          "condition immunities (poisoned) not converted"
+          "Claws: \"Escape Check\" is passive or triggered: not automated"
         ]
       }
     }

@@ -425,6 +425,16 @@
           },
           {
             "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "poisoned"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
             "id": "speed-fly",
             "type": "GrantMovement",
             "data": {
@@ -459,8 +469,7 @@
         "notes": [
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
           "Parry: not automated (utility): using it spends its cost; its description says the rest",
-          "Withering Sword: damage: versatile two-handed damage not converted",
-          "condition immunities (poisoned) not converted"
+          "Withering Sword: damage: versatile two-handed damage not converted"
         ]
       }
     }

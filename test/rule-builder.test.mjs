@@ -74,6 +74,9 @@ test("changing a row's kind gives a fresh valid rule; a lasting condition gate i
   const types = submit([resisted], {0: {damageTypes: "Bludgeoning, piercing,slashing"}}).ruleElements[0];
   assert.deepEqual(types.data.damageTypes, ["bludgeoning", "piercing", "slashing"]);
   assert.equal("predicate" in submit([resisted], {0: {while: ""}}).ruleElements[0], false);
+  const immune = submit([defaultRule("conditionImmunity", "b")], {0: {conditions: "Charmed, frightened"}}).ruleElements[0];
+  assert.deepEqual(immune, {schemaVersion: 1, id: "b", type: "ConditionImmunity", data: {conditions: ["charmed", "frightened"]}});
+  assert.deepEqual(ruleIssues([immune]), []);
 });
 
 test("an aura's own rules are rows too, and can be added and removed by path", () => {

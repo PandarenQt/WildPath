@@ -235,6 +235,12 @@
             {
               "id": "effect-1",
               "type": "condition",
+              "conditionId": "charmed",
+              "saveOutcomePolicy": "failure"
+            },
+            {
+              "id": "effect-2",
+              "type": "condition",
               "conditionId": "poisoned",
               "saveOutcomePolicy": "failure"
             }
@@ -255,9 +261,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: charmed is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -746,6 +750,14 @@
               }
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "charmed",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "configuration": [
             {
               "id": "spell-slot",
@@ -826,8 +838,7 @@
           },
           "conversion": {
             "notes": [
-              "activation: 1 minute is not an action-economy cost",
-              "effect: charmed is not a WildPath condition yet"
+              "activation: 1 minute is not an action-economy cost"
             ]
           }
         }
@@ -1805,7 +1816,6 @@
       "conversion": {
         "notes": [
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Corrupting Touch: effect: charmed is not a WildPath condition yet",
           "Spellcasting: not automated (cast): using it spends its cost; its description says the rest",
           "Spellcasting: consumption: activityUses 1 not converted",
           "Leap: not automated (utility): using it spends its cost; its description says the rest",
@@ -1813,7 +1823,6 @@
           "Disguise Self: effect: \"Disguised\" (its own changes) not converted",
           "Minor Illusion: not automated (summon): using it spends its cost; its description says the rest",
           "Geas: activation: 1 minute is not an action-economy cost",
-          "Geas: effect: charmed is not a WildPath condition yet",
           "Major Image: not automated (summon): using it spends its cost; its description says the rest",
           "Scrying: not automated (save): using it spends its cost; its description says the rest",
           "Scrying: activation: 10 minute is not an action-economy cost",

@@ -180,6 +180,12 @@
               "type": "condition",
               "conditionId": "restrained",
               "saveOutcomePolicy": "failure"
+            },
+            {
+              "id": "effect-2",
+              "type": "condition",
+              "conditionId": "petrified",
+              "saveOutcomePolicy": "failure"
             }
           ],
           "label": "Petrifying Breath"
@@ -214,8 +220,7 @@
           },
           "conversion": {
             "notes": [
-              "uses: Recharge 5–6 is not rolled; refill the pool by hand",
-              "effect: petrified is not a WildPath condition yet"
+              "uses: Recharge 5–6 is not rolled; refill the pool by hand"
             ]
           }
         }
@@ -320,8 +325,7 @@
       },
       "conversion": {
         "notes": [
-          "Petrifying Breath: uses: Recharge 5–6 is not rolled; refill the pool by hand",
-          "Petrifying Breath: effect: petrified is not a WildPath condition yet"
+          "Petrifying Breath: uses: Recharge 5–6 is not rolled; refill the pool by hand"
         ]
       }
     }

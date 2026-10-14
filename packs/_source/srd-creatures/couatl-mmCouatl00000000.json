@@ -228,6 +228,12 @@
             {
               "id": "effect-1",
               "type": "condition",
+              "conditionId": "grappled",
+              "saveOutcomePolicy": "failure"
+            },
+            {
+              "id": "effect-2",
+              "type": "condition",
               "conditionId": "restrained",
               "saveOutcomePolicy": "failure"
             }
@@ -248,9 +254,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: grappled is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -1362,6 +1366,14 @@
               }
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "incapacitated",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "configuration": [
             {
               "id": "spell-slot",
@@ -1429,8 +1441,7 @@
           },
           "conversion": {
             "notes": [
-              "activation: 1 minute is not an action-economy cost",
-              "effect: incapacitated is not a WildPath condition yet"
+              "activation: 1 minute is not an action-economy cost"
             ]
           }
         }
@@ -2401,6 +2412,38 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 60,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "radial",
+            "size": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "value": 15
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "incapacitated",
+              "saveOutcomePolicy": "failure",
+              "concentration": true
+            }
+          ],
           "configuration": [
             {
               "id": "spell-slot",
@@ -2495,11 +2538,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "effect: incapacitated is not a WildPath condition yet",
-              "concentration: nothing it sustains was converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -2571,7 +2610,6 @@
       },
       "conversion": {
         "notes": [
-          "Constrict: effect: grappled is not a WildPath condition yet",
           "Constrict: \"Escape Check\" is passive or triggered: not automated",
           "Spellcasting: not automated (cast): using it spends its cost; its description says the rest",
           "Spellcasting: consumption: activityUses 1 not converted",
@@ -2588,15 +2626,11 @@
           "Shapechange: concentration: nothing it sustains was converted",
           "Create Food and Water: not automated (utility): using it spends its cost; its description says the rest",
           "Dream: activation: 1 minute is not an action-economy cost",
-          "Dream: effect: incapacitated is not a WildPath condition yet",
           "Greater Restoration: not automated (utility): using it spends its cost; its description says the rest",
           "Scrying: not automated (save): using it spends its cost; its description says the rest",
           "Scrying: activation: 10 minute is not an action-economy cost",
           "Scrying: concentration: nothing it sustains was converted",
-          "Scrying: \"Create Sensor\" is passive or triggered: not automated",
-          "Sleep: not automated (save): using it spends its cost; its description says the rest",
-          "Sleep: effect: incapacitated is not a WildPath condition yet",
-          "Sleep: concentration: nothing it sustains was converted"
+          "Scrying: \"Create Sensor\" is passive or triggered: not automated"
         ]
       }
     }

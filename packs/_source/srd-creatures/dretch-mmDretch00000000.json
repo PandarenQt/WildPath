@@ -240,6 +240,16 @@
                 "poison"
               ]
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "poisoned"
+              ]
+            }
           }
         ]
       },
@@ -266,8 +276,7 @@
       },
       "conversion": {
         "notes": [
-          "Fetid Cloud: consumption: activityUses 1 not converted",
-          "condition immunities (poisoned) not converted"
+          "Fetid Cloud: consumption: activityUses 1 not converted"
         ]
       }
     }

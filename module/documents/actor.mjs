@@ -1,7 +1,8 @@
 import {WildPathModifier, WildPathStatistic} from "../helpers/modifiers.mjs";
 import {
   damageProfileFromRuleElements, grantedMovementFromRuleElements, grantedResourcesFromRuleElements, modifiersFromRuleElements,
-  resourceCapsFromRuleElements, rollModesFromRuleElements, rollOutcomesFromRuleElements, extraDamageFromRuleElements, aurasFromRuleElements
+  resourceCapsFromRuleElements, rollModesFromRuleElements, rollOutcomesFromRuleElements, extraDamageFromRuleElements, aurasFromRuleElements,
+  conditionImmunitiesFromRuleElements
 } from "../helpers/rule-elements.mjs";
 import {DEFAULT_FORM_STATISTICS, DEFAULT_KEPT_ITEM_TYPES, itemContributesWhileTransformed} from "../helpers/transformations.mjs";
 import WildPathConditionEffect from "../data/active-effect/condition.mjs";
@@ -134,6 +135,12 @@ export default class WildPathActor extends Actor {
   /** The auras this creature's features, gear and effects give it (`Aura`). */
   getAuras() {
     return aurasFromRuleElements(grantOwners(this), {actor: this, actorSystem: this.system, conditions: [...(this.statuses ?? [])]});
+  }
+
+  /** The conditions this creature's features, gear and effects make it immune to (`ConditionImmunity`). */
+  getConditionImmunities() {
+    return conditionImmunitiesFromRuleElements(grantOwners(this), {actor: this, actorSystem: this.system,
+      conditions: [...(this.statuses ?? [])]});
   }
 
   /** The outcomes forced on this creature's rolls in `domains` (`RollOutcome`), e.g. automatic failure. */
@@ -625,6 +632,8 @@ function documentRuleElementSource(document, type) {
     type,
     uuid: document.uuid ?? null,
     id: document.id ?? null,
-    name: document.name ?? null
+    name: document.name ?? null,
+    // A leveled condition's rules can depend on its level (`source.level`, 2014 Exhaustion).
+    ...((type === "effect") ? {level: document.system?.level ?? null} : {})
   };
 }

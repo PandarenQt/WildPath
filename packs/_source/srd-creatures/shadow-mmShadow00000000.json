@@ -349,6 +349,34 @@
                 "poison"
               ]
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "vulnerabilities",
+            "type": "GrantVulnerability",
+            "data": {
+              "damageTypes": [
+                "radiant"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "exhaustion",
+                "frightened",
+                "grappled",
+                "paralyzed",
+                "petrified",
+                "poisoned",
+                "prone",
+                "restrained",
+                "unconscious"
+              ]
+            }
           }
         ]
       },
@@ -382,9 +410,7 @@
           "Draining Swipe: effect: \"Hit: STR Score -4\" (its own changes) not converted",
           "Draining Swipe: not automated (summon): using it spends its cost; its description says the rest",
           "Shadow Stealth: not automated (utility): using it spends its cost; its description says the rest",
-          "Shadow Stealth: effect: hiding is not a WildPath condition yet",
-          "vulnerabilities (radiant) not converted",
-          "condition immunities (exhaustion, frightened, grappled, paralyzed, petrified, poisoned, prone, restrained, unconscious) not converted"
+          "Shadow Stealth: effect: hiding is not a WildPath condition yet"
         ]
       }
     }

@@ -325,6 +325,12 @@
             {
               "id": "effect-1",
               "type": "condition",
+              "conditionId": "grappled",
+              "saveOutcomePolicy": "failure"
+            },
+            {
+              "id": "effect-2",
+              "type": "condition",
               "conditionId": "restrained",
               "saveOutcomePolicy": "failure"
             }
@@ -345,9 +351,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: grappled is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -369,6 +373,16 @@
             "data": {
               "damageTypes": [
                 "fire"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "vulnerabilities",
+            "type": "GrantVulnerability",
+            "data": {
+              "damageTypes": [
+                "cold"
               ]
             }
           },
@@ -408,9 +422,7 @@
         "notes": [
           "Fire Aura: activation: turnEnd is not an action-economy cost",
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Constrict: effect: grappled is not a WildPath condition yet",
-          "Constrict: \"Escape Check\" is passive or triggered: not automated",
-          "vulnerabilities (cold) not converted"
+          "Constrict: \"Escape Check\" is passive or triggered: not automated"
         ]
       }
     }

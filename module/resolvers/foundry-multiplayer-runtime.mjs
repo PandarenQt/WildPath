@@ -653,6 +653,13 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     }
     targetEntries.push({actor: targetActor, hint});
   }
+  // 2024 Charmed: a charmed creature can't attack its charmer or target it with damage or harmful effects.
+  const harmful = definition && (definition.attack || definition.save || definition.damage.length || definition.effects.length);
+  if ( harmful && !authorityAction && targetEntries.some(({actor: target}) => conditionsFrom(actor, target, game).charmed) ) return {
+    ok: false,
+    code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
+    reason: "A charmed creature can't harm its charmer."
+  };
   // Unlinked Tokens of one base Actor share its id (and `actor:<id>`); such a key would resolve every one of
   // them to whichever was registered last. Drop it so lookups fall through to the Token-specific keys.
   for ( const key of ambiguousKeys ) {
@@ -767,10 +774,7 @@ export async function endConcentrationOnIncapacitation(effect, game=globalThis.g
   if ( game?.users?.activeGM?.id !== game?.user?.id ) return [];
   const actor = effect.parent;
   if ( !actor?.uuid ) return [];
-  const tokens = collectionContents(game.scenes).flatMap(scene => collectionContents(scene.tokens))
-    .filter(token => (token.actor?.uuid === actor.uuid) || (token.actorLink && (token.actorId === actor.id)));
-  const refs = new Set([actor.uuid, `actor:${actor.id}`, ...tokens.flatMap(token => [token.uuid, `token:${token.id}`,
-    `token:${token.parent?.id}.${token.id}`])]);
+  const refs = creatureRefs(actor, game);
   const holders = new Set([...collectionContents(game.actors),
     ...collectionContents(game.scenes).flatMap(scene => collectionContents(scene.tokens).map(token => token.actor).filter(Boolean))]);
   const ended = [];
@@ -792,7 +796,7 @@ export async function endConcentrationOnIncapacitation(effect, game=globalThis.g
 function foundryAttackRollMode({actor, action, definition, targetEntries, spatial, game, sourceToken}) {
   const type = definition.attack.type ?? null;
   const target = targetEntries[0] ?? null;
-  const context = attackContext(type, spatial, target, game, sourceToken);
+  const context = attackContext(type, spatial, target, game, sourceToken, actor);
   return combineRollModes([
     ...(actor.getRollModes?.(["attack", `attack.${type}`], {item: action, context}) ?? []),
     ...(target?.actor?.getRollModes?.(["attacked", `attacked.${type}`], {context}) ?? [])
@@ -812,15 +816,44 @@ function foundryAttackOutcomes({definition, targets, targetEntries, spatial, gam
   return Object.keys(outcomes).length ? outcomes : null;
 }
 
-/** What RuleElement predicates see about an attack on one target: its type and whether it is within 5 ft. */
-function attackContext(type, spatial, entry, game, sourceToken) {
+/**
+ * What RuleElement predicates see about an attack on one target: its type, whether it is within 5 ft, and the
+ * conditions the attacker has from that target (`fromTarget.grappled`).
+ */
+function attackContext(type, spatial, entry, game, sourceToken, attacker=null) {
   const token = entry ? resolveFoundryTargetToken({actor: entry.actor, hint: entry.hint, game,
     preferredSceneId: sourceToken?.parent?.id ?? null}) : null;
   const source = spatial?.context?.sourceFootprint ?? null;
   const footprint = source && token?.parent
     ? createFoundryV14TacticalGridAdapter({scene: token.parent}).tokenToFootprint(token) : null;
   const fields = footprint?.ok && footprint.footprint ? footprintDistance(source, footprint.footprint) : null;
-  return {attack: {type, ...(Number.isFinite(fields) ? {adjacent: fields * spatial.context.gridDistance <= 5} : {})}};
+  return {attack: {type, ...(Number.isFinite(fields) ? {adjacent: fields * spatial.context.gridDistance <= 5} : {}),
+    fromTarget: conditionsFrom(attacker, entry?.actor, game)}};
+}
+
+/** Every ref a creature's effects may name it by: its Actor and each of its Tokens. */
+function creatureRefs(actor, game) {
+  const tokens = collectionContents(game?.scenes).flatMap(scene => collectionContents(scene.tokens))
+    .filter(token => (token.actor?.uuid === actor.uuid) || (token.actorLink && (token.actorId === actor.id)));
+  return new Set([actor.uuid, `actor:${actor.id}`, ...tokens.flatMap(token => [token.uuid, `token:${token.id}`,
+    `token:${token.parent?.id}.${token.id}`])]);
+}
+
+/**
+ * The conditions `holder` has from `source`, as `{grappled: true}`: those whose effect names `source` (by Actor or
+ * Token ref) or one of its Items (an Action it used) as where the effect came from.
+ */
+export function conditionsFrom(holder, source, game=globalThis.game) {
+  if ( !holder?.effects || !source?.uuid ) return {};
+  const refs = creatureRefs(source, game);
+  const from = {};
+  for ( const effect of collectionContents(holder.effects) ) {
+    const flag = effect?.flags?.wildpath?.conditionEffect ?? {};
+    const ref = String(flag.sourceRef ?? flag.originRef ?? effect?.origin ?? "").replace(/^uuid:/, "");
+    if ( !ref || effect.disabled || !(refs.has(ref) || [...refs].some(owner => ref.startsWith(`${owner}.`))) ) continue;
+    for ( const id of effect.statuses ?? [] ) from[id] = true;
+  }
+  return from;
 }
 
 /**

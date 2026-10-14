@@ -316,6 +316,17 @@
           },
           {
             "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "exhaustion",
+                "poisoned"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
             "id": "speed-fly",
             "type": "GrantMovement",
             "data": {
@@ -350,8 +361,7 @@
         "notes": [
           "Death Burst: \"save\" is passive or triggered: not automated",
           "Steam Breath: uses: Recharge 6 is not rolled; refill the pool by hand",
-          "Steam Breath: effect: \"Slowed: 10 ft.\" (its own changes) not converted",
-          "condition immunities (exhaustion, poisoned) not converted"
+          "Steam Breath: effect: \"Slowed: 10 ft.\" (its own changes) not converted"
         ]
       }
     }

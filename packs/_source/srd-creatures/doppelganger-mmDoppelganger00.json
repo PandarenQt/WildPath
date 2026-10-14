@@ -471,6 +471,33 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "emanation",
+            "size": {
+              "value": 15,
+              "unit": "ft"
+            }
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "value": 12
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "frightened",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "label": "Unsettling Visage"
         },
         "ruleElements": [
@@ -503,9 +530,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "uses: Recharge 6 is not rolled; refill the pool by hand",
-              "effect: frightened is not a WildPath condition yet"
+              "uses: Recharge 6 is not rolled; refill the pool by hand"
             ]
           }
         }
@@ -553,6 +578,36 @@
           }
         }
       }
+    },
+    {
+      "_id": "mmDoppelgangtrts",
+      "_key": "!actors.items!mmDoppelganger00.mmDoppelgangtrts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "charmed"
+              ]
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
     }
   ],
   "flags": {
@@ -574,11 +629,8 @@
           "Detect Thoughts: not automated (utility): using it spends its cost; its description says the rest",
           "Detect Thoughts: concentration: nothing it sustains was converted",
           "Detect Thoughts: not automated (save): using it spends its cost; its description says the rest",
-          "Unsettling Visage: not automated (save): using it spends its cost; its description says the rest",
           "Unsettling Visage: uses: Recharge 6 is not rolled; refill the pool by hand",
-          "Unsettling Visage: effect: frightened is not a WildPath condition yet",
-          "Shape-Shift: not automated (utility): using it spends its cost; its description says the rest",
-          "condition immunities (charmed) not converted"
+          "Shape-Shift: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

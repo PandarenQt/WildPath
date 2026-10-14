@@ -240,6 +240,11 @@
             {
               "id": "effect-1",
               "type": "condition",
+              "conditionId": "grappled"
+            },
+            {
+              "id": "effect-2",
+              "type": "condition",
               "conditionId": "restrained"
             }
           ],
@@ -259,9 +264,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: grappled is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -705,6 +708,19 @@
           },
           {
             "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "frightened",
+                "grappled",
+                "paralyzed",
+                "restrained"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
             "id": "speed-swim",
             "type": "GrantMovement",
             "data": {
@@ -750,13 +766,11 @@
         "notes": [
           "Legendary Resistance: \"Expend Use\" is passive or triggered: not automated",
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Tentacle: effect: grappled is not a WildPath condition yet",
           "Tentacle: \"Escape Check\" is passive or triggered: not automated",
           "Swallow: effect: coverTotal is not a WildPath condition yet",
           "Swallow: \"Damage: Swallowed\" is passive or triggered: not automated",
           "Swallow: \"Regurgitate: Save\" is passive or triggered: not automated",
-          "Storm Bolt: not automated (utility): using it spends its cost; its description says the rest",
-          "condition immunities (frightened, grappled, paralyzed, restrained) not converted"
+          "Storm Bolt: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

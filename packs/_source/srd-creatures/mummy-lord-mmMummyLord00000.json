@@ -1515,6 +1515,14 @@
               }
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "paralyzed",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "label": "Dreadful Glare"
         },
         "ruleElements": []
@@ -1531,9 +1539,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: paralyzed is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -1556,6 +1562,30 @@
               "damageTypes": [
                 "necrotic",
                 "poison"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "vulnerabilities",
+            "type": "GrantVulnerability",
+            "data": {
+              "damageTypes": [
+                "fire"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "charmed",
+                "exhaustion",
+                "frightened",
+                "paralyzed",
+                "poisoned"
               ]
             }
           },
@@ -1611,10 +1641,7 @@
           "Whirlwind of Sand: effect: \"+2 AC\" (its own changes) not converted",
           "Dread Command: not automated (cast): using it spends its cost; its description says the rest",
           "Command: not automated (save): using it spends its cost; its description says the rest",
-          "Necrotic Strike: not automated (utility): using it spends its cost; its description says the rest",
-          "Dreadful Glare: effect: paralyzed is not a WildPath condition yet",
-          "vulnerabilities (fire) not converted",
-          "condition immunities (charmed, exhaustion, frightened, paralyzed, poisoned) not converted"
+          "Necrotic Strike: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

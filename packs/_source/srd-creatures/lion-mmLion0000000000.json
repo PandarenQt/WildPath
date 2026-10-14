@@ -243,6 +243,32 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 15,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "value": 11
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "frightened",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "label": "Roar"
         },
         "ruleElements": []
@@ -259,10 +285,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "effect: frightened is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -282,9 +305,7 @@
       },
       "conversion": {
         "notes": [
-          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Roar: not automated (save): using it spends its cost; its description says the rest",
-          "Roar: effect: frightened is not a WildPath condition yet"
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

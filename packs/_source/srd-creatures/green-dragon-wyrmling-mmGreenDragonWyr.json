@@ -326,6 +326,16 @@
           },
           {
             "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "poisoned"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
             "id": "speed-fly",
             "type": "GrantMovement",
             "data": {
@@ -368,8 +378,7 @@
       "conversion": {
         "notes": [
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Poison Breath: uses: Recharge 5–6 is not rolled; refill the pool by hand",
-          "condition immunities (poisoned) not converted"
+          "Poison Breath: uses: Recharge 5–6 is not rolled; refill the pool by hand"
         ]
       }
     }

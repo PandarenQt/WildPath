@@ -52,7 +52,8 @@ export function ruleRowsContext(ruleElements, {prefix, field=prefix, list, error
     return {
       ...row, name, path: at.join("."),
       isOther: row.kind === "other", isBonus: row.kind === "bonus", isRollMode: row.kind === "rollMode",
-      isDamageTypes: ["resistance", "immunity"].includes(row.kind), isSpeed: row.kind === "speed", isResource: row.kind === "resource",
+      isDamageTypes: ["resistance", "immunity", "vulnerability"].includes(row.kind),
+      isConditions: row.kind === "conditionImmunity", isSpeed: row.kind === "speed", isResource: row.kind === "resource",
       isExtraDamage: row.kind === "extraDamage", isAura: row.kind === "aura",
       hasAppliesTo: ["bonus", "rollMode", "extraDamage"].includes(row.kind),
       appliesToChoices: domains[row.kind] ?? {},

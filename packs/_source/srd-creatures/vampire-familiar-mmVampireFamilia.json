@@ -197,6 +197,11 @@
             {
               "id": "effect-1",
               "type": "condition",
+              "conditionId": "paralyzed"
+            },
+            {
+              "id": "effect-2",
+              "type": "condition",
               "conditionId": "poisoned"
             }
           ],
@@ -216,9 +221,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: paralyzed is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -288,6 +291,16 @@
           },
           {
             "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "charmed"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
             "id": "speed-climb",
             "type": "GrantMovement",
             "data": {
@@ -321,9 +334,7 @@
       "conversion": {
         "notes": [
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Umbral Dagger: effect: paralyzed is not a WildPath condition yet",
-          "Deathless Agility: not automated (utility): using it spends its cost; its description says the rest",
-          "condition immunities (charmed) not converted"
+          "Deathless Agility: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

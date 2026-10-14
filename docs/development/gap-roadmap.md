@@ -83,6 +83,37 @@ The other Wizards books on D&D Beyond reuse these same mechanics at volume. They
     Tasha's creatures now also show their Multiattack and traits for later tracks.
   - Live: a 5th-level wizard's Fire Bolt rolled 2d10, and Cure Wounds from a 2nd-level slot rolled 2d8 + 2d8 + 3.
 
+- **G2 (2026-10-14).** Done:
+  - the eight missing 2024 conditions, with their icons in the Token HUD:
+    - Incapacitated, Paralyzed (critical hits within 5 ft) and Petrified (resistance to all damage, immune to
+      Poisoned);
+    - Invisible, Deafened and Frightened;
+    - Grappled: Speed 0, and disadvantage on attacks against anyone but the grappler;
+    - Charmed: the authority refuses a harmful Action against the charmer.
+  - Grappled and Charmed know their source: the Action, Actor or Token named by the condition's effect.
+    `attack.fromTarget` lists the conditions the attacker has from its target, for any rule's predicate.
+  - `ConditionImmunity` and `GrantVulnerability` RuleElements; the converter maps condition immunities and
+    vulnerabilities to them. Both are also rule rows in the builder.
+  - The 2014 rule set: the `rulesVersion` world setting (2024 by default) swaps in the 2014 Exhaustion table,
+    Grappled, Incapacitated, Invisible, Stunned and Petrified.
+  - Effect on automated Items:
+
+    | Source | Before | After |
+    | --- | --- | --- |
+    | SRD | 221 | 250 |
+    | PHB | 231 | 264 |
+    | DMG | 80 | 82 |
+    | MM | 390 | 425 |
+    | Tasha's | 61 | 65 |
+
+    Condition immunities left unconverted fell from 252 to 4 (only conditions WildPath lacks, such as
+    diseased). The SRD's "concentration effect not converted" fell from 416 to 370, and its save activities
+    with nothing converted from 272 to 199.
+  - Live, two browsers: the Bandit Captain grappled the Player's caster, whose Fire Bolt then rolled 1d20 at
+    the Captain and 2d20kl at another creature. Charmed by the Captain, the caster's Fire Bolt at it was
+    refused, unspent; at another creature it went through. With `ConditionImmunity` to Grappled, a hit
+    applied nothing.
+
 ## Tracks, in order
 
 Each track is ranked by how much content it unblocks across all books, and by how general its primitive is.

@@ -8,6 +8,8 @@ export const RULE_ELEMENT_TYPES = Object.freeze({
   GRANT_RESOURCE: "GrantResource",
   GRANT_RESISTANCE: "GrantResistance",
   GRANT_IMMUNITY: "GrantImmunity",
+  GRANT_VULNERABILITY: "GrantVulnerability",
+  CONDITION_IMMUNITY: "ConditionImmunity",
   GRANT_MOVEMENT: "GrantMovement",
   ROLL_MODE: "RollMode",
   RESOURCE_CAP: "ResourceCap",
@@ -46,6 +48,9 @@ const TYPE_ALIASES = Object.freeze({
   resistance: RULE_ELEMENT_TYPES.GRANT_RESISTANCE,
   grantimmunity: RULE_ELEMENT_TYPES.GRANT_IMMUNITY,
   immunity: RULE_ELEMENT_TYPES.GRANT_IMMUNITY,
+  grantvulnerability: RULE_ELEMENT_TYPES.GRANT_VULNERABILITY,
+  vulnerability: RULE_ELEMENT_TYPES.GRANT_VULNERABILITY,
+  conditionimmunity: RULE_ELEMENT_TYPES.CONDITION_IMMUNITY,
   grantmovement: RULE_ELEMENT_TYPES.GRANT_MOVEMENT,
   movement: RULE_ELEMENT_TYPES.GRANT_MOVEMENT,
   rollmode: RULE_ELEMENT_TYPES.ROLL_MODE,
@@ -97,6 +102,8 @@ export function createDefaultRuleElementRegistry() {
     [RULE_ELEMENT_TYPES.GRANT_RESOURCE, grantResourceRuleElement],
     [RULE_ELEMENT_TYPES.GRANT_RESISTANCE, grantResistanceRuleElement],
     [RULE_ELEMENT_TYPES.GRANT_IMMUNITY, grantImmunityRuleElement],
+    [RULE_ELEMENT_TYPES.GRANT_VULNERABILITY, grantVulnerabilityRuleElement],
+    [RULE_ELEMENT_TYPES.CONDITION_IMMUNITY, conditionImmunityRuleElement],
     [RULE_ELEMENT_TYPES.GRANT_MOVEMENT, grantMovementRuleElement],
     [RULE_ELEMENT_TYPES.TRIGGER, triggerRuleElement]
   ]);
@@ -336,6 +343,12 @@ export function rollOutcomesFromRuleElements(owners=[], {domains=[], context={}}
   return contributionsInDomains(owners, "rollOutcomes", domains, context);
 }
 
+/** The conditions a creature's owners make it immune to (`ConditionImmunity`), as condition ids. */
+export function conditionImmunitiesFromRuleElements(owners=[], context={}) {
+  return [...new Set(owners.flatMap(({ruleElements=[], source=null}) =>
+    collectRuleElementContributions({ruleElements, context, source}).contributions.conditionImmunities))];
+}
+
 /** The auras (`Aura`) a creature's owners give it: each grants its rules to creatures within its radius. */
 export function aurasFromRuleElements(owners=[], context={}) {
   return owners.flatMap(({ruleElements=[], source=null}) => collectRuleElementContributions({ruleElements, context, source}).contributions.auras);
@@ -461,6 +474,27 @@ function grantImmunityRuleElement(ruleElement) {
       }]
     }
   });
+}
+
+function grantVulnerabilityRuleElement(ruleElement) {
+  const data = ruleElement.data;
+  return success({
+    damageAdjustments: {
+      vulnerabilities: [{
+        id: data.adjustmentId ?? data.id ?? ruleElement.id,
+        damageTypes: normalizeStrings(data.damageTypes ?? data.types ?? data.damageType),
+        tags: normalizeStrings(data.tags),
+        metadata: contributionMetadata(ruleElement, data.metadata)
+      }]
+    }
+  });
+}
+
+/** Immunity to conditions: applying one of `conditions` to the creature does nothing. */
+function conditionImmunityRuleElement(ruleElement) {
+  const conditions = normalizeStrings(ruleElement.data.conditions ?? ruleElement.data.conditionIds);
+  if ( !conditions.length ) return handlerFailure(RULE_ELEMENT_CODES.INVALID, "ConditionImmunity RuleElement requires conditions.");
+  return success({conditionImmunities: conditions});
 }
 
 function grantMovementRuleElement(ruleElement, context) {
@@ -666,6 +700,7 @@ function emptyContributions() {
     rollOutcomes: [],
     extraDamage: [],
     auras: [],
+    conditionImmunities: [],
     triggers: []
   };
 }
@@ -685,6 +720,7 @@ function mergeContributions(target, source={}) {
   target.rollOutcomes.push(...(source.rollOutcomes ?? []));
   target.extraDamage.push(...(source.extraDamage ?? []));
   target.auras.push(...(source.auras ?? []));
+  target.conditionImmunities.push(...(source.conditionImmunities ?? []));
   target.triggers.push(...(source.triggers ?? []));
 
   const damage = source.damageAdjustments ?? {};

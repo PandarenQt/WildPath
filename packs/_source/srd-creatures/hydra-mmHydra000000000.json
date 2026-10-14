@@ -263,6 +263,21 @@
         "ruleElements": [
           {
             "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "blinded",
+                "charmed",
+                "deafened",
+                "frightened",
+                "stunned",
+                "unconscious"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
             "id": "speed-swim",
             "type": "GrantMovement",
             "data": {
@@ -295,8 +310,7 @@
       },
       "conversion": {
         "notes": [
-          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "condition immunities (blinded, charmed, deafened, frightened, stunned, unconscious) not converted"
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

@@ -160,6 +160,13 @@
               "provenance": "weapon-base"
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "grappled"
+            }
+          ],
           "label": "Bite (attack)"
         },
         "ruleElements": []
@@ -176,9 +183,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: grappled is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -351,7 +356,6 @@
       },
       "conversion": {
         "notes": [
-          "Bite: effect: grappled is not a WildPath condition yet",
           "Bite: \"Escape Check\" is passive or triggered: not automated",
           "Swallow: effect: coverTotal is not a WildPath condition yet",
           "Swallow: activation: turnEnd is not an action-economy cost"

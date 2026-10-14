@@ -169,6 +169,13 @@
               "provenance": "additional"
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "grappled"
+            }
+          ],
           "label": "Bite"
         },
         "ruleElements": []
@@ -185,9 +192,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: grappled is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -338,7 +343,6 @@
       },
       "conversion": {
         "notes": [
-          "Bite: effect: grappled is not a WildPath condition yet",
           "Swallow: not automated (utility): using it spends its cost; its description says the rest",
           "Swallow: \"Escape Corpse\" is passive or triggered: not automated"
         ]

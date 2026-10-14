@@ -73,6 +73,19 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "grappled"
+            }
+          ],
           "label": "Adhesive (Object Form Only) (Expend Use)"
         },
         "ruleElements": []
@@ -89,10 +102,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "effect: grappled is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -318,6 +328,13 @@
               "provenance": "additional"
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "grappled"
+            }
+          ],
           "label": "Pseudopod (attack)"
         },
         "ruleElements": []
@@ -334,9 +351,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: grappled is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -403,6 +418,16 @@
                 "acid"
               ]
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "prone"
+              ]
+            }
           }
         ]
       },
@@ -429,13 +454,9 @@
       },
       "conversion": {
         "notes": [
-          "Adhesive (Object Form Only): not automated (utility): using it spends its cost; its description says the rest",
-          "Adhesive (Object Form Only): effect: grappled is not a WildPath condition yet",
           "Adhesive (Object Form Only): \"Escape Check\" is passive or triggered: not automated",
-          "Pseudopod: effect: grappled is not a WildPath condition yet",
           "Pseudopod: \"Escape Check\" is passive or triggered: not automated",
-          "Shape-Shift: not automated (utility): using it spends its cost; its description says the rest",
-          "condition immunities (prone) not converted"
+          "Shape-Shift: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

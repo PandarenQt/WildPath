@@ -180,6 +180,11 @@
             {
               "id": "effect-1",
               "type": "condition",
+              "conditionId": "grappled"
+            },
+            {
+              "id": "effect-2",
+              "type": "condition",
               "conditionId": "restrained"
             }
           ],
@@ -199,9 +204,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: grappled is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -401,7 +404,6 @@
       "conversion": {
         "notes": [
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Bite: effect: grappled is not a WildPath condition yet",
           "Bite: \"Escape Check\" is passive or triggered: not automated",
           "Swallow: effect: coverTotal is not a WildPath condition yet",
           "Swallow: \"Damage: Swallowed\" is passive or triggered: not automated",

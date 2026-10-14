@@ -21,6 +21,52 @@
           }
         ]
       },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "radial",
+        "size": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "save": {
+        "ability": "wits",
+        "dc": {
+          "valueExpression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 8
+              },
+              {
+                "type": "proficiency-bonus"
+              },
+              {
+                "type": "spellcasting-modifier"
+              }
+            ]
+          }
+        }
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "incapacitated",
+          "saveOutcomePolicy": "failure",
+          "concentration": true
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -115,11 +161,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (save): using it spends its cost; its description says the rest",
-          "effect: incapacitated is not a WildPath condition yet",
-          "concentration: nothing it sustains was converted"
-        ]
+        "notes": []
       }
     }
   }

@@ -144,6 +144,16 @@
                 "piercing"
               ]
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "vulnerabilities",
+            "type": "GrantVulnerability",
+            "data": {
+              "damageTypes": [
+                "fire"
+              ]
+            }
           }
         ]
       },
@@ -169,9 +179,7 @@
         "challenge": 2
       },
       "conversion": {
-        "notes": [
-          "vulnerabilities (fire) not converted"
-        ]
+        "notes": []
       }
     }
   }

@@ -187,6 +187,22 @@
                 "psychic"
               ]
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "charmed",
+                "deafened",
+                "exhaustion",
+                "frightened",
+                "paralyzed",
+                "petrified",
+                "poisoned"
+              ]
+            }
           }
         ]
       },
@@ -213,8 +229,7 @@
       },
       "conversion": {
         "notes": [
-          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "condition immunities (charmed, deafened, exhaustion, frightened, paralyzed, petrified, poisoned) not converted"
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

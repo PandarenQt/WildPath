@@ -20,6 +20,12 @@ export async function commitConditionEffectMutationPlan(actor, plan, {persistenc
     return commitFailure(CONDITION_EFFECT_COMMIT_CODES.INVALID_PLAN, "Condition effect commit requires an Actor and conditionEffect plan.", plan);
   }
 
+  // A creature immune to the condition (`ConditionImmunity`) is unaffected; removing one still works.
+  if ( (Number(plan.levels) > 0) && actor.getConditionImmunities?.().includes(plan.conditionId) ) {
+    return {ok: true, code: CONDITION_EFFECT_COMMIT_CODES.OK, action: "immune", conditionId: plan.conditionId, immune: true,
+      before: null, after: null, effectId: null};
+  }
+
   const persistence = persistencePort ?? createFoundryV14EffectPersistenceAdapter();
   try {
     const beforeEffect = findConditionEffect(actor, plan);

@@ -271,6 +271,24 @@
           },
           {
             "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "charmed",
+                "exhaustion",
+                "grappled",
+                "paralyzed",
+                "petrified",
+                "poisoned",
+                "prone",
+                "restrained",
+                "unconscious"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
             "id": "speed-fly",
             "type": "GrantMovement",
             "data": {
@@ -303,8 +321,7 @@
       },
       "conversion": {
         "notes": [
-          "Create Specter: not automated (summon): using it spends its cost; its description says the rest",
-          "condition immunities (charmed, exhaustion, grappled, paralyzed, petrified, poisoned, prone, restrained, unconscious) not converted"
+          "Create Specter: not automated (summon): using it spends its cost; its description says the rest"
         ]
       }
     }

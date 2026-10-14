@@ -292,6 +292,12 @@
             {
               "id": "effect-1",
               "type": "condition",
+              "conditionId": "grappled",
+              "saveOutcomePolicy": "failure"
+            },
+            {
+              "id": "effect-2",
+              "type": "condition",
               "conditionId": "restrained",
               "saveOutcomePolicy": "failure"
             }
@@ -329,8 +335,7 @@
           "conversion": {
             "notes": [
               "uses: Recharge 4–6 is not rolled; refill the pool by hand",
-              "area: 10-ft circle is not supported; the user picks the targets",
-              "effect: grappled is not a WildPath condition yet"
+              "area: 10-ft circle is not supported; the user picks the targets"
             ]
           }
         }
@@ -441,6 +446,23 @@
           },
           {
             "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "exhaustion",
+                "grappled",
+                "paralyzed",
+                "petrified",
+                "poisoned",
+                "prone",
+                "restrained",
+                "unconscious"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
             "id": "speed-swim",
             "type": "GrantMovement",
             "data": {
@@ -477,10 +499,8 @@
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
           "Whelm: uses: Recharge 4–6 is not rolled; refill the pool by hand",
           "Whelm: area: 10-ft circle is not supported; the user picks the targets",
-          "Whelm: effect: grappled is not a WildPath condition yet",
           "Whelm: \"Escape Check\" is passive or triggered: not automated",
-          "Whelm: activation: turnStart is not an action-economy cost",
-          "condition immunities (exhaustion, grappled, paralyzed, petrified, poisoned, prone, restrained, unconscious) not converted"
+          "Whelm: activation: turnStart is not an action-economy cost"
         ]
       }
     }

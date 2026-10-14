@@ -50,6 +50,14 @@
           }
         }
       ],
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "deafened",
+          "saveOutcomePolicy": "failure"
+        }
+      ],
       "label": "Staff of Thunder and Lightning (Thunderclap)"
     },
     "ruleElements": [
@@ -82,8 +90,7 @@
       },
       "conversion": {
         "notes": [
-          "consumption: activityUses 1 not converted",
-          "effect: deafened is not a WildPath condition yet"
+          "consumption: activityUses 1 not converted"
         ]
       }
     }

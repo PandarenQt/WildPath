@@ -256,6 +256,22 @@
           },
           {
             "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "charmed",
+                "deafened",
+                "exhaustion",
+                "frightened",
+                "grappled",
+                "prone",
+                "restrained"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
             "id": "speed-climb",
             "type": "GrantMovement",
             "data": {
@@ -288,8 +304,7 @@
       },
       "conversion": {
         "notes": [
-          "Split: not automated (summon): using it spends its cost; its description says the rest",
-          "condition immunities (charmed, deafened, exhaustion, frightened, grappled, prone, restrained) not converted"
+          "Split: not automated (summon): using it spends its cost; its description says the rest"
         ]
       }
     }

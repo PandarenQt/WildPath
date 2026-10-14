@@ -184,6 +184,18 @@
                 "poison"
               ]
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "charmed",
+                "frightened",
+                "poisoned"
+              ]
+            }
           }
         ]
       },
@@ -210,8 +222,7 @@
       },
       "conversion": {
         "notes": [
-          "Hellish Restoration: \"Revive: Days\" is passive or triggered: not automated",
-          "condition immunities (charmed, frightened, poisoned) not converted"
+          "Hellish Restoration: \"Revive: Days\" is passive or triggered: not automated"
         ]
       }
     }

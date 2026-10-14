@@ -18,6 +18,58 @@
           }
         ]
       },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "multiple",
+        "required": true,
+        "count": {
+          "type": "max",
+          "terms": [
+            {
+              "type": "constant",
+              "value": 1
+            },
+            {
+              "type": "ability-modifier",
+              "ability": "presence"
+            }
+          ]
+        }
+      },
+      "save": {
+        "ability": "wits",
+        "dc": {
+          "valueExpression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 8
+              },
+              {
+                "type": "proficiency-bonus"
+              },
+              {
+                "type": "spellcasting-modifier"
+              }
+            ]
+          }
+        }
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "frightened",
+          "saveOutcomePolicy": "failure"
+        }
+      ],
       "label": "Abjure Foes"
     },
     "ruleElements": []
@@ -35,9 +87,6 @@
       },
       "conversion": {
         "notes": [
-          "not automated (save): using it spends its cost; its description says the rest",
-          "consumption: itemUses 1 not converted",
-          "effect: frightened is not a WildPath condition yet",
           "consumption: itemUses 1 not converted"
         ]
       }

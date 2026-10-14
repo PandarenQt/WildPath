@@ -57,6 +57,13 @@
         {
           "id": "effect-1",
           "type": "condition",
+          "conditionId": "incapacitated",
+          "saveOutcomePolicy": "failure",
+          "concentration": true
+        },
+        {
+          "id": "effect-2",
+          "type": "condition",
           "conditionId": "prone",
           "saveOutcomePolicy": "failure",
           "concentration": true
@@ -163,9 +170,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: incapacitated is not a WildPath condition yet"
-        ]
+        "notes": []
       }
     }
   }

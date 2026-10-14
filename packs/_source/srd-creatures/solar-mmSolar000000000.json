@@ -2181,6 +2181,19 @@
           },
           {
             "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "charmed",
+                "exhaustion",
+                "frightened",
+                "poisoned"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
             "id": "speed-fly",
             "type": "GrantMovement",
             "data": {
@@ -2249,8 +2262,7 @@
           "Resurrection: effect: \"Spell Taxed\" (its own changes) not converted",
           "Divine Aid: not automated (cast): using it spends its cost; its description says the rest",
           "Lesser Restoration: not automated (utility): using it spends its cost; its description says the rest",
-          "Remove Curse: not automated (utility): using it spends its cost; its description says the rest",
-          "condition immunities (charmed, exhaustion, frightened, poisoned) not converted"
+          "Remove Curse: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

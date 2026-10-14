@@ -248,6 +248,13 @@
               "provenance": "additional"
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "grappled"
+            }
+          ],
           "label": "Grave Strike (Vampire Form Only) (attack)"
         },
         "ruleElements": []
@@ -264,9 +271,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: grappled is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -497,6 +502,32 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "value": 17
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "charmed",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "configuration": [
             {
               "id": "spell-slot",
@@ -572,7 +603,14 @@
                 "spell-slot.8": 8,
                 "spell-slot.9": 9
               },
-              "effects": []
+              "effects": [
+                {
+                  "type": "scaleTargets",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 1,
+                  "perLevel": 1
+                }
+              ]
             }
           ],
           "label": "Charm Person"
@@ -591,10 +629,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "effect: charmed is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -952,13 +987,10 @@
           "Legendary Resistance: \"Expend Use\" is passive or triggered: not automated",
           "Misty Escape: \"Paralyzed\" is passive or triggered: not automated",
           "Multiattack (Vampire Form Only): not automated (utility): using it spends its cost; its description says the rest",
-          "Grave Strike (Vampire Form Only): effect: grappled is not a WildPath condition yet",
           "Grave Strike (Vampire Form Only): \"Escape Check\" is passive or triggered: not automated",
           "Bite (Bat or Vampire Form Only): not automated (summon): using it spends its cost; its description says the rest",
           "Charm: not automated (cast): using it spends its cost; its description says the rest",
           "Charm: uses: Recharge 5–6 is not rolled; refill the pool by hand",
-          "Charm Person: not automated (save): using it spends its cost; its description says the rest",
-          "Charm Person: effect: charmed is not a WildPath condition yet",
           "Shape-Shift: not automated (summon): using it spends its cost; its description says the rest",
           "Beguile: not automated (cast): using it spends its cost; its description says the rest",
           "Command: not automated (save): using it spends its cost; its description says the rest",

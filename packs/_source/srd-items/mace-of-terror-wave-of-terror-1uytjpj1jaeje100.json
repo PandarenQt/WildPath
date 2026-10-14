@@ -22,6 +22,30 @@
           }
         ]
       },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "radial",
+        "size": {
+          "value": 30,
+          "unit": "ft"
+        }
+      },
+      "save": {
+        "ability": "wits",
+        "dc": {
+          "value": 15
+        }
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "frightened",
+          "saveOutcomePolicy": "failure"
+        }
+      ],
       "label": "Mace of Terror (Wave of Terror)"
     },
     "ruleElements": [
@@ -54,9 +78,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (save): using it spends its cost; its description says the rest",
-          "uses: a partial recovery refills the whole pool",
-          "effect: frightened is not a WildPath condition yet"
+          "uses: a partial recovery refills the whole pool"
         ]
       }
     }

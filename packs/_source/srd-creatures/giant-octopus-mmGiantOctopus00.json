@@ -135,6 +135,11 @@
             {
               "id": "effect-1",
               "type": "condition",
+              "conditionId": "grappled"
+            },
+            {
+              "id": "effect-2",
+              "type": "condition",
               "conditionId": "restrained"
             }
           ],
@@ -154,9 +159,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: grappled is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -249,7 +252,6 @@
       },
       "conversion": {
         "notes": [
-          "Tentacles: effect: grappled is not a WildPath condition yet",
           "Tentacles: \"Escape Check\" is passive or triggered: not automated",
           "Ink Cloud: not automated (utility): using it spends its cost; its description says the rest",
           "Ink Cloud: area: 10-ft cube is not supported; the user picks the targets"

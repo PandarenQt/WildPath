@@ -176,6 +176,17 @@
           },
           {
             "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "charmed",
+                "poisoned"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
             "id": "speed-fly",
             "type": "GrantMovement",
             "data": {
@@ -208,8 +219,7 @@
       },
       "conversion": {
         "notes": [
-          "Bite: \"save\" is passive or triggered: not automated",
-          "condition immunities (charmed, poisoned) not converted"
+          "Bite: \"save\" is passive or triggered: not automated"
         ]
       }
     }

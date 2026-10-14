@@ -359,6 +359,18 @@
           },
           {
             "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "paralyzed",
+                "petrified",
+                "poisoned"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
             "id": "speed-burrow",
             "type": "GrantMovement",
             "data": {
@@ -392,8 +404,7 @@
       "conversion": {
         "notes": [
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Charge: not automated (utility): using it spends its cost; its description says the rest",
-          "condition immunities (paralyzed, petrified, poisoned) not converted"
+          "Charge: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

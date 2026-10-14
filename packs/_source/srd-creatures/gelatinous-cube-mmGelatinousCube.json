@@ -285,6 +285,21 @@
                 "acid"
               ]
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "blinded",
+                "charmed",
+                "deafened",
+                "exhaustion",
+                "frightened",
+                "prone"
+              ]
+            }
           }
         ]
       },
@@ -317,8 +332,7 @@
           "Transparent: \"check\" is passive or triggered: not automated",
           "Engulf: effect: coverTotal is not a WildPath condition yet",
           "Engulf: effect: suffocation is not a WildPath condition yet",
-          "Engulf: \"Escape Check\" is passive or triggered: not automated",
-          "condition immunities (blinded, charmed, deafened, exhaustion, frightened, prone) not converted"
+          "Engulf: \"Escape Check\" is passive or triggered: not automated"
         ]
       }
     }

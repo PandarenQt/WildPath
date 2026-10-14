@@ -149,6 +149,22 @@
           },
           {
             "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "charmed",
+                "deafened",
+                "exhaustion",
+                "frightened",
+                "paralyzed",
+                "petrified",
+                "poisoned"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
             "id": "speed-fly",
             "type": "GrantMovement",
             "data": {
@@ -180,9 +196,7 @@
         "challenge": 0.25
       },
       "conversion": {
-        "notes": [
-          "condition immunities (charmed, deafened, exhaustion, frightened, paralyzed, petrified, poisoned) not converted"
-        ]
+        "notes": []
       }
     }
   }

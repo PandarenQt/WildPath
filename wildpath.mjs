@@ -85,6 +85,19 @@ Hooks.once("init", () => {
     }
   };
 
+  // The 2014 rules replace the conditions that differ (a world setting; read during init, applied after a reload).
+  game.settings.register("wildpath", "rulesVersion", {
+    name: "WILDPATH.SETTINGS.RulesVersion.Name",
+    hint: "WILDPATH.SETTINGS.RulesVersion.Hint",
+    scope: "world",
+    config: true,
+    type: String,
+    choices: {"2024": "WILDPATH.SETTINGS.RulesVersion.Modern", "2014": "WILDPATH.SETTINGS.RulesVersion.Legacy"},
+    default: "2024",
+    requiresReload: true
+  });
+  if ( game.settings.get("wildpath", "rulesVersion") === "2014" ) Object.assign(WILDPATH.CONDITIONS, WILDPATH.CONDITIONS_2014);
+
   // Populate CONFIG.statusEffects from our condition config so conditions are togglable
   // from the Token HUD like any other Foundry status.
   registerFoundryV14ConditionStatuses(CONFIG.statusEffects, WILDPATH.CONDITIONS);

@@ -1903,6 +1903,14 @@
               }
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "deafened",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "label": "Thunderclap"
         },
         "ruleElements": []
@@ -1919,9 +1927,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: deafened is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -2022,8 +2028,7 @@
           "Guiding Light: not automated (cast): using it spends its cost; its description says the rest",
           "Guiding Bolt: effect: marked is not a WildPath condition yet",
           "Pounce: not automated (utility): using it spends its cost; its description says the rest",
-          "Pounce: consumption: attribute 1 not converted",
-          "Thunderclap: effect: deafened is not a WildPath condition yet"
+          "Pounce: consumption: attribute 1 not converted"
         ]
       }
     }

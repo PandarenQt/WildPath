@@ -535,6 +535,16 @@
           },
           {
             "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "poisoned"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
             "id": "speed-fly",
             "type": "GrantMovement",
             "data": {
@@ -569,8 +579,7 @@
         "notes": [
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
           "Spores: uses: Recharge 6 is not rolled; refill the pool by hand",
-          "Spores: activation: turnStart is not an action-economy cost",
-          "condition immunities (poisoned) not converted"
+          "Spores: activation: turnStart is not an action-economy cost"
         ]
       }
     }

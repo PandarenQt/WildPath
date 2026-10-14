@@ -267,6 +267,13 @@
               "provenance": "weapon-base"
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "grappled"
+            }
+          ],
           "label": "Tentacle (attack)"
         },
         "ruleElements": []
@@ -283,9 +290,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: grappled is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -630,7 +635,6 @@
           "Legendary Resistance: \"Expend Use\" is passive or triggered: not automated",
           "Mucus Cloud: \"save\" is passive or triggered: not automated",
           "Mucus Cloud: \"Damage: Outside Water\" is passive or triggered: not automated",
-          "Tentacle: effect: grappled is not a WildPath condition yet",
           "Tentacle: \"Escape Check\" is passive or triggered: not automated",
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
           "Dominate Mind: not automated (save): using it spends its cost; its description says the rest",

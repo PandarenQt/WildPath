@@ -330,6 +330,33 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "cone",
+            "size": {
+              "value": 60,
+              "unit": "ft"
+            }
+          },
+          "save": {
+            "ability": "fortitude",
+            "dc": {
+              "value": 18
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "incapacitated",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "label": "Sleep Breath (1st Save)"
         },
         "ruleElements": []
@@ -346,10 +373,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "effect: incapacitated is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -1665,8 +1689,6 @@
           "Legendary Resistance: \"Expend Use\" is passive or triggered: not automated",
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
           "Fire Breath: uses: Recharge 5–6 is not rolled; refill the pool by hand",
-          "Sleep Breath: not automated (save): using it spends its cost; its description says the rest",
-          "Sleep Breath: effect: incapacitated is not a WildPath condition yet",
           "Spellcasting: not automated (cast): using it spends its cost; its description says the rest",
           "Spellcasting: consumption: activityUses 1 not converted",
           "Detect Magic: not automated (utility): using it spends its cost; its description says the rest",

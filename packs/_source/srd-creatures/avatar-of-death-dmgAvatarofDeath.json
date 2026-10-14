@@ -233,6 +233,22 @@
           },
           {
             "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "charmed",
+                "exhaustion",
+                "frightened",
+                "paralyzed",
+                "petrified",
+                "poisoned",
+                "unconscious"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
             "id": "speed-fly",
             "type": "GrantMovement",
             "data": {
@@ -266,8 +282,7 @@
       "conversion": {
         "notes": [
           "Incorporeal Movement: \"Self Damage\" is passive or triggered: not automated",
-          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "condition immunities (charmed, exhaustion, frightened, paralyzed, petrified, poisoned, unconscious) not converted"
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

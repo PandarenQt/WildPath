@@ -172,6 +172,17 @@
                 "poison"
               ]
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "exhaustion",
+                "poisoned"
+              ]
+            }
           }
         ]
       },
@@ -197,9 +208,7 @@
         "challenge": 0.25
       },
       "conversion": {
-        "notes": [
-          "condition immunities (exhaustion, poisoned) not converted"
-        ]
+        "notes": []
       }
     }
   }

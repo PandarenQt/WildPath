@@ -246,6 +246,11 @@
               "id": "effect-1",
               "type": "condition",
               "conditionId": "poisoned"
+            },
+            {
+              "id": "effect-2",
+              "type": "condition",
+              "conditionId": "paralyzed"
             }
           ],
           "label": "Bite"
@@ -264,9 +269,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: paralyzed is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -359,7 +362,6 @@
       "conversion": {
         "notes": [
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Bite: effect: paralyzed is not a WildPath condition yet",
           "Ethereal Jaunt: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }

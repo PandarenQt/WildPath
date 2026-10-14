@@ -686,6 +686,16 @@
                 "poison"
               ]
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "poisoned"
+              ]
+            }
           }
         ]
       },
@@ -718,8 +728,7 @@
           "Wall of Ice: concentration: nothing it sustains was converted",
           "Wall of Ice: area: 10-ft wall is not supported; the user picks the targets",
           "Wall of Ice: \"Frigid Air\" is passive or triggered: not automated",
-          "Ice Spear: effect: \"Speed -10\" (its own changes) not converted",
-          "condition immunities (poisoned) not converted"
+          "Ice Spear: effect: \"Speed -10\" (its own changes) not converted"
         ]
       }
     }

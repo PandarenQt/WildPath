@@ -807,6 +807,14 @@
               }
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "charmed",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "configuration": [
             {
               "id": "spell-slot",
@@ -887,8 +895,7 @@
           },
           "conversion": {
             "notes": [
-              "activation: 1 minute is not an action-economy cost",
-              "effect: charmed is not a WildPath condition yet"
+              "activation: 1 minute is not an action-economy cost"
             ]
           }
         }
@@ -1251,6 +1258,16 @@
           },
           {
             "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "poisoned"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
             "id": "speed-fly",
             "type": "GrantMovement",
             "data": {
@@ -1314,14 +1331,12 @@
           "Mind Spike: effect: \"Spiked\" (its own changes) not converted",
           "Mind Spike: concentration: nothing it sustains was converted",
           "Geas: activation: 1 minute is not an action-economy cost",
-          "Geas: effect: charmed is not a WildPath condition yet",
           "Mind Invasion: not automated (cast): using it spends its cost; its description says the rest",
           "Mind Spike: effect: \"Spiked\" (its own changes) not converted",
           "Mind Spike: concentration: nothing it sustains was converted",
           "Noxious Miasma: effect: \"Damaged: −2 AC\" (its own changes) not converted",
           "Pounce: not automated (utility): using it spends its cost; its description says the rest",
-          "Pounce: consumption: attribute 1 not converted",
-          "condition immunities (poisoned) not converted"
+          "Pounce: consumption: attribute 1 not converted"
         ]
       }
     }

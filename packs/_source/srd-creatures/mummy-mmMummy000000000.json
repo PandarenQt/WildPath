@@ -244,6 +244,32 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 60,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "value": 11
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "frightened",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "label": "Dreadful Glare"
         },
         "ruleElements": []
@@ -260,10 +286,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "effect: frightened is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -286,6 +309,30 @@
               "damageTypes": [
                 "necrotic",
                 "poison"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "vulnerabilities",
+            "type": "GrantVulnerability",
+            "data": {
+              "damageTypes": [
+                "fire"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "charmed",
+                "exhaustion",
+                "frightened",
+                "paralyzed",
+                "poisoned"
               ]
             }
           }
@@ -316,11 +363,7 @@
         "notes": [
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
           "Rotting Fist: effect: cursed is not a WildPath condition yet",
-          "Rotting Fist: not automated (utility): using it spends its cost; its description says the rest",
-          "Dreadful Glare: not automated (save): using it spends its cost; its description says the rest",
-          "Dreadful Glare: effect: frightened is not a WildPath condition yet",
-          "vulnerabilities (fire) not converted",
-          "condition immunities (charmed, exhaustion, frightened, paralyzed, poisoned) not converted"
+          "Rotting Fist: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

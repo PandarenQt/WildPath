@@ -282,6 +282,26 @@
           },
           {
             "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "charmed",
+                "exhaustion",
+                "frightened",
+                "grappled",
+                "incapacitated",
+                "paralyzed",
+                "petrified",
+                "poisoned",
+                "prone",
+                "restrained",
+                "stunned"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
             "id": "speed-climb",
             "type": "GrantMovement",
             "data": {
@@ -313,9 +333,7 @@
         "challenge": 3
       },
       "conversion": {
-        "notes": [
-          "condition immunities (charmed, exhaustion, frightened, grappled, incapacitated, paralyzed, petrified, poisoned, prone, restrained, stunned) not converted"
-        ]
+        "notes": []
       }
     }
   }

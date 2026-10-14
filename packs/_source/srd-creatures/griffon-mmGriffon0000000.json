@@ -146,6 +146,13 @@
               "provenance": "weapon-base"
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "grappled"
+            }
+          ],
           "label": "Rend (attack)"
         },
         "ruleElements": []
@@ -162,9 +169,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: grappled is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -214,7 +219,6 @@
       "conversion": {
         "notes": [
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Rend: effect: grappled is not a WildPath condition yet",
           "Rend: \"Escape Check\" is passive or triggered: not automated"
         ]
       }

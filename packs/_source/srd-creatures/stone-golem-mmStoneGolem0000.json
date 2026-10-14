@@ -614,6 +614,21 @@
                 "psychic"
               ]
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "charmed",
+                "exhaustion",
+                "frightened",
+                "paralyzed",
+                "petrified",
+                "poisoned"
+              ]
+            }
           }
         ]
       },
@@ -647,8 +662,7 @@
           "Slow: area: 40-ft cube is not supported; the user picks the targets",
           "Slow: effect: \"Slowed\" (its own changes) not converted",
           "Slow: concentration: nothing it sustains was converted",
-          "Slow: not automated (utility): using it spends its cost; its description says the rest",
-          "condition immunities (charmed, exhaustion, frightened, paralyzed, petrified, poisoned) not converted"
+          "Slow: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

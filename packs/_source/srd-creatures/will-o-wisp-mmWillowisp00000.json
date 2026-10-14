@@ -157,6 +157,19 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "invisible"
+            }
+          ],
           "label": "Vanish"
         },
         "ruleElements": []
@@ -173,10 +186,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "effect: invisible is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -201,6 +211,32 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "fortitude",
+            "dc": {
+              "value": 10
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "dead",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "label": "Consume Life (Save)"
         },
         "ruleElements": []
@@ -217,10 +253,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "effect: dead is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -336,6 +369,23 @@
           },
           {
             "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "exhaustion",
+                "grappled",
+                "paralyzed",
+                "petrified",
+                "poisoned",
+                "prone",
+                "restrained",
+                "unconscious"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
             "id": "speed-fly",
             "type": "GrantMovement",
             "data": {
@@ -368,12 +418,7 @@
       },
       "conversion": {
         "notes": [
-          "Vanish: not automated (utility): using it spends its cost; its description says the rest",
-          "Vanish: effect: invisible is not a WildPath condition yet",
-          "Consume Life: not automated (save): using it spends its cost; its description says the rest",
-          "Consume Life: effect: dead is not a WildPath condition yet",
-          "Consume Life: \"Wisp: Healing\" is passive or triggered: not automated",
-          "condition immunities (exhaustion, grappled, paralyzed, petrified, poisoned, prone, restrained, unconscious) not converted"
+          "Consume Life: \"Wisp: Healing\" is passive or triggered: not automated"
         ]
       }
     }

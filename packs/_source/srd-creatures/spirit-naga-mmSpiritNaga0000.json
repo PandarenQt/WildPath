@@ -1354,6 +1354,33 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 60,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "value": 14
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "paralyzed",
+              "saveOutcomePolicy": "failure",
+              "concentration": true
+            }
+          ],
           "configuration": [
             {
               "id": "spell-slot",
@@ -1422,7 +1449,14 @@
                 "spell-slot.8": 8,
                 "spell-slot.9": 9
               },
-              "effects": []
+              "effects": [
+                {
+                  "type": "scaleTargets",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 2,
+                  "perLevel": 1
+                }
+              ]
             }
           ],
           "label": "Hold Person"
@@ -1441,11 +1475,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "effect: paralyzed is not a WildPath condition yet",
-              "concentration: nothing it sustains was converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -1629,6 +1659,17 @@
                 "poison"
               ]
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "charmed",
+                "poisoned"
+              ]
+            }
           }
         ]
       },
@@ -1667,11 +1708,7 @@
           "Water Breathing: effect: \"Water Breathing\" (its own changes) not converted",
           "Detect Thoughts: not automated (utility): using it spends its cost; its description says the rest",
           "Detect Thoughts: concentration: nothing it sustains was converted",
-          "Detect Thoughts: not automated (save): using it spends its cost; its description says the rest",
-          "Hold Person: not automated (save): using it spends its cost; its description says the rest",
-          "Hold Person: effect: paralyzed is not a WildPath condition yet",
-          "Hold Person: concentration: nothing it sustains was converted",
-          "condition immunities (charmed, poisoned) not converted"
+          "Detect Thoughts: not automated (save): using it spends its cost; its description says the rest"
         ]
       }
     }

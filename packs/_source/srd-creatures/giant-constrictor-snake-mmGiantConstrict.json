@@ -229,6 +229,14 @@
               }
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "grappled",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "label": "Constrict (save)"
         },
         "ruleElements": []
@@ -245,9 +253,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: grappled is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -297,7 +303,6 @@
       "conversion": {
         "notes": [
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Constrict: effect: grappled is not a WildPath condition yet",
           "Constrict: \"Escape Check\" is passive or triggered: not automated"
         ]
       }

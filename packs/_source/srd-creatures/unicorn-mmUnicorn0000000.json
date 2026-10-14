@@ -2152,6 +2152,18 @@
           },
           {
             "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "charmed",
+                "paralyzed",
+                "poisoned"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
             "id": "legendary-actions",
             "type": "GrantResource",
             "data": {
@@ -2213,8 +2225,7 @@
           "Shimmering Shield: healing: temporary Hit Points not converted",
           "Shimmering Shield: effect: \"Shielded\" (its own changes) not converted",
           "Unicorn's Blessing: not automated (cast): using it spends its cost; its description says the rest",
-          "Lesser Restoration: not automated (utility): using it spends its cost; its description says the rest",
-          "condition immunities (charmed, paralyzed, poisoned) not converted"
+          "Lesser Restoration: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

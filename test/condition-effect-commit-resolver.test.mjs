@@ -5,6 +5,16 @@ import {
   rollbackConditionEffectMutationPlan
 } from "../module/resolvers/condition-effect-commit-resolver.mjs";
 
+test("a creature immune to a condition is not given it, and nothing needs rolling back", async () => {
+  const actor = actorWithEffects();
+  actor.getConditionImmunities = () => ["charmed"];
+  const result = await commitConditionEffectMutationPlan(actor, {type: "conditionEffect", conditionId: "charmed", levels: 1});
+  assert.equal(result.ok, true);
+  assert.equal(result.immune, true);
+  assert.equal(actor.effects.length, 0);
+  assert.equal(await rollbackConditionEffectMutationPlan(actor, null, null, result), true);
+});
+
 function actorWithEffects(effects=[]) {
   const actor = {
     effects: [],

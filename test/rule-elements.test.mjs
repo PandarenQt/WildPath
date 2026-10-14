@@ -5,6 +5,7 @@ import {
   RULE_ELEMENT_TRACE_STATUS,
   RuleElementRegistry,
   collectRuleElementContributions,
+  conditionImmunitiesFromRuleElements,
   evaluateRuleElement,
   grantedResourcesFromRuleElements,
   modifiersFromRuleElements,
@@ -299,6 +300,29 @@ test("damage adjustment RuleElements produce profiles that damage adjustment can
   assert.equal(adjusted.ok, true);
   assert.equal(adjusted.damageResult.total, 5);
   assert.deepEqual(adjusted.damageResult.byDamageType, {fire: 5, poison: 0});
+});
+
+test("vulnerabilities double damage, and condition immunities name the conditions a creature ignores", async () => {
+  const result = collectRuleElementContributions({ruleElements: [{id: "brittle", type: "GrantVulnerability", data: {damageTypes: ["bludgeoning"]}}]});
+  const adjusted = adjustDamageResult({ok: true, components: [{id: "club", amount: 4, damageType: "bludgeoning"}], total: 4},
+    result.contributions.damageAdjustments);
+  assert.equal(adjusted.damageResult.total, 8);
+
+  const owners = [{ruleElements: [{id: "mind", type: "ConditionImmunity", data: {conditions: ["charmed", "frightened"]}}]},
+    {ruleElements: [{id: "stone", type: "ConditionImmunity", data: {conditions: ["charmed"]}}]}];
+  assert.deepEqual(conditionImmunitiesFromRuleElements(owners), ["charmed", "frightened"]);
+  assert.equal(collectRuleElementContributions({ruleElements: [{id: "empty", type: "ConditionImmunity", data: {}}]}).ok, false);
+
+  // 2014 Exhaustion: each rule is gated on the condition effect's level (`source.level`).
+  const {WILDPATH} = await import("../module/config.mjs");
+  const exhaustion = WILDPATH.CONDITIONS_2014.exhaustion.ruleElements;
+  const context = {actorSystem: {resources: {movement: {base: 30, bonus: 5}, health: {base: 41, bonus: 0}}}};
+  const at = level => collectRuleElementContributions({ruleElements: exhaustion, context, source: {type: "effect", level}}).contributions;
+  assert.deepEqual(at(1).resourceCaps, []);
+  assert.deepEqual(at(2).resourceCaps.map(cap => [cap.resources[0], cap.maximum]), [["movement", 17]]);
+  assert.deepEqual(at(4).resourceCaps.map(cap => [cap.resources[0], cap.maximum]).sort(), [["health", 20], ["movement", 17]]);
+  assert.deepEqual(at(5).resourceCaps.map(cap => [cap.resources[0], cap.maximum]).sort(), [["health", 20], ["movement", 0]]);
+  assert.deepEqual(at(3).rollModes.map(mode => mode.domains.join()).sort(), ["attack,save", "check"]);
 });
 
 test("movement and trigger RuleElements adapt into existing domain primitives", () => {

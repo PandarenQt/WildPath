@@ -230,6 +230,13 @@
               "provenance": "weapon-base"
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "incapacitated"
+            }
+          ],
           "label": "Thundercloud"
         },
         "ruleElements": []
@@ -246,9 +253,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: incapacitated is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -1373,7 +1378,6 @@
       "conversion": {
         "notes": [
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Thundercloud: effect: incapacitated is not a WildPath condition yet",
           "Spellcasting: not automated (cast): using it spends its cost; its description says the rest",
           "Spellcasting: consumption: activityUses 1 not converted",
           "Misty Step: not automated (cast): using it spends its cost; its description says the rest",

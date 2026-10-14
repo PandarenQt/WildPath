@@ -255,6 +255,12 @@
               "type": "condition",
               "conditionId": "blinded",
               "saveOutcomePolicy": "failure"
+            },
+            {
+              "id": "effect-3",
+              "type": "condition",
+              "conditionId": "grappled",
+              "saveOutcomePolicy": "failure"
             }
           ],
           "label": "Engulf (Save)"
@@ -273,9 +279,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: grappled is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -356,6 +360,17 @@
           },
           {
             "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "deafened",
+                "exhaustion"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
             "id": "speed-swim",
             "type": "GrantMovement",
             "data": {
@@ -389,10 +404,8 @@
       "conversion": {
         "notes": [
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Engulf: effect: grappled is not a WildPath condition yet",
           "Engulf: \"Engulfed: Damage\" is passive or triggered: not automated",
-          "Engulf: not automated (check): using it spends its cost; its description says the rest",
-          "condition immunities (deafened, exhaustion) not converted"
+          "Engulf: not automated (check): using it spends its cost; its description says the rest"
         ]
       }
     }

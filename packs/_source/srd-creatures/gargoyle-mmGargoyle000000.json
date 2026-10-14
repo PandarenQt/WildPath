@@ -217,6 +217,18 @@
           },
           {
             "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "exhaustion",
+                "petrified",
+                "poisoned"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
             "id": "speed-fly",
             "type": "GrantMovement",
             "data": {
@@ -249,8 +261,7 @@
       },
       "conversion": {
         "notes": [
-          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "condition immunities (exhaustion, petrified, poisoned) not converted"
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

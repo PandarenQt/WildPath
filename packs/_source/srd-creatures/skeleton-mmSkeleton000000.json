@@ -221,6 +221,27 @@
                 "poison"
               ]
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "vulnerabilities",
+            "type": "GrantVulnerability",
+            "data": {
+              "damageTypes": [
+                "bludgeoning"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "exhaustion",
+                "poisoned"
+              ]
+            }
           }
         ]
       },
@@ -246,10 +267,7 @@
         "challenge": 0.25
       },
       "conversion": {
-        "notes": [
-          "vulnerabilities (bludgeoning) not converted",
-          "condition immunities (exhaustion, poisoned) not converted"
-        ]
+        "notes": []
       }
     }
   }

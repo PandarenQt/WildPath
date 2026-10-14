@@ -734,6 +734,14 @@
               }
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "incapacitated",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "configuration": [
             {
               "id": "spell-slot",
@@ -801,8 +809,7 @@
           },
           "conversion": {
             "notes": [
-              "activation: 1 minute is not an action-economy cost",
-              "effect: incapacitated is not a WildPath condition yet"
+              "activation: 1 minute is not an action-economy cost"
             ]
           }
         }
@@ -831,6 +838,38 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 120,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "multiple",
+            "required": true,
+            "count": 20
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "value": 15
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "charmed",
+              "saveOutcomePolicy": "failure"
+            },
+            {
+              "id": "effect-2",
+              "type": "condition",
+              "conditionId": "incapacitated",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "configuration": [
             {
               "id": "spell-slot",
@@ -912,10 +951,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "area: 30-ft cube is not supported; the user picks the targets",
-              "effect: charmed is not a WildPath condition yet",
-              "effect: incapacitated is not a WildPath condition yet"
+              "area: 30-ft cube is not supported; the user picks the targets"
             ]
           }
         }
@@ -989,11 +1025,7 @@
           "Etherealness: not automated (utility): using it spends its cost; its description says the rest",
           "Etherealness: effect: ethereal is not a WildPath condition yet",
           "Dream: activation: 1 minute is not an action-economy cost",
-          "Dream: effect: incapacitated is not a WildPath condition yet",
-          "Hypnotic Pattern: not automated (save): using it spends its cost; its description says the rest",
-          "Hypnotic Pattern: area: 30-ft cube is not supported; the user picks the targets",
-          "Hypnotic Pattern: effect: charmed is not a WildPath condition yet",
-          "Hypnotic Pattern: effect: incapacitated is not a WildPath condition yet"
+          "Hypnotic Pattern: area: 30-ft cube is not supported; the user picks the targets"
         ]
       }
     }

@@ -339,6 +339,14 @@
               }
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "frightened",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "label": "Horror Nimbus"
         },
         "ruleElements": [
@@ -371,8 +379,7 @@
           },
           "conversion": {
             "notes": [
-              "uses: Recharge 5–6 is not rolled; refill the pool by hand",
-              "effect: frightened is not a WildPath condition yet"
+              "uses: Recharge 5–6 is not rolled; refill the pool by hand"
             ]
           }
         }
@@ -455,6 +462,17 @@
           },
           {
             "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "frightened",
+                "poisoned"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
             "id": "speed-fly",
             "type": "GrantMovement",
             "data": {
@@ -490,9 +508,7 @@
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
           "Teleport: not automated (utility): using it spends its cost; its description says the rest",
           "Horror Nimbus: uses: Recharge 5–6 is not rolled; refill the pool by hand",
-          "Horror Nimbus: effect: frightened is not a WildPath condition yet",
-          "Pursuit: not automated (utility): using it spends its cost; its description says the rest",
-          "condition immunities (frightened, poisoned) not converted"
+          "Pursuit: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

@@ -103,6 +103,13 @@
               "provenance": "additional"
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "frightened"
+            }
+          ],
           "label": "Command (Teleport and Attack)"
         },
         "ruleElements": []
@@ -119,9 +126,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: frightened is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -141,8 +146,7 @@
       },
       "conversion": {
         "notes": [
-          "Command: \"attack\" is passive or triggered: not automated",
-          "Command: effect: frightened is not a WildPath condition yet"
+          "Command: \"attack\" is passive or triggered: not automated"
         ]
       }
     }

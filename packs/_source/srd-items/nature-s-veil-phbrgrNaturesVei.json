@@ -22,6 +22,19 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "invisible"
+        }
+      ],
       "label": "Nature's Veil"
     },
     "ruleElements": [
@@ -62,10 +75,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: invisible is not a WildPath condition yet"
-        ]
+        "notes": []
       }
     }
   }

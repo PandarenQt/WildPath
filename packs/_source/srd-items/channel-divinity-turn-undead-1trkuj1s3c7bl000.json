@@ -22,6 +22,50 @@
           }
         ]
       },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 30,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "save": {
+        "ability": "wits",
+        "dc": {
+          "valueExpression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 8
+              },
+              {
+                "type": "proficiency-bonus"
+              },
+              {
+                "type": "spellcasting-modifier"
+              }
+            ]
+          }
+        }
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "frightened"
+        },
+        {
+          "id": "effect-2",
+          "type": "condition",
+          "conditionId": "incapacitated"
+        }
+      ],
       "label": "Channel Divinity (Turn Undead)"
     },
     "ruleElements": [
@@ -62,10 +106,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (save): using it spends its cost; its description says the rest",
-          "uses: a partial recovery refills the whole pool",
-          "effect: frightened is not a WildPath condition yet",
-          "effect: incapacitated is not a WildPath condition yet"
+          "uses: a partial recovery refills the whole pool"
         ]
       }
     }

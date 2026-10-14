@@ -475,6 +475,27 @@
           },
           {
             "schemaVersion": 1,
+            "id": "vulnerabilities",
+            "type": "GrantVulnerability",
+            "data": {
+              "damageTypes": [
+                "fire"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "exhaustion",
+                "poisoned"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
             "id": "speed-fly",
             "type": "GrantMovement",
             "data": {
@@ -512,9 +533,7 @@
           "Fog Cloud: not automated (cast): using it spends its cost; its description says the rest",
           "Fog Cloud: not automated (utility): using it spends its cost; its description says the rest",
           "Fog Cloud: area: 20 * @item.level-ft sphere is not supported; the user picks the targets",
-          "Fog Cloud: concentration: nothing it sustains was converted",
-          "vulnerabilities (fire) not converted",
-          "condition immunities (exhaustion, poisoned) not converted"
+          "Fog Cloud: concentration: nothing it sustains was converted"
         ]
       }
     }

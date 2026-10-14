@@ -579,6 +579,32 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "value": 14
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "charmed",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "configuration": [
             {
               "id": "spell-slot",
@@ -654,7 +680,14 @@
                 "spell-slot.8": 8,
                 "spell-slot.9": 9
               },
-              "effects": []
+              "effects": [
+                {
+                  "type": "scaleTargets",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 1,
+                  "perLevel": 1
+                }
+              ]
             }
           ],
           "label": "Animal Friendship"
@@ -673,10 +706,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "effect: charmed is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -704,6 +734,32 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "value": 14
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "charmed",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "configuration": [
             {
               "id": "spell-slot",
@@ -758,7 +814,14 @@
                 "spell-slot.8": 8,
                 "spell-slot.9": 9
               },
-              "effects": []
+              "effects": [
+                {
+                  "type": "scaleTargets",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 4,
+                  "perLevel": 1
+                }
+              ]
             }
           ],
           "label": "Charm Monster"
@@ -777,10 +840,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "effect: charmed is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -1121,10 +1181,6 @@
           "Spellcasting: not automated (cast): using it spends its cost; its description says the rest",
           "Spellcasting: consumption: activityUses 1 not converted",
           "Tree Stride: not automated (utility): using it spends its cost; its description says the rest",
-          "Animal Friendship: not automated (save): using it spends its cost; its description says the rest",
-          "Animal Friendship: effect: charmed is not a WildPath condition yet",
-          "Charm Monster: not automated (save): using it spends its cost; its description says the rest",
-          "Charm Monster: effect: charmed is not a WildPath condition yet",
           "Druidcraft: not automated (utility): using it spends its cost; its description says the rest",
           "Druidcraft: area: 5-ft cube is not supported; the user picks the targets",
           "Entangle: area: 20-ft cube is not supported; the user picks the targets",

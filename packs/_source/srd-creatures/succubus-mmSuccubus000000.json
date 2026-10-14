@@ -411,6 +411,33 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 60,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "value": 15
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "charmed",
+              "saveOutcomePolicy": "failure",
+              "concentration": true
+            }
+          ],
           "configuration": [
             {
               "id": "spell-slot",
@@ -477,11 +504,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "effect: charmed is not a WildPath condition yet",
-              "concentration: nothing it sustains was converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -547,10 +570,7 @@
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
           "Charm: not automated (cast): using it spends its cost; its description says the rest",
           "Charm: uses: Recharge 5–6 is not rolled; refill the pool by hand",
-          "Shape-Shift: not automated (utility): using it spends its cost; its description says the rest",
-          "Dominate Person: not automated (save): using it spends its cost; its description says the rest",
-          "Dominate Person: effect: charmed is not a WildPath condition yet",
-          "Dominate Person: concentration: nothing it sustains was converted"
+          "Shape-Shift: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }
