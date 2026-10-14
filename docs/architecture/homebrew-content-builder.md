@@ -8,12 +8,15 @@ systems are mature enough to execute the content the builder creates.
 ## First slice: JSON editors (2026-10-14)
 
 The item sheet edits an Action's `system.definition`, and any Item's `system.ruleElements`, as JSON
-(`module/applications/item-sheet.mjs`):
+(`module/applications/item-sheet.mjs`). The effect sheet, Foundry's own with a Rule Elements tab added, edits an
+effect's `system.ruleElements` the same way (`module/applications/effect-sheet.mts`):
 
 - **Validation.** The engine's own validators check every edit before it is saved:
   `validateActionDefinition` for definitions and `validateRuleElementDefinition` for RuleElements.
-  - An invalid draft is not saved. It stays on the sheet with its errors listed above it, and the stored data
-    is unchanged.
+  - A RuleElement must also have a type the engine has a handler for. The validator checks only its shape, and
+    an unknown type would be skipped when the rules are read.
+  - An invalid draft is not saved, and the stored data is unchanged. On the item sheet the draft stays with its
+    errors listed above it. On the effect sheet, Save keeps the sheet open and shows the errors in a notification.
   - A valid definition replaces the stored one whole, so a key it leaves out returns to its initial value.
 - **Summary.** A short summary of the stored definition sits above the editor. It covers costs, controller
   costs, targets, range, area, attack, save, damage, healing, effects, choices, transform and summon
@@ -24,14 +27,15 @@ The item sheet edits an Action's `system.definition`, and any Item's `system.rul
 - Adding single targeting and 1d6 fire damage saved, and the summary updated to match.
 - Broken JSON and an empty `id` each showed their error and left the stored definition unchanged.
 - A Modifier RuleElement saved on a feature gave its owner +2 AC.
+- On an effect's sheet, an unknown type and broken JSON each kept the sheet open with the error and saved
+  nothing. A Modifier then saved and gave the owner +1 AC.
 - Legacy modifier rows still save.
-- Node covers the summary.
+- Node covers the summary and the RuleElement list check.
 
 **Not yet:**
 - the structured builder this document describes;
 - friendly, field-level messages (the editor shows the validators' path and reason);
-- Test/Preview;
-- RuleElements on effect sheets.
+- Test/Preview.
 
 ## Product Goal
 

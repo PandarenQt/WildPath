@@ -1,9 +1,20 @@
 import {validateActionDefinition} from "../helpers/action-definitions.mjs";
 import {summarizeActionDefinition} from "../helpers/action-definition-summary.mjs";
-import {validateRuleElementDefinition} from "../helpers/rule-elements.mjs";
+import {DEFAULT_RULE_ELEMENT_REGISTRY, validateRuleElementDefinition} from "../helpers/rule-elements.mjs";
 
 const {HandlebarsApplicationMixin} = foundry.applications.api;
 const {ItemSheetV2} = foundry.applications.sheets;
+
+/** What the engine's validator finds wrong with a list of RuleElements; empty when it is valid. */
+export function ruleElementListErrors(ruleElements) {
+  if ( !Array.isArray(ruleElements) ) return ["RuleElements must be a list."];
+  return ruleElements.flatMap((entry, index) => {
+    const result = validateRuleElementDefinition(entry, {index});
+    if ( !result.ok ) return [`${index}: ${result.reason ?? result.code}`];
+    // The validator checks shape only; a type no handler knows would be skipped when the rules are read.
+    return DEFAULT_RULE_ELEMENT_REGISTRY.has(result.ruleElement.type) ? [] : [`${index}: Unknown RuleElement type: ${entry.type}`];
+  });
+}
 
 /**
  * A minimal, functional ItemSheet for the WildPath system. Its Action definition and RuleElements are edited as
@@ -60,12 +71,7 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
         {...this.item.system.schema.fields.definition.getInitialValue(), ...definition});
     }
     if ( typeof drafts.ruleElementsJson === "string" ) {
-      const ruleElements = this.#parseDraft("ruleElements", drafts.ruleElementsJson, parsed => !Array.isArray(parsed)
-        ? ["RuleElements must be a list."]
-        : parsed.flatMap((entry, index) => {
-          const result = validateRuleElementDefinition(entry, {index});
-          return result.ok ? [] : [`${index}: ${result.reason ?? result.code}`];
-        }));
+      const ruleElements = this.#parseDraft("ruleElements", drafts.ruleElementsJson, ruleElementListErrors);
       if ( ruleElements ) foundry.utils.setProperty(submitData, "system.ruleElements", ruleElements);
     }
     return submitData;

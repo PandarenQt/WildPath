@@ -23,6 +23,7 @@ import WildPathTokenDocument from "./module/documents/token.mjs";
 
 import WildPathActorSheet from "./module/applications/actor-sheet.mjs";
 import WildPathItemSheet from "./module/applications/item-sheet.mjs";
+import {WildPathEffectSheet} from "./module/applications/effect-sheet.mjs";
 
 import {getCombatEndLifecycleEvents} from "./module/helpers/combat.mjs";
 import {MOVEMENT_MEASUREMENT_MODES} from "./module/helpers/movement.mjs";
@@ -127,6 +128,12 @@ Hooks.once("init", () => {
     types: ["feature", "action", "gear"],
     makeDefault: true,
     label: "WILDPATH.SheetItem"
+  });
+
+  DocumentSheetConfig.registerSheet(WildPathActiveEffect, "wildpath", WildPathEffectSheet, {
+    types: ["effect", "condition"],
+    makeDefault: true,
+    label: "WILDPATH.SheetEffect"
   });
 });
 

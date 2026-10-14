@@ -2,6 +2,7 @@
   "WILDPATH": {
     "SheetActor": "Wild Path Actor Sheet",
     "SheetItem": "Wild Path Item Sheet",
+    "SheetEffect": "Wild Path Effect Sheet",
     "SETTINGS": {
       "MovementMeasurementMode": {
         "Name": "Movement Measurement",
