@@ -465,11 +465,13 @@
             }
           },
           "targeting": {
-            "type": "multiple",
-            "required": true,
-            "count": 20,
-            "refinementPolicy": {
-              "minSelections": 1
+            "type": "area"
+          },
+          "area": {
+            "shape": "cube",
+            "size": {
+              "value": 30,
+              "unit": "ft"
             }
           },
           "save": {
@@ -527,7 +529,6 @@
           },
           "conversion": {
             "notes": [
-              "area: 30-ft cube is not supported; the user picks the targets",
               "effect: \"Hypnotized\" change system.attributes.movement.multiplier (override) not converted"
             ]
           }
@@ -701,7 +702,6 @@
           "Spellcasting: effect: ethereal is not a WildPath condition yet",
           "Spellcasting: activation: 1 minute is not an action-economy cost",
           "Spellcasting: effect: \"Trance State\" change system.attributes.movement.multiplier (override) not converted",
-          "Spellcasting: area: 30-ft cube is not supported; the user picks the targets",
           "Spellcasting: effect: \"Hypnotized\" change system.attributes.movement.multiplier (override) not converted"
         ]
       }

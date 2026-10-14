@@ -35,6 +35,21 @@ The current pure helper is `module/helpers/tactical-areas.mjs`. It implements gr
 line, cone, and simple wall footprints using tactical fields rather than Euclidean overlap tests.
 It is a domain helper; Foundry Scene/Grid adapters should feed it snapped fields and vertices later.
 
+**Cube (2026-10-15, G6).** A Cube (or a square) is a block of fields on a square grid, its side its size
+(`createCubeFootprint`). It takes one click:
+- Cast at a point, it is centered on the clicked field, and in range when any of its fields is.
+- "Originating from you" (a `self` range: Thunderwave), it is the block touching the caster's Token, not covering
+  it, whose center is nearest the click (`cubeCornersAgainst`).
+
+A Cube needs a square grid; elsewhere its placement is refused.
+
+**Range and areas.** An area Action's range limits its placement (its point, its Cube), not the creatures it covers.
+The pipeline's range check skips area Actions. Before this, every area with a `self` range (a cone, a Cube, an
+emanation from its caster) refused the creatures it reached.
+
+Live (two browsers, 14.369): Player1's SRD Thunderwave, clicked east of QA Caster, covered the 3x3 block against its
+east side. It caught QA Ally (failed) and the Bandit Captain (saved, half of 10).
+
 ## Placement
 
 Creature-originated lines and cones normally use:

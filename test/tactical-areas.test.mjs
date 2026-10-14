@@ -11,7 +11,9 @@ import {
   ORIGIN_SOURCE_POLICIES,
   TACTICAL_AREA_CODES,
   createConeFootprint,
+  createCubeFootprint,
   createRadialFootprint,
+  cubeCornersAgainst,
   createSourceBoundarySelectionRequest,
   gridlessAreaLimitation,
   previewSourceBoundaryArea,
@@ -216,4 +218,14 @@ test("gridless source-border placement returns a structured limitation", () => {
   const result = gridlessAreaLimitation(AREA_SHAPES.LINE);
   assert.equal(result.ok, false);
   assert.equal(result.code, TACTICAL_AREA_CODES.GRIDLESS_UNSUPPORTED);
+});
+
+test("a Cube is a square block of fields; one originating from a creature touches its edge without covering it", () => {
+  const cube = createCubeFootprint({corner: {x: 2, y: 3}, side: 2});
+  assert.deepEqual(cube.fields.map(field => [field.x, field.y]).sort(), [[2, 3], [2, 4], [3, 3], [3, 4]]);
+  assert.equal(cube.shape, AREA_SHAPES.CUBE);
+  assert.equal(createCubeFootprint({topology: GRID_TOPOLOGIES.HEX, corner: {x: 0, y: 0}, side: 2}), null, "square grids only");
+  const corners = cubeCornersAgainst([{x: 0, y: 0}], 3);
+  assert.equal(corners.length, 5 * 5 - 9, "every 3x3 block touching a 1x1 creature that does not cover it");
+  assert.ok(corners.every(({x, y}) => !((x <= 0) && (x + 2 >= 0) && (y <= 0) && (y + 2 >= 0))));
 });

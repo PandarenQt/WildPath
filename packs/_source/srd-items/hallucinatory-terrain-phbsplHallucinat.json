@@ -92,7 +92,6 @@
         "notes": [
           "not automated (utility): using it spends its cost; its description says the rest",
           "activation: 10 minute is not an action-economy cost",
-          "area: 150-ft cube is not supported; the user picks the targets",
           "activation: 10 minute is not an action-economy cost"
         ]
       }

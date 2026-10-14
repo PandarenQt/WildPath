@@ -26,11 +26,13 @@
         }
       },
       "targeting": {
-        "type": "multiple",
-        "required": true,
-        "count": 20,
-        "refinementPolicy": {
-          "minSelections": 1
+        "type": "area"
+      },
+      "area": {
+        "shape": "cube",
+        "size": {
+          "value": 15,
+          "unit": "ft"
         }
       },
       "effects": [
@@ -125,7 +127,6 @@
       "conversion": {
         "notes": [
           "consumption: itemUses 1 not converted",
-          "area: 15-ft cube is not supported; the user picks the targets",
           "effect: coverHalf is not a WildPath condition yet",
           "effect: coverHalf is not a WildPath condition yet",
           "effect: coverHalf is not a WildPath condition yet",

@@ -993,7 +993,6 @@
               "not automated (utility): using it spends its cost; its description says the rest",
               "activation: 10 minute is not an action-economy cost",
               "consumption: itemUses -12 not converted",
-              "area: 10-ft cube is not supported; the user picks the targets",
               "activation: 1 hour is not an action-economy cost"
             ]
           }
@@ -1281,7 +1280,6 @@
           "Spellcasting: effect: \"Detect Magic\" (its own changes) not converted",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: consumption: itemUses -12 not converted",
-          "Spellcasting: area: 10-ft cube is not supported; the user picks the targets",
           "Spellcasting: activation: 1 hour is not an action-economy cost",
           "Spellcasting: not automated (save): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Cannot Lie\" (its own changes) not converted",

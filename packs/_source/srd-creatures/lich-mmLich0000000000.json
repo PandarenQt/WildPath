@@ -1420,11 +1420,13 @@
             }
           },
           "targeting": {
-            "type": "multiple",
-            "required": true,
-            "count": 20,
-            "refinementPolicy": {
-              "minSelections": 1
+            "type": "area"
+          },
+          "area": {
+            "shape": "radial",
+            "size": {
+              "value": 10,
+              "unit": "ft"
             }
           },
           "damage": [
@@ -1455,9 +1457,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "area: 10-ft circle is not supported; the user picks the targets"
-            ]
+            "notes": []
           }
         }
       }
@@ -1885,8 +1885,7 @@
           "Spellcasting: \"Raise Zombie\" is passive or triggered: not automated",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: \"Create Sensor\" is passive or triggered: not automated",
-          "Protective Magic: not automated (save): using it spends its cost; its description says the rest",
-          "Deathly Teleport: area: 10-ft circle is not supported; the user picks the targets"
+          "Protective Magic: not automated (save): using it spends its cost; its description says the rest"
         ]
       }
     }

@@ -566,8 +566,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "area: 5-ft cube is not supported; the user picks the targets"
+              "not automated (utility): using it spends its cost; its description says the rest"
             ]
           }
         }
@@ -620,11 +619,13 @@
             }
           },
           "targeting": {
-            "type": "multiple",
-            "required": true,
-            "count": 20,
-            "refinementPolicy": {
-              "minSelections": 1
+            "type": "area"
+          },
+          "area": {
+            "shape": "cube",
+            "size": {
+              "value": 20,
+              "unit": "ft"
             }
           },
           "save": {
@@ -674,9 +675,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "area: 20-ft cube is not supported; the user picks the targets"
-            ]
+            "notes": []
           }
         }
       }
@@ -850,8 +849,6 @@
       "conversion": {
         "notes": [
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
-          "Spellcasting: area: 5-ft cube is not supported; the user picks the targets",
-          "Spellcasting: area: 20-ft cube is not supported; the user picks the targets",
           "Tree Stride: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }

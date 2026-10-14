@@ -29,11 +29,13 @@
         }
       },
       "targeting": {
-        "type": "multiple",
-        "required": true,
-        "count": 20,
-        "refinementPolicy": {
-          "minSelections": 1
+        "type": "area"
+      },
+      "area": {
+        "shape": "cube",
+        "size": {
+          "value": 20,
+          "unit": "ft"
         }
       },
       "save": {
@@ -169,7 +171,6 @@
       },
       "conversion": {
         "notes": [
-          "area: 20-ft cube is not supported; the user picks the targets",
           "concentration: nothing it sustains was converted"
         ]
       }

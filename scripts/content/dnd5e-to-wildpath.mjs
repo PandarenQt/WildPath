@@ -159,7 +159,9 @@ function targetingOf({activity, system, notes, level=0, scales={}}) {
   const size = number(template.size);
   const rangeUnits = pick(activity, system, "range").units ?? system.range?.units;
   if ( template.type ) {
-    const shape = {sphere: "radial", cylinder: "radial", radius: rangeUnits === "self" ? "emanation" : "radial", cone: "cone", line: "line"}[template.type];
+    // A Cube (or a square) is a block of fields; a circle is radial, as a sphere is.
+    const shape = {sphere: "radial", cylinder: "radial", circle: "radial", radius: rangeUnits === "self" ? "emanation" : "radial", cone: "cone",
+      line: "line", cube: "cube", square: "cube"}[template.type];
     if ( shape && size ) {
       if ( template.type === "cylinder" ) notes.push("area: a cylinder's height is not modeled");
       return {targeting: {type: "area"}, area: {shape, size: {value: size, unit: "ft"},

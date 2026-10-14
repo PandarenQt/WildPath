@@ -941,11 +941,13 @@
             }
           },
           "targeting": {
-            "type": "multiple",
-            "required": true,
-            "count": 20,
-            "refinementPolicy": {
-              "minSelections": 1
+            "type": "area"
+          },
+          "area": {
+            "shape": "radial",
+            "size": {
+              "value": 5,
+              "unit": "ft"
             }
           },
           "effects": [
@@ -996,9 +998,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "area: 5-ft circle is not supported; the user picks the targets"
-            ]
+            "notes": []
           }
         }
       }
@@ -1286,7 +1286,6 @@
           "Spellcasting: cast: Insect Plague at level 7 is cast at its own level",
           "Spellcasting: concentration: nothing it sustains was converted",
           "Glare: not automated (utility): using it spends its cost; its description says the rest",
-          "Whirlwind of Sand: area: 5-ft circle is not supported; the user picks the targets",
           "Dread Command: cast: Command at level 2 is cast at its own level",
           "Dread Command: not automated (save): using it spends its cost; its description says the rest",
           "Necrotic Strike: not automated (utility): using it spends its cost; its description says the rest"

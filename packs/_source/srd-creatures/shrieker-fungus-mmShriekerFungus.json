@@ -90,8 +90,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "area: 300-ft circle is not supported; the user picks the targets"
+              "not automated (utility): using it spends its cost; its description says the rest"
             ]
           }
         }
@@ -112,8 +111,7 @@
       },
       "conversion": {
         "notes": [
-          "Shriek: not automated (utility): using it spends its cost; its description says the rest",
-          "Shriek: area: 300-ft circle is not supported; the user picks the targets"
+          "Shriek: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }
