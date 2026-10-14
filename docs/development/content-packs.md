@@ -150,6 +150,12 @@ A feature is matched by its dnd5e identifier (or its name) and gets the rules of
   however dnd5e activates it ("special" or "turnStart"). Shortcut: a Vampire's sunlight and running water are not
   checked.
 - **Flyby:** no Opportunity Attacks when it flies out of reach (`AvoidOpportunityAttacks` for `fly`).
+- **Evasion:** an Agility save that halves takes none on a success and half on a failure, unless Incapacitated.
+- **Sneak Attack:** once per turn, its dice (by Rogue level, or a stat block's own) of the weapon's damage type, on a
+  hit with a Finesse or ranged weapon, with Advantage or with an ally beside the target and no Disadvantage. Its
+  damage activity is the trait's.
+- **Extra Attack** (and Fighter's Two and Three Extra Attacks): one more weapon attack each time the creature pays
+  for one with the Action.
 - **Legendary Resistance:** a pool of the creature's uses ("3/Day", from its stat block). A failed save may succeed
   instead, spending one; its controller is asked unless its setting says Always or Never.
 

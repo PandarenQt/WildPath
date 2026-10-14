@@ -317,6 +317,25 @@ Modifiers").
   target context carries the `automatic-failure` override.
 - `critical-on-hit` on attacks against it (`attacked`): a hit becomes a critical hit. Its predicate sees
   `attack.adjacent`, measured per target.
+- `evasion` on its saves (2026-10-14, G5): damage a success halves becomes none on a success and half on a failure.
+  The runtime passes it per target (`save.evasionByTarget`), and the damage step reads it from the save result.
+  Evasion is `{domains: ["save.agility"], outcome: "evasion"}`, unless the creature is Incapacitated.
+
+  Live (two browsers): Player1's Fireball at a creature with Evasion took nothing on a save, and 15 of 31 on a
+  failure.
+
+**Extra Attack (2026-10-14, G5).** `ExtraAttack {resourceId: "extra-attack"}`, with a `GrantResource` of that pool
+(empty, emptied at the start of each turn), on a creature's features:
+- Each of its weapon attacks that costs the Action may instead be paid from the pool. Paying with the Action fills
+  the pool (`restores`), so the Attack action's further attacks are paid from it.
+- The Item's stored definition is unchanged: `actionDefinitionFromItem` adds this for its creature, so the action bar,
+  the odds and the authority all see it.
+- A payment never refills a pool it drew from, so an attack paid from the pool does not refill it.
+- Each Extra Attack feature grants one more use of the same pool, so Fighter's Two and Three Extra Attacks add up.
+
+Live (GM): a Rogue 5 duelist with Extra Attack and a Rapier attacked the Bandit Captain three times in one turn.
+The first was paid with the Action and filled the pool (it missed). The second was paid from the pool, hit, and
+added 3d6 Sneak Attack. The third was refused.
 
 **Avoiding Opportunity Attacks (2026-10-14, G5).** `AvoidOpportunityAttacks {movementModes: ["fly"]}` on a creature's
 active features, gear and effects: its movement in those modes provokes no common Opportunity Attack (Flyby). With no
@@ -426,7 +445,13 @@ condition-name branches.
 
 `{type: "ExtraDamage", data: {domains, expression, damageType, once?: "turn"}}` adds a damage component to an
 Action's own damage in the damage domains (`damage`, `damage.melee`, `damage.weapon`, ...). Its predicates see
-the attack type, the Action's tags, the attack's ability and the creature's conditions.
+the attack type, the Action's tags, the attack's ability, the weapon's properties (`finesse`) and the creature's
+conditions. They also see the attack against its first target: `attack.rollMode` and `attack.allyNearTarget`. With
+no `damageType`, it deals the Action's own (2026-10-14).
+
+Sneak Attack (G5) is `{domains: ["damage.weapon"], expression: <dice by Rogue level>, once: "turn"}` with the
+predicate "`finesse` or `ranged`, and `attack.rollMode` is advantage, or `attack.allyNearTarget` without
+disadvantage".
 
 "When you hit with a melee attack, +1d6 fire, once per turn" is
 `{domains: ["damage.melee"], expression: {type: "dice", number: 1, faces: 6}, damageType: "fire", once: "turn"}`.

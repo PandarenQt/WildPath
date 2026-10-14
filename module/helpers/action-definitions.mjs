@@ -205,7 +205,7 @@ export function serializeActionDefinition(rawDefinition={}, options={}) {
 
 export function actionDefinitionFromItem(item, options={}) {
   const system = item?.system ?? {};
-  const raw = system.definition ?? system.actionDefinition ?? item?.definition ?? item?.actionDefinition ?? null;
+  const raw = withExtraAttacks(system.definition ?? system.actionDefinition ?? item?.definition ?? item?.actionDefinition ?? null, item);
   const migrated = !hasAuthoredDefinition(raw);
   const source = sourceFromItem(item);
   const legacyActivationCost = options.legacyActivationCost
@@ -241,6 +241,24 @@ export function actionDefinitionFromItem(item, options={}) {
 }
 
 /* -------------------------------------------- */
+
+/**
+ * 2024 Extra Attack: while the Item's creature has an `ExtraAttack` pool, each of its weapon attacks that costs the
+ * Action may instead be paid from that pool, and paying with the Action fills the pool. The stored definition is
+ * untouched; this is what the creature can pay now.
+ */
+function withExtraAttacks(raw, item) {
+  const actor = item?.actor ?? null;
+  const allOf = raw?.costs?.allOf;
+  if ( (raw?.attack?.statistic !== "weapon") || !Array.isArray(allOf) || raw.costs.anyOf
+    || !allOf.some(cost => cost?.capability === "action") || (typeof actor?.getExtraAttacks !== "function") ) return raw;
+  const resourceId = actor.getExtraAttacks()[0];
+  const pool = (actor.system?.pools ?? []).find(entry => entry.id === resourceId);
+  if ( !pool ) return raw;
+  const rest = allOf.filter(cost => cost?.capability !== "action");
+  return {...raw, costs: {anyOf: [[{capability: resourceId, amount: 1}, ...rest], allOf]},
+    restores: [...(raw.restores ?? []), {resourceId, amount: Math.max(Number(pool.max) || 0, 1)}]};
+}
 
 export function actionDefinitionFromAction(action, options={}) {
   if ( !action ) {

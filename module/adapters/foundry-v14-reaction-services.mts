@@ -83,10 +83,6 @@ function reactionChildState({args, reactor, target, targetFootprint, sourceFootp
   const targetEntry = {...targetFootprint, defense, defenses: {[defenseKey]: defense}};
   const reactionItem = [...(reactor.actor.items ?? [])].find(entry => entry.type === "action"
     && entry.system?.definition?.id === definition.id) ?? null;
-  // The same attack and damage statistics as any Action: an opportunity attack adds the ability modifier and bonuses.
-  const combat = (globalThis as {game?: {combat?: {id: string; round: number; turn: number | null; started?: boolean} | null}}).game?.combat;
-  const statistics = actionCombatStatistics(reactor.actor, definition, {item: reactionItem,
-    turn: combat?.started ? turnKey(combat) : null});
   // The same advantage, disadvantage and forced critical hits as any attack: a Prone target within 5 ft, a Paralyzed one.
   const type = definition.attack?.type ?? null;
   const fields = footprintDistance(sourceFootprint as never, (targetFootprint as {footprint: never}).footprint);
@@ -96,6 +92,11 @@ function reactionChildState({args, reactor, target, targetFootprint, sourceFootp
   const rollMode = definition.attack ? (attackRollMode as unknown as (a: unknown, t: unknown, o: Data) => string)(reactor.actor, actor,
     {type, item: reactionItem, context}) : null;
   const critical = !!definition.attack && (attackForcesCritical as unknown as (t: unknown, o: Data) => boolean)(actor, {type, context});
+  // The same attack and damage statistics as any Action: an opportunity attack adds the ability modifier and bonuses,
+  // and extra damage sees this attack (Sneak Attack on an Opportunity Attack).
+  const combat = (globalThis as {game?: {combat?: {id: string; round: number; turn: number | null; started?: boolean} | null}}).game?.combat;
+  const statistics = actionCombatStatistics(reactor.actor, definition, {item: reactionItem,
+    turn: combat?.started ? turnKey(combat) : null, context: {attack: {...context.attack, rollMode}}});
   const targetSystem = foundryActorSystemSnapshot(actor);
   const profile = (actor as {getDamageProfile?(): Data | null}).getDamageProfile?.() ?? null;
   const targetKeys = [actor.id, actor.uuid, `actor:${actor.id}`];

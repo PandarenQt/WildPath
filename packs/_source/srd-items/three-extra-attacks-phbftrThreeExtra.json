@@ -7,7 +7,29 @@
   "system": {
     "active": true,
     "description": "<p>You can attack four times instead of once whenever you take the Attack action on your turn.</p>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "extra-attack-pool",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "extra-attack",
+          "label": "Extra Attack",
+          "maximum": 1,
+          "current": 0,
+          "recovery": "none",
+          "emptiesAtTurnStart": true
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "extra-attack",
+        "type": "ExtraAttack",
+        "data": {
+          "resourceId": "extra-attack"
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {

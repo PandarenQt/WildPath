@@ -327,6 +327,25 @@ const TRAITS = Object.freeze({
   "legendary-resistance": (document, {creature}) => (creature?.legendaryResistances ? {rules: [{schemaVersion: 1,
     id: "legendary-resistance", type: "GrantResource", data: {resourceId: "legendary-resistance", label: "Legendary Resistance",
       maximum: creature.legendaryResistances, recovery: "longRest"}}], notes: []} : null),
+  // "You can attack twice instead of once whenever you take the Attack action on your turn"; three and four times later.
+  "extra-attack": () => extraAttackTrait(),
+  "two-extra-attacks": () => extraAttackTrait(),
+  "three-extra-attacks": () => extraAttackTrait(),
+  // "When you're subjected to an effect that allows you to make a Dexterity saving throw to take only half damage, you
+  // instead take no damage if you succeed on the saving throw and only half damage if you fail", unless Incapacitated.
+  evasion: () => ({rules: [{schemaVersion: 1, id: "evasion", type: "RollOutcome", predicate: NOT_INCAPACITATED,
+    data: {domains: ["save.agility"], outcome: "evasion"}}], notes: []}),
+  // Once per turn, extra damage of the weapon's type to a creature hit with a Finesse or Ranged weapon, if the attack has
+  // Advantage, or an ally is within 5 ft of the target and the attack has no Disadvantage.
+  "sneak-attack": (document, {activities, scales}) => {
+    const activity = activities.find(entry => entry.type === "damage");
+    const notes = [];
+    const expression = activity ? partExpression(activity.damage?.parts?.[0], {spell: false, ability: null, scales, notes,
+      label: "Sneak Attack"}) : null;
+    if ( !expression ) return null;
+    return {rules: [{schemaVersion: 1, id: "sneak-attack", type: "ExtraDamage", predicate: SNEAK_ATTACK,
+      data: {domains: ["damage.weapon"], expression, once: "turn"}}], consumes: [activity], notes};
+  },
   // "Doesn't provoke an Opportunity Attack when it flies out of an enemy's reach."
   flyby: () => ({rules: [{schemaVersion: 1, id: "flyby", type: "AvoidOpportunityAttacks", data: {movementModes: ["fly"]}}], notes: []}),
   "pack-tactics": () => ({rules: [{schemaVersion: 1, id: "pack-tactics", type: "RollMode",
@@ -351,6 +370,24 @@ const TRAITS = Object.freeze({
       notes: /sunlight|running water/i.test(text) ? ["Regeneration: sunlight and running water are not checked"] : []};
   }
 });
+
+/**
+ * One more attack whenever the creature takes the Attack action: a pool of further attacks, empty until it pays an
+ * attack with the Action, emptied at the start of each turn. The pools of Extra Attack and its Fighter upgrades add up.
+ */
+const extraAttackTrait = () => ({rules: [
+  {schemaVersion: 1, id: "extra-attack-pool", type: "GrantResource", data: {resourceId: "extra-attack", label: "Extra Attack",
+    maximum: 1, current: 0, recovery: "none", emptiesAtTurnStart: true}},
+  {schemaVersion: 1, id: "extra-attack", type: "ExtraAttack", data: {resourceId: "extra-attack"}}], notes: []});
+
+/** Not Incapacitated: none of the conditions that include it. */
+const NOT_INCAPACITATED = Object.freeze({not: {any: ["incapacitated", "stunned", "paralyzed", "petrified", "unconscious", "dead"]
+  .map(condition => ({hasCondition: condition}))}});
+/** Sneak Attack's terms: a Finesse or Ranged weapon, and Advantage, or an ally beside the target and no Disadvantage. */
+const SNEAK_ATTACK = Object.freeze({all: [
+  {tagsAny: ["finesse", "ranged"]},
+  {any: [{equals: {path: "attack.rollMode", value: "advantage"}}, {all: [{equals: {path: "attack.allyNearTarget", value: true}},
+    {not: {equals: {path: "attack.rollMode", value: "disadvantage"}}}]}]}]});
 
 /** The 2024 damage types, as a text names them. */
 const DAMAGE_TYPES = Object.freeze(["acid", "bludgeoning", "cold", "fire", "force", "lightning", "necrotic", "piercing", "poison",

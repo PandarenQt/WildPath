@@ -7,7 +7,43 @@
   "system": {
     "active": true,
     "description": "<p>You can nimbly dodge out of the way of certain dangers. When you're subjected to an effect that allows you to make a Dexterity saving throw to take only half damage, you instead take no damage if you succeed on the saving throw and only half damage if you fail. You can't use this feature if you have the Incapacitated condition.</p><section class=\"secret\" id=\"secret-mJSoikZHwVq6UUDf\"><p><strong>Foundry Note</strong></p><p>With your token selected you can either right click on the damage roll's chat card and select <span class=\"reference\"><em class=\"fas fa-user-shield\"> </em>Apply Half Damage</span> or click the \"1/2\" button and then the <span class=\"reference\"><em class=\"fa-solid fa-reply-all\"> </em>Apply</span> button.</p></section>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "evasion",
+        "type": "RollOutcome",
+        "predicate": {
+          "not": {
+            "any": [
+              {
+                "hasCondition": "incapacitated"
+              },
+              {
+                "hasCondition": "stunned"
+              },
+              {
+                "hasCondition": "paralyzed"
+              },
+              {
+                "hasCondition": "petrified"
+              },
+              {
+                "hasCondition": "unconscious"
+              },
+              {
+                "hasCondition": "dead"
+              }
+            ]
+          }
+        },
+        "data": {
+          "domains": [
+            "save.agility"
+          ],
+          "outcome": "evasion"
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {

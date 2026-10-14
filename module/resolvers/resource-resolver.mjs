@@ -187,6 +187,8 @@ export function withResourceRestores(actorSystem, mutationPlan, restores=[]) {
     if ( index < 0 ) continue;
     const pool = actorSystem.pools[index];
     const path = `system.pools.${index}.value`;
+    // A payment never refills a pool it drew from (an Extra Attack paid from its own pool).
+    if ( payments.some(payment => (payment.path === path) && ((Number(payment.from) || 0) > (Number(payment.to) || 0))) ) continue;
     const from = Number(updates[path] ?? pool.value ?? 0) || 0;
     updates[path] = Math.min(from + amount, Number(pool.max ?? 0) || 0);
     const paid = payments.find(payment => payment.path === path);
