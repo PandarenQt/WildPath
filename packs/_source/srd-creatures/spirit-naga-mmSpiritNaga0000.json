@@ -144,9 +144,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -906,8 +904,7 @@
           "Spellcasting: not automated (save): using it spends its cost; its description says the rest",
           "Spellcasting: not automated (teleport): using it spends its cost; its description says the rest",
           "Spellcasting: cast: Hold Person at level 3 is cast at its own level",
-          "Spellcasting: cast: Lightning Bolt at level 4 is cast at its own level",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Spellcasting: cast: Lightning Bolt at level 4 is cast at its own level"
         ]
       }
     }

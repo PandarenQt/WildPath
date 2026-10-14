@@ -184,20 +184,54 @@
           },
           "restores": [
             {
-              "resourceId": "multiattack",
-              "amount": 4
+              "resourceId": "multiattack-bite",
+              "amount": 1
+            },
+            {
+              "resourceId": "multiattack-devilish-claw",
+              "amount": 2
+            },
+            {
+              "resourceId": "multiattack-fiery-mace",
+              "amount": 1
             }
           ]
         },
         "ruleElements": [
           {
             "schemaVersion": 1,
-            "id": "multiattack-uses",
+            "id": "multiattack-bite-uses",
             "type": "GrantResource",
             "data": {
-              "resourceId": "multiattack",
-              "label": "Multiattack",
-              "maximum": 4,
+              "resourceId": "multiattack-bite",
+              "label": "Multiattack (Bite)",
+              "maximum": 1,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-devilish-claw-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-devilish-claw",
+              "label": "Multiattack (Devilish Claw)",
+              "maximum": 2,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-fiery-mace-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-fiery-mace",
+              "label": "Multiattack (Fiery Mace)",
+              "maximum": 1,
               "current": 0,
               "recovery": "none",
               "emptiesAtTurnStart": true
@@ -217,9 +251,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -280,7 +312,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-bite",
                   "amount": 1
                 }
               ],
@@ -414,7 +446,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-devilish-claw",
                   "amount": 1
                 }
               ],
@@ -493,7 +525,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-fiery-mace",
                   "amount": 1
                 }
               ],
@@ -956,8 +988,7 @@
           "Hellfire Spellcasting: area: 60-ft wall is not supported; the user picks the targets",
           "Hellfire Spellcasting: concentration: nothing it sustains was converted",
           "Hellfire Spellcasting: area: a cylinder's height is not modeled",
-          "Hellfire Spellcasting: \"damage\" is passive or triggered: not automated",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Hellfire Spellcasting: \"damage\" is passive or triggered: not automated"
         ]
       }
     }

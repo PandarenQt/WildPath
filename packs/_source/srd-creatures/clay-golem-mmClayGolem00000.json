@@ -187,7 +187,7 @@
     {
       "_id": "mmMultiattack000",
       "_key": "!actors.items!mmClayGolem00000.mmMultiattack000",
-      "name": "Multiattack",
+      "name": "Multiattack (2 Slam)",
       "type": "action",
       "img": "icons/skills/melee/strike-weapons-orange.webp",
       "system": {
@@ -204,13 +204,13 @@
               }
             ]
           },
-          "label": "Multiattack",
+          "label": "Multiattack (2 Slam)",
           "targeting": {
             "type": "none"
           },
           "restores": [
             {
-              "resourceId": "multiattack",
+              "resourceId": "multiattack-slam",
               "amount": 2
             }
           ]
@@ -218,12 +218,12 @@
         "ruleElements": [
           {
             "schemaVersion": 1,
-            "id": "multiattack-uses",
+            "id": "multiattack-slam-uses",
             "type": "GrantResource",
             "data": {
-              "resourceId": "multiattack",
-              "label": "Multiattack",
-              "maximum": 2,
+              "resourceId": "multiattack-slam",
+              "label": "Multiattack (Slam)",
+              "maximum": 3,
               "current": 0,
               "recovery": "none",
               "emptiesAtTurnStart": true
@@ -243,9 +243,57 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "150wsz8fnh59s000",
+      "_key": "!actors.items!mmClayGolem00000.150wsz8fnh59s000",
+      "name": "Multiattack (3 Slam)",
+      "type": "action",
+      "img": "icons/skills/melee/strike-weapons-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>The clay golem makes two Slam attacks, or it makes three Slam attacks if it used Hasten this turn.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-multiattack-use-2",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
             ]
+          },
+          "label": "Multiattack (3 Slam)",
+          "targeting": {
+            "type": "none"
+          },
+          "restores": [
+            {
+              "resourceId": "multiattack-slam",
+              "amount": 3
+            }
+          ]
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMultiattack000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
           }
         }
       }
@@ -266,7 +314,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-slam",
                   "amount": 1
                 }
               ],
@@ -477,8 +525,7 @@
       "conversion": {
         "notes": [
           "Berserk: \"Berserk Check\" is passive or triggered: not automated",
-          "Hasten: not automated (utility): using it spends its cost; its description says the rest",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Hasten: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

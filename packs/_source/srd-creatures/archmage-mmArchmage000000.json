@@ -126,7 +126,7 @@
           },
           "restores": [
             {
-              "resourceId": "multiattack",
+              "resourceId": "multiattack-arcane-burst",
               "amount": 4
             }
           ]
@@ -134,11 +134,11 @@
         "ruleElements": [
           {
             "schemaVersion": 1,
-            "id": "multiattack-uses",
+            "id": "multiattack-arcane-burst-uses",
             "type": "GrantResource",
             "data": {
-              "resourceId": "multiattack",
-              "label": "Multiattack",
+              "resourceId": "multiattack-arcane-burst",
+              "label": "Multiattack (Arcane Burst)",
               "maximum": 4,
               "current": 0,
               "recovery": "none",
@@ -159,9 +159,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -182,7 +180,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-arcane-burst",
                   "amount": 1
                 }
               ],
@@ -1486,8 +1484,7 @@
           "Spellcasting: cast: Cone of Cold at level 9 is cast at its own level",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: \"Create Sensor\" is passive or triggered: not automated",
-          "Spellcasting: not automated (teleport): using it spends its cost; its description says the rest",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Spellcasting: not automated (teleport): using it spends its cost; its description says the rest"
         ]
       }
     }

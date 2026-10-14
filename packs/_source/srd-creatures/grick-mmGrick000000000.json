@@ -79,20 +79,37 @@
           },
           "restores": [
             {
-              "resourceId": "multiattack",
-              "amount": 2
+              "resourceId": "multiattack-beak",
+              "amount": 1
+            },
+            {
+              "resourceId": "multiattack-tentacles",
+              "amount": 1
             }
           ]
         },
         "ruleElements": [
           {
             "schemaVersion": 1,
-            "id": "multiattack-uses",
+            "id": "multiattack-beak-uses",
             "type": "GrantResource",
             "data": {
-              "resourceId": "multiattack",
-              "label": "Multiattack",
-              "maximum": 2,
+              "resourceId": "multiattack-beak",
+              "label": "Multiattack (Beak)",
+              "maximum": 1,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-tentacles-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-tentacles",
+              "label": "Multiattack (Tentacles)",
+              "maximum": 1,
               "current": 0,
               "recovery": "none",
               "emptiesAtTurnStart": true
@@ -112,9 +129,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -135,7 +150,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-beak",
                   "amount": 1
                 }
               ],
@@ -214,7 +229,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-tentacles",
                   "amount": 1
                 }
               ],
@@ -328,8 +343,7 @@
       },
       "conversion": {
         "notes": [
-          "Tentacles: \"Escape Check\" is passive or triggered: not automated",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Tentacles: \"Escape Check\" is passive or triggered: not automated"
         ]
       }
     }

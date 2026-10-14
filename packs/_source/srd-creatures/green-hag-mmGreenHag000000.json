@@ -553,7 +553,7 @@
           },
           "restores": [
             {
-              "resourceId": "multiattack",
+              "resourceId": "multiattack-claw",
               "amount": 2
             }
           ]
@@ -561,11 +561,11 @@
         "ruleElements": [
           {
             "schemaVersion": 1,
-            "id": "multiattack-uses",
+            "id": "multiattack-claw-uses",
             "type": "GrantResource",
             "data": {
-              "resourceId": "multiattack",
-              "label": "Multiattack",
+              "resourceId": "multiattack-claw",
+              "label": "Multiattack (Claw)",
               "maximum": 2,
               "current": 0,
               "recovery": "none",
@@ -586,9 +586,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -609,7 +607,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-claw",
                   "amount": 1
                 }
               ],
@@ -1033,8 +1031,7 @@
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: concentration: nothing it sustains was converted",
           "Spellcasting: effect: \"Disguised\" (its own changes) not converted",
-          "Spellcasting: cast: Ray of Sickness at level 3 is cast at its own level",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Spellcasting: cast: Ray of Sickness at level 3 is cast at its own level"
         ]
       }
     }

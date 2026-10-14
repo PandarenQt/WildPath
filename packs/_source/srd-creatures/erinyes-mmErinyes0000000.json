@@ -183,7 +183,7 @@
           },
           "restores": [
             {
-              "resourceId": "multiattack",
+              "resourceId": "multiattack-withering-sword",
               "amount": 3
             }
           ]
@@ -191,11 +191,11 @@
         "ruleElements": [
           {
             "schemaVersion": 1,
-            "id": "multiattack-uses",
+            "id": "multiattack-withering-sword-uses",
             "type": "GrantResource",
             "data": {
-              "resourceId": "multiattack",
-              "label": "Multiattack",
+              "resourceId": "multiattack-withering-sword",
+              "label": "Multiattack (Withering Sword)",
               "maximum": 3,
               "current": 0,
               "recovery": "none",
@@ -217,7 +217,7 @@
           },
           "conversion": {
             "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+              "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
             ]
           }
         }
@@ -282,7 +282,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-withering-sword",
                   "amount": 1
                 }
               ],
@@ -517,7 +517,7 @@
         "notes": [
           "Parry: not automated (utility): using it spends its cost; its description says the rest",
           "Withering Sword: damage: versatile two-handed damage not converted",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
         ]
       }
     }

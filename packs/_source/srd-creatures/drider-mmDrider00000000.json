@@ -215,9 +215,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -696,8 +694,7 @@
           "Magic of the Spider Queen: not automated (save): using it spends its cost; its description says the rest",
           "Magic of the Spider Queen: area: 20-ft cube is not supported; the user picks the targets",
           "Magic of the Spider Queen: effect: \"Outlined\" (its own changes) not converted",
-          "Magic of the Spider Queen: concentration: nothing it sustains was converted",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Magic of the Spider Queen: concentration: nothing it sustains was converted"
         ]
       }
     }

@@ -144,9 +144,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -677,8 +675,7 @@
           "Spellcasting: effect: \"Detect Magic\" (its own changes) not converted",
           "Spellcasting: concentration: nothing it sustains was converted",
           "Spellcasting: not automated (summon): using it spends its cost; its description says the rest",
-          "Spellcasting: activation: 10 minute is not an action-economy cost",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Spellcasting: activation: 10 minute is not an action-economy cost"
         ]
       }
     }

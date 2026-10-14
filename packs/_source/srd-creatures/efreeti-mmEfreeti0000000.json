@@ -255,9 +255,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -1152,8 +1150,7 @@
           "Spellcasting: cast: Wall of Fire at level 7 is cast at its own level",
           "Spellcasting: area: 60-ft wall is not supported; the user picks the targets",
           "Spellcasting: area: a cylinder's height is not modeled",
-          "Spellcasting: \"damage\" is passive or triggered: not automated",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Spellcasting: \"damage\" is passive or triggered: not automated"
         ]
       }
     }

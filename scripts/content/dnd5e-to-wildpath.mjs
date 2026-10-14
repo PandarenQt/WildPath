@@ -828,31 +828,121 @@ export function multiattackCount(description) {
   return total > 0 ? total : null;
 }
 
+/** A name as a whole word, its plural too ("Claws" matches "Claw attacks"), ignoring a parenthetical. */
+const nameWord = name => {
+  const base = String(name).replace(/\s*\(.*\)\s*$/, "").trim().replace(/s$/i, "");
+  return new RegExp(`\\b${base.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}s?\\b`, "i");
+};
+
+const COUNT = "(one|two|three|four|five|six|seven|eight|\\d+)";
+
 /**
- * A creature's Multiattack (G4): using it spends the Action and fills its "Multiattack" pool with its attacks for
- * this turn; each of its attack Actions is then paid from that pool, or with the Action when the pool is empty. The
- * pool starts empty and empties at the start of each turn.
+ * Which attacks a Multiattack makes, one plan per alternative, each a list of groups `{names, amount}`:
+ * - "one Bite attack and two Claw attacks", or "three attacks: one with its bite and two with its claws":
+ *   `[[{names: ["Bite"], amount: 1}, {names: ["Claw"], amount: 2}]]`;
+ * - "two attacks, using Scimitar or Shortbow in any combination": `[[{names: ["Scimitar", "Shortbow"], amount: 2}]]`;
+ * - "two Greatclub attacks, or it makes two Javelin attacks": one plan each.
+ * Null when a part names no attack of `attackNames`, or its parts do not add up to its count.
+ */
+export function multiattackPlans(description, attackNames=[]) {
+  // Sentences end at a period, with or without a space after it ("attacks.It can replace...").
+  const sentences = String(description ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").split(/(?<=\.)\s*/);
+  const sentence = sentences.find(text => /\bmakes\b/i.test(text)) ?? sentences.find(text => /\battacks\b/i.test(text)) ?? "";
+  if ( !sentence ) return null;
+  const find = words => attackNames.find(entry => nameWord(entry).test(words));
+  // "Using Scimitar or Shortbow in any combination": a count shared by those attacks, beside any it names on their own
+  // ("one Bite attack and three other attacks, using Claw or Tail in any combination").
+  const any = /\b(one|two|three|four|five|six|seven|eight|\d+)\s+(?:other\s+)?attacks?,?\s+using\s+(.+?)\s*in any combination/i.exec(sentence);
+  const shared = [];
+  if ( any ) {
+    const names = any[2].split(/\s*,\s*|\s+or\s+|\s+and\s+/).filter(Boolean).map(find);
+    if ( !names.length || !names.every(Boolean) ) return null;
+    shared.push({names, amount: COUNTS[any[1].toLowerCase()] ?? Number(any[1])});
+  }
+  const rest = any ? sentence.replace(any[0], "") : sentence;
+  const plans = [];
+  for ( const text of rest.split(/,\s*or\s/) ) {
+    const colon = text.indexOf(":");
+    const total = colon >= 0 ? (COUNTS[(new RegExp(`\\b${COUNT}\\s+attacks\\b`, "i").exec(text.slice(0, colon))?.[1] ?? "").toLowerCase()] ?? null) : null;
+    const parts = colon >= 0
+      ? [...text.slice(colon + 1).matchAll(new RegExp(`\\b${COUNT}\\s+(?:with\\s+(?:its|their|his|her)\\s+)?([^,.;]+?)(?=\\s+and\\b|,|\\.|;|$)`, "gi"))]
+      : [...text.matchAll(new RegExp(`\\b${COUNT}\\s+((?:[^.,;]*?\\s)??)attacks?\\b`, "gi"))];
+    const groups = [...shared];
+    // An alternative that makes no attacks ("uses Fling, Lightning Strike, or Swallow") is not a plan of its own.
+    if ( !parts.length && plans.length ) continue;
+    for ( const [, count, words] of parts ) {
+      const name = find(words);
+      if ( !name ) return null;
+      const amount = COUNTS[count.toLowerCase()] ?? Number(count);
+      const group = groups.find(entry => entry.names[0] === name);
+      if ( group ) group.amount += amount;
+      else groups.push({names: [name], amount});
+    }
+    const sum = groups.reduce((total, group) => total + group.amount, 0);
+    if ( !sum || ((total !== null) && (sum !== total)) ) return null;
+    plans.push(groups);
+    if ( any ) break;
+  }
+  return plans.length ? plans : null;
+}
+
+/**
+ * A creature's Multiattack (G4): using it spends the Action and fills its pools for this turn, which start empty and
+ * empty at the start of each turn. Each group of attacks its text names has a pool of its own ("one Bite and two Claw
+ * attacks"; "two attacks, using Scimitar or Shortbow in any combination" shares one), and attacks it does not name
+ * cost the Action as before; each alternative ("or it makes two Javelin attacks") is a Multiattack Action of its own.
+ * When its text names no attacks, any of them may be each of them. An attack is paid from a pool it belongs to, or
+ * with the Action.
  */
 function multiattack(items, notes) {
   const item = items.find(entry => (entry.name === "Multiattack") && (entry.type === "action"));
   const count = item ? multiattackCount(item.system.description) : null;
   if ( !count ) return;
-  item.system.definition = {...item.system.definition, costs: {allOf: [{capability: "action", amount: 1}]}, targeting: {type: "none"},
-    restores: [{resourceId: "multiattack", amount: count}]};
-  item.system.ruleElements = [...(item.system.ruleElements ?? []), {schemaVersion: 1, id: "multiattack-uses", type: "GrantResource",
-    data: {resourceId: "multiattack", label: "Multiattack", maximum: count, current: 0, recovery: "none", emptiesAtTurnStart: true}}];
-  // shortcut: any of the creature's attacks may be each of them, whatever the text names; upgrade with a per-attack count.
-  const note = "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand";
-  item.flags.wildpath.conversion.notes = [note];
-  notes.splice(0, notes.length, ...notes.filter(entry => !entry.startsWith("Multiattack: not automated")), `Multiattack: ${note.slice(13)}`);
-  for ( const action of items ) {
-    const definition = action.system?.definition;
-    const allOf = definition?.costs?.allOf ?? [];
-    // A spell the creature casts is not one of its Multiattack's attacks.
-    if ( (action === item) || !definition?.attack || action.flags?.wildpath?.source?.castBy
-      || !allOf.some(cost => cost.capability === "action") ) continue;
-    const rest = allOf.filter(cost => cost.capability !== "action");
-    definition.costs = {anyOf: [[{capability: "multiattack", amount: 1}, ...rest], [{capability: "action", amount: 1}, ...rest]]};
+  // A spell the creature casts is not one of its Multiattack's attacks.
+  const attacks = items.filter(action => (action !== item) && action.system?.definition?.attack && !action.flags?.wildpath?.source?.castBy
+    && (action.system.definition.costs?.allOf ?? []).some(cost => cost.capability === "action"));
+  const plans = multiattackPlans(item.system.description, attacks.map(action => action.name)) ?? [[{names: null, amount: count}]];
+  const bare = name => name.replace(/\s*\(.*\)\s*$/, "");
+  const poolOf = group => (group.names?.length === 1 ? `multiattack-${slugify(bare(group.names[0]))}` : "multiattack");
+  const labelOf = group => (group.names?.length === 1 ? `Multiattack (${bare(group.names[0])})` : "Multiattack");
+  // Each pool is granted once, as large as its largest plan; each plan fills only its own.
+  const pools = new Map();
+  for ( const group of plans.flat() ) {
+    const pool = pools.get(poolOf(group)) ?? {id: poolOf(group), label: labelOf(group), maximum: 0, names: group.names};
+    pool.maximum = Math.max(pool.maximum, group.amount);
+    pools.set(pool.id, pool);
+  }
+  const named = plans.flat().every(group => group.names);
+  // shortcut: without names, any of the creature's attacks may be each of them; other parts of it are used by hand.
+  // Its other parts ("it can replace one attack with...", "and uses Frightful Presence") are used by hand.
+  const others = /\breplace|\buses?\b|\bcan\b/i.test(String(item.system.description).replace(/<[^>]+>/g, " "));
+  const note = !named ? "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+    : (others ? "Multiattack: its other parts (a replacement, an ability it uses) are used by hand" : null);
+  const multiattacks = plans.map((plan, index) => {
+    // Alternatives by what they make: "Multiattack (2 Slam)", "Multiattack (3 Slam)".
+    const label = (plans.length > 1)
+      ? `Multiattack (${plan.map(group => `${group.amount} ${(group.names ?? []).map(bare).join(" or ")}`).join(", ")})` : "Multiattack";
+    const id = index ? stableId(`${item._id}:alternative:${index}`) : item._id;
+    const action = index ? {...structuredClone(item), _id: id, _key: item._key.replace(item._id, id)} : item;
+    action.name = label;
+    action.system.definition = {...action.system.definition, id: `${item.system.definition.id}${index ? `-${index + 1}` : ""}`, label,
+      costs: {allOf: [{capability: "action", amount: 1}]}, targeting: {type: "none"},
+      restores: plan.map(group => ({resourceId: poolOf(group), amount: group.amount}))};
+    action.system.ruleElements = [...(action.system.ruleElements ?? [])];
+    action.flags.wildpath.conversion.notes = note ? [note] : [];
+    return action;
+  });
+  multiattacks[0].system.ruleElements.push(...[...pools.values()].map(pool => ({schemaVersion: 1, id: `${pool.id}-uses`,
+    type: "GrantResource", data: {resourceId: pool.id, label: pool.label, maximum: pool.maximum, current: 0, recovery: "none",
+      emptiesAtTurnStart: true}})));
+  items.splice(items.indexOf(item) + 1, 0, ...multiattacks.slice(1));
+  notes.splice(0, notes.length, ...notes.filter(entry => !entry.startsWith("Multiattack: not automated")), ...(note ? [`Multiattack: ${note.slice(13)}`] : []));
+  for ( const action of attacks ) {
+    const own = [...pools.values()].filter(pool => !pool.names || pool.names.includes(action.name));
+    if ( !own.length ) continue;
+    const definition = action.system.definition;
+    const rest = definition.costs.allOf.filter(cost => cost.capability !== "action");
+    definition.costs = {anyOf: [...own.map(pool => [{capability: pool.id, amount: 1}, ...rest]), [{capability: "action", amount: 1}, ...rest]]};
   }
 }
 

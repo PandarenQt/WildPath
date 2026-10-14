@@ -107,20 +107,37 @@
           },
           "restores": [
             {
-              "resourceId": "multiattack",
-              "amount": 2
+              "resourceId": "multiattack-bite",
+              "amount": 1
+            },
+            {
+              "resourceId": "multiattack-tail",
+              "amount": 1
             }
           ]
         },
         "ruleElements": [
           {
             "schemaVersion": 1,
-            "id": "multiattack-uses",
+            "id": "multiattack-bite-uses",
             "type": "GrantResource",
             "data": {
-              "resourceId": "multiattack",
-              "label": "Multiattack",
-              "maximum": 2,
+              "resourceId": "multiattack-bite",
+              "label": "Multiattack (Bite)",
+              "maximum": 1,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-tail-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-tail",
+              "label": "Multiattack (Tail)",
+              "maximum": 1,
               "current": 0,
               "recovery": "none",
               "emptiesAtTurnStart": true
@@ -140,9 +157,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -163,7 +178,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-bite",
                   "amount": 1
                 }
               ],
@@ -254,7 +269,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-tail",
                   "amount": 1
                 }
               ],
@@ -368,8 +383,7 @@
       },
       "conversion": {
         "notes": [
-          "Bite: \"Escape Check\" is passive or triggered: not automated",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Bite: \"Escape Check\" is passive or triggered: not automated"
         ]
       }
     }

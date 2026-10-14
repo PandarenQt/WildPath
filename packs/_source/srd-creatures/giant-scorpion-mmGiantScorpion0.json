@@ -79,20 +79,37 @@
           },
           "restores": [
             {
-              "resourceId": "multiattack",
-              "amount": 3
+              "resourceId": "multiattack-claw",
+              "amount": 2
+            },
+            {
+              "resourceId": "multiattack-sting",
+              "amount": 1
             }
           ]
         },
         "ruleElements": [
           {
             "schemaVersion": 1,
-            "id": "multiattack-uses",
+            "id": "multiattack-claw-uses",
             "type": "GrantResource",
             "data": {
-              "resourceId": "multiattack",
-              "label": "Multiattack",
-              "maximum": 3,
+              "resourceId": "multiattack-claw",
+              "label": "Multiattack (Claw)",
+              "maximum": 2,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-sting-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-sting",
+              "label": "Multiattack (Sting)",
+              "maximum": 1,
               "current": 0,
               "recovery": "none",
               "emptiesAtTurnStart": true
@@ -112,9 +129,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -135,7 +150,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-claw",
                   "amount": 1
                 }
               ],
@@ -221,7 +236,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-sting",
                   "amount": 1
                 }
               ],
@@ -310,8 +325,7 @@
       },
       "conversion": {
         "notes": [
-          "Claw: \"Escape Check\" is passive or triggered: not automated",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Claw: \"Escape Check\" is passive or triggered: not automated"
         ]
       }
     }

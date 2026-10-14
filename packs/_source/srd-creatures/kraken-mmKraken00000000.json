@@ -179,7 +179,7 @@
           },
           "restores": [
             {
-              "resourceId": "multiattack",
+              "resourceId": "multiattack-tentacle",
               "amount": 2
             }
           ]
@@ -187,11 +187,11 @@
         "ruleElements": [
           {
             "schemaVersion": 1,
-            "id": "multiattack-uses",
+            "id": "multiattack-tentacle-uses",
             "type": "GrantResource",
             "data": {
-              "resourceId": "multiattack",
-              "label": "Multiattack",
+              "resourceId": "multiattack-tentacle",
+              "label": "Multiattack (Tentacle)",
               "maximum": 2,
               "current": 0,
               "recovery": "none",
@@ -213,7 +213,7 @@
           },
           "conversion": {
             "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+              "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
             ]
           }
         }
@@ -235,7 +235,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-tentacle",
                   "amount": 1
                 }
               ],
@@ -810,7 +810,7 @@
           "Swallow: \"Damage: Swallowed\" is passive or triggered: not automated",
           "Swallow: \"Regurgitate: Save\" is passive or triggered: not automated",
           "Storm Bolt: not automated (utility): using it spends its cost; its description says the rest",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
         ]
       }
     }

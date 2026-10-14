@@ -184,7 +184,7 @@
           },
           "restores": [
             {
-              "resourceId": "multiattack",
+              "resourceId": "multiattack-pact-blade",
               "amount": 6
             }
           ]
@@ -192,11 +192,11 @@
         "ruleElements": [
           {
             "schemaVersion": 1,
-            "id": "multiattack-uses",
+            "id": "multiattack-pact-blade-uses",
             "type": "GrantResource",
             "data": {
-              "resourceId": "multiattack",
-              "label": "Multiattack",
+              "resourceId": "multiattack-pact-blade",
+              "label": "Multiattack (Pact Blade)",
               "maximum": 6,
               "current": 0,
               "recovery": "none",
@@ -218,7 +218,7 @@
           },
           "conversion": {
             "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+              "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
             ]
           }
         }
@@ -240,7 +240,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-pact-blade",
                   "amount": 1
                 }
               ],
@@ -599,7 +599,7 @@
           "Constrict: \"Escape Check\" is passive or triggered: not automated",
           "Teleport: not automated (utility): using it spends its cost; its description says the rest",
           "Parry: not automated (utility): using it spends its cost; its description says the rest",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
         ]
       }
     }

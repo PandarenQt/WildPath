@@ -57,7 +57,7 @@
     {
       "_id": "mmMultiattack000",
       "_key": "!actors.items!mmMedusa00000000.mmMultiattack000",
-      "name": "Multiattack",
+      "name": "Multiattack (2 Claw, 1 Snake Hair)",
       "type": "action",
       "img": "icons/skills/melee/strike-weapons-orange.webp",
       "system": {
@@ -74,25 +74,55 @@
               }
             ]
           },
-          "label": "Multiattack",
+          "label": "Multiattack (2 Claw, 1 Snake Hair)",
           "targeting": {
             "type": "none"
           },
           "restores": [
             {
-              "resourceId": "multiattack",
-              "amount": 3
+              "resourceId": "multiattack-claw",
+              "amount": 2
+            },
+            {
+              "resourceId": "multiattack-snake-hair",
+              "amount": 1
             }
           ]
         },
         "ruleElements": [
           {
             "schemaVersion": 1,
-            "id": "multiattack-uses",
+            "id": "multiattack-claw-uses",
             "type": "GrantResource",
             "data": {
-              "resourceId": "multiattack",
-              "label": "Multiattack",
+              "resourceId": "multiattack-claw",
+              "label": "Multiattack (Claw)",
+              "maximum": 2,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-snake-hair-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-snake-hair",
+              "label": "Multiattack (Snake Hair)",
+              "maximum": 1,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-poison-ray-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-poison-ray",
+              "label": "Multiattack (Poison Ray)",
               "maximum": 3,
               "current": 0,
               "recovery": "none",
@@ -113,9 +143,57 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "150wsz8fnh59s000",
+      "_key": "!actors.items!mmMedusa00000000.150wsz8fnh59s000",
+      "name": "Multiattack (3 Poison Ray)",
+      "type": "action",
+      "img": "icons/skills/melee/strike-weapons-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p><span style=\"font-family:'Roboto Condensed', sans-serif\">The </span>medusa<span style=\"font-family:'Roboto Condensed', sans-serif\"> makes two </span>Claw<span style=\"font-family:'Roboto Condensed', sans-serif\"> attacks and one </span>Snake Hair<span style=\"font-family:'Roboto Condensed', sans-serif\"> attack, or it makes three </span>Poison Ray<span style=\"font-family:'Roboto Condensed', sans-serif\"> attacks.</span></p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-multiattack-expend-use-2",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
             ]
+          },
+          "label": "Multiattack (3 Poison Ray)",
+          "targeting": {
+            "type": "none"
+          },
+          "restores": [
+            {
+              "resourceId": "multiattack-poison-ray",
+              "amount": 3
+            }
+          ]
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmMultiattack000",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
           }
         }
       }
@@ -136,7 +214,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-claw",
                   "amount": 1
                 }
               ],
@@ -216,7 +294,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-snake-hair",
                   "amount": 1
                 }
               ],
@@ -306,7 +384,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-poison-ray",
                   "amount": 1
                 }
               ],
@@ -547,8 +625,7 @@
       },
       "conversion": {
         "notes": [
-          "Petrifying Gaze: activation: turnEnd is not an action-economy cost",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Petrifying Gaze: activation: turnEnd is not an action-economy cost"
         ]
       }
     }

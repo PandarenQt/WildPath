@@ -230,7 +230,7 @@
           },
           "restores": [
             {
-              "resourceId": "multiattack",
+              "resourceId": "multiattack-burn",
               "amount": 2
             }
           ]
@@ -238,11 +238,11 @@
         "ruleElements": [
           {
             "schemaVersion": 1,
-            "id": "multiattack-uses",
+            "id": "multiattack-burn-uses",
             "type": "GrantResource",
             "data": {
-              "resourceId": "multiattack",
-              "label": "Multiattack",
+              "resourceId": "multiattack-burn",
+              "label": "Multiattack (Burn)",
               "maximum": 2,
               "current": 0,
               "recovery": "none",
@@ -263,9 +263,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -286,7 +284,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-burn",
                   "amount": 1
                 }
               ],
@@ -432,8 +430,7 @@
           "Fire Aura: activation: turnEnd is not an action-economy cost",
           "Fire Form: \"damage\" is passive or triggered: not automated",
           "Water Susceptibility: \"Cold Damage\" is passive or triggered: not automated",
-          "Burn: effect: burning is not a WildPath condition yet",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Burn: effect: burning is not a WildPath condition yet"
         ]
       }
     }

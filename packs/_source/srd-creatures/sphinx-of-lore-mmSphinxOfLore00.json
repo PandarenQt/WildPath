@@ -147,7 +147,7 @@
           },
           "restores": [
             {
-              "resourceId": "multiattack",
+              "resourceId": "multiattack-claw",
               "amount": 3
             }
           ]
@@ -155,11 +155,11 @@
         "ruleElements": [
           {
             "schemaVersion": 1,
-            "id": "multiattack-uses",
+            "id": "multiattack-claw-uses",
             "type": "GrantResource",
             "data": {
-              "resourceId": "multiattack",
-              "label": "Multiattack",
+              "resourceId": "multiattack-claw",
+              "label": "Multiattack (Claw)",
               "maximum": 3,
               "current": 0,
               "recovery": "none",
@@ -180,9 +180,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -203,7 +201,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-claw",
                   "amount": 1
                 }
               ],
@@ -1215,8 +1213,7 @@
           "Spellcasting: effect: \"Universal Communication\" change system.traits.languages.custom (add) not converted",
           "Spellcasting: effect: \"Universal Communication\" (its own changes) not converted",
           "Arcane Prowl: not automated (utility): using it spends its cost; its description says the rest",
-          "Weight of Years: \"Years Older\" is passive or triggered: not automated",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Weight of Years: \"Years Older\" is passive or triggered: not automated"
         ]
       }
     }

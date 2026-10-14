@@ -14,6 +14,7 @@ const data = process.argv.includes("--data") ? process.argv[process.argv.indexOf
 const RULES = [
   [/^Multiattack: not automated/, () => "Multiattack"],
   [/^Multiattack: any of its attacks/, () => "shortcut: Multiattack's named attacks not enforced"],
+  [/^Multiattack: its other parts/, () => "Multiattack: a replacement or an ability it uses (by hand)"],
   [/effect: (\w+) is not a WildPath condition/, match => `condition: ${match[1]}`],
   [/effect: ".*" \(its own changes\)/, () => "effect with its own changes (buff/debuff)"],
   [/effect: ".*" change (\S+) \((\w+)\) not converted/, match => `effect change: ${match[1].replace(/\.(str|dex|con|int|wis|cha)\./, ".<ability>.")

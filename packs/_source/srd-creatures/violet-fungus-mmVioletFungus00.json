@@ -79,7 +79,7 @@
           },
           "restores": [
             {
-              "resourceId": "multiattack",
+              "resourceId": "multiattack-rotting-touch",
               "amount": 2
             }
           ]
@@ -87,11 +87,11 @@
         "ruleElements": [
           {
             "schemaVersion": 1,
-            "id": "multiattack-uses",
+            "id": "multiattack-rotting-touch-uses",
             "type": "GrantResource",
             "data": {
-              "resourceId": "multiattack",
-              "label": "Multiattack",
+              "resourceId": "multiattack-rotting-touch",
+              "label": "Multiattack (Rotting Touch)",
               "maximum": 2,
               "current": 0,
               "recovery": "none",
@@ -112,9 +112,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -135,7 +133,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-rotting-touch",
                   "amount": 1
                 }
               ],
@@ -215,8 +213,7 @@
       },
       "conversion": {
         "notes": [
-          "Rotting Touch: attack: bonus \"2\" not converted",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Rotting Touch: attack: bonus \"2\" not converted"
         ]
       }
     }

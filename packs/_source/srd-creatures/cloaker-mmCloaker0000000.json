@@ -107,20 +107,37 @@
           },
           "restores": [
             {
-              "resourceId": "multiattack",
-              "amount": 3
+              "resourceId": "multiattack-attach",
+              "amount": 1
+            },
+            {
+              "resourceId": "multiattack-tail",
+              "amount": 2
             }
           ]
         },
         "ruleElements": [
           {
             "schemaVersion": 1,
-            "id": "multiattack-uses",
+            "id": "multiattack-attach-uses",
             "type": "GrantResource",
             "data": {
-              "resourceId": "multiattack",
-              "label": "Multiattack",
-              "maximum": 3,
+              "resourceId": "multiattack-attach",
+              "label": "Multiattack (Attach)",
+              "maximum": 1,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-tail-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-tail",
+              "label": "Multiattack (Tail)",
+              "maximum": 2,
               "current": 0,
               "recovery": "none",
               "emptiesAtTurnStart": true
@@ -140,9 +157,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -163,7 +178,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-attach",
                   "amount": 1
                 }
               ],
@@ -249,7 +264,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-tail",
                   "amount": 1
                 }
               ],
@@ -503,8 +518,7 @@
           "Phantasms: effect: \"Duplicate B\" change flags.dnd-players-handbook.mirrorImages (add) not converted",
           "Phantasms: effect: \"Duplicate B\" (its own changes) not converted",
           "Phantasms: effect: \"Duplicate C\" change flags.dnd-players-handbook.mirrorImages (add) not converted",
-          "Phantasms: effect: \"Duplicate C\" (its own changes) not converted",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Phantasms: effect: \"Duplicate C\" (its own changes) not converted"
         ]
       }
     }

@@ -135,7 +135,7 @@
           },
           "restores": [
             {
-              "resourceId": "multiattack",
+              "resourceId": "multiattack-wind-swipe",
               "amount": 3
             }
           ]
@@ -143,11 +143,11 @@
         "ruleElements": [
           {
             "schemaVersion": 1,
-            "id": "multiattack-uses",
+            "id": "multiattack-wind-swipe-uses",
             "type": "GrantResource",
             "data": {
-              "resourceId": "multiattack",
-              "label": "Multiattack",
+              "resourceId": "multiattack-wind-swipe",
+              "label": "Multiattack (Wind Swipe)",
               "maximum": 3,
               "current": 0,
               "recovery": "none",
@@ -169,7 +169,7 @@
           },
           "conversion": {
             "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+              "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
             ]
           }
         }
@@ -191,7 +191,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-wind-swipe",
                   "amount": 1
                 }
               ],
@@ -481,7 +481,7 @@
         "notes": [
           "Vortex: \"Escape Check\" is passive or triggered: not automated",
           "Vortex: activation: turnStart is not an action-economy cost",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
         ]
       }
     }

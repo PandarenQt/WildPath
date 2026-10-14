@@ -112,9 +112,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -881,8 +879,7 @@
           "Spellcasting: not automated (save): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Carrying Message\" (its own changes) not converted",
           "Spellcasting: area: a cylinder's height is not modeled",
-          "Spellcasting: concentration: nothing it sustains was converted",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Spellcasting: concentration: nothing it sustains was converted"
         ]
       }
     }
