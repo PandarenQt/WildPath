@@ -1,9 +1,11 @@
 import {actionBarContext} from "../helpers/action-bar-context.mjs";
+import {REACTION_POLICIES, reactionPolicyOf} from "../helpers/automation-events.mjs";
 
 type Data = Record<string, unknown>;
 interface BarActor {
   uuid: string; name?: string; img?: string; isOwner?: boolean; system?: Data;
-  items: {get(id: string): {use(): Promise<unknown>} | undefined} & Iterable<unknown>;
+  items: {get(id: string): {use(): Promise<unknown>; setFlag(scope: string, key: string, value: unknown): Promise<unknown>} | undefined}
+    & Iterable<{id?: string | null; flags?: Data}>;
   effects: Iterable<{system?: {type?: string; level?: number}; disabled?: boolean}>;
 }
 interface AppInstance {element: HTMLElement; rendered: boolean; render(options?: Data): Promise<unknown>; close(): Promise<unknown>}
@@ -29,7 +31,7 @@ export class WildPathActionBar extends HandlebarsApplicationMixin(ApplicationV2)
     classes: ["wildpath", "action-bar"],
     tag: "aside",
     window: {frame: false, positioned: false},
-    actions: {use: WildPathActionBar.#onUse}
+    actions: {use: WildPathActionBar.#onUse, reactionPolicy: WildPathActionBar.#onReactionPolicy}
   };
 
   static PARTS = {bar: {template: "systems/wildpath/templates/hud/action-bar.hbs"}};
@@ -51,6 +53,14 @@ export class WildPathActionBar extends HandlebarsApplicationMixin(ApplicationV2)
   static async #onUse(this: WildPathActionBar, event: Event, target: HTMLElement) {
     const id = target.closest<HTMLElement>("[data-item-id]")?.dataset.itemId;
     if ( id ) await this.shownActor?.items.get(id)?.use();
+  }
+
+  /** Cycle a reaction between Ask, Always and Never (Baldur's Gate 3's reaction settings). */
+  static async #onReactionPolicy(this: WildPathActionBar, event: Event, target: HTMLElement) {
+    const item = this.shownActor?.items.get(target.dataset.itemId ?? "");
+    if ( !item ) return;
+    const policies = REACTION_POLICIES as readonly string[];
+    await item.setFlag("wildpath", "reactionPolicy", policies[(policies.indexOf(reactionPolicyOf(item)) + 1) % policies.length]);
   }
 }
 

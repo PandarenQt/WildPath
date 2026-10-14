@@ -1,8 +1,9 @@
 import { actionDefinitionFromAction } from "../helpers/action-definitions.mjs";
-import { createReactionTrigger } from "../helpers/automation-events.mjs";
+import { createReactionTrigger, reactionPolicyOf } from "../helpers/automation-events.mjs";
 const MOVEMENT_EVENT = "movement.transition-proposed";
 // The JS builders are untyped; these are the only places their shapes are asserted.
 const reactionTrigger = createReactionTrigger;
+const policyOf = reactionPolicyOf;
 const definitionFor = actionDefinitionFromAction;
 /**
  * Production reaction services, derived from the world: every other Token on the acting Token's Scene whose
@@ -57,6 +58,10 @@ function tokenReactions(token) {
             const definition = actionItem ? definitionFor(actionItem) : null;
             if (!definition?.ok || !definition.definition)
                 return [];
+            // A reaction set to "Never" is not offered; one set to "Always" is used without asking.
+            const policy = policyOf(actionItem);
+            if (policy === "never")
+                return [];
             const trigger = reactionTrigger({
                 id: `reaction:${token.id}:${item.id}:${String(element.id ?? "trigger")}`,
                 event,
@@ -65,7 +70,8 @@ function tokenReactions(token) {
                 tokenId: token.id,
                 action: definition.definition,
                 actionId: definition.definition.id ?? null,
-                predicate: bindSelf(data.triggerPredicate ?? data.eventPredicate ?? null, token.id)
+                predicate: bindSelf(data.triggerPredicate ?? data.eventPredicate ?? null, token.id),
+                ...(policy === "always" ? { metadata: { reactionPolicy: policy } } : {})
             });
             return [{ trigger, event, definition: definition.definition }];
         });

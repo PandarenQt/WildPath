@@ -797,3 +797,28 @@ test("multiplayer coordinator routes reaction-choice requests to the expected ch
   assert.equal(gm.errors.some(entry => entry.error?.code === MULTIPLAYER_AUTHORITY_CODES.WRONG_USER), true);
   assert.equal(gm.getRecord("resolution:multiplayer-reaction").state.status, RESOLUTION_STATE_STATUS.AWAITING_CHOICE);
 });
+
+test("a reaction set to Always is used without a prompt, also when the reactor before it declines", () => {
+  const trigger = (actorId, metadata={}) => createReactionTrigger({id: `trigger:${actorId}`, event: AUTOMATION_EVENT_TYPES.ATTACK_HIT,
+    match: {phase: AUTOMATION_EVENT_PHASES.INTERRUPT}, actorId, action: reactionActionDefinition({id: `action:${actorId}`}),
+    actionId: `action:${actorId}`, metadata});
+  const event = createAutomationEvent({id: "event:auto", type: AUTOMATION_EVENT_TYPES.ATTACK_HIT, phase: AUTOMATION_EVENT_PHASES.INTERRUPT,
+    targets: [{actorId: "alpha"}, {actorId: "beta"}]});
+  const stages = triggers => [createReactionWindowStage({id: "reaction.after-outcome", event, discovery: {triggers,
+    resourcesByActor: {alpha: reactionResources(), beta: reactionResources()},
+    controllerUserIdsByActor: {alpha: ["player-a"], beta: ["player-b"]}, ordering: {initiativeActorIds: ["alpha", "beta"]}}})];
+
+  const alone = runResolutionPipeline({state: parentState({id: "resolution:always"}), stages: stages([trigger("beta", {reactionPolicy: "always"})])});
+  assert.equal(alone.state.status, RESOLUTION_STATE_STATUS.PAUSED, "the reaction runs as a child at once");
+  assert.deepEqual(alone.state.pendingRequests, [], "no one is asked");
+  assert.equal(alone.state.results.reactions[0].candidate.reactor.actorId, "beta");
+
+  const both = stages([trigger("alpha"), trigger("beta", {reactionPolicy: "always"})]);
+  const asked = runResolutionPipeline({state: parentState({id: "resolution:ask-then-always"}), stages: both});
+  assert.deepEqual(asked.state.pendingRequests[0].payload.candidates.map(candidate => candidate.reactor.actorId), ["alpha"]);
+  const declined = resumeResolutionPipeline({state: asked.state, stages: both,
+    response: responseFor(asked.state.pendingRequests[0], {decision: REACTION_CHOICE_DECISIONS.DECLINE})});
+  assert.equal(declined.state.status, RESOLUTION_STATE_STATUS.PAUSED);
+  assert.deepEqual(declined.state.pendingRequests, []);
+  assert.equal(declined.state.results.reactions[0].candidate.reactor.actorId, "beta");
+});

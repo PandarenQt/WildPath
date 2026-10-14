@@ -34,6 +34,11 @@ model through `actionBarContext` (`helpers/action-bar-context.mts`).
 - **Use:** a click calls the real `Item.use()`, so the authority decides everything.
 - **Updates:** it re-renders when that creature, its Items or its effects change.
 
+**Reaction settings (2026-10-14, after Baldur's Gate 3).** Each reaction on the bar has a small toggle that
+cycles Ask, Always and Never ([reactions.md](reactions.md)). Live (two browsers): Player1 clicked QA Caster's
+reaction to Always. The Bandit Captain's hit then triggered it with no prompt, and its card posted before the
+damage. Set to Never, it was not offered. Set back to Ask, Player1 was prompted and chose it.
+
 Live (two browsers, 14.369): Player1 controlled their hero, whose bar showed Exhaustion 2 and movement
 20/20. Melee Strike, imported from the WildPath Actions pack, rolled `1d20 − 4` from the bar. The Action
 counter went to 0/1 and the strike button greyed out.
