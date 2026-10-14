@@ -1,5 +1,6 @@
 import { actionBarContext } from "../helpers/action-bar-context.mjs";
 import { foundryActionOdds } from "../resolvers/foundry-multiplayer-runtime.mjs";
+import { COMMON_ACTION_IDS, commonAction } from "../helpers/common-actions.mjs";
 import { REACTION_POLICIES, reactionPolicyOf } from "../helpers/automation-events.mjs";
 const globals = globalThis;
 const { ApplicationV2, HandlebarsApplicationMixin } = globals.foundry.applications.api;
@@ -26,7 +27,9 @@ export class WildPathActionBar extends HandlebarsApplicationMixin(ApplicationV2)
         const actor = this.shownActor;
         if (!actor)
             return { shown: false };
-        const context = actionBarContext({ actor, conditions: Object.values(globals.CONFIG.WILDPATH.CONDITIONS), odds: this.#odds(actor) });
+        const common = this.#common(actor);
+        const context = actionBarContext({ actor, conditions: Object.values(globals.CONFIG.WILDPATH.CONDITIONS),
+            odds: this.#odds(actor, common), common });
         // Each target's odds, one line each, in the button's tooltip.
         const { i18n } = globals.game;
         for (const action of context.groups.flatMap(group => group.actions)) {
@@ -38,8 +41,13 @@ export class WildPathActionBar extends HandlebarsApplicationMixin(ApplicationV2)
         }
         return { shown: true, ...context };
     }
+    /** The common actions as this creature's Actions (Dash, Shove...). */
+    #common(actor) {
+        const localize = (key) => globals.game.i18n.localize(key);
+        return COMMON_ACTION_IDS.map(id => commonAction(actor, id, { localize }));
+    }
     /** The odds of each attack and save Action against the user's targets, as far as this user may see them. */
-    #odds(actor) {
+    #odds(actor, common) {
         const { user } = globals.game;
         const targets = [...(user?.targets ?? [])].map(token => token.document);
         if (!targets.length)
@@ -47,13 +55,20 @@ export class WildPathActionBar extends HandlebarsApplicationMixin(ApplicationV2)
         const sourceToken = globals.canvas?.tokens?.controlled?.find(token => token.actor === actor)?.document
             ?? actor.getActiveTokens?.()[0]?.document ?? null;
         const odds = foundryActionOdds;
-        return Object.fromEntries([...actor.items].filter(item => item.type === "action")
+        return Object.fromEntries([...actor.items, ...common].filter(item => item.type === "action")
             .map(item => [item.id ?? "", odds({ actor, action: item, sourceToken, targetTokens: targets, user })]));
     }
     static async #onUse(event, target) {
         const id = target.closest("[data-item-id]")?.dataset.itemId;
-        if (id)
-            await this.shownActor?.items.get(id)?.use();
+        const actor = this.shownActor;
+        if (!id || !actor)
+            return;
+        // A common action is no Item: Item#use runs on the Action this creature has for it.
+        const common = id.startsWith("common-") ? this.#common(actor).find(action => action.id === id) : null;
+        if (common)
+            await globals.CONFIG.Item.documentClass.prototype.use.call(common);
+        else
+            await actor.items.get(id)?.use();
     }
     /** Cycle a reaction between Ask, Always and Never (Baldur's Gate 3's reaction settings). */
     static async #onReactionPolicy(event, target) {

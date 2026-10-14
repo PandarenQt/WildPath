@@ -1684,3 +1684,25 @@ test("the odds of an attack and of a save use the authority's own numbers, and s
   target.effects = [];
   assert.equal(odds(meleeStrikeDefinition(), {isGM: false}).length, 1, "or the house rule shows odds to players");
 });
+
+test("a common action is built by the authority from its id: a client names it, never supplies its rules", async () => {
+  const scene = fakeScene(new FakeSquareGrid(), {id: "scene-common"});
+  const hero = fakeActor("common-hero", {system: {...actorSystem(), abilities: {might: {value: 16}}, details: {level: 5}},
+    statistics: {}});
+  const ogre = fakeActor("common-ogre", {system: targetActorSystem(20, 20, {ac: 11})});
+  const heroToken = fakeTokenDocument({id: "common-hero", actor: hero, scene, offset: {i: 0, j: 0}});
+  const ogreToken = fakeTokenDocument({id: "common-ogre", actor: ogre, scene, offset: {i: 1, j: 0}});
+  hero.tokens = [heroToken];
+  ogre.tokens = [ogreToken];
+  scene.tokens = [heroToken, ogreToken];
+  const game = {...fakeGame({actors: [hero, ogre], scenes: [scene]}), i18n: {localize: key => `loc:${key}`}};
+  const intent = ref => ({actorRef: hero.uuid, actionRef: ref, targetRefs: [{actorRef: ogre.uuid, tokenId: ogreToken.id, sceneId: scene.id}]});
+  const shove = await foundryActionIntentToStagedOptions({senderUserId: "player-a", game, intent: intent("common:shove")});
+  assert.equal(shove.ok, true, shove.reason);
+  assert.equal(shove.options.action.name, "loc:WILDPATH.COMMON.Shove");
+  const planned = await planStagedActionResolution(shove.options);
+  assert.equal(planned.state.rollRequests[0].type, "saving-throw");
+  assert.equal(planned.state.rollRequests[0].dc.value, 14, "8 + Might +3 + proficiency +3");
+  const unknown = await foundryActionIntentToStagedOptions({senderUserId: "player-a", game, intent: intent("common:fireball")});
+  assert.equal(unknown.ok, false, "only the system's own common actions exist");
+});
