@@ -99,6 +99,28 @@ The sheet templates' wrappers are `<div>`s. Both sheets are ApplicationV2 sheets
 form; the templates used to open their own nested `<form>`, so their inputs never reached the sheet's
 form, and no field edit saved. Live on 14.369 the actor and item sheets now save every field.
 
+## Rules Inspector (M6, 2026-10-14)
+
+The GM's view of why a resolution came out as it did: `WildPathRulesInspector`
+(`module/applications/rules-inspector.mts`) over `inspectResolution` (`helpers/resolution-inspection.mts`).
+- **Source:** the authority's own records on the GM's client, the 25 most recent. Nothing is sent over the
+  network, so the Inspector may show defenses, DCs and every roll (GM-facing, per the disclosure model).
+- **Shown for each resolution:**
+  - the stages it ran;
+  - each roll: its kind, formula, mode (advantage or disadvantage), natural and total, and digital or
+    physical;
+  - attacks against their defense, and saves against their DC, automatic failures included;
+  - health changes from and to;
+  - every payment, the source's and a companion controller's;
+  - errors.
+- **Opening it:** an **Inspect** link that only GMs see on each resolution card, or `game.wildpath.inspect()`.
+
+Live (two browsers, 14.369):
+- The GM inspected Player1's Melee Strike by a Restrained hero: `2d20kl` at disadvantage, then the 1d8
+  damage.
+- The GM's Venom Burst showed the Fortitude save, 3 against DC 13, a failure, and the 2d6 damage.
+- Player1's cards carried no Inspect link.
+
 ## Boundary Rule
 
 - UI renders view models.

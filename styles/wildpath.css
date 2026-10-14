@@ -492,3 +492,15 @@
 #wildpath-action-bar .bar-action { display: flex; align-items: center; gap: 4px; width: auto; padding: 2px 6px; }
 #wildpath-action-bar .bar-action img { border: none; }
 #wildpath-action-bar .bar-action:disabled { opacity: 0.45; }
+
+/* The Rules Inspector (M6, GM only). */
+.wildpath.rules-inspector .wildpath-inspector { display: grid; grid-template-columns: 220px 1fr; gap: 8px; height: 100%; }
+.wildpath.rules-inspector .inspector-list { margin: 0; padding: 0; list-style: none; overflow-y: auto; }
+.wildpath.rules-inspector .inspector-entry { display: flex; justify-content: space-between; gap: 4px; padding: 3px 4px; cursor: pointer; }
+.wildpath.rules-inspector .inspector-entry.active { background: rgba(120, 120, 255, 0.2); }
+.wildpath.rules-inspector .entry-status { opacity: 0.6; font-size: 0.8em; }
+.wildpath.rules-inspector .inspector-detail { overflow-y: auto; }
+.wildpath.rules-inspector .inspector-stages span { display: inline-block; margin: 0 4px 2px 0; padding: 0 4px; border-radius: 3px;
+  background: rgba(0, 0, 0, 0.1); font-size: 0.75em; }
+.wildpath.rules-inspector table { width: 100%; font-size: 0.85em; }
+.resolution-card + .wildpath-inspect, .resolution-card .wildpath-inspect { display: block; margin-top: 4px; font-size: 0.8em; text-align: right; cursor: pointer; }

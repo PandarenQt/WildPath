@@ -22,6 +22,7 @@ import {createTestPromptAdapter} from "../module/adapters/test-prompt-adapter.mj
 import {createFoundryReactionProvider} from "../module/adapters/foundry-v14-reaction-provider.mjs";
 import {areaCovers, areaExpired, createFoundryPersistentAreas} from "../module/adapters/foundry-v14-persistent-areas.mjs";
 import {createFoundryAutomationDispatcher} from "../module/adapters/foundry-v14-automation-dispatcher.mjs";
+import {inspectResolution} from "../module/helpers/resolution-inspection.mjs";
 import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
 import {damageProfileFromRuleElements, rollModesFromRuleElements, rollOutcomesFromRuleElements} from "../module/helpers/rule-elements.mjs";
 import {WILDPATH} from "../module/config.mjs";
@@ -1306,6 +1307,18 @@ test("a companion's Action also costs the controller its sender owns, committed 
     "the controller the Player owns pays the Bonus Action and 10 ft");
   assert.deepEqual([stranger.system.resources.bonus.value, stranger.system.resources.movement.value], [1, 30],
     "a controller the Player does not own is never charged");
+});
+
+test("the Rules Inspector reads a completed resolution: its stages, health changes and every payment", async t => {
+  const {gm, player, intent} = companionFixture(t);
+  const declared = await player.declareActionIntent(intent);
+  const inspected = inspectResolution(gm.getRecord(declared.resolutionId));
+  assert.deepEqual([inspected.label, inspected.status, inspected.initiatorUserId], ["Companion Bite", "completed", "player-a"]);
+  assert.ok(inspected.stages.includes("action.payment"));
+  assert.deepEqual(inspected.changes.map(change => [change.type, change.amount, change.from, change.to]), [["damage", 6, 30, 24]]);
+  assert.deepEqual(inspected.payments.map(payment => [payment.payer, payment.resource, payment.from, payment.to]), [
+    ["source", "economy.action", 1, 0], ["controller", "economy.bonus-action", 1, 0], ["controller", "economy.movement", 30, 20]]);
+  assert.deepEqual(inspected.errors, []);
 });
 
 test("a companion's controller cost needs a controller the sender owns, with enough left to pay", async t => {

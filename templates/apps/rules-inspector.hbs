@@ -1,0 +1,62 @@
+<div class="wildpath-inspector">
+  <ol class="inspector-list">
+    {{#each entries as |entry|}}
+      <li class="inspector-entry {{#if entry.active}}active{{/if}}" data-action="select" data-resolution-id="{{entry.id}}">
+        <span class="entry-label">{{entry.label}}</span>
+        <span class="entry-status">{{entry.status}}</span>
+      </li>
+    {{else}}
+      <li class="inspector-empty">{{localize "WILDPATH.INSPECTOR.Empty"}}</li>
+    {{/each}}
+  </ol>
+  {{#if selected}}
+    <section class="inspector-detail">
+      <h3>{{selected.label}} <span class="entry-status">{{selected.status}}</span></h3>
+      <p class="inspector-stages">{{#each selected.stages as |stage|}}<span>{{stage}}</span>{{/each}}</p>
+      {{#if selected.rolls.length}}
+        <h4>{{localize "WILDPATH.INSPECTOR.Rolls"}}</h4>
+        <table><tbody>
+          {{#each selected.rolls as |roll|}}
+            <tr><td>{{roll.kind}}</td><td>{{roll.formula}}</td><td>{{roll.mode}}</td><td>{{roll.natural}} → {{roll.total}}</td><td>{{roll.method}}</td></tr>
+          {{/each}}
+        </tbody></table>
+      {{/if}}
+      {{#if selected.attacks.length}}
+        <h4>{{localize "WILDPATH.INSPECTOR.Attacks"}}</h4>
+        <table><tbody>
+          {{#each selected.attacks as |attack|}}
+            <tr><td>{{attack.target}}</td><td>{{attack.total}} vs {{localize "WILDPATH.SHEET.AC"}} {{attack.defense}}</td><td>{{attack.outcome}}</td></tr>
+          {{/each}}
+        </tbody></table>
+      {{/if}}
+      {{#if selected.saves.length}}
+        <h4>{{localize "WILDPATH.INSPECTOR.Saves"}}</h4>
+        <table><tbody>
+          {{#each selected.saves as |save|}}
+            <tr><td>{{save.target}}</td><td>{{#if save.automatic}}{{localize "WILDPATH.INSPECTOR.Automatic"}}{{else}}{{save.total}}{{/if}} vs DC {{save.dc}}</td><td>{{save.outcome}}</td></tr>
+          {{/each}}
+        </tbody></table>
+      {{/if}}
+      {{#if selected.changes.length}}
+        <h4>{{localize "WILDPATH.INSPECTOR.Changes"}}</h4>
+        <table><tbody>
+          {{#each selected.changes as |change|}}
+            <tr><td>{{change.target}}</td><td>{{change.type}} {{change.amount}}</td><td>{{change.from}} → {{change.to}}</td></tr>
+          {{/each}}
+        </tbody></table>
+      {{/if}}
+      {{#if selected.payments.length}}
+        <h4>{{localize "WILDPATH.INSPECTOR.Payments"}}</h4>
+        <table><tbody>
+          {{#each selected.payments as |payment|}}
+            <tr><td>{{payment.payer}}</td><td>{{payment.resource}}</td><td>{{payment.from}} → {{payment.to}}</td></tr>
+          {{/each}}
+        </tbody></table>
+      {{/if}}
+      {{#if selected.errors.length}}
+        <h4>{{localize "WILDPATH.INSPECTOR.Errors"}}</h4>
+        <ul>{{#each selected.errors as |error|}}<li>{{error}}</li>{{/each}}</ul>
+      {{/if}}
+    </section>
+  {{/if}}
+</div>

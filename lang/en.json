@@ -104,6 +104,18 @@
     "DYING": {
       "DeathSave": "Death Saving Throw"
     },
+    "INSPECTOR": {
+      "Title": "Rules Inspector",
+      "Inspect": "Inspect",
+      "Empty": "No resolutions yet",
+      "Rolls": "Rolls",
+      "Attacks": "Attacks",
+      "Saves": "Saves",
+      "Automatic": "automatic",
+      "Changes": "Health changes",
+      "Payments": "Payments",
+      "Errors": "Errors"
+    },
     "ACTIONBAR": {
       "NoActions": "No actions",
       "Unavailable": "Not available now",

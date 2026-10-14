@@ -160,7 +160,9 @@ real Foundry grids. Slice 5 done: lasting areas, auras and hazards, per the main
 **M6 — product surfaces (started 2026-10-14).** The character sheet is complete for what exists
 ([ui-ux-layer.md](../architecture/ui-ux-layer.md#character-sheet-m6-2026-10-14)). It found and fixed a
 nested `<form>` that had kept every actor and item sheet field edit from saving. The in-play action bar
-shows the creature in focus and uses its Actions through `Item.use()`. Next: the Rules Inspector.
+shows the creature in focus and uses its Actions through `Item.use()`. The GM's Rules Inspector explains each
+resolution from the authority's records. Next: the Homebrew Builder (once its prerequisites are mature),
+transformations started from an Action, and summoning.
 
 **M4 — content pack (in progress, 2026-10-14).**
 - **The pack.** `@foundryvtt/foundryvtt-cli` 3.0.4 was approved and added. The built-in **WildPath Actions**
