@@ -82,6 +82,10 @@
             {
               "resourceId": "multiattack-rotting-fist",
               "amount": 2
+            },
+            {
+              "resourceId": "multiattack-dreadful-glare",
+              "amount": 1
             }
           ]
         },
@@ -94,6 +98,19 @@
               "resourceId": "multiattack-rotting-fist",
               "label": "Multiattack (Rotting Fist)",
               "maximum": 2,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-dreadful-glare-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-dreadful-glare",
+              "label": "Multiattack (Dreadful Glare)",
+              "maximum": 1,
               "current": 0,
               "recovery": "none",
               "emptiesAtTurnStart": true
@@ -113,9 +130,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -268,11 +283,19 @@
           "schemaVersion": 1,
           "id": "action:srd-dreadful-glare-save",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-dreadful-glare",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "range": {
@@ -393,8 +416,7 @@
       "conversion": {
         "notes": [
           "Rotting Fist: effect: cursed is not a WildPath condition yet",
-          "Rotting Fist: not automated (utility): using it spends its cost; its description says the rest",
-          "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
+          "Rotting Fist: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

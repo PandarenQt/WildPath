@@ -113,6 +113,10 @@
             {
               "resourceId": "multiattack-bite",
               "amount": 2
+            },
+            {
+              "resourceId": "multiattack-reel",
+              "amount": 1
             }
           ]
         },
@@ -142,6 +146,19 @@
               "recovery": "none",
               "emptiesAtTurnStart": true
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-reel-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-reel",
+              "label": "Multiattack (Reel)",
+              "maximum": 1,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
           }
         ]
       },
@@ -157,9 +174,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -330,11 +345,23 @@
           "schemaVersion": 1,
           "id": "action:srd-reel",
           "costs": {
-            "allOf": [
-              {
-                "capability": "bonus-action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-reel",
+                  "amount": 1
+                },
+                {
+                  "capability": "bonus-action",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "bonus-action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "label": "Reel"
@@ -405,8 +432,7 @@
       "conversion": {
         "notes": [
           "Tentacle: \"Escape Check\" is passive or triggered: not automated",
-          "Reel: not automated (utility): using it spends its cost; its description says the rest",
-          "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
+          "Reel: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

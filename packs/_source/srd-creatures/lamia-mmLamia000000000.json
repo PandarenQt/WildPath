@@ -81,6 +81,10 @@
             {
               "resourceId": "multiattack-claw",
               "amount": 2
+            },
+            {
+              "resourceId": "multiattack-replace",
+              "amount": 1
             }
           ]
         },
@@ -93,6 +97,19 @@
               "resourceId": "multiattack-claw",
               "label": "Multiattack (Claw)",
               "maximum": 2,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-replace-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-replace",
+              "label": "Multiattack (replace an attack)",
+              "maximum": 1,
               "current": 0,
               "recovery": "none",
               "emptiesAtTurnStart": true
@@ -112,9 +129,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -221,11 +236,23 @@
           "schemaVersion": 1,
           "id": "action:srd-corrupting-touch",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-replace",
+                  "amount": 1
+                },
+                {
+                  "capability": "multiattack-claw",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "range": {
@@ -701,8 +728,7 @@
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: concentration: nothing it sustains was converted",
           "Spellcasting: \"Create Sensor\" is passive or triggered: not automated",
-          "Leap: not automated (utility): using it spends its cost; its description says the rest",
-          "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
+          "Leap: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

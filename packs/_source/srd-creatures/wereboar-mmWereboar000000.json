@@ -164,6 +164,10 @@
             {
               "resourceId": "multiattack",
               "amount": 2
+            },
+            {
+              "resourceId": "multiattack-replace",
+              "amount": 1
             }
           ]
         },
@@ -176,6 +180,19 @@
               "resourceId": "multiattack",
               "label": "Multiattack",
               "maximum": 2,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-replace-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-replace",
+              "label": "Multiattack (replace an attack)",
+              "maximum": 1,
               "current": 0,
               "recovery": "none",
               "emptiesAtTurnStart": true
@@ -195,9 +212,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -215,11 +230,23 @@
           "schemaVersion": 1,
           "id": "action:srd-gore-boar-or-hybrid-form-only-attack",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-replace",
+                  "amount": 1
+                },
+                {
+                  "capability": "multiattack",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "attack": {
@@ -286,11 +313,23 @@
           "schemaVersion": 1,
           "id": "action:srd-gore-boar-or-hybrid-form-only",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-replace",
+                  "amount": 1
+                },
+                {
+                  "capability": "multiattack",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "label": "Gore  (Boar or Hybrid Form Only) (save)"
@@ -330,11 +369,23 @@
           "schemaVersion": 1,
           "id": "action:srd-gore-boar-or-hybrid-form-only-become-wereboar",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-replace",
+                  "amount": 1
+                },
+                {
+                  "capability": "multiattack",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "label": "Gore  (Boar or Hybrid Form Only) (Become Wereboar)"
@@ -595,8 +646,7 @@
           "Gore  (Boar or Hybrid Form Only): not automated (save): using it spends its cost; its description says the rest",
           "Gore  (Boar or Hybrid Form Only): effect: cursed is not a WildPath condition yet",
           "Gore  (Boar or Hybrid Form Only): not automated (summon): using it spends its cost; its description says the rest",
-          "Shape-Shift: not automated (utility): using it spends its cost; its description says the rest",
-          "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
+          "Shape-Shift: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

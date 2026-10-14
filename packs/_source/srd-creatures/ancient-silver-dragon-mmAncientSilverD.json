@@ -83,6 +83,10 @@
             {
               "resourceId": "multiattack-rend",
               "amount": 3
+            },
+            {
+              "resourceId": "multiattack-replace",
+              "amount": 1
             }
           ]
         },
@@ -95,6 +99,19 @@
               "resourceId": "multiattack-rend",
               "label": "Multiattack (Rend)",
               "maximum": 3,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-replace-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-replace",
+              "label": "Multiattack (replace an attack)",
+              "maximum": 1,
               "current": 0,
               "recovery": "none",
               "emptiesAtTurnStart": true
@@ -114,9 +131,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -359,11 +374,23 @@
           "schemaVersion": 1,
           "id": "action:srd-paralyzing-breath-save",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-replace",
+                  "amount": 1
+                },
+                {
+                  "capability": "multiattack-rend",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "range": {
@@ -436,11 +463,23 @@
             "spell"
           ],
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-replace",
+                  "amount": 1
+                },
+                {
+                  "capability": "multiattack-rend",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "label": "Detect Magic"
@@ -485,11 +524,23 @@
             "spell"
           ],
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-replace",
+                  "amount": 1
+                },
+                {
+                  "capability": "multiattack-rend",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "range": {
@@ -557,11 +608,23 @@
             "spell"
           ],
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-replace",
+                  "amount": 1
+                },
+                {
+                  "capability": "multiattack-rend",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "attack": {
@@ -636,11 +699,23 @@
             "spell"
           ],
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-replace",
+                  "amount": 1
+                },
+                {
+                  "capability": "multiattack-rend",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "label": "Shapechange"
@@ -684,15 +759,31 @@
             "spell"
           ],
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              },
-              {
-                "capability": "spellcasting-phbsplcontrolwea",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-replace",
+                  "amount": 1
+                },
+                {
+                  "capability": "multiattack-rend",
+                  "amount": 1
+                },
+                {
+                  "capability": "spellcasting-phbsplcontrolwea",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                },
+                {
+                  "capability": "spellcasting-phbsplcontrolwea",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "label": "Control Weather"
@@ -752,15 +843,31 @@
             "spell"
           ],
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              },
-              {
-                "capability": "spellcasting-phbsplicestorm00",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-replace",
+                  "amount": 1
+                },
+                {
+                  "capability": "multiattack-rend",
+                  "amount": 1
+                },
+                {
+                  "capability": "spellcasting-phbsplicestorm00",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                },
+                {
+                  "capability": "spellcasting-phbsplicestorm00",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "range": {
@@ -872,15 +979,31 @@
             "spell"
           ],
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              },
-              {
-                "capability": "spellcasting-phbsplteleport00",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-replace",
+                  "amount": 1
+                },
+                {
+                  "capability": "multiattack-rend",
+                  "amount": 1
+                },
+                {
+                  "capability": "spellcasting-phbsplteleport00",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                },
+                {
+                  "capability": "spellcasting-phbsplteleport00",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "label": "Teleport"
@@ -938,15 +1061,31 @@
             "spell"
           ],
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              },
-              {
-                "capability": "spellcasting-phbsplzoneoftrut",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-replace",
+                  "amount": 1
+                },
+                {
+                  "capability": "multiattack-rend",
+                  "amount": 1
+                },
+                {
+                  "capability": "spellcasting-phbsplzoneoftrut",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                },
+                {
+                  "capability": "spellcasting-phbsplzoneoftrut",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "label": "Zone of Truth"
@@ -1005,11 +1144,27 @@
             "spell"
           ],
           "costs": {
-            "allOf": [
-              {
-                "capability": "legendary-action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-replace",
+                  "amount": 1
+                },
+                {
+                  "capability": "multiattack-rend",
+                  "amount": 1
+                },
+                {
+                  "capability": "legendary-action",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "legendary-action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "range": {
@@ -1263,8 +1418,7 @@
           "Spellcasting: not automated (save): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Cannot Lie\" (its own changes) not converted",
           "Pounce: not automated (utility): using it spends its cost; its description says the rest",
-          "Pounce: consumption: attribute 1 not converted",
-          "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
+          "Pounce: consumption: attribute 1 not converted"
         ]
       }
     }

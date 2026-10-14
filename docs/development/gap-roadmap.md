@@ -242,8 +242,10 @@ Forced movement and elevation join G6, which becomes "space": areas, elevation a
   - Not yet: Lair Actions and summoned creatures' own stat blocks.
   - Multiattack's named attacks (2026-10-15): "shortcut: named attacks not enforced" fell from 515 documents to 11.
     Each named attack has its own count, and each alternative is an Action of its own. Live: an SRD Brown Bear's
-    Multiattack filled Bite 1 and Claw 1; a second Bite was refused, and the Claw went through. Its replacements
-    ("it can replace one attack with...") and other abilities stay manual (167 documents).
+    Multiattack filled Bite 1 and Claw 1; a second Bite was refused, and the Claw went through.
+  - Its replacements ("it can replace one attack with a use of Spellcasting to cast Acid Arrow") and the Actions it
+    uses ("and uses Constrict") are paid from it too: by-hand Multiattacks fell from 167 to 16. Live: an SRD Adult
+    Black Dragon made two Rends, then Acid Arrow in place of the third; a fourth attack was refused.
     Legendary Resistance came with G5.
 - **G3, effects with their own rules (2026-10-14).** Done:
   - dnd5e effect changes map to rules on custom effects, with their duration, concentration and save policy;

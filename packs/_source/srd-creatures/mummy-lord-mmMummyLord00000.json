@@ -331,6 +331,10 @@
             {
               "resourceId": "multiattack-rotting-fist",
               "amount": 1
+            },
+            {
+              "resourceId": "multiattack-glare-or-dreadful-glare",
+              "amount": 1
             }
           ]
         },
@@ -342,6 +346,19 @@
             "data": {
               "resourceId": "multiattack-rotting-fist",
               "label": "Multiattack (Rotting Fist)",
+              "maximum": 1,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-glare-or-dreadful-glare-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-glare-or-dreadful-glare",
+              "label": "Multiattack (Glare or Dreadful Glare)",
               "maximum": 1,
               "current": 0,
               "recovery": "none",
@@ -362,9 +379,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -855,11 +870,23 @@
           "schemaVersion": 1,
           "id": "action:srd-glare-expend-use",
           "costs": {
-            "allOf": [
-              {
-                "capability": "legendary-action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-glare-or-dreadful-glare",
+                  "amount": 1
+                },
+                {
+                  "capability": "legendary-action",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "legendary-action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "label": "Glare"
@@ -1079,11 +1106,19 @@
           "schemaVersion": 1,
           "id": "action:srd-dreadful-glare-save",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-glare-or-dreadful-glare",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "range": {
@@ -1241,8 +1276,7 @@
           "Whirlwind of Sand: area: 5-ft circle is not supported; the user picks the targets",
           "Dread Command: cast: Command at level 2 is cast at its own level",
           "Dread Command: not automated (save): using it spends its cost; its description says the rest",
-          "Necrotic Strike: not automated (utility): using it spends its cost; its description says the rest",
-          "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
+          "Necrotic Strike: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

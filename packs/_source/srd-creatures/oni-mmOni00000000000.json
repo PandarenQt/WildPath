@@ -153,6 +153,10 @@
             {
               "resourceId": "multiattack-claw",
               "amount": 2
+            },
+            {
+              "resourceId": "multiattack-replace",
+              "amount": 1
             }
           ]
         },
@@ -165,6 +169,19 @@
               "resourceId": "multiattack-claw",
               "label": "Multiattack (Claw)",
               "maximum": 2,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-replace-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-replace",
+              "label": "Multiattack (replace an attack)",
+              "maximum": 1,
               "current": 0,
               "recovery": "none",
               "emptiesAtTurnStart": true
@@ -184,9 +201,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -418,15 +433,31 @@
             "spell"
           ],
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              },
-              {
-                "capability": "spellcasting-phbsplcharmperso",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-replace",
+                  "amount": 1
+                },
+                {
+                  "capability": "multiattack-claw",
+                  "amount": 1
+                },
+                {
+                  "capability": "spellcasting-phbsplcharmperso",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                },
+                {
+                  "capability": "spellcasting-phbsplcharmperso",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "range": {
@@ -510,15 +541,31 @@
             "spell"
           ],
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              },
-              {
-                "capability": "spellcasting-phbspldarkness00",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-replace",
+                  "amount": 1
+                },
+                {
+                  "capability": "multiattack-claw",
+                  "amount": 1
+                },
+                {
+                  "capability": "spellcasting-phbspldarkness00",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                },
+                {
+                  "capability": "spellcasting-phbspldarkness00",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "targeting": {
@@ -605,15 +652,31 @@
             "spell"
           ],
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              },
-              {
-                "capability": "spellcasting-phbsplgaseousfor",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-replace",
+                  "amount": 1
+                },
+                {
+                  "capability": "multiattack-claw",
+                  "amount": 1
+                },
+                {
+                  "capability": "spellcasting-phbsplgaseousfor",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                },
+                {
+                  "capability": "spellcasting-phbsplgaseousfor",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "range": {
@@ -765,15 +828,31 @@
             "spell"
           ],
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              },
-              {
-                "capability": "spellcasting-phbsplsleep00000",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-replace",
+                  "amount": 1
+                },
+                {
+                  "capability": "multiattack-claw",
+                  "amount": 1
+                },
+                {
+                  "capability": "spellcasting-phbsplsleep00000",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                },
+                {
+                  "capability": "spellcasting-phbsplsleep00000",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "range": {
@@ -861,11 +940,27 @@
             "spell"
           ],
           "costs": {
-            "allOf": [
-              {
-                "capability": "bonus-action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-replace",
+                  "amount": 1
+                },
+                {
+                  "capability": "multiattack-claw",
+                  "amount": 1
+                },
+                {
+                  "capability": "bonus-action",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "bonus-action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "range": {
@@ -968,8 +1063,7 @@
           "Spellcasting: cast: Charm Person at level 2 is cast at its own level",
           "Spellcasting: effect: transformed is not a WildPath condition yet",
           "Spellcasting: effect: \"Gaseous Form\" change system.attributes.movement.hover (override) not converted",
-          "Spellcasting: effect: \"Gaseous Form\" change img (override) not converted",
-          "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
+          "Spellcasting: effect: \"Gaseous Form\" change img (override) not converted"
         ]
       }
     }

@@ -151,6 +151,10 @@
             {
               "resourceId": "multiattack-rend",
               "amount": 3
+            },
+            {
+              "resourceId": "multiattack-replace",
+              "amount": 1
             }
           ]
         },
@@ -163,6 +167,19 @@
               "resourceId": "multiattack-rend",
               "label": "Multiattack (Rend)",
               "maximum": 3,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-replace-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-replace",
+              "label": "Multiattack (replace an attack)",
+              "maximum": 1,
               "current": 0,
               "recovery": "none",
               "emptiesAtTurnStart": true
@@ -182,9 +199,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -391,11 +406,23 @@
           "schemaVersion": 1,
           "id": "action:srd-repulsion-breath-save",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-replace",
+                  "amount": 1
+                },
+                {
+                  "capability": "multiattack-rend",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "range": {
@@ -511,11 +538,23 @@
             "spell"
           ],
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-replace",
+                  "amount": 1
+                },
+                {
+                  "capability": "multiattack-rend",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "attack": {
@@ -905,11 +944,27 @@
             "spell"
           ],
           "costs": {
-            "allOf": [
-              {
-                "capability": "legendary-action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-replace",
+                  "amount": 1
+                },
+                {
+                  "capability": "multiattack-rend",
+                  "amount": 1
+                },
+                {
+                  "capability": "legendary-action",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "legendary-action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "attack": {
@@ -1187,8 +1242,7 @@
           "Guiding Light: cast: Guiding Bolt at level 2 is cast at its own level",
           "Guiding Light: effect: marked is not a WildPath condition yet",
           "Pounce: not automated (utility): using it spends its cost; its description says the rest",
-          "Pounce: consumption: attribute 1 not converted",
-          "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
+          "Pounce: consumption: attribute 1 not converted"
         ]
       }
     }

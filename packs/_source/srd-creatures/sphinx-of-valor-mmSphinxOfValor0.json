@@ -153,6 +153,10 @@
             {
               "resourceId": "multiattack-claw",
               "amount": 2
+            },
+            {
+              "resourceId": "multiattack-roar-or-roar-or-roar",
+              "amount": 1
             }
           ]
         },
@@ -165,6 +169,19 @@
               "resourceId": "multiattack-claw",
               "label": "Multiattack (Claw)",
               "maximum": 2,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-roar-or-roar-or-roar-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-roar-or-roar-or-roar",
+              "label": "Multiattack (Roar or Roar or Roar)",
+              "maximum": 1,
               "current": 0,
               "recovery": "none",
               "emptiesAtTurnStart": true
@@ -184,9 +201,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -283,15 +298,27 @@
           "schemaVersion": 1,
           "id": "action:srd-roar-first-roar-save",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              },
-              {
-                "capability": "roar-first-roar-save",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-roar-or-roar-or-roar",
+                  "amount": 1
+                },
+                {
+                  "capability": "roar-first-roar-save",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                },
+                {
+                  "capability": "roar-first-roar-save",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "range": {
@@ -370,15 +397,27 @@
           "schemaVersion": 1,
           "id": "action:srd-roar-second-roar-save",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              },
-              {
-                "capability": "roar-second-roar-save",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-roar-or-roar-or-roar",
+                  "amount": 1
+                },
+                {
+                  "capability": "roar-second-roar-save",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                },
+                {
+                  "capability": "roar-second-roar-save",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "range": {
@@ -457,15 +496,27 @@
           "schemaVersion": 1,
           "id": "action:srd-roar-third-roar-save",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              },
-              {
-                "capability": "roar-third-roar-save",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-roar-or-roar-or-roar",
+                  "amount": 1
+                },
+                {
+                  "capability": "roar-third-roar-save",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                },
+                {
+                  "capability": "roar-third-roar-save",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "range": {
@@ -1224,8 +1275,7 @@
           "Spellcasting: not automated (save): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Cannot Lie\" (its own changes) not converted",
           "Arcane Prowl: not automated (utility): using it spends its cost; its description says the rest",
-          "Weight of Years: \"Years Older\" is passive or triggered: not automated",
-          "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
+          "Weight of Years: \"Years Older\" is passive or triggered: not automated"
         ]
       }
     }

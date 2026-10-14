@@ -158,6 +158,10 @@
             {
               "resourceId": "multiattack-ice-spear",
               "amount": 3
+            },
+            {
+              "resourceId": "multiattack-replace",
+              "amount": 1
             }
           ]
         },
@@ -170,6 +174,19 @@
               "resourceId": "multiattack-ice-spear",
               "label": "Multiattack (Ice Spear)",
               "maximum": 3,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-replace-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-replace",
+              "label": "Multiattack (replace an attack)",
+              "maximum": 1,
               "current": 0,
               "recovery": "none",
               "emptiesAtTurnStart": true
@@ -189,9 +206,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -209,11 +224,23 @@
           "schemaVersion": 1,
           "id": "action:srd-tail",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-replace",
+                  "amount": 1
+                },
+                {
+                  "capability": "multiattack-ice-spear",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "attack": {
@@ -566,8 +593,7 @@
           "Ice Wall: cast: Wall of Ice at level 8 is cast at its own level",
           "Ice Wall: concentration: nothing it sustains was converted",
           "Ice Wall: area: 10-ft wall is not supported; the user picks the targets",
-          "Ice Wall: \"Frigid Air\" is passive or triggered: not automated",
-          "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
+          "Ice Wall: \"Frigid Air\" is passive or triggered: not automated"
         ]
       }
     }

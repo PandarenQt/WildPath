@@ -158,6 +158,10 @@
             {
               "resourceId": "multiattack-pincer",
               "amount": 2
+            },
+            {
+              "resourceId": "multiattack-pummel-or-spells",
+              "amount": 1
             }
           ]
         },
@@ -170,6 +174,19 @@
               "resourceId": "multiattack-pincer",
               "label": "Multiattack (Pincer)",
               "maximum": 2,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-pummel-or-spells-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-pummel-or-spells",
+              "label": "Multiattack (Pummel or Spellcasting)",
+              "maximum": 1,
               "current": 0,
               "recovery": "none",
               "emptiesAtTurnStart": true
@@ -189,9 +206,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -295,11 +310,19 @@
           "schemaVersion": 1,
           "id": "action:srd-pummel-save",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-pummel-or-spells",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "range": {
@@ -375,11 +398,19 @@
             "spell"
           ],
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-pummel-or-spells",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "targeting": {
@@ -451,11 +482,19 @@
             "spell"
           ],
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-pummel-or-spells",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "label": "Detect Magic"
@@ -500,11 +539,19 @@
             "spell"
           ],
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-pummel-or-spells",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "label": "Dispel Magic"
@@ -547,15 +594,27 @@
             "spell"
           ],
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              },
-              {
-                "capability": "spellcasting-phbsplconfusion0",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-pummel-or-spells",
+                  "amount": 1
+                },
+                {
+                  "capability": "spellcasting-phbsplconfusion0",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                },
+                {
+                  "capability": "spellcasting-phbsplconfusion0",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "label": "Confusion"
@@ -616,15 +675,27 @@
             "spell"
           ],
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              },
-              {
-                "capability": "spellcasting-phbsplfly0000000",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-pummel-or-spells",
+                  "amount": 1
+                },
+                {
+                  "capability": "spellcasting-phbsplfly0000000",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                },
+                {
+                  "capability": "spellcasting-phbsplfly0000000",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "range": {
@@ -719,15 +790,27 @@
             "spell"
           ],
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              },
-              {
-                "capability": "spellcasting-phbsplpowerwords",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-pummel-or-spells",
+                  "amount": 1
+                },
+                {
+                  "capability": "spellcasting-phbsplpowerwords",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                },
+                {
+                  "capability": "spellcasting-phbsplpowerwords",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "range": {
@@ -865,8 +948,7 @@
           "Spellcasting: effect: \"Confused\" (its own changes) not converted",
           "Spellcasting: effect: \"Flight\" change system.attributes.movement.hover (override) not converted",
           "Spellcasting: effect: \"No Movement\" change system.attributes.movement.multiplier (override) not converted",
-          "Spellcasting: effect: \"No Movement\" (its own changes) not converted",
-          "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
+          "Spellcasting: effect: \"No Movement\" (its own changes) not converted"
         ]
       }
     }

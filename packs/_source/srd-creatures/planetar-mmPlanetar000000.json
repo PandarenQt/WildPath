@@ -186,6 +186,10 @@
             {
               "resourceId": "multiattack-radiant-sword",
               "amount": 3
+            },
+            {
+              "resourceId": "multiattack-holy-burst",
+              "amount": 2
             }
           ]
         },
@@ -198,6 +202,19 @@
               "resourceId": "multiattack-radiant-sword",
               "label": "Multiattack (Radiant Sword)",
               "maximum": 3,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-holy-burst-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-holy-burst",
+              "label": "Multiattack (Holy Burst)",
+              "maximum": 2,
               "current": 0,
               "recovery": "none",
               "emptiesAtTurnStart": true
@@ -217,9 +234,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -327,11 +342,19 @@
           "schemaVersion": 1,
           "id": "action:srd-holy-burst-save",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-holy-burst",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "range": {
@@ -1682,8 +1705,7 @@
           "Spellcasting: effect: \"Dispelling Evil and Good\" (its own changes) not converted",
           "Spellcasting: not automated (save): using it spends its cost; its description says the rest",
           "Spellcasting: activation: 1 hour is not an action-economy cost",
-          "Divine Aid: not automated (utility): using it spends its cost; its description says the rest",
-          "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
+          "Divine Aid: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

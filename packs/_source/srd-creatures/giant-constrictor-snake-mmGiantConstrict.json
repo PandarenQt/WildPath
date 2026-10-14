@@ -81,6 +81,10 @@
             {
               "resourceId": "multiattack-bite",
               "amount": 1
+            },
+            {
+              "resourceId": "multiattack-constrict",
+              "amount": 1
             }
           ]
         },
@@ -92,6 +96,19 @@
             "data": {
               "resourceId": "multiattack-bite",
               "label": "Multiattack (Bite)",
+              "maximum": 1,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-constrict-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-constrict",
+              "label": "Multiattack (Constrict)",
               "maximum": 1,
               "current": 0,
               "recovery": "none",
@@ -112,9 +129,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -211,11 +226,19 @@
           "schemaVersion": 1,
           "id": "action:srd-constrict",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-constrict",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "range": {
@@ -333,8 +356,7 @@
       },
       "conversion": {
         "notes": [
-          "Constrict: \"Escape Check\" is passive or triggered: not automated",
-          "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
+          "Constrict: \"Escape Check\" is passive or triggered: not automated"
         ]
       }
     }

@@ -137,6 +137,10 @@
             {
               "resourceId": "multiattack-pincer",
               "amount": 2
+            },
+            {
+              "resourceId": "multiattack-paralyzing-tentacles",
+              "amount": 1
             }
           ]
         },
@@ -149,6 +153,19 @@
               "resourceId": "multiattack-pincer",
               "label": "Multiattack (Pincer)",
               "maximum": 2,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-paralyzing-tentacles-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-paralyzing-tentacles",
+              "label": "Multiattack (Paralyzing Tentacles)",
+              "maximum": 1,
               "current": 0,
               "recovery": "none",
               "emptiesAtTurnStart": true
@@ -168,9 +185,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -188,11 +203,19 @@
           "schemaVersion": 1,
           "id": "action:srd-paralyzing-tentacles-save",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-paralyzing-tentacles",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "range": {
@@ -399,8 +422,7 @@
       },
       "conversion": {
         "notes": [
-          "Pincer: \"Escape Check\" is passive or triggered: not automated",
-          "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
+          "Pincer: \"Escape Check\" is passive or triggered: not automated"
         ]
       }
     }
