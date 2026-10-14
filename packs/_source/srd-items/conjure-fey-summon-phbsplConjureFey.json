@@ -64,6 +64,19 @@
           "effects": []
         }
       ],
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "summon": {
+        "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbsplConjuredFe",
+        "count": 1,
+        "rounds": 100,
+        "concentration": true
+      },
       "label": "Conjure Fey (summon)"
     },
     "ruleElements": []
@@ -81,7 +94,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (summon): using it spends its cost; its description says the rest"
+          "summon: what it gains with the spell's level (attackDamage) is not added"
         ]
       }
     }

@@ -229,6 +229,18 @@
               }
             ]
           },
+          "range": {
+            "type": "touch",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "summon": {
+            "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbsplLight00000",
+            "count": 1,
+            "rounds": 600
+          },
           "label": "Light"
         },
         "ruleElements": []
@@ -246,9 +258,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "not automated (summon): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -669,7 +679,6 @@
       },
       "conversion": {
         "notes": [
-          "Spellcasting: not automated (summon): using it spends its cost; its description says the rest",
           "Divine Aid: not automated (utility): using it spends its cost; its description says the rest",
           "Divine Aid: effect: \"Warded\" (its own changes) not converted",
           "Divine Aid: \"Save on Target\" is passive or triggered: not automated"

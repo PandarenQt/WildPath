@@ -798,6 +798,19 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 120,
+              "unit": "ft"
+            }
+          },
+          "summon": {
+            "choiceId": "summon-creature",
+            "count": 1,
+            "rounds": 100,
+            "concentration": true
+          },
           "label": "Major Image"
         },
         "ruleElements": [
@@ -830,9 +843,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "not automated (summon): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -1143,7 +1154,6 @@
           "Spellcasting: effect: transformed is not a WildPath condition yet",
           "Spellcasting: effect: \"Gaseous Form\" change system.attributes.movement.hover (override) not converted",
           "Spellcasting: effect: \"Gaseous Form\" change img (override) not converted",
-          "Spellcasting: not automated (summon): using it spends its cost; its description says the rest",
           "Spellcasting: not automated (teleport): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Universal Communication\" change system.traits.languages.custom (add) not converted",
           "Spellcasting: effect: \"Universal Communication\" (its own changes) not converted",

@@ -271,6 +271,18 @@
               }
             ]
           },
+          "range": {
+            "type": "touch",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "summon": {
+            "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbsplLight00000",
+            "count": 1,
+            "rounds": 600
+          },
           "label": "Light"
         },
         "ruleElements": []
@@ -288,9 +300,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "not automated (summon): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -367,6 +377,18 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "summon": {
+            "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbsplMageHand00",
+            "count": 1,
+            "rounds": 10
+          },
           "label": "Mage Hand"
         },
         "ruleElements": []
@@ -384,9 +406,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "not automated (summon): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -1071,7 +1091,6 @@
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Detect Magic\" (its own changes) not converted",
           "Spellcasting: concentration: nothing it sustains was converted",
-          "Spellcasting: not automated (summon): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Mage Armor\" change system.attributes.ac.calc (override) not converted",
           "Spellcasting: effect: \"Mage Armor\" (its own changes) not converted",
           "Spellcasting: cast: Fireball at level 4 is cast at its own level",

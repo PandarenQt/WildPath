@@ -73,6 +73,13 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "summon": {
+            "actorRef": "Compendium.wildpath.srd-creatures.Actor.mmIncubus0000000",
+            "count": 1
+          },
           "label": "Incubus Form"
         },
         "ruleElements": []
@@ -89,9 +96,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (summon): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -507,7 +512,6 @@
       },
       "conversion": {
         "notes": [
-          "Incubus Form: not automated (summon): using it spends its cost; its description says the rest",
           "Charm: cast: Dominate Person at level 8 is cast at its own level",
           "Shape-Shift: not automated (utility): using it spends its cost; its description says the rest",
           "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"

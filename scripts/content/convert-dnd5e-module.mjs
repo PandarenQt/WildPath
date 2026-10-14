@@ -2,7 +2,7 @@ import {cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeF
 import {tmpdir} from "node:os";
 import {join, relative, resolve} from "node:path";
 import {compilePack, extractPack} from "@foundryvtt/foundryvtt-cli";
-import {convertActor, convertItem, nameIndex, scaleTables, slugify} from "./dnd5e-to-wildpath.mjs";
+import {convertActor, convertItem, isSrd2024, nameIndex, scaleTables, slugify} from "./dnd5e-to-wildpath.mjs";
 import {readPack} from "./packs.mjs";
 import {validateActionDefinition} from "../../module/helpers/action-definitions.mjs";
 
@@ -43,7 +43,13 @@ const scales = scaleTables([...srdDocuments, ...all].filter(document => document
 const names = nameIndex([...srdDocuments, ...all]);
 // The spells a creature's Spellcasting casts, by id (the book's own and the SRD's).
 const spells = Object.fromEntries([...srdDocuments, ...all].filter(document => document.type === "spell").map(document => [document._id, document]));
-const options = {scales, names, licensed: () => true, book: manifest.title, images: ["icons/", `modules/${moduleId}/`], spells};
+// The creatures a summon brings, by dnd5e id: the book's own (its creatures pack), else the SRD's.
+const creatures = Object.fromEntries([
+  ...srdDocuments.filter(document => (document.type === "npc") && isSrd2024(document))
+    .map(document => [document._id, `Compendium.wildpath.srd-creatures.Actor.${document._id}`]),
+  ...(manifest.packs ?? []).filter(pack => pack.type === "Actor").flatMap(documents).filter(document => document.type === "npc")
+    .map(document => [document._id, `Compendium.wildpath-${moduleId}.creatures.Actor.${document._id}`])]);
+const options = {scales, names, licensed: () => true, book: manifest.title, images: ["icons/", `modules/${moduleId}/`], spells, creatures};
 
 const items = [];
 const actors = [];

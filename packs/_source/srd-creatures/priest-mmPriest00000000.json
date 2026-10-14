@@ -309,6 +309,18 @@
               }
             ]
           },
+          "range": {
+            "type": "touch",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "summon": {
+            "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbsplLight00000",
+            "count": 1,
+            "rounds": 600
+          },
           "label": "Light"
         },
         "ruleElements": []
@@ -326,9 +338,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "not automated (summon): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -443,6 +453,19 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 60,
+              "unit": "ft"
+            }
+          },
+          "summon": {
+            "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbsplSpiritualW",
+            "count": 1,
+            "rounds": 10,
+            "concentration": true
+          },
           "label": "Spiritual Weapon"
         },
         "ruleElements": [
@@ -475,9 +498,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "not automated (summon): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -879,7 +900,6 @@
       },
       "conversion": {
         "notes": [
-          "Spellcasting: not automated (summon): using it spends its cost; its description says the rest",
           "Divine Aid: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }

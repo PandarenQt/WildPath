@@ -531,6 +531,18 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "summon": {
+            "choiceId": "summon-creature",
+            "count": 1,
+            "rounds": 10
+          },
           "label": "Minor Illusion"
         },
         "ruleElements": []
@@ -548,9 +560,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "not automated (summon): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -696,6 +706,19 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 120,
+              "unit": "ft"
+            }
+          },
+          "summon": {
+            "choiceId": "summon-creature",
+            "count": 1,
+            "rounds": 100,
+            "concentration": true
+          },
           "label": "Major Image"
         },
         "ruleElements": [
@@ -728,9 +751,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "not automated (summon): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -761,6 +782,11 @@
                 "amount": 1
               }
             ]
+          },
+          "summon": {
+            "actorRef": "Compendium.wildpath.srd-creatures.Actor.dmgIllusoryCreat",
+            "count": 1,
+            "concentration": true
           },
           "label": "Project Image"
         },
@@ -794,9 +820,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "not automated (summon): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -1228,7 +1252,6 @@
           "Spellcasting: concentration: nothing it sustains was converted",
           "Spellcasting: cast: Mind Spike at level 5 is cast at its own level",
           "Spellcasting: effect: \"Spiked\" (its own changes) not converted",
-          "Spellcasting: not automated (summon): using it spends its cost; its description says the rest",
           "Mind Jolt: cast: Mind Spike at level 4 is cast at its own level",
           "Mind Jolt: effect: \"Spiked\" (its own changes) not converted",
           "Mind Jolt: concentration: nothing it sustains was converted",

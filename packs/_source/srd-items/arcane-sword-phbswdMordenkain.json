@@ -57,6 +57,19 @@
           "effects": []
         }
       ],
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 90,
+          "unit": "ft"
+        }
+      },
+      "summon": {
+        "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbsplMordSword0",
+        "count": 1,
+        "rounds": 10,
+        "concentration": true
+      },
       "label": "Arcane Sword"
     },
     "ruleElements": []
@@ -74,7 +87,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (summon): using it spends its cost; its description says the rest"
+          "summon: what it gains with the spell's level (attackDamage) is not added"
         ]
       }
     }

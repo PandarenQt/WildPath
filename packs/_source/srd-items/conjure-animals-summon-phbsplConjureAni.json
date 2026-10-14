@@ -85,6 +85,39 @@
           "effects": []
         }
       ],
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "summon": {
+        "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbSpectralAnima",
+        "count": 1,
+        "rounds": 100,
+        "concentration": true,
+        "bonuses": {
+          "saveDamage": {
+            "type": "dice",
+            "number": {
+              "type": "subtract",
+              "terms": [
+                {
+                  "type": "context",
+                  "path": "castLevel"
+                },
+                {
+                  "type": "constant",
+                  "value": 3
+                }
+              ]
+            },
+            "faces": 10
+          }
+        },
+        "spellLevel": 3
+      },
       "label": "Conjure Animals (summon)"
     },
     "ruleElements": []
@@ -101,9 +134,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (summon): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

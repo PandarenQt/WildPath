@@ -90,8 +90,63 @@
             "spell-slot.9": 9
           },
           "effects": []
+        },
+        {
+          "id": "summon-creature",
+          "type": "select-one",
+          "label": "Creature",
+          "required": true,
+          "options": [
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.phbostCelestial0",
+              "label": "Celestial Steed"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.phbostFey0000000",
+              "label": "Fey Steed"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.phbostFiend00000",
+              "label": "Fiend Steed"
+            }
+          ]
         }
       ],
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 30,
+          "unit": "ft"
+        }
+      },
+      "summon": {
+        "choiceId": "summon-creature",
+        "count": 1,
+        "bonuses": {
+          "ac": {
+            "type": "context",
+            "path": "castLevel"
+          },
+          "hp": {
+            "type": "multiply",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 10
+              },
+              {
+                "type": "context",
+                "path": "castLevel"
+              }
+            ]
+          },
+          "attackDamage": {
+            "type": "context",
+            "path": "castLevel"
+          }
+        },
+        "spellLevel": 2
+      },
       "label": "Find Steed (Summon Steed)"
     },
     "ruleElements": []
@@ -109,7 +164,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (summon): using it spends its cost; its description says the rest"
+          "summon: what it gains with the spell's level (hd, healing) is not added"
         ]
       }
     }

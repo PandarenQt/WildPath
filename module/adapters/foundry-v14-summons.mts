@@ -1,4 +1,5 @@
 import {foundryPointInRange} from "./foundry-v14-area-placement.mjs";
+import {evaluateValueExpression} from "../helpers/value-expressions.mjs";
 
 /**
  * Summoning from an Action (M5, companions.md): when an Action with `summon` completes, the active GM places
@@ -19,7 +20,8 @@ interface Grid {
 interface SummonToken {
   id: string; uuid: string; x: number; y: number; disposition?: number; hidden?: boolean; actorId?: string | null;
   parent?: SummonScene | null;
-  actor?: {uuid: string; update?(data: Data): Promise<unknown>} | null;
+  actor?: {uuid: string; update?(data: Data): Promise<unknown>; createEmbeddedDocuments?(type: string, data: Data[]): Promise<unknown>;
+    system?: {resources?: {health?: {base?: number; value?: number}}; defenses?: {ac?: {value?: number}}}} | null;
   flags?: {wildpath?: {summon?: SummonFlag}};
   getOccupiedGridSpaceOffsets?(data?: {x: number; y: number}): Offset[];
   object?: {checkCollision?(destination: {x: number; y: number}, options: {type: string; mode: string}): boolean} | null;
@@ -44,6 +46,39 @@ interface SummonActor {uuid: string; name?: string; prototypeToken?: unknown; to
 interface CasterActor {uuid: string; createEmbeddedDocuments?(type: string, data: Data[]): Promise<Array<{uuid: string}>>}
 
 const key = (offset: Offset) => `${offset.i},${offset.j}`;
+const evaluate = evaluateValueExpression as unknown as (expression: unknown, context: Data) => {ok: boolean; value?: number};
+
+/** An expression at the spell's cast level: its `castLevel` put in, and each dice count worked out to a number. */
+function atLevel(expression: unknown, level: number): unknown {
+  if ( !expression || (typeof expression !== "object") ) return expression;
+  const node = expression as Data;
+  if ( (node.type === "context") && (node.path === "castLevel") ) return {type: "constant", value: level};
+  const next: Data = Object.fromEntries(Object.entries(node).map(([name, value]) => [name, Array.isArray(value)
+    ? value.map(entry => atLevel(entry, level)) : atLevel(value, level)]));
+  if ( (next.type === "dice") && next.number && (typeof next.number === "object") ) next.number = Math.max(0, evaluate(next.number, {}).value ?? 0);
+  return next;
+}
+
+/**
+ * What a summon gains with the spell's level (2024 Summon spells, dnd5e's bonuses), at `level`: Hit Points and AC as
+ * numbers, and rules for its damage, on attacks (`attackDamage`) and on everything else, saves (`saveDamage`): a
+ * Modifier for a number, an ExtraDamage for dice.
+ */
+export function summonBonusesAt(bonuses: Data | null | undefined, level: number) {
+  const number = (name: string) => (bonuses?.[name] ? evaluate(atLevel(bonuses[name], level), {}).value ?? 0 : 0);
+  const attack = {tagsAny: ["melee", "ranged"]};
+  const rules = (["attackDamage", "saveDamage"] as const).flatMap((name): Data[] => {
+    const expression = bonuses?.[name] ? atLevel(bonuses[name], level) as Data : null;
+    if ( !expression ) return [];
+    const predicate = name === "attackDamage" ? attack : {not: attack};
+    const value = evaluate(expression, {});
+    return (expression.type !== "dice") && value.ok
+      ? (value.value ? [{schemaVersion: 1, id: `summon-${name}`, type: "Modifier", predicate,
+        data: {domains: ["damage"], modifierType: "untyped", value: value.value}}] : [])
+      : [{schemaVersion: 1, id: `summon-${name}`, type: "ExtraDamage", predicate, data: {domains: ["damage"], expression}}];
+  });
+  return {hp: number("hp"), ac: number("ac"), rules};
+}
 
 /**
  * The `count` nearest places around `start` where a summon fits, nearest first (a breadth-first search over the
@@ -119,7 +154,8 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
   async function afterResolution({options, state}: {options?: {actor?: CasterActor; summonPoints?: Array<{x: number; y: number}>};
     state?: Data}) {
     const definition = state?.actionDefinition as {label?: string; summon?: {actorRef?: string; choiceId?: string; count?: number;
-      rounds?: number; concentration?: boolean}; range?: {normal?: {value?: number}; distance?: {value?: number}} | null} | undefined;
+      rounds?: number; concentration?: boolean; bonuses?: Data; spellLevel?: number};
+      range?: {normal?: {value?: number}; distance?: {value?: number}} | null} | undefined;
     const spec = definition?.summon;
     const caster = options?.actor;
     if ( !spec || !caster || !isActiveGM() ) return [];
@@ -177,6 +213,9 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
     const tokens = await scene.createEmbeddedDocuments("Token", data);
     // Each summon is its caster's: every Player who owns the caster commands it.
     for ( const token of tokens ) if ( token.actor ) await companions.setControllers(token.actor, {controllers: [caster.uuid], kind: "summon"});
+    // What it gains with the spell's level: the slot it was cast with, else the spell's own level.
+    const level = Number((state?.configuration as {castingLevel?: number | null} | undefined)?.castingLevel ?? spec.spellLevel) || 0;
+    if ( spec.bonuses && level ) for ( const token of tokens ) await applySummonBonuses(token, summonBonusesAt(spec.bonuses, level), level);
     // 2024: in combat a summon shares its caster's Initiative and takes its turn right after the caster's.
     // shortcut: a creature tied with the caster but sorted after it still goes before the summons; fine for whole-number initiative.
     const casterCombatant = [...(combat?.combatants ?? [])].find(entry => (entry.tokenId === casterToken.id) && (entry.sceneId === scene.id));
@@ -188,6 +227,21 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
       flags: {wildpath: {summonTokens: {sceneId: scene.id, tokenIds: tokens.map(token => token.id)},
         conditionEffect: {concentration: {sourceRef: `token:${casterToken.id}`}}}}}]);
     return tokens;
+  }
+
+  /** Its Hit Points and AC on the summoned Token's own Actor, and its damage rules as a feature of it. */
+  async function applySummonBonuses(token: SummonToken, bonuses: ReturnType<typeof summonBonusesAt>, level: number) {
+    const actor = token.actor;
+    if ( !actor?.update ) return;
+    const health = actor.system?.resources?.health ?? {};
+    const updates: Data = {};
+    if ( bonuses.hp ) Object.assign(updates, {"system.resources.health.base": (Number(health.base) || 0) + bonuses.hp,
+      "system.resources.health.value": (Number(health.value) || 0) + bonuses.hp});
+    if ( bonuses.ac ) updates["system.defenses.ac.value"] = (Number(actor.system?.defenses?.ac?.value) || 0) + bonuses.ac;
+    if ( Object.keys(updates).length ) await actor.update(updates);
+    if ( bonuses.rules.length ) await actor.createEmbeddedDocuments?.("Item", [{type: "feature", img: "icons/svg/upgrade.svg",
+      name: game.i18n?.format("WILDPATH.SUMMON.Level", {level: String(level)}) ?? `Level ${level}`,
+      system: {active: true, ruleElements: bonuses.rules}}]);
   }
 
   /** A concentration summon's marker ending (concentration broken, or removed by hand) dismisses its summons. */

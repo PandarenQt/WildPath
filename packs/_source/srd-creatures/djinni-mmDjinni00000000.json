@@ -960,6 +960,19 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 120,
+              "unit": "ft"
+            }
+          },
+          "summon": {
+            "choiceId": "summon-creature",
+            "count": 1,
+            "rounds": 100,
+            "concentration": true
+          },
           "label": "Major Image"
         },
         "ruleElements": [
@@ -992,9 +1005,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "not automated (summon): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -1444,7 +1455,6 @@
           "Spellcasting: area: 5 * @item.level - 20-ft cube is not supported; the user picks the targets",
           "Spellcasting: effect: \"Gaseous Form\" change system.attributes.movement.hover (override) not converted",
           "Spellcasting: effect: \"Gaseous Form\" change img (override) not converted",
-          "Spellcasting: not automated (summon): using it spends its cost; its description says the rest",
           "Spellcasting: not automated (teleport): using it spends its cost; its description says the rest",
           "Create Whirlwind: area: a cylinder's height is not modeled"
         ]

@@ -77,6 +77,7 @@
       "conversion": {
         "notes": [
           "not automated (summon): using it spends its cost; its description says the rest",
+          "summon: its creature is not among the converted creatures",
           "activation: 1 minute is not an action-economy cost"
         ]
       }

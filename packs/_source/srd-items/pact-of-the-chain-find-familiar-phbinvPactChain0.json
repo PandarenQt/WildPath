@@ -36,6 +36,7 @@
       "conversion": {
         "notes": [
           "not automated (summon): using it spends its cost; its description says the rest",
+          "summon: a creature chosen by Challenge Rating is not converted",
           "consumption: attribute 1 not converted"
         ]
       }

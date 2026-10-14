@@ -21,6 +21,36 @@
           }
         ]
       },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 30,
+          "unit": "ft"
+        }
+      },
+      "configuration": [
+        {
+          "id": "summon-creature",
+          "type": "select-one",
+          "label": "Creature",
+          "required": true,
+          "options": [
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.phbiluObject0000",
+              "label": "Image"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.phbiluSensory000",
+              "label": "Sound"
+            }
+          ]
+        }
+      ],
+      "summon": {
+        "choiceId": "summon-creature",
+        "count": 1,
+        "rounds": 10
+      },
       "label": "Minor Illusion"
     },
     "ruleElements": []
@@ -37,9 +67,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (summon): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

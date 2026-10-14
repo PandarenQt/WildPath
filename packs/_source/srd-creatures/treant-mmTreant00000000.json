@@ -320,6 +320,17 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 60,
+              "unit": "ft"
+            }
+          },
+          "summon": {
+            "actorRef": "Compendium.wildpath.srd-creatures.Actor.mmTreant00000000",
+            "count": 1
+          },
           "label": "Animate Trees"
         },
         "ruleElements": [
@@ -351,9 +362,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (summon): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -413,9 +422,7 @@
         "challenge": 9
       },
       "conversion": {
-        "notes": [
-          "Animate Trees: not automated (summon): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

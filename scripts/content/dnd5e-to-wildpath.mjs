@@ -251,7 +251,7 @@ export function upgradeLegacy(document) {
  * @returns {{ok: true, items: object[], notes: string[]} | {ok: false, reason: string}}
  */
 export function convertItem(document, {scales={}, pack=null, saveDC=null, names={}, creature=null, licensed=isSrd2024, book="SRD 5.2",
-  images=["icons/"], spells={}}={}) {
+  images=["icons/"], spells={}, creatures={}}={}) {
   if ( !licensed(document) ) return {ok: false, reason: "not SRD 5.2 (CC-BY-4.0)"};
   document = upgradeLegacy(document);
   const system = document.system ?? {};
@@ -282,7 +282,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, names=
     }
     // Monster spellcasting (G4): a cast activity is its spell, at the activity's cost and uses rather than a slot.
     if ( activity.type === "cast" ) {
-      const cast = castSpell({document, activity, system, notes, pool, options: {scales, pack, saveDC, names, creature, book, images, spells}});
+      const cast = castSpell({document, activity, system, notes, pool, options: {scales, pack, saveDC, names, creature, book, images, spells,
+        creatures}});
       if ( cast ) {
         items.push(cast);
         allNotes.push(...notes);
@@ -290,7 +291,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, names=
       }
     }
     let definition = ACTIVITIES.has(activity.type)
-      ? convertActivity({document, activity, system, spell, level, scales, notes, pool, saveDC, creature}) : null;
+      ? convertActivity({document, activity, system, spell, level, scales, notes, pool, saveDC, creature})
+      : ((activity.type === "summon") ? summonDefinition({document, activity, system, spell, level, notes, pool, creatures, names}) : null);
     if ( !definition ) {
       // Used but not automated: using it spends its cost (and a spell's slot); its description says the rest.
       notes.unshift(`not automated${activity.type === "manual" ? "" : ` (${activity.type})`}: using it spends its cost; its description says the rest`);
@@ -497,6 +499,60 @@ function castSpell({document, activity, system, notes, pool: itemPool=null, opti
     img: kept(spellDocument.img, options.images ?? ["icons/"]) ?? action.img,
     system: {active: true, description: action.system.description, definition, ruleElements: [itemPool?.rule, pool?.rule].filter(Boolean)},
     flags: {wildpath: {source: {...action.flags.wildpath.source, castBy: document.name}, conversion: {notes: [...notes]}}}};
+}
+
+/**
+ * A summon activity (G4) as an Action whose creatures appear where its caster chooses, for the spell's duration (in
+ * rounds) or while it concentrates: its creature, or a choice of its creatures, from `creatures` (dnd5e Actor id to
+ * WildPath uuid). Null when it chooses by Challenge Rating, or names a creature not converted.
+ */
+function summonDefinition({document, activity, system, spell, level, notes, pool, creatures, names}) {
+  if ( activity.summon?.mode === "cr" ) {
+    notes.push("summon: a creature chosen by Challenge Rating is not converted");
+    return null;
+  }
+  const profiles = (activity.profiles ?? []).map(profile => ({profile, ref: creatures[String(profile.uuid ?? "").split(".").pop()] ?? null}));
+  if ( !profiles.length || profiles.some(entry => !entry.ref) ) {
+    notes.push("summon: its creature is not among the converted creatures");
+    return null;
+  }
+  const counts = profiles.map(({profile}) => (String(profile.count ?? "").trim() === "" ? 1 : Number(profile.count)));
+  if ( counts.some(count => !Number.isInteger(count) || (count < 1)) || (new Set(counts).size > 1) ) {
+    notes.push(`summon: a count of "${profiles.map(({profile}) => profile.count).join(", ")}" is not converted`);
+    return null;
+  }
+  const definition = manualDefinition({document, activity, system, spell, level, notes: [], pool});
+  const rounds = (Number(system.duration?.value) || 0) * (ROUNDS[system.duration?.units] ?? 0);
+  const concentration = (system.properties ?? []).includes("concentration");
+  const range = rangeOf({activity, system, document, attack: null});
+  // What it gains with the spell's level: Hit Points, AC and damage, as expressions of the cast level. Healing and
+  // Hit Dice, and formulas of anything but the level, are not converted.
+  const bonuses = {};
+  const lost = [];
+  for ( const [name, formula] of Object.entries(activity.bonuses ?? {}) ) {
+    if ( !formula || (String(formula).trim() === "0") ) continue;
+    const expression = ["hp", "ac", "attackDamage", "saveDamage"].includes(name) ? summonBonus(formula) : null;
+    if ( expression ) bonuses[name] = expression;
+    else lost.push(name);
+  }
+  if ( lost.length ) notes.push(`summon: what it gains with the spell's level (${lost.join(", ")}) is not added`);
+  const timing = {count: counts[0], ...(rounds ? {rounds} : {}), ...(concentration ? {concentration: true} : {}),
+    ...(Object.keys(bonuses).length ? {bonuses, spellLevel: level} : {})};
+  if ( profiles.length === 1 ) return {...definition, ...(range ? {range} : {}), summon: {actorRef: profiles[0].ref, ...timing}};
+  const choice = {id: "summon-creature", type: "select-one", label: "Creature", required: true,
+    options: profiles.map(({profile, ref}) => ({id: ref, label: profile.name || names[String(profile.uuid).split(".").pop()] || ref}))};
+  return {...definition, ...(range ? {range} : {}), configuration: [...(definition.configuration ?? []), choice],
+    summon: {choiceId: choice.id, ...timing}};
+}
+
+/** A summon bonus as a ValueExpression of the spell's cast level (`castLevel`): "10 * (@item.level - 4)", "(@item.level - 3)d10". */
+function summonBonus(formula) {
+  const text = String(formula).replace(/@item\.level/g, "castlevelx").trim();
+  const variables = {castlevelx: {type: "context", path: "castLevel"}};
+  const dice = /^\((.+)\)\s*d\s*(\d+)$/.exec(text);
+  const parsed = parseFormula(dice ? dice[1] : text, {variables});
+  if ( !parsed.ok ) return null;
+  return dice ? {type: "dice", number: parsed.expression, faces: Number(dice[2])} : parsed.expression;
 }
 
 /** The Action of something used but not automated: its cost, its uses and, for a spell, its slot. */
@@ -724,7 +780,8 @@ export const proficiencyForChallenge = challenge => Math.max(2, Math.floor((Math
  * - Resistances and immunities, and Legendary Actions (a pool that refills each turn), go on a Traits feature.
  * @returns {{ok: true, actor: object, notes: string[]} | {ok: false, reason: string}}
  */
-export function convertActor(document, {scales={}, pack=null, names={}, licensed=isSrd2024, book="SRD 5.2", images=["icons/"], spells={}}={}) {
+export function convertActor(document, {scales={}, pack=null, names={}, licensed=isSrd2024, book="SRD 5.2", images=["icons/"], spells={},
+  creatures={}}={}) {
   if ( !licensed(document) ) return {ok: false, reason: "not SRD 5.2 (CC-BY-4.0)"};
   if ( document.type !== "npc" ) return {ok: false, reason: `a ${document.type} is not converted`};
   const system = document.system ?? {};
@@ -746,7 +803,7 @@ export function convertActor(document, {scales={}, pack=null, names={}, licensed
   for ( const item of document.items ?? [] ) {
     // dnd5e's cached copy of a spell a cast activity casts: the cast activity converts it.
     if ( (item.type === "equipment") || item.flags?.dnd5e?.cachedFor ) continue;
-    const result = convertItem(item, {scales, pack, saveDC, names, creature, licensed, book, images, spells});
+    const result = convertItem(item, {scales, pack, saveDC, names, creature, licensed, book, images, spells, creatures});
     if ( !result.ok ) {
       notes.push(`${item.name}: ${result.reason}`);
       continue;

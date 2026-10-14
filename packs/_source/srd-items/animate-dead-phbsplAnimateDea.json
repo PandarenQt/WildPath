@@ -98,6 +98,7 @@
       "conversion": {
         "notes": [
           "not automated (summon): using it spends its cost; its description says the rest",
+          "summon: a count of \"1 + @scaling.increase * 2, 1 + @scaling.increase * 2\" is not converted",
           "activation: 1 minute is not an action-economy cost"
         ]
       }
