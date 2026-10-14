@@ -157,6 +157,11 @@ real Foundry grids. Slice 5 done: lasting areas, auras and hazards, per the main
 
 **M3 — CLOSED on 2026-10-14.**
 
+**M6 — product surfaces (started 2026-10-14).** The character sheet is complete for what exists
+([ui-ux-layer.md](../architecture/ui-ux-layer.md#character-sheet-m6-2026-10-14)). It found and fixed a
+nested `<form>` that had kept every actor and item sheet field edit from saving. Next: the gameplay HUD and
+action bar, then the Rules Inspector.
+
 **M4 — content pack (in progress, 2026-10-14).**
 - **The pack.** `@foundryvtt/foundryvtt-cli` 3.0.4 was approved and added. The built-in **WildPath Actions**
   pack (nine Actions, one per proven mechanic) is built from JSON sources by `npm run build:packs`

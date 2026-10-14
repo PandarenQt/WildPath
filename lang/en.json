@@ -104,6 +104,31 @@
     "DYING": {
       "DeathSave": "Death Saving Throw"
     },
+    "SHEET": {
+      "AC": "AC",
+      "Level": "Level",
+      "Threat": "Threat",
+      "ShortRest": "Short Rest",
+      "LongRest": "Long Rest",
+      "Base": "Base value",
+      "Create": "Add",
+      "Delete": "Delete",
+      "Enable": "Enable",
+      "Disable": "Disable",
+      "NewItem": "New {type}",
+      "NewEffect": "New Effect",
+      "StackingHint": "click adds a level, right-click removes one",
+      "DeathSaves": "Death Saves",
+      "Successes": "Successes",
+      "Failures": "Failures",
+      "Stable": "Stable",
+      "DyingModeLabel": "At 0 health",
+      "DyingMode": {
+        "auto": "Default (characters and Player companions make death saves)",
+        "deathSaves": "Makes death saves",
+        "dies": "Dies"
+      }
+    },
     "PACKS": {
       "Actions": "WildPath Actions"
     },

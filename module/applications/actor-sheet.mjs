@@ -16,7 +16,15 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
     form: {submitOnChange: true},
     actions: {
       useItem: WildPathActorSheet.#onUseItem,
-      toggleCondition: WildPathActorSheet.#onToggleCondition
+      toggleCondition: WildPathActorSheet.#onToggleCondition,
+      rest: WildPathActorSheet.#onRest,
+      createItem: WildPathActorSheet.#onCreateItem,
+      openItem: WildPathActorSheet.#onOpenItem,
+      deleteItem: WildPathActorSheet.#onDeleteItem,
+      createEffect: WildPathActorSheet.#onCreateEffect,
+      openEffect: WildPathActorSheet.#onOpenEffect,
+      toggleEffect: WildPathActorSheet.#onToggleEffect,
+      deleteEffect: WildPathActorSheet.#onDeleteEffect
     }
   };
 
@@ -38,18 +46,45 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
     });
     context.sheet = sheet;
     Object.assign(context, sheet);
+    context.dyingModes = {auto: "WILDPATH.SHEET.DyingMode.auto", deathSaves: "WILDPATH.SHEET.DyingMode.deathSaves",
+      dies: "WILDPATH.SHEET.DyingMode.dies"};
     return context;
+  }
+
+  /** A right-click on a stacking condition removes one of its levels (a click adds one). */
+  async _onRender(context, options) {
+    await super._onRender(context, options);
+    for ( const element of this.element.querySelectorAll("[data-condition-id][data-stacking]") ) {
+      element.addEventListener("contextmenu", event => {
+        event.preventDefault();
+        void this.actor.toggleCondition(element.dataset.conditionId, {levels: -1});
+      });
+    }
+  }
+
+  /**
+   * Pool fields are written as `system.pools.<index>.<field>`; V14 drops ArrayField element paths, so they are
+   * folded into the whole stored array.
+   * @override
+   */
+  _processFormData(event, form, formData) {
+    const data = super._processFormData(event, form, formData);
+    const pools = data.system?.pools;
+    if ( pools && !Array.isArray(pools) ) {
+      const stored = this.actor.toObject(true).system.pools;
+      for ( const [index, changes] of Object.entries(pools) ) {
+        if ( stored[Number(index)] ) Object.assign(stored[Number(index)], changes);
+      }
+      data.system.pools = stored;
+    }
+    return data;
   }
 
   /* -------------------------------------------- */
   /*  Action Handlers                              */
   /* -------------------------------------------- */
 
-  /**
-   * @this {WildPathActorSheet}
-   * @param {PointerEvent} event
-   * @param {HTMLElement} target
-   */
+  /** @this {WildPathActorSheet} */
   static async #onUseItem(event, target) {
     const item = this.actor.items.get(target.closest("[data-item-id]")?.dataset.itemId);
     if ( !item ) return;
@@ -57,17 +92,63 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
     await item.use();
   }
 
-  /* -------------------------------------------- */
-
-  /**
-   * @this {WildPathActorSheet}
-   * @param {PointerEvent} event
-   * @param {HTMLElement} target
-   */
+  /** @this {WildPathActorSheet} A click adds a level to a stacking condition, else toggles it. */
   static async #onToggleCondition(event, target) {
-    const {conditionId} = target.closest("[data-condition-id]")?.dataset ?? {};
+    const element = target.closest("[data-condition-id]");
+    const conditionId = element?.dataset.conditionId;
     if ( !conditionId ) return;
+    if ( element.dataset.stacking !== undefined ) return this.actor.toggleCondition(conditionId, {levels: 1});
     const active = this.actor.statuses.has(conditionId);
     await this.actor.toggleCondition(conditionId, {levels: active ? -1 : 1});
+  }
+
+  /** @this {WildPathActorSheet} */
+  static async #onRest(event, target) {
+    await this.actor.rest(target.dataset.recovery);
+  }
+
+  /** @this {WildPathActorSheet} */
+  static async #onCreateItem(event, target) {
+    const type = target.dataset.type;
+    const [item] = await this.actor.createEmbeddedDocuments("Item", [{type,
+      name: game.i18n.format("WILDPATH.SHEET.NewItem", {type: game.i18n.localize(CONFIG.Item.typeLabels?.[type] ?? type)})}]);
+    item?.sheet?.render(true);
+  }
+
+  /** @this {WildPathActorSheet} */
+  static async #onOpenItem(event, target) {
+    this.actor.items.get(target.closest("[data-item-id]")?.dataset.itemId)?.sheet?.render(true);
+  }
+
+  /** @this {WildPathActorSheet} */
+  static async #onDeleteItem(event, target) {
+    await this.actor.items.get(target.closest("[data-item-id]")?.dataset.itemId)?.deleteDialog();
+  }
+
+  /** @this {WildPathActorSheet} */
+  static async #onCreateEffect(event, target) {
+    const [effect] = await this.actor.createEmbeddedDocuments("ActiveEffect", [{type: "effect", system: {},
+      name: game.i18n.localize("WILDPATH.SHEET.NewEffect"), img: "icons/svg/aura.svg"}]);
+    effect?.sheet?.render(true);
+  }
+
+  /** @this {WildPathActorSheet} */
+  static async #onOpenEffect(event, target) {
+    this.#effectFor(target)?.sheet?.render(true);
+  }
+
+  /** @this {WildPathActorSheet} */
+  static async #onToggleEffect(event, target) {
+    const effect = this.#effectFor(target);
+    await effect?.update({disabled: !effect.disabled});
+  }
+
+  /** @this {WildPathActorSheet} */
+  static async #onDeleteEffect(event, target) {
+    await this.#effectFor(target)?.deleteDialog();
+  }
+
+  #effectFor(target) {
+    return this.actor.effects.get(target.closest("[data-effect-id]")?.dataset.effectId) ?? null;
   }
 }

@@ -66,6 +66,25 @@ Prompt rendering should collect a roll total or explicit physical-dice outcome, 
 data to `ConcentrationCheckCommitResolver`. It should not compare saves against DCs or remove
 effects directly.
 
+## Character Sheet (M6, 2026-10-14)
+
+The actor sheet renders `createActorSheetViewModel` (`helpers/character-sheet-view-models.mjs`) and
+leaves the rules to the documents:
+- **Header:** AC, level (characters) or threat (NPCs), and every Speed besides walking.
+- **Rests:** Short and Long Rest buttons call `Actor#rest`.
+- **Editing:** abilities, current values, and each resource's and pool's base (which sets its maximum).
+  Pool fields are folded into the whole stored array, because V14 drops ArrayField element paths.
+- **Conditions:** a click toggles one; on a stacking condition (Exhaustion, Envenomed) a click adds a
+  level, a right-click removes one, and the level shows on the icon.
+- **Death saves:** pips appear while the creature is at 0 health or has any marked. The "At 0 health"
+  setting edits `system.dyingMode`.
+- **Items and effects:** create, open (click the name) and delete (with Foundry's confirmation).
+  Effects can also be enabled or disabled.
+
+The sheet templates' wrappers are `<div>`s. Both sheets are ApplicationV2 sheets whose root element is the
+form; the templates used to open their own nested `<form>`, so their inputs never reached the sheet's
+form, and no field edit saved. Live on 14.369 the actor and item sheets now save every field.
+
 ## Boundary Rule
 
 - UI renders view models.

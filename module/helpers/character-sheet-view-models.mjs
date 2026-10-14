@@ -25,7 +25,7 @@ export function createActorSheetViewModel({
   const actorModel = normalizeActor(actor);
   const itemEntries = collectionContents(items ?? actor.items).map(normalizeItemEntry);
   const effectEntries = collectionContents(effects ?? actor.effects).map(normalizeEffectEntry);
-  const conditionEntries = normalizeConditions(conditionDefinitions, statuses ?? actor.statuses);
+  const conditionEntries = normalizeConditions(conditionDefinitions, statuses ?? actor.statuses, effects ?? actor.effects);
   const groupedItems = groupItems(itemEntries);
   const actionBar = createActionBarViewModel({
     actor: {...actorModel, system: actorSystem},
@@ -84,6 +84,7 @@ function normalizeActor(actor) {
 function createHeaderView(actor, system, summary) {
   const health = system?.resources?.health ?? null;
   const movement = system?.resources?.movement ?? null;
+  const ac = Number(system?.defenses?.ac?.value);
   return {
     actorRef: actor.ref,
     name: actor.name,
@@ -91,9 +92,26 @@ function createHeaderView(actor, system, summary) {
     type: actor.type,
     health: health ? normalizeResourceSummary("health", health) : null,
     movement: movement ? normalizeResourceSummary("movement", movement) : null,
+    ac: Number.isFinite(ac) ? ac : null,
+    level: Number.isFinite(Number(system?.details?.level)) ? Number(system.details.level) : null,
+    threat: Number.isFinite(Number(system?.details?.threat)) ? Number(system.details.threat) : null,
+    // Every Speed but walking (shown as movement), e.g. "fly 60".
+    speeds: Object.entries(system?.speeds ?? {}).filter(([mode]) => mode !== "walk").map(([mode, distance]) => ({mode, distance})),
+    // Death saves show while the creature is at 0 health or has any marked.
+    deathSaves: deathSavesView(system),
+    dyingMode: system?.dyingMode ?? "auto",
     activeConditionCount: summary.activeConditionCount,
     effectCount: summary.effectCount
   };
+}
+
+function deathSavesView(system) {
+  const successes = Number(system?.deathSaves?.successes) || 0;
+  const failures = Number(system?.deathSaves?.failures) || 0;
+  const dying = (Number(system?.resources?.health?.value) || 0) <= 0;
+  if ( !system?.deathSaves || (!dying && !successes && !failures) ) return null;
+  const pips = count => [0, 1, 2].map(index => index < count);
+  return {successes, failures, successPips: pips(successes), failurePips: pips(failures), stable: successes >= 3, dead: failures >= 3};
 }
 
 function normalizeAbilities(abilities={}, labels={}) {
@@ -162,10 +180,15 @@ function normalizeEffectEntry(effect) {
   };
 }
 
-function normalizeConditions(conditionDefinitions, statuses) {
+function normalizeConditions(conditionDefinitions, statuses, effects) {
+  const levels = new Map(collectionContents(effects).filter(effect => effect?.system?.type)
+    .map(effect => [effect.system.type, Number(effect.system.level) || null]));
   return (conditionDefinitions ?? []).map(condition => ({
     ...condition,
-    active: hasStatus(statuses, condition.id)
+    active: hasStatus(statuses, condition.id),
+    stacking: condition.stacking === true,
+    // A stacking condition shows its level (Exhaustion 3, Envenomed 2).
+    level: condition.stacking ? (levels.get(condition.id) ?? null) : null
   }));
 }
 

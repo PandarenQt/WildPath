@@ -78,3 +78,24 @@ test("actor sheet view model renders custom resources without hardcoded slots", 
   assert.equal(model.actionItems[0].availability.enabled, true);
   assert.equal(model.actionItems[0].availability.defaultPaymentOptionId, "payment-1");
 });
+
+test("the sheet header shows AC, level or threat, every non-walking Speed, and death saves while dying", () => {
+  const dying = {...system(), defenses: {ac: {value: 15}}, details: {level: 4}, speeds: {walk: 30, fly: 60},
+    deathSaves: {successes: 1, failures: 2}, dyingMode: "deathSaves"};
+  dying.resources.health.value = 0;
+  const {header} = createActorSheetViewModel({actor: {id: "a", type: "character"}, system: dying});
+  assert.deepEqual([header.ac, header.level, header.threat], [15, 4, null]);
+  assert.deepEqual(header.speeds, [{mode: "fly", distance: 60}]);
+  assert.deepEqual([header.deathSaves.successPips, header.deathSaves.failurePips], [[true, false, false], [true, true, false]]);
+  assert.equal(header.dyingMode, "deathSaves");
+  const healthy = createActorSheetViewModel({actor: {id: "b"}, system: {...system(), deathSaves: {successes: 0, failures: 0}}});
+  assert.equal(healthy.header.deathSaves, null, "no death saves while standing");
+});
+
+test("stacking conditions show their level", () => {
+  const view = createActorSheetViewModel({actor: {id: "a"}, system: system(), statuses: new Set(["exhaustion"]),
+    effects: [{id: "e", system: {type: "exhaustion", level: 3}}],
+    conditionDefinitions: [{id: "exhaustion", stacking: true}, {id: "prone"}]});
+  assert.deepEqual(view.conditions.map(entry => [entry.id, entry.active, entry.stacking, entry.level]),
+    [["exhaustion", true, true, 3], ["prone", false, false, null]]);
+});

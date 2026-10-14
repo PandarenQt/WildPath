@@ -451,3 +451,18 @@
 .wildpath.resolution-card .card-target[data-target-uuid]:focus-visible .target-name {
   text-decoration: underline;
 }
+
+/* Sheet completion: header commands, editable bases, stacking levels, death saves. */
+.wildpath.actor .actor-commands { display: flex; gap: 0.25rem; margin-top: 0.25rem; }
+.wildpath.actor .resource-values input.base { width: 3rem; opacity: 0.7; }
+.wildpath.actor .condition { position: relative; }
+.wildpath.actor .condition-level {
+  position: absolute; right: -2px; bottom: -2px; min-width: 1rem; padding: 0 2px; border-radius: 0.5rem;
+  background: #222; color: #fff; font-size: 0.7rem; text-align: center;
+}
+.wildpath.actor .death-saves { display: flex; align-items: center; gap: 0.25rem; flex-wrap: wrap; }
+.wildpath.actor .death-saves .pip { width: 0.8rem; height: 0.8rem; border: 1px solid #555; border-radius: 50%; }
+.wildpath.actor .death-saves .pip.marked { background: #3a7d44; }
+.wildpath.actor .death-saves .pip.failure.marked { background: #9b2c2c; }
+.wildpath.actor .dying-mode { display: flex; gap: 0.5rem; align-items: center; margin-top: 0.25rem; }
+.wildpath.actor a.row-name { cursor: pointer; }
