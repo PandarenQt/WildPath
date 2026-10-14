@@ -150,8 +150,9 @@ A feature is matched by its dnd5e identifier (or its name) and gets the rules of
   however dnd5e activates it ("special" or "turnStart"). A Vampire's does not work in sunlight; running water is
   the GM's to track (maintainer, 2026-10-15).
 - **Flyby:** no Opportunity Attacks when it flies out of reach (`AvoidOpportunityAttacks` for `fly`).
-- **Daylight** (a spell): a lasting area for its duration that sheds sunlight, bright over its area and dim 60 ft
-  beyond. Cast on an object, it is placed where the object is; the Darkness it ends is ended by hand.
+- **Daylight and Darkness** (spells): lasting areas for their duration that shed sunlight (bright over its area,
+  dim 60 ft beyond) or darkness. Each ends the other kind it overlaps: Daylight ends Darkness of level 3 or lower,
+  Darkness ends spell light of level 2 or lower. "Cast on an object" makes the area follow the Token at its center.
 - **Evasion:** an Agility save that halves takes none on a success and half on a failure, unless Incapacitated.
 - **Sneak Attack:** once per turn, its dice (by Rogue level, or a stat block's own) of the weapon's damage type, on a
   hit with a Finesse or ranged weapon, with Advantage or with an ally beside the target and no Disadvantage. Its

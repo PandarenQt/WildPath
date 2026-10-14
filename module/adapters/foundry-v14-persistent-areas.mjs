@@ -2,6 +2,8 @@ import { createFoundryV14TacticalGridAdapter, gridFieldToFoundryCenterPoint, gri
 import { createReachFootprint, fieldKey } from "../helpers/grid-footprints.mjs";
 import { AREA_SHAPES } from "../helpers/tactical-areas.mjs";
 import { runAuthorityAction } from "./foundry-v14-automation-dispatcher.mjs";
+/** The Token an attached area surrounds and follows: the object it was cast on, else its caster. */
+const anchorOf = (flag) => flag.anchorTokenId ?? flag.sourceTokenId;
 export const AREA_EVENTS = Object.freeze({ ENTERED: "area.entered", EXITED: "area.exited", TURN_STARTED: "turn.started",
     TURN_ENDED: "turn.ended" });
 const answers = (flag, event) => flag.persistence.triggers.some(trigger => trigger.on.includes(event));
@@ -56,7 +58,8 @@ export function persistentAreaRegionData({ placement, sourceToken, combat, color
 export function areaFields(flag, scene, { position = null } = {}) {
     if (!flag.attached)
         return flag.fields;
-    const caster = flag.sourceTokenId ? scene.tokens.get(flag.sourceTokenId) : null;
+    const anchor = anchorOf(flag);
+    const caster = anchor ? scene.tokens.get(anchor) : null;
     if (!caster)
         return [];
     const footprint = createFoundryV14TacticalGridAdapter({ scene }).tokenToFootprint(caster, position ? { position } : {});
@@ -66,8 +69,8 @@ export function areaFields(flag, scene, { position = null } = {}) {
 }
 /** Whether a Token stands in an area: any of its fields is covered and its height overlaps the area's band. */
 export function areaCovers(flag, token, { fields = null, position = null } = {}) {
-    if (token.id === flag.sourceTokenId && flag.attached)
-        return false; // an emanation surrounds its caster
+    if ((token.id === anchorOf(flag)) && flag.attached)
+        return false; // an emanation surrounds its caster (or object)
     const scene = token.parent;
     const covered = new Set((fields ?? areaFields(flag, scene)).map(field => keyOf(field, flag.topology)));
     if (!covered.size)
@@ -81,6 +84,23 @@ export function areaCovers(flag, token, { fields = null, position = null } = {})
     return ((flag.band.bottom === null) || (head >= flag.band.bottom)) && ((flag.band.top === null) || (feet <= flag.band.top));
 }
 /** Every lasting area on a Scene, with its Region. */
+/** The center of an area's fields, in pixels; null when none resolve. */
+function areaCenter(flag, scene) {
+    const points = flag.fields.map(field => toCenter(field, { scene, grid: scene.grid }).point).filter(Boolean);
+    if (!points.length)
+        return null;
+    return { x: points.reduce((sum, point) => sum + point.x, 0) / points.length, y: points.reduce((sum, point) => sum + point.y, 0) / points.length };
+}
+/** The Token standing on a point (its rectangle holds it), or null. */
+function tokenAt(scene, point) {
+    const size = Number(scene.grid.size) || 100;
+    if (!point)
+        return null;
+    return [...scene.tokens].find(token => {
+        const [x, y] = [Number(token.x) || 0, Number(token.y) || 0];
+        return (point.x >= x) && (point.x < x + ((Number(token.width) || 1) * size)) && (point.y >= y) && (point.y < y + ((Number(token.height) || 1) * size));
+    }) ?? null;
+}
 export function sceneAreas(scene) {
     return [...(scene.regions ?? [])].flatMap(region => region.flags?.wildpath?.area ? [{ region, flag: region.flags.wildpath.area }] : []);
 }
@@ -107,7 +127,7 @@ export function turnKey(combat) {
  */
 export function createFoundryPersistentAreas({ game, coordinator, resolveAction, logger = globalThis.console, fromUuid = null }) {
     let sequence = 0;
-    async function create({ options }) {
+    async function create({ options, state }) {
         const placement = options.persistentArea;
         if (!placement)
             return null;
@@ -115,6 +135,16 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         if (!token)
             return null;
         const data = persistentAreaRegionData({ placement, sourceToken: token, combat: game.combat ?? null, color: game.user.color });
+        const flag = data.flags.wildpath.area;
+        const persistence = (placement.definition.area?.persistence ?? {});
+        flag.castLevel = state?.configuration?.castingLevel ?? flag.persistence.light?.spellLevel ?? null;
+        // Cast on an object (Daylight, Darkness): the area surrounds the Token at its center and goes where it goes.
+        const chosen = persistence.onObject && (state?.configuration?.choices ?? []).some(choice => (choice.id === persistence.onObject)
+            && (choice.value === true));
+        const object = chosen ? tokenAt(token.parent, areaCenter(flag, token.parent)) : null;
+        if (object)
+            Object.assign(flag, { attached: true, anchorTokenId: object.id }), data.attachment = { token: object.id };
+        await dispelOpposed(token.parent, flag);
         const [region] = await token.parent.createEmbeddedDocuments("Region", [data]);
         if (region && data.flags.wildpath.area.persistence.concentration)
             await markConcentration(region, token, data.name);
@@ -124,21 +154,46 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         return region ?? null;
     }
     /**
-     * A lasting area that sheds light (Daylight) gets an ambient light at its center, tagged as sunlight when its light
-     * is; it goes when the area goes.
+     * A lasting area that sheds light (Daylight) or darkness (Darkness) gets it at its center, tagged as sunlight when its
+     * light is; it goes when the area goes. An attached area's light is its Token's own, so it moves with the Token; the
+     * Token's own light comes back after.
      */
     async function shedLight(region, scene, flag, light) {
-        // shortcut: an emanation's light stays where it was cast; upgrade by moving the light with the caster's Token.
-        const points = flag.fields.map(field => toCenter(field, { scene, grid: scene.grid }).point).filter(Boolean);
-        if (!points.length)
+        const config = { bright: Number(light.bright) || 0, dim: Math.max(Number(light.dim) || 0, Number(light.bright) || 0),
+            negative: light.darkness === true };
+        const anchor = flag.attached ? scene.tokens.get(anchorOf(flag) ?? "") : null;
+        if (anchor?.update) {
+            const previous = { light: anchor.toObject?.().light ?? null, sunlight: anchor.flags?.wildpath?.sunlight === true };
+            await anchor.update({ light: config, "flags.wildpath.sunlight": light.sunlight === true });
+            await region.update({ "flags.wildpath.area.lightToken": { id: anchor.id, previous } });
             return;
-        const x = points.reduce((sum, point) => sum + point.x, 0) / points.length;
-        const y = points.reduce((sum, point) => sum + point.y, 0) / points.length;
-        const [created] = await scene.createEmbeddedDocuments("AmbientLight", [{ x, y, elevation: flag.band.bottom ?? 0,
-                config: { bright: Number(light.bright) || 0, dim: Math.max(Number(light.dim) || 0, Number(light.bright) || 0) },
+        }
+        const center = areaCenter(flag, scene);
+        if (!center)
+            return;
+        const [created] = await scene.createEmbeddedDocuments("AmbientLight", [{ ...center, elevation: flag.band.bottom ?? 0, config,
                 flags: { wildpath: { sunlight: light.sunlight === true, areaRegion: region.id } } }]);
         if (created)
             await region.update({ "flags.wildpath.area.lightId": created.id });
+    }
+    /**
+     * 2024 Daylight and Darkness: an area whose light `dispels` ends each overlapping area of the opposite kind (darkness
+     * for light, light for darkness) whose spell was cast at that level or lower.
+     */
+    async function dispelOpposed(scene, flag) {
+        const light = flag.persistence.light;
+        if (!light?.dispels)
+            return;
+        const covered = new Set(areaFields(flag, scene).map(field => keyOf(field, flag.topology)));
+        for (const other of sceneAreas(scene)) {
+            const theirs = other.flag.persistence.light;
+            if (!theirs || ((theirs.darkness === true) === (light.darkness === true)))
+                continue;
+            if (!((other.flag.castLevel ?? Infinity) <= light.dispels))
+                continue;
+            if (areaFields(other.flag, scene).some(field => covered.has(keyOf(field, other.flag.topology))))
+                await other.region.delete();
+        }
     }
     /**
      * A concentration area is sustained like any concentration effect: a marker on the caster names the caster
@@ -179,10 +234,16 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
     async function onRegionDeleted(region) {
         if (!isActiveGM())
             return;
-        // Its light goes with it.
+        // Its light goes with it; a Token whose light it was gets its own back.
         const lightId = region.flags?.wildpath?.area?.lightId;
         if (lightId)
             await region.parent?.lights?.get(lightId)?.delete();
+        const lightToken = region.flags?.wildpath?.area?.lightToken;
+        const holder = lightToken ? region.parent?.tokens.get(lightToken.id) : null;
+        if (lightToken && holder?.update) {
+            await holder.update({ light: lightToken.previous.light ?? { bright: 0, dim: 0, negative: false },
+                "flags.wildpath.sunlight": lightToken.previous.sunlight });
+        }
         const uuid = region.flags?.wildpath?.area?.concentrationEffect;
         if (!uuid)
             return;
@@ -247,7 +308,7 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
      */
     function swept(owner, { previous, position }) {
         const scene = owner.parent;
-        return sceneAreas(scene).filter(({ flag }) => flag.attached && (flag.sourceTokenId === owner.id))
+        return sceneAreas(scene).filter(({ flag }) => flag.attached && (anchorOf(flag) === owner.id))
             .flatMap(({ region, flag }) => {
             const before = areaFields(flag, scene, { position: previous });
             const after = areaFields(flag, scene, { position });

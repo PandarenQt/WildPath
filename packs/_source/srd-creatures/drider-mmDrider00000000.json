@@ -409,6 +409,37 @@
               }
             ]
           },
+          "targeting": {
+            "type": "area"
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 60,
+              "unit": "ft"
+            }
+          },
+          "area": {
+            "shape": "radial",
+            "size": {
+              "value": 15,
+              "unit": "ft"
+            },
+            "persistence": {
+              "duration": {
+                "unit": "round",
+                "value": 100
+              },
+              "concentration": true,
+              "light": {
+                "bright": 15,
+                "darkness": true,
+                "dispels": 2,
+                "spellLevel": 2
+              },
+              "onObject": "on-object"
+            }
+          },
           "label": "Darkness"
         },
         "ruleElements": [
@@ -442,10 +473,7 @@
             "castBy": "Magic of the Spider Queen"
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "concentration: nothing it sustains was converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -665,11 +693,10 @@
       },
       "conversion": {
         "notes": [
-          "Magic of the Spider Queen: not automated (utility): using it spends its cost; its description says the rest",
-          "Magic of the Spider Queen: concentration: nothing it sustains was converted",
           "Magic of the Spider Queen: not automated (save): using it spends its cost; its description says the rest",
           "Magic of the Spider Queen: area: 20-ft cube is not supported; the user picks the targets",
           "Magic of the Spider Queen: effect: \"Outlined\" (its own changes) not converted",
+          "Magic of the Spider Queen: concentration: nothing it sustains was converted",
           "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
         ]
       }

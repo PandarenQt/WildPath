@@ -1243,11 +1243,48 @@ test("a lasting area that sheds light (Daylight) places it at its center, as sun
   assert.equal(declared.ok, true, JSON.stringify(declared));
   const [region] = scene.regions;
   const light = scene.lights.get(region.flags.wildpath.area.lightId);
-  assert.deepEqual([light.config, light.flags.wildpath.sunlight, light.flags.wildpath.areaRegion], [{bright: 10, dim: 20}, true, region.id]);
+  assert.deepEqual([light.config, light.flags.wildpath.sunlight, light.flags.wildpath.areaRegion],
+    [{bright: 10, dim: 20, negative: false}, true, region.id]);
   assert.ok(Number.isFinite(light.x) && Number.isFinite(light.y), "at the area's center");
   await region.delete();
   await areas.onRegionDeleted(region);
   assert.equal(scene.lights.size, 0, "it goes with the area");
+});
+
+test("Daylight cast on an object follows it with that Token's own light, and ends weaker Darkness it overlaps", async t => {
+  const darkness = {bright: 15, darkness: true, dispels: 2, spellLevel: 2};
+  const {scene, areas, sourceToken, farToken: targetToken, player, gm, intent} = lastingAreaFixture(t, {light: darkness});
+  // The object at the area's center: a Token with a light of its own, which the area borrows and gives back.
+  const original = targetToken.toObject?.bind(targetToken);
+  Object.assign(targetToken, {light: {bright: 5, dim: 10}, flags: {},
+    toObject(...args) { return {...(original?.(...args) ?? {}), light: {...this.light}}; },
+    async update(changes) {
+      if ( changes.light ) this.light = changes.light;
+      if ( "flags.wildpath.sunlight" in changes ) this.flags = {wildpath: {sunlight: changes["flags.wildpath.sunlight"]}};
+    }});
+  const declaredShadow = await player.declareActionIntent({...intent, area: {points: [{x: 275, y: 25}]}});
+  assert.equal(declaredShadow.ok, true);
+  const [shadow] = scene.regions;
+  assert.ok(shadow, JSON.stringify(gm.errors ?? null).slice(0, 300));
+  assert.deepEqual([shadow.flags.wildpath.area.castLevel, scene.lights.get(shadow.flags.wildpath.area.lightId).config.negative], [2, true],
+    "Darkness sheds darkness; with no slot chosen, its own level");
+  const {topology, fields} = shadow.flags.wildpath.area;
+  const daylight = {id: "action:daylight", label: "Daylight", area: {shape: "radial", size: {value: 5, unit: "ft"},
+    persistence: {light: {bright: 60, dim: 120, sunlight: true, dispels: 3, spellLevel: 3}, onObject: "on-object"}}};
+  const cast = (definition, configuration) => areas.create({options: {persistentArea: {footprint: {topology, fields}, definition,
+    sourceTokenId: sourceToken.id, sceneId: scene.id}}, state: {configuration}});
+  const day = await cast(daylight, {castingLevel: 3, choices: [{id: "on-object", value: true}]});
+  assert.equal(scene.regions.includes(shadow), false, "Darkness of level 2 is ended");
+  assert.deepEqual([day.attachment.token, day.flags.wildpath.area.anchorTokenId, day.flags.wildpath.area.attached],
+    [targetToken.id, targetToken.id, true], "cast on the Token at its center, it goes where that Token goes");
+  assert.deepEqual([targetToken.light, targetToken.flags.wildpath.sunlight], [{bright: 60, dim: 120, negative: false}, true]);
+  await day.delete();
+  await areas.onRegionDeleted(day);
+  assert.deepEqual([targetToken.light, targetToken.flags.wildpath.sunlight], [{bright: 5, dim: 10}, false], "its own light comes back");
+
+  const deep = await cast({...daylight, id: "action:darkness", area: {...daylight.area, persistence: {light: darkness}}}, {castingLevel: 4});
+  await cast(daylight, {castingLevel: 3});
+  assert.ok(scene.regions.includes(deep), "Darkness cast at level 4 outlasts Daylight");
 });
 
 test("an emanation is attached to its caster and covers whoever is next to the caster now", async t => {

@@ -207,12 +207,29 @@ and the move went on to its end (30→20 ft) without stopping.
 Not yet: the staged (programmatic) movement path, falling through an area (vertical movement is not
 modelled), and hidden areas such as traps.
 
-**Light (2026-10-15).** `persistence.light: {bright, dim, sunlight}` (radii in the Scene's units):
+**Light (2026-10-15).** `persistence.light: {bright, dim, sunlight, darkness, dispels, spellLevel}` (radii in the
+Scene's units):
 - **Placement:** the area sheds light from its center as an ambient light, `flags.wildpath.areaRegion` naming its
   Region. The Region keeps the light's id (`flags.wildpath.area.lightId`), and deleting the Region deletes the light.
-- **Daylight:** `sunlight: true` tags the light as sunlight (rule-elements.md, "Sunlight"). The converted 2024 Daylight
-  spell is a 60-ft radial lasting area for 600 rounds, with `{bright: 60, dim: 120, sunlight: true}`.
-- **Shortcut:** an emanation's light stays where it was cast.
+- **Darkness:** `darkness: true` makes it a darkness source (`negative`).
+- **Attached areas:** an attached area (an emanation, or one cast on an object) uses its Token's own light instead,
+  so the light moves with the Token. The Token's own light is kept in `flags.wildpath.area.lightToken` and restored
+  when the area ends.
+- **Cast on an object:** `persistence.onObject: <choice id>` names a yes/no configuration choice. When it is chosen,
+  the area surrounds the Token at its center and follows it (`anchorTokenId`, and the Region's attachment).
+- **Dispelling:** `dispels: N` ends each overlapping area of the opposite kind, light against darkness, cast at level N
+  or lower. The cast level is `flags.wildpath.area.castLevel`, from the spell slot chosen, else `spellLevel`.
+- **Converted spells:**
+  - The 2024 Daylight is a 60-ft radial area for 600 rounds: `{bright: 60, dim: 120, sunlight: true, dispels: 3}`
+    (rule-elements.md, "Sunlight").
+  - Darkness is a 15-ft radial area for 100 rounds, with concentration: `{bright: 15, darkness: true, dispels: 2}`.
+  - Both have the "Cast on an object" choice.
+
+Live (two browsers, 14.369):
+- Player1 cast Darkness (2nd level), then Daylight "on an object" at a Lantern Token inside it.
+- The Darkness, its darkness light and its concentration marker were gone. The Daylight Region was attached to the
+  Lantern, and the Lantern carried 60/120 sunlight.
+- When the GM moved the Lantern, the Region moved with it. Deleting the Daylight gave the Lantern its own light back.
 
 Live (two browsers, 14.369): Player1 cast the SRD Daylight beside a Kobold Warrior, and its Region and sunlight light
 appeared at the chosen point. The Kobold's Dagger showed 56% with Disadvantage. When the Region was deleted, the light
