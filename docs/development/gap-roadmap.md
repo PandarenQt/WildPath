@@ -201,6 +201,8 @@ Forced movement and elevation join G6, which becomes "space": areas, elevation a
     refused, unspent; at another creature it went through. With `ConditionImmunity` to Grappled, a hit
     applied nothing.
 
+- **B1.4, area preview (2026-10-14).** Done: while placing an area, the creatures it would hit are outlined, allies
+  in amber. Every B1 item now has a first version.
 - **B1.6 and B1.8, tooltips and a tidier bar (2026-10-14).** Done:
   - condition and effect icons explain their rules and time left;
   - common actions show as icons, and buttons no longer overlap.

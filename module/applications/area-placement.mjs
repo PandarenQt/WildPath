@@ -1,5 +1,8 @@
-import { areaClickCount, foundryAreaFootprint, foundryPointInRange } from "../adapters/foundry-v14-area-placement.mjs";
+import { areaClickCount, foundryAreaFootprint, foundryAreaTargetTokens, foundryPointInRange } from "../adapters/foundry-v14-area-placement.mjs";
 import { createFoundryV14TacticalGridAdapter } from "../adapters/foundry-v14-tactical-grid-adapter.mjs";
+/** Creatures an area would hit: allies (the caster's own disposition) in amber, the others in red. */
+const ALLY = 0xffaa00;
+const OTHER = 0xff3333;
 const LAYER = "wildpath-area-placement";
 const CODE_KEYS = {
     NoGrid: "WILDPATH.AREA.NoGrid",
@@ -20,7 +23,7 @@ const CODE_KEYS = {
  * @returns the placement points, or null when cancelled.
  */
 export function placeFoundryArea({ definition, sourceToken }) {
-    const { canvas } = globalThis;
+    const { canvas, game } = globalThis;
     const adapter = createFoundryV14TacticalGridAdapter({ scene: sourceToken.parent });
     const needed = areaClickCount(definition);
     return pickPoints({
@@ -30,10 +33,17 @@ export function placeFoundryArea({ definition, sourceToken }) {
             const result = foundryAreaFootprint({ definition, sourceToken, points: [...points, cursor] });
             if (!result.ok)
                 return [];
-            return result.footprint.fields.flatMap(field => {
+            const fields = result.footprint.fields.flatMap(field => {
                 const center = adapter.fieldToCenterPoint(field);
                 return center.ok && center.point ? [{ x: center.point.x - (canvas.grid.sizeX / 2), y: center.point.y - (canvas.grid.sizeY / 2) }] : [];
             });
+            // Every creature the area would hit, as the authority will find them, allies included (Baldur's Gate 3).
+            const source = sourceToken.disposition ?? 0;
+            const creatures = foundryAreaTargetTokens({ sourceToken, footprint: result.footprint })
+                .filter(token => game.user.isGM || !token.hidden)
+                .flatMap(token => token.getOccupiedGridSpaceOffsets().map(offset => ({ ...canvas.grid.getTopLeftPoint(offset),
+                color: (token.disposition ?? 0) === source ? ALLY : OTHER })));
+            return [...fields, ...creatures];
         },
         // A click counts only when it advances placement: a valid origin first, then a valid whole area.
         accept: (points, point) => {
@@ -73,8 +83,9 @@ function pickPoints({ needed, hint, highlight, accept }) {
         const toCanvas = (event) => canvas.canvasCoordinatesFromClient({ x: event.clientX, y: event.clientY });
         const draw = (cursor) => {
             grid.clearHighlightLayer(LAYER);
-            for (const { x, y } of highlight(points, cursor)) {
-                grid.highlightPosition(LAYER, { x, y, color: Number(game.user.color), border: Number(game.user.color), alpha: 0.35 });
+            for (const { x, y, color } of highlight(points, cursor)) {
+                const tint = color ?? Number(game.user.color);
+                grid.highlightPosition(LAYER, { x, y, color: tint, border: tint, alpha: color ? 0.55 : 0.35 });
             }
         };
         const finish = (value) => {

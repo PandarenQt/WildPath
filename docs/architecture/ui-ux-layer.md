@@ -34,6 +34,15 @@ model through `actionBarContext` (`helpers/action-bar-context.mts`).
 - **Use:** a click calls the real `Item.use()`, so the authority decides everything.
 - **Updates:** it re-renders when that creature, its Items or its effects change.
 
+**Area preview (2026-10-14, after Baldur's Gate 3).** While an area is placed, besides its fields, each creature it
+would hit is outlined on its own spaces, exactly as the authority will find them (`foundryAreaTargetTokens`):
+- allies, with the caster's own disposition, in amber;
+- the others in red;
+- hidden creatures only for the GM.
+
+Live: Player1's Fireball over the Bandit Captain outlined the caster in amber and the Captain in red. A dead ally
+was not outlined, since the authority does not target it either. Escape cancelled with nothing spent.
+
 **Tooltips that explain, and a tidier bar (2026-10-14, after Baldur's Gate 3).**
 - **Condition icons.** On the action bar and the combat carousel, hovering a condition shows:
   - its name and a short rules summary (each condition's `summary` key, with 2014 wording for the 2014
