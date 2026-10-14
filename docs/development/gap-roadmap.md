@@ -201,6 +201,10 @@ Forced movement and elevation join G6, which becomes "space": areas, elevation a
     refused, unspent; at another creature it went through. With `ConditionImmunity` to Grappled, a hit
     applied nothing.
 
+- **B1.3, movement that warns (2026-10-14).** Done:
+  - the dragged Token's label shows the movement left and each Opportunity Attack the path would provoke;
+  - verified in Node, Quench (91/91) and two browsers ([ui-ux-layer.md](../architecture/ui-ux-layer.md)).
+  - Not yet: warnings for lasting areas and difficult terrain on the path.
 - **B1.4a, common actions (2026-10-14).** Done:
   - Dash, Disengage, Dodge, Hide, Grapple, Shove and Unarmed Strike for every creature, built by the authority
     from their id;

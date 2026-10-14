@@ -34,6 +34,21 @@ model through `actionBarContext` (`helpers/action-bar-context.mts`).
 - **Use:** a click calls the real `Item.use()`, so the authority decides everything.
 - **Updates:** it re-renders when that creature, its Items or its effects change.
 
+**Movement that warns (2026-10-14, after Baldur's Gate 3).** `WildPathTokenRuler` (`module/applications/token-ruler.mts`,
+`CONFIG.Token.rulerClass`) adds two things to a dragged Token's destination label:
+- **Movement left.** The creature's remaining movement less the path's cost, shown as "Not enough movement" in red
+  when it would run out. The authority still decides.
+- **Opportunity Attacks.** Each hostile creature, still with its Reaction, whose reach the path leaves. The
+  reactors are the production reaction provider's observers, and the reach relations are the authority's
+  (`movementTransitionRelations`), sampled at each grid step (`observersLeftBehind`). Hidden creatures show only
+  to the GM.
+
+The label template is WildPath's own (`templates/hud/waypoint-label.hbs`), laid out like Foundry's.
+
+Live (two browsers): Player1 dragged the Prone caster four squares from the Bandit Captain. The label read
+"20 ft · 5 ft left · Opportunity Attack: Bandit Captain". A step that stayed in reach read "5 ft · 20 ft left",
+with no warning. Releasing on the start square moved nothing.
+
 **Floating combat text (2026-10-14, after Baldur's Gate 3).** What happens to a creature rises over its visible
 Tokens on every client (`module/applications/floating-text.mts`), with Foundry's scrolling text:
 - **Health:**

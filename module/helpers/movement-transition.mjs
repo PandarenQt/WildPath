@@ -19,3 +19,14 @@ export function movementTransitionRelations(previous, proposed, observers) {
                 context: clonePlainData(observer.context ?? {}) }];
     }));
 }
+/** The observers whose reach a path of the mover's footprints leaves at some step: an Opportunity Attack warning. */
+export function observersLeftBehind(path, observers) {
+    const left = new Set();
+    for (let index = 1; index < path.length; index++) {
+        for (const [id, relation] of Object.entries(movementTransitionRelations(path[index - 1], path[index], observers))) {
+            if (relation.leavesReach)
+                left.add(id);
+        }
+    }
+    return [...left];
+}

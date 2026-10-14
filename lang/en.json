@@ -166,6 +166,11 @@
       "UnarmedStrike": "Unarmed Strike",
       "OpportunityAttack": "Opportunity Attack"
     },
+    "RULER": {
+      "Left": "{distance} {units} left",
+      "Over": "Not enough movement",
+      "Threat": "Opportunity Attack: {name}"
+    },
     "ODDS": {
       "Hit": "{name}: {chance}% to hit ({modifier} vs AC {defense}{mode})",
       "Fails": "{name}: {chance}% to fail its {ability} save (DC {dc}, {modifier}{mode})",
