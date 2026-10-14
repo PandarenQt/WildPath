@@ -1,5 +1,6 @@
 import { createActionBarViewModel } from "./ui-view-models.mjs";
 import { reactionPolicyOf } from "./automation-events.mjs";
+import { activeEffectViews } from "./effect-views.mjs";
 const viewModel = createActionBarViewModel;
 const policyOf = reactionPolicyOf;
 /** How each reaction setting shows on its toggle. */
@@ -58,8 +59,6 @@ export function actionBarContext({ actor, conditions = [], odds = {}, common = [
                 ...POLICY_VIEWS[policyOf(items.get(action.id) ?? commonById.get(action.id ?? ""))] } } : {}) });
     // The actions every creature has come last, in their own group (Baldur's Gate 3's common actions).
     const commonActions = common.length ? viewModel({ actor, actions: common }).actions : [];
-    const levels = new Map([...(actor.effects ?? [])].filter(effect => !effect.disabled && effect.system?.type)
-        .map(effect => [String(effect.system.type), Number(effect.system.level) || null]));
     return {
         name: actor.name ?? bar.actorName ?? "",
         img: actor.img ?? null,
@@ -68,7 +67,6 @@ export function actionBarContext({ actor, conditions = [], odds = {}, common = [
         groups: [...bar.groups.map(group => ({ id: group.id, label: GROUP_LABELS[group.id] ?? group.label,
                 actions: group.actions.flatMap(ref => byRef.get(ref) ?? []).map(view(group.id)) })),
             ...(commonActions.length ? [{ id: "common", label: "WILDPATH.ACTIONBAR.Group.common", actions: commonActions.map(view("common")) }] : [])],
-        conditions: conditions.filter(condition => levels.has(condition.id)).map(condition => ({ id: condition.id,
-            name: condition.name, img: condition.img, level: condition.stacking ? levels.get(condition.id) ?? null : null }))
+        conditions: activeEffectViews(actor.effects ?? [], conditions)
     };
 }

@@ -487,9 +487,13 @@
 #wildpath-action-bar .bar-resources { display: flex; gap: 8px; flex-wrap: wrap; }
 #wildpath-action-bar .bar-resource.depleted { opacity: 0.5; text-decoration: line-through; }
 #wildpath-action-bar .bar-groups { display: flex; gap: 10px; flex-wrap: wrap; }
-#wildpath-action-bar .bar-group { display: flex; align-items: center; gap: 4px; }
+#wildpath-action-bar .bar-group { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
 #wildpath-action-bar .bar-group-label { opacity: 0.7; }
-#wildpath-action-bar .bar-action { display: flex; align-items: center; gap: 4px; width: auto; padding: 2px 6px; }
+#wildpath-action-bar .bar-action { display: flex; align-items: center; gap: 4px; width: auto; flex: 0 0 auto; white-space: nowrap;
+  padding: 2px 6px; }
+/* The actions every creature has show as icons, named in their tooltip (Baldur's Gate 3's common actions). */
+#wildpath-action-bar .bar-group[data-group="common"] .bar-action-label { display: none; }
+#wildpath-action-bar .bar-group[data-group="common"] .bar-action { padding: 2px; }
 #wildpath-action-bar .bar-action img { border: none; }
 #wildpath-action-bar .bar-action:disabled { opacity: 0.45; }
 .waypoint-label .wildpath-movement-left { opacity: 0.85; }

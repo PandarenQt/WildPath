@@ -13,7 +13,8 @@
           {{#if turn.conditions.length}}
             <span class="turn-conditions">
               {{#each turn.conditions as |condition|}}
-                <img src="{{condition.img}}" alt="{{localize condition.name}}" title="{{localize condition.name}}" width="16" height="16">
+                <img src="{{condition.img}}" alt="{{localize condition.name}}" width="16" height="16"
+                     data-tooltip="<strong>{{localize condition.name}}</strong>{{#if condition.summary}}<br>{{localize condition.summary}}{{/if}}{{#if condition.remaining}}<br>{{condition.remaining}}{{/if}}">
               {{/each}}
             </span>
           {{/if}}
