@@ -145,6 +145,32 @@ export function registerResourceTests(quench) {
         assert.equal(slots("spell-slot.3").max,3);
       });
 
+      it("a transformation takes the form's physical abilities, AC and speed and its Actions, keeping the creature's own features", async function () {
+        const creature = await fixtures.createActor({name:"shapeshifter",system:{abilities:{might:{value:8},intellect:{value:15}},
+          defenses:{ac:{value:12}},resources:{movement:{base:30,value:30}}}});
+        await fixtures.createItem(creature,{name:"warding feat",type:"feature",system:{active:true,modifiers:[{id:"qa-ward",
+          domains:["defense.ac"],label:"QA ward",type:"untyped",value:1,enabled:true}]}});
+        const beast = await fixtures.createActor({name:"bear form",system:{abilities:{might:{value:18},intellect:{value:2}},
+          defenses:{ac:{value:13}},resources:{movement:{base:40,value:40}}}});
+        await fixtures.createItem(beast,{name:"Bite",type:"action",system:{active:true,definition:{schemaVersion:1,id:"action:qa-bite",
+          label:"Bite",costs:{allOf:[]},targeting:{type:"single",required:true,count:1},
+          damage:[{id:"bite",expression:{type:"constant",value:5},damageType:"piercing"}]}}});
+        const effect = await creature.transform(beast);
+        assert.deepEqual([creature.system.abilities.might.value,creature.system.abilities.intellect.value],[18,15],
+          "the form's Might, the creature's own Intellect");
+        assert.deepEqual([creature.system.defenses.ac.value,creature.getStatistic("defense.ac").totalModifier],[13,1],
+          "the form's Armor Class, plus the creature's own warding feat");
+        assert.equal(creature.getResource("movement").max,40,"the form's speed");
+        const bite = item => item.system.definition?.id === "action:qa-bite";
+        assert.isTrue(creature.items.some(item => bite(item) && item.flags.wildpath?.transformedBy === effect.id),
+          "the form's Bite is usable");
+        await creature.revertTransformation();
+        assert.deepEqual([creature.system.abilities.might.value,creature.system.defenses.ac.value,creature.getResource("movement").max],
+          [8,12,30],"reverting restores the creature's own statistics");
+        assert.isFalse(creature.items.some(bite),"and removes the form's Actions");
+        assert.isNull(creature.transformation);
+      });
+
       it("applies an Item maximum modifier once across repeated preparation and removes it on deletion", async function () {
         const actor = await fixtures.createActor({name:"modifier preparation",
           system:{resources:{health:{base:10,bonus:2,value:10}}}});

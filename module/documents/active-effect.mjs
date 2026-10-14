@@ -9,6 +9,12 @@ import {serializeRuleElementDefinition} from "../helpers/rule-elements.mjs";
  */
 export default class WildPathActiveEffect extends ActiveEffect {
 
+  /** A transformation effect deleted directly (e.g. from the sheet) still takes the form's copied Items. */
+  _onDelete(options, userId) {
+    super._onDelete(options, userId);
+    if ( (userId === game.user.id) && this.flags?.wildpath?.transformation ) void this.parent?.deleteTransformationCopies?.(this.id);
+  }
+
   /** @inheritDoc */
   static async _fromStatusEffect(statusId, effectData, options) {
     const condition = WILDPATH.CONDITIONS[statusId];

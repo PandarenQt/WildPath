@@ -1,5 +1,6 @@
 import {WildPathModifier, WildPathStatistic} from "../helpers/modifiers.mjs";
 import {damageProfileFromRuleElements, modifiersFromRuleElements} from "../helpers/rule-elements.mjs";
+import {DEFAULT_FORM_STATISTICS, DEFAULT_KEPT_ITEM_TYPES, itemContributesWhileTransformed} from "../helpers/transformations.mjs";
 import WildPathConditionEffect from "../data/active-effect/condition.mjs";
 import {executeActionResolution} from "../resolvers/action-resolver.mjs";
 import {executeConditionEffect} from "../resolvers/effect-resolver.mjs";
@@ -44,9 +45,11 @@ export default class WildPathActor extends Actor {
     const domains = [domain].flat().filter(Boolean).map(String);
     const modifiers = [];
 
+    const transformation = this.transformation;
     for ( const owner of this.items ) {
       if ( owner.system?.active === false ) continue;
       if ( (owner.type === "action") && (owner.id !== item?.id) ) continue;
+      if ( transformation && !this.#contributesWhileTransformed(owner, transformation) ) continue;
       for ( const m of owner.system?.modifiers ?? [] ) {
         if ( !domains.some(entry => modifierTargetsDomain(m, entry)) ) continue;
         modifiers.push(new WildPathModifier({...m, source: owner.uuid}));
@@ -89,11 +92,71 @@ export default class WildPathActor extends Actor {
    * @returns {object|null}
    */
   getDamageProfile() {
-    const items = [...this.items].filter(item => (item.system?.active !== false) && (item.type !== "action"))
+    const transformation = this.transformation;
+    const items = [...this.items].filter(item => (item.system?.active !== false) && (item.type !== "action")
+      && (!transformation || this.#contributesWhileTransformed(item, transformation)))
       .map(item => ({ruleElements: item.system?.ruleElements ?? [], source: documentRuleElementSource(item, "item")}));
     const effects = [...(this.allApplicableEffects?.() ?? this.effects)].filter(effect => !effect.disabled && !effect.isSuppressed)
       .map(effect => ({ruleElements: effect.system?.ruleElements ?? [], source: documentRuleElementSource(effect, "effect")}));
     return damageProfileFromRuleElements([...items, ...effects], {actor: this, actorSystem: this.system});
+  }
+
+  /* -------------------------------------------- */
+  /*  Transformations                              */
+  /* -------------------------------------------- */
+
+  /** The active transformation, if any: `{effect, policy}` from an enabled effect that names a form. */
+  get transformation() {
+    for ( const effect of this.effects ) {
+      const policy = effect.flags?.wildpath?.transformation;
+      if ( policy?.formRef && !effect.disabled ) return {effect, policy};
+    }
+    return null;
+  }
+
+  /** The form's copied Items always count; of the creature's own, only the kept types do. */
+  #contributesWhileTransformed(owner, transformation) {
+    return (owner.flags?.wildpath?.transformedBy === transformation.effect.id)
+      || itemContributesWhileTransformed(owner.type, transformation.policy);
+  }
+
+  /**
+   * Take a form: the creature uses the form's listed statistics (the physical abilities, Armor Class and
+   * speed by default) and gains copies of its features and Actions, while keeping its own features and the
+   * Item types it keeps (features and gear by default). Any earlier transformation ends first.
+   * @param {Actor} form
+   * @param {{takes?: string[], keepItemTypes?: string[]}} [policy]
+   * @returns {Promise<ActiveEffect>}
+   */
+  async transform(form, {takes=DEFAULT_FORM_STATISTICS, keepItemTypes=DEFAULT_KEPT_ITEM_TYPES}={}) {
+    if ( this.transformation ) await this.revertTransformation();
+    const [effect] = await this.createEmbeddedDocuments("ActiveEffect", [{
+      name: game.i18n.format("WILDPATH.TRANSFORMATION.Effect", {form: form.name}), type: "effect", system: {}, img: form.img,
+      flags: {wildpath: {transformation: {formRef: form.uuid, takes: [...takes], keepItemTypes: [...keepItemTypes]}}}
+    }]);
+    const copies = form.items.filter(entry => ["feature", "action"].includes(entry.type)).map(entry => {
+      const data = entry.toObject();
+      delete data._id;
+      foundry.utils.setProperty(data, "flags.wildpath.transformedBy", effect.id);
+      return data;
+    });
+    if ( copies.length ) await this.createEmbeddedDocuments("Item", copies);
+    return effect;
+  }
+
+  /** End the active transformation: the form's copied features and Actions go with its effect. */
+  async revertTransformation() {
+    const active = this.transformation;
+    if ( !active ) return false;
+    await this.deleteTransformationCopies(active.effect.id);
+    await active.effect.delete();
+    return true;
+  }
+
+  /** Remove the Items a transformation copied from its form. */
+  async deleteTransformationCopies(effectId) {
+    const copies = this.items.filter(entry => entry.flags?.wildpath?.transformedBy === effectId).map(entry => entry.id);
+    if ( copies.length ) await this.deleteEmbeddedDocuments("Item", copies);
   }
 
   /* -------------------------------------------- */

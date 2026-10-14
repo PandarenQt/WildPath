@@ -97,6 +97,9 @@
       "NeedDirection": "Choose the area's direction.",
       "BadDirection": "That direction is not allowed."
     },
+    "TRANSFORMATION": {
+      "Effect": "Transformed: {form}"
+    },
     "SPELLCASTING": {
       "SlotPool": "Level {level} spell slots"
     },

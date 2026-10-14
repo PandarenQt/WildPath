@@ -10,7 +10,7 @@ Every Actor stores one record per class in `system.classes`. Multiclassing is th
 ```js
 {id: "paladin", name: "Paladin", level: 3, original: false,
  subclasses: ["oath-a"],                                  // a class may hold several subclasses
- spellcasting: {progression: "half", ability: "cha"}}     // progression: none | full | half
+ spellcasting: {progression: "half", ability: "presence"}} // progression: none | full | half
 ```
 
 Derived on preparation (`helpers/spellcasting.mts`, `WildPathBaseActor#deriveClasses`):
@@ -39,3 +39,37 @@ rather than branching inside callers (AGENTS §10).
 Live (Quench, 14.369): a Wizard 3 / Paladin 3 is level 6 with the Wizard as its original class. It is
 caster level 5, with slot pools of 4, 3 and 2 created full. Adding Paladin levels and a Cleric level
 raised it to caster level 7 and added the level-4 slot pool.
+
+## Transformations
+
+Approved by the maintainer on 2026-10-14. The creature keeps its feats, the properties of the items that
+still apply, and similar.
+
+`WildPathActor#transform(form, {takes, keepItemTypes})` takes a form, which is another Actor's stat
+block:
+
+- **Statistics from the form.** The form provides the statistics listed in `takes`. The default is Wild
+  Shape's: the physical abilities (Might, Agility, Fortitude), Armor Class and speed. Each is read from
+  the form's own data in preparation, so modifiers still apply on top.
+- **What the creature keeps.** Its own Items of the kept types (features and gear by default) keep
+  contributing: its feats and the properties of its gear. A policy can narrow this, for example
+  `keepItemTypes: ["feature"]` when gear melds into the form.
+- **What the form adds.** Copies of the form's features and Actions are added while transformed, so its
+  attacks are usable through the normal Action runtime.
+- **The effect.** It is an ordinary effect, "Transformed: <form>", whose `flags.wildpath.transformation`
+  holds the policy.
+- **Ending it.** `revertTransformation()` removes the effect and the copies. Deleting the effect directly
+  removes the copies too.
+- **What does not change.** Health is not replaced. 2024 Wild Shape and Polymorph grant temporary hit
+  points instead, which is a separate effect.
+
+Not yet:
+
+- Token size: footprints follow the Token's dimensions, and a transformation does not resize them.
+- Starting a transformation from an Action (a Wild Shape Action choosing a form).
+- Stopping spellcasting while transformed.
+
+Live (two browsers, 14.369): Player1 turned their Shifter into a Bear, which gave Might 18 and AC 13, and
+used the copied Bite through the GM's authority. The goblin went from 20 to 15, the Action was spent and a
+card posted. Reverting restored Might 8 and removed the Bite. In Quench, the creature's own +1 AC feat kept
+counting on the form's AC, and its own Intellect stayed.

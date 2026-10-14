@@ -2,6 +2,7 @@ import {WILDPATH} from "../../config.mjs";
 import {defenseField, resourceField, poolsField} from "../fields.mjs";
 import {computeResourceMax, clampResourceValue, remainingFromSpent, spentFromRemaining} from "../../helpers/resources.mjs";
 import {SPELLCASTING_PROGRESSIONS, deriveClassData, spellSlotPoolId} from "../../helpers/spellcasting.mjs";
+import {formOverrides} from "../../helpers/transformations.mjs";
 
 /** Action-economy counters: what is spent is stored, what remains is derived from the (modifiable) maximum. */
 const COUNTED_RESOURCES = Object.freeze(["action", "bonus", "reaction"]);
@@ -136,6 +137,14 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
     for ( const pool of this.pools ) {
       pool.bonus ??= 0;
       pool.modifierBonus = 0;
+    }
+    // A transformation replaces the statistics it lists with its form's; everything else stays the creature's.
+    const transformation = this.parent?.transformation;
+    const form = transformation ? globalThis.fromUuidSync?.(transformation.policy.formRef) : null;
+    if ( form?.toObject ) {
+      for ( const [path, value] of formOverrides(form.toObject(true).system, transformation.policy.takes) ) {
+        foundry.utils.setProperty(this, path, value);
+      }
     }
   }
 

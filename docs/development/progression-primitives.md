@@ -80,7 +80,9 @@ the code. Payment discovery reads only the Actor's stored resources and pools
    - Full casters count 1, half 1/2 and third 1/3 toward a combined caster level. The rounding differs
      between 2014 and 2024 rules, so it belongs in a rule provider, not inline (AGENTS §10).
    - Pact slots stay a separate pool with a short-rest cadence.
-6. **Transformations (design decision).** Smallest form: a `transformation` effect type that carries a
+6. **Transformations: approved and done 2026-10-14** (`classes-and-spellcasting.md`). The creature keeps
+   its feats and the items that still apply. Not yet: Token resizing, or starting one from an Action.
+   Originally proposed: Smallest form: a `transformation` effect type that carries a
    statistic source (an Actor or a statistic block) and a merge policy. The policy says, for example,
    "physical abilities, health pool and Actions from the form; mental abilities and proficiencies from
    the creature".
