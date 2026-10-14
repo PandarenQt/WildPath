@@ -92,6 +92,17 @@
           "effects": []
         }
       ],
+      "range": {
+        "type": "touch",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "summon": {
+        "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbsplLight00000",
+        "count": 1
+      },
       "label": "Continual Flame"
     },
     "ruleElements": []
@@ -108,9 +119,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (summon): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

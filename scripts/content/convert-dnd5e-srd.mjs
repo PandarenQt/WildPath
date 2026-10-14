@@ -26,6 +26,9 @@ const names = nameIndex([...ITEM_PACKS, "actors24", "content24", "tables24"].fla
 const wanted = document => isSrd2024(document) && (!only || only.has(document.name));
 // The spells a creature's Spellcasting casts, by id.
 const spells = Object.fromEntries(readPack(from, "spells24").map(document => [document._id, document]));
+// The creatures a summon brings, by dnd5e id: the SRD's own, in this system's creature pack.
+const creatures = Object.fromEntries(readPack(from, "actors24").filter(document => isSrd2024(document) && (document.type === "npc"))
+  .map(document => [document._id, `Compendium.wildpath.srd-creatures.Actor.${document._id}`]));
 
 const items = [];
 const actors = [];
@@ -33,13 +36,13 @@ const report = [];
 for ( const pack of ITEM_PACKS ) {
   for ( const document of readPack(from, pack).filter(wanted) ) {
     if ( !["spell", "weapon", "feat"].includes(document.type) ) continue;
-    const result = convertItem(document, {scales, pack, names});
+    const result = convertItem(document, {scales, pack, names, creatures});
     items.push(...result.items);
     report.push({pack, name: document.name, converted: result.items.map(item => `${item.name} (${kind(item)})`), notes: result.notes});
   }
 }
 for ( const document of readPack(from, "actors24").filter(wanted) ) {
-  const result = convertActor(document, {scales, pack: "actors24", names, spells});
+  const result = convertActor(document, {scales, pack: "actors24", names, spells, creatures});
   if ( !result.ok ) continue;
   actors.push(result.actor);
   report.push({pack: "actors24", name: document.name, converted: [`${result.actor.name} (${result.actor.items.length} items)`], notes: result.notes});

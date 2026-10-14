@@ -1,6 +1,6 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import {summonExpired, summonPlacements} from "../module/adapters/foundry-v14-summons.mjs";
+import {summonBonusesAt, summonExpired, summonPlacements} from "../module/adapters/foundry-v14-summons.mjs";
 import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
 
 // A square grid's eight neighbours.
@@ -98,4 +98,15 @@ test("a clicked point is where a summon appears; the rest go near the caster; th
   const sanitized = sanitizeActionIntentPayload({intent: {actorRef: "Actor.a", summon: {points: [...points, {x: "nope"}], extra: 1}}});
   assert.equal(sanitized.summon.points.length, 20);
   assert.deepEqual(Object.keys(sanitized.summon), ["points"]);
+});
+
+test("what a summon gains with the spell's level: Hit Points, AC, and its attack and save damage as rules", () => {
+  const level = {type: "context", path: "castLevel"};
+  const at5 = summonBonusesAt({hp: {type: "multiply", terms: [{type: "constant", value: 10}, {type: "subtract", terms: [level, {type: "constant", value: 4}]}]},
+    ac: level, attackDamage: level, saveDamage: {type: "dice", number: {type: "subtract", terms: [level, {type: "constant", value: 3}]}, faces: 10}}, 5);
+  assert.deepEqual([at5.hp, at5.ac], [10, 5], "10 * (5 - 4) Hit Points, AC + 5");
+  assert.deepEqual(at5.rules.map(rule => [rule.type, rule.predicate, rule.data.value ?? rule.data.expression]), [
+    ["Modifier", {tagsAny: ["melee", "ranged"]}, 5],
+    ["ExtraDamage", {not: {tagsAny: ["melee", "ranged"]}}, {type: "dice", number: 2, faces: 10}]], "+5 on its attacks, 2d10 on its other damage");
+  assert.deepEqual(summonBonusesAt({}, 5), {hp: 0, ac: 0, rules: []});
 });

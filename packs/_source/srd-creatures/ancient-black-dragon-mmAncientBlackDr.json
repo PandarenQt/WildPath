@@ -667,6 +667,7 @@
           "conversion": {
             "notes": [
               "not automated (summon): using it spends its cost; its description says the rest",
+              "summon: its creature is not among the converted creatures",
               "activation: 1 minute is not an action-economy cost",
               "not automated (utility): using it spends its cost; its description says the rest"
             ]
@@ -1122,6 +1123,7 @@
           "Spellcasting: cast: Acid Arrow at level 4 is cast at its own level",
           "Spellcasting: effect: \"Lingering Acid\" (its own changes) not converted",
           "Spellcasting: not automated (summon): using it spends its cost; its description says the rest",
+          "Spellcasting: summon: its creature is not among the converted creatures",
           "Spellcasting: activation: 1 minute is not an action-economy cost",
           "Spellcasting: cast: Vitriolic Sphere at level 5 is cast at its own level",
           "Spellcasting: \"End of Turn Damage\" is passive or triggered: not automated",

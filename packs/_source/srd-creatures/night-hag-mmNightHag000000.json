@@ -181,6 +181,7 @@
           "conversion": {
             "notes": [
               "not automated (summon): using it spends its cost; its description says the rest",
+              "summon: a creature chosen by Challenge Rating is not converted",
               "activation: 1 hour is not an action-economy cost"
             ]
           }
@@ -417,6 +418,18 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 60,
+              "unit": "ft"
+            }
+          },
+          "summon": {
+            "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbsplUnseenServ",
+            "count": 1,
+            "rounds": 600
+          },
           "label": "Unseen Servant"
         },
         "ruleElements": [
@@ -449,9 +462,7 @@
             "castBy": "Coven Magic"
           },
           "conversion": {
-            "notes": [
-              "not automated (summon): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -1192,6 +1203,7 @@
           "Coven Magic: not automated (utility): using it spends its cost; its description says the rest",
           "Coven Magic: activation: 1 minute is not an action-economy cost",
           "Coven Magic: not automated (summon): using it spends its cost; its description says the rest",
+          "Coven Magic: summon: a creature chosen by Challenge Rating is not converted",
           "Coven Magic: activation: 1 hour is not an action-economy cost",
           "Coven Magic: concentration: nothing it sustains was converted",
           "Coven Magic: not automated (save): using it spends its cost; its description says the rest",

@@ -86,6 +86,14 @@ An ActionDefinition's `summon` brings creatures when the Action completes:
   - With `rounds`, they leave at the start of the turn they arrived on, that many rounds later, as lasting
     areas do.
   - Summons leave the combat with their Tokens.
+- **What it gains with the spell's level (2026-10-15).** `summon.bonuses: {hp, ac, attackDamage, saveDamage}` are
+  ValueExpressions of `castLevel`, the slot it was cast with (else `summon.spellLevel`).
+  - Each summoned Token's own Actor gains the Hit Points and the AC.
+  - Its damage bonuses become a feature, "Summoned at level N": a Modifier for a number, or an ExtraDamage for dice.
+    `attackDamage` is on its attacks (`melee`, `ranged`), `saveDamage` on its other damage.
+  - Live (two browsers): Player1 cast the SRD Find Steed with a 2nd-level slot and chose the Celestial Steed. It
+    arrived where Player1 clicked, owned by Player1, with 25 Hit Points (5 + 20) and AC 13 (11 + 2). Its Otherworldly
+    Slam added +2 damage.
 - **Combat (2024).** If the caster is in the current combat, its summons join it. They share its Initiative and
   take their turns right after the caster's, at its Initiative less a thousandth for each one. A creature tied
   with the caster but sorted after it still goes before the summons.

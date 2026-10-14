@@ -702,6 +702,18 @@
               }
             ]
           },
+          "range": {
+            "type": "touch",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "summon": {
+            "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbsplLight00000",
+            "count": 1,
+            "rounds": 600
+          },
           "label": "Light"
         },
         "ruleElements": []
@@ -719,9 +731,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "not automated (summon): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -798,6 +808,18 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "summon": {
+            "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbsplMageHand00",
+            "count": 1,
+            "rounds": 10
+          },
           "label": "Mage Hand"
         },
         "ruleElements": []
@@ -815,9 +837,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "not automated (summon): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -1476,7 +1496,6 @@
           "Spellcasting: concentration: nothing it sustains was converted",
           "Spellcasting: not automated (save): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Disguised\" (its own changes) not converted",
-          "Spellcasting: not automated (summon): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Mage Armor\" change system.attributes.ac.calc (override) not converted",
           "Spellcasting: effect: \"Mage Armor\" (its own changes) not converted",
           "Spellcasting: effect: \"Flight\" change system.attributes.movement.hover (override) not converted",

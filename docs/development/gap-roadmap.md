@@ -239,7 +239,9 @@ Forced movement and elevation join G6, which becomes "space": areas, elevation a
   - Live (GM): an Adult Black Dragon from the SRD pack used Multiattack (pool 3), then three Rends at the Bandit
     Captain, each paid from the pool; a fourth was refused. At the start of its turn, its leftover Multiattack uses
     emptied, and Acid Breath recharged on a 5, whispered to the GM.
-  - Not yet: Lair Actions and summoned creatures' own stat blocks.
+  - Summons (2026-10-15): "summon activity not automated" fell from 267 documents to 47 (32 SRD Actions summon,
+    from Arcane Eye to Summon Dragon). What the creature gains with the spell's level is applied.
+  - Not yet: Lair Actions, and a summoned spirit's attack count by spell level.
   - Multiattack's named attacks (2026-10-15): "shortcut: named attacks not enforced" fell from 515 documents to 11.
     Each named attack has its own count, and each alternative is an Action of its own. Live: an SRD Brown Bear's
     Multiattack filled Bite 1 and Claw 1; a second Bite was refused, and the Claw went through.

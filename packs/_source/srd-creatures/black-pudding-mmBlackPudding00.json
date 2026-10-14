@@ -159,6 +159,13 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "summon": {
+            "actorRef": "Compendium.wildpath.srd-creatures.Actor.mmBlackPudding00",
+            "count": 2
+          },
           "label": "Split"
         },
         "ruleElements": []
@@ -176,7 +183,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (summon): using it spends its cost; its description says the rest"
+              "summon: what it gains with the spell's level (hp) is not added"
             ]
           }
         }
@@ -349,7 +356,7 @@
       "conversion": {
         "notes": [
           "Corrosive Form: \"damage\" is passive or triggered: not automated",
-          "Split: not automated (summon): using it spends its cost; its description says the rest"
+          "Split: summon: what it gains with the spell's level (hp) is not added"
         ]
       }
     }

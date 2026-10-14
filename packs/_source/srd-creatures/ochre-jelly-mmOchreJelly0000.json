@@ -200,6 +200,13 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "summon": {
+            "actorRef": "Compendium.wildpath.srd-creatures.Actor.mmOchreJelly0000",
+            "count": 2
+          },
           "label": "Split"
         },
         "ruleElements": []
@@ -217,7 +224,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (summon): using it spends its cost; its description says the rest"
+              "summon: what it gains with the spell's level (hp) is not added"
             ]
           }
         }
@@ -304,7 +311,7 @@
       },
       "conversion": {
         "notes": [
-          "Split: not automated (summon): using it spends its cost; its description says the rest"
+          "Split: summon: what it gains with the spell's level (hp) is not added"
         ]
       }
     }

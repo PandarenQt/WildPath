@@ -272,6 +272,10 @@
               }
             ]
           },
+          "summon": {
+            "actorRef": "Compendium.wildpath.srd-creatures.Actor.mmShadow00000000",
+            "count": 1
+          },
           "label": "Draining Swipe (Shadow Rises)"
         },
         "ruleElements": []
@@ -288,9 +292,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (summon): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -436,7 +438,6 @@
           "Draining Swipe: effect: \"Hit: STR Score -3\" (its own changes) not converted",
           "Draining Swipe: effect: \"Hit: STR Score -4\" change system.abilities.str.value (add) not converted",
           "Draining Swipe: effect: \"Hit: STR Score -4\" (its own changes) not converted",
-          "Draining Swipe: not automated (summon): using it spends its cost; its description says the rest",
           "Shadow Stealth: not automated (utility): using it spends its cost; its description says the rest",
           "Shadow Stealth: effect: hiding is not a WildPath condition yet"
         ]

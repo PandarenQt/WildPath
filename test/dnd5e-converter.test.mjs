@@ -355,6 +355,30 @@ test("common monster traits (G5): Magic Resistance, Pack Tactics and Regeneratio
   assert.ok(!actor.flags.wildpath.conversion.notes.some(note => /passive or triggered/.test(note)), "nothing is left as passive text");
 });
 
+test("summons (G4): its creature, a choice of creatures, for the spell's duration, and what it gains with the spell's level", () => {
+  const profile = (id, name="") => ({_id: `p${id}`, uuid: `Compendium.dnd5e.actors24.Actor.${id}`, name, count: "", level: {min: null, max: null}});
+  const summoning = (activityData, extra={}) => ({_id: "summonSpell00001", name: "Summon Test", type: "spell", system: {source: SRD, level: 3,
+    preparation: {mode: "prepared"}, activation: {type: "action"}, range: {value: "90", units: "ft"}, duration: {value: "1", units: "hour"},
+    properties: ["concentration"], activities: {a: activity("summon", {profiles: [profile("spirit000000001")], bonuses: {}, summon: {mode: ""},
+      ...activityData})}, ...extra}});
+  const creatures = {spirit000000001: "Compendium.wildpath.srd-creatures.Actor.spirit000000001",
+    beast00000000001: "Compendium.wildpath.srd-creatures.Actor.beast00000000001"};
+  const one = convertItem(summoning({bonuses: {ac: "@item.level", hp: "10 * (@item.level - 2)", healing: "@item.level"}}), {creatures}).items[0];
+  valid(one);
+  const {summon} = one.system.definition;
+  assert.deepEqual([summon.actorRef, summon.count, summon.rounds, summon.concentration, summon.spellLevel],
+    ["Compendium.wildpath.srd-creatures.Actor.spirit000000001", 1, 600, true, 3]);
+  assert.deepEqual(summon.bonuses.ac, {type: "context", path: "castLevel"}, "AC + the level it was cast at");
+  assert.ok(one.flags.wildpath.conversion.notes.some(note => note.includes("(healing) is not added")), "healing is not converted");
+  const choice = convertItem(summoning({profiles: [profile("spirit000000001", "Spirit"), profile("beast00000000001", "Beast")]}), {creatures}).items[0];
+  valid(choice);
+  assert.equal(choice.system.definition.summon.choiceId, "summon-creature");
+  assert.deepEqual(choice.system.definition.configuration.at(-1).options.map(option => option.label), ["Spirit", "Beast"]);
+  const byChallenge = convertItem(summoning({summon: {mode: "cr"}}), {creatures}).items[0];
+  assert.equal(byChallenge.system.definition.summon, undefined, "a creature chosen by Challenge Rating stays by hand");
+  assert.equal(convertItem(summoning({}), {creatures: {}}).items[0].system.definition.summon, undefined, "nor one not converted");
+});
+
 test("the monster toolkit (G4): Multiattack's attacks, a Spellcasting's spells at their own uses, and Recharge", async () => {
   const {multiattackCount} = await import("../scripts/content/dnd5e-to-wildpath.mjs");
   assert.equal(multiattackCount("<p>The dragon makes three Rend attacks. It can replace one attack.</p>"), 3);

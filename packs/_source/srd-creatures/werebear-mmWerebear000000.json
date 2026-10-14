@@ -388,6 +388,10 @@
               ]
             ]
           },
+          "summon": {
+            "actorRef": "Compendium.wildpath.srd-creatures.Actor.mmWerebear000000",
+            "count": 1
+          },
           "label": "Bite (Bear or Hybrid Form Only) (Become Werebear)"
         },
         "ruleElements": []
@@ -404,9 +408,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (summon): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -550,7 +552,6 @@
         "notes": [
           "Bite (Bear or Hybrid Form Only): not automated (save): using it spends its cost; its description says the rest",
           "Bite (Bear or Hybrid Form Only): effect: cursed is not a WildPath condition yet",
-          "Bite (Bear or Hybrid Form Only): not automated (summon): using it spends its cost; its description says the rest",
           "Shape-Shift: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }

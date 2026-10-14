@@ -389,6 +389,18 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "summon": {
+            "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbsplMageHand00",
+            "count": 1,
+            "rounds": 10
+          },
           "label": "Mage Hand"
         },
         "ruleElements": []
@@ -406,9 +418,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "not automated (summon): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -436,6 +446,18 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "summon": {
+            "choiceId": "summon-creature",
+            "count": 1,
+            "rounds": 10
+          },
           "label": "Minor Illusion"
         },
         "ruleElements": []
@@ -453,9 +475,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "not automated (summon): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -899,7 +919,6 @@
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Detect Magic\" (its own changes) not converted",
           "Spellcasting: concentration: nothing it sustains was converted",
-          "Spellcasting: not automated (summon): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Water Breathing\" (its own changes) not converted",
           "Spellcasting: not automated (save): using it spends its cost; its description says the rest",
           "Spellcasting: not automated (teleport): using it spends its cost; its description says the rest",

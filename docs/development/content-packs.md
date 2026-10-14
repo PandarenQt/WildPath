@@ -194,6 +194,16 @@ Flyby on 6 and Regeneration on 4. The book packages convert the same way.
   - "Day" and "dawn" recover on a long rest.
   - Recharge is rolled at the start of the creature's turn.
 - **Item references** by name (`[[/item Rend]]`) keep their name in descriptions.
+- **Summons** (2026-10-15). A summon activity summons its creature from the converted creature packs. Several
+  creatures become a choice. It lasts the spell's duration in rounds, or while the caster concentrates.
+  - What its creature gains with the spell's level comes too: Hit Points, AC, and attack and save damage
+    (companions.md).
+  - Left by hand:
+    - a creature chosen by Challenge Rating (Find Familiar);
+    - a count from a formula;
+    - a creature not converted;
+    - healing and Hit Dice by level, or formulas of anything but the level;
+    - a summoned spirit's attack count by spell level ("a number of attacks equal to half this spell's level").
 
 ### Effects with their own changes (G3)
 

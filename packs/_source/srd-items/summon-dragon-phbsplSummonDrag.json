@@ -71,6 +71,52 @@
           "effects": []
         }
       ],
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "summon": {
+        "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbmobDraconicSp",
+        "count": 1,
+        "rounds": 600,
+        "concentration": true,
+        "bonuses": {
+          "ac": {
+            "type": "context",
+            "path": "castLevel"
+          },
+          "hp": {
+            "type": "multiply",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 10
+              },
+              {
+                "type": "subtract",
+                "terms": [
+                  {
+                    "type": "context",
+                    "path": "castLevel"
+                  },
+                  {
+                    "type": "constant",
+                    "value": 5
+                  }
+                ]
+              }
+            ]
+          },
+          "attackDamage": {
+            "type": "context",
+            "path": "castLevel"
+          }
+        },
+        "spellLevel": 5
+      },
       "label": "Summon Dragon"
     },
     "ruleElements": []
@@ -87,9 +133,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (summon): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

@@ -488,6 +488,18 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "summon": {
+            "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbsplMageHand00",
+            "count": 1,
+            "rounds": 10
+          },
           "label": "Mage Hand"
         },
         "ruleElements": []
@@ -505,9 +517,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "not automated (summon): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -535,6 +545,18 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "summon": {
+            "choiceId": "summon-creature",
+            "count": 1,
+            "rounds": 10
+          },
           "label": "Minor Illusion"
         },
         "ruleElements": []
@@ -552,9 +574,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "not automated (summon): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -1207,7 +1227,6 @@
           "Spellcasting: effect: \"Detect Magic\" (its own changes) not converted",
           "Spellcasting: concentration: nothing it sustains was converted",
           "Spellcasting: activation: 1 minute is not an action-economy cost",
-          "Spellcasting: not automated (summon): using it spends its cost; its description says the rest",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: not automated (teleport): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Universal Communication\" change system.traits.languages.custom (add) not converted",

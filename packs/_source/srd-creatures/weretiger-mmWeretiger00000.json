@@ -388,6 +388,10 @@
               ]
             ]
           },
+          "summon": {
+            "actorRef": "Compendium.wildpath.srd-creatures.Actor.mmWeretiger00000",
+            "count": 1
+          },
           "label": "Bite (Tiger or Hybrid Form Only) (Become Weretiger)"
         },
         "ruleElements": []
@@ -404,9 +408,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (summon): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -594,7 +596,6 @@
         "notes": [
           "Bite (Tiger or Hybrid Form Only): not automated (save): using it spends its cost; its description says the rest",
           "Bite (Tiger or Hybrid Form Only): effect: cursed is not a WildPath condition yet",
-          "Bite (Tiger or Hybrid Form Only): not automated (summon): using it spends its cost; its description says the rest",
           "Shape-Shift: not automated (utility): using it spends its cost; its description says the rest",
           "Prowl (Tiger or Hybrid Form Only): not automated (utility): using it spends its cost; its description says the rest"
         ]

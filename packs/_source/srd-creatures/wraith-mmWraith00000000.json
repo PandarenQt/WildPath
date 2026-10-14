@@ -229,6 +229,17 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 10,
+              "unit": "ft"
+            }
+          },
+          "summon": {
+            "actorRef": "Compendium.wildpath.srd-creatures.Actor.mmSpecter0000000",
+            "count": 1
+          },
           "label": "Create Specter"
         },
         "ruleElements": []
@@ -245,9 +256,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (summon): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -339,9 +348,7 @@
         "challenge": 5
       },
       "conversion": {
-        "notes": [
-          "Create Specter: not automated (summon): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

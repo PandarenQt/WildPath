@@ -92,6 +92,30 @@
           "effects": []
         }
       ],
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "summon": {
+        "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbsplFlamingSph",
+        "count": 1,
+        "rounds": 10,
+        "concentration": true,
+        "bonuses": {
+          "saveDamage": {
+            "type": "dice",
+            "number": {
+              "type": "context",
+              "path": "castLevel"
+            },
+            "faces": 6
+          }
+        },
+        "spellLevel": 2
+      },
       "label": "Flaming Sphere (summon)"
     },
     "ruleElements": []
@@ -108,9 +132,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (summon): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

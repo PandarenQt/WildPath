@@ -78,6 +78,18 @@
           "effects": []
         }
       ],
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 30,
+          "unit": "ft"
+        }
+      },
+      "summon": {
+        "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbsplGuardianof",
+        "count": 1,
+        "rounds": 4800
+      },
       "label": "Guardian of Faith (summon)"
     },
     "ruleElements": []
@@ -94,9 +106,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (summon): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

@@ -71,6 +71,19 @@
           "effects": []
         }
       ],
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 120,
+          "unit": "ft"
+        }
+      },
+      "summon": {
+        "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbsplBigbysHand",
+        "count": 1,
+        "rounds": 10,
+        "concentration": true
+      },
       "label": "Arcane Hand"
     },
     "ruleElements": []
@@ -88,7 +101,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (summon): using it spends its cost; its description says the rest"
+          "summon: what it gains with the spell's level (hp) is not added"
         ]
       }
     }

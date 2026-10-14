@@ -403,6 +403,10 @@
               }
             ]
           },
+          "summon": {
+            "actorRef": "Compendium.wildpath.srd-creatures.Actor.mmVampireSpawn00",
+            "count": 1
+          },
           "label": "Bite (Bat or Vampire Form Only) (Vampire Spawn Rises)"
         },
         "ruleElements": []
@@ -419,9 +423,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (summon): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -537,6 +539,13 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "summon": {
+            "actorRef": "Compendium.wildpath.srd-creatures.Actor.mmBat00000000000",
+            "count": 1
+          },
           "label": "Shape-Shift"
         },
         "ruleElements": []
@@ -553,9 +562,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (summon): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -750,8 +757,6 @@
           "Misty Escape: \"Paralyzed\" is passive or triggered: not automated",
           "Multiattack (Vampire Form Only): not automated (utility): using it spends its cost; its description says the rest",
           "Grave Strike (Vampire Form Only): \"Escape Check\" is passive or triggered: not automated",
-          "Bite (Bat or Vampire Form Only): not automated (summon): using it spends its cost; its description says the rest",
-          "Shape-Shift: not automated (summon): using it spends its cost; its description says the rest",
           "Beguile: not automated (save): using it spends its cost; its description says the rest",
           "Deathless Strike: not automated (utility): using it spends its cost; its description says the rest",
           "Vampire Weakness: \"Damage: Running Water\" is passive or triggered: not automated",

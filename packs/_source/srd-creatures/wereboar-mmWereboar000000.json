@@ -388,6 +388,10 @@
               ]
             ]
           },
+          "summon": {
+            "actorRef": "Compendium.wildpath.srd-creatures.Actor.mmWereboar000000",
+            "count": 1
+          },
           "label": "Gore  (Boar or Hybrid Form Only) (Become Wereboar)"
         },
         "ruleElements": []
@@ -404,9 +408,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (summon): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -645,7 +647,6 @@
         "notes": [
           "Gore  (Boar or Hybrid Form Only): not automated (save): using it spends its cost; its description says the rest",
           "Gore  (Boar or Hybrid Form Only): effect: cursed is not a WildPath condition yet",
-          "Gore  (Boar or Hybrid Form Only): not automated (summon): using it spends its cost; its description says the rest",
           "Shape-Shift: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }

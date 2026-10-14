@@ -71,6 +71,15 @@
           "effects": []
         }
       ],
+      "range": {
+        "type": "self"
+      },
+      "summon": {
+        "actorRef": "Compendium.wildpath.srd-creatures.Actor.dmgIllusoryCreat",
+        "count": 1,
+        "rounds": 600,
+        "concentration": true
+      },
       "label": "Mislead"
     },
     "ruleElements": []
@@ -87,9 +96,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (summon): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }
