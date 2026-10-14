@@ -39,6 +39,15 @@ export function summonExpired(flag, combat) {
 }
 export function createFoundrySummons({ game, companions, fromUuid, logger = globalThis.console }) {
     const isActiveGM = () => game.users?.activeGM?.id === game.user.id;
+    /** Summons leave the Scene, and the combat with them. */
+    async function dismiss(scene, tokenIds) {
+        const combat = game.combat;
+        const combatantIds = [...(combat?.combatants ?? [])].filter(combatant => (combatant.sceneId === scene.id)
+            && tokenIds.includes(combatant.tokenId ?? "")).map(combatant => combatant.id);
+        if (combatantIds.length)
+            await combat?.deleteEmbeddedDocuments?.("Combatant", combatantIds);
+        await scene.deleteEmbeddedDocuments("Token", tokenIds);
+    }
     /** A summon from a compendium is imported once into the world, so its Tokens have an Actor to stand for. */
     async function worldActor(source) {
         if (!source.pack)
@@ -85,6 +94,13 @@ export function createFoundrySummons({ game, companions, fromUuid, logger = glob
         for (const token of tokens)
             if (token.actor)
                 await companions.setControllers(token.actor, { controllers: [caster.uuid], kind: "summon" });
+        // 2024: in combat a summon shares its caster's Initiative and takes its turn right after the caster's.
+        // shortcut: a creature tied with the caster but sorted after it still goes before the summons; fine for whole-number initiative.
+        const casterCombatant = [...(combat?.combatants ?? [])].find(entry => (entry.tokenId === casterToken.id) && (entry.sceneId === scene.id));
+        if (casterCombatant)
+            await combat?.createEmbeddedDocuments?.("Combatant", tokens.map((token, index) => ({ tokenId: token.id,
+                sceneId: scene.id, actorId: token.actorId ?? null, hidden: token.hidden ?? false,
+                initiative: typeof casterCombatant.initiative === "number" ? casterCombatant.initiative - ((index + 1) / 1000) : null })));
         if (spec.concentration)
             await caster.createEmbeddedDocuments?.("ActiveEffect", [{ type: "effect", system: {},
                     name: game.i18n?.format("WILDPATH.AREA.Concentrating", { area: definition?.label ?? base.name ?? "" }) ?? "",
@@ -100,7 +116,7 @@ export function createFoundrySummons({ game, companions, fromUuid, logger = glob
         const scene = [...(game.scenes ?? [])].find(entry => entry.id === link.sceneId);
         const present = link.tokenIds.filter(id => scene?.tokens.get(id));
         if (scene && present.length)
-            await scene.deleteEmbeddedDocuments("Token", present);
+            await dismiss(scene, present);
     }
     /** At a turn's start, summons whose rounds have run out leave. */
     async function onTurnStart(combat) {
@@ -109,7 +125,7 @@ export function createFoundrySummons({ game, companions, fromUuid, logger = glob
         for (const scene of game.scenes ?? []) {
             const expired = [...scene.tokens].filter(token => summonExpired(token.flags?.wildpath?.summon, combat)).map(token => token.id);
             if (expired.length)
-                await scene.deleteEmbeddedDocuments("Token", expired);
+                await dismiss(scene, expired);
         }
     }
     return { afterResolution, onEffectDeleted, onTurnStart };

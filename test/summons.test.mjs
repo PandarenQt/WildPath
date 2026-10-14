@@ -34,3 +34,29 @@ test("a summon names exactly one creature source and a count from 1 to 20", () =
   assert.equal(validateActionDefinition(definition({actorRef: "Actor.wolf", choiceId: "beast"})).ok, false);
   assert.equal(validateActionDefinition(definition({actorRef: "Actor.wolf", count: 0})).ok, false);
 });
+
+test("summons join a combat right after their caster, and leave it with their Tokens", async () => {
+  const {createFoundrySummons} = await import("../module/adapters/foundry-v14-summons.mjs");
+  const calls = [];
+  const combatants = [{id: "cc", tokenId: "caster", sceneId: "s", initiative: 12}];
+  const combat = {id: "c", round: 1, turn: 0, combatants,
+    createEmbeddedDocuments: async (type, data) => { calls.push(["create", type, data]); combatants.push(...data.map((entry, i) => ({id: `w${i}`, ...entry}))); },
+    deleteEmbeddedDocuments: async (type, ids) => calls.push(["delete", type, ids])};
+  const tokens = new Map();
+  const scene = {id: "s", tokens: {[Symbol.iterator]: () => tokens.values(), get: id => tokens.get(id)},
+    grid: {getOffset: () => ({i: 0, j: 0}), getAdjacentOffsets: square, getTopLeftPoint: ({i, j}) => ({x: i * 100, y: j * 100})},
+    createEmbeddedDocuments: async (type, data) => data.map((entry, i) => { const token = {...entry, id: `t${i}`, actorId: "wolf", parent: scene}; tokens.set(token.id, token); return token; }),
+    deleteEmbeddedDocuments: async (type, ids) => { calls.push(["delete", type, ids]); for ( const id of ids ) tokens.delete(id); }};
+  const casterToken = {id: "caster", x: 0, y: 0, parent: scene, getOccupiedGridSpaceOffsets: () => [{i: 0, j: 0}]};
+  tokens.set("caster", casterToken);
+  const wolf = {uuid: "Actor.wolf", getTokenDocument: async data => ({toObject: () => ({...data})})};
+  const summons = createFoundrySummons({game: {user: {id: "gm"}, users: {activeGM: {id: "gm"}}, combat, scenes: [scene]},
+    companions: {setControllers: async () => {}}, fromUuid: uuid => ({"Scene.s.Token.caster": casterToken, "Actor.wolf": wolf})[uuid] ?? null});
+  await summons.afterResolution({options: {actor: {uuid: "Actor.caster"}}, state: {source: {tokenRef: "Scene.s.Token.caster"},
+    actionDefinition: {summon: {actorRef: "Actor.wolf", count: 2, rounds: 1}}}});
+  const joined = calls.find(call => call[0] === "create")[2];
+  assert.deepEqual(joined.map(entry => [entry.tokenId, entry.initiative]), [["t0", 11.999], ["t1", 11.998]]);
+  await summons.onTurnStart({id: "c", round: 2, turn: 0});
+  assert.deepEqual(calls.filter(call => call[0] === "delete").map(call => call.slice(1)),
+    [["Combatant", ["w0", "w1"]], ["Token", ["t0", "t1"]]], "combatants go before their Tokens");
+});

@@ -13,7 +13,8 @@ interface Grid {
   getTopLeftPoint(offset: Offset): {x: number; y: number};
 }
 interface SummonToken {
-  id: string; uuid: string; x: number; y: number; disposition?: number; parent?: SummonScene | null;
+  id: string; uuid: string; x: number; y: number; disposition?: number; hidden?: boolean; actorId?: string | null;
+  parent?: SummonScene | null;
   actor?: {uuid: string; update?(data: Data): Promise<unknown>} | null;
   flags?: {wildpath?: {summon?: SummonFlag}};
   getOccupiedGridSpaceOffsets?(): Offset[];
@@ -25,7 +26,13 @@ interface SummonScene {
   deleteEmbeddedDocuments(type: string, ids: string[]): Promise<unknown>;
 }
 interface SummonFlag {casterUuid: string; kind: string; rounds: number | null; createdAt: {combatId: string; round: number; turn: number | null} | null}
-interface Combat {id: string; round: number; turn: number | null}
+interface Combatant {id: string; tokenId?: string | null; sceneId?: string | null; initiative?: number | null}
+interface Combat {
+  id: string; round: number; turn: number | null;
+  combatants?: Iterable<Combatant>;
+  createEmbeddedDocuments?(type: string, data: Data[]): Promise<unknown>;
+  deleteEmbeddedDocuments?(type: string, ids: string[]): Promise<unknown>;
+}
 interface SummonActor {uuid: string; name?: string; prototypeToken?: unknown; toObject(): Data; pack?: string | null;
   getTokenDocument(data: Data): Promise<{toObject(): Data}>}
 interface CasterActor {uuid: string; createEmbeddedDocuments?(type: string, data: Data[]): Promise<Array<{uuid: string}>>}
@@ -73,6 +80,15 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
 }) {
   const isActiveGM = () => game.users?.activeGM?.id === game.user.id;
 
+  /** Summons leave the Scene, and the combat with them. */
+  async function dismiss(scene: SummonScene, tokenIds: string[]) {
+    const combat = game.combat;
+    const combatantIds = [...(combat?.combatants ?? [])].filter(combatant => (combatant.sceneId === scene.id)
+      && tokenIds.includes(combatant.tokenId ?? "")).map(combatant => combatant.id);
+    if ( combatantIds.length ) await combat?.deleteEmbeddedDocuments?.("Combatant", combatantIds);
+    await scene.deleteEmbeddedDocuments("Token", tokenIds);
+  }
+
   /** A summon from a compendium is imported once into the world, so its Tokens have an Actor to stand for. */
   async function worldActor(source: SummonActor): Promise<SummonActor | null> {
     if ( !source.pack ) return source;
@@ -116,6 +132,12 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
     const tokens = await scene.createEmbeddedDocuments("Token", data);
     // Each summon is its caster's: every Player who owns the caster commands it.
     for ( const token of tokens ) if ( token.actor ) await companions.setControllers(token.actor, {controllers: [caster.uuid], kind: "summon"});
+    // 2024: in combat a summon shares its caster's Initiative and takes its turn right after the caster's.
+    // shortcut: a creature tied with the caster but sorted after it still goes before the summons; fine for whole-number initiative.
+    const casterCombatant = [...(combat?.combatants ?? [])].find(entry => (entry.tokenId === casterToken.id) && (entry.sceneId === scene.id));
+    if ( casterCombatant ) await combat?.createEmbeddedDocuments?.("Combatant", tokens.map((token, index) => ({tokenId: token.id,
+      sceneId: scene.id, actorId: token.actorId ?? null, hidden: token.hidden ?? false,
+      initiative: typeof casterCombatant.initiative === "number" ? casterCombatant.initiative - ((index + 1) / 1000) : null})));
     if ( spec.concentration ) await caster.createEmbeddedDocuments?.("ActiveEffect", [{type: "effect", system: {},
       name: game.i18n?.format("WILDPATH.AREA.Concentrating", {area: definition?.label ?? base.name ?? ""}) ?? "",
       flags: {wildpath: {summonTokens: {sceneId: scene.id, tokenIds: tokens.map(token => token.id)},
@@ -129,7 +151,7 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
     if ( !link || !isActiveGM() ) return;
     const scene = [...(game.scenes ?? [])].find(entry => entry.id === link.sceneId);
     const present = link.tokenIds.filter(id => scene?.tokens.get(id));
-    if ( scene && present.length ) await scene.deleteEmbeddedDocuments("Token", present);
+    if ( scene && present.length ) await dismiss(scene, present);
   }
 
   /** At a turn's start, summons whose rounds have run out leave. */
@@ -137,7 +159,7 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
     if ( !isActiveGM() ) return;
     for ( const scene of game.scenes ?? [] ) {
       const expired = [...scene.tokens].filter(token => summonExpired(token.flags?.wildpath?.summon, combat)).map(token => token.id);
-      if ( expired.length ) await scene.deleteEmbeddedDocuments("Token", expired);
+      if ( expired.length ) await dismiss(scene, expired);
     }
   }
 

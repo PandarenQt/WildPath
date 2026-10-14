@@ -75,14 +75,21 @@ An ActionDefinition's `summon` brings creatures when the Action completes:
     is removed.
   - With `rounds`, they leave at the start of the turn they arrived on, that many rounds later, as lasting
     areas do.
+  - Summons leave the combat with their Tokens.
+- **Combat (2024).** If the caster is in the current combat, its summons join it. They share its Initiative and
+  take their turns right after the caster's, at its Initiative less a thousandth for each one. A creature tied
+  with the caster but sorted after it still goes before the summons.
 
 Live (two browsers, 14.369): Player1's summoner used Call Wolves. Two wolves appeared beside it, owned by
 Player1 and controllable, each listing the summoner as its controller. Stunning the summoner broke its
 concentration and both wolves left.
 
+Live (GM browser, 14.369, 2026-10-14): in a combat, two wolves summoned for one round joined at 9.999 and 9.998
+behind their summoner's 10. At the start of the summoner's next turn they left the Scene and the combat, and the
+turn stayed on the summoner.
+
 Not yet:
 - choosing where summons appear;
-- adding them to combat;
 - checking that a Large summon's whole footprint is free;
 - walls.
 
