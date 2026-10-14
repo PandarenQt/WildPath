@@ -1,5 +1,6 @@
 import {combineRollModes, d20FormulaWith} from "../helpers/rolls.mjs";
 import {actorAbilityModifier} from "../helpers/combat-statistics.mjs";
+import {sunlightContext} from "../adapters/foundry-v14-sunlight.mjs";
 
 const FoundryCombatantDocument = globalThis.foundry?.documents?.Combatant ?? globalThis.Combatant;
 
@@ -18,7 +19,8 @@ export default class WildPathCombatant extends FoundryCombatantDocument {
     const actor = this.actor;
     if ( !actor?.getRollModes ) return formula;
     return d20FormulaWith(formula, {
-      rollMode: combineRollModes(actor.getRollModes([...INITIATIVE_DOMAINS])),
+      // Initiative is an Agility check: a creature in sunlight with Sunlight Sensitivity rolls it with Disadvantage.
+      rollMode: combineRollModes(actor.getRollModes([...INITIATIVE_DOMAINS], {context: sunlightContext(this.token)})),
       modifier: (actor.getStatistic?.([...INITIATIVE_DOMAINS])?.totalModifier ?? 0) + (actorAbilityModifier(actor, "agility") ?? 0)
     });
   }

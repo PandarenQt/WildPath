@@ -62,7 +62,26 @@
       "system": {
         "active": true,
         "description": "<p>While in sunlight, the wight has Disadvantage on ability checks and attack rolls.</p>",
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "sunlight",
+            "type": "RollMode",
+            "predicate": {
+              "equals": {
+                "path": "inSunlight",
+                "value": true
+              }
+            },
+            "data": {
+              "domains": [
+                "attack",
+                "check"
+              ],
+              "mode": "disadvantage"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {

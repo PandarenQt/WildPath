@@ -395,8 +395,9 @@ async function firstRollRequest(definition, options={}) {
 
 /** The planned resolution of an Action between two conditioned creatures (`attackRoll` answers the attack). */
 async function plannedWithConditions(definition, {attacker=[], target=[], offset={i: 1, j: 0}, targetStatistics={}, attackRoll=null,
-  allies=[], prepareTarget=null, saveRoll=null}={}) {
+  allies=[], prepareTarget=null, saveRoll=null, sunlit=false}={}) {
   const scene = fakeScene(new FakeSquareGrid(), {id: "scene-roll-modes"});
+  if ( sunlit ) scene.flags = {wildpath: {sunlight: true}};
   const sourceActor = withConditions(fakeActor("roll-source", {system: actorSystem(),
     statistics: {"attack.weapon": runtimeStatistic("attack.weapon", 4)}}), ...attacker);
   const targetActor = withConditions(fakeActor("roll-target", {system: targetActorSystem(20, 20, {ac: 14}),
@@ -502,6 +503,15 @@ test("Evasion: an Agility save that halves takes none on a success and half on a
   const wits = {...burst, id: "action:runtime-wits-burst", save: {ability: "wits", dc: {value: 13}}};
   assert.equal((await plannedWithConditions(wits, {target: [evasion], saveRoll: {total: 15, natural: 15, die: 15}}))
     .state.results.damageResolution.results[0].total, 5, "only Agility saves");
+});
+
+test("Sunlight Sensitivity: Disadvantage on attacks while the attacker stands in sunlight", async () => {
+  const sensitive = [{schemaVersion: 1, id: "sunlight", type: "RollMode", predicate: {equals: {path: "inSunlight", value: true}},
+    data: {domains: ["attack", "check"], mode: "disadvantage"}}];
+  assert.equal((await firstRollRequest(meleeStrikeDefinition(), {attacker: [sensitive]})).rollMode, "normal", "at night");
+  assert.equal((await firstRollRequest(meleeStrikeDefinition(), {attacker: [sensitive], sunlit: true})).rollMode, "disadvantage");
+  assert.equal((await firstRollRequest(meleeStrikeDefinition(), {target: [sensitive], sunlit: true})).rollMode, "normal",
+    "the target's own sensitivity does not hinder attacks on it");
 });
 
 test("each target adds its own save bonus from its save Modifiers", async () => {

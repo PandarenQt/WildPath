@@ -303,6 +303,22 @@ Its predicate sees `attack.type` and `attack.adjacent` (the attacker within 5 ft
   the target. Pack Tactics is `{equals: {path: "attack.allyNearTarget", value: true}}` on `attack`.
 - on a save, the Action's `tags`, where every spell is also `magical`. Magic Resistance is `{tagsAny: ["magical"]}` on
   `save`: it covers spells and any Action tagged `magical` (the converter tags a magic item's Actions).
+- `inSunlight` (2026-10-15): the rolling creature stands in sunlight. It is set on its own attacks, checks (initiative
+  included), saves, and its automatic triggers. Sunlight Sensitivity is `{equals: {path: "inSunlight", value: true}}` on
+  `attack` and `check`.
+
+**Sunlight (2026-10-15, G5).** A creature stands in sunlight when its Scene is tagged "Sunlight", or a light tagged
+"Sunlight" reaches it (`module/adapters/foundry-v14-sunlight.mts`):
+- The tag is `flags.wildpath.sunlight`. It is a checkbox on the Scene sheet (Environment), the Ambient Light sheet
+  (Basic) and the Token sheet (Light).
+- A sunlight source is an ambient light or a Token's own light: a Daylight spell (2024: its light is sunlight), or a
+  sunbeam. A plain torch is not.
+- On the viewed Scene, Foundry's own light source decides, walls and elevation included. Elsewhere the light's
+  radius does.
+- The action bar refreshes its odds when a Scene or a light changes.
+
+Live (GM, 14.369): an SRD Kobold Warrior's Dagger showed 75% at night, and 56% with Disadvantage both with the Scene
+ticked "Sunlight" and under an ambient light ticked "Sunlight". Unticked, it was 75% again.
 
 The 2024 conditions are authored this way in `WILDPATH.CONDITIONS` (rolls.md, "Advantage / Disadvantage and
 Modifiers").
@@ -332,6 +348,8 @@ Modifiers").
   the odds and the authority all see it.
 - A payment never refills a pool it drew from, so an attack paid from the pool does not refill it.
 - Each Extra Attack feature grants one more use of the same pool, so Fighter's Two and Three Extra Attacks add up.
+- A weapon attack is any attack with `attack.statistic: "weapon"`: manufactured and natural weapons, and the common
+  Unarmed Strike. Its cost on the action bar includes the pool too.
 
 Live (GM): a Rogue 5 duelist with Extra Attack and a Rapier attacked the Bandit Captain three times in one turn.
 The first was paid with the Action and filled the pool (it missed). The second was paid from the pool, hit, and

@@ -346,6 +346,11 @@ const TRAITS = Object.freeze({
     return {rules: [{schemaVersion: 1, id: "sneak-attack", type: "ExtraDamage", predicate: SNEAK_ATTACK,
       data: {domains: ["damage.weapon"], expression, once: "turn"}}], consumes: [activity], notes};
   },
+  // "While in sunlight, the drider has Disadvantage on ability checks and attack rolls" (2014: Perception checks that rely
+  // on sight); Sunlight Weakness, on D20 Tests; Sunlight Hypersensitivity also burns it at the start of its turn there.
+  "sunlight-sensitivity": (document, options) => sunlightTrait(document, options),
+  "sunlight-weakness": (document, options) => sunlightTrait(document, options),
+  "sunlight-hypersensitivity": (document, options) => sunlightTrait(document, options),
   // "Doesn't provoke an Opportunity Attack when it flies out of an enemy's reach."
   flyby: () => ({rules: [{schemaVersion: 1, id: "flyby", type: "AvoidOpportunityAttacks", data: {movementModes: ["fly"]}}], notes: []}),
   "pack-tactics": () => ({rules: [{schemaVersion: 1, id: "pack-tactics", type: "RollMode",
@@ -354,12 +359,14 @@ const TRAITS = Object.freeze({
     const activity = activities.find(entry => entry.type === "heal");
     const heal = activity ? convertActivity({document, activity, ...options, notes: []}) : null;
     if ( !heal?.healing?.length ) return null;
-    const text = String(document.system?.description?.value ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
+    const text = plainText(document);
     // "If the troll takes Acid or Fire damage, this trait doesn't function on its next turn": only the types it names.
     const stopping = text.split(/(?<=\.)\s+/).find(sentence => /\btakes\b/i.test(sentence) && /function/i.test(sentence)) ?? "";
     const stoppedBy = DAMAGE_TYPES.filter(type => new RegExp(`\\b${type}\\b`, "i").test(stopping));
     const predicates = [
       ...(/at least 1 hit point/i.test(text) ? [{not: {equals: {path: "actor.system.resources.health.value", value: 0}}}] : []),
+      // A Vampire's: "if it ... isn't in sunlight".
+      ...(/isn't in sunlight|isn’t in sunlight/i.test(text) ? [{not: IN_SUNLIGHT}] : []),
       ...stoppedBy.map(type => ({not: {equals: {path: `actor.flags.wildpath.damageTaken.${type}`, value: true}}}))];
     // "The troll dies only if it starts its turn with 0 Hit Points and doesn't regenerate."
     const deferDeath = /only if it starts its turn with 0 hit points/i.test(text);
@@ -367,7 +374,7 @@ const TRAITS = Object.freeze({
       ...(stoppedBy.length ? {stoppedBy} : {}), ...(deferDeath ? {deferDeath: true} : {}),
       ...(predicates.length ? {predicate: predicates.length > 1 ? {all: predicates} : predicates[0]} : {}),
       action: {...heal, costs: {allOf: []}}}}], consumes: [activity],
-      notes: /sunlight|running water/i.test(text) ? ["Regeneration: sunlight and running water are not checked"] : []};
+      notes: /running water/i.test(text) ? ["Regeneration: running water is not checked"] : []};
   }
 });
 
@@ -379,6 +386,28 @@ const extraAttackTrait = () => ({rules: [
   {schemaVersion: 1, id: "extra-attack-pool", type: "GrantResource", data: {resourceId: "extra-attack", label: "Extra Attack",
     maximum: 1, current: 0, recovery: "none", emptiesAtTurnStart: true}},
   {schemaVersion: 1, id: "extra-attack", type: "ExtraAttack", data: {resourceId: "extra-attack"}}], notes: []});
+
+/** A feature's description as plain text, one space between words. */
+const plainText = document => String(document.system?.description?.value ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
+
+/** The creature stands in sunlight: its Scene is tagged sunlit, or a light tagged as sunlight reaches it. */
+const IN_SUNLIGHT = Object.freeze({equals: {path: "inSunlight", value: true}});
+
+/** Disadvantage in sunlight on the rolls its text names, and its damage there at the start of its turn. */
+function sunlightTrait(document, {activities, ...options}) {
+  const text = plainText(document);
+  const domains = /d20 tests/i.test(text) ? ["attack", "check", "save"] : [
+    ...(/attack rolls/i.test(text) ? ["attack"] : []),
+    ...(/ability checks/i.test(text) ? ["check"] : (/perception/i.test(text) ? ["check.perception"] : [])),
+    ...(/saving throws/i.test(text) ? ["save"] : [])];
+  if ( !domains.length ) return null;
+  const rules = [{schemaVersion: 1, id: "sunlight", type: "RollMode", predicate: IN_SUNLIGHT, data: {domains, mode: "disadvantage"}}];
+  const activity = activities.find(entry => entry.type === "damage");
+  const burn = activity ? convertActivity({document, activity, ...options, notes: []}) : null;
+  if ( burn?.damage?.length ) rules.push({schemaVersion: 1, id: "sunlight-damage", type: "Trigger", data: {event: "turn.started",
+    predicate: IN_SUNLIGHT, action: {...burn, costs: {allOf: []}}}});
+  return {rules, consumes: burn?.damage?.length ? [activity] : [], notes: []};
+}
 
 /** Not Incapacitated: none of the conditions that include it. */
 const NOT_INCAPACITATED = Object.freeze({not: {any: ["incapacitated", "stunned", "paralyzed", "petrified", "unconscious", "dead"]

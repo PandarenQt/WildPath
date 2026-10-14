@@ -1,5 +1,6 @@
 import {actionDefinitionFromAction} from "../helpers/action-definitions.mjs";
 import {createAutomationEvent, createTriggerDefinition, evaluateTrigger} from "../helpers/automation-events.mjs";
+import {sunlightContext} from "./foundry-v14-sunlight.mjs";
 
 type Data = Record<string, unknown>;
 interface RuleElement {id?: string; type?: string; enabled?: boolean; data?: Data}
@@ -55,7 +56,7 @@ export async function runAuthorityAction({coordinator, resolveAction, senderUser
  * its active Items and enabled effects. Condition effects answer through their own lifecycle and are skipped. The
  * Action is the trigger's inline `action`, the Item itself when it is an Action, or the Action Item `actionId` names.
  */
-export function automationTriggers(actor: AutomationActor, event: Data) {
+export function automationTriggers(actor: AutomationActor, event: Data, context: Data = {}) {
   const items = [...(actor.items ?? [])];
   const owners = [...items.filter(item => item.system?.active !== false),
     ...[...(actor.effects ?? [])].filter(effect => !effect.disabled && (effect.type !== "condition"))];
@@ -67,8 +68,9 @@ export function automationTriggers(actor: AutomationActor, event: Data) {
     if ( !type ) return [];
     const trigger = triggerDefinition({id: `automation:${actor.id}:${owner.id}:${element.id ?? "trigger"}`, event: type,
       match: data.match ?? {}, predicate: data.triggerPredicate ?? data.eventPredicate ?? data.predicate ?? null});
-    // Predicates also see the creature (`actor.system.resources.health.value`: Regeneration needs 1 Hit Point).
-    if ( !triggerMatches(trigger, event, {actor}).ok ) return [];
+    // Predicates also see the creature (`actor.system.resources.health.value`: Regeneration needs 1 Hit Point) and
+    // whether it stands in sunlight (`inSunlight`: a Vampire's).
+    if ( !triggerMatches(trigger, event, {actor, ...context}).ok ) return [];
     const actionItem = owner.type === "action" ? owner
       : items.find(entry => (entry.type === "action") && (entry.system?.definition?.id === data.actionId));
     const definition = (data.action as Data | undefined) ?? (actionItem ? definitionFor(actionItem).definition : null);
@@ -97,7 +99,7 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
       tokenId: token?.id ?? null, data});
     const self = {actorRef: actor.uuid, ...(token?.parent ? {tokenId: token.id, sceneId: token.parent.id} : {})};
     const states = [];
-    for ( const {id, definition, label} of automationTriggers(actor, event) ) {
+    for ( const {id, definition, label} of automationTriggers(actor, event, sunlightContext(token as never)) ) {
       const state = await runAuthorityAction({coordinator, resolveAction, logger, senderUserId: game.user.id,
         resolutionId: `${id}:${sequence}`, definition, label, actorRef: actor.uuid,
         source: token?.parent ? {tokenId: token.id, sceneId: token.parent.id} : {}, target: self});

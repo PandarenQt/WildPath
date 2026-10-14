@@ -90,7 +90,27 @@
       "system": {
         "active": true,
         "description": "<p class=\"feature\">While in sunlight, the shadow has Disadvantage on D20 Tests.</p>",
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "sunlight",
+            "type": "RollMode",
+            "predicate": {
+              "equals": {
+                "path": "inSunlight",
+                "value": true
+              }
+            },
+            "data": {
+              "domains": [
+                "attack",
+                "check",
+                "save"
+              ],
+              "mode": "disadvantage"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
