@@ -80,7 +80,10 @@ export function commonAction(actor, id, { localize = (key) => key } = {}) {
         return null;
     const name = localize(entry.name);
     const definition = { schemaVersion: 1, id: `common:${id}`, label: name, ...structuredClone(entry.definition) };
-    // What it costs, as the action bar reads it (an Item's data model would give `getActivationCost()`).
-    return { id: `common-${id}`, uuid: `common:${id}`, type: "action", name, img: entry.img, flags, activationCost: costOf(definition),
+    const action = { id: `common-${id}`, uuid: `common:${id}`, type: "action", name, img: entry.img, flags, activationCost: {},
         system: { active: true, definition }, actor };
+    // What it costs, as the action bar reads it (an Item's data model would give `getActivationCost()`): as its creature
+    // can pay it now (an Unarmed Strike from Extra Attack's pool).
+    action.activationCost = costOf(definitionOf(action).definition ?? definition);
+    return action;
 }

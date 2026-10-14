@@ -7,6 +7,7 @@ import {conditionsFrom} from "../helpers/effect-sources.mjs";
 import {footprintDistance} from "../helpers/grid-footprints.mjs";
 import {turnKey} from "./foundry-v14-persistent-areas.mjs";
 import {allyNearTarget} from "./foundry-v14-auras.mjs";
+import {sunlightContext} from "./foundry-v14-sunlight.mjs";
 import {economyResourcesFromActorResources} from "../helpers/action-economy.mjs";
 import {createAutomationEvent} from "../helpers/automation-events.mjs";
 import {movementTransitionRelations} from "../helpers/movement-transition.mjs";
@@ -88,7 +89,8 @@ function reactionChildState({args, reactor, target, targetFootprint, sourceFootp
   const fields = footprintDistance(sourceFootprint as never, (targetFootprint as {footprint: never}).footprint);
   const context = {attack: {type, ...(Number.isFinite(fields) ? {adjacent: fields * sceneContext.grid.distance <= 5} : {}),
     fromTarget: (conditionsFrom as unknown as (holder: unknown, source: unknown) => Data)(reactor.actor, actor),
-    allyNearTarget: allyNearTarget(reactor as never, target as never, (targetFootprint as {footprint?: Data}).footprint ?? null)}};
+    allyNearTarget: allyNearTarget(reactor as never, target as never, (targetFootprint as {footprint?: Data}).footprint ?? null)},
+    ...sunlightContext(reactor as never)};
   const rollMode = definition.attack ? (attackRollMode as unknown as (a: unknown, t: unknown, o: Data) => string)(reactor.actor, actor,
     {type, item: reactionItem, context}) : null;
   const critical = !!definition.attack && (attackForcesCritical as unknown as (t: unknown, o: Data) => boolean)(actor, {type, context});

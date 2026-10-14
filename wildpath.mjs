@@ -1,6 +1,7 @@
 import {WILDPATH} from "./module/config.mjs";
 import {registerFoundryV14ConditionStatuses} from "./module/adapters/foundry-v14-status-effects-adapter.mjs";
 import {registerTokenRuler} from "./module/applications/token-ruler.mjs";
+import {registerSunlightConfig} from "./module/applications/sunlight-config.mjs";
 import {registerChatCardInteractions} from "./module/adapters/foundry-v14-chat-card-interactions.mjs";
 
 import "./module/tests/quench/index.mjs";
@@ -76,6 +77,7 @@ Hooks.once("init", () => {
 
   // Dragged Tokens show the movement left and the Opportunity Attacks their path would provoke.
   registerTokenRuler();
+  registerSunlightConfig();
 
   // Trackable Token attributes
   CONFIG.Actor.trackableAttributes = {

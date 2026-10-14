@@ -155,7 +155,10 @@ A feature is matched by its dnd5e identifier (or its name) and gets the rules of
   hit with a Finesse or ranged weapon, with Advantage or with an ally beside the target and no Disadvantage. Its
   damage activity is the trait's.
 - **Extra Attack** (and Fighter's Two and Three Extra Attacks): one more weapon attack each time the creature pays
-  for one with the Action.
+  for one with the Action. Natural weapons and Unarmed Strikes count.
+- **Sunlight Sensitivity, Sunlight Weakness, Sunlight Hypersensitivity:** Disadvantage in sunlight on the rolls the
+  text names: attack rolls and ability checks (2014: Perception checks), or all D20 Tests. Hypersensitivity also deals its
+  damage when the creature starts its turn in sunlight. A Vampire's Regeneration does not work in sunlight.
 - **Legendary Resistance:** a pool of the creature's uses ("3/Day", from its stat block). A failed save may succeed
   instead, spending one; its controller is asked unless its setting says Always or Never.
 

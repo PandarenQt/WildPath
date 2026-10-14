@@ -302,6 +302,10 @@ test("common monster traits (G5): Magic Resistance, Pack Tactics and Regeneratio
     activation: {type: "turnStart"}}}}}, {creature: {name: "Test"}}).items;
   assert.deepEqual(turnStart.map(item => [item.type, item.system.ruleElements[0].id]), [["feature", "regeneration"]],
     "healing activated at the start of the turn is the trait's too, not an Action");
+  const vampire = ruleOf("<p>The vampire regains 20 Hit Points at the start of its turn if it has at least 1 Hit Point and isn't in sunlight "
+    + "or running water. If it takes Radiant damage, this trait doesn't function at the start of its next turn.</p>");
+  assert.deepEqual(vampire.predicate.all.map(entry => JSON.stringify(entry)).filter(entry => entry.includes("inSunlight")),
+    [JSON.stringify({not: {equals: {path: "inSunlight", value: true}}})], "not in sunlight");
   const unstoppable = ruleOf("<p>The tarrasque regains 30 Hit Points at the start of each of its turns.</p>");
   assert.deepEqual([unstoppable.predicate, unstoppable.stoppedBy, unstoppable.deferDeath], [undefined, undefined, undefined],
     "nothing stops it");
@@ -312,6 +316,20 @@ test("common monster traits (G5): Magic Resistance, Pack Tactics and Regeneratio
   assert.deepEqual(convertItem(trait("two-extra-attacks", "Two Extra Attacks")).items[0].system.ruleElements.map(rule => [rule.type, rule.data]), [
     ["GrantResource", {resourceId: "extra-attack", label: "Extra Attack", maximum: 1, current: 0, recovery: "none", emptiesAtTurnStart: true}],
     ["ExtraAttack", {resourceId: "extra-attack"}]], "each Extra Attack feature adds one attack to the same pool");
+  const sunlit = (id, name, text, activities={}) => convertItem(trait(id, name, activities, `<p>${text}</p>`), {creature: {name: "Test"}}).items;
+  const domainsOf = items => items[0].system.ruleElements[0].data.domains;
+  assert.deepEqual(domainsOf(sunlit("sunlight-sensitivity", "Sunlight Sensitivity",
+    "While in sunlight, the drider has Disadvantage on ability checks and attack rolls.")), ["attack", "check"]);
+  assert.deepEqual(domainsOf(sunlit("", "Sunlight Sensitivity",
+    "While in sunlight, the wraith has disadvantage on attack rolls, as well as on Wisdom (Perception) checks that rely on sight.")),
+    ["attack", "check.perception"], "the 2014 text, matched by name");
+  assert.deepEqual(domainsOf(sunlit("sunlight-weakness", "Sunlight Weakness", "While in sunlight, the shadow has Disadvantage on D20 Tests.")),
+    ["attack", "check", "save"]);
+  const burning = sunlit("sunlight-hypersensitivity", "Sunlight Hypersensitivity", "The vampire takes 20 Radiant damage if it starts its "
+    + "turn in sunlight. While in sunlight, it has Disadvantage on attack rolls and ability checks.", {a: activity("damage", {activation: {type: ""},
+      damage: {parts: [{number: null, denomination: null, bonus: "20", types: ["radiant"]}]}})});
+  assert.deepEqual(burning[0].system.ruleElements.map(rule => [rule.type, rule.predicate ?? rule.data.predicate]), [["RollMode", {equals: {path: "inSunlight", value: true}}],
+    ["Trigger", {equals: {path: "inSunlight", value: true}}]], "and it burns at the start of its turn there");
   const [evade] = convertItem(trait("evasion", "Evasion")).items[0].system.ruleElements;
   assert.deepEqual([evade.type, evade.data, evade.predicate.not.any.length], ["RollOutcome", {domains: ["save.agility"], outcome: "evasion"}, 6]);
   const sneak = convertItem(trait("sneak-attack", "Sneak Attack", {a: activity("damage", {activation: {type: ""},

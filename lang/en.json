@@ -191,6 +191,11 @@
       "UnarmedStrike": "Unarmed Strike",
       "OpportunityAttack": "Opportunity Attack"
     },
+    "SUNLIGHT": {
+      "Label": "Sunlight",
+      "SceneHint": "The whole scene is in sunlight, such as outdoors by day. Creatures with Sunlight Sensitivity suffer it anywhere here.",
+      "LightHint": "This light is sunlight, such as a Daylight spell or a sunbeam. Creatures it reaches are in sunlight."
+    },
     "LEGENDARY": {
       "Title": "Legendary Resistance",
       "Prompt": "{name} failed its save. Use Legendary Resistance to succeed instead? ({value} of {max} left)",

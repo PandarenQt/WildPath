@@ -16,6 +16,7 @@ import {foundryActionReactionServices} from "../adapters/foundry-v14-reaction-se
 import {foundryAreaFootprint, foundryAreaTargetTokens} from "../adapters/foundry-v14-area-placement.mjs";
 import {createFoundryPersistentAreas, turnKey} from "../adapters/foundry-v14-persistent-areas.mjs";
 import {allyNearTarget, createFoundryAuras} from "../adapters/foundry-v14-auras.mjs";
+import {sunlightContext} from "../adapters/foundry-v14-sunlight.mjs";
 import {AUTOMATION_QUERY, createFoundryAutomationDispatcher} from "../adapters/foundry-v14-automation-dispatcher.mjs";
 import {COMPANION_QUERY, createFoundryCompanions} from "../adapters/foundry-v14-companions.mjs";
 import {createFoundryDying} from "../adapters/foundry-v14-dying.mjs";
@@ -519,11 +520,11 @@ function notifyMultiplayerMovementFailure(event={}, {logger=globalThis.console}=
  * lookup and is never reachable from a socket intent.
  */
 /** The acting creature's own check: its bonus, and its advantage or disadvantage on the same domains. */
-function actionCheckInput(actor, {ability=null, skill=null}={}) {
+function actionCheckInput(actor, {ability=null, skill=null}={}, sourceToken=null) {
   const bonus = resolveActorCheckStatistic(actor, {ability, skill});
   const domains = ["check", ability ? `check.${ability}` : null, skill ? `check.${skill}` : null].filter(Boolean);
   return {...(bonus ? {modifier: bonus.totalModifier} : {}), ...(bonus?.dice?.length ? {dice: bonus.dice} : {}),
-    rollMode: combineRollModes(actor.getRollModes?.(domains, {context: {check: {ability, skill}}}) ?? [])};
+    rollMode: combineRollModes(actor.getRollModes?.(domains, {context: {check: {ability, skill}, ...sunlightContext(sourceToken)}}) ?? [])};
 }
 
 export async function foundryActionIntentToStagedOptions({intent={}, senderUserId=null, game=globalThis.game, persistencePort=null,
@@ -643,13 +644,14 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     if ( definition?.save ) {
       const ability = definition.save.ability ?? definition.save.saveKey ?? null;
       const key = target.tokenId ?? target.id;
+      const saverToken = targetTokenFor(targetActor, hint, game);
       saveRollModes[key] = combineRollModes(targetActor.getRollModes?.(["save", `save.${ability}`],
-        saveContext(definition, ability)) ?? []);
+        saveContext(definition, ability, saverToken)) ?? []);
       // Each target's own save bonus (Modifiers on save.<ability> and save), and an automatic failure.
       const bonus = resolveActorSaveStatistic(targetActor, ability);
       if ( bonus ) saveModifiers[key] = bonus.totalModifier;
       if ( bonus?.dice?.length ) saveDice[key] = bonus.dice;
-      const forced = targetActor.getRollOutcomes?.(["save", `save.${ability}`], saveContext(definition, ability)) ?? [];
+      const forced = targetActor.getRollOutcomes?.(["save", `save.${ability}`], saveContext(definition, ability, saverToken)) ?? [];
       if ( forced.some(entry => entry.outcome === "automatic-failure") ) saveOutcomes[key] = "automatic-failure";
       if ( forced.some(entry => entry.outcome === "evasion") ) evasionByTarget[key] = "evasion";
       const legendary = legendaryResistanceFor(targetActor, systemSnapshots.get(targetActor), game);
@@ -739,7 +741,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
         ...(Object.keys(legendaryByTarget).length ? {legendaryByTarget} : {}),
         ...(Object.keys(evasionByTarget).length ? {evasionByTarget} : {}),
         outcomesByTarget: saveOutcomes}} : {}),
-      ...(definition?.check ? {check: actionCheckInput(actor, definition.check)} : {}),
+      ...(definition?.check ? {check: actionCheckInput(actor, definition.check, sourceToken)} : {}),
       ...(definition?.summon && Array.isArray(intent.summon?.points) ? {summonPoints: intent.summon.points.slice(0, 20)
         .map(point => ({x: Number(point?.x), y: Number(point?.y)}))
         .filter(point => Number.isFinite(point.x) && Number.isFinite(point.y))} : {}),
@@ -834,8 +836,8 @@ function foundryAttackOutcomes({definition, targets, targetEntries, spatial, gam
 
 /**
  * What RuleElement predicates see about an attack on one target: its type, whether it is within 5 ft, the
- * conditions the attacker has from that target (`fromTarget.grappled`), and whether one of the attacker's allies
- * stands within 5 ft of it (`allyNearTarget`, Pack Tactics).
+ * conditions the attacker has from that target (`fromTarget.grappled`), whether one of the attacker's allies
+ * stands within 5 ft of it (`allyNearTarget`, Pack Tactics), and whether the attacker stands in sunlight (`inSunlight`).
  */
 function attackContext(type, spatial, entry, game, sourceToken, attacker=null) {
   const token = entry ? resolveFoundryTargetToken({actor: entry.actor, hint: entry.hint, game,
@@ -845,7 +847,8 @@ function attackContext(type, spatial, entry, game, sourceToken, attacker=null) {
     ? createFoundryV14TacticalGridAdapter({scene: token.parent}).tokenToFootprint(token) : null;
   const fields = footprint?.ok && footprint.footprint ? footprintDistance(source, footprint.footprint) : null;
   return {attack: {type, ...(Number.isFinite(fields) ? {adjacent: fields * spatial.context.gridDistance <= 5} : {}),
-    fromTarget: conditionsFrom(attacker, entry?.actor, game), allyNearTarget: allyNearTarget(sourceToken, token)}};
+    fromTarget: conditionsFrom(attacker, entry?.actor, game), allyNearTarget: allyNearTarget(sourceToken, token)},
+    ...sunlightContext(sourceToken)};
 }
 
 /**
@@ -867,9 +870,10 @@ function legendaryResistanceFor(actor, actorSystem, game) {
  * What a save's RuleElement predicates see: its ability, and the Action's tags. Every spell is `magical` too, so
  * Magic Resistance (`{tagsAny: ["magical"]}`) covers spells and Actions tagged `magical` (a magic item's).
  */
-function saveContext(definition, ability) {
+function saveContext(definition, ability, token=null) {
   const tags = definition?.tags ?? [];
-  return {context: {save: {ability}, tags: tags.includes("spell") && !tags.includes("magical") ? [...tags, "magical"] : tags}};
+  return {context: {save: {ability}, tags: tags.includes("spell") && !tags.includes("magical") ? [...tags, "magical"] : tags,
+    ...sunlightContext(token)}};
 }
 
 /**
@@ -904,7 +908,7 @@ export function foundryActionOdds({actor, action, sourceToken=null, targetTokens
   const ability = definition.save.ability ?? definition.save.saveKey ?? null;
   if ( !Number.isFinite(dc) ) return [];
   return entries.map(({token, actor: target}) => {
-    const context = saveContext(definition, ability);
+    const context = saveContext(definition, ability, token);
     const rollMode = combineRollModes(target.getRollModes?.(["save", `save.${ability}`], context) ?? []);
     const statistic = resolveActorSaveStatistic(target, ability);
     const modifier = statistic?.totalModifier ?? 0;

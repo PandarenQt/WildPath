@@ -31,6 +31,13 @@ test("every creature's common actions are valid Actions, built fresh from their 
   assert.equal(commonAction({items: []}, "opportunity").system.definition.id, "common:unarmed", "without a weapon, an Unarmed Strike");
 });
 
+test("with Extra Attack, the Unarmed Strike's cost on the bar includes its pool", () => {
+  const fighter = {items: [], flags: {}, getExtraAttacks: () => ["extra-attack"], system: {pools: [{id: "extra-attack", value: 1, max: 1}]}};
+  assert.deepEqual(commonAction(fighter, "unarmed").activationCost.anyOf?.map(option => option.map(cost => cost.capability)),
+    [["extra-attack"], ["action"]]);
+  assert.equal(commonAction({items: [], flags: {}}, "unarmed").activationCost.anyOf, undefined);
+});
+
 test("the action bar lists the common actions last, in their own group", () => {
   const actor = {name: "Hero", items: [], effects: [], system: {resources: {action: {value: 1, max: 1}, bonus: {value: 1, max: 1},
     reaction: {value: 1, max: 1}, movement: {value: 30, max: 30}}, pools: []}};

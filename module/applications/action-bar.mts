@@ -147,6 +147,8 @@ export function registerActionBar() {
   for ( const hook of ["createSetting", "updateSetting"] ) globals.Hooks.on(hook, (setting: unknown) => {
     if ( (setting as {key?: string}).key === "wildpath.playersSeeOdds" ) refreshActionBar();
   });
+  // Sunlight (Sunlight Sensitivity) changes with the Scene's and the lights' tags.
+  for ( const hook of ["updateScene", "createAmbientLight", "updateAmbientLight", "deleteAmbientLight"] ) globals.Hooks.on(hook, () => refreshActionBar());
   for ( const hook of ["updateActor", "createItem", "updateItem", "deleteItem", "createActiveEffect", "updateActiveEffect",
     "deleteActiveEffect"] ) {
     globals.Hooks.on(hook, (document: unknown) => { if ( concerns(document) ) refreshActionBar(); });

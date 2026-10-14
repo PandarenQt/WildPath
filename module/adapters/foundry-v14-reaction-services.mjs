@@ -6,6 +6,7 @@ import { conditionsFrom } from "../helpers/effect-sources.mjs";
 import { footprintDistance } from "../helpers/grid-footprints.mjs";
 import { turnKey } from "./foundry-v14-persistent-areas.mjs";
 import { allyNearTarget } from "./foundry-v14-auras.mjs";
+import { sunlightContext } from "./foundry-v14-sunlight.mjs";
 import { economyResourcesFromActorResources } from "../helpers/action-economy.mjs";
 import { createAutomationEvent } from "../helpers/automation-events.mjs";
 import { movementTransitionRelations } from "../helpers/movement-transition.mjs";
@@ -64,7 +65,8 @@ function reactionChildState({ args, reactor, target, targetFootprint, sourceFoot
     const fields = footprintDistance(sourceFootprint, targetFootprint.footprint);
     const context = { attack: { type, ...(Number.isFinite(fields) ? { adjacent: fields * sceneContext.grid.distance <= 5 } : {}),
             fromTarget: conditionsFrom(reactor.actor, actor),
-            allyNearTarget: allyNearTarget(reactor, target, targetFootprint.footprint ?? null) } };
+            allyNearTarget: allyNearTarget(reactor, target, targetFootprint.footprint ?? null) },
+        ...sunlightContext(reactor) };
     const rollMode = definition.attack ? attackRollMode(reactor.actor, actor, { type, item: reactionItem, context }) : null;
     const critical = !!definition.attack && attackForcesCritical(actor, { type, context });
     // The same attack and damage statistics as any Action: an opportunity attack adds the ability modifier and bonuses,
