@@ -72,11 +72,18 @@ export class WildPathActionBar extends HandlebarsApplicationMixin(ApplicationV2)
     }
     /** Cycle a reaction between Ask, Always and Never (Baldur's Gate 3's reaction settings). */
     static async #onReactionPolicy(event, target) {
-        const item = this.shownActor?.items.get(target.dataset.itemId ?? "");
-        if (!item)
-            return;
+        const actor = this.shownActor;
+        const id = target.dataset.itemId ?? "";
         const policies = REACTION_POLICIES;
-        await item.setFlag("wildpath", "reactionPolicy", policies[(policies.indexOf(reactionPolicyOf(item)) + 1) % policies.length]);
+        const next = (current) => policies[(policies.indexOf(reactionPolicyOf(current)) + 1) % policies.length];
+        // A common reaction (the Opportunity Attack) keeps its setting on the creature.
+        const common = id.startsWith("common-") && actor ? this.#common(actor).find(action => action.id === id) : null;
+        if (common)
+            return void await actor
+                .setFlag("wildpath", `commonPolicies.${id.slice("common-".length)}`, next(common));
+        const item = actor?.items.get(id);
+        if (item)
+            await item.setFlag("wildpath", "reactionPolicy", next(item));
     }
 }
 let bar = null;

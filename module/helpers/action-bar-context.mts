@@ -74,11 +74,13 @@ export function actionBarContext({actor, conditions=[], odds={}, common=[]}: {ac
   // Groups list their Actions by ref; the views carry the rest.
   const byRef = new Map(bar.actions.map(action => [action.ref, action]));
   const items = new Map([...(actor.items ?? [])].map(item => [item.id, item]));
+  const commonById = new Map(common.map(action => [action.id, action]));
   const view = (groupId: string) => (action: ActionView) => ({id: action.id, label: action.label,
     img: action.img ?? "icons/svg/sword.svg", enabled: action.enabled, disabledCode: action.disabledCode,
     odds: oddsView(odds[action.id ?? ""] ?? []),
-    // A reaction's Always / Ask / Never setting.
-    ...(groupId === "reaction" ? {policy: {id: policyOf(items.get(action.id)), ...POLICY_VIEWS[policyOf(items.get(action.id))]}} : {})});
+    // A reaction's Always / Ask / Never setting (a common reaction's is on its own Action).
+    ...(action.group === "reaction" ? {policy: {id: policyOf(items.get(action.id) ?? commonById.get(action.id ?? "")),
+      ...POLICY_VIEWS[policyOf(items.get(action.id) ?? commonById.get(action.id ?? ""))]}} : {})});
   // The actions every creature has come last, in their own group (Baldur's Gate 3's common actions).
   const commonActions = common.length ? viewModel({actor, actions: common}).actions : [];
   const levels = new Map([...(actor.effects ?? [])].filter(effect => !effect.disabled && effect.system?.type)

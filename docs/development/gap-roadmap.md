@@ -206,8 +206,11 @@ Forced movement and elevation join G6, which becomes "space": areas, elevation a
     from their id;
   - verified in Node, Quench (91/91) and two browsers
     ([action-definitions.md](../architecture/action-definitions.md#common-actions-2026-10-14-after-baldurs-gate-3)).
-  - Next, B1.4b: an Opportunity Attack for every creature, which Disengage prevents. Today only content with its
-    own Trigger makes one.
+- **B1.4b, Opportunity Attacks for every creature (2026-10-14).** Done:
+  - each creature's first melee attack, or its Unarmed Strike, when a hostile creature leaves its reach;
+  - Disengage prevents it, and the creature's own Always, Ask or Never setting applies;
+  - reaction attacks now get advantage, disadvantage and forced critical hits like any attack;
+  - verified in Node, Quench (91/91) and two browsers ([reactions.md](../architecture/reactions.md)).
 - **B1.5, floating combat text (2026-10-14).** Done:
   - damage, healing, Miss, Critical hit and Saved float over Tokens on every client that may see them;
   - verified in Node, Quench (91/91) and two browsers ([ui-ux-layer.md](../architecture/ui-ux-layer.md)).

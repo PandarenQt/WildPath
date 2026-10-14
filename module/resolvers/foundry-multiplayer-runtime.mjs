@@ -34,10 +34,14 @@ import {actionDefinitionActivationCost, actionDefinitionFromAction, actionDefini
 import {tokenRef} from "../helpers/entity-refs.mjs";
 import {footprintDistance} from "../helpers/grid-footprints.mjs";
 import {combineRollModes, d20Chance} from "../helpers/rolls.mjs";
-import {collectRuleElementContributions} from "../helpers/rule-elements.mjs";
+import {conditionsFrom, creatureRefs, revealedTo} from "../helpers/effect-sources.mjs";
+
+export {conditionsFrom, revealedTo};
 import {commonAction, commonActionId} from "../helpers/common-actions.mjs";
 import {
   actionCombatStatistics,
+  attackForcesCritical,
+  attackRollMode,
   resolveActorCheckStatistic,
   resolveActorSaveStatistic,
   resolveActorDefense
@@ -798,11 +802,7 @@ export async function endConcentrationOnIncapacitation(effect, game=globalThis.g
 function foundryAttackRollMode({actor, action, definition, targetEntries, spatial, game, sourceToken}) {
   const type = definition.attack.type ?? null;
   const target = targetEntries[0] ?? null;
-  const context = attackContext(type, spatial, target, game, sourceToken, actor);
-  return combineRollModes([
-    ...(actor.getRollModes?.(["attack", `attack.${type}`], {item: action, context}) ?? []),
-    ...(target?.actor?.getRollModes?.(["attacked", `attacked.${type}`], {context}) ?? [])
-  ]);
+  return attackRollMode(actor, target?.actor, {type, item: action, context: attackContext(type, spatial, target, game, sourceToken, actor)});
 }
 
 /** Outcomes forced on hits against each target (`critical-on-hit`), keyed by Token like the targets. */
@@ -810,8 +810,7 @@ function foundryAttackOutcomes({definition, targets, targetEntries, spatial, gam
   const type = definition.attack.type ?? null;
   const outcomes = {};
   targetEntries.forEach((entry, index) => {
-    const forced = entry.actor?.getRollOutcomes?.(["attacked", `attacked.${type}`], {context: attackContext(type, spatial, entry, game, sourceToken)}) ?? [];
-    if ( forced.some(outcome => outcome.outcome === "critical-on-hit") ) {
+    if ( attackForcesCritical(entry.actor, {type, context: attackContext(type, spatial, entry, game, sourceToken)}) ) {
       outcomes[targets[index].tokenId ?? targets[index].id] = "critical-on-hit";
     }
   });
@@ -831,41 +830,6 @@ function attackContext(type, spatial, entry, game, sourceToken, attacker=null) {
   const fields = footprint?.ok && footprint.footprint ? footprintDistance(source, footprint.footprint) : null;
   return {attack: {type, ...(Number.isFinite(fields) ? {adjacent: fields * spatial.context.gridDistance <= 5} : {}),
     fromTarget: conditionsFrom(attacker, entry?.actor, game)}};
-}
-
-/** Every ref a creature's effects may name it by: its Actor and each of its Tokens. */
-function creatureRefs(actor, game) {
-  const tokens = collectionContents(game?.scenes).flatMap(scene => collectionContents(scene.tokens))
-    .filter(token => (token.actor?.uuid === actor.uuid) || (token.actorLink && (token.actorId === actor.id)));
-  return new Set([actor.uuid, `actor:${actor.id}`, ...tokens.flatMap(token => [token.uuid, `token:${token.id}`,
-    `token:${token.parent?.id}.${token.id}`])]);
-}
-
-/**
- * The conditions `holder` has from `source`, as `{grappled: true}`: those whose effect names `source` (by Actor or
- * Token ref) or one of its Items (an Action it used) as where the effect came from.
- */
-export function conditionsFrom(holder, source, game=globalThis.game) {
-  const from = {};
-  for ( const effect of effectsFrom(holder, source, game) ) for ( const id of effect.statuses ?? [] ) from[id] = true;
-  return from;
-}
-
-/** The enabled effects on `holder` that came from `source`: its Actor, one of its Tokens, or one of its Items. */
-function effectsFrom(holder, source, game) {
-  if ( !holder?.effects || !source?.uuid ) return [];
-  const refs = creatureRefs(source, game);
-  return collectionContents(holder.effects).filter(effect => {
-    const flag = effect?.flags?.wildpath?.conditionEffect ?? {};
-    const ref = String(flag.sourceRef ?? flag.originRef ?? effect?.origin ?? "").replace(/^uuid:/, "");
-    return ref && !effect.disabled && (refs.has(ref) || [...refs].some(owner => ref.startsWith(`${owner}.`)));
-  });
-}
-
-/** Whether `target` reveals `detail` (`defenses`) to `viewer`: a `Reveal` rule on an effect `viewer` applied to it. */
-export function revealedTo(target, viewer, detail="defenses", game=globalThis.game) {
-  return effectsFrom(target, viewer, game).some(effect => collectRuleElementContributions({ruleElements: effect.system?.ruleElements ?? [],
-    context: {actor: target, actorSystem: target.system}}).contributions.reveals.includes(detail));
 }
 
 /**

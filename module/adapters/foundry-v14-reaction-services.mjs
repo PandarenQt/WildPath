@@ -1,7 +1,9 @@
 import { createFoundryV14TacticalGridAdapter } from "./foundry-v14-tactical-grid-adapter.mjs";
 import { foundryActorSystemSnapshot } from "./foundry-v14-actor-system-adapter.mjs";
 import { createActionResolutionState, createActionReactionChildState } from "../resolvers/action-pipeline-resolver.mjs";
-import { actionCombatStatistics, resolveActorDefense } from "../helpers/combat-statistics.mjs";
+import { actionCombatStatistics, attackForcesCritical, attackRollMode, resolveActorDefense } from "../helpers/combat-statistics.mjs";
+import { conditionsFrom } from "../helpers/effect-sources.mjs";
+import { footprintDistance } from "../helpers/grid-footprints.mjs";
 import { turnKey } from "./foundry-v14-persistent-areas.mjs";
 import { economyResourcesFromActorResources } from "../helpers/action-economy.mjs";
 import { createAutomationEvent } from "../helpers/automation-events.mjs";
@@ -60,6 +62,13 @@ function reactionChildState({ args, reactor, target, targetFootprint, sourceFoot
     const combat = globalThis.game?.combat;
     const statistics = actionCombatStatistics(reactor.actor, definition, { item: reactionItem,
         turn: combat?.started ? turnKey(combat) : null });
+    // The same advantage, disadvantage and forced critical hits as any attack: a Prone target within 5 ft, a Paralyzed one.
+    const type = definition.attack?.type ?? null;
+    const fields = footprintDistance(sourceFootprint, targetFootprint.footprint);
+    const context = { attack: { type, ...(Number.isFinite(fields) ? { adjacent: fields * sceneContext.grid.distance <= 5 } : {}),
+            fromTarget: conditionsFrom(reactor.actor, actor) } };
+    const rollMode = definition.attack ? attackRollMode(reactor.actor, actor, { type, item: reactionItem, context }) : null;
+    const critical = !!definition.attack && attackForcesCritical(actor, { type, context });
     const targetSystem = foundryActorSystemSnapshot(actor);
     const profile = actor.getDamageProfile?.() ?? null;
     const targetKeys = [actor.id, actor.uuid, `actor:${actor.id}`];
@@ -73,7 +82,10 @@ function reactionChildState({ args, reactor, target, targetFootprint, sourceFoot
         targets: [{ id: actor.id, actorId: actor.id, actorRef: actor.uuid, tokenId: target.id, defense }],
         targeting: { candidates: [targetEntry] },
         context: { spatial: { sceneContext, gridDistance: sceneContext.grid.distance, sourceFootprint, targetFootprints: [targetEntry] } },
-        attack: statistics.attack ? { statistic: statistics.attack.statistic, modifierTotal: statistics.attack.modifierTotal } : null,
+        attack: (statistics.attack || rollMode) ? {
+            ...(statistics.attack ? { statistic: statistics.attack.statistic, modifierTotal: statistics.attack.modifierTotal } : {}),
+            ...(rollMode ? { rollMode } : {}), ...(critical ? { outcomesByTarget: { [target.id]: "critical-on-hit" } } : {})
+        } : null,
         damage: statistics.damage,
         selectedPaymentOptionId: args.candidate.selectedPaymentOption?.id ?? null,
         durability: { targetSystems: Object.fromEntries(targetKeys.map(key => [key, targetSystem])),

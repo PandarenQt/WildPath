@@ -5,7 +5,7 @@ import {validateActionDefinition} from "../module/helpers/action-definitions.mjs
 import {actionBarContext} from "../module/helpers/action-bar-context.mjs";
 
 test("every creature's common actions are valid Actions, built fresh from their id", () => {
-  assert.deepEqual([...COMMON_ACTION_IDS], ["dash", "disengage", "dodge", "hide", "grapple", "shove", "unarmed"]);
+  assert.deepEqual([...COMMON_ACTION_IDS], ["dash", "disengage", "dodge", "hide", "grapple", "shove", "unarmed", "opportunity"]);
   const actor = {uuid: "Actor.hero"};
   for ( const id of COMMON_ACTION_IDS ) {
     const action = commonAction(actor, id, {localize: key => key.split(".").pop()});
@@ -17,6 +17,18 @@ test("every creature's common actions are valid Actions, built fresh from their 
   assert.deepEqual([shove.save.ability, shove.effects[0].conditionId, shove.effects[0].saveOutcomePolicy], ["might", "prone", "failure"]);
   assert.notEqual(commonAction(actor, "dash").system.definition, commonAction(actor, "dash").system.definition, "never shared");
   assert.deepEqual(["common:dash", "common:fly", "Item.dash", "common:Dash", null].map(commonActionId), ["dash", null, null, null, null]);
+
+  const axe = {type: "action", name: "Axe", system: {definition: {schemaVersion: 1, id: "action:axe", label: "Axe", costs: {allOf: [{capability: "action", amount: 1}]},
+    targeting: {type: "single", required: true, count: 1}, range: {type: "reach", distance: {value: 5, unit: "ft"}},
+    attack: {type: "melee", statistic: "weapon", defenseKey: "ac"}, damage: [{id: "axe", expression: {type: "dice", number: 1, faces: 12},
+      damageType: "slashing", provenance: "weapon-base"}]}}};
+  const opportunity = commonAction({items: [axe], flags: {wildpath: {commonPolicies: {opportunity: "always"}}}}, "opportunity",
+    {localize: () => "Opportunity Attack"});
+  assert.equal(opportunity.name, "Opportunity Attack (Axe)");
+  assert.deepEqual([opportunity.system.definition.id, opportunity.system.definition.costs], ["action:axe", {allOf: [{capability: "reaction", amount: 1}]}],
+    "the creature's own melee weapon, so its modifiers count, for its Reaction");
+  assert.equal(opportunity.flags.wildpath.reactionPolicy, "always", "its setting is the creature's");
+  assert.equal(commonAction({items: []}, "opportunity").system.definition.id, "common:unarmed", "without a weapon, an Unarmed Strike");
 });
 
 test("the action bar lists the common actions last, in their own group", () => {
@@ -27,4 +39,11 @@ test("the action bar lists the common actions last, in their own group", () => {
   assert.equal(groups.at(-1).id, "common");
   assert.deepEqual(groups.at(-1).actions.map(action => [action.label, action.enabled]).slice(0, 3),
     [["Dash", true], ["Disengage", true], ["Dodge", true]]);
+  const opportunity = groups.at(-1).actions.at(-1);
+  assert.deepEqual([opportunity.label, opportunity.policy?.id], ["OpportunityAttack", "ask"], "a reaction, with its setting");
+
+  actor.system.resources.action.value = 0;
+  const spent = actionBarContext({actor, common}).groups.at(-1).actions;
+  assert.deepEqual(spent.slice(0, 2).map(action => action.enabled), [false, false], "a spent Action greys them out");
+  assert.equal(spent.at(-1).enabled, true, "the Reaction is still there");
 });

@@ -1,10 +1,16 @@
 /**
  * The 2024 actions every creature has, after Baldur's Gate 3's common actions: Dash, Disengage, Dodge, Hide,
- * Grapple, Shove and an Unarmed Strike. They are not Items. The authority builds each from its id (an intent's
- * `actionRef: "common:dash"`), so a client can name one but never supply its rules, and no creature carries copies.
+ * Grapple, Shove, an Unarmed Strike, and the Opportunity Attack reaction. They are not Items. The authority builds
+ * each from its id (an intent's `actionRef: "common:dash"`), so a client can name one but never supply its rules,
+ * and no creature carries copies.
  */
+import {actionDefinitionActivationCost, actionDefinitionFromAction} from "./action-definitions.mjs";
 
 type Data = Record<string, unknown>;
+interface CommonActor {items?: Iterable<{type?: string; name?: string; system?: {active?: boolean}}>;
+  flags?: {wildpath?: {commonPolicies?: Record<string, string>}}}
+const definitionOf = actionDefinitionFromAction as (item: unknown) => {ok: boolean; definition?: Data & {attack?: {type?: string}}};
+const costOf = actionDefinitionActivationCost as (definition: Data) => Data;
 
 const ACTION = {allOf: [{capability: "action", amount: 1}]};
 const SELF = {range: {type: "self"}, targeting: {type: "self"}};
@@ -45,23 +51,44 @@ const COMMON: Record<string, {name: string; img: string; definition: Data}> = {
     damage: [{id: "unarmed", expression: {type: "constant", value: 1}, damageType: "bludgeoning", provenance: "weapon-base"}]}}
 };
 
-export const COMMON_ACTION_IDS = Object.freeze(Object.keys(COMMON));
+export const COMMON_ACTION_IDS = Object.freeze([...Object.keys(COMMON), "opportunity"]);
+
+/**
+ * The creature's Opportunity Attack: its first melee attack Action, else its Unarmed Strike, costing its Reaction.
+ * The weapon's own definition id is kept, so the weapon's own modifiers still count.
+ */
+function opportunityDefinition(actor: CommonActor) {
+  const weapon = [...(actor.items ?? [])].find(item => (item.type === "action") && (item.system?.active !== false)
+    && (definitionOf(item).definition?.attack?.type === "melee"));
+  const definition = weapon ? definitionOf(weapon).definition! : {schemaVersion: 1, id: "common:unarmed", ...structuredClone(COMMON.unarmed!.definition)};
+  return {weapon: weapon?.name ?? null, definition: {...definition, costs: {allOf: [{capability: "reaction", amount: 1}]}}};
+}
 
 /** An Action ref naming a common action, `common:<id>`; its id, or null. */
 export function commonActionId(ref: unknown): string | null {
   const match = /^common:([a-z]+)$/.exec(String(ref ?? ""));
-  return match && Object.hasOwn(COMMON, match[1]!) ? match[1]! : null;
+  return match && COMMON_ACTION_IDS.includes(match[1]!) ? match[1]! : null;
 }
 
 /**
  * The common action `id` as an Action Item of `actor`, built fresh: `{id, uuid: "common:<id>", type: "action",
- * name, img, system: {definition}, actor}`. `localize` turns its lang key into its name.
+ * name, img, system: {definition}, actor}`. `localize` turns its lang key into its name. Its reaction setting
+ * (Always, Ask, Never) is the creature's own, `flags.wildpath.commonPolicies.<id>`.
  */
 export function commonAction(actor: unknown, id: string, {localize=(key: string) => key}: {localize?: (key: string) => string}={}) {
+  const creature = (actor ?? {}) as CommonActor;
+  const flags = {wildpath: {reactionPolicy: creature.flags?.wildpath?.commonPolicies?.[id]}};
+  if ( id === "opportunity" ) {
+    const {weapon, definition} = opportunityDefinition(creature);
+    const name = `${localize("WILDPATH.COMMON.OpportunityAttack")}${weapon ? ` (${weapon})` : ""}`;
+    return {id: "common-opportunity", uuid: "common:opportunity", type: "action", name, img: "icons/svg/sword.svg", flags,
+      activationCost: costOf(definition), system: {active: true, definition: {...definition, label: name}}, actor};
+  }
   const entry = COMMON[id];
   if ( !entry ) return null;
   const name = localize(entry.name);
-  return {id: `common-${id}`, uuid: `common:${id}`, type: "action", name, img: entry.img, flags: {},
-    system: {active: true, definition: {schemaVersion: 1, id: `common:${id}`, label: name, ...structuredClone(entry.definition)}},
-    actor};
+  const definition = {schemaVersion: 1, id: `common:${id}`, label: name, ...structuredClone(entry.definition)};
+  // What it costs, as the action bar reads it (an Item's data model would give `getActivationCost()`).
+  return {id: `common-${id}`, uuid: `common:${id}`, type: "action", name, img: entry.img, flags, activationCost: costOf(definition),
+    system: {active: true, definition}, actor};
 }

@@ -163,7 +163,8 @@
       "Hide": "Hide",
       "Grapple": "Grapple",
       "Shove": "Shove",
-      "UnarmedStrike": "Unarmed Strike"
+      "UnarmedStrike": "Unarmed Strike",
+      "OpportunityAttack": "Opportunity Attack"
     },
     "ODDS": {
       "Hit": "{name}: {chance}% to hit ({modifier} vs AC {defense}{mode})",

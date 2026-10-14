@@ -65,3 +65,21 @@ test("a reaction set to Never is not offered, and one set to Always says so on i
     [["eager", "always"], ["asks", "ask"]]);
   assert.deepEqual(services.movement.observers.map(observer => observer.id), ["eager", "asks"], "a Never reactor does not even watch");
 });
+
+test("every creature makes Opportunity Attacks, unless its own content does, it is set to Never, or the mover Disengaged", () => {
+  const mover = {...token("mover", 1), actor: {id: "actor-mover", uuid: "Actor.mover", items: [], statuses: new Set()}};
+  const ogre = token("ogre", -1, []);
+  const quiet = {...token("quiet", -1, []), actor: {...token("quiet", -1, []).actor, flags: {wildpath: {commonPolicies: {opportunity: "never"}}}}};
+  const scene = {grid: {distance: 5}, tokens: [mover, ogre, quiet, token("guard", -1, [strike()])]};
+  const provider = createFoundryReactionProvider({resolve: () => null});
+  const services = provider({scene, token: mover});
+  assert.deepEqual(services.reactions.triggers.map(trigger => trigger.id),
+    ["reaction:ogre:common-opportunity", "reaction:guard:strike:opportunity"], "the guard's own reaction replaces the common one");
+  const [common] = services.reactions.triggers;
+  assert.equal(common.reaction.action.id, "common:unarmed", "with no weapon, an Unarmed Strike");
+  assert.equal(common.predicate.all[0].equals.path, "event.data.relations.ogre.leavesReach");
+  assert.deepEqual(services.movement.observers.map(observer => observer.id), ["ogre", "guard"]);
+  mover.actor.statuses.add("disengaged");
+  assert.deepEqual(provider({scene, token: mover}).reactions.triggers.map(trigger => trigger.id), ["reaction:guard:strike:opportunity"],
+    "Disengage stops the common Opportunity Attack");
+});
