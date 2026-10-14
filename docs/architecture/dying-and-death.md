@@ -64,11 +64,28 @@ dying rules: further damage or failures change nothing.
   - The goblin hit the downed hero again from 5 ft. It was a critical, so two failures.
   - Healing for 3 woke the hero and cleared its death saves.
 
+## Incapacitated (2024)
+
+Stunned, Unconscious and Dead are Incapacitated:
+- **No actions.** A `ResourceCap` caps Actions, Bonus Actions and Reactions at 0.
+- **Concentration ends.** The condition's `endsConcentration` makes the active GM end every effect the
+  creature sustains, on any creature, matched by its Actor or Token ref. Its lasting concentration areas
+  end with their marker (`endConcentrationOnIncapacitation`).
+- **Disadvantage on initiative.** A `RollMode` on `initiative`. Initiative is an ability check, so
+  `WildPathCombatant` rolls it with the creature's modes and Modifiers on `initiative` and `check`.
+  Poisoned's disadvantage and Exhaustion's −2 reach it too.
+
+Unconscious also makes the creature **Prone** (the condition's `implies`), and the creature is still Prone
+when it wakes.
+
+Live (two browsers, 14.369): Player1 rolled initiative for their Stunned hero: `2d20kl`, 3 kept and 16
+discarded. Quench checked the rest on real Documents:
+- the initiative formula;
+- a sustained effect on another creature ending when its caster was Stunned;
+- Prone arriving with Unconscious and staying after waking.
+
 ## Not yet
 
-- Concentration ending when a creature becomes Incapacitated.
-- Disadvantage on initiative while Incapacitated.
-- Unconscious also making the creature Prone.
 - Stabilizing by an ally's check.
 - Regaining 1 health after being stable for a while.
 - PF2e's dying values, wounded and doomed: WildPath uses 2024 death saves instead.

@@ -864,6 +864,20 @@ export function combineRollModes(modes=[]) {
   return balance > 0 ? ROLL_MODES.ADVANTAGE : ROLL_MODES.DISADVANTAGE;
 }
 
+/**
+ * A d20 formula rolled with advantage or disadvantage (`2d20kh`/`2d20kl` in place of its first `1d20`) and with
+ * a flat modifier added, for rolls made outside RollRequests (initiative).
+ * @param {string} formula
+ * @param {{rollMode?: string, modifier?: number}} [options]
+ * @returns {string}
+ */
+export function d20FormulaWith(formula, {rollMode=ROLL_MODES.NORMAL, modifier=0}={}) {
+  const dice = {[ROLL_MODES.ADVANTAGE]: "2d20kh", [ROLL_MODES.DISADVANTAGE]: "2d20kl"}[normalizeRollMode(rollMode)];
+  const rolled = dice ? String(formula).replace(/\b1?d20\b/, dice) : String(formula);
+  if ( !modifier ) return rolled;
+  return `${rolled} ${modifier < 0 ? "-" : "+"} ${Math.abs(modifier)}`;
+}
+
 function formulaForDieTerm(die, rollMode) {
   if ( die.faces <= 0 || die.number <= 0 ) return null;
   const isD20 = die.faces === 20 && die.number === 1;

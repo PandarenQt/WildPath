@@ -9,10 +9,18 @@ import {serializeRuleElementDefinition} from "../helpers/rule-elements.mjs";
  */
 export default class WildPathActiveEffect extends ActiveEffect {
 
-  /** An effect may grant a resource that needs its pool on the Actor (`GrantResource`). */
+  /**
+   * An effect may grant a resource that needs its pool on the Actor (`GrantResource`), and a condition may bring
+   * others with it (2024 Unconscious is also Prone).
+   */
   _onCreate(data, options, userId) {
     super._onCreate(data, options, userId);
-    if ( userId === game.user.id ) void this.parent?.ensureGrantedPools?.();
+    if ( userId !== game.user.id ) return;
+    void this.parent?.ensureGrantedPools?.();
+    for ( const implied of WILDPATH.CONDITIONS[this.system?.type]?.implies ?? [] ) {
+      const present = [...(this.parent?.effects ?? [])].some(effect => effect.system?.type === implied);
+      if ( !present ) void this.parent?.toggleCondition?.(implied);
+    }
   }
 
   /** A transformation effect deleted directly (e.g. from the sheet) still takes the form's copied Items. */

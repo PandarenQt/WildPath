@@ -1,3 +1,4 @@
+import {WILDPATH} from "../config.mjs";
 import {createFoundryDigitalRollProvider} from "../adapters/foundry-digital-roll-provider.mjs";
 import {createFoundryV14DocumentPersistenceAdapter} from "../adapters/foundry-v14-persistence-adapter.mjs";
 import {createFoundryV14PromptAdapter} from "../adapters/foundry-v14-prompt-adapter.mjs";
@@ -126,6 +127,9 @@ export function registerFoundryV14MultiplayerResolution({
   const dying = createFoundryDying({game, coordinator, logger,
     resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});
   globalThis.Hooks?.on?.("createActiveEffect", effect => void dying.onEffectChanged(effect));
+  // 2024: an Incapacitated creature's concentration ends; everything it sustains ends with it (active GM).
+  globalThis.Hooks?.on?.("createActiveEffect", effect => void endConcentrationOnIncapacitation(effect, game)
+    .catch(error => logger?.warn?.("Wild Path | Ending concentration failed", error)));
   globalThis.Hooks?.on?.("updateActiveEffect", effect => void dying.onEffectChanged(effect));
   // Shared control of companions and summons: ownership follows their controllers (only a GM may change it).
   const companions = createFoundryCompanions({game, fromUuid: globalThis.fromUuid ?? (() => null)});
@@ -665,6 +669,33 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     },
     ...(reactions ? {services: {...reactions.services, targetActors}} : {})
   };
+}
+
+/**
+ * When a condition that ends concentration (Incapacitated: Stunned, Unconscious, Dead) reaches a creature, every
+ * effect it sustains ends, its lasting concentration areas included (their marker's deletion removes the
+ * Region). A sustained effect names its source by Actor or Token ref.
+ */
+export async function endConcentrationOnIncapacitation(effect, game=globalThis.game) {
+  if ( !WILDPATH.CONDITIONS[effect?.system?.type]?.endsConcentration ) return [];
+  if ( game?.users?.activeGM?.id !== game?.user?.id ) return [];
+  const actor = effect.parent;
+  if ( !actor?.uuid ) return [];
+  const tokens = collectionContents(game.scenes).flatMap(scene => collectionContents(scene.tokens))
+    .filter(token => (token.actor?.uuid === actor.uuid) || (token.actorLink && (token.actorId === actor.id)));
+  const refs = new Set([actor.uuid, `actor:${actor.id}`, ...tokens.flatMap(token => [token.uuid, `token:${token.id}`,
+    `token:${token.parent?.id}.${token.id}`])]);
+  const holders = new Set([...collectionContents(game.actors),
+    ...collectionContents(game.scenes).flatMap(scene => collectionContents(scene.tokens).map(token => token.actor).filter(Boolean))]);
+  const ended = [];
+  for ( const holder of holders ) {
+    const sustained = collectionContents(holder.effects).filter(entry =>
+      refs.has(entry?.flags?.wildpath?.conditionEffect?.concentration?.sourceRef));
+    if ( !sustained.length ) continue;
+    await holder.deleteEmbeddedDocuments("ActiveEffect", sustained.map(entry => entry.id));
+    ended.push(...sustained.map(entry => entry.uuid));
+  }
+  return ended;
 }
 
 /**

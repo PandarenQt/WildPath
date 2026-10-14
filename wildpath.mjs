@@ -18,6 +18,7 @@ import WildPathActor from "./module/documents/actor.mjs";
 import WildPathItem from "./module/documents/item.mjs";
 import WildPathActiveEffect from "./module/documents/active-effect.mjs";
 import WildPathCombat from "./module/documents/combat.mjs";
+import WildPathCombatant from "./module/documents/combatant.mjs";
 import WildPathTokenDocument from "./module/documents/token.mjs";
 
 import WildPathActorSheet from "./module/applications/actor-sheet.mjs";
@@ -48,6 +49,7 @@ Hooks.once("init", () => {
   CONFIG.Item.documentClass = WildPathItem;
   CONFIG.ActiveEffect.documentClass = WildPathActiveEffect;
   CONFIG.Combat.documentClass = WildPathCombat;
+  CONFIG.Combatant.documentClass = WildPathCombatant;
   CONFIG.Token.documentClass = WildPathTokenDocument;
 
   // Actor data models

@@ -239,6 +239,24 @@ export function registerCombatTests(quench) {
           `The death save counted (${JSON.stringify(saves)}, health ${live.getResource("health").value})`);
       });
 
+      it("2024 Incapacitated: initiative at disadvantage, concentration ends, and Unconscious brings Prone", async function () {
+        const enc = await encounter({name:"incapacitated caster"});
+        const ally = await fixtures.createActor({name:"blessed ally"});
+        const blessing = await fixtures.createEffect(ally,{name:"blessing"});
+        await blessing.update({"flags.wildpath.conditionEffect.concentration.sourceRef":`token:${enc.token.id}`});
+        await enc.actor.toggleCondition("stunned");
+        assert.match(enc.combatant._getInitiativeFormula(),/^2d20kl/u,"Stunned rolls initiative at disadvantage");
+        for (let i = 0; (i < 40) && ally.effects.get(blessing.id); i++) await new Promise(resolve => setTimeout(resolve,50));
+        assert.notExists(ally.effects.get(blessing.id),"The caster's concentration ended with it");
+        await enc.actor.toggleCondition("stunned",{levels:-1});
+        await enc.actor.toggleCondition("unconscious");
+        const has = id => liveToken(enc).actor.effects.some(effect => effect.system?.type === id);
+        for (let i = 0; (i < 40) && !has("prone"); i++) await new Promise(resolve => setTimeout(resolve,50));
+        assert.isTrue(has("prone"),"Unconscious includes Prone");
+        await enc.actor.toggleCondition("unconscious",{levels:-1});
+        assert.isTrue(has("prone"),"and the creature is still Prone when it wakes");
+      });
+
       /** A feature whose automatic Trigger deals `amount` poison to its owner on `event` (optionally gated). */
       function stingFeature(actor, {event, amount, predicate=null}) {
         return fixtures.createItem(actor, {name:`sting on ${event}`, system:{ruleElements:[{id:"sting", type:"Trigger", data:{

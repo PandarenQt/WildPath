@@ -184,9 +184,10 @@ real Foundry grids. Slice 5 done: lasting areas, auras and hazards, per the main
   death saves. That covers death saves at turn start, failures from damage at 0, massive damage, waking by
   healing, NPCs dying at 0, and Exhaustion 6.
 
-  Still to do for conditions:
-  - Incapacitated ending concentration and giving disadvantage on initiative;
-  - Unconscious also making the creature Prone.
+  Who makes death saves is a per-creature setting: by default, characters and the companions and sidekicks
+  Players control. Incapacitated ends concentration and gives disadvantage on initiative, rolled by
+  `WildPathCombatant`. Unconscious brings Prone. The 2024 condition set is complete except for stabilizing by
+  an ally and regaining health while stable.
 
   The pack loads live after the relaunch.
 

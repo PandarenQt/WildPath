@@ -154,8 +154,8 @@ function damageOverTimeCondition({id, name, img, damageType, amount=1, stacking=
 }
 
 // The 2024 conditions (maintainer decision, 2026-10-14: 2024 rules; advantage and disadvantage cancel source
-// for source). Not yet: Incapacitated ending concentration and giving initiative disadvantage, Unconscious also
-// making the creature Prone, and Exhaustion level 6 killing.
+// for source). `implies` applies other conditions with this one; `endsConcentration` (Incapacitated) ends
+// everything the creature sustains.
 WILDPATH.CONDITIONS = {
   prone: {
     id: "prone",
@@ -191,15 +191,21 @@ WILDPATH.CONDITIONS = {
     id: "stunned",
     name: "WILDPATH.CONDITIONS.Stunned",
     img: "icons/svg/daze.svg",
+    endsConcentration: true,
     ruleElements: [rollMode("stunned.attacked", ["attacked"], "advantage"), cap("stunned.incapacitated", INCAPACITATED),
+      rollMode("stunned.initiative", ["initiative"], "disadvantage"),
       outcome("stunned.fails-might-agility-saves", ["save.might", "save.agility"], "automatic-failure")]
   },
   unconscious: {
     id: "unconscious",
     name: "WILDPATH.CONDITIONS.Unconscious",
     img: "icons/svg/unconscious.svg",
+    // 2024: Unconscious includes Prone, which stays after waking; it is Incapacitated, so it ends concentration.
+    implies: ["prone"],
+    endsConcentration: true,
     ruleElements: [rollMode("unconscious.attacked", ["attacked"], "advantage"),
       cap("unconscious.incapacitated", INCAPACITATED), cap("unconscious.speed-0", ["movement"]),
+      rollMode("unconscious.initiative", ["initiative"], "disadvantage"),
       outcome("unconscious.fails-might-agility-saves", ["save.might", "save.agility"], "automatic-failure"),
       outcome("unconscious.critical-within-5ft", ["attacked"], "critical-on-hit", adjacent(true))]
   },
@@ -224,6 +230,7 @@ WILDPATH.CONDITIONS = {
     id: "dead",
     name: "WILDPATH.CONDITIONS.Dead",
     img: "icons/svg/skull.svg",
+    endsConcentration: true,
     ruleElements: [cap("dead.no-actions", [...INCAPACITATED, "movement"])]
   },
   // Poisoned's former damage each turn, kept by the maintainer (2026-10-14) as its own stacking condition.
