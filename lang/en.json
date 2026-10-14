@@ -151,8 +151,86 @@
       "TypePlaceholder": "type",
       "Tab": {
         "builder": "Builder",
+        "rules": "Rules",
         "advanced": "Advanced",
         "description": "Description"
+      }
+    },
+    "RULES": {
+      "Intro": "What this gives its owner while it is active.",
+      "Add": "Add a rule",
+      "KindLabel": "Kind of rule",
+      "AppliesTo": "Applies to",
+      "Amount": "Amount",
+      "ModifierType": "Bonus type",
+      "ModeLabel": "Advantage or disadvantage",
+      "DamageTypes": "Damage types",
+      "MovementLabel": "Movement",
+      "Distance": "Speed (ft)",
+      "ResourceLabel": "Name",
+      "ResourceId": "Id",
+      "Maximum": "Maximum",
+      "RecoveryLabel": "Recovers",
+      "OncePerTurn": "Once per turn",
+      "Radius": "Radius (ft)",
+      "AffectsLabel": "Affects",
+      "Kind": {
+        "bonus": "A bonus or penalty",
+        "rollMode": "Advantage or disadvantage",
+        "resistance": "Resistance",
+        "immunity": "Immunity",
+        "speed": "A Speed",
+        "resource": "A resource pool",
+        "extraDamage": "Extra damage on a hit",
+        "aura": "An aura"
+      },
+      "Mode": {
+        "advantage": "Advantage",
+        "disadvantage": "Disadvantage"
+      },
+      "Movement": {
+        "walk": "Walk",
+        "fly": "Fly",
+        "swim": "Swim",
+        "climb": "Climb",
+        "burrow": "Burrow"
+      },
+      "Recovery": {
+        "turn": "each turn",
+        "shortRest": "on a short rest",
+        "longRest": "on a long rest",
+        "none": "never"
+      },
+      "Affects": {
+        "allies": "you and allies",
+        "enemies": "your enemies",
+        "all": "everyone"
+      },
+      "While": {
+        "Label": "While",
+        "Always": "always",
+        "Custom": "Has a condition set on the Advanced tab."
+      },
+      "Domain": {
+        "attack": "Attack rolls",
+        "attackMelee": "Melee attack rolls",
+        "attackRanged": "Ranged attack rolls",
+        "attackWeapon": "Weapon attack rolls",
+        "attackSpell": "Spell attack rolls",
+        "save": "Saving throws",
+        "saveOf": "{ability} saving throws",
+        "check": "Ability checks",
+        "checkOf": "{ability} checks",
+        "initiative": "Initiative",
+        "ac": "Armor Class",
+        "hp": "Hit Point maximum",
+        "speed": "Speed",
+        "damage": "Damage",
+        "damageMelee": "Melee damage",
+        "damageRanged": "Ranged damage",
+        "damageWeapon": "Weapon damage",
+        "damageSpell": "Spell damage",
+        "attacked": "Attack rolls against you"
       }
     },
     "BUILDER": {
@@ -305,7 +383,7 @@
         "Duration": "Lasts",
         "Units": "Units",
         "Expiry": "Ends at",
-        "Rules": "{count} rule(s), edited on the Advanced tab.",
+        "Rules": "While it lasts:",
         "OnFailedSave": "Only on a failed save",
         "Add": "Add an effect"
       },

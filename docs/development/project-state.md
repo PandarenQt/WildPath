@@ -202,7 +202,14 @@ needed engine work first (plan: builder in the sheets, engine first). Each item 
 of plain fields and formulas, with the JSON editors on an Advanced tab. It writes only what the user changed
 ([homebrew-content-builder.md](../architecture/homebrew-content-builder.md#second-slice-the-action-builder-2026-10-14)).
 Live: Flame Burst was built with the Builder alone, and a Player cast it at two creatures (half on a success).
-Next: Phase C, rules rows, Test/Preview and scaling.
+
+
+**Homebrew Builder, Phase C: rule rows (2026-10-14).** RuleElements are rows on every Item's Rules tab, in an
+Action's custom effects, and on the effect sheet. The rows cover bonuses, advantage, resistance, immunity, Speeds,
+resource pools, extra damage once per turn, and auras with their own rows, each optionally "while" a condition
+([homebrew-content-builder.md](../architecture/homebrew-content-builder.md#third-slice-rule-rows-2026-10-14)).
+Live: an aura feature and a Shield reaction were built through the UI alone and worked.
+Next in Phase C: Test/Preview, spell-slot scaling, and more templates.
 
 **M4 — content pack (in progress, 2026-10-14).**
 - **The pack.** `@foundryvtt/foundryvtt-cli` 3.0.4 was approved and added. The built-in **WildPath Actions**

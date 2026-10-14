@@ -9,6 +9,7 @@
  */
 import {formatFormula, parseFormula} from "./formula.mjs";
 import {validateActionDefinition} from "./action-definitions.mjs";
+import {rowsToRules, rulesToRows} from "./rule-builder.mjs";
 
 type Data = Record<string, any>;
 export interface BuilderError {field: string; key: string; data: Record<string, string>}
@@ -69,7 +70,7 @@ function saveSuccessDamage(damage: Data[]) {
 const isFailureOnly = (policy: unknown) => ["failure", "failed", "fail"].includes(String(policy ?? "").toLowerCase());
 
 /** The builder's form values for a stored definition, plus what the form needs to show (`readOnly`, counts). */
-export function definitionToBuilder(definition: Data | null | undefined) {
+export function definitionToBuilder(definition: Data | null | undefined, {abilities=null}: BuilderOptions={}) {
   const d: Data = definition ?? {};
   const costs: Data = d.costs ?? {};
   const allOf: Data[] = Array.isArray(costs.allOf) ? costs.allOf : [];
@@ -136,7 +137,8 @@ export function definitionToBuilder(definition: Data | null | undefined) {
       durationValue: effect.duration?.value ?? null,
       durationUnits: effect.duration?.units ?? "",
       expiry: effect.duration?.expiry ?? "",
-      rules: Array.isArray(effect.ruleElements) ? effect.ruleElements.length : 0
+      // A custom effect's own rules, as rule rows (rule-builder.mts).
+      rules: rulesToRows(effect.ruleElements, {abilities})
     }))
   };
 }
@@ -149,7 +151,7 @@ export type Builder = ReturnType<typeof definitionToBuilder>;
  * written then, so the sheet keeps the draft).
  */
 export function builderToDefinition(submitted: Data | null | undefined, stored: Data, options: BuilderOptions={}) {
-  const model = definitionToBuilder(stored);
+  const model = definitionToBuilder(stored, options);
   const values: Data = submitted ?? {};
   const sections = Object.keys(WRITERS).filter(section => (values[section] !== undefined)
     && differs(values[section], (model as Data)[section]));
@@ -349,7 +351,7 @@ const WRITERS = {
     });
   },
 
-  effects({next, submitted, model, options}: WriteContext) {
+  effects({next, submitted, model, options, errors}: WriteContext) {
     const stored = new Map<string, Data>((next.effects ?? []).map((effect: Data) => [effect.id, effect]));
     next.effects = rowsOf(submitted).map((row, index) => {
       const modelRow = (model as Data[]).find(entry => entry.id === row.id) ?? null;
@@ -385,6 +387,11 @@ const WRITERS = {
           assign("expiry", "expiry", value => String(value ?? ""));
           if ( Object.keys(duration).length ) effect.duration = duration;
           else delete effect.duration;
+        }
+        if ( (row.rules !== undefined) && !changed("kind") ) {
+          const rules = rowsToRules(row.rules, effect.ruleElements ?? [], {field: `effects.${index}.rules`, abilities: options.abilities ?? null});
+          errors.push(...rules.errors);
+          if ( rules.changed ) effect.ruleElements = rules.ruleElements;
         }
       }
       return effect;

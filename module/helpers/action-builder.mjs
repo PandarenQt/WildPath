@@ -9,6 +9,7 @@
  */
 import { formatFormula, parseFormula } from "./formula.mjs";
 import { validateActionDefinition } from "./action-definitions.mjs";
+import { rowsToRules, rulesToRows } from "./rule-builder.mjs";
 const ROW_SECTIONS = ["costs", "damage", "healing", "effects"];
 /** `{0: {...}, 1: {...}}` (a form's rows) or an array, as an array in index order. */
 function rowsOf(value) {
@@ -62,7 +63,7 @@ function saveSuccessDamage(damage) {
 }
 const isFailureOnly = (policy) => ["failure", "failed", "fail"].includes(String(policy ?? "").toLowerCase());
 /** The builder's form values for a stored definition, plus what the form needs to show (`readOnly`, counts). */
-export function definitionToBuilder(definition) {
+export function definitionToBuilder(definition, { abilities = null } = {}) {
     const d = definition ?? {};
     const costs = d.costs ?? {};
     const allOf = Array.isArray(costs.allOf) ? costs.allOf : [];
@@ -128,7 +129,8 @@ export function definitionToBuilder(definition) {
             durationValue: effect.duration?.value ?? null,
             durationUnits: effect.duration?.units ?? "",
             expiry: effect.duration?.expiry ?? "",
-            rules: Array.isArray(effect.ruleElements) ? effect.ruleElements.length : 0
+            // A custom effect's own rules, as rule rows (rule-builder.mts).
+            rules: rulesToRows(effect.ruleElements, { abilities })
         }))
     };
 }
@@ -138,7 +140,7 @@ export function definitionToBuilder(definition) {
  * written then, so the sheet keeps the draft).
  */
 export function builderToDefinition(submitted, stored, options = {}) {
-    const model = definitionToBuilder(stored);
+    const model = definitionToBuilder(stored, options);
     const values = submitted ?? {};
     const sections = Object.keys(WRITERS).filter(section => (values[section] !== undefined)
         && differs(values[section], model[section]));
@@ -364,7 +366,7 @@ const WRITERS = {
             return component;
         });
     },
-    effects({ next, submitted, model, options }) {
+    effects({ next, submitted, model, options, errors }) {
         const stored = new Map((next.effects ?? []).map((effect) => [effect.id, effect]));
         next.effects = rowsOf(submitted).map((row, index) => {
             const modelRow = model.find(entry => entry.id === row.id) ?? null;
@@ -412,6 +414,12 @@ const WRITERS = {
                         effect.duration = duration;
                     else
                         delete effect.duration;
+                }
+                if ((row.rules !== undefined) && !changed("kind")) {
+                    const rules = rowsToRules(row.rules, effect.ruleElements ?? [], { field: `effects.${index}.rules`, abilities: options.abilities ?? null });
+                    errors.push(...rules.errors);
+                    if (rules.changed)
+                        effect.ruleElements = rules.ruleElements;
                 }
             }
             return effect;

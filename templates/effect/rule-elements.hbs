@@ -1,3 +1,8 @@
-<section class="tab{{#if tab.active}} active{{/if}}" data-group="{{tab.group}}" data-tab="{{tab.id}}">
-  <textarea name="wildpath.ruleElementsJson" class="json-editor" rows="16" spellcheck="false">{{ruleElementsJson}}</textarea>
+<section class="tab builder{{#if tab.active}} active{{/if}}" data-group="{{tab.group}}" data-tab="{{tab.id}}">
+  <p class="hint">{{localize "WILDPATH.RULES.Intro"}}</p>
+  {{> "systems/wildpath/templates/item/rule-rows.hbs" rows=r.rows kinds=r.ctx.kinds ctx=r.ctx path=""}}
+  <details class="advanced">
+    <summary>{{localize "WILDPATH.ITEMSHEET.Tab.advanced"}}</summary>
+    <textarea name="wildpath.ruleElementsJson" class="json-editor" rows="12" spellcheck="false">{{ruleElementsJson}}</textarea>
+  </details>
 </section>

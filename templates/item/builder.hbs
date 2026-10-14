@@ -204,7 +204,6 @@
             {{selectOptions ../b.choices.durationUnits selected=row.durationUnits localize=true}}</select>
           <select name="wildpath.builder.effects.{{@index}}.expiry" aria-label="{{localize "WILDPATH.BUILDER.Effects.Expiry"}}">
             {{selectOptions ../b.choices.expiry selected=row.expiry localize=true}}</select>
-          <span class="hint">{{localize "WILDPATH.BUILDER.Effects.Rules" count=row.rules}}</span>
         {{/if}}
         {{#if ../b.rollIsSave}}
           {{#if row.policyReadOnly}}<span class="hint">{{localize "WILDPATH.BUILDER.EditInAdvanced"}}</span>{{else}}
@@ -214,6 +213,12 @@
         {{/if}}
         {{#if ../b.editable}}<button type="button" class="icon" data-action="builderRemove" data-section="effects" data-index="{{@index}}"
           data-tooltip="WILDPATH.BUILDER.Remove" aria-label="{{localize "WILDPATH.BUILDER.Remove"}}"><i class="fa-solid fa-trash" inert></i></button>{{/if}}
+        {{#unless row.isCondition}}
+        <div class="effect-rules">
+          <span class="hint">{{localize "WILDPATH.BUILDER.Effects.Rules"}}</span>
+          {{> "systems/wildpath/templates/item/rule-rows.hbs" rows=row.r.rows kinds=row.r.ctx.kinds ctx=row.r.ctx path=""}}
+        </div>
+        {{/unless}}
       </li>
       {{/each}}
     </ol>

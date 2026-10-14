@@ -1,0 +1,79 @@
+<ol class="builder-rows rule-rows">
+  {{#each rows as |row|}}
+  <li class="rule-row">
+    {{#if row.isOther}}
+      <span class="hint">{{row.type}}: {{localize "WILDPATH.BUILDER.EditInAdvanced"}}</span>
+    {{else}}
+      <select name="{{row.name}}.kind" aria-label="{{localize "WILDPATH.RULES.KindLabel"}}">{{selectOptions ../kinds selected=row.kind localize=true}}</select>
+      {{#if row.hasAppliesTo}}
+        {{#if row.appliesToText}}<span class="hint">{{row.appliesToText}}</span>{{else}}
+        <select name="{{row.name}}.appliesTo" aria-label="{{localize "WILDPATH.RULES.AppliesTo"}}">
+          {{selectOptions row.appliesToChoices selected=row.appliesTo}}</select>
+        {{/if}}
+      {{/if}}
+      {{#if row.isBonus}}
+        {{#if row.amountReadOnly}}<span class="hint">{{localize "WILDPATH.BUILDER.EditInAdvanced"}}</span>{{else}}
+        <input type="text" class="formula" name="{{row.name}}.amount" value="{{row.amount}}" placeholder="1"
+               aria-label="{{localize "WILDPATH.RULES.Amount"}}" {{#if row.errors.amount}}aria-invalid="true"{{/if}}>
+        {{/if}}
+        <select name="{{row.name}}.modifierType" aria-label="{{localize "WILDPATH.RULES.ModifierType"}}">
+          {{selectOptions ../ctx.modifierTypes selected=row.modifierType localize=true}}</select>
+      {{/if}}
+      {{#if row.isRollMode}}
+        <select name="{{row.name}}.mode" aria-label="{{localize "WILDPATH.RULES.ModeLabel"}}">
+          {{selectOptions ../ctx.modes selected=row.mode localize=true}}</select>
+      {{/if}}
+      {{#if row.isDamageTypes}}
+        <input type="text" name="{{row.name}}.damageTypes" value="{{row.damageTypes}}" placeholder="fire, cold"
+               aria-label="{{localize "WILDPATH.RULES.DamageTypes"}}">
+      {{/if}}
+      {{#if row.isSpeed}}
+        <select name="{{row.name}}.mode" aria-label="{{localize "WILDPATH.RULES.MovementLabel"}}">
+          {{selectOptions ../ctx.movementModes selected=row.mode localize=true}}</select>
+        <label>{{localize "WILDPATH.RULES.Distance"}}
+          <input type="number" name="{{row.name}}.distance" value="{{row.distance}}" min="0" step="5"></label>
+      {{/if}}
+      {{#if row.isResource}}
+        <input type="text" name="{{row.name}}.resourceLabel" value="{{row.resourceLabel}}" placeholder="Spirit Points"
+               aria-label="{{localize "WILDPATH.RULES.ResourceLabel"}}">
+        <input type="text" name="{{row.name}}.resourceId" value="{{row.resourceId}}" placeholder="spirit-points"
+               aria-label="{{localize "WILDPATH.RULES.ResourceId"}}">
+        {{#if row.maximumReadOnly}}<span class="hint">{{localize "WILDPATH.BUILDER.EditInAdvanced"}}</span>{{else}}
+        <label>{{localize "WILDPATH.RULES.Maximum"}}
+          <input type="text" class="formula" name="{{row.name}}.maximum" value="{{row.maximum}}" placeholder="2 * prof"
+                 {{#if row.errors.maximum}}aria-invalid="true"{{/if}}></label>
+        {{/if}}
+        <select name="{{row.name}}.recovery" aria-label="{{localize "WILDPATH.RULES.RecoveryLabel"}}">
+          {{selectOptions ../ctx.recovery selected=row.recovery localize=true}}</select>
+      {{/if}}
+      {{#if row.isExtraDamage}}
+        <input type="text" class="formula" name="{{row.name}}.formula" value="{{row.formula}}" placeholder="1d6"
+               aria-label="{{localize "WILDPATH.BUILDER.FormulaLabel"}}" {{#if row.errors.formula}}aria-invalid="true"{{/if}}>
+        <input type="text" name="{{row.name}}.damageType" value="{{row.damageType}}" placeholder="fire"
+               aria-label="{{localize "WILDPATH.BUILDER.Damage.Type"}}">
+        <label class="checkbox"><input type="checkbox" name="{{row.name}}.oncePerTurn" {{checked row.oncePerTurn}}>
+          {{localize "WILDPATH.RULES.OncePerTurn"}}</label>
+      {{/if}}
+      {{#if row.isAura}}
+        <label>{{localize "WILDPATH.RULES.Radius"}}
+          <input type="number" name="{{row.name}}.radius" value="{{row.radius}}" min="5" step="5"></label>
+        <select name="{{row.name}}.affects" aria-label="{{localize "WILDPATH.RULES.AffectsLabel"}}">
+          {{selectOptions ../ctx.affects selected=row.affects localize=true}}</select>
+      {{/if}}
+      {{#if row.whileReadOnly}}<span class="hint">{{localize "WILDPATH.RULES.While.Custom"}}</span>{{else}}
+      <label>{{localize "WILDPATH.RULES.While.Label"}}
+        <select name="{{row.name}}.while">{{selectOptions ../ctx.conditions selected=row.while localize=true}}</select></label>
+      {{/if}}
+    {{/if}}
+    {{#if ../ctx.editable}}<button type="button" class="icon" data-action="ruleRemove" data-list="{{../ctx.list}}" data-path="{{row.path}}"
+      data-tooltip="WILDPATH.BUILDER.Remove" aria-label="{{localize "WILDPATH.BUILDER.Remove"}}"><i class="fa-solid fa-trash" inert></i></button>{{/if}}
+    {{#each row.errors as |error|}}{{#if error}}<span class="field-error">{{error}}</span>{{/if}}{{/each}}
+    {{#if row.isAura}}
+      <div class="aura-rules">
+        {{> "systems/wildpath/templates/item/rule-rows.hbs" rows=row.rules kinds=../ctx.nestedKinds ctx=../ctx path=row.path}}
+      </div>
+    {{/if}}
+  </li>
+  {{/each}}
+</ol>
+{{#if ctx.editable}}<button type="button" data-action="ruleAdd" data-list="{{ctx.list}}" data-path="{{path}}">{{localize "WILDPATH.RULES.Add"}}</button>{{/if}}

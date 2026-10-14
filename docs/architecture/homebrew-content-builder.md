@@ -85,10 +85,52 @@ modifier rows) and **Description** beside it. Other Items have Advanced and Desc
   Action, and no raw keys on the sheet.
 
 **Not yet (later phases):**
-- Rules rows for RuleElements, and the effect sheet's builder;
 - Test/Preview;
 - scaling;
 - trigger, summon, transform and choice editors.
+
+## Third slice: rule rows (2026-10-14)
+
+RuleElements are rows a non-programmer fills in (`module/helpers/rule-builder.mts`). They appear in three places:
+- every Item's **Rules** tab, which is where a feature or piece of gear opens;
+- an Action's custom effect, under its effect row ("while it lasts");
+- the effect sheet's Rule Elements tab, with the JSON under "Advanced".
+
+**Row kinds:**
+- a bonus or penalty (`Modifier`), whose amount is a formula without dice;
+- advantage or disadvantage (`RollMode`);
+- resistance and immunity (`GrantResistance`, `GrantImmunity`), listing damage types;
+- a Speed (`GrantMovement`);
+- a resource pool (`GrantResource`), with a name, an id, a maximum formula and when it recovers;
+- extra damage on a hit (`ExtraDamage`), optionally once per turn;
+- an aura (`Aura`), with a radius, who it affects, and its own rows. An aura's rows can't be another aura.
+
+**What a row applies to** is chosen in plain words, each one an engine statistic domain:
+- attack rolls: all, melee, ranged, weapon or spell;
+- saving throws, all or per ability, and ability checks, all or per ability;
+- initiative;
+- Armor Class, the Hit Point maximum and Speed;
+- damage: all, melee, ranged, weapon or spell;
+- attack rolls against you (advantage or disadvantage only).
+
+**Other parts:**
+- **While.** Every row can apply only while its owner has a condition (`predicate: {hasCondition}`). Another
+  predicate shows as "set on the Advanced tab" and is kept.
+- **Overlay writing.** Only a changed field is written, into the rule's `data`; a copy of it at the rule's root,
+  which would win, is removed. Rows match stored rules by position.
+  - A rule no row can show (`Trigger`, `ResourceCap`, `RollOutcome`) stays read-only.
+  - So do domains outside the list and amounts outside the formula grammar.
+  - Node proves an unchanged form gives back every condition's rules.
+- **Issues.** A list shows each rule's problem: its shape, an unknown type, or what its handler refuses when tried
+  without its predicate (a Modifier without domains).
+
+**Evidence (live, 14.369).**
+- An aura feature made on the Rules tab gave its bearer and an adjacent ally +1 AC, and an enemy six squares
+  away nothing.
+- A Shield Action was built in the Action Builder, with a reaction cost, self targeting and a custom effect (+5 AC,
+  1 round, ends at turn start). Using it raised the caster's AC by 5.
+- Quench covers adding a row and editing its amount on the Rules tab (the owner's AC follows), and editing and
+  saving an effect's rows.
 
 ## Product Goal
 

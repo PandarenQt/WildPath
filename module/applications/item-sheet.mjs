@@ -3,6 +3,8 @@ import {summarizeActionDefinition} from "../helpers/action-definition-summary.mj
 import {ACTION_TEMPLATES, addBuilderRow, applyActionTemplate, builderIssues, builderToDefinition, definitionToBuilder,
   removeBuilderRow} from "../helpers/action-builder.mjs";
 import {DEFAULT_RULE_ELEMENT_REGISTRY, validateRuleElementDefinition} from "../helpers/rule-elements.mjs";
+import {addRule, removeRule, ruleIssues, rowsToRules} from "../helpers/rule-builder.mjs";
+import {RULE_ROWS_TEMPLATE, ruleButtonPath, ruleRowsContext} from "./rule-rows.mjs";
 
 const {HandlebarsApplicationMixin} = foundry.applications.api;
 const {ItemSheetV2} = foundry.applications.sheets;
@@ -26,9 +28,9 @@ const choices = (values, prefix) => Object.fromEntries(values.map(value => [valu
 
 /**
  * The WildPath ItemSheet. An Action is built on the Builder tab (homebrew-content-builder.md, second slice): plain
- * fields that write into its definition, checked by the engine's validator before anything is saved. The Advanced tab
- * keeps the JSON editors for the definition and RuleElements, and an invalid draft on either tab stays on the sheet
- * with its errors and is not saved.
+ * fields that write into its definition, checked by the engine's validator before anything is saved. Every Item's
+ * RuleElements are rows on the Rules tab (third slice). The Advanced tab keeps the JSON editors, and an invalid draft
+ * on any tab stays on the sheet with its errors and is not saved.
  */
 export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 
@@ -40,7 +42,9 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
     actions: {
       builderAdd: WildPathItemSheet.#onBuilderAdd,
       builderRemove: WildPathItemSheet.#onBuilderRemove,
-      builderTemplate: WildPathItemSheet.#onBuilderTemplate
+      builderTemplate: WildPathItemSheet.#onBuilderTemplate,
+      ruleAdd: WildPathItemSheet.#onRuleAdd,
+      ruleRemove: WildPathItemSheet.#onRuleRemove
     }
   };
 
@@ -48,20 +52,22 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
   static PARTS = {
     header: {template: "systems/wildpath/templates/item/header.hbs"},
     tabs: {template: "templates/generic/tab-navigation.hbs"},
-    builder: {template: "systems/wildpath/templates/item/builder.hbs", scrollable: [""]},
+    builder: {template: "systems/wildpath/templates/item/builder.hbs", templates: [RULE_ROWS_TEMPLATE], scrollable: [""]},
+    rules: {template: "systems/wildpath/templates/item/rules.hbs", templates: [RULE_ROWS_TEMPLATE], scrollable: [""]},
     advanced: {template: "systems/wildpath/templates/item/advanced.hbs", scrollable: [""]},
     description: {template: "systems/wildpath/templates/item/description.hbs"}
   };
 
   /** @override */
   static TABS = {
-    sheet: {tabs: [{id: "builder", label: "WILDPATH.ITEMSHEET.Tab.builder"}, {id: "advanced", label: "WILDPATH.ITEMSHEET.Tab.advanced"},
-      {id: "description", label: "WILDPATH.ITEMSHEET.Tab.description"}], initial: "builder"}
+    sheet: {tabs: [{id: "builder", label: "WILDPATH.ITEMSHEET.Tab.builder"}, {id: "rules", label: "WILDPATH.ITEMSHEET.Tab.rules"},
+      {id: "advanced", label: "WILDPATH.ITEMSHEET.Tab.advanced"}, {id: "description", label: "WILDPATH.ITEMSHEET.Tab.description"}],
+    initial: "builder"}
   };
 
   /**
-   * Drafts kept across renders until they are fixed: `definition` and `ruleElements` (JSON, `{text, errors}`) and
-   * `builder` (`{values, errors, issues}`).
+   * Drafts kept across renders until they are fixed: `definition` and `ruleElements` (JSON, `{text, errors}`), and
+   * `builder` and `rules` (rows, `{values, errors, issues}`).
    */
   #drafts = {};
 
@@ -84,7 +90,7 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
   _getTabsConfig(group) {
     const config = super._getTabsConfig(group);
     if ( (group !== "sheet") || (this.item.type === "action") ) return config;
-    return {...config, tabs: config.tabs.filter(tab => tab.id !== "builder"), initial: "advanced"};
+    return {...config, tabs: config.tabs.filter(tab => tab.id !== "builder"), initial: "rules"};
   }
 
   /** @override */
@@ -130,11 +136,40 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
       const definition = this.#definitionFromBuilder(drafts.builder) ?? this.#definitionFromJson(drafts.definitionJson);
       if ( definition ) foundry.utils.setProperty(submitData, "system.definition", this.#replacement(definition));
     }
-    if ( typeof drafts.ruleElementsJson === "string" ) {
-      const ruleElements = this.#parseDraft("ruleElements", drafts.ruleElementsJson, ruleElementListErrors);
-      if ( ruleElements ) foundry.utils.setProperty(submitData, "system.ruleElements", ruleElements);
-    }
+    const ruleElements = this.#rulesFromRows(drafts.rules) ?? this.#rulesFromJson(drafts.ruleElementsJson);
+    if ( ruleElements ) foundry.utils.setProperty(submitData, "system.ruleElements", ruleElements);
     return submitData;
+  }
+
+  /** The RuleElements the Rules tab's changed rows make, or null when they changed nothing or are kept as a draft. */
+  #rulesFromRows(values) {
+    if ( !values ) return null;
+    const result = rowsToRules(values, this.item.toObject(true).system.ruleElements, {field: "wildpath.rules",
+      abilities: this.#builderOptions.abilities});
+    if ( result.errors.length ) {
+      this.#drafts.rules = {values, errors: result.errors};
+      return null;
+    }
+    if ( !result.changed ) {
+      delete this.#drafts.rules;
+      return null;
+    }
+    const issues = ruleElementListErrors(result.ruleElements);
+    if ( issues.length ) {
+      this.#drafts.rules = {values, errors: [], issues};
+      return null;
+    }
+    delete this.#drafts.rules;
+    delete this.#drafts.ruleElements;
+    return result.ruleElements;
+  }
+
+  /** The RuleElements typed in the Advanced JSON editor, when they differ from the stored ones and are valid. */
+  #rulesFromJson(text) {
+    if ( typeof text !== "string" ) return null;
+    const stored = JSON.stringify(this.item.toObject(true).system.ruleElements ?? [], null, 2);
+    if ( !this.#drafts.ruleElements && (text.replace(/\r\n/g, "\n") === stored) ) return null;
+    return this.#parseDraft("ruleElements", text, ruleElementListErrors);
   }
 
   /**
@@ -214,6 +249,34 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
     return this.item.update({system: {definition: this.#replacement(definition)}});
   }
 
+  /** Add or remove a rule row: on the Rules tab (`item`) or in an Action's custom effect (`effect:<index>`). */
+  async #editRules(target, change) {
+    const {list, path} = ruleButtonPath(target);
+    if ( list !== "item" ) {
+      const index = Number(list.split(":")[1]);
+      return this.#editDefinition(definition => {
+        const effect = definition.effects?.[index];
+        if ( effect ) effect.ruleElements = change(effect.ruleElements ?? [], path);
+        return definition;
+      });
+    }
+    const values = foundry.utils.expandObject(new foundry.applications.ux.FormDataExtended(this.form).object).wildpath?.rules;
+    const result = rowsToRules(values, this.item.toObject(true).system.ruleElements, {field: "wildpath.rules",
+      abilities: this.#builderOptions.abilities});
+    if ( result.errors.length ) return ui.notifications.warn("WILDPATH.BUILDER.FixFirst", {localize: true});
+    delete this.#drafts.rules;
+    delete this.#drafts.ruleElements;
+    return this.item.update({system: {ruleElements: change(result.ruleElements, path)}});
+  }
+
+  static async #onRuleAdd(event, target) {
+    await this.#editRules(target, (rules, path) => addRule(rules, "bonus", path));
+  }
+
+  static async #onRuleRemove(event, target) {
+    await this.#editRules(target, (rules, path) => removeRule(rules, path.at(-1), path.slice(0, -1)));
+  }
+
   static async #onBuilderAdd(event, target) {
     await this.#editDefinition(definition => addBuilderRow(definition, target.dataset.section, this.#builderOptions));
   }
@@ -259,6 +322,11 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
     }
     context.ruleElementsJson = this.#drafts.ruleElements?.text ?? JSON.stringify(source.ruleElements ?? [], null, 2);
     context.ruleElementErrors = this.#drafts.ruleElements?.errors ?? [];
+    const rules = this.#drafts.rules;
+    context.r = ruleRowsContext(source.ruleElements, {prefix: "wildpath.rules", list: "item", errors: rules?.errors ?? [],
+      draft: rules?.values, editable: this.isEditable});
+    context.rulesIssues = rules ? [game.i18n.localize("WILDPATH.ITEMSHEET.NotSaved"), ...(rules.issues ?? [])]
+      : ruleIssues(source.ruleElements).map(issue => `${issue.index + 1}: ${issue.text}`);
     return context;
   }
 
@@ -309,7 +377,10 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
       dcError: fieldErrors["roll.dc"],
       damage: rows("damage"),
       healing: rows("healing"),
-      effects: values.effects.map(row => ({...row, isCondition: row.kind !== "effect", stacks: Boolean(conditions[row.conditionId]?.stacking)})),
+      effects: values.effects.map((row, index) => ({...row, isCondition: row.kind !== "effect", stacks: Boolean(conditions[row.conditionId]?.stacking),
+        r: row.kind === "effect" ? ruleRowsContext(definition.effects[index]?.ruleElements, {prefix: `wildpath.builder.effects.${index}.rules`,
+          field: `effects.${index}.rules`, list: `effect:${index}`, errors: draft?.errors ?? [], draft: draft?.values?.effects?.[index]?.rules,
+          editable: this.isEditable}) : null})),
       advancedOnly: advancedOnly.join(", "),
       choices: {
         rangeTypes: choices(["", "self", "touch", "reach", "ranged", "sight", "special"], "WILDPATH.BUILDER.Range."),

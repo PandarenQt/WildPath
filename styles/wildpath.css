@@ -512,26 +512,28 @@
 .wildpath.item .definition-summary dt { font-weight: bold; }
 .wildpath.item .definition-summary dd { margin: 0; }
 
-/* The item sheet's header and Builder tab (the Homebrew Builder's second slice). */
+/* The item sheet's header, and the Homebrew Builder's fields and rule rows (item and effect sheets). */
 .wildpath.item .sheet-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
 .wildpath.item .sheet-header .profile-img { width: 48px; height: 48px; flex: 0 0 48px; }
 .wildpath.item .sheet-header .item-name { flex: 1; font-size: 1.2rem; }
 .wildpath.item .sheet-header .active-toggle { flex: 0 0 auto; white-space: nowrap; }
-.wildpath.item .builder fieldset { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin: 4px 0; }
-.wildpath.item .builder fieldset > ol, .wildpath.item .builder fieldset > p { flex-basis: 100%; }
-.wildpath.item .builder-rows { margin: 0; padding: 0; list-style: none; }
-.wildpath.item .builder-rows li { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-bottom: 4px; }
-.wildpath.item .builder :is(input[type="text"], select) { width: auto; flex: 1 1 8em; min-width: 6em; }
-.wildpath.item .builder input[type="number"] { width: 4.5em; flex: 0 0 4.5em; }
-.wildpath.item .builder input.formula { flex: 2 1 10em; font-family: monospace; }
-.wildpath.item .builder label { display: inline-flex; align-items: center; gap: 4px; }
-.wildpath.item .builder button { flex: 0 0 auto; width: auto; }
-.wildpath.item .builder .hint { margin: 0; font-size: 0.85rem; opacity: 0.75; }
-.wildpath.item .builder-issues { margin: 4px 0; padding-left: 1rem; font-size: 0.85rem; }
-.wildpath.item .builder-issues .error, .wildpath.item .field-error { color: #9b2c2c; }
-.wildpath.item .builder-issues .warning { color: #8a5a00; }
-.wildpath.item .field-error { flex-basis: 100%; font-size: 0.8rem; }
-.wildpath.item [aria-invalid="true"] { outline: 2px solid #9b2c2c; }
+.wildpath .builder fieldset { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin: 4px 0; }
+.wildpath .builder fieldset > ol, .wildpath .builder fieldset > p { flex-basis: 100%; }
+.wildpath .builder-rows { margin: 0; padding: 0; list-style: none; }
+.wildpath .builder-rows li { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-bottom: 4px; }
+.wildpath .builder :is(input[type="text"], select) { width: auto; flex: 1 1 8em; min-width: 6em; }
+.wildpath .builder input[type="number"] { width: 4.5em; flex: 0 0 4.5em; }
+.wildpath .builder input.formula { flex: 2 1 10em; font-family: monospace; }
+.wildpath .builder label { display: inline-flex; align-items: center; gap: 4px; }
+.wildpath .builder button { flex: 0 0 auto; width: auto; }
+.wildpath .builder .hint { margin: 0; font-size: 0.85rem; opacity: 0.75; }
+.wildpath .builder-issues { margin: 4px 0; padding-left: 1rem; font-size: 0.85rem; }
+.wildpath .builder-issues .error, .wildpath .field-error { color: #9b2c2c; }
+.wildpath .builder-issues .warning { color: #8a5a00; }
+.wildpath .field-error { flex-basis: 100%; font-size: 0.8rem; }
+.wildpath [aria-invalid="true"] { outline: 2px solid #9b2c2c; }
+.wildpath .builder :is(.aura-rules, .effect-rules) { flex-basis: 100%; margin-left: 1.5em; padding-left: 6px; border-left: 2px solid rgba(127, 127, 127, 0.4); }
+.wildpath .builder details.advanced { margin-top: 8px; }
 
 /* The in-play combat carousel (M6): the running combat's turn order, top centre. */
 #wildpath-combat-carousel {

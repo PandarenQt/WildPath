@@ -123,6 +123,43 @@ export function registerDocumentTests(quench) {
           assert.isTrue(item.system.getActionDefinition().ok,"the templated definition is valid");
         } finally { await item.sheet.close(); }
       });
+      it("the Rules tab adds a rule as a row, and the row's amount changes the owner's AC", async function () {
+        const actor = await fixtures.createActor({name:"rule rows"});
+        const item = await fixtures.createItem(actor,{name:"Ring of Warding",type:"feature"});
+        await item.sheet.render(true);
+        const wait = async test => { for (let i = 0; (i < 40) && !test(); i++) await new Promise(r => setTimeout(r,50)); };
+        try {
+          assert.equal(item.sheet.tabGroups.sheet,"rules","a feature opens on its Rules tab");
+          item.sheet.element.querySelector("[data-action='ruleAdd'][data-list='item']").click();
+          await wait(() => item.system.ruleElements.length === 1);
+          assert.equal(actor.getStatistic("defense.ac").totalModifier,1,"the new row is +1 AC");
+          await wait(() => item.sheet.element.querySelector("input[name='wildpath.rules.0.amount']"));
+          const amount = item.sheet.element.querySelector("input[name='wildpath.rules.0.amount']");
+          amount.value = "2";
+          amount.dispatchEvent(new Event("change",{bubbles:true}));
+          await wait(() => actor.getStatistic("defense.ac").totalModifier === 2);
+          assert.equal(actor.getStatistic("defense.ac").totalModifier,2,"the edited amount applies");
+          assert.notInclude(item.sheet.element.textContent,"WILDPATH.","every label is localized");
+        } finally { await item.sheet.close(); }
+      });
+      it("an effect's sheet edits its rules as rows and saves them", async function () {
+        const actor = await fixtures.createActor({name:"effect rule rows"});
+        const effect = await fixtures.createEffect(actor,{name:"Blessing"});
+        await effect.sheet.render(true);
+        const wait = async test => { for (let i = 0; (i < 40) && !test(); i++) await new Promise(r => setTimeout(r,50)); };
+        try {
+          effect.sheet.changeTab("ruleElements","sheet");
+          effect.sheet.element.querySelector("[data-action='ruleAdd']").click();
+          await wait(() => effect.system.ruleElements?.length === 1);
+          assert.equal(effect.system.ruleElements[0].type,"Modifier","a row adds a valid rule");
+          await wait(() => effect.sheet.element?.querySelector("select[name='wildpath.rules.0.appliesTo']"));
+          effect.sheet.element.querySelector("select[name='wildpath.rules.0.appliesTo']").value = "save";
+          await effect.sheet.submit();
+          await wait(() => effect.system.ruleElements[0].data.domains[0] === "save");
+          assert.deepEqual(effect.system.ruleElements[0].data.domains,["save"],"Save writes the changed row");
+          assert.equal(actor.getStatistic("save").totalModifier,1,"the rule applies to saves");
+        } finally { await effect.sheet.close(); }
+      });
       it("the built-in Actions pack loads, and each of its Actions imports onto an Actor with a valid definition", async function () {
         const pack = game.packs.get("wildpath.actions");
         if (!pack) this.skip(); // The world loads a new pack only when it is launched again.

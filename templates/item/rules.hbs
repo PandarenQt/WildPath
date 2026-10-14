@@ -1,0 +1,7 @@
+<section class="tab rules builder {{tab.cssClass}}" data-group="sheet" data-tab="rules">
+  <p class="hint">{{localize "WILDPATH.RULES.Intro"}}</p>
+  {{#if rulesIssues.length}}
+  <ul class="builder-issues">{{#each rulesIssues as |issue|}}<li class="error">{{issue}}</li>{{/each}}</ul>
+  {{/if}}
+  {{> "systems/wildpath/templates/item/rule-rows.hbs" rows=r.rows kinds=r.ctx.kinds ctx=r.ctx path=""}}
+</section>
