@@ -1076,11 +1076,11 @@ test("a counterattack Trigger on a bystander's Token ignores an attack on someon
 });
 
 /** A 5-ft radial burst, 6 damage, cast from (0,0) at range 30 ft. A bystander stands at (5,0). */
-function areaFixture(t, {range=30, persistence=null, shape="radial"}={}) {
+function areaFixture(t, {range=30, persistence=null, shape="radial", size=5, self=false}={}) {
   const definition = {schemaVersion: 1, id: "action:runtime-burst", label: "Runtime Burst",
     costs: {allOf: [{capability: ECONOMY_CAPABILITIES.ACTION, amount: 1}]},
-    range: {type: "ranged", normal: {value: range, unit: "ft"}}, targeting: {type: "area"},
-    area: {shape, size: {value: 5, unit: "ft"}, ...(persistence ? {persistence} : {})},
+    range: self ? {type: "self"} : {type: "ranged", normal: {value: range, unit: "ft"}}, targeting: {type: "area"},
+    area: {shape, size: {value: size, unit: "ft"}, ...(persistence ? {persistence} : {})},
     damage: [{id: "burst", expression: {type: "constant", value: 6}, damageType: "fire", provenance: "spell-base"}]};
   const fixture = syntheticRuntimeFixture(t, definition, {targetHealth: 30});
   const {scene} = fixture;
@@ -1122,6 +1122,29 @@ test("an area Action hits the creatures in its fields, recomputed by the authori
   assert.equal(targetActor.system.resources.health.value, 24);
   assert.equal(far.system.resources.health.value, 30, "the bystander outside the burst is untouched");
   assert.equal(sourceActor.system.resources.action.value, 0);
+});
+
+test("a Cube (2024) is a block of fields: centered where it is cast, or against its caster's edge toward the click", async t => {
+  // The caster stands on field (0,0), the target on (1,0) and a bystander on (5,0); fields are 50 px.
+  const caught = async (options, point) => {
+    const {game, intent} = areaFixture(t, {shape: "cube", ...options});
+    const resolved = await foundryActionIntentToStagedOptions({intent: {...intent, area: {points: [point]}}, senderUserId: "player-a", game});
+    assert.equal(resolved.ok, true, resolved.reason);
+    return resolved.options.targets.map(target => target.tokenId);
+  };
+  assert.deepEqual(await caught({size: 10}, {x: 75, y: 25}), ["target-token"], "a 10-ft Cube at the target: two fields across");
+  assert.deepEqual(await caught({size: 10}, {x: 275, y: 25}), ["far-token"], "and at the bystander");
+  assert.deepEqual(await caught({size: 15, self: true}, {x: 175, y: 25}), ["target-token"],
+    "a 15-ft Cube originating from the caster lies against its edge, toward the click, and leaves the caster out");
+  // A "self" range limits where the area goes, not whom it covers: the target 5 ft away is hit.
+  const fixture = areaFixture(t, {shape: "cube", size: 15, self: true});
+  const resolved = await foundryActionIntentToStagedOptions({intent: {...fixture.intent, area: {points: [{x: 175, y: 25}]}},
+    senderUserId: "player-a", game: fixture.game});
+  const planned = planStagedActionResolution(resolved.options);
+  assert.equal(planned.state.status, "ready-to-commit", JSON.stringify(planned.state.errors ?? planned.state.trace?.at(-1)));
+  const {game, intent} = areaFixture(t, {shape: "cube", size: 10, range: 5});
+  const far = await foundryActionIntentToStagedOptions({intent: {...intent, area: {points: [{x: 275, y: 25}]}}, senderUserId: "player-a", game});
+  assert.deepEqual([far.ok, far.reason], [false, "That point is out of range."]);
 });
 
 test("an area placed out of range, or not placed at all, is refused by the authority", async t => {

@@ -29,11 +29,13 @@
         }
       },
       "targeting": {
-        "type": "multiple",
-        "required": true,
-        "count": 20,
-        "refinementPolicy": {
-          "minSelections": 1
+        "type": "area"
+      },
+      "area": {
+        "shape": "cube",
+        "size": {
+          "value": 20,
+          "unit": "ft"
         }
       },
       "save": {
@@ -154,9 +156,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "area: 20-ft square is not supported; the user picks the targets"
-        ]
+        "notes": []
       }
     }
   }

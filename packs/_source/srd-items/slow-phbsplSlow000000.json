@@ -29,11 +29,13 @@
         }
       },
       "targeting": {
-        "type": "multiple",
-        "required": true,
-        "count": 20,
-        "refinementPolicy": {
-          "minSelections": 1
+        "type": "area"
+      },
+      "area": {
+        "shape": "cube",
+        "size": {
+          "value": 40,
+          "unit": "ft"
         }
       },
       "save": {
@@ -178,7 +180,6 @@
       },
       "conversion": {
         "notes": [
-          "area: 40-ft cube is not supported; the user picks the targets",
           "effect: \"Slowed\" change system.attributes.movement.multiplier (multiply) not converted"
         ]
       }

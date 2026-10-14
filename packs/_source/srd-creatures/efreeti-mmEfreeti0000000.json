@@ -519,9 +519,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "area: 5-ft cube is not supported; the user picks the targets",
-              "area: 1-ft cube is not supported; the user picks the targets"
+              "not automated (utility): using it spends its cost; its description says the rest"
             ]
           }
         }
@@ -1150,8 +1148,6 @@
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Detect Magic\" (its own changes) not converted",
           "Spellcasting: concentration: nothing it sustains was converted",
-          "Spellcasting: area: 5-ft cube is not supported; the user picks the targets",
-          "Spellcasting: area: 1-ft cube is not supported; the user picks the targets",
           "Spellcasting: effect: transformed is not a WildPath condition yet",
           "Spellcasting: effect: \"Gaseous Form\" change system.attributes.movement.hover (override) not converted",
           "Spellcasting: effect: \"Gaseous Form\" change img (override) not converted",

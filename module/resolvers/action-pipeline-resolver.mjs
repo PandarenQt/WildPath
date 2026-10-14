@@ -735,7 +735,10 @@ function createRangeStage() {
       const input = preparedResolverInput(state);
       const range = rangeDefinitionFromInput(input);
       const targetContexts = state.results?.targetResolution?.targetContexts ?? [];
-      if ( !range || !targetContexts.length ) return continueResolutionStage({
+      // An area's own placement is what its range limits (its point, its cube); whoever it covers is a target, however
+      // far ("self" cones and cubes reach beyond the caster).
+      const area = (state.actionDefinition?.targeting?.type ?? input.targeting?.type) === "area";
+      if ( !range || !targetContexts.length || area ) return continueResolutionStage({
         state: updateResolutionState(state, {input})
       });
 

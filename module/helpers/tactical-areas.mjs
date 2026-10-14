@@ -16,7 +16,9 @@ export const AREA_SHAPES = Object.freeze({
   CONE: "cone",
   WALL: "wall",
   // Around the caster's own footprint, with no placement clicks; a lasting one moves with its Token.
-  EMANATION: "emanation"
+  EMANATION: "emanation",
+  // 2024: a Cube (or a square) of fields, its side its size; at a point, or against its caster's edge.
+  CUBE: "cube"
 });
 
 export const ORIGIN_SOURCE_POLICIES = Object.freeze({
@@ -85,6 +87,37 @@ export function createRadialFootprint({
     origin: normalizeGridField(origin, normalizedTopology),
     metadata: {layers: resolvedLayers, radiusDistance, gridDistance, ...metadata}
   });
+}
+
+/* -------------------------------------------- */
+
+/**
+ * A Cube on a square grid: `side` fields across, from its top-left field `corner`. Null on other grids.
+ * @param {{topology?: string, corner: {x: number, y: number}, side: number, metadata?: object}} options
+ */
+export function createCubeFootprint({topology=GRID_TOPOLOGIES.SQUARE, corner, side, metadata={}}={}) {
+  if ( normalizeTopology(topology) !== GRID_TOPOLOGIES.SQUARE ) return null;
+  const fields = [];
+  for ( let dx = 0; dx < side; dx++ ) for ( let dy = 0; dy < side; dy++ ) fields.push({x: Number(corner.x) + dx, y: Number(corner.y) + dy});
+  return createGridFootprint({topology, fields, shape: AREA_SHAPES.CUBE, origin: corner, metadata: {side, ...metadata}});
+}
+
+/**
+ * Where a Cube originating from its caster may go: each `side`-wide block touching the caster's square footprint
+ * without overlapping it, as its top-left field.
+ */
+export function cubeCornersAgainst(footprintFields, side) {
+  const xs = footprintFields.map(field => Number(field.x));
+  const ys = footprintFields.map(field => Number(field.y));
+  const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
+  const corners = [];
+  for ( let x = x0 - side; x <= x1 + 1; x++ ) {
+    for ( let y = y0 - side; y <= y1 + 1; y++ ) {
+      const overlaps = (x <= x1) && (x + side - 1 >= x0) && (y <= y1) && (y + side - 1 >= y0);
+      if ( !overlaps ) corners.push({x, y});
+    }
+  }
+  return corners;
 }
 
 /* -------------------------------------------- */

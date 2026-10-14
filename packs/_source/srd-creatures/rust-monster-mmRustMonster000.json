@@ -331,8 +331,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "area: 1-ft cube is not supported; the user picks the targets"
+              "not automated (utility): using it spends its cost; its description says the rest"
             ]
           }
         }
@@ -399,7 +398,6 @@
           "Iron Scent: \"Expend Use\" is passive or triggered: not automated",
           "Antennae: not automated (save): using it spends its cost; its description says the rest",
           "Destroy Metal: not automated (utility): using it spends its cost; its description says the rest",
-          "Destroy Metal: area: 1-ft cube is not supported; the user picks the targets",
           "Reflexive Antennae: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }

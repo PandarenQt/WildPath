@@ -68,7 +68,6 @@
       "conversion": {
         "notes": [
           "not automated (save): using it spends its cost; its description says the rest",
-          "area: 100-ft circle is not supported; the user picks the targets",
           "concentration: nothing it sustains was converted"
         ]
       }

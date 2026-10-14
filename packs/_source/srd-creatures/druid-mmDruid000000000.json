@@ -328,8 +328,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "area: 5-ft cube is not supported; the user picks the targets"
+              "not automated (utility): using it spends its cost; its description says the rest"
             ]
           }
         }
@@ -419,11 +418,13 @@
             }
           },
           "targeting": {
-            "type": "multiple",
-            "required": true,
-            "count": 20,
-            "refinementPolicy": {
-              "minSelections": 1
+            "type": "area"
+          },
+          "area": {
+            "shape": "cube",
+            "size": {
+              "value": 20,
+              "unit": "ft"
             }
           },
           "save": {
@@ -473,9 +474,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "area: 20-ft cube is not supported; the user picks the targets"
-            ]
+            "notes": []
           }
         }
       }
@@ -511,11 +510,13 @@
             "type": "self"
           },
           "targeting": {
-            "type": "multiple",
-            "required": true,
-            "count": 20,
-            "refinementPolicy": {
-              "minSelections": 1
+            "type": "area"
+          },
+          "area": {
+            "shape": "cube",
+            "size": {
+              "value": 15,
+              "unit": "ft"
             }
           },
           "save": {
@@ -572,9 +573,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "area: 15-ft cube is not supported; the user picks the targets"
-            ]
+            "notes": []
           }
         }
       }
@@ -871,11 +870,8 @@
       "conversion": {
         "notes": [
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
-          "Spellcasting: area: 5-ft cube is not supported; the user picks the targets",
           "Spellcasting: effect: \"Bestial Communication\" change system.traits.languages.custom (add) not converted",
           "Spellcasting: effect: \"Bestial Communication\" (its own changes) not converted",
-          "Spellcasting: area: 20-ft cube is not supported; the user picks the targets",
-          "Spellcasting: area: 15-ft cube is not supported; the user picks the targets",
           "Spellcasting: not automated (save): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Carrying Message\" (its own changes) not converted",
           "Spellcasting: area: a cylinder's height is not modeled",

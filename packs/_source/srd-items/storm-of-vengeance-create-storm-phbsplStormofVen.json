@@ -22,11 +22,13 @@
         ]
       },
       "targeting": {
-        "type": "multiple",
-        "required": true,
-        "count": 20,
-        "refinementPolicy": {
-          "minSelections": 1
+        "type": "area"
+      },
+      "area": {
+        "shape": "radial",
+        "size": {
+          "value": 300,
+          "unit": "ft"
         }
       },
       "save": {
@@ -125,9 +127,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "area: 300-ft circle is not supported; the user picks the targets"
-        ]
+        "notes": []
       }
     }
   }

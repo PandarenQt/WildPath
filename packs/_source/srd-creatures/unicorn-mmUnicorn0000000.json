@@ -467,8 +467,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "area: 5-ft cube is not supported; the user picks the targets"
+              "not automated (utility): using it spends its cost; its description says the rest"
             ]
           }
         }
@@ -695,11 +694,13 @@
             }
           },
           "targeting": {
-            "type": "multiple",
-            "required": true,
-            "count": 20,
-            "refinementPolicy": {
-              "minSelections": 1
+            "type": "area"
+          },
+          "area": {
+            "shape": "cube",
+            "size": {
+              "value": 20,
+              "unit": "ft"
             }
           },
           "save": {
@@ -749,9 +750,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "area: 20-ft cube is not supported; the user picks the targets"
-            ]
+            "notes": []
           }
         }
       }
@@ -1278,11 +1277,9 @@
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Detect Evil and Good\" (its own changes) not converted",
           "Spellcasting: concentration: nothing it sustains was converted",
-          "Spellcasting: area: 5-ft cube is not supported; the user picks the targets",
           "Spellcasting: effect: \"Indifference\" (its own changes) not converted",
           "Spellcasting: effect: \"Dispelling Evil and Good\" (its own changes) not converted",
           "Spellcasting: not automated (save): using it spends its cost; its description says the rest",
-          "Spellcasting: area: 20-ft cube is not supported; the user picks the targets",
           "Spellcasting: not automated (teleport): using it spends its cost; its description says the rest",
           "Charging Horn: not automated (utility): using it spends its cost; its description says the rest",
           "Shimmering Shield: healing: temporary Hit Points not converted",

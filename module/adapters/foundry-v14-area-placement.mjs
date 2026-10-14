@@ -1,15 +1,17 @@
 import { createFoundryV14TacticalGridAdapter } from "./foundry-v14-tactical-grid-adapter.mjs";
-import { AREA_SHAPES, createRadialFootprint, previewSourceBoundaryArea, selectSourceBoundaryOrigin } from "../helpers/tactical-areas.mjs";
+import { AREA_SHAPES, createCubeFootprint, createRadialFootprint, cubeCornersAgainst, previewSourceBoundaryArea, selectSourceBoundaryOrigin } from "../helpers/tactical-areas.mjs";
 import { createReachFootprint, footprintDistance } from "../helpers/grid-footprints.mjs";
 // The JS area helpers infer narrow default types; these are the only places their shapes are asserted.
 const radialFootprint = createRadialFootprint;
 const selectOrigin = selectSourceBoundaryOrigin;
 const boundaryArea = previewSourceBoundaryArea;
 const reachFootprint = createReachFootprint;
-/** Clicks that place this area: none for an emanation, one field for a radial area, a corner and a direction otherwise. */
+const createCube = createCubeFootprint;
+const cornersAgainst = cubeCornersAgainst;
+/** Clicks that place this area: none for an emanation, one field for a radial area or a Cube, a corner and a direction otherwise. */
 export function areaClickCount(definition) {
     const shape = definition.area?.shape;
-    return shape === AREA_SHAPES.EMANATION ? 0 : (shape === AREA_SHAPES.RADIAL ? 1 : 2);
+    return shape === AREA_SHAPES.EMANATION ? 0 : (((shape === AREA_SHAPES.RADIAL) || (shape === AREA_SHAPES.CUBE)) ? 1 : 2);
 }
 /**
  * The grid fields an area Action covers, from the canvas points that placed it. The client's preview and the
@@ -63,6 +65,8 @@ export function foundryAreaFootprint({ definition, sourceToken, points }) {
         }
         return { ok: true, footprint: radialFootprint({ topology, origin: fieldResult.field, radiusDistance: size, gridDistance }) };
     }
+    if (shape === AREA_SHAPES.CUBE)
+        return cubeFootprint({ definition, adapter, source, point: first, topology, size, gridDistance });
     if ((shape !== AREA_SHAPES.CONE) && (shape !== AREA_SHAPES.LINE))
         return { ok: false, code: "UnsupportedShape", reason: `Unsupported area shape: ${shape}.` };
     const vertexResult = adapter.pointToVertex(first);
@@ -81,6 +85,36 @@ export function foundryAreaFootprint({ definition, sourceToken, points }) {
     if (!preview.ok || !preview.resolved)
         return { ok: false, code: "BadDirection", reason: preview.reason ?? "That direction is not allowed.", needs: "direction" };
     return { ok: true, footprint: preview.resolved };
+}
+/**
+ * A Cube (2024) on a square grid, `size` across. Originating from its caster ("a 15-foot Cube originating from you",
+ * a `self` range), it touches the caster's Token on the side toward the click; otherwise it is centered on the click,
+ * within range when any of its fields is.
+ */
+function cubeFootprint({ definition, adapter, source, point, topology, size, gridDistance }) {
+    const side = Math.max(1, Math.round(size / gridDistance));
+    const fieldResult = adapter.pointToField(point);
+    if (!fieldResult.ok || !fieldResult.field)
+        return { ok: false, code: "OffGrid", reason: "That point is not on the grid.", needs: "origin" };
+    const clicked = fieldResult.field;
+    const cube = (corner) => createCube({ topology, corner, side });
+    if (definition.range?.type === "self") {
+        // The block touching the caster whose center is nearest the click.
+        const centerOf = (corner) => ({ x: corner.x + ((side - 1) / 2), y: corner.y + ((side - 1) / 2) });
+        const corners = cornersAgainst(source.fields, side);
+        const best = corners.sort((a, b) => Math.hypot(centerOf(a).x - clicked.x, centerOf(a).y - clicked.y)
+            - Math.hypot(centerOf(b).x - clicked.x, centerOf(b).y - clicked.y))[0];
+        const footprint = best ? cube(best) : null;
+        return footprint ? { ok: true, footprint } : { ok: false, code: "UnsupportedShape", reason: "Cubes need a square grid.", needs: "origin" };
+    }
+    const footprint = cube({ x: clicked.x - Math.floor((side - 1) / 2), y: clicked.y - Math.floor((side - 1) / 2) });
+    if (!footprint)
+        return { ok: false, code: "UnsupportedShape", reason: "Cubes need a square grid.", needs: "origin" };
+    const range = Number(definition.range?.normal?.value ?? definition.range?.distance?.value);
+    if (Number.isFinite(range) && (footprintDistance(source, footprint) * gridDistance > range)) {
+        return { ok: false, code: "OutOfRange", reason: "That point is out of range.", needs: "origin" };
+    }
+    return { ok: true, footprint };
 }
 /** Every Token on the caster's Scene and Level that any covered field touches, the caster included. */
 export function foundryAreaTargetTokens({ sourceToken, footprint }) {
