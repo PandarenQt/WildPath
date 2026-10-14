@@ -155,8 +155,14 @@ real Foundry grids. Slice 5 done: lasting areas, auras and hazards, per the main
 - Areas run out after their rounds, or when concentration breaks.
 - All of it was verified live in two browsers.
 
-**M3 — CLOSED on 2026-10-14.** Next: M4, the content pack. It needs approval for the
-`@foundryvtt/foundryvtt-cli` devDependency and the maintainer's condition numbers.
+**M3 — CLOSED on 2026-10-14.**
+
+**M4 — content pack (in progress, 2026-10-14).**
+- **The pack.** `@foundryvtt/foundryvtt-cli` 3.0.4 was approved and added. The built-in **WildPath Actions**
+  pack (nine Actions, one per proven mechanic) is built from JSON sources by `npm run build:packs`
+  ([content-packs.md](content-packs.md)).
+- **Conditions.** Under the 2024 rules they need advantage and disadvantage, which rolls do not support
+  yet.
 
 **M5 — progression (in progress, 2026-10-14).** The missing-primitive test is
 [progression-primitives.md](progression-primitives.md). Done, each verified in Quench and most in two

@@ -1,0 +1,72 @@
+{
+  "_id": "wpVenomBurst0001",
+  "_key": "!items!wpVenomBurst0001",
+  "name": "Venom Burst",
+  "type": "action",
+  "img": "icons/svg/poison.svg",
+  "system": {
+    "active": true,
+    "definition": {
+      "schemaVersion": 1,
+      "label": "Venom Burst",
+      "id": "action:venom-burst",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 30,
+          "unit": "ft"
+        }
+      },
+      "save": {
+        "ability": "fortitude",
+        "dc": {
+          "value": 13
+        }
+      },
+      "damage": [
+        {
+          "id": "venom",
+          "expression": {
+            "type": "dice",
+            "number": 2,
+            "faces": 6
+          },
+          "damageType": "poison",
+          "provenance": "spell-base",
+          "saveOutcomePolicy": {
+            "success": "half",
+            "failure": "full"
+          }
+        }
+      ],
+      "effects": [
+        {
+          "id": "venom-poisoned",
+          "type": "condition",
+          "conditionId": "poisoned",
+          "saveOutcomePolicy": "failure"
+        }
+      ]
+    }
+  },
+  "effects": [],
+  "folder": null,
+  "sort": 500000,
+  "ownership": {
+    "default": 0
+  },
+  "flags": {}
+}

@@ -1,0 +1,63 @@
+{
+  "_id": "wpRangedShot0001",
+  "_key": "!items!wpRangedShot0001",
+  "name": "Ranged Shot",
+  "type": "action",
+  "img": "icons/svg/target.svg",
+  "system": {
+    "active": true,
+    "definition": {
+      "schemaVersion": 1,
+      "label": "Ranged Shot",
+      "id": "action:ranged-shot",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 80,
+          "unit": "ft"
+        },
+        "long": {
+          "value": 320,
+          "unit": "ft"
+        }
+      },
+      "attack": {
+        "type": "ranged",
+        "statistic": "weapon",
+        "defenseKey": "ac"
+      },
+      "damage": [
+        {
+          "id": "shot",
+          "expression": {
+            "type": "dice",
+            "number": 1,
+            "faces": 6
+          },
+          "damageType": "piercing",
+          "provenance": "weapon-base"
+        }
+      ]
+    }
+  },
+  "effects": [],
+  "folder": null,
+  "sort": 200000,
+  "ownership": {
+    "default": 0
+  },
+  "flags": {}
+}

@@ -1,0 +1,53 @@
+{
+  "_id": "wpMendingTouch01",
+  "_key": "!items!wpMendingTouch01",
+  "name": "Mending Touch",
+  "type": "action",
+  "img": "icons/svg/heal.svg",
+  "system": {
+    "active": true,
+    "definition": {
+      "schemaVersion": 1,
+      "label": "Mending Touch",
+      "id": "action:mending-touch",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "range": {
+        "type": "reach",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "healing": [
+        {
+          "id": "mend",
+          "expression": {
+            "type": "dice",
+            "number": 1,
+            "faces": 8
+          },
+          "healingType": "healing"
+        }
+      ]
+    }
+  },
+  "effects": [],
+  "folder": null,
+  "sort": 600000,
+  "ownership": {
+    "default": 0
+  },
+  "flags": {}
+}

@@ -64,6 +64,19 @@ export function registerDocumentTests(quench) {
         assert.equal(actor.system.resources.health.value,10,"Editing an exported source must not mutate the Actor");
         assert.isTrue(item.system.active,"Editing an exported source must not mutate the embedded Item");
       });
+      it("the built-in Actions pack loads, and each of its Actions imports onto an Actor with a valid definition", async function () {
+        const pack = game.packs.get("wildpath.actions");
+        if (!pack) this.skip(); // The world loads a new pack only when it is launched again.
+        const documents = await pack.getDocuments();
+        assert.isAtLeast(documents.length,9,"The pack holds the built-in Actions");
+        const actor = await fixtures.createActor({name:"pack import"});
+        const imported = await actor.createEmbeddedDocuments("Item",documents.map(document => document.toObject()));
+        for (const item of imported) {
+          const definition = item.system.getActionDefinition();
+          assert.isTrue(definition.ok,`${item.name}: ${JSON.stringify(definition.errors)}`);
+          assert.equal(definition.definition.label,item.name);
+        }
+      });
     });
   }, {displayName:"WILDPATH: Real Foundry Documents",preSelected:false});
 }

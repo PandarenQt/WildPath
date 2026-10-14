@@ -1,0 +1,78 @@
+{
+  "_id": "wpGuardianAura01",
+  "_key": "!items!wpGuardianAura01",
+  "name": "Guardian Aura",
+  "type": "action",
+  "img": "icons/svg/aura.svg",
+  "system": {
+    "active": true,
+    "definition": {
+      "schemaVersion": 1,
+      "label": "Guardian Aura",
+      "id": "action:guardian-aura",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "emanation",
+        "size": {
+          "value": 5,
+          "unit": "ft"
+        },
+        "persistence": {
+          "duration": {
+            "unit": "round",
+            "value": 10
+          },
+          "concentration": true,
+          "oncePerTurn": true,
+          "triggers": [
+            {
+              "on": [
+                "area.entered",
+                "turn.started"
+              ],
+              "action": {
+                "schemaVersion": 1,
+                "id": "action:guardian-aura-radiance",
+                "label": "Radiance",
+                "costs": {
+                  "allOf": []
+                },
+                "damage": [
+                  {
+                    "id": "radiance",
+                    "expression": {
+                      "type": "constant",
+                      "value": 3
+                    },
+                    "damageType": "radiant",
+                    "provenance": "spell-base"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  "effects": [],
+  "folder": null,
+  "sort": 900000,
+  "ownership": {
+    "default": 0
+  },
+  "flags": {}
+}

@@ -1,0 +1,59 @@
+{
+  "_id": "wpMeleeStrike001",
+  "_key": "!items!wpMeleeStrike001",
+  "name": "Melee Strike",
+  "type": "action",
+  "img": "icons/svg/sword.svg",
+  "system": {
+    "active": true,
+    "definition": {
+      "schemaVersion": 1,
+      "label": "Melee Strike",
+      "id": "action:melee-strike",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "range": {
+        "type": "reach",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "attack": {
+        "type": "melee",
+        "statistic": "weapon",
+        "defenseKey": "ac"
+      },
+      "damage": [
+        {
+          "id": "blade",
+          "expression": {
+            "type": "dice",
+            "number": 1,
+            "faces": 8
+          },
+          "damageType": "slashing",
+          "provenance": "weapon-base"
+        }
+      ]
+    }
+  },
+  "effects": [],
+  "folder": null,
+  "sort": 100000,
+  "ownership": {
+    "default": 0
+  },
+  "flags": {}
+}

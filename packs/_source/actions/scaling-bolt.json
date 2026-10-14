@@ -1,0 +1,94 @@
+{
+  "_id": "wpScalingBolt001",
+  "_key": "!items!wpScalingBolt001",
+  "name": "Scaling Bolt",
+  "type": "action",
+  "img": "icons/svg/lightning.svg",
+  "system": {
+    "active": true,
+    "definition": {
+      "schemaVersion": 1,
+      "label": "Scaling Bolt",
+      "id": "action:scaling-bolt",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": []
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "damage": [
+        {
+          "id": "bolt",
+          "expression": {
+            "type": "dice",
+            "number": 2,
+            "faces": 6
+          },
+          "damageType": "fire",
+          "provenance": "spell-base"
+        }
+      ],
+      "configuration": [
+        {
+          "id": "casting-resource",
+          "type": "resource",
+          "label": "Cast At",
+          "required": true,
+          "cost": {
+            "anyOf": [
+              [
+                {
+                  "capability": "spell-slot.1",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.2",
+                  "amount": 1
+                }
+              ]
+            ]
+          },
+          "levelByResourceId": {
+            "spell-slot.1": 1,
+            "spell-slot.2": 2
+          },
+          "effects": [
+            {
+              "type": "scaleDamage",
+              "componentIds": [
+                "bolt"
+              ],
+              "levelChoiceId": "casting-resource",
+              "baseLevel": 1,
+              "dice": {
+                "number": 1,
+                "faces": 6
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "effects": [],
+  "folder": null,
+  "sort": 700000,
+  "ownership": {
+    "default": 0
+  },
+  "flags": {}
+}

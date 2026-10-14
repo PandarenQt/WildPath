@@ -1,0 +1,54 @@
+{
+  "_id": "wpTrip0000000001",
+  "_key": "!items!wpTrip0000000001",
+  "name": "Trip",
+  "type": "action",
+  "img": "icons/svg/falling.svg",
+  "system": {
+    "active": true,
+    "definition": {
+      "schemaVersion": 1,
+      "label": "Trip",
+      "id": "action:trip",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "range": {
+        "type": "reach",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "attack": {
+        "type": "melee",
+        "statistic": "weapon",
+        "defenseKey": "ac"
+      },
+      "effects": [
+        {
+          "id": "trip-prone",
+          "type": "condition",
+          "conditionId": "prone"
+        }
+      ]
+    }
+  },
+  "effects": [],
+  "folder": null,
+  "sort": 400000,
+  "ownership": {
+    "default": 0
+  },
+  "flags": {}
+}

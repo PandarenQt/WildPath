@@ -5,3 +5,7 @@ coverage/
 
 # Local scratch prompt file, not part of the repository record
 docs/development/nextPromptForCodex.md
+
+# Compiled compendium packs: built from packs/_source by `npm run build:packs`
+packs/*
+!packs/_source/

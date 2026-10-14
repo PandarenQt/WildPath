@@ -97,6 +97,9 @@
       "NeedDirection": "Choose the area's direction.",
       "BadDirection": "That direction is not allowed."
     },
+    "PACKS": {
+      "Actions": "WildPath Actions"
+    },
     "TRANSFORMATION": {
       "Effect": "Transformed: {form}"
     },

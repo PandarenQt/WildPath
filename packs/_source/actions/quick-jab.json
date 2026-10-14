@@ -1,0 +1,59 @@
+{
+  "_id": "wpQuickJab000001",
+  "_key": "!items!wpQuickJab000001",
+  "name": "Quick Jab",
+  "type": "action",
+  "img": "icons/svg/thrust.svg",
+  "system": {
+    "active": true,
+    "definition": {
+      "schemaVersion": 1,
+      "label": "Quick Jab",
+      "id": "action:quick-jab",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          }
+        ]
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "range": {
+        "type": "reach",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "attack": {
+        "type": "melee",
+        "statistic": "weapon",
+        "defenseKey": "ac"
+      },
+      "damage": [
+        {
+          "id": "jab",
+          "expression": {
+            "type": "dice",
+            "number": 1,
+            "faces": 4
+          },
+          "damageType": "bludgeoning",
+          "provenance": "weapon-base"
+        }
+      ]
+    }
+  },
+  "effects": [],
+  "folder": null,
+  "sort": 300000,
+  "ownership": {
+    "default": 0
+  },
+  "flags": {}
+}
