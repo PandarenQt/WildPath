@@ -20,6 +20,8 @@ import {createMultiplayerActionCoordinator} from "../module/resolvers/multiplaye
 import {createTestRollProvider} from "../module/resolvers/roll-provider-resolver.mjs";
 import {createTestPromptAdapter} from "../module/adapters/test-prompt-adapter.mjs";
 import {createFoundryReactionProvider} from "../module/adapters/foundry-v14-reaction-provider.mjs";
+import {areaCovers, createFoundryPersistentAreas} from "../module/adapters/foundry-v14-persistent-areas.mjs";
+import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
 import {
   buildFoundryActionUseIntent,
   foundryActionIntentToStagedOptions
@@ -781,11 +783,11 @@ test("a counterattack Trigger on a bystander's Token ignores an attack on someon
 });
 
 /** A 5-ft radial burst, 6 damage, cast from (0,0) at range 30 ft. A bystander stands at (5,0). */
-function areaFixture(t, {range=30}={}) {
+function areaFixture(t, {range=30, persistence=null}={}) {
   const definition = {schemaVersion: 1, id: "action:runtime-burst", label: "Runtime Burst",
     costs: {allOf: [{capability: ECONOMY_CAPABILITIES.ACTION, amount: 1}]},
     range: {type: "ranged", normal: {value: range, unit: "ft"}}, targeting: {type: "area"},
-    area: {shape: "radial", size: {value: 5, unit: "ft"}},
+    area: {shape: "radial", size: {value: 5, unit: "ft"}, ...(persistence ? {persistence} : {})},
     damage: [{id: "burst", expression: {type: "constant", value: 6}, damageType: "fire", provenance: "spell-base"}]};
   const fixture = syntheticRuntimeFixture(t, definition, {targetHealth: 30});
   const {scene} = fixture;
@@ -839,6 +841,89 @@ test("an area placed out of range, or not placed at all, is refused by the autho
   assert.deepEqual(sanitizeActionIntentPayload({area: {points: [{x: 1, y: 2}, {x: "3", y: 4}, {x: 5, y: 6}],
     footprint: "forged"}}).area, {points: [{x: 1, y: 2}, {x: 3, y: 4}]}, "at most two finite points travel");
   assert.deepEqual(sanitizeActionIntentPayload({area: {points: [{x: "SECRET", y: 1}]}}).area, {points: []});
+});
+
+const BURNING = {schemaVersion: 1, id: "action:burning-ground", label: "Burning Ground", costs: {allOf: []},
+  damage: [{id: "flames", expression: {type: "constant", value: 4}, damageType: "fire", provenance: "spell-base"}]};
+
+test("a lasting area's persistence is validated: rounds, an elevation band, and triggers carrying ActionDefinitions", () => {
+  const area = persistence => ({schemaVersion: 1, id: "action:a", label: "A", costs: {allOf: []}, targeting: {type: "area"},
+    area: {shape: "radial", size: {value: 5, unit: "ft"}, persistence}});
+  assert.equal(validateActionDefinition(area({duration: {unit: "round", value: 10}, elevation: {bottom: 0, top: 0},
+    triggers: [{on: ["area.entered", "turn.started"], action: BURNING}]})).ok, true);
+  const reasons = persistence => validateActionDefinition(area(persistence)).errors.map(error => error.path);
+  assert.deepEqual(reasons({duration: {unit: "minute", value: 1}}), ["area.persistence.duration"]);
+  assert.deepEqual(reasons({elevation: {bottom: 10, top: 0}}), ["area.persistence.elevation"]);
+  assert.deepEqual(reasons({triggers: [{on: ["attack.hit"], action: BURNING}]}), ["area.persistence.triggers.0.on"]);
+  assert.deepEqual(reasons({triggers: [{on: ["turn.started"], action: {label: "no id"}}]}), ["area.persistence.triggers.0.action"]);
+});
+
+/** A burst whose ground keeps burning; the Scene can hold Regions and the GM runs the turn. */
+function lastingAreaFixture(t) {
+  const fixture = areaFixture(t, {persistence: {duration: {unit: "round", value: 10}, elevation: {bottom: 0, top: 0},
+    triggers: [{on: ["turn.started"], action: BURNING}]}});
+  const {scene, game} = fixture;
+  scene.regions = [];
+  scene.createEmbeddedDocuments = async (type, data) => data.map(source => {
+    assert.equal(type, "Region");
+    const region = {id: `region-${scene.regions.length + 1}`, ...structuredClone(source),
+      async update(changes) {
+        for ( const [path, value] of Object.entries(changes) ) {
+          const keys = path.split(".");
+          const last = keys.pop();
+          keys.reduce((node, key) => (node[key] ??= {}), this)[last] = value;
+        }
+      }};
+    scene.regions.push(region);
+    return region;
+  });
+  for ( const user of game.users.values() ) user.active = user.id !== "player-b";
+  game.user = game.users.get("gm-a");
+  game.combat = {id: "combat-1", round: 1, turn: 0};
+  const persistencePort = createTestDocumentPersistenceAdapter();
+  const hub = createTestResolutionTransportHub({users: [
+    {id: "gm-a", active: true, isGM: true, isActiveGM: true},
+    {id: "player-a", active: true, isGM: false}
+  ]});
+  let areas = null;
+  const gm = createMultiplayerActionCoordinator({userId: "gm-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
+    transport: hub.createEndpoint({userId: "gm-a"}), afterCompleted: event => areas.create(event),
+    actionIntentResolver: ({intent: sent, envelope}) => foundryActionIntentToStagedOptions({intent: sent,
+      senderUserId: envelope.senderUserId, game, persistencePort})});
+  areas = createFoundryPersistentAreas({game, coordinator: gm,
+    resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});
+  const player = createMultiplayerActionCoordinator({userId: "player-a", users: () => hub.userDirectory(),
+    activeGMUserId: "gm-a", transport: hub.createEndpoint({userId: "player-a"})});
+  gm.register();
+  player.register();
+  return {...fixture, gm, player, areas};
+}
+
+test("a lasting area becomes a Region and burns a creature that starts its turn in it, once per turn", async t => {
+  const {scene, targetActor, targetToken, far, farToken, game, player, areas, intent} = lastingAreaFixture(t);
+  const declared = await player.declareActionIntent({...intent, area: {points: [{x: 125, y: 25}]}});
+  assert.equal(declared.ok, true, JSON.stringify(declared));
+  assert.equal(targetActor.system.resources.health.value, 24, "the burst itself hits once when cast");
+  assert.equal(scene.regions.length, 1, "the completed Action leaves its lasting area behind");
+  const [region] = scene.regions;
+  const flag = region.flags.wildpath.area;
+  assert.deepEqual(region.shapes[0].offsets.length, 9, "Foundry draws exactly the covered fields");
+  assert.deepEqual([region.elevation, region.attachment.token], [{bottom: 0, top: 0}, null]);
+  assert.deepEqual([flag.sourceTokenId, flag.persistence.oncePerTurn, flag.createdAt], ["source-token", true,
+    {combatId: "combat-1", round: 1, turn: 0}]);
+
+  await areas.onTurn("turn.started", {combatant: {token: targetToken}});
+  assert.equal(targetActor.system.resources.health.value, 20, "starting its turn in the fire costs 4");
+  await areas.onTurn("turn.started", {combatant: {token: targetToken}});
+  assert.equal(targetActor.system.resources.health.value, 20, "at most once per turn");
+  game.combat.turn = 1;
+  await areas.onTurn("turn.started", {combatant: {token: targetToken}});
+  assert.equal(targetActor.system.resources.health.value, 16, "a new turn burns again");
+  await areas.onTurn("turn.started", {combatant: {token: farToken}});
+  assert.equal(far.system.resources.health.value, 30, "a creature outside is untouched");
+  // A creature flying above the burning ground is out of its band.
+  targetToken.elevation = 30;
+  assert.equal(areaCovers(flag, targetToken), false);
 });
 
 test("Action targets carry the Token's public name, never a hidden Token's or the base Actor's", async t => {

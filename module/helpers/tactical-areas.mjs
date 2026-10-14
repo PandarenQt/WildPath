@@ -14,7 +14,9 @@ export const AREA_SHAPES = Object.freeze({
   RADIAL: "radial",
   LINE: "line",
   CONE: "cone",
-  WALL: "wall"
+  WALL: "wall",
+  // Around the caster's own footprint, with no placement clicks; a lasting one moves with its Token.
+  EMANATION: "emanation"
 });
 
 export const PLACEMENT_POLICIES = Object.freeze({

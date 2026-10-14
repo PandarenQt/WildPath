@@ -59,7 +59,8 @@ export function createMultiplayerActionCoordinator({
   duplicateCacheLimit=200,
   logger=null,
   notify=null,
-  publishResult=null
+  publishResult=null,
+  afterCompleted=null
 }={}) {
   const localUserId = stringOrNull(userId ?? transport?.userId);
   // Unfinished resolutions stay in `records`; a finished one is kept until it falls out of the bounded
@@ -93,6 +94,28 @@ export function createMultiplayerActionCoordinator({
         knownResolutionIds: new Set([host.state.id]), resultSent: false
       };
       records.set(record.resolutionId, record);
+      return advanceRecord(record);
+    },
+    /**
+     * An Action the authority starts on its own (a lasting area's effect on a creature); never a socket intent.
+     * `resolved` is what the intent translator returns. The record runs, routes and commits like any other,
+     * and `onComplete` fires once it is finished.
+     */
+    async resolveAuthorityAction({resolutionId, resolved, onComplete=null}={}) {
+      if ( activeGMId() !== localUserId ) return failure(MULTIPLAYER_AUTHORITY_CODES.WRONG_AUTHORITY,
+        "Only the active GM may start an authoritative Action.");
+      if ( !resolved?.ok ) return resolved ?? failure(MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED, "No resolved Action.");
+      if ( records.has(resolutionId) ) return {ok: true, duplicate: true, state: records.get(resolutionId).state};
+      const options = resolved.options ?? resolved;
+      const record = {
+        resolutionId, initiatorUserId: localUserId, authorityUserId: localUserId, state: null, host: null,
+        options: {...options, id: resolutionId}, onComplete,
+        services: resolved.services ?? options.services ?? {targetActors: options.targetActors ?? null},
+        requestContext: resolved.requestContext ?? options.requestContext ?? {}, localCommitAllowed: false,
+        requestExpectations: new Map(), processedRequestIds: new Set(), routedRequestIds: new Set(),
+        knownResolutionIds: new Set([resolutionId]), resultSent: false
+      };
+      records.set(resolutionId, record);
       return advanceRecord(record);
     },
     register() {
@@ -763,6 +786,14 @@ export function createMultiplayerActionCoordinator({
       }
     });
     const sent = await sendEnvelope(envelope);
+    // Authority follow-ups (e.g. a lasting area's Region) run once the outcome is committed; they never change it.
+    if ( (typeof afterCompleted === "function") && (record.state?.status === RESOLUTION_STATE_STATUS.COMPLETED) ) {
+      try {
+        await afterCompleted({resolutionId: record.resolutionId, options: record.options, state: record.state});
+      } catch (error) {
+        (logger ?? console).warn("Wild Path | Post-resolution step failed", error);
+      }
+    }
     // Presentation (e.g. a chat card) sees only the public projection and never changes the outcome.
     if ( typeof publishResult === "function" ) {
       try {

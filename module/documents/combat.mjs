@@ -48,6 +48,7 @@ export default class WildPathCombat extends FoundryCombatDocument {
     if ( !lifecycle.ok ) {
       console.warn("Wild Path | Managed Combat turn lifecycle commit failed", lifecycle);
     }
+    await this.#applyAreas("turn.started", combatant);
 
     return {
       ok: recovery?.ok !== false && lifecycle.ok !== false,
@@ -55,6 +56,24 @@ export default class WildPathCombat extends FoundryCombatDocument {
       lifecycle,
       events
     };
+  }
+
+  /**
+   * Lasting areas the ending combatant stands in answer `turn.ended`. Runs on Foundry's designated GM only.
+   * @param {Combatant} combatant
+   * @param {object} context
+   */
+  async _onEndTurn(combatant, context={}) {
+    await super._onEndTurn(combatant, context);
+    await this.#applyAreas("turn.ended", combatant);
+  }
+
+  async #applyAreas(event, combatant) {
+    try {
+      await globalThis.game?.wildpath?.areas?.onTurn?.(event, {combatant});
+    } catch (error) {
+      console.warn(`Wild Path | Lasting areas failed on ${event}`, error);
+    }
   }
 }
 

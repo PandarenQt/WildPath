@@ -2,7 +2,7 @@ import {createFoundryV14TacticalGridAdapter} from "./foundry-v14-tactical-grid-a
 import {
   AREA_SHAPES, createRadialFootprint, previewSourceBoundaryArea, selectSourceBoundaryOrigin
 } from "../helpers/tactical-areas.mjs";
-import {footprintDistance} from "../helpers/grid-footprints.mjs";
+import {createReachFootprint, footprintDistance} from "../helpers/grid-footprints.mjs";
 
 type Data = Record<string, unknown>;
 interface Point {x: number; y: number}
@@ -21,10 +21,12 @@ type AreaResult = {ok: true; footprint: Footprint} | {ok: false; code: AreaCode;
 const radialFootprint = createRadialFootprint as unknown as (options: Data) => Footprint;
 const selectOrigin = selectSourceBoundaryOrigin as unknown as (options: Data) => {ok: boolean};
 const boundaryArea = previewSourceBoundaryArea as unknown as (options: Data) => {ok: boolean; resolved?: Footprint; reason?: string};
+const reachFootprint = createReachFootprint as unknown as (options: Data) => {fields: Field[]};
 
-/** How many clicks place this area: one field for a radial area, a Token-edge corner and a direction for cones and lines. */
+/** Clicks that place this area: none for an emanation, one field for a radial area, a corner and a direction otherwise. */
 export function areaClickCount(definition: AreaDefinition): number {
-  return definition.area?.shape === AREA_SHAPES.RADIAL ? 1 : 2;
+  const shape = definition.area?.shape;
+  return shape === AREA_SHAPES.EMANATION ? 0 : (shape === AREA_SHAPES.RADIAL ? 1 : 2);
 }
 
 /**
@@ -45,6 +47,11 @@ export function foundryAreaFootprint({definition, sourceToken, points}: {
   const source = sourceResult.footprint as Footprint;
   const shape = definition.area?.shape;
   const size = Number(definition.area?.size?.value) || 0;
+  // An emanation surrounds the caster; its own fields are not part of it.
+  if (shape === AREA_SHAPES.EMANATION) {
+    const fields = reachFootprint({source, reachDistance: size, gridDistance}).fields;
+    return {ok: true, footprint: {topology, fields, shape}};
+  }
   const [first, second] = points;
   if (!first) return {ok: false, code: "NeedOrigin", reason: "Choose where the area starts.", needs: "origin"};
 

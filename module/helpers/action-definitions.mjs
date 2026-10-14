@@ -570,6 +570,39 @@ function validateArea(area, errors) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_AREA, "area.shape", "AreaDefinition requires a semantic shape."));
   }
   if ( area.size ) validateDistanceDefinition(area.size, "area.size", errors);
+  if ( area.persistence ) validateAreaPersistence(area.persistence, errors);
+}
+
+/** Events a lasting area answers; each trigger's `action` resolves against the affected creature. */
+export const AREA_PERSISTENCE_EVENTS = Object.freeze(["area.entered", "turn.started", "turn.ended"]);
+
+/**
+ * A lasting area: `{duration: {unit: "round", value}, concentration, oncePerTurn, elevation: {bottom, top},
+ * triggers: [{on: [...events], action: ActionDefinition}]}`. Elevation is relative to the floor of the
+ * caster's Level; a missing bound is open.
+ */
+function validateAreaPersistence(persistence, errors) {
+  const path = "area.persistence";
+  const fail = (at, reason) => errors.push(error(ACTION_DEFINITION_CODES.INVALID_AREA, `${path}${at}`, reason));
+  if ( !isPlainObject(persistence) ) return fail("", "A lasting area must be a structured object.");
+  const duration = persistence.duration;
+  if ( duration != null && !((duration.unit === "round") && Number.isInteger(Number(duration.value)) && (Number(duration.value) > 0)) ) {
+    fail(".duration", "A lasting area's duration is a positive whole number of rounds.");
+  }
+  const {bottom=null, top=null} = persistence.elevation ?? {};
+  if ( [bottom, top].some(value => (value !== null) && !Number.isFinite(Number(value))) ) {
+    fail(".elevation", "Elevation bounds must be numbers or null.");
+  } else if ( (bottom !== null) && (top !== null) && (Number(bottom) > Number(top)) ) {
+    fail(".elevation", "Elevation bottom may not be above its top.");
+  }
+  normalizeArray(persistence.triggers).forEach((trigger, index) => {
+    const on = normalizeArray(trigger?.on);
+    if ( !on.length || on.some(event => !AREA_PERSISTENCE_EVENTS.includes(event)) ) {
+      fail(`.triggers.${index}.on`, `A lasting area answers ${AREA_PERSISTENCE_EVENTS.join(", ")}.`);
+    }
+    const action = validateActionDefinition(trigger?.action ?? null);
+    if ( !action.ok ) fail(`.triggers.${index}.action`, action.errors?.[0]?.reason ?? action.reason ?? "Invalid ActionDefinition.");
+  });
 }
 
 function validateAttack(attack, errors) {

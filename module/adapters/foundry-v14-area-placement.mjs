@@ -1,13 +1,15 @@
 import { createFoundryV14TacticalGridAdapter } from "./foundry-v14-tactical-grid-adapter.mjs";
 import { AREA_SHAPES, createRadialFootprint, previewSourceBoundaryArea, selectSourceBoundaryOrigin } from "../helpers/tactical-areas.mjs";
-import { footprintDistance } from "../helpers/grid-footprints.mjs";
+import { createReachFootprint, footprintDistance } from "../helpers/grid-footprints.mjs";
 // The JS area helpers infer narrow default types; these are the only places their shapes are asserted.
 const radialFootprint = createRadialFootprint;
 const selectOrigin = selectSourceBoundaryOrigin;
 const boundaryArea = previewSourceBoundaryArea;
-/** How many clicks place this area: one field for a radial area, a Token-edge corner and a direction for cones and lines. */
+const reachFootprint = createReachFootprint;
+/** Clicks that place this area: none for an emanation, one field for a radial area, a corner and a direction otherwise. */
 export function areaClickCount(definition) {
-    return definition.area?.shape === AREA_SHAPES.RADIAL ? 1 : 2;
+    const shape = definition.area?.shape;
+    return shape === AREA_SHAPES.EMANATION ? 0 : (shape === AREA_SHAPES.RADIAL ? 1 : 2);
 }
 /**
  * The grid fields an area Action covers, from the canvas points that placed it. The client's preview and the
@@ -27,6 +29,11 @@ export function foundryAreaFootprint({ definition, sourceToken, points }) {
     const source = sourceResult.footprint;
     const shape = definition.area?.shape;
     const size = Number(definition.area?.size?.value) || 0;
+    // An emanation surrounds the caster; its own fields are not part of it.
+    if (shape === AREA_SHAPES.EMANATION) {
+        const fields = reachFootprint({ source, reachDistance: size, gridDistance }).fields;
+        return { ok: true, footprint: { topology, fields, shape } };
+    }
     const [first, second] = points;
     if (!first)
         return { ok: false, code: "NeedOrigin", reason: "Choose where the area starts.", needs: "origin" };

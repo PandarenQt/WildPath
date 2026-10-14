@@ -1,6 +1,7 @@
 import {buildFoundryActionUseIntent} from "../resolvers/foundry-multiplayer-runtime.mjs";
 import {actionDefinitionFromAction} from "../helpers/action-definitions.mjs";
 import {placeFoundryArea} from "../applications/area-placement.mjs";
+import {areaClickCount} from "../adapters/foundry-v14-area-placement.mjs";
 
 /**
  * The Item document subclass for the WildPath system.
@@ -34,7 +35,8 @@ export default class WildPathItem extends Item {
         globalThis.ui?.notifications?.warn?.(globalThis.game.i18n.localize("WILDPATH.AREA.NoToken"));
         return false;
       }
-      const area = await placeFoundryArea({definition: definition.definition, sourceToken});
+      const area = areaClickCount(definition.definition) ? await placeFoundryArea({definition: definition.definition, sourceToken})
+        : {points: []};
       if ( !area ) return false;
       built.intent.area = area;
       built.intent.source = {tokenId: sourceToken.id, tokenRef: sourceToken.uuid, sceneId: sourceToken.parent?.id ?? null};

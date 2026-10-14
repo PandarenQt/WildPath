@@ -13,6 +13,7 @@ import {createFoundryV14ChatCardAdapter} from "../adapters/foundry-v14-chat-card
 import {createFoundryReactionProvider} from "../adapters/foundry-v14-reaction-provider.mjs";
 import {foundryActionReactionServices} from "../adapters/foundry-v14-reaction-services.mjs";
 import {foundryAreaFootprint, foundryAreaTargetTokens} from "../adapters/foundry-v14-area-placement.mjs";
+import {createFoundryPersistentAreas} from "../adapters/foundry-v14-persistent-areas.mjs";
 import {
   buildFoundryMovementCompletion,
   buildFoundryMovementProgressObservation,
@@ -94,9 +95,13 @@ export function registerFoundryV14MultiplayerResolution({
     }),
     notify: event => notifyMultiplayerFailure(event, {logger}),
     publishResult: createFoundryV14ChatCardAdapter({game}),
+    afterCompleted: event => areas.create(event),
     logger
   });
   const registration = coordinator.register();
+  // Lasting areas: Regions created by completed area Actions, whose triggers resolve as authority Actions.
+  const areas = createFoundryPersistentAreas({game, coordinator, logger,
+    resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});
   const movement = createMultiplayerMovementAuthority({
     userId: game.user?.id ?? game.userId ?? null,
     users: () => foundryUserDirectory(game),
@@ -140,6 +145,7 @@ export function registerFoundryV14MultiplayerResolution({
     reactionServices: game.wildpath?.reactionServices ?? createFoundryReactionProvider(),
     multiplayer: runtime,
     movement,
+    areas,
     resolutionTransport: transport,
     executeActionIntent: runtime.executeActionIntent,
     executeMovementIntent: runtime.executeMovementIntent
@@ -416,7 +422,12 @@ function notifyMultiplayerMovementFailure(event={}, {logger=globalThis.console}=
 
 /* -------------------------------------------- */
 
-export async function foundryActionIntentToStagedOptions({intent={}, senderUserId=null, game=globalThis.game, persistencePort=null}={}) {
+/**
+ * `action` is for the authority's own Actions only (a lasting area's inline effect): it replaces the Item
+ * lookup and is never reachable from a socket intent.
+ */
+export async function foundryActionIntentToStagedOptions({intent={}, senderUserId=null, game=globalThis.game, persistencePort=null,
+  action: authorityAction=null}={}) {
   const actorRef = intent.actorRef ?? intent.actorUuid ?? intent.source?.actorRef ?? intent.source?.uuid ?? null;
   const actor = await resolveFoundryDocumentRef(actorRef, {game, kind: "actor"});
   if ( !actor ) return {
@@ -432,14 +443,15 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     reason: "The Action sender must own the acting Actor."
   };
 
-  const action = await resolveFoundryAction(intent.actionRef ?? intent.actionUuid ?? intent.itemRef ?? intent.itemId, actor, {game});
+  const action = authorityAction
+    ?? await resolveFoundryAction(intent.actionRef ?? intent.actionUuid ?? intent.itemRef ?? intent.itemId, actor, {game});
   if ( !action ) return {
     ok: false,
     code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
     reason: "Action intent actionRef could not be resolved."
   };
   // Compare by uuid: synthetic Token Actors may resolve to different instances of the same Actor.
-  if ( !action.actor?.uuid || action.actor.uuid !== actor.uuid ) return {
+  if ( !authorityAction && (!action.actor?.uuid || action.actor.uuid !== actor.uuid) ) return {
     ok: false,
     code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
     reason: "The Action Item does not belong to the acting Actor."
@@ -558,6 +570,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       durability: {targetSystems},
       configuration: clonePlainData(intent.configuration ?? null, "intent.configuration"),
       ...(concentration ? {concentration: concentration.input} : {}),
+      ...(area.persistentArea ? {persistentArea: area.persistentArea} : {}),
       persistencePort
     },
     requestContext: {
@@ -586,7 +599,10 @@ function foundryActionArea({action, actor, intent, sourceToken}) {
   const targetRefs = foundryAreaTargetTokens({sourceToken, footprint: placed.footprint})
     .map(token => ({actorRef: token.actor?.uuid ?? null, tokenId: token.id, sceneId: token.parent?.id ?? null}))
     .filter(ref => ref.actorRef);
-  return {ok: true, footprint: placed.footprint, targetRefs};
+  // A lasting area becomes a Region once the Action completes (see createFoundryPersistentAreas).
+  const persistentArea = definition.area?.persistence ? {footprint: clonePlainData(placed.footprint, "area.footprint"),
+    definition: clonePlainData(definition, "area.definition"), sourceTokenId: sourceToken.id, sceneId: sourceToken.parent.id} : null;
+  return {ok: true, footprint: placed.footprint, targetRefs, persistentArea};
 }
 
 /**

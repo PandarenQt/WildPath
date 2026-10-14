@@ -129,11 +129,39 @@ that stay on the canvas, and gridless Scenes (refused: "Areas need a square or h
 
 ## Persistent Areas
 
-Persistent areas should store or deterministically reconstruct the same `GridFootprint` produced
-by the tactical grid foundation. Do not introduce a separate persistent-area geometry model.
+An area Action with `area.persistence` leaves a lasting area behind once it completes. The decisions
+were made by the maintainer on 2026-10-14.
 
-Lifecycle triggers such as enter, leave, start turn inside, and end turn inside belong to a later
-AreaResolver/EventBus milestone.
+```js
+area: {shape: "radial", size: {value: 10, unit: "ft"},
+  persistence: {duration: {unit: "round", value: 10}, concentration: false, oncePerTurn: true,
+    elevation: {bottom: 0, top: 0},
+    triggers: [{on: ["area.entered", "turn.started"], action: { /* an ordinary ActionDefinition */ }}]}}
+```
+
+- **Storage.** A lasting area is a Foundry Region, V14's successor to templates. The rules live in
+  `flags.wildpath.area` (schema 1): the covered fields, the caster, the vertical band, the triggers and
+  the per-turn record. Foundry draws exactly those fields as a `grid` shape, visible to everyone.
+  WildPath's fields, not Foundry's drawing, decide who is inside (`foundry-v14-persistent-areas.mts`).
+- **Triggers.** Each trigger's `action` resolves through the authority, with the caster as source and
+  the affected creature as its only target. Saves route to that creature's controller, and the result
+  posts its own card. Triggers answer `area.entered`, `turn.started` or `turn.ended`.
+- **Once per turn.** By default a creature is affected by one area at most once per combat turn, even if
+  it both enters and starts its turn there. `oncePerTurn: false` turns this off. Outside combat there
+  is no limit.
+- **Entering.** Being moved into an area counts as entering, and so does an aura moving over a creature.
+- **Elevation.** The `elevation` band is relative to the floor of the caster's Level. A missing bound is
+  open, so a ground hazard is `{bottom: 0, top: 0}`. A creature is inside only if its height overlaps
+  the band. Several areas can share a field, for example one on the ground and one in the air, and each
+  one acts independently.
+- **Duration.** It is counted in rounds.
+
+Live (two browsers, 14.369, 2026-10-14): Player1 cast Burning Ground (2 fire on casting, then 4 fire on
+`area.entered` or `turn.started`) on a goblin in combat. The goblin took 2, and a 9-field Region
+appeared for both clients. When the goblin's turn started it took 4, and a "Flames" card posted.
+
+Still to come: stopping a voluntary move on entry, auras that move with their caster, expiry by
+duration and concentration, and falling through an area (vertical movement is not modelled yet).
 
 ## Auras and Emanations
 
