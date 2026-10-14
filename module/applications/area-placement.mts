@@ -1,7 +1,14 @@
-import {areaClickCount, foundryAreaFootprint, foundryPointInRange, type AreaCode} from "../adapters/foundry-v14-area-placement.mjs";
+import {areaClickCount, foundryAreaFootprint, foundryAreaTargetTokens, foundryPointInRange, type AreaCode}
+  from "../adapters/foundry-v14-area-placement.mjs";
 import {createFoundryV14TacticalGridAdapter} from "../adapters/foundry-v14-tactical-grid-adapter.mjs";
 
 interface Point {x: number; y: number}
+/** A field to highlight (its top-left point), in `color` when it is a creature the area would hit. */
+interface Highlight extends Point {color?: number}
+interface CoveredToken {disposition?: number; hidden?: boolean; getOccupiedGridSpaceOffsets(): unknown[]}
+/** Creatures an area would hit: allies (the caster's own disposition) in amber, the others in red. */
+const ALLY = 0xffaa00;
+const OTHER = 0xff3333;
 type Definition = Parameters<typeof foundryAreaFootprint>[0]["definition"];
 type SourceToken = Parameters<typeof foundryAreaFootprint>[0]["sourceToken"];
 interface GridLayer {
@@ -18,7 +25,7 @@ interface Canvas {
 }
 interface Globals {
   canvas: Canvas & {grid: {getOffset(point: Point): unknown; getTopLeftPoint(offset: unknown): Point}};
-  game: {user: {color: number}; i18n: {localize(key: string): string}};
+  game: {user: {color: number; isGM?: boolean}; i18n: {localize(key: string): string}};
   ui: {notifications: {info(message: string): unknown; warn(message: string): unknown}};
 }
 
@@ -43,7 +50,7 @@ const CODE_KEYS: Record<AreaCode, string> = {
  * @returns the placement points, or null when cancelled.
  */
 export function placeFoundryArea({definition, sourceToken}: {definition: Definition; sourceToken: SourceToken}) {
-  const {canvas} = globalThis as unknown as Globals;
+  const {canvas, game} = globalThis as unknown as Globals;
   const adapter = createFoundryV14TacticalGridAdapter({scene: sourceToken.parent});
   const needed = areaClickCount(definition);
   return pickPoints({
@@ -52,10 +59,17 @@ export function placeFoundryArea({definition, sourceToken}: {definition: Definit
     highlight: (points, cursor) => {
       const result = foundryAreaFootprint({definition, sourceToken, points: [...points, cursor]});
       if ( !result.ok ) return [];
-      return result.footprint.fields.flatMap(field => {
+      const fields: Highlight[] = result.footprint.fields.flatMap(field => {
         const center = adapter.fieldToCenterPoint(field) as {ok: boolean; point?: Point};
         return center.ok && center.point ? [{x: center.point.x - (canvas.grid.sizeX / 2), y: center.point.y - (canvas.grid.sizeY / 2)}] : [];
       });
+      // Every creature the area would hit, as the authority will find them, allies included (Baldur's Gate 3).
+      const source = (sourceToken as unknown as {disposition?: number}).disposition ?? 0;
+      const creatures = (foundryAreaTargetTokens({sourceToken, footprint: result.footprint}) as unknown as CoveredToken[])
+        .filter(token => game.user.isGM || !token.hidden)
+        .flatMap(token => token.getOccupiedGridSpaceOffsets().map(offset => ({...canvas.grid.getTopLeftPoint(offset),
+          color: (token.disposition ?? 0) === source ? ALLY : OTHER})));
+      return [...fields, ...creatures];
     },
     // A click counts only when it advances placement: a valid origin first, then a valid whole area.
     accept: (points, point) => {
@@ -87,7 +101,7 @@ export function placeFoundrySummons({definition, sourceToken, count}: {definitio
  * only, never to Foundry's Token selection. Escape or right-click cancels.
  */
 function pickPoints({needed, hint, highlight, accept}: {needed: number; hint: string;
-  highlight(points: Point[], cursor: Point): Point[]; accept(points: Point[], point: Point): string | null}) {
+  highlight(points: Point[], cursor: Point): Highlight[]; accept(points: Point[], point: Point): string | null}) {
   const {canvas, game, ui} = globalThis as unknown as Globals;
   const board = canvas.app.view;
   const grid = canvas.interface.grid;
@@ -99,8 +113,9 @@ function pickPoints({needed, hint, highlight, accept}: {needed: number; hint: st
     const toCanvas = (event: PointerEvent) => canvas.canvasCoordinatesFromClient({x: event.clientX, y: event.clientY});
     const draw = (cursor: Point) => {
       grid.clearHighlightLayer(LAYER);
-      for ( const {x, y} of highlight(points, cursor) ) {
-        grid.highlightPosition(LAYER, {x, y, color: Number(game.user.color), border: Number(game.user.color), alpha: 0.35});
+      for ( const {x, y, color} of highlight(points, cursor) ) {
+        const tint = color ?? Number(game.user.color);
+        grid.highlightPosition(LAYER, {x, y, color: tint, border: tint, alpha: color ? 0.55 : 0.35});
       }
     };
     const finish = (value: {points: Point[]} | null) => {
