@@ -101,9 +101,43 @@
               }
             ]
           },
-          "label": "Multiattack"
+          "label": "Multiattack",
+          "targeting": {
+            "type": "none"
+          },
+          "restores": [
+            {
+              "resourceId": "multiattack",
+              "amount": 4
+            }
+          ]
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack",
+              "label": "Multiattack",
+              "maximum": {
+                "type": "divide",
+                "numerator": {
+                  "type": "context",
+                  "path": "actor.flags.wildpath.summonLevel"
+                },
+                "denominator": {
+                  "type": "constant",
+                  "value": 2
+                },
+                "round": "floor"
+              },
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -118,7 +152,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
             ]
           }
         }
@@ -137,11 +171,19 @@
           "schemaVersion": 1,
           "id": "action:srd-poison-jab",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "attack": {
@@ -226,11 +268,19 @@
           "schemaVersion": 1,
           "id": "action:srd-web-bolt-spider-only",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "attack": {
@@ -405,11 +455,11 @@
       },
       "conversion": {
         "notes": [
-          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
           "Web Bolt (Spider Only): effect: \"Webbed\" change system.attributes.movement.burrow (downgrade) not converted",
           "Web Bolt (Spider Only): effect: \"Webbed\" change system.attributes.movement.climb (downgrade) not converted",
           "Web Bolt (Spider Only): effect: \"Webbed\" change system.attributes.movement.fly (downgrade) not converted",
-          "Web Bolt (Spider Only): effect: \"Webbed\" change system.attributes.movement.swim (downgrade) not converted"
+          "Web Bolt (Spider Only): effect: \"Webbed\" change system.attributes.movement.swim (downgrade) not converted",
+          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
         ]
       }
     }

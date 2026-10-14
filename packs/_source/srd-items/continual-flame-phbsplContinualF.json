@@ -101,7 +101,8 @@
       },
       "summon": {
         "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbsplLight00000",
-        "count": 1
+        "count": 1,
+        "spellLevel": 2
       },
       "label": "Continual Flame"
     },

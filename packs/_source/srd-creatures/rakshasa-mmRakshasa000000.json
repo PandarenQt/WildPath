@@ -860,7 +860,8 @@
             "choiceId": "summon-creature",
             "count": 1,
             "rounds": 100,
-            "concentration": true
+            "concentration": true,
+            "spellLevel": 3
           },
           "label": "Major Image"
         },

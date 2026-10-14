@@ -171,6 +171,12 @@ export function createFoundrySummons({ game, companions, fromUuid, logger = glob
         if (spec.bonuses && level)
             for (const token of tokens)
                 await applySummonBonuses(token, summonBonusesAt(spec.bonuses, level), level);
+        // The level it was summoned at, which a spirit's own rules read (its Multiattack: half this spell's level).
+        if (level)
+            for (const token of tokens) {
+                await token.actor?.setFlag?.("wildpath", "summonLevel", level);
+                await token.actor?.ensureGrantedPools?.();
+            }
         // 2024: in combat a summon shares its caster's Initiative and takes its turn right after the caster's.
         // shortcut: a creature tied with the caster but sorted after it still goes before the summons; fine for whole-number initiative.
         const casterCombatant = [...(combat?.combatants ?? [])].find(entry => (entry.tokenId === casterToken.id) && (entry.sceneId === scene.id));

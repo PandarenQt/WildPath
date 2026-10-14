@@ -75,7 +75,8 @@
         "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbsplConjuredFe",
         "count": 1,
         "rounds": 100,
-        "concentration": true
+        "concentration": true,
+        "spellLevel": 6
       },
       "label": "Conjure Fey (summon)"
     },

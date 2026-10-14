@@ -94,6 +94,9 @@ An ActionDefinition's `summon` brings creatures when the Action completes:
   - Live (two browsers): Player1 cast the SRD Find Steed with a 2nd-level slot and chose the Celestial Steed. It
     arrived where Player1 clicked, owned by Player1, with 25 Hit Points (5 + 20) and AC 13 (11 + 2). Its Otherworldly
     Slam added +2 damage.
+- **The level it was summoned at** is `flags.wildpath.summonLevel` on each summoned creature, which its own rules may
+  read (a spirit's Multiattack: half of it). Live (GM): a 9th-level wizard's Summon Dragon at 5th level brought a
+  Draconic Spirit with 50 Hit Points, AC 19 and a Multiattack of 2 attacks and its Breath Weapon.
 - **Combat (2024).** If the caster is in the current combat, its summons join it. They share its Initiative and
   take their turns right after the caster's, at its Initiative less a thousandth for each one. A creature tied
   with the caster but sorted after it still goes before the summons.

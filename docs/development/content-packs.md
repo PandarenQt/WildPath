@@ -203,7 +203,8 @@ Flyby on 6 and Regeneration on 4. The book packages convert the same way.
     - a count from a formula;
     - a creature not converted;
     - healing and Hit Dice by level, or formulas of anything but the level;
-    - a summoned spirit's attack count by spell level ("a number of attacks equal to half this spell's level").
+  - A summoned spirit's Multiattack, "a number of attacks equal to half this spell's level", is a pool of half the
+    level it was summoned at (`flags.wildpath.summonLevel`, set on each summoned creature).
 
 ### Effects with their own changes (G3)
 

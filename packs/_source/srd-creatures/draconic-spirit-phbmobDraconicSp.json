@@ -107,9 +107,60 @@
               }
             ]
           },
-          "label": "Multiattack"
+          "label": "Multiattack",
+          "targeting": {
+            "type": "none"
+          },
+          "restores": [
+            {
+              "resourceId": "multiattack",
+              "amount": 4
+            },
+            {
+              "resourceId": "multiattack-breath-weapon",
+              "amount": 1
+            }
+          ]
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack",
+              "label": "Multiattack",
+              "maximum": {
+                "type": "divide",
+                "numerator": {
+                  "type": "context",
+                  "path": "actor.flags.wildpath.summonLevel"
+                },
+                "denominator": {
+                  "type": "constant",
+                  "value": 2
+                },
+                "round": "floor"
+              },
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-breath-weapon-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-breath-weapon",
+              "label": "Multiattack (Breath Weapon)",
+              "maximum": 1,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -124,7 +175,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
             ]
           }
         }
@@ -143,11 +194,19 @@
           "schemaVersion": 1,
           "id": "action:srd-rend",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "attack": {
@@ -222,11 +281,19 @@
           "schemaVersion": 1,
           "id": "action:srd-breath-weapon",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-breath-weapon",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "range": {
@@ -371,8 +438,8 @@
           "Shared Resistances: \"Share Fire Resistance\" is passive or triggered: not automated",
           "Shared Resistances: \"Share Lightning Resistance\" is passive or triggered: not automated",
           "Shared Resistances: \"Share Poison Resistance\" is passive or triggered: not automated",
-          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Breath Weapon: damage 1: a choice of acid/cold/fire/lightning/poison uses acid"
+          "Breath Weapon: damage 1: a choice of acid/cold/fire/lightning/poison uses acid",
+          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
         ]
       }
     }

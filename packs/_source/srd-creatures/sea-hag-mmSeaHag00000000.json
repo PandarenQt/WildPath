@@ -456,7 +456,8 @@
           "summon": {
             "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbsplUnseenServ",
             "count": 1,
-            "rounds": 600
+            "rounds": 600,
+            "spellLevel": 1
           },
           "label": "Unseen Servant"
         },

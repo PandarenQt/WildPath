@@ -68,7 +68,8 @@
         "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbsplMordSword0",
         "count": 1,
         "rounds": 10,
-        "concentration": true
+        "concentration": true,
+        "spellLevel": 7
       },
       "label": "Arcane Sword"
     },

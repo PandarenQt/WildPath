@@ -82,7 +82,8 @@
         "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbsplBigbysHand",
         "count": 1,
         "rounds": 10,
-        "concentration": true
+        "concentration": true,
+        "spellLevel": 5
       },
       "label": "Arcane Hand"
     },

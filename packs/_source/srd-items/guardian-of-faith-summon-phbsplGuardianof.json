@@ -88,7 +88,8 @@
       "summon": {
         "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbsplGuardianof",
         "count": 1,
-        "rounds": 4800
+        "rounds": 4800,
+        "spellLevel": 4
       },
       "label": "Guardian of Faith (summon)"
     },

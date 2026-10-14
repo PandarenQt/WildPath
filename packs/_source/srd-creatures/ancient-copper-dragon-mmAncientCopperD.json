@@ -717,7 +717,8 @@
             "choiceId": "summon-creature",
             "count": 1,
             "rounds": 100,
-            "concentration": true
+            "concentration": true,
+            "spellLevel": 3
           },
           "label": "Major Image"
         },
@@ -786,7 +787,8 @@
           "summon": {
             "actorRef": "Compendium.wildpath.srd-creatures.Actor.dmgIllusoryCreat",
             "count": 1,
-            "concentration": true
+            "concentration": true,
+            "spellLevel": 7
           },
           "label": "Project Image"
         },

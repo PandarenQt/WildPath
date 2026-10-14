@@ -103,7 +103,8 @@
         "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbsplSpiritualW",
         "count": 1,
         "rounds": 10,
-        "concentration": true
+        "concentration": true,
+        "spellLevel": 2
       },
       "label": "Spiritual Weapon"
     },
