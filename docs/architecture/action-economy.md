@@ -77,7 +77,7 @@ turn-by-turn restrictions matter, play should be in Combat.
 
 ## Available and Spent Counters
 
-Actions, Bonus Actions and Reactions are counters (maintainer decision, 2026-10-14). Each stores what
+Actions, Bonus Actions, Reactions and movement are counters (maintainer decisions, 2026-10-14). Each stores what
 was **spent** (`system.resources.<id>.spent`). What is **available** is the prepared maximum: base, plus
 bonus, plus every `Modifier` on `resources.<id>.max` from Items and effects. What **remains** is derived
 as available − spent, never below zero.
@@ -85,11 +85,15 @@ as available − spent, never below zero.
 So an effect that raises the available count, such as an extra Action this turn, is usable at once, and
 one that lowers it never leaves a negative count. Turn recovery clears what was spent.
 
-Writers did not change: payment, turn recovery and the sheet still set the remaining `value`, and the
-Actor model's `_preUpdate` stores it as the matching `spent` against the current maximum. Actors stored
-before this change are migrated once (`migrateData`: spent = base + bonus − remaining).
-
-Movement stays a stored remaining budget.
+How the stored remaining `value` and `spent` stay in step:
+- **Payments** write `spent`, and roll back to the previous spent count. Movement spent in a faster mode
+  can then exceed walking Speed (see [movement-paths.md](movement-paths.md#movement-modes-2024)).
+- **Turn recovery and the sheet** still set the remaining `value`.
+- **The Actor model's `_preUpdate`** stores whichever one was written as the matching other, against the
+  current maximum.
+- **Actors stored before this change** are migrated once (`migrateData`: spent = base + bonus −
+  remaining). Foundry also runs `migrateData` on partial update data, so only a full stored counter, one
+  with `base`, is migrated.
 
 ## Movement Capability vs Movement Budget
 

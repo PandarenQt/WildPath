@@ -7,6 +7,7 @@ import {
 } from "../helpers/action-economy.mjs";
 
 import {createFoundryV14ActorPersistenceAdapter} from "../adapters/foundry-v14-persistence-adapter.mjs";
+import {remainingMovement} from "../helpers/movement-modes.mjs";
 
 export const RESOURCE_RESOLUTION_CODES = Object.freeze({
   OK: "OK",
@@ -121,6 +122,9 @@ export function createActorResourceMutationPlan(actorSystem, paymentPlan) {
     }
     const entry = grouped.get(ref.path) ?? {
       ...ref,
+      // Movement in another mode has what that mode's Speed leaves (movement-modes.mts).
+      ...(ref.counted && payment.source?.movementMode && actorSystem?.speeds
+        ? {current: remainingMovement(payment.source.movementMode, actorSystem.speeds, ref.spent)} : {}),
       amount: 0,
       payments: []
     };
@@ -144,13 +148,15 @@ export function createActorResourceMutationPlan(actorSystem, paymentPlan) {
     }
     // The insufficient-resource check above guarantees this stays >= 0; spend exactly the cost.
     const value = entry.current - entry.amount;
-    updates[entry.path] = value;
+    // A counted resource stores what was spent (so movement spent in a faster mode can exceed walking Speed);
+    // the Actor derives its stored remaining value from that. `from`/`to` are what the path holds, for rollback.
+    updates[entry.path] = entry.counted ? entry.spent + entry.amount : value;
     plannedPayments.push({
       resourceId: entry.resourceId,
       actorResourceId: entry.actorResourceId,
       path: entry.path,
-      from: entry.current,
-      to: value,
+      from: entry.counted ? entry.spent : entry.current,
+      to: updates[entry.path],
       amount: entry.amount,
       payments: entry.payments
     });
@@ -216,11 +222,13 @@ function resolveActorResourceRef(actorSystem, economyResourceId) {
   if ( actorResourceId ) {
     const resource = actorSystem?.resources?.[actorResourceId];
     if ( !resource ) return null;
+    const counted = Number.isFinite(resource.spent);
     return {
       resourceId: economyResourceId,
       actorResourceId,
-      path: `system.resources.${actorResourceId}.value`,
-      current: Number(resource.value ?? 0) || 0
+      path: `system.resources.${actorResourceId}.${counted ? "spent" : "value"}`,
+      current: Number(resource.value ?? 0) || 0,
+      ...(counted ? {counted, spent: resource.spent} : {})
     };
   }
 

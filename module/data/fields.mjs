@@ -16,8 +16,9 @@ export function resourceField({initial=0, recovery="none", counted=false}={}) {
     bonus: new NumberField({required: true, integer: true, initial: 0}),
     max: new NumberField({required: true, integer: true, initial, min: 0}),
     value: new NumberField({required: true, integer: true, initial, min: 0}),
-    // A counted resource (Action, Bonus Action, Reaction) stores what was spent; its remaining `value` is
-    // derived as max - spent, so an effect that raises the available count is usable at once.
+    // A counted resource (Action, Bonus Action, Reaction, movement) stores what was spent; its remaining
+    // `value` is derived as max - spent, so an effect that raises the available count is usable at once, and
+    // movement spent in one mode counts against every other (movement-modes.mts).
     ...(counted ? {spent: new NumberField({required: true, integer: true, initial: 0, min: 0})} : {}),
     recovery: new StringField({required: true, initial: recovery,
       choices: ["turn", "shortRest", "longRest", "none"]})

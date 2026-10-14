@@ -174,10 +174,13 @@ browsers:
 - `area.exited`, for steps out of an area and for creatures an aura leaves behind.
 - Companions, summons and sidekicks: shared control, and controller costs on their Actions
   ([companions.md](../architecture/companions.md)).
+- Movement modes under 2024 rules, with Speeds from `GrantMovement`; movement became a spent counter.
 
 Open:
 
-- Movement modes and `GrantMovement` (2024 rules, approved 2026-10-14).
+- Nothing that needs a decision. Next candidates: moving the legacy condition ticks onto the automation
+  dispatcher, `once` triggers, transformation follow-ups (Token size, starting one from an Action),
+  summoning from an Action, and sheet controls.
 
 **Authority and disclosure hardening (M0) — CLOSED on 2026-10-13.** A review found that the
 authority trusted more than it could verify: any player could act through an Actor or Item they did

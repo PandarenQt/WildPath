@@ -273,8 +273,11 @@ Live (14.369): in Quench, a granted pool was spent and recovered on a short rest
 Item was deactivated, and was present at once on an imported Actor. Player1 adding a Ki feature to their
 own creature stored Ki 3/3 from their own client.
 
-`GrantMovement` and `GrantActionEconomyResource` are still only pure collected data. Extra Actions are
-counters instead (action-economy.md). Future resolvers should request the relevant RuleElement bundle
+**Movement grants.** `GrantMovement` gives a Speed for a mode (`{mode: "fly", distance: 60}`), prepared into
+`system.speeds`; movement in that mode uses it (movement-paths.md, "Movement modes (2024)").
+
+`GrantActionEconomyResource` is still only pure collected data. Extra Actions are counters instead
+(action-economy.md). Future resolvers should request the relevant RuleElement bundle
 and interpret it inside their own domain boundary instead of adding item-, spell-, class-, or
 condition-name branches.
 

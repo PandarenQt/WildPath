@@ -13,6 +13,7 @@ import {
   createMovementCapability,
   deriveMovementBudget
 } from "../helpers/movement.mjs";
+import {movementAllowance} from "../helpers/movement-modes.mjs";
 import {
   createMovementPath,
   evaluateMovementPath
@@ -711,9 +712,10 @@ export function movementPaymentFromEvaluation(evaluation={}) {
     ?? evaluation.budget?.metadata?.measurementMode
     ?? MOVEMENT_MEASUREMENT_MODES.DISTANCE;
   const gridDistance = Number(evaluation.grid?.distance ?? evaluation.budget?.metadata?.gridDistance ?? 0) || 0;
-  const actorResourceAmount = measurementMode === MOVEMENT_MEASUREMENT_MODES.FIELDS
-    ? amount * gridDistance
-    : amount;
+  // A mode that costs extra (crawling, or swimming without a swim Speed) spends that much more movement.
+  const costMultiplier = Number(evaluation.budget?.metadata?.costMultiplier) || 1;
+  const actorResourceAmount = (measurementMode === MOVEMENT_MEASUREMENT_MODES.FIELDS ? amount * gridDistance : amount)
+    * costMultiplier;
 
   return {
     consumesBudget: true,
@@ -725,7 +727,8 @@ export function movementPaymentFromEvaluation(evaluation={}) {
     gridDistance: gridDistance || null,
     resourceId: "economy.movement",
     capability: ECONOMY_CAPABILITIES.MOVEMENT,
-    economyUnit: ECONOMY_UNITS.MOVEMENT
+    economyUnit: ECONOMY_UNITS.MOVEMENT,
+    movementMode: evaluation.budget?.metadata?.movementMode ?? null
   };
 }
 
@@ -874,6 +877,7 @@ export function createMovementPaymentPlan({movementId=null, payment=null}={}) {
         type: "movement",
         movementId,
         measurementMode: payment.measurementMode ?? null,
+        movementMode: payment.movementMode ?? null,
         routeAmount: payment.amount ?? 0,
         routeUnit: payment.unit ?? null
       }
@@ -1152,8 +1156,13 @@ function movementBudgetForActor({actor=null, movementMode="walk", movementKind=M
   const resource = actor?.system?.resources?.movement ?? null;
   if ( !resource ) return failure(FOUNDRY_MOVEMENT_CODES.MOVEMENT_RESOURCE_NOT_FOUND, "Actor has no movement resource.");
 
-  const maximum = Math.max(Number(resource.max ?? resource.value ?? 0) || 0, 0);
-  const current = Math.max(Number(resource.value ?? maximum) || 0, 0);
+  // 2024 rules: the mode's Speed minus what was already spent this turn, at that mode's cost per foot.
+  const walk = Math.max(Number(resource.max ?? resource.value ?? 0) || 0, 0);
+  const allowance = movementAllowance(movementMode, actor.system.speeds ?? {walk});
+  if ( !allowance.ok ) return failure(allowance.code, allowance.reason);
+  const spent = Number.isFinite(resource.spent) ? resource.spent : Math.max(walk - (Number(resource.value) || 0), 0);
+  const maximum = allowance.speed / allowance.costMultiplier;
+  const current = Math.max(allowance.speed - spent, 0) / allowance.costMultiplier;
   const capability = createMovementCapability({
     mode: movementMode,
     distance: maximum,
@@ -1173,6 +1182,8 @@ function movementBudgetForActor({actor=null, movementMode="walk", movementKind=M
   if ( !derivation.ok ) return derivation;
 
   const budget = clonePlain(derivation.budget);
+  budget.metadata.movementMode = movementMode;
+  budget.metadata.costMultiplier = allowance.costMultiplier;
   if ( measurementMode === MOVEMENT_MEASUREMENT_MODES.FIELDS ) {
     const fields = Math.floor(current / Number(grid?.distance ?? 1));
     budget.current = Math.min(fields, budget.maximum);
@@ -1518,6 +1529,10 @@ function movementModeFromFoundryOperation({movement=null, operation={}}={}) {
     operation?.wildpath?.movementMode
     ?? movement?.wildpath?.movementMode
     ?? movement?.metadata?.wildpath?.movementMode
+    // V14: each waypoint names the action that reached it; a move is measured in the action of its last step.
+    ?? movement?.passed?.waypoints?.at(-1)?.action
+    ?? movement?.pending?.waypoints?.at(-1)?.action
+    ?? movement?.destination?.action
     ?? operation?.movementMode
     ?? movement?.movementMode
   ) ?? "walk";

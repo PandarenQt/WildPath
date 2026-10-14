@@ -178,6 +178,31 @@ The path layer produces ordered route cost and delegates budget semantics to `mo
 not introduce `movementUsed`, `remainingMovement`, `movementPoints`, or any duplicate mutable
 movement state.
 
+### Movement modes (2024)
+
+Decided by the maintainer on 2026-10-14: 2024 rules.
+
+- **Speeds.** A creature has a walking Speed, which is the movement maximum. Other Speeds come from
+  `GrantMovement` on its active features, gear and effects (the fastest grant per mode). They are
+  prepared as `system.speeds`, for example `{walk: 30, fly: 60}`.
+- **The mode of a move.** It is Foundry's movement action of the move's last waypoint (V14 waypoints name
+  the action that reached them).
+- **One move across modes.** Movement is a counter that stores what was spent this turn. What remains in a
+  mode is that mode's Speed minus what was spent, the 2024 rule for switching Speeds. After flying 35 ft
+  with fly 60 and walk 30, 25 ft of flight remain and no walking.
+- **Modes without a Speed** (`helpers/movement-modes.mts`):
+  - Swimming or climbing without that Speed uses walking Speed, and each foot costs 2.
+  - Crawling always costs 2 per foot.
+  - Jumping moves at walking Speed.
+  - Flying or burrowing without that Speed is refused (`MOVEMENT_MODE_NOT_SUPPORTED`).
+  - An action WildPath does not know, such as Foundry's blink, moves at walking Speed.
+
+Live (two browsers, 14.369): Player1's flyer (a 60-ft fly Speed from a Wings feature) flew 35 ft and then
+could not walk ("Movement exceeds the available movement budget"), but could fly 5 ft more (spent 40). A
+walker's flight was refused ("This creature has no fly Speed"), and its 10-ft swim spent 20.
+
+Not yet: a single drag that changes mode midway is measured in the mode of its last step.
+
 ## Foundry Token Movement Vertical Slice
 
 Normal Foundry Token movement now enters WildPath at

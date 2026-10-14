@@ -185,6 +185,18 @@ export function registerRuleElementTests(quench) {
         assert.include(imported.getResource("ki"),{value:2,max:2},"Created with the granting Item, the pool exists at once");
       });
 
+      it("GrantMovement gives a Speed, and movement stores what was spent so every mode counts it", async function () {
+        const actor = await fixtures.createActor({name:"speeds"});
+        assert.deepEqual({...actor.system.speeds},{walk:30},"Walking Speed is the movement maximum");
+        const wings = await fixtures.createItem(actor,{system:{ruleElements:[{schemaVersion:1,id:"wings",type:"GrantMovement",
+          data:{mode:"fly",distance:60}}]}});
+        assert.deepEqual({...actor.system.speeds},{walk:30,fly:60});
+        await actor.update({"system.resources.movement.value":10});
+        assert.equal(actor.system.resources.movement.spent,20,"Writing what remains stores what was spent");
+        await wings.update({"system.active":false});
+        assert.deepEqual({...actor.system.speeds},{walk:30},"An inactive grant gives no Speed");
+      });
+
       it("persisted RuleElement enabled and suppressed flags control contribution", async function () {
         const actor = await fixtures.createActor({name:"RuleElement flags"});
         let rule = modifierRule({id:"quench-rule-flags",enabled:false});

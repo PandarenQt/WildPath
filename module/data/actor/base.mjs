@@ -3,9 +3,10 @@ import {defenseField, resourceField, poolsField} from "../fields.mjs";
 import {computeResourceMax, clampResourceValue, remainingFromSpent, spentFromRemaining} from "../../helpers/resources.mjs";
 import {SPELLCASTING_PROGRESSIONS, deriveClassData, spellSlotPoolId} from "../../helpers/spellcasting.mjs";
 import {formOverrides} from "../../helpers/transformations.mjs";
+import {movementSpeeds} from "../../helpers/movement-modes.mjs";
 
 /** Action-economy counters: what is spent is stored, what remains is derived from the (modifiable) maximum. */
-const COUNTED_RESOURCES = Object.freeze(["action", "bonus", "reaction"]);
+const COUNTED_RESOURCES = Object.freeze(["action", "bonus", "reaction", "movement"]);
 
 const {SchemaField, NumberField, HTMLField, ArrayField, StringField, BooleanField} = foundry.data.fields;
 
@@ -39,7 +40,7 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
         action: resourceField({initial: 1, recovery: "turn", counted: true}),
         bonus: resourceField({initial: 1, recovery: "turn", counted: true}),
         reaction: resourceField({initial: 1, recovery: "turn", counted: true}),
-        movement: resourceField({initial: 30, recovery: "turn"})
+        movement: resourceField({initial: 30, recovery: "turn", counted: true})
       }),
       pools: poolsField(),
       // One record per class (multiclassing is the normal case); total level, the original class and
@@ -70,12 +71,15 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
 
   /* -------------------------------------------- */
 
-  /** Counters stored before `spent` existed keep their state: spent = (base + bonus) - remaining. */
+  /**
+   * Counters stored before `spent` existed keep their state: spent = (base + bonus) - remaining. Foundry also
+   * migrates partial update data; a write without `base` is not a stored counter, and _preUpdate translates it.
+   */
   static migrateData(source) {
     for ( const id of COUNTED_RESOURCES ) {
       const resource = source.resources?.[id];
-      if ( !resource || ("spent" in resource) || !("value" in resource) ) continue;
-      resource.spent = spentFromRemaining((resource.base ?? 1) + (resource.bonus ?? 0), resource.value);
+      if ( !resource || ("spent" in resource) || !("value" in resource) || !("base" in resource) ) continue;
+      resource.spent = spentFromRemaining(resource.base + (resource.bonus ?? 0), resource.value);
     }
     return super.migrateData(source);
   }
@@ -94,11 +98,18 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
       const pools = this.#withSlotPools(classes, foundry.utils.getProperty(changes, "system.pools") ?? this.parent.toObject(true).system.pools);
       if ( pools ) foundry.utils.setProperty(changes, "system.pools", pools);
     }
+    // A counted resource keeps its stored remaining value and spent count in step: a write of one sets the
+    // other; a write of both (a payment) is kept as given.
     for ( const id of COUNTED_RESOURCES ) {
-      const path = `system.resources.${id}.value`;
-      const value = foundry.utils.getProperty(changes, path) ?? changes[path];
-      if ( typeof value !== "number" ) continue;
-      foundry.utils.setProperty(changes, `system.resources.${id}.spent`, spentFromRemaining(this.resources[id].max, value));
+      const valuePath = `system.resources.${id}.value`;
+      const spentPath = `system.resources.${id}.spent`;
+      const value = foundry.utils.getProperty(changes, valuePath) ?? changes[valuePath];
+      const spent = foundry.utils.getProperty(changes, spentPath) ?? changes[spentPath];
+      if ( (typeof value === "number") && (typeof spent !== "number") ) {
+        foundry.utils.setProperty(changes, spentPath, spentFromRemaining(this.resources[id].max, value));
+      } else if ( (typeof spent === "number") && (typeof value !== "number") ) {
+        foundry.utils.setProperty(changes, valuePath, remainingFromSpent(this.resources[id].max, spent));
+      }
     }
   }
 
@@ -164,6 +175,8 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
     this.#deriveClasses();
     this.#applyResourceModifiers();
     this.#finalizeResources();
+    // Walking Speed is the movement maximum; other Speeds come from grants (GrantMovement).
+    this.speeds = movementSpeeds(this.resources.movement.max, this.parent?.getGrantedMovement?.() ?? []);
   }
 
   /* -------------------------------------------- */

@@ -314,6 +314,12 @@ export function grantedResourcesFromRuleElements(owners=[], context={}) {
     collectRuleElementContributions({ruleElements, context, source}).contributions.resources);
 }
 
+/** The Speeds a creature's grants give (`GrantMovement`): `{mode, distance}`, one per grant. */
+export function grantedMovementFromRuleElements(owners=[], context={}) {
+  return owners.flatMap(({ruleElements=[], source=null}) =>
+    collectRuleElementContributions({ruleElements, context, source}).contributions.movement.map(entry => entry.capability));
+}
+
 /* -------------------------------------------- */
 
 export function modifiersFromRuleElements({ruleElements=[], domain=null, context={}, source=null}={}) {

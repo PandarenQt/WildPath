@@ -3343,6 +3343,49 @@ for ( const mismatch of ["source", "route", "missing-route"] ) {
   });
 }
 
+/** A move along `offsets` in Foundry movement action `action`; returns whether the authority approved it. */
+async function moveInMode(fixture, {action, offsets, id}) {
+  const movement = movementOperation(fixture.token, {id, offsets});
+  for ( const waypoint of movement.pending.waypoints ) waypoint.action = action;
+  movement.destination.action = action;
+  let approved;
+  await withFoundryGlobals(fixture, async () => { approved = await fixture.token._preUpdateMovement(movement, {}) !== false; });
+  if ( !approved ) return false;
+  fixture.token.setSourceOffset(offsets.at(-1));
+  assert.equal((await fireMoveTokenHook(fixture, {movement})).committed, true);
+  moveTokenToOffset(fixture.token, offsets.at(-1));
+  return true;
+}
+
+/** A creature whose movement is counted (spent stored) with the given Speeds. */
+function modeFixture(speeds) {
+  const fixture = createMovementRuntimeFixture();
+  Object.assign(fixture.actor.system.resources.movement, {spent: 0});
+  fixture.actor.system.speeds = speeds;
+  return fixture;
+}
+
+test("a creature flies at its fly Speed, and what it flew counts against walking afterwards (2024)", async () => {
+  const fixture = modeFixture({walk: 30, fly: 60});
+  assert.equal(await moveInMode(fixture, {id: "fly-a", action: "fly", offsets: [{i: 1, j: 0}, {i: 2, j: 0}, {i: 3, j: 0},
+    {i: 4, j: 0}, {i: 5, j: 0}, {i: 6, j: 0}, {i: 7, j: 0}]}), true, "35 ft of flight is within a 60 ft fly Speed");
+  assert.equal(fixture.actor.system.resources.movement.spent, 35, "the spent count passes walking Speed");
+  assert.equal(await moveInMode(fixture, {id: "walk-a", action: "walk", offsets: [{i: 8, j: 0}]}), false,
+    "walking Speed 30 minus 35 already moved leaves nothing");
+  assert.equal(await moveInMode(fixture, {id: "fly-b", action: "fly", offsets: [{i: 8, j: 0}]}), true, "flight still has 25 ft");
+  assert.equal(fixture.actor.system.resources.movement.spent, 40);
+});
+
+test("flying needs a fly Speed, and swimming without a swim Speed costs double", async () => {
+  const fixture = modeFixture({walk: 30});
+  assert.equal(await moveInMode(fixture, {id: "fly", action: "fly", offsets: [{i: 1, j: 0}]}), false);
+  assert.equal(fixture.actor.system.resources.movement.spent, 0);
+  assert.equal(await moveInMode(fixture, {id: "swim", action: "swim", offsets: [{i: 1, j: 0}, {i: 2, j: 0}]}), true);
+  assert.equal(fixture.actor.system.resources.movement.spent, 20, "10 ft of swimming spends 20 ft");
+  assert.equal(await moveInMode(fixture, {id: "swim-far", action: "swim", offsets: [{i: 3, j: 0}, {i: 4, j: 0}]}), false,
+    "another 10 ft would spend 20 of the 10 left");
+});
+
 test("socket claims cannot pay an unverified route or suppress later local GM observation", async () => {
   const fixture = createMovementRuntimeFixture();
   const movement = movementOperation(fixture.token);

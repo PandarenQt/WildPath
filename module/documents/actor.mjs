@@ -1,5 +1,7 @@
 import {WildPathModifier, WildPathStatistic} from "../helpers/modifiers.mjs";
-import {damageProfileFromRuleElements, grantedResourcesFromRuleElements, modifiersFromRuleElements} from "../helpers/rule-elements.mjs";
+import {
+  damageProfileFromRuleElements, grantedMovementFromRuleElements, grantedResourcesFromRuleElements, modifiersFromRuleElements
+} from "../helpers/rule-elements.mjs";
 import {DEFAULT_FORM_STATISTICS, DEFAULT_KEPT_ITEM_TYPES, itemContributesWhileTransformed} from "../helpers/transformations.mjs";
 import WildPathConditionEffect from "../data/active-effect/condition.mjs";
 import {executeActionResolution} from "../resolvers/action-resolver.mjs";
@@ -93,6 +95,11 @@ export default class WildPathActor extends Actor {
    */
   getDamageProfile() {
     return damageProfileFromRuleElements(grantOwners(this), {actor: this, actorSystem: this.system});
+  }
+
+  /** The Speeds this creature's grants give (`GrantMovement`), as `{mode, distance}`. */
+  getGrantedMovement() {
+    return grantedMovementFromRuleElements(grantOwners(this), {actor: this, actorSystem: this.system});
   }
 
   /** The resources this creature's grants give (`GrantResource`); each backs its pool of the same id. */
