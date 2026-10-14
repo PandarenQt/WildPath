@@ -170,7 +170,12 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
   open, so a ground hazard is `{bottom: 0, top: 0}`. A creature is inside only if its height overlaps
   the band. Several areas can share a field, for example one on the ground and one in the air, and each
   one acts independently.
-- **Duration.** It is counted in rounds.
+- **Duration.** It is counted in rounds. An area runs out N rounds after the turn it was created on, and
+  is deleted at that turn's start, before anyone in it is affected. Rounds pass only in its own combat.
+- **Concentration.** A `concentration: true` area puts a "Concentrating: …" marker on its caster. The
+  marker names the caster as its concentration source, so the existing concentration checks see the
+  caster concentrating. A broken check ends every concentration area that caster sustains. The Region and
+  its marker end together: removing either one removes the other (active GM).
 
 Live (two browsers, 14.369, 2026-10-14): Player1 cast Burning Ground (2 fire on casting, then 4 fire on
 `area.entered` or `turn.started`) on a goblin in combat.
@@ -181,13 +186,17 @@ Live (two browsers, 14.369, 2026-10-14): Player1 cast Burning Ground (2 fire on 
   (30→26), and the Token stopped there. Only those two steps were paid (30→20 ft), and the player saw "You
   stopped on entering Burning Ground. Your remaining movement is kept."
 - Stepping out and back in on the same turn did nothing more.
+- Shortened to 1 round, Burning Ground vanished at the start of round 2, before the caster standing in it
+  was affected.
+- A goblin's 50-damage blow broke the caster's concentration on Holy Ground: the check rolled 2 against
+  DC 25. The Region and the caster's marker were removed, and the unrelated aura stayed.
 - The caster backed off and cast a 5-ft Guardian Aura where nobody stood. It still completed, leaving the
   8 cells around the caster. The caster then stepped next to the goblin. Foundry moved the aura's cells
   with the caster, and the aura entering the goblin hit it for 3 ("Radiance"). The caster's move was not
   held.
 
-Still to come: expiry by duration and concentration, the staged (programmatic) movement path, and
-falling through an area (vertical movement is not modelled yet).
+Not yet: the staged (programmatic) movement path, falling through an area (vertical movement is not
+modelled), hidden areas such as traps, and `area.exited` triggers.
 
 ## Auras and Emanations
 

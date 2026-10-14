@@ -95,13 +95,18 @@ export function registerFoundryV14MultiplayerResolution({
     }),
     notify: event => notifyMultiplayerFailure(event, {logger}),
     publishResult: createFoundryV14ChatCardAdapter({game}),
-    afterCompleted: event => areas.create(event),
+    afterCompleted: async event => {
+      await areas.create(event);
+      await areas.afterResolution(event);
+    },
     logger
   });
   const registration = coordinator.register();
   // Lasting areas: Regions created by completed area Actions, whose triggers resolve as authority Actions.
-  const areas = createFoundryPersistentAreas({game, coordinator, logger,
+  const areas = createFoundryPersistentAreas({game, coordinator, logger, fromUuid: globalThis.fromUuid ?? null,
     resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});
+  globalThis.Hooks?.on?.("deleteActiveEffect", effect => areas.onEffectDeleted(effect));
+  globalThis.Hooks?.on?.("deleteRegion", region => areas.onRegionDeleted(region));
   const movement = createMultiplayerMovementAuthority({
     userId: game.user?.id ?? game.userId ?? null,
     users: () => foundryUserDirectory(game),

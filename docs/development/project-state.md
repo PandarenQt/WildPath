@@ -11,7 +11,10 @@ Last verified: 2026-10-13.
 - Movement implementation commit: `87ed1fae93271b81b14432bb4312be9cd53285c5`.
 - Original milestone starting HEAD: `ea484fd8b503697ddf1c2b7b0f6984ea594378e2`.
 - Local main HEAD: `61d6268b838e286728c829924506c6c931174621`.
-- Portable full suite (`FOUNDRY_V14_APP_PATH` unset): **921 tests, 919 passed, 0 failed, 2 intentionally skipped**.
+- Portable full suite (`FOUNDRY_V14_APP_PATH` unset): **931 tests, 929 passed, 0 failed, 2 intentionally skipped**.
+- M3 slice 5 delta from 921/919/0/2: **10 new tests** (lasting areas: validation, turn-start burn once per
+  turn, an emanation following its caster, an empty area still happening, expiry, concentration; movement:
+  a voluntary move stopping on entry, a forced move continuing, and an aura sweeping a creature).
 - M3 slice 4 delta from 918/916/0/2: **3 new tests** (an area recomputed by the authority from its clicks,
   an out-of-range or unplaced area refused with at most two points travelling, and square corners on a
   Foundry-convention grid). Quench **65/65** (new `wildpath.areas` batch, 3 cases).
@@ -120,7 +123,7 @@ browsers unless marked Quench.
 - **UI copy:** prompts, buttons, notifications and the dice setting have WildPath copy ("Enter your roll",
   "Die result (1d20 + 4)", "Confirm").
 
-**M3 — Stage I: persistent spatial mechanics (IN PROGRESS).** Slice 1 done: a production reaction
+**M3 — Stage I: persistent spatial mechanics.** Slice 1 done: a production reaction
 provider (`createFoundryReactionProvider`, installed as `game.wildpath.reactionServices`) derives
 staged-movement reactors from the world. It reads `Trigger` RuleElements of kind `reaction` on active
 Items, takes reach from the reaction Action's range and hostility from Token dispositions, and binds `{self}`
@@ -141,7 +144,19 @@ or a cone or line from a corner of their Token's edge plus a direction. The high
 fields that resolve, and the authority recomputes the area and its targets from the clicks. Verified live
 on square and hex grids for all three shapes
 ([areas.md](../architecture/areas.md#using-an-area-action-in-foundry)). This also fixed vertex mapping on
-real Foundry grids. Next: persistent areas, auras and hazards over Regions.
+real Foundry grids. Slice 5 done: lasting areas, auras and hazards, per the maintainer's decisions of
+2026-10-14 ([areas.md](../architecture/areas.md#persistent-areas)).
+- A lasting area is a Foundry Region holding WildPath's rules in `flags.wildpath.area`.
+- Its triggers (on entering, at turn start, at turn end) resolve as authority Actions, at most once per
+  turn by default. Elevation bands let several areas share a field.
+- A voluntary move stops on entering an area that affects the mover, and the rest of the move stays
+  unspent.
+- Auras move with their caster and enter the creatures they sweep over.
+- Areas run out after their rounds, or when concentration breaks.
+- All of it was verified live in two browsers.
+
+**M3 — CLOSED on 2026-10-14.** Next: M4, the content pack. It needs approval for the
+`@foundryvtt/foundryvtt-cli` devDependency and the maintainer's condition numbers.
 
 **Authority and disclosure hardening (M0) — CLOSED on 2026-10-13.** A review found that the
 authority trusted more than it could verify: any player could act through an Actor or Item they did

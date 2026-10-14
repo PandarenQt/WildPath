@@ -20,7 +20,7 @@ import {createMultiplayerActionCoordinator} from "../module/resolvers/multiplaye
 import {createTestRollProvider} from "../module/resolvers/roll-provider-resolver.mjs";
 import {createTestPromptAdapter} from "../module/adapters/test-prompt-adapter.mjs";
 import {createFoundryReactionProvider} from "../module/adapters/foundry-v14-reaction-provider.mjs";
-import {areaCovers, createFoundryPersistentAreas} from "../module/adapters/foundry-v14-persistent-areas.mjs";
+import {areaCovers, areaExpired, createFoundryPersistentAreas} from "../module/adapters/foundry-v14-persistent-areas.mjs";
 import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
 import {
   buildFoundryActionUseIntent,
@@ -859,9 +859,9 @@ test("a lasting area's persistence is validated: rounds, an elevation band, and 
 });
 
 /** A burst whose ground keeps burning; the Scene can hold Regions and the GM runs the turn. */
-function lastingAreaFixture(t, {shape="radial", range=60}={}) {
-  const fixture = areaFixture(t, {shape, range, persistence: {duration: {unit: "round", value: 10}, elevation: {bottom: 0, top: 0},
-    triggers: [{on: ["turn.started"], action: BURNING}]}});
+function lastingAreaFixture(t, {shape="radial", range=60, rounds=10, concentration=false}={}) {
+  const fixture = areaFixture(t, {shape, range, persistence: {duration: {unit: "round", value: rounds}, elevation: {bottom: 0, top: 0},
+    concentration, triggers: [{on: ["turn.started"], action: BURNING}]}});
   const {scene, game} = fixture;
   scene.regions = [];
   scene.createEmbeddedDocuments = async (type, data) => data.map(source => {
@@ -873,13 +873,23 @@ function lastingAreaFixture(t, {shape="radial", range=60}={}) {
           const last = keys.pop();
           keys.reduce((node, key) => (node[key] ??= {}), this)[last] = value;
         }
-      }};
+      },
+      async delete() { scene.regions.splice(scene.regions.indexOf(this), 1); }};
     scene.regions.push(region);
     return region;
   });
   for ( const user of game.users.values() ) user.active = user.id !== "player-b";
   game.user = game.users.get("gm-a");
+  game.users.activeGM = game.user;
   game.combat = {id: "combat-1", round: 1, turn: 0};
+  game.scenes[Symbol.iterator] = function* () { yield* this.values(); };
+  fixture.sourceActor.effects = [];
+  fixture.sourceActor.createEmbeddedDocuments = async (type, data) => data.map(source => {
+    const effect = {...structuredClone(source), uuid: `${fixture.sourceActor.uuid}.ActiveEffect.marker`,
+      async delete() { fixture.sourceActor.effects.splice(fixture.sourceActor.effects.indexOf(this), 1); }};
+    fixture.sourceActor.effects.push(effect);
+    return effect;
+  });
   const persistencePort = createTestDocumentPersistenceAdapter();
   const hub = createTestResolutionTransportHub({users: [
     {id: "gm-a", active: true, isGM: true, isActiveGM: true},
@@ -951,6 +961,45 @@ test("an area that catches nobody still happens and leaves its lasting area", as
   assert.equal(state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(state.errors));
   assert.equal(scene.regions.length, 1);
   assert.equal(targetActor.system.resources.health.value, 30);
+});
+
+test("a lasting area runs out after its rounds, at the turn it was created on", () => {
+  const flag = {persistence: {duration: {unit: "round", value: 2}}, createdAt: {combatId: "c", round: 1, turn: 3}};
+  assert.equal(areaExpired(flag, {id: "c", round: 3, turn: 2}), false);
+  assert.equal(areaExpired(flag, {id: "c", round: 3, turn: 3}), true);
+  assert.equal(areaExpired(flag, {id: "other", round: 9, turn: 0}), false, "rounds pass only in its own combat");
+  assert.equal(areaExpired(flag, null), false);
+});
+
+test("an expired area is gone before anyone starts a turn in it", async t => {
+  const {scene, targetActor, targetToken, game, player, areas, intent} = lastingAreaFixture(t, {rounds: 1});
+  await player.declareActionIntent({...intent, area: {points: [{x: 125, y: 25}]}});
+  assert.equal(scene.regions.length, 1);
+  game.combat.round = 2;
+  await areas.onTurn("turn.started", {combatant: {token: targetToken}});
+  assert.equal(scene.regions.length, 0);
+  assert.equal(targetActor.system.resources.health.value, 24, "only the cast itself hit");
+});
+
+test("a concentration area marks its caster, and ends when that concentration ends", async t => {
+  const {scene, sourceActor, player, areas, intent} = lastingAreaFixture(t, {concentration: true});
+  await player.declareActionIntent({...intent, area: {points: [{x: 125, y: 25}]}});
+  const [region] = scene.regions;
+  const [marker] = sourceActor.effects;
+  assert.deepEqual(marker.flags.wildpath.conditionEffect.concentration, {sourceRef: "token:source-token"},
+    "the existing concentration checks see the caster as concentrating");
+  assert.equal(region.flags.wildpath.area.concentrationEffect, marker.uuid);
+  // A check broken on someone else leaves the area; one broken on the caster ends it.
+  await areas.afterResolution({state: {results: {concentrationResolution: {checks: {breakEvents: [{sourceRef: "token:other"}]}}}}});
+  assert.equal(scene.regions.length, 1);
+  await areas.afterResolution({state: {results: {concentrationResolution: {checks: {breakEvents: [{sourceRef: "token:source-token"}]}}}}});
+  assert.equal(scene.regions.length, 0, "a broken concentration ends the area");
+  // Removing the marker by hand ends the area too (a fresh cast; the first one spent the caster's action).
+  sourceActor.system.resources.action.value = 1;
+  await player.declareActionIntent({...intent, area: {points: [{x: 125, y: 25}]}});
+  assert.equal(scene.regions.length, 1);
+  await areas.onEffectDeleted(sourceActor.effects.at(-1));
+  assert.equal(scene.regions.length, 0);
 });
 
 test("Action targets carry the Token's public name, never a hidden Token's or the base Actor's", async t => {

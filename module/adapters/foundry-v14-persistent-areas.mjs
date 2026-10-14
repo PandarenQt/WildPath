@@ -80,6 +80,18 @@ export function areaCovers(flag, token, { fields = null, position = null } = {})
 export function sceneAreas(scene) {
     return [...(scene.regions ?? [])].flatMap(region => region.flags?.wildpath?.area ? [{ region, flag: region.flags.wildpath.area }] : []);
 }
+/**
+ * Whether an area's duration has run out at the start of this combat turn: N rounds after the turn it was
+ * created on. Outside combat, or in another combat, rounds do not pass.
+ */
+export function areaExpired(flag, combat) {
+    const rounds = Number(flag.persistence.duration?.value);
+    const created = flag.createdAt;
+    if (!combat || !created || (created.combatId !== combat.id) || !(rounds > 0))
+        return false;
+    const end = created.round + rounds;
+    return (combat.round > end) || ((combat.round === end) && ((combat.turn ?? 0) >= (created.turn ?? 0)));
+}
 /** A once-per-turn key: the current combat turn, or null outside combat (no limit). */
 export function turnKey(combat) {
     return combat ? `${combat.id}:${combat.round}:${combat.turn ?? 0}` : null;
@@ -89,7 +101,7 @@ export function turnKey(combat) {
  * the caster as source and the creature as its only target (saves route to the creature's controller, as for
  * any Action). Once per turn by default: the area remembers whom it affected in the current combat turn.
  */
-export function createFoundryPersistentAreas({ game, coordinator, resolveAction, logger = globalThis.console }) {
+export function createFoundryPersistentAreas({ game, coordinator, resolveAction, logger = globalThis.console, fromUuid = null }) {
     let sequence = 0;
     async function create({ options }) {
         const placement = options.persistentArea;
@@ -100,7 +112,55 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
             return null;
         const data = persistentAreaRegionData({ placement, sourceToken: token, combat: game.combat ?? null, color: game.user.color });
         const [region] = await token.parent.createEmbeddedDocuments("Region", [data]);
+        if (region && data.flags.wildpath.area.persistence.concentration)
+            await markConcentration(region, token, data.name);
         return region ?? null;
+    }
+    /**
+     * A concentration area is sustained like any concentration effect: a marker on the caster names the caster
+     * as its concentration source, so a failed concentration check ends it, and with it the Region.
+     */
+    async function markConcentration(region, caster, label) {
+        const name = game.i18n?.format("WILDPATH.AREA.Concentrating", { area: label }) ?? label;
+        const [effect] = await caster.actor?.createEmbeddedDocuments?.("ActiveEffect", [{ name, type: "effect", system: {},
+                flags: { wildpath: { areaRegion: { sceneId: caster.parent.id, regionId: region.id },
+                        conditionEffect: { concentration: { sourceRef: `token:${caster.id}` } } } } }]) ?? [];
+        if (effect)
+            await region.update({ "flags.wildpath.area.concentrationEffect": effect.uuid });
+    }
+    /**
+     * After any Action: a concentration check it broke ends every concentration area that caster sustains
+     * (the Region's deletion then removes the caster's marker).
+     */
+    async function afterResolution({ state }) {
+        const broken = new Set((state?.results?.concentrationResolution?.checks?.breakEvents ?? [])
+            .map(event => event.sourceRef ?? event.ref).filter(Boolean));
+        if (!broken.size)
+            return;
+        for (const scene of game.scenes ?? []) {
+            for (const { region, flag } of sceneAreas(scene)) {
+                if (flag.persistence.concentration && broken.has(`token:${flag.sourceTokenId}`))
+                    await region.delete();
+            }
+        }
+    }
+    /** The active GM keeps a concentration area and its marker together: either one ending ends the other. */
+    async function onEffectDeleted(effect) {
+        const link = effect.flags?.wildpath?.areaRegion;
+        if (!link || !isActiveGM())
+            return;
+        const region = [...(game.scenes?.get(link.sceneId)?.regions ?? [])].find(entry => entry.id === link.regionId);
+        await region?.delete();
+    }
+    async function onRegionDeleted(region) {
+        const uuid = region.flags?.wildpath?.area?.concentrationEffect;
+        if (!uuid || !isActiveGM())
+            return;
+        const effect = await fromUuid?.(uuid);
+        await effect?.delete();
+    }
+    function isActiveGM() {
+        return game.users?.activeGM?.id === game.user.id;
     }
     async function apply(region, flag, token, event) {
         const triggers = flag.persistence.triggers.filter(trigger => trigger.on.includes(event));
@@ -140,6 +200,11 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
             return [];
         const applied = [];
         for (const { region, flag } of sceneAreas(token.parent)) {
+            // An area whose rounds have run out is gone before anyone starts a turn in it.
+            if ((event === AREA_EVENTS.TURN_STARTED) && areaExpired(flag, game.combat)) {
+                await region.delete();
+                continue;
+            }
             if (areaCovers(flag, token))
                 applied.push(...await apply(region, flag, token, event));
         }
@@ -167,5 +232,5 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
     function hasEntryAreas(scene) {
         return sceneAreas(scene).some(({ flag }) => flag.persistence.triggers.some(trigger => trigger.on.includes(AREA_EVENTS.ENTERED)));
     }
-    return { create, apply, onTurn, entered, swept, hasEntryAreas };
+    return { create, apply, onTurn, entered, swept, hasEntryAreas, afterResolution, onEffectDeleted, onRegionDeleted };
 }

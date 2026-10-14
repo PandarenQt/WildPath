@@ -83,6 +83,7 @@
       }
     },
     "AREA": {
+      "Concentrating": "Concentrating: {area}",
       "PlaceRadial": "Click where the area is centered. Press Esc to cancel.",
       "PlaceFromEdge": "Click a corner on your Token's edge, then click the direction. Press Esc to cancel.",
       "NoToken": "Place your Token on the scene to use this area.",
