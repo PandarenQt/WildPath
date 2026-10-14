@@ -9,6 +9,12 @@ import {serializeRuleElementDefinition} from "../helpers/rule-elements.mjs";
  */
 export default class WildPathActiveEffect extends ActiveEffect {
 
+  /** An effect may grant a resource that needs its pool on the Actor (`GrantResource`). */
+  _onCreate(data, options, userId) {
+    super._onCreate(data, options, userId);
+    if ( userId === game.user.id ) void this.parent?.ensureGrantedPools?.();
+  }
+
   /** A transformation effect deleted directly (e.g. from the sheet) still takes the form's copied Items. */
   _onDelete(options, userId) {
     super._onDelete(options, userId);

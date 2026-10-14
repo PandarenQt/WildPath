@@ -99,8 +99,10 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
   /** @inheritDoc */
   async _preCreate(data, options, user) {
     if ( (await super._preCreate(data, options, user)) === false ) return false;
-    const pools = this.#withSlotPools(data.system?.classes ?? [], data.system?.pools ?? []);
-    if ( pools ) this.parent.updateSource({"system.pools": pools});
+    const stored = this.#withSlotPools(data.system?.classes ?? [], data.system?.pools ?? []) ?? data.system?.pools ?? [];
+    // An Actor created with granting Items (an import) gets their pools at once.
+    const granted = this.parent.grantedPoolsMissing?.(stored) ?? [];
+    if ( (stored !== data.system?.pools) || granted.length ) this.parent.updateSource({"system.pools": [...stored, ...granted]});
   }
 
   /* -------------------------------------------- */
@@ -184,11 +186,13 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
     for ( const id of Object.keys(this.resources) ) {
       this.resources[id].modifierBonus = this.parent.getStatistic?.(`resources.${id}.max`)?.totalModifier ?? 0;
     }
-    // Spell slot pools also hold what the class progression gives at the current caster level.
-    const slotPools = new Map(this.spellcasting.slots.map((count, index) => [spellSlotPoolId(index + 1), count]));
+    // Spell slot pools also hold what the class progression gives at the current caster level, and every
+    // pool what its grants give (`GrantResource`).
+    const granted = new Map(this.spellcasting.slots.map((count, index) => [spellSlotPoolId(index + 1), count]));
+    for ( const {id, maximum} of this.parent.getGrantedResources?.() ?? [] ) granted.set(id, (granted.get(id) ?? 0) + maximum);
     for ( const pool of this.pools ) {
       pool.modifierBonus = (this.parent.getStatistic?.(`pools.${pool.id}.max`)?.totalModifier ?? 0)
-        + (slotPools.get(pool.id) ?? 0);
+        + (granted.get(pool.id) ?? 0);
     }
   }
 

@@ -46,7 +46,8 @@ the code. Payment discovery reads only the Actor's stored resources and pools
 
 1. **Wire the grant RuleElements.** No new primitive, and no rules decision: each type already defines
    what it means.
-   - `GrantResource` sets pool maxima.
+   - `GrantResource` sets pool maxima: **done 2026-10-14**. A grant backs a stored pool of its id, created
+     full when the grant arrives (rule-elements.md, "Resource grants").
    - `GrantResistance` / `GrantImmunity` build the target's damage profile: **done 2026-10-14** (Node and
      Quench).
    - `GrantMovement` feeds movement modes and budgets.

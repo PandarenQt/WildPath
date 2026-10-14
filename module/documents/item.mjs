@@ -8,6 +8,17 @@ import {areaClickCount} from "../adapters/foundry-v14-area-placement.mjs";
  */
 export default class WildPathItem extends Item {
 
+  /** A granted resource needs its pool on the Actor (`GrantResource`); the user who made the change stores it. */
+  _onCreate(data, options, userId) {
+    super._onCreate(data, options, userId);
+    if ( userId === game.user.id ) void this.actor?.ensureGrantedPools?.();
+  }
+
+  _onUpdate(changed, options, userId) {
+    super._onUpdate(changed, options, userId);
+    if ( (userId === game.user.id) && ("system" in changed) ) void this.actor?.ensureGrantedPools?.();
+  }
+
   /**
    * If this is an "action" Item owned by an Actor, declare an Action intent through the
    * authoritative multiplayer runtime. This is the canonical player-facing execution path -

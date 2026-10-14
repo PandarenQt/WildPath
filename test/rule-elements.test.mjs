@@ -6,6 +6,7 @@ import {
   RuleElementRegistry,
   collectRuleElementContributions,
   evaluateRuleElement,
+  grantedResourcesFromRuleElements,
   modifiersFromRuleElements,
   serializeRuleElementDefinition,
   validateRuleElementDefinition
@@ -358,4 +359,15 @@ test("movement and trigger RuleElements adapt into existing domain primitives", 
   assert.deepEqual(triggered.matches.map(match => match.triggerId), ["fire-retaliation"]);
   assert.equal(triggered.matches[0].payload.action, "retaliate");
   assert.equal(actionExecuted, false);
+});
+
+test("granted resources come from every owner's GrantResource, with level-scaled maxima", () => {
+  const owners = [
+    {ruleElements: [{schemaVersion: 1, id: "ki", type: "GrantResource", data: {resourceId: "ki", label: "Ki",
+      maximum: {type: "table", key: {type: "constant", value: 5}, rows: {"1": 2, "5": 4}, default: 0}, recovery: "shortRest"}}]},
+    {ruleElements: [{schemaVersion: 1, id: "ward", type: "GrantResistance", data: {damageTypes: ["fire"]}}]}
+  ];
+  assert.deepEqual(grantedResourcesFromRuleElements(owners).map(({id, label, maximum, recovery}) => ({id, label, maximum, recovery})),
+    [{id: "ki", label: "Ki", maximum: 4, recovery: "shortRest"}]);
+  assert.deepEqual(grantedResourcesFromRuleElements([]), []);
 });

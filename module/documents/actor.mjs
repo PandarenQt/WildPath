@@ -1,5 +1,5 @@
 import {WildPathModifier, WildPathStatistic} from "../helpers/modifiers.mjs";
-import {damageProfileFromRuleElements, modifiersFromRuleElements} from "../helpers/rule-elements.mjs";
+import {damageProfileFromRuleElements, grantedResourcesFromRuleElements, modifiersFromRuleElements} from "../helpers/rule-elements.mjs";
 import {DEFAULT_FORM_STATISTICS, DEFAULT_KEPT_ITEM_TYPES, itemContributesWhileTransformed} from "../helpers/transformations.mjs";
 import WildPathConditionEffect from "../data/active-effect/condition.mjs";
 import {executeActionResolution} from "../resolvers/action-resolver.mjs";
@@ -49,7 +49,7 @@ export default class WildPathActor extends Actor {
     for ( const owner of this.items ) {
       if ( owner.system?.active === false ) continue;
       if ( (owner.type === "action") && (owner.id !== item?.id) ) continue;
-      if ( transformation && !this.#contributesWhileTransformed(owner, transformation) ) continue;
+      if ( transformation && !contributesWhileTransformed(owner, transformation) ) continue;
       for ( const m of owner.system?.modifiers ?? [] ) {
         if ( !domains.some(entry => modifierTargetsDomain(m, entry)) ) continue;
         modifiers.push(new WildPathModifier({...m, source: owner.uuid}));
@@ -92,13 +92,33 @@ export default class WildPathActor extends Actor {
    * @returns {object|null}
    */
   getDamageProfile() {
-    const transformation = this.transformation;
-    const items = [...this.items].filter(item => (item.system?.active !== false) && (item.type !== "action")
-      && (!transformation || this.#contributesWhileTransformed(item, transformation)))
-      .map(item => ({ruleElements: item.system?.ruleElements ?? [], source: documentRuleElementSource(item, "item")}));
-    const effects = [...(this.allApplicableEffects?.() ?? this.effects)].filter(effect => !effect.disabled && !effect.isSuppressed)
-      .map(effect => ({ruleElements: effect.system?.ruleElements ?? [], source: documentRuleElementSource(effect, "effect")}));
-    return damageProfileFromRuleElements([...items, ...effects], {actor: this, actorSystem: this.system});
+    return damageProfileFromRuleElements(grantOwners(this), {actor: this, actorSystem: this.system});
+  }
+
+  /** The resources this creature's grants give (`GrantResource`); each backs its pool of the same id. */
+  getGrantedResources() {
+    return grantedResourcesFromRuleElements(grantOwners(this), {actor: this, actorSystem: this.system});
+  }
+
+  /**
+   * The pools this creature's grants need that `pools` (stored source) lacks, each starting full. A pool
+   * stays when its grant goes; with nothing granting it, its maximum falls back to its own base.
+   */
+  grantedPoolsMissing(pools) {
+    const known = new Set(pools.map(pool => pool.id));
+    return this.getGrantedResources().flatMap(({id, label, maximum, recovery}) => {
+      if ( known.has(id) ) return [];
+      known.add(id);
+      return [{id, label: label || id, base: 0, bonus: 0, max: maximum, value: maximum,
+        recovery: ["turn", "shortRest", "longRest"].includes(recovery) ? recovery : "none"}];
+    });
+  }
+
+  /** Store any pool a grant newly needs (an Item or effect with `GrantResource` was added or changed). */
+  async ensureGrantedPools() {
+    const pools = this.toObject(true).system.pools;
+    const missing = this.grantedPoolsMissing(pools);
+    if ( missing.length ) await this.update({"system.pools": [...pools, ...missing]});
   }
 
   /* -------------------------------------------- */
@@ -112,12 +132,6 @@ export default class WildPathActor extends Actor {
       if ( policy?.formRef && !effect.disabled ) return {effect, policy};
     }
     return null;
-  }
-
-  /** The form's copied Items always count; of the creature's own, only the kept types do. */
-  #contributesWhileTransformed(owner, transformation) {
-    return (owner.flags?.wildpath?.transformedBy === transformation.effect.id)
-      || itemContributesWhileTransformed(owner.type, transformation.policy);
   }
 
   /**
@@ -500,6 +514,26 @@ function normalizeDomains(value) {
   if ( typeof value.has === "function" && typeof value !== "string" ) return value;
   if ( Symbol.iterator in Object(value) ) return new Set([...value].map(String));
   return new Set([String(value)]);
+}
+
+// Module functions, not #private methods: Foundry prepares data inside the base Document constructor, before a
+// subclass's private methods exist on the instance.
+
+/** Grants count from active features and gear (those a transformation keeps) and enabled effects. */
+function grantOwners(actor) {
+  const transformation = actor.transformation;
+  const items = [...actor.items].filter(item => (item.system?.active !== false) && (item.type !== "action")
+    && (!transformation || contributesWhileTransformed(item, transformation)))
+    .map(item => ({ruleElements: item.system?.ruleElements ?? [], source: documentRuleElementSource(item, "item")}));
+  const effects = [...(actor.allApplicableEffects?.() ?? actor.effects)].filter(effect => !effect.disabled && !effect.isSuppressed)
+    .map(effect => ({ruleElements: effect.system?.ruleElements ?? [], source: documentRuleElementSource(effect, "effect")}));
+  return [...items, ...effects];
+}
+
+/** The form's copied Items always count; of the creature's own, only the kept types do. */
+function contributesWhileTransformed(owner, transformation) {
+  return (owner.flags?.wildpath?.transformedBy === transformation.effect.id)
+    || itemContributesWhileTransformed(owner.type, transformation.policy);
 }
 
 function documentRuleElementSource(document, type) {

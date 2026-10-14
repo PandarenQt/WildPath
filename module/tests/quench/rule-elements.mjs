@@ -166,6 +166,25 @@ export function registerRuleElementTests(quench) {
         assert.deepEqual(actor.getDamageProfile().resistances,[],"An inactive Item grants nothing");
       });
 
+      it("GrantResource gives its creature a pool to spend and recover, and an imported creature has it at once", async function () {
+        const grant = {schemaVersion:1,id:"ki",type:"GrantResource",data:{resourceId:"ki",label:"Ki",maximum:2,recovery:"shortRest"}};
+        const actor = await fixtures.createActor({name:"granted pool"});
+        assert.isNull(actor.getResource("ki"),"No grant: no pool");
+        const item = await fixtures.createItem(actor,{system:{ruleElements:[grant]}});
+        for (let i = 0; (i < 40) && !actor.getResource("ki"); i++) await new Promise(resolve => setTimeout(resolve,50));
+        assert.include(actor.getResource("ki"),{value:2,max:2,recovery:"shortRest"},"The grant's pool is stored full");
+        await actor.spendResource("ki",2);
+        assert.equal(actor.getResource("ki").value,0);
+        await actor.rest("shortRest");
+        assert.equal(actor.getResource("ki").value,2,"It recovers on its cadence");
+        await item.update({"system.active":false});
+        assert.equal(actor.getResource("ki").max,0,"Without its grant the pool holds nothing");
+        const imported = await CONFIG.Actor.documentClass.create({name:"[WildPath Quench] granted import",type:"character",
+          flags:{wildpath:{quenchFixture:true,quenchRunId:actor.getFlag("wildpath","quenchRunId")}},
+          items:[{name:"Ki",type:"feature",system:{ruleElements:[grant]}}]});
+        assert.include(imported.getResource("ki"),{value:2,max:2},"Created with the granting Item, the pool exists at once");
+      });
+
       it("persisted RuleElement enabled and suppressed flags control contribution", async function () {
         const actor = await fixtures.createActor({name:"RuleElement flags"});
         let rule = modifierRule({id:"quench-rule-flags",enabled:false});

@@ -252,8 +252,29 @@ enabled effects form its damage profile (`WildPathActor#getDamageProfile`, throu
 resolution as `durability.adjustmentProfiles`, and so do reaction children. An Action Item's own
 RuleElements never count: they describe that Action.
 
-Other contribution types (`GrantResource`, `GrantActionEconomyResource`, `GrantMovement`) are available
-as pure collected data but are not yet wired into Foundry document preparation or resolution. Future resolvers should request the relevant RuleElement bundle
+**Resource grants.** `GrantResource` gives a creature a pool to spend and recover, such as Ki equal to a
+class level. The grant backs a stored pool of the same id in `system.pools`, so payments, rests and the
+sheet treat it like any other pool:
+
+- **Maximum.** Each preparation adds the grant's maximum (a ValueExpression, so it can scale by level) to
+  the pool's own base, bonus and modifiers.
+- **Creation.** When a granting Item or effect arrives, the user who added it stores the pool, full, with
+  the grant's recovery cadence. An Actor created with granting Items, such as an import, has the pool at
+  once.
+- **Removal.** The pool stays when its grant goes. With nothing granting it, its maximum falls back to its
+  own base (0), and adding the grant back restores it.
+
+```js
+{type: "GrantResource", data: {resourceId: "ki", label: "Ki", recovery: "shortRest",
+  maximum: {type: "class-level", class: "monk"}}}
+```
+
+Live (14.369): in Quench, a granted pool was spent and recovered on a short rest, dropped to 0 when its
+Item was deactivated, and was present at once on an imported Actor. Player1 adding a Ki feature to their
+own creature stored Ki 3/3 from their own client.
+
+`GrantMovement` and `GrantActionEconomyResource` are still only pure collected data. Extra Actions are
+counters instead (action-economy.md). Future resolvers should request the relevant RuleElement bundle
 and interpret it inside their own domain boundary instead of adding item-, spell-, class-, or
 condition-name branches.
 

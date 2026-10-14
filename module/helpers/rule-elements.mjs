@@ -305,6 +305,15 @@ export function damageProfileFromRuleElements(owners=[], context={}) {
   return Object.values(profile).some(entries => entries.length) ? profile : null;
 }
 
+/**
+ * The resources a creature's grants give (`GrantResource`), one entry per grant, from the same owners as
+ * its damage profile. Each backs the creature's pool of the same id.
+ */
+export function grantedResourcesFromRuleElements(owners=[], context={}) {
+  return owners.flatMap(({ruleElements=[], source=null}) =>
+    collectRuleElementContributions({ruleElements, context, source}).contributions.resources);
+}
+
 /* -------------------------------------------- */
 
 export function modifiersFromRuleElements({ruleElements=[], domain=null, context={}, source=null}={}) {
