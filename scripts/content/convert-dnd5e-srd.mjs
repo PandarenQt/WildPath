@@ -1,6 +1,7 @@
-import {mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync} from "node:fs";
+import {mkdirSync, rmSync, writeFileSync} from "node:fs";
 import {join} from "node:path";
 import {convertActor, convertItem, isSrd2024, nameIndex, scaleTables, slugify} from "./dnd5e-to-wildpath.mjs";
+import {readPack} from "./packs.mjs";
 
 /**
  * Convert the 2024 SRD from dnd5e's compendium sources into WildPath pack sources.
@@ -19,14 +20,6 @@ if ( !from ) throw new Error("Usage: convert-dnd5e-srd.mjs <extracted-dir> [--on
 const onlyIndex = rest.indexOf("--only");
 const only = onlyIndex >= 0 ? new Set(rest[onlyIndex + 1].split(",").map(name => name.trim()).filter(Boolean)) : null;
 
-export const readPack = (root, pack) => {
-  try {
-    return readdirSync(join(root, pack)).filter(file => file.endsWith(".json"))
-      .map(file => JSON.parse(readFileSync(join(root, pack, file), "utf8"))).filter(document => document.name && document.type);
-  } catch {
-    return [];
-  }
-};
 const ITEM_PACKS = ["equipment24", "spells24", "classes24", "feats24", "origins24"];
 const scales = scaleTables(readPack(from, "classes24").filter(document => document.type === "class"));
 const names = nameIndex([...ITEM_PACKS, "actors24", "content24", "tables24"].flatMap(pack => readPack(from, pack)));

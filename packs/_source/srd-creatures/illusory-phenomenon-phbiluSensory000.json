@@ -50,7 +50,10 @@
     "width": 1,
     "height": 1,
     "disposition": -1,
-    "actorLink": false
+    "actorLink": false,
+    "texture": {
+      "src": "icons/magic/light/explosion-star-glow-blue-purple.webp"
+    }
   },
   "items": [],
   "flags": {
