@@ -201,6 +201,11 @@ Forced movement and elevation join G6, which becomes "space": areas, elevation a
     refused, unspent; at another creature it went through. With `ConditionImmunity` to Grappled, a hit
     applied nothing.
 
+- **B1.1, odds before acting (2026-10-14).** Done:
+  - attack and save odds on the action bar;
+  - the `playersSeeOdds` house rule, off by default;
+  - `Reveal` effects, which show a creature's defenses to whoever applied them;
+  - verified in Node, Quench (91/91) and two browsers ([ui-ux-layer.md](../architecture/ui-ux-layer.md)).
 - **B1.2, reactions Always, Ask or Never (2026-10-14).** Done:
   - each reaction's toggle on the action bar is stored on its Item;
   - Always reactions answer their own offer, and Never reactions are not offered at all;

@@ -26,6 +26,7 @@ The default registry currently supports these contribution types:
 - `GrantResistance`
 - `GrantImmunity`, `GrantVulnerability`
 - `ConditionImmunity`
+- `Reveal`
 - `GrantMovement`
 - `RollMode`, `ResourceCap`, `RollOutcome`
 - `ExtraDamage`, `Aura`
@@ -330,6 +331,10 @@ active features, gear and enabled effects lists the conditions it ignores (`Wild
 When an Action or trigger commits a condition to it, the commit does nothing and reports `immune: true`; removing
 a condition still works. Toggling a status by hand from the Token HUD is the GM's call and is not refused.
 Petrified gives immunity to Poisoned this way.
+
+**Reveal (2026-10-14).** `Reveal {details: ["defenses"]}` on an effect shows its bearer's AC and save bonuses,
+as the odds of attacks and saves against it, to the creature that applied the effect. This holds whatever the
+table's `playersSeeOdds` house rule says ([ui-ux-layer.md](ui-ux-layer.md)).
 
 **Resource grants.** `GrantResource` gives a creature a pool to spend and recover, such as Ki equal to a
 class level. The grant backs a stored pool of the same id in `system.pools`, so payments, rests and the

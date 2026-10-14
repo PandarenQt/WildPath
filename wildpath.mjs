@@ -129,6 +129,16 @@ Hooks.once("init", () => {
     default: "digital"
   });
 
+  // House rule: whether players see the odds before acting (the GM always does).
+  game.settings.register("wildpath", "playersSeeOdds", {
+    name: "WILDPATH.SETTINGS.PlayersSeeOdds.Name",
+    hint: "WILDPATH.SETTINGS.PlayersSeeOdds.Hint",
+    scope: "world",
+    config: true,
+    type: Boolean,
+    default: false
+  });
+
   // Sheet registration
   const {DocumentSheetConfig} = foundry.applications.apps;
   DocumentSheetConfig.registerSheet(WildPathActor, "wildpath", WildPathActorSheet, {
