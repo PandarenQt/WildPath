@@ -217,11 +217,11 @@ Forced movement and elevation join G6, which becomes "space": areas, elevation a
     Live: a Rogue 5 duelist's second Rapier attack of the turn was paid from Extra Attack's pool and added 3d6 Sneak
     Attack; a third was refused. A creature with Evasion took nothing of a Fireball it saved against, and half of
     one it failed.
-  - Sunlight (2026-10-15, maintainer): Scenes and lights tagged "Sunlight", the Daylight spell's light counting as
-    sunlight. Sunlight Sensitivity, Weakness and Hypersensitivity, and a Vampire's Regeneration, use it.
+  - Sunlight (2026-10-15, maintainer): Scenes and lights tagged "Sunlight". The Daylight spell places its own light,
+    tagged as sunlight by default. Sunlight Sensitivity, Weakness and Hypersensitivity, and a Vampire's Regeneration,
+    use it. A Vampire's running water is the GM's to track.
   - Not yet, by survey count: Amphibious, Water Breathing and Hold Breath (82, 27, 16: no breathing rules), Spider
-    Climb (50: a listed climb Speed is converted, ceilings are not; 3 SRD creatures list none), and the Daylight spell
-    placing its light (the GM places a light ticked "Sunlight").
+    Climb (50: a listed climb Speed is converted, ceilings are not; 3 SRD creatures list none).
 - **G4, the monster toolkit (2026-10-14).** Done:
   - Multiattack, monster spellcasting, per-activity uses and Recharge;
   - Action Items' own uses pools now exist. Fire Breath, Second Wind and every "X/Day" Action could not be paid for

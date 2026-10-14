@@ -1,4 +1,4 @@
-import { createFoundryV14TacticalGridAdapter, gridFieldToFoundryOffset } from "./foundry-v14-tactical-grid-adapter.mjs";
+import { createFoundryV14TacticalGridAdapter, gridFieldToFoundryCenterPoint, gridFieldToFoundryOffset } from "./foundry-v14-tactical-grid-adapter.mjs";
 import { createReachFootprint, fieldKey } from "../helpers/grid-footprints.mjs";
 import { AREA_SHAPES } from "../helpers/tactical-areas.mjs";
 import { runAuthorityAction } from "./foundry-v14-automation-dispatcher.mjs";
@@ -8,6 +8,7 @@ const answers = (flag, event) => flag.persistence.triggers.some(trigger => trigg
 const reachFootprint = createReachFootprint;
 const keyOf = fieldKey;
 const toOffset = gridFieldToFoundryOffset;
+const toCenter = gridFieldToFoundryCenterPoint;
 /**
  * A lasting area is a Foundry Region (V14's template successor) whose `flags.wildpath.area` holds the rules:
  * the covered fields, the caster, the vertical band and the triggers. Foundry draws the exact fields as a
@@ -31,7 +32,7 @@ export function persistentAreaRegionData({ placement, sourceToken, combat, color
         topology: placement.footprint.topology, fields: placement.footprint.fields, shape: String(area.shape),
         size: Number(area.size?.value) || 0, attached, band,
         persistence: { oncePerTurn: persistence.oncePerTurn !== false, concentration: persistence.concentration === true,
-            duration: persistence.duration ?? null, triggers: persistence.triggers ?? [] },
+            duration: persistence.duration ?? null, triggers: persistence.triggers ?? [], light: persistence.light ?? null },
         createdAt: combat ? { combatId: combat.id, round: combat.round, turn: combat.turn } : null,
         applied: {}
     };
@@ -117,7 +118,27 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         const [region] = await token.parent.createEmbeddedDocuments("Region", [data]);
         if (region && data.flags.wildpath.area.persistence.concentration)
             await markConcentration(region, token, data.name);
+        const light = data.flags.wildpath.area.persistence.light;
+        if (region && light)
+            await shedLight(region, token.parent, data.flags.wildpath.area, light);
         return region ?? null;
+    }
+    /**
+     * A lasting area that sheds light (Daylight) gets an ambient light at its center, tagged as sunlight when its light
+     * is; it goes when the area goes.
+     */
+    async function shedLight(region, scene, flag, light) {
+        // shortcut: an emanation's light stays where it was cast; upgrade by moving the light with the caster's Token.
+        const points = flag.fields.map(field => toCenter(field, { scene, grid: scene.grid }).point).filter(Boolean);
+        if (!points.length)
+            return;
+        const x = points.reduce((sum, point) => sum + point.x, 0) / points.length;
+        const y = points.reduce((sum, point) => sum + point.y, 0) / points.length;
+        const [created] = await scene.createEmbeddedDocuments("AmbientLight", [{ x, y, elevation: flag.band.bottom ?? 0,
+                config: { bright: Number(light.bright) || 0, dim: Math.max(Number(light.dim) || 0, Number(light.bright) || 0) },
+                flags: { wildpath: { sunlight: light.sunlight === true, areaRegion: region.id } } }]);
+        if (created)
+            await region.update({ "flags.wildpath.area.lightId": created.id });
     }
     /**
      * A concentration area is sustained like any concentration effect: a marker on the caster names the caster
@@ -156,8 +177,14 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         await region?.delete();
     }
     async function onRegionDeleted(region) {
+        if (!isActiveGM())
+            return;
+        // Its light goes with it.
+        const lightId = region.flags?.wildpath?.area?.lightId;
+        if (lightId)
+            await region.parent?.lights?.get(lightId)?.delete();
         const uuid = region.flags?.wildpath?.area?.concentrationEffect;
-        if (!uuid || !isActiveGM())
+        if (!uuid)
             return;
         const effect = await fromUuid?.(uuid);
         await effect?.delete();

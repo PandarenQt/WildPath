@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 292 automated, 381 manual, 245 features. Creatures: 375.
+Items: 293 automated, 380 manual, 245 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -248,7 +248,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Darkness | spells24 | Darkness (manual) | not automated (utility): using it spends its cost; its description says the rest; concentration: nothing it sustains was converted |
 | Darkvision | spells24 | Darkvision (manual) | not automated (utility): using it spends its cost; its description says the rest; effect: "Darkvision" change system.attributes.senses.darkvision (upgrade) not converted; effect: "Darkvision" (its own changes) not converted |
 | Dart | equipment24 | Dart (automated) | — |
-| Daylight | spells24 | Daylight (manual) | not automated (utility): using it spends its cost; its description says the rest |
+| Daylight | spells24 | Daylight (automated) | Daylight: cast on an object, it is placed where the object is; the Darkness it ends is ended by hand |
 | Death Dog | actors24 | Death Dog (4 items) | Bite: not automated (utility): using it spends its cost; its description says the rest; Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand |
 | Death Ward | spells24 | Death Ward (manual) | not automated (utility): using it spends its cost; its description says the rest; effect: "Protection from Death" (its own changes) not converted |
 | Deer | actors24 | Deer (2 items) | — |

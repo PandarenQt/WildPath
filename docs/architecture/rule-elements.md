@@ -311,8 +311,8 @@ Its predicate sees `attack.type` and `attack.adjacent` (the attacker within 5 ft
 "Sunlight" reaches it (`module/adapters/foundry-v14-sunlight.mts`):
 - The tag is `flags.wildpath.sunlight`. It is a checkbox on the Scene sheet (Environment), the Ambient Light sheet
   (Basic) and the Token sheet (Light).
-- A sunlight source is an ambient light or a Token's own light: a Daylight spell (2024: its light is sunlight), or a
-  sunbeam. A plain torch is not.
+- A sunlight source is an ambient light or a Token's own light: a sunbeam, or a Daylight spell, whose lasting area
+  places its own sunlight (areas.md, "Light"). A plain torch is not.
 - On the viewed Scene, Foundry's own light source decides, walls and elevation included. Elsewhere the light's
   radius does.
 - The action bar refreshes its odds when a Scene or a light changes.

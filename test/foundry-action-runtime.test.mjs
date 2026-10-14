@@ -1152,14 +1152,20 @@ test("a lasting area's persistence is validated: rounds, an elevation band, and 
 });
 
 /** A burst whose ground keeps burning; the Scene can hold Regions and the GM runs the turn. */
-function lastingAreaFixture(t, {shape="radial", range=60, rounds=10, concentration=false, on=["turn.started"]}={}) {
+function lastingAreaFixture(t, {shape="radial", range=60, rounds=10, concentration=false, on=["turn.started"], light=null}={}) {
   const fixture = areaFixture(t, {shape, range, persistence: {duration: {unit: "round", value: rounds}, elevation: {bottom: 0, top: 0},
-    concentration, triggers: [{on, action: BURNING}]}});
+    concentration, triggers: [{on, action: BURNING}], ...(light ? {light} : {})}});
   const {scene, game} = fixture;
   scene.regions = [];
+  scene.lights = new Map();
   scene.createEmbeddedDocuments = async (type, data) => data.map(source => {
+    if ( type === "AmbientLight" ) {
+      const ambient = {id: `light-${scene.lights.size + 1}`, ...structuredClone(source), async delete() { scene.lights.delete(this.id); }};
+      scene.lights.set(ambient.id, ambient);
+      return ambient;
+    }
     assert.equal(type, "Region");
-    const region = {id: `region-${scene.regions.length + 1}`, ...structuredClone(source),
+    const region = {id: `region-${scene.regions.length + 1}`, parent: scene, ...structuredClone(source),
       async update(changes) {
         for ( const [path, value] of Object.entries(changes) ) {
           const keys = path.split(".");
@@ -1229,6 +1235,19 @@ test("a lasting area becomes a Region and burns a creature that starts its turn 
   // A creature flying above the burning ground is out of its band.
   targetToken.elevation = 30;
   assert.equal(areaCovers(flag, targetToken), false);
+});
+
+test("a lasting area that sheds light (Daylight) places it at its center, as sunlight, and takes it away when it ends", async t => {
+  const {scene, player, areas, intent} = lastingAreaFixture(t, {light: {bright: 10, dim: 20, sunlight: true}});
+  const declared = await player.declareActionIntent({...intent, area: {points: [{x: 125, y: 25}]}});
+  assert.equal(declared.ok, true, JSON.stringify(declared));
+  const [region] = scene.regions;
+  const light = scene.lights.get(region.flags.wildpath.area.lightId);
+  assert.deepEqual([light.config, light.flags.wildpath.sunlight, light.flags.wildpath.areaRegion], [{bright: 10, dim: 20}, true, region.id]);
+  assert.ok(Number.isFinite(light.x) && Number.isFinite(light.y), "at the area's center");
+  await region.delete();
+  await areas.onRegionDeleted(region);
+  assert.equal(scene.lights.size, 0, "it goes with the area");
 });
 
 test("an emanation is attached to its caster and covers whoever is next to the caster now", async t => {
