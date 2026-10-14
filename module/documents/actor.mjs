@@ -1,5 +1,5 @@
 import {WildPathModifier, WildPathStatistic} from "../helpers/modifiers.mjs";
-import {modifiersFromRuleElements} from "../helpers/rule-elements.mjs";
+import {damageProfileFromRuleElements, modifiersFromRuleElements} from "../helpers/rule-elements.mjs";
 import WildPathConditionEffect from "../data/active-effect/condition.mjs";
 import {executeActionResolution} from "../resolvers/action-resolver.mjs";
 import {executeConditionEffect} from "../resolvers/effect-resolver.mjs";
@@ -81,6 +81,19 @@ export default class WildPathActor extends Actor {
         tags: [...new Set(tags.filter(Boolean).map(String))]
       }
     });
+  }
+
+  /**
+   * The damage profile this creature's own grants give it (resistances, immunities, ...), from its active
+   * features, gear and effects. An Action Item's RuleElements describe that Action, so they never apply.
+   * @returns {object|null}
+   */
+  getDamageProfile() {
+    const items = [...this.items].filter(item => (item.system?.active !== false) && (item.type !== "action"))
+      .map(item => ({ruleElements: item.system?.ruleElements ?? [], source: documentRuleElementSource(item, "item")}));
+    const effects = [...(this.allApplicableEffects?.() ?? this.effects)].filter(effect => !effect.disabled && !effect.isSuppressed)
+      .map(effect => ({ruleElements: effect.system?.ruleElements ?? [], source: documentRuleElementSource(effect, "effect")}));
+    return damageProfileFromRuleElements([...items, ...effects], {actor: this, actorSystem: this.system});
   }
 
   /* -------------------------------------------- */

@@ -212,8 +212,14 @@ leaving its reach (6 damage, reaction spent, movement finished), with no injecte
 browsers: the same guard attacked a player's native move before its first step
 ([movement-paths.md](movement-paths.md#before-step-reactions-in-native-drags)).
 
-Other contribution types are available as pure collected data but are not globally wired into
-Foundry document preparation yet. Future resolvers should request the relevant RuleElement bundle
+**Damage grants.** `GrantResistance` and `GrantImmunity` on a creature's active features, gear and
+enabled effects form its damage profile (`WildPathActor#getDamageProfile`, through the pure
+`damageProfileFromRuleElements`). The Action runtime passes each target's profile into damage
+resolution as `durability.adjustmentProfiles`, and so do reaction children. An Action Item's own
+RuleElements never count: they describe that Action.
+
+Other contribution types (`GrantResource`, `GrantActionEconomyResource`, `GrantMovement`) are available
+as pure collected data but are not yet wired into Foundry document preparation or resolution. Future resolvers should request the relevant RuleElement bundle
 and interpret it inside their own domain boundary instead of adding item-, spell-, class-, or
 condition-name branches.
 

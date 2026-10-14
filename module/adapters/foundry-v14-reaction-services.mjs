@@ -59,6 +59,8 @@ function reactionChildState({ args, reactor, target, targetFootprint, sourceFoot
         ? resolveActorAttackStatistic(reactor.actor, definition.attack, { item: reactionItem, tags: [...(definition.tags ?? [])] })
         : null;
     const targetSystem = foundryActorSystemSnapshot(actor);
+    const profile = actor.getDamageProfile?.() ?? null;
+    const targetKeys = [actor.id, actor.uuid, `actor:${actor.id}`];
     const base = args.baseChildState;
     return createActionResolutionState({ id: base.id, parentId: base.parentId, relationship: base.relationship,
         sourceEvent: base.sourceEvent, depth: base.depth, maxDepth: base.maxDepth, ancestry: base.ancestry,
@@ -71,8 +73,8 @@ function reactionChildState({ args, reactor, target, targetFootprint, sourceFoot
         context: { spatial: { sceneContext, gridDistance: sceneContext.grid.distance, sourceFootprint, targetFootprints: [targetEntry] } },
         attack: statistic ? { statistic, modifierTotal: statistic.totalModifier } : null,
         selectedPaymentOptionId: args.candidate.selectedPaymentOption?.id ?? null,
-        durability: { targetSystems: Object.fromEntries([actor.id, actor.uuid, `actor:${actor.id}`]
-                .map(key => [key, targetSystem])) } });
+        durability: { targetSystems: Object.fromEntries(targetKeys.map(key => [key, targetSystem])),
+            ...(profile ? { adjustmentProfiles: Object.fromEntries(targetKeys.map(key => [key, structuredClone(profile)])) } : {}) } });
 }
 /**
  * Reaction services for movement: the mover and every observer as participants, and a child-state factory

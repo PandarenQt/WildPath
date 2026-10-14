@@ -152,6 +152,20 @@ export function registerRuleElementTests(quench) {
         assertHealth(actor,3,"Changing the priority winner must preserve the typed total");
       });
 
+      it("GrantResistance on a feature and GrantImmunity on an effect form the Actor's damage profile", async function () {
+        const actor = await fixtures.createActor({name:"damage profile"});
+        assert.isNull(actor.getDamageProfile(),"Nothing granted: no profile");
+        const item = await fixtures.createItem(actor,{system:{ruleElements:[{schemaVersion:1,id:"hide",
+          type:"GrantResistance",data:{damageTypes:["slashing"]}}]}});
+        await fixtures.createEffect(actor,{system:{ruleElements:[{schemaVersion:1,id:"ward",
+          type:"GrantImmunity",data:{damageTypes:["poison"]}}]}});
+        const profile = actor.getDamageProfile();
+        assert.deepEqual(profile.resistances.map(entry => entry.damageTypes),[["slashing"]]);
+        assert.deepEqual(profile.immunities.map(entry => entry.damageTypes),[["poison"]]);
+        await item.update({"system.active":false});
+        assert.deepEqual(actor.getDamageProfile().resistances,[],"An inactive Item grants nothing");
+      });
+
       it("persisted RuleElement enabled and suppressed flags control contribution", async function () {
         const actor = await fixtures.createActor({name:"RuleElement flags"});
         let rule = modifierRule({id:"quench-rule-flags",enabled:false});

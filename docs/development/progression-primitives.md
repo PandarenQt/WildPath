@@ -47,7 +47,8 @@ the code. Payment discovery reads only the Actor's stored resources and pools
 1. **Wire the grant RuleElements.** No new primitive, and no rules decision: each type already defines
    what it means.
    - `GrantResource` sets pool maxima.
-   - `GrantResistance` / `GrantImmunity` build the target's damage profile.
+   - `GrantResistance` / `GrantImmunity` build the target's damage profile: **done 2026-10-14** (Node; a
+     Quench case awaits the next Foundry run).
    - `GrantMovement` feeds movement modes and budgets.
    - `GrantActionEconomyResource` joins payment discovery, with one design point. A grant recomputes
      its `current` on every read, so spending must be remembered somewhere. Proposal: the grant reads

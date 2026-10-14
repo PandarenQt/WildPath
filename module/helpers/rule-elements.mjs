@@ -291,6 +291,22 @@ export function collectRuleElementContributions({
 
 /* -------------------------------------------- */
 
+/**
+ * A creature's damage profile from its own grants: every damage adjustment (`GrantResistance`,
+ * `GrantImmunity`, ...) its active owners contribute. `owners` are `{ruleElements, source}`, one per Item
+ * or effect. Returns null when nothing is granted, so callers can omit the profile.
+ */
+export function damageProfileFromRuleElements(owners=[], context={}) {
+  const profile = emptyContributions().damageAdjustments;
+  for ( const {ruleElements=[], source=null} of owners ) {
+    const {contributions} = collectRuleElementContributions({ruleElements, context, source});
+    for ( const [kind, entries] of Object.entries(contributions.damageAdjustments) ) profile[kind].push(...entries);
+  }
+  return Object.values(profile).some(entries => entries.length) ? profile : null;
+}
+
+/* -------------------------------------------- */
+
 export function modifiersFromRuleElements({ruleElements=[], domain=null, context={}, source=null}={}) {
   const result = collectRuleElementContributions({
     ruleElements,

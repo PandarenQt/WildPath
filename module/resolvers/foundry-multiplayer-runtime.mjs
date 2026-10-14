@@ -495,6 +495,8 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   if ( !area.ok ) return {ok: false, code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED, reason: area.reason};
   const targetActors = {};
   const targetSystems = {};
+  // Each target's own grants (GrantResistance / GrantImmunity) shape the damage it takes.
+  const targetProfiles = {};
   const systemSnapshots = new Map([[actor, actorSystem]]);
   const targets = [];
   const targetEntries = [];
@@ -529,6 +531,8 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       if ( targetActors[key] && (targetActors[key] !== targetActor) ) ambiguousKeys.add(key);
       targetActors[key] = targetActor;
       targetSystems[key] = systemSnapshots.get(targetActor);
+      const profile = targetActor.getDamageProfile?.() ?? null;
+      if ( profile ) targetProfiles[key] = clonePlainData(profile, "target.damageProfile");
     }
     targetEntries.push({actor: targetActor, hint});
   }
@@ -537,6 +541,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   for ( const key of ambiguousKeys ) {
     delete targetActors[key];
     delete targetSystems[key];
+    delete targetProfiles[key];
   }
 
   const source = {
@@ -582,7 +587,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       },
       ...(combatStatistics.attack ? {attack: combatStatistics.attack} : {}),
       // Rules consume plain effective snapshots; commit retains the exact live (possibly synthetic) Actors.
-      durability: {targetSystems},
+      durability: {targetSystems, ...(Object.keys(targetProfiles).length ? {adjustmentProfiles: targetProfiles} : {})},
       configuration: clonePlainData(intent.configuration ?? null, "intent.configuration"),
       ...(concentration ? {concentration: concentration.input} : {}),
       ...(area.persistentArea ? {persistentArea: area.persistentArea} : {}),

@@ -22,6 +22,7 @@ import {createTestPromptAdapter} from "../module/adapters/test-prompt-adapter.mj
 import {createFoundryReactionProvider} from "../module/adapters/foundry-v14-reaction-provider.mjs";
 import {areaCovers, areaExpired, createFoundryPersistentAreas} from "../module/adapters/foundry-v14-persistent-areas.mjs";
 import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
+import {damageProfileFromRuleElements} from "../module/helpers/rule-elements.mjs";
 import {
   buildFoundryActionUseIntent,
   foundryActionIntentToStagedOptions
@@ -684,6 +685,40 @@ test("a save waiting on a Player who disconnects goes to the GM instead of hangi
   await silent.send(createResolutionSocketEnvelope({messageType: "REQUEST_RESPONSE", senderUserId: "player-a",
     recipientUserId: "gm-a", resolutionId: "resolution:gone", requestId: "request:gone", payload: {response: {value: {}}}}));
   assert.equal(errors.find(envelope => envelope.messageType === "RESOLUTION_ERROR")?.payload?.code, "RESOLUTION_NOT_FOUND");
+});
+
+test("a creature's own grants form its damage profile, and nothing granted means no profile", () => {
+  const resist = {schemaVersion: 1, id: "hide", type: "GrantResistance", data: {damageTypes: ["slashing"]}};
+  const immune = {schemaVersion: 1, id: "ward", type: "GrantImmunity", data: {damageTypes: ["poison"]}};
+  const profile = damageProfileFromRuleElements([{ruleElements: [resist]}, {ruleElements: [immune]}]);
+  assert.deepEqual(profile.resistances.map(entry => entry.damageTypes), [["slashing"]]);
+  assert.deepEqual(profile.immunities.map(entry => entry.damageTypes), [["poison"]]);
+  assert.equal(damageProfileFromRuleElements([{ruleElements: [{schemaVersion: 1, id: "m", type: "Modifier",
+    data: {selector: "attack", value: 1}}]}]), null);
+});
+
+test("a target's granted resistance halves the damage it takes through the production runtime", async t => {
+  const {sourceActor, targetActor, targetToken, action, game} = syntheticRuntimeFixture(t, undefined, {targetHealth: 30});
+  targetActor.getDamageProfile = () => damageProfileFromRuleElements([{ruleElements: [
+    {schemaVersion: 1, id: "hide", type: "GrantResistance", data: {damageTypes: ["slashing"]}}]}]);
+  const hub = createTestResolutionTransportHub({users: [
+    {id: "gm-a", active: true, isGM: true, isActiveGM: true},
+    {id: "player-a", active: true, isGM: false}
+  ]});
+  const gm = createMultiplayerActionCoordinator({userId: "gm-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
+    transport: hub.createEndpoint({userId: "gm-a"}),
+    actionIntentResolver: ({intent, envelope}) => foundryActionIntentToStagedOptions({intent,
+      senderUserId: envelope.senderUserId, game, persistencePort: createTestDocumentPersistenceAdapter()})});
+  const player = createMultiplayerActionCoordinator({userId: "player-a", users: () => hub.userDirectory(),
+    activeGMUserId: "gm-a", transport: hub.createEndpoint({userId: "player-a"}),
+    rollProviders: [createTestRollProvider({result: {natural: 18, total: 22}})]});
+  gm.register();
+  player.register();
+  const built = buildFoundryActionUseIntent({actor: sourceActor, action, game: {user: {targets: new Set([{document: targetToken}])}}});
+  const declared = await player.declareActionIntent(built.intent);
+  const record = gm.getRecord(declared.resolutionId);
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors));
+  assert.equal(targetActor.system.resources.health.value, 27, "6 slashing, resisted, is 3");
 });
 
 test("two unlinked Tokens of one base Actor each take their own hit, never each other's", async t => {
