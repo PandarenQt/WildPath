@@ -6,6 +6,7 @@ import {
 } from "../helpers/rule-elements.mjs";
 import {DEFAULT_FORM_STATISTICS, DEFAULT_KEPT_ITEM_TYPES, itemContributesWhileTransformed} from "../helpers/transformations.mjs";
 import WildPathConditionEffect from "../data/active-effect/condition.mjs";
+import {floatHealthChange} from "../applications/floating-text.mjs";
 import {executeConditionEffect} from "../resolvers/effect-resolver.mjs";
 import {executeEffectLifecycleCommit} from "../resolvers/effect-lifecycle-commit-resolver.mjs";
 import {planConditionTriggerConsequences} from "../resolvers/condition-trigger-resolver.mjs";
@@ -22,6 +23,28 @@ import {
  * Actor sub-type shares one consistent, generically-keyed API.
  */
 export default class WildPathActor extends Actor {
+
+  /* -------------------------------------------- */
+  /*  Floating combat text                         */
+  /* -------------------------------------------- */
+
+  /** The client making a health change records it in the update's options, which reach every client. */
+  async _preUpdate(changes, options, user) {
+    const allowed = await super._preUpdate(changes, options, user);
+    if ( allowed === false ) return false;
+    const next = foundry.utils.getProperty(changes, "system.resources.health.value");
+    const current = this.system?.resources?.health?.value;
+    if ( Number.isFinite(next) && Number.isFinite(current) && (next !== current) ) {
+      foundry.utils.setProperty(options, "wildpath.healthChange", next - current);
+    }
+    return allowed;
+  }
+
+  /** Every client raises the change in health over the creature's visible Tokens. */
+  _onUpdate(changed, options, userId) {
+    super._onUpdate(changed, options, userId);
+    if ( options.wildpath?.healthChange ) floatHealthChange(this, options.wildpath.healthChange);
+  }
 
   /* -------------------------------------------- */
   /*  Modifiers / Statistics                       */

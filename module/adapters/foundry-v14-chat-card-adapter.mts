@@ -1,4 +1,5 @@
 import {
+  CHAT_OUTCOME_KEYS,
   chatVisibilityForMode,
   createResolutionCardViewModel,
   type PublicResolutionResult
@@ -70,10 +71,19 @@ export function createFoundryV14ChatCardAdapter({
       rolls: rolls.map(roll => roll.toJSON()),
       whisper: [...visibility.whisper],
       blind: visibility.blind,
-      flags: {wildpath: {resolutionId}}
+      // Each named target's Miss, Critical hit or Saved floats over its Tokens (floating-text.mts).
+      flags: {wildpath: {resolutionId, floating: floatingOutcomes(view)}}
     });
     return {ok: true, posted: true, message};
   };
+}
+
+const FLOATED = new Set<string>([CHAT_OUTCOME_KEYS.miss, CHAT_OUTCOME_KEYS.critical, CHAT_OUTCOME_KEYS.saveSuccess]);
+
+/** The outcomes that float over targets: a named target's Miss, Critical hit or Saved (hidden targets have no uuid). */
+export function floatingOutcomes(view: ReturnType<typeof createResolutionCardViewModel>) {
+  return view.targets.flatMap(target => (target.uuid ? [target.attack, target.save] : [])
+    .flatMap(outcome => (outcome && FLOATED.has(outcome.label) ? [{uuid: target.uuid!, label: outcome.label}] : [])));
 }
 
 // Foundry globals are untyped here; this is the only place they are read.

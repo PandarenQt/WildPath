@@ -34,6 +34,22 @@ model through `actionBarContext` (`helpers/action-bar-context.mts`).
 - **Use:** a click calls the real `Item.use()`, so the authority decides everything.
 - **Updates:** it re-renders when that creature, its Items or its effects change.
 
+**Floating combat text (2026-10-14, after Baldur's Gate 3).** What happens to a creature rises over its visible
+Tokens on every client (`module/applications/floating-text.mts`), with Foundry's scrolling text:
+- **Health:**
+  - Damage shows as "−8" in red, healing as "+3" in green.
+  - The client making the change records it in the update's options in `WildPathActor#_preUpdate`, and every
+    client floats it in `_onUpdate`. That covers unlinked Tokens, whose update reaches each client through
+    their delta, and a GM's edit on the sheet.
+- **Outcomes:**
+  - A named target's Miss, Critical hit or Saved floats on each client that can see the card. The card carries
+    them as `flags.wildpath.floating`.
+  - A blind card floats only for the GM.
+  - Foundry already floats a condition's name when it is added or removed.
+
+Live (two browsers): Player1's client floated "−8" over QA Caster when the Bandit Captain hit. It floated "−13"
+over the Captain, an unlinked Token, when Fire Bolt hit, and "Miss" when Fire Bolt missed.
+
 **Odds before acting (2026-10-14, after Baldur's Gate 3).** With targets chosen, each attack and save Action on
 the bar shows the odds as a badge, and one line per target in its tooltip:
 - an attack: the chance to hit, as "+4 vs AC 15, disadvantage";
@@ -53,9 +69,6 @@ Area and self Actions show none. Who sees them:
 
 The bar refreshes when the user's targets change, when a creature moves, when a target's effects change, and when
 the house rule changes.
-
-Odds are a display, not a secret: every client holds the creatures' data, so a determined player could read AC
-from the console.
 
 Live (two browsers):
 - The GM saw Fire Bolt at 25% against the Bandit Captain (+4 vs AC 15, disadvantage from Prone) and a Wits save
