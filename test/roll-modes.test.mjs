@@ -7,11 +7,13 @@ import {rollModesFromRuleElements, validateRuleElementDefinition} from "../modul
 const condition = id => ({ruleElements: WILDPATH.CONDITIONS[id].ruleElements});
 const modes = (owners, domains, context={}) => rollModesFromRuleElements(owners, {domains, context}).map(entry => entry.mode);
 
-test("2024: any advantage and any disadvantage cancel, however many of each", () => {
+test("advantage and disadvantage cancel source for source; the larger count wins", () => {
   assert.equal(combineRollModes([]), "normal");
   assert.equal(combineRollModes(["advantage", "advantage"]), "advantage");
   assert.equal(combineRollModes([{mode: "disadvantage"}]), "disadvantage");
-  assert.equal(combineRollModes(["advantage", "advantage", "disadvantage"]), "normal");
+  assert.equal(combineRollModes(["advantage", "disadvantage"]), "normal");
+  assert.equal(combineRollModes(["advantage", "advantage", "disadvantage"]), "advantage");
+  assert.equal(combineRollModes(["disadvantage", "advantage", "disadvantage"]), "disadvantage");
 });
 
 test("a RollMode RuleElement names its mode and domains, and contributes only to requested domains", () => {
@@ -39,8 +41,11 @@ test("2024 Blinded, Restrained, Poisoned, Stunned and Unconscious advantage and 
   assert.deepEqual(modes([condition("poisoned")], ["check"]), ["disadvantage"]);
   assert.deepEqual(modes([condition("stunned")], ["attacked"]), ["advantage"]);
   assert.deepEqual(modes([condition("unconscious")], ["attacked"]), ["advantage"]);
-  // A Poisoned attacker against a Blinded target: one of each, so a normal roll.
+  // A Poisoned attacker against a Blinded target: one of each, so a normal roll; a Blinded and Poisoned
+  // attacker against a Blinded target has two disadvantages to one advantage.
   assert.equal(combineRollModes([...modes([condition("poisoned")], ["attack"]), ...modes([condition("blinded")], ["attacked"])]), "normal");
+  assert.equal(combineRollModes([...modes([condition("poisoned"), condition("blinded")], ["attack"]),
+    ...modes([condition("blinded")], ["attacked"])]), "disadvantage");
 });
 
 test("an advantage d20 request rolls 2d20 and keeps the higher", () => {

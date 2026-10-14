@@ -129,14 +129,20 @@ resolved by the owning rules domains before the `RollRequest` is created.
   `attacked.<type>`).
 - **Saving throws.** Each target uses its own modes for the save it makes (`save`, `save.<ability>`), keyed
   by Token.
-- **Combining.** `combineRollModes` applies the 2024 rule: any advantage and any disadvantage cancel,
-  however many of each.
+- **Combining.** Advantage and disadvantage cancel source for source (maintainer decision, 2026-10-14,
+  in place of the 2024 rule that any one of each cancels). More sources of advantage than of disadvantage
+  give advantage, more of disadvantage give disadvantage, and an equal count gives a normal roll
+  (`combineRollModes`).
 - **Rolling.** The `RollRequest` carries the result as `rollMode`, so a digital roll is `2d20kh`/`2d20kl`
   and the kept die is the natural result.
 - **Physical dice.** The prompt tells a physical roller to roll two d20s and enter the higher or the lower.
 
-Live (two browsers, 14.369): Player1's Melee Strike on a Prone goblin standing next to them rolled
-`2d20kh` (2 discarded, 10 kept), hit AC 5, and dealt 2.
+Live (two browsers, 14.369):
+- Player1's Melee Strike on a Prone goblin standing next to them rolled `2d20kh` (2 discarded, 10 kept),
+  hit AC 5, and dealt 2.
+- A Blinded and Poisoned attacker struck a Blinded goblin: two disadvantages against one advantage. The
+  roll was `2d20kl` (11 kept, 12 discarded). The strike was imported from the WildPath Actions
+  compendium.
 
 ## Future Compatibility
 

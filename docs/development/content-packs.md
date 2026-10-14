@@ -26,6 +26,11 @@ Foundry's Compendium Packs sidebar tab.
 - **Quench** (`wildpath.documents`): the loaded pack's Actions import onto an Actor with valid definitions.
   The case skips until the world has been launched with the pack.
 
+Live (14.369, after the maintainer relaunched the world):
+- Both clients list the localized "WildPath Actions" with its nine entries.
+- The Quench import case passed.
+- Player1 imported Melee Strike from the pack and hit with it through `Item.use()`.
+
 ## WildPath Actions
 
 Mechanical data only, with no descriptions (AGENTS §22). Item names are functional labels, for the

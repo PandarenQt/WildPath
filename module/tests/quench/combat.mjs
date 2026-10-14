@@ -217,6 +217,16 @@ export function registerCombatTests(quench) {
         assert.equal(live.actor.getResource("action").value,1,"Recovery and trigger dispatch must occur in the same managed turn start");
       });
 
+      it("Envenomed stacks, and each stack deals 1 poison when its creature's turn starts", async function () {
+        const enc = await encounter({name:"envenomed"});
+        await begin(enc);
+        await enc.actor.toggleCondition("envenomed",{levels:2});
+        const effect = await enc.actor.toggleCondition("envenomed");
+        assert.equal(effect.system.level,3,"A third application is a third stack");
+        await advance(enc);
+        assert.equal(liveToken(enc).actor.getResource("health").value,7,"Three stacks deal 3 at turn start");
+      });
+
       /** A feature whose automatic Trigger deals `amount` poison to its owner on `event` (optionally gated). */
       function stingFeature(actor, {event, amount, predicate=null}) {
         return fixtures.createItem(actor, {name:`sting on ${event}`, system:{ruleElements:[{id:"sting", type:"Trigger", data:{

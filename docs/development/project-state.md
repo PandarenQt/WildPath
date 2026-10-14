@@ -167,11 +167,15 @@ real Foundry grids. Slice 5 done: lasting areas, auras and hazards, per the main
   - Prone, including within 5 ft and beyond;
   - Blinded, Restrained (and its Agility saves), Poisoned, Stunned and Unconscious.
 
+  Advantage and disadvantage cancel source for source (maintainer decision). Poisoned's old damage each
+  turn is now Envenomed, a stacking poison condition built from a reusable damage-over-time structure.
+
   Still to do for conditions:
   - incapacitation, automatic save failures and automatic critical hits;
   - Speed 0;
-  - Exhaustion's d20 and Speed penalties, which need a condition-level value;
-  - removing Poisoned's legacy damage per turn, which needs the maintainer's decision.
+  - Exhaustion's d20 and Speed penalties.
+
+  The pack loads live after the relaunch.
 
 **M5 — progression (in progress, 2026-10-14).** The missing-primitive test is
 [progression-primitives.md](progression-primitives.md). Done, each verified in Quench and most in two

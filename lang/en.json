@@ -58,7 +58,8 @@
       "Unconscious": "Unconscious",
       "Exhaustion": "Exhaustion",
       "Poisoned": "Poisoned",
-      "Bleeding": "Bleeding"
+      "Bleeding": "Bleeding",
+      "Envenomed": "Envenomed"
     },
     "PROMPT": {
       "Confirm": "Confirm",

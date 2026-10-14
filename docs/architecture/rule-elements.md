@@ -256,6 +256,16 @@ Its predicate sees `attack.type` and `attack.adjacent` (the attacker within 5 ft
 5 ft, disadvantage beyond" is two RollModes. The 2024 conditions are authored this way in
 `WILDPATH.CONDITIONS` (rolls.md, "Advantage / Disadvantage and Modifiers").
 
+**Damage over time.** `damageOverTimeCondition({id, damageType, amount, stacking})` in `module/config.mjs`
+builds a condition whose `Trigger` deals `amount` damage of `damageType` at the start of each of its
+creature's turns. A stacking condition deals that amount once per stack (`effect.system.level`), and each
+application adds a stack.
+- **Envenomed** is poison and stacks. It is Poisoned's former damage, kept by the maintainer on 2026-10-14.
+- **Bleeding** is bleeding damage and does not stack.
+
+Another damage type is one more entry. Poisoned is now the 2024 condition only: disadvantage on attack
+rolls and ability checks, and no damage.
+
 ```js
 {type: "RollMode", predicate: {equals: {path: "attack.adjacent", value: true}},
   data: {domains: ["attacked"], mode: "advantage"}}

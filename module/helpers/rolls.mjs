@@ -853,15 +853,15 @@ function formulaFromValueExpression(expression) {
 }
 
 /**
- * The 2024 rule: any advantage and any disadvantage cancel, however many of each; otherwise one of them, or
- * a normal roll. `modes` are mode strings or `{mode}` entries.
+ * Advantage and disadvantage cancel source for source (maintainer decision, 2026-10-14): more sources of
+ * advantage than of disadvantage give advantage, more of disadvantage give disadvantage, and an equal count
+ * a normal roll. `modes` are mode strings or `{mode}` entries, one per source.
  */
 export function combineRollModes(modes=[]) {
-  const present = new Set(modes.map(entry => normalizeRollMode(entry?.mode ?? entry)));
-  const advantage = present.has(ROLL_MODES.ADVANTAGE);
-  const disadvantage = present.has(ROLL_MODES.DISADVANTAGE);
-  if ( advantage === disadvantage ) return ROLL_MODES.NORMAL;
-  return advantage ? ROLL_MODES.ADVANTAGE : ROLL_MODES.DISADVANTAGE;
+  const balance = modes.map(entry => normalizeRollMode(entry?.mode ?? entry))
+    .reduce((sum, mode) => sum + (mode === ROLL_MODES.ADVANTAGE ? 1 : mode === ROLL_MODES.DISADVANTAGE ? -1 : 0), 0);
+  if ( balance === 0 ) return ROLL_MODES.NORMAL;
+  return balance > 0 ? ROLL_MODES.ADVANTAGE : ROLL_MODES.DISADVANTAGE;
 }
 
 function formulaForDieTerm(die, rollMode) {

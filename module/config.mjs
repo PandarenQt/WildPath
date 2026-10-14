@@ -128,6 +128,20 @@ const rollMode = (id, domains, mode, predicate=null) => ({schemaVersion: 1, id: 
   label: id, ...(predicate ? {predicate} : {}), data: {domains, mode}});
 const adjacent = value => ({equals: {path: "attack.adjacent", value}});
 
+/**
+ * A damage-over-time condition: at the start of each of its turns the creature takes `amount` damage of
+ * `damageType`, times its stacks when the condition stacks (each application adds a stack). Envenomed
+ * (poison) and Bleeding are built this way; another damage type is one more entry.
+ */
+function damageOverTimeCondition({id, name, img, damageType, amount=1, stacking=true, maxLevel, label}) {
+  const perTurn = stacking ? {type: "multiply", terms: [{type: "context", path: "effect.system.level"}, {type: "constant", value: amount}]}
+    : {type: "constant", value: amount};
+  return {id, name, img, ...(stacking ? {stacking: true} : {}), ...(maxLevel ? {maxLevel} : {}),
+    ruleElements: [{schemaVersion: 1, id: `condition.${id}.turn-start-damage`, type: "Trigger", label: label ?? `${id} turn damage`,
+      data: {event: "turn.started", payload: {type: "durabilityChange", changeType: "damage", resourceId: "health",
+        amount: perTurn, damageType, tags: ["condition", id, "periodic"]}}}]};
+}
+
 // The 2024 conditions' advantage and disadvantage (maintainer decision, 2026-10-14: 2024 rules). Not yet:
 // incapacitation, automatic failures and critical hits, Speed 0, and Exhaustion's d20 and Speed penalties.
 WILDPATH.CONDITIONS = {
@@ -183,33 +197,14 @@ WILDPATH.CONDITIONS = {
     id: "poisoned",
     name: "WILDPATH.CONDITIONS.Poisoned",
     img: "icons/svg/poison.svg",
-    ruleElements: [rollMode("poisoned.own-rolls", ["attack", "check"], "disadvantage")],
-    generator: (actor, {amount=1}={}) => ({
-      dot: [{resource: "health", amount, restoration: false}]
-    })
+    ruleElements: [rollMode("poisoned.own-rolls", ["attack", "check"], "disadvantage")]
   },
-  bleeding: {
-    id: "bleeding",
-    name: "WILDPATH.CONDITIONS.Bleeding",
-    img: "icons/skills/wounds/blood-spurt-spray-red.webp",
-    ruleElements: [{
-      schemaVersion: 1,
-      id: "condition.bleeding.turn-start-damage",
-      type: "Trigger",
-      label: "Bleeding Turn Damage",
-      data: {
-        event: "turn.started",
-        payload: {
-          type: "durabilityChange",
-          changeType: "damage",
-          resourceId: "health",
-          amount: {type: "constant", value: 1},
-          damageType: "bleeding",
-          tags: ["condition", "bleeding", "periodic"]
-        }
-      }
-    }]
-  }
+  // Poisoned's former damage each turn, kept by the maintainer (2026-10-14) as its own stacking condition.
+  envenomed: damageOverTimeCondition({id: "envenomed", name: "WILDPATH.CONDITIONS.Envenomed",
+    img: "icons/skills/wounds/blood-cells-disease-green.webp", damageType: "poison", label: "Envenomed Turn Damage"}),
+  bleeding: damageOverTimeCondition({id: "bleeding", name: "WILDPATH.CONDITIONS.Bleeding",
+    img: "icons/skills/wounds/blood-spurt-spray-red.webp", damageType: "bleeding", stacking: false,
+    label: "Bleeding Turn Damage"})
 };
 
 /* -------------------------------------------- */

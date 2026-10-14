@@ -86,6 +86,20 @@ test("Bleeding condition plans turn-start damage through persisted Trigger RuleE
   assert.equal(system.resources.health.value, 10);
 });
 
+test("Envenomed stacks: each stack deals 1 poison at turn start, and 2024 Poisoned deals no damage", () => {
+  const envenomed = conditionEffect({id: "effect-envenomed", conditionId: "envenomed",
+    ruleElements: WILDPATH.CONDITIONS.envenomed.ruleElements});
+  envenomed.system.level = 3;
+  const result = planConditionTriggerConsequences({actor: actor("actor-a"), actorSystem: actorSystem({health: 10}),
+    effects: [envenomed, conditionEffect({id: "effect-poisoned", conditionId: "poisoned",
+      ruleElements: WILDPATH.CONDITIONS.poisoned.ruleElements})], events: [turnStart("actor-a")]});
+  assert.equal(WILDPATH.CONDITIONS.envenomed.stacking, true);
+  assert.equal(WILDPATH.CONDITIONS.poisoned.generator, undefined);
+  assert.equal(result.ok, true, JSON.stringify(result.failures));
+  assert.deepEqual(result.dispatches.map(dispatch => dispatch.triggerId), ["condition.envenomed.turn-start-damage"]);
+  assert.deepEqual(result.mutationPlans[0].updates, {"system.resources.health.value": 7});
+});
+
 test("condition Trigger RuleElements ignore other actors' turn-start events", () => {
   const result = planConditionTriggerConsequences({
     actor: actor("actor-a"),
