@@ -125,14 +125,14 @@ module packages**. `scripts/content/convert-dnd5e-module.mjs <module-id> --srd <
 - **Enabling them.** Foundry lists a new module only after it scans packages again: return to setup, launch the
   world, and enable the packages under Manage Modules.
 
-Converted on 2026-10-14 (dnd5e 6.0.2 data):
+Converted on 2026-10-14 (dnd5e 6.0.2 data), as of the conditions track (G2):
 
 | Package | Items: automated / manual / features | Creatures |
 | --- | --- | --- |
-| Player's Handbook (2.1.0) | 204 / 547 / 409 | 127 |
-| Dungeon Master's Guide (2.0.0) | 79 / 167 / 52 | 71 |
-| Monster Manual (1.3.0) | 291 / 327 / 134 | 504 |
-| Tasha's Cauldron of Everything (3.0.0, 2014 rules) | 53 / 184 / 194 | 124 |
+| Player's Handbook (2.1.0) | 264 / 487 / 409 | 127 |
+| Dungeon Master's Guide (2.0.0) | 82 / 164 / 52 | 71 |
+| Monster Manual (1.3.0) | 425 / 193 / 134 | 504 |
+| Tasha's Cauldron of Everything (3.0.0, 2014 rules) | 65 / 176 / 190 | 124 |
 
 Each package was read back with the Foundry CLI, and every art path resolves on disk. They have not been opened
 in Foundry yet; that waits for the next world launch.

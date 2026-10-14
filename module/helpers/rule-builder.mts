@@ -14,7 +14,7 @@ export interface RuleError {field: string; key: string; data: Record<string, str
 export interface RuleOptions {abilities?: readonly string[] | null}
 
 const TYPE_OF_KIND: Record<string, string> = {bonus: "Modifier", rollMode: "RollMode", resistance: "GrantResistance",
-  immunity: "GrantImmunity", speed: "GrantMovement", resource: "GrantResource", extraDamage: "ExtraDamage", aura: "Aura"};
+  immunity: "GrantImmunity", vulnerability: "GrantVulnerability", conditionImmunity: "ConditionImmunity", speed: "GrantMovement", resource: "GrantResource", extraDamage: "ExtraDamage", aura: "Aura"};
 const KIND_OF_TYPE: Record<string, string> = Object.fromEntries(Object.entries(TYPE_OF_KIND).map(([kind, type]) => [type, kind]));
 
 /** The kinds a row can be; an aura's own rules can be any but another aura. */
@@ -89,6 +89,7 @@ function ruleToRow(rule: Data, abilities: readonly string[]): Data {
     modifierType: data.modifierType ?? "untyped",
     mode: data.mode ?? (kind === "speed" ? "walk" : "advantage"),
     damageTypes: listText(data.damageTypes ?? data.types ?? data.damageType),
+    conditions: listText(data.conditions),
     distance: number(data.distance ?? data.value),
     resourceId: data.resourceId ?? data.resource ?? "",
     resourceLabel: data.label ?? "",
@@ -118,6 +119,8 @@ export function defaultRule(kind: string, id: string): Data {
     case "rollMode": return rule({domains: ["attack"], mode: "advantage"});
     case "resistance": return rule({damageTypes: ["fire"]});
     case "immunity": return rule({damageTypes: ["poison"]});
+    case "vulnerability": return rule({damageTypes: ["bludgeoning"]});
+    case "conditionImmunity": return rule({conditions: ["charmed"]});
     case "speed": return rule({mode: "fly", distance: 30});
     case "resource": return rule({resourceId: "points", label: "Points", maximum: 1, recovery: "longRest"});
     case "extraDamage": return rule({domains: ["damage.melee"], expression: {type: "dice", number: 1, faces: 6}, damageType: "fire", once: "turn"});
@@ -188,8 +191,12 @@ function writeRule(stored: Data | undefined, row: Data, model: Data | undefined,
     case "rollMode":
       if ( changed("mode") ) set("mode", row.mode === "disadvantage" ? "disadvantage" : "advantage");
       break;
+    case "conditionImmunity":
+      if ( changed("conditions") ) set("conditions", listOf(row.conditions));
+      break;
     case "resistance":
     case "immunity":
+    case "vulnerability":
       if ( changed("damageTypes") ) {
         set("types", undefined);
         set("damageType", undefined);
@@ -278,7 +285,8 @@ export function removeRule(rules: unknown, index: number, path: readonly number[
 }
 
 /** Handlers that read nothing but their own data, so they can be tried while editing. */
-const CONTEXT_FREE = new Set(["Modifier", "RollMode", "GrantResistance", "GrantImmunity", "ExtraDamage", "Aura", "RollOutcome"]);
+const CONTEXT_FREE = new Set(["Modifier", "RollMode", "GrantResistance", "GrantImmunity", "GrantVulnerability", "ConditionImmunity",
+  "ExtraDamage", "Aura", "RollOutcome"]);
 
 /**
  * What is wrong with a list of RuleElements, one message per rule: its shape, an unknown type, or what the rule's

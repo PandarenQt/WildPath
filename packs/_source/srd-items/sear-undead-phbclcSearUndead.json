@@ -18,6 +18,53 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "emanation",
+        "size": {
+          "value": 30,
+          "unit": "ft"
+        }
+      },
+      "save": {
+        "ability": "wits",
+        "dc": {
+          "valueExpression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 8
+              },
+              {
+                "type": "proficiency-bonus"
+              },
+              {
+                "type": "spellcasting-modifier"
+              }
+            ]
+          }
+        }
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "frightened",
+          "saveOutcomePolicy": "failure"
+        },
+        {
+          "id": "effect-2",
+          "type": "condition",
+          "conditionId": "incapacitated",
+          "saveOutcomePolicy": "failure"
+        }
+      ],
       "label": "Sear Undead"
     },
     "ruleElements": []
@@ -35,12 +82,8 @@
       },
       "conversion": {
         "notes": [
-          "not automated (save): using it spends its cost; its description says the rest",
           "consumption: itemUses 1 not converted",
-          "damage 1: custom formula \"(@abilities.wis.mod)d8\" not converted",
-          "effect: frightened is not a WildPath condition yet",
-          "effect: incapacitated is not a WildPath condition yet",
-          "consumption: itemUses 1 not converted"
+          "damage 1: custom formula \"(@abilities.wis.mod)d8\" not converted"
         ]
       }
     }

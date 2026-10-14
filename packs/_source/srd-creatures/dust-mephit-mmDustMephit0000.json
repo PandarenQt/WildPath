@@ -331,6 +331,38 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 60,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "radial",
+            "size": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "value": 10
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "incapacitated",
+              "saveOutcomePolicy": "failure",
+              "concentration": true
+            }
+          ],
           "configuration": [
             {
               "id": "spell-slot",
@@ -425,11 +457,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "effect: incapacitated is not a WildPath condition yet",
-              "concentration: nothing it sustains was converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -451,6 +479,27 @@
             "data": {
               "damageTypes": [
                 "poison"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "vulnerabilities",
+            "type": "GrantVulnerability",
+            "data": {
+              "damageTypes": [
+                "fire"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "exhaustion",
+                "poisoned"
               ]
             }
           },
@@ -490,12 +539,7 @@
         "notes": [
           "Death Burst: \"save\" is passive or triggered: not automated",
           "Blinding Breath: uses: Recharge 6 is not rolled; refill the pool by hand",
-          "Sleep: not automated (cast): using it spends its cost; its description says the rest",
-          "Sleep: not automated (save): using it spends its cost; its description says the rest",
-          "Sleep: effect: incapacitated is not a WildPath condition yet",
-          "Sleep: concentration: nothing it sustains was converted",
-          "vulnerabilities (fire) not converted",
-          "condition immunities (exhaustion, poisoned) not converted"
+          "Sleep: not automated (cast): using it spends its cost; its description says the rest"
         ]
       }
     }

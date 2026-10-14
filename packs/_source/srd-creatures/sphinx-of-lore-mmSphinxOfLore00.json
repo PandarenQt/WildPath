@@ -284,6 +284,14 @@
               }
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "incapacitated",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "label": "Mind-Rending Roar"
         },
         "ruleElements": [
@@ -316,8 +324,7 @@
           },
           "conversion": {
             "notes": [
-              "uses: Recharge 5–6 is not rolled; refill the pool by hand",
-              "effect: incapacitated is not a WildPath condition yet"
+              "uses: Recharge 5–6 is not rolled; refill the pool by hand"
             ]
           }
         }
@@ -1954,6 +1961,17 @@
           },
           {
             "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "charmed",
+                "frightened"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
             "id": "speed-fly",
             "type": "GrantMovement",
             "data": {
@@ -2000,7 +2018,6 @@
           "Legendary Resistance: \"Expend Use\" is passive or triggered: not automated",
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
           "Mind-Rending Roar: uses: Recharge 5–6 is not rolled; refill the pool by hand",
-          "Mind-Rending Roar: effect: incapacitated is not a WildPath condition yet",
           "Spellcasting: not automated (cast): using it spends its cost; its description says the rest",
           "Spellcasting: consumption: activityUses 1 not converted",
           "Detect Magic: not automated (utility): using it spends its cost; its description says the rest",
@@ -2021,8 +2038,7 @@
           "Tongues: not automated (utility): using it spends its cost; its description says the rest",
           "Tongues: effect: \"Universal Communication\" (its own changes) not converted",
           "Arcane Prowl: not automated (utility): using it spends its cost; its description says the rest",
-          "Weight of Years: \"Years Older\" is passive or triggered: not automated",
-          "condition immunities (charmed, frightened) not converted"
+          "Weight of Years: \"Years Older\" is passive or triggered: not automated"
         ]
       }
     }

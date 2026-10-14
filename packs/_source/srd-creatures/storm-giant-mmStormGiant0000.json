@@ -265,6 +265,11 @@
               "id": "effect-1",
               "type": "condition",
               "conditionId": "blinded"
+            },
+            {
+              "id": "effect-2",
+              "type": "condition",
+              "conditionId": "deafened"
             }
           ],
           "label": "Thunderbolt"
@@ -283,9 +288,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: deafened is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -915,7 +918,6 @@
       "conversion": {
         "notes": [
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Thunderbolt: effect: deafened is not a WildPath condition yet",
           "Lightning Storm: uses: Recharge 5–6 is not rolled; refill the pool by hand",
           "Lightning Storm: area: a cylinder's height is not modeled",
           "Spellcasting: not automated (cast): using it spends its cost; its description says the rest",

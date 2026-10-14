@@ -17,8 +17,9 @@ import {evaluateValueExpression} from "../../module/helpers/value-expressions.mj
 /** dnd5e ability keys to WildPath's. */
 export const ABILITY_MAP = Object.freeze({str: "might", dex: "agility", con: "fortitude", int: "intellect", wis: "wits", cha: "presence"});
 /** dnd5e statuses WildPath has conditions for. */
-const CONDITION_MAP = Object.freeze({prone: "prone", blinded: "blinded", restrained: "restrained", stunned: "stunned",
-  unconscious: "unconscious", poisoned: "poisoned", exhaustion: "exhaustion"});
+const CONDITION_MAP = Object.freeze(Object.fromEntries(["prone", "blinded", "restrained", "stunned", "unconscious", "poisoned",
+  "exhaustion", "charmed", "deafened", "frightened", "grappled", "incapacitated", "invisible", "paralyzed", "petrified", "dead"]
+  .map(id => [id, id])));
 const ACTIVATION_COST = Object.freeze({action: "action", bonus: "bonus-action", reaction: "reaction", legendary: "legendary-action"});
 const RECOVERY = Object.freeze({lr: "longRest", sr: "shortRest", turn: "turn", turnStart: "turn", round: "turn"});
 const ACTIVITIES = new Set(["attack", "save", "damage", "heal", "utility"]);
@@ -588,8 +589,13 @@ function traitRules(system, notes) {
   const types = trait => [...(traits[trait]?.value ?? [])];
   if ( types("dr").length ) rules.push({schemaVersion: 1, id: "resistances", type: "GrantResistance", data: {damageTypes: types("dr")}});
   if ( types("di").length ) rules.push({schemaVersion: 1, id: "immunities", type: "GrantImmunity", data: {damageTypes: types("di")}});
-  if ( types("dv").length ) notes.push(`vulnerabilities (${types("dv").join(", ")}) not converted`);
-  if ( types("ci").length ) notes.push(`condition immunities (${types("ci").join(", ")}) not converted`);
+  if ( types("dv").length ) rules.push({schemaVersion: 1, id: "vulnerabilities", type: "GrantVulnerability", data: {damageTypes: types("dv")}});
+  const conditions = types("ci").filter(id => CONDITION_MAP[id]);
+  if ( conditions.length ) rules.push({schemaVersion: 1, id: "condition-immunities", type: "ConditionImmunity",
+    data: {conditions: conditions.map(id => CONDITION_MAP[id])}});
+  if ( conditions.length < types("ci").length ) {
+    notes.push(`condition immunities (${types("ci").filter(id => !CONDITION_MAP[id]).join(", ")}) not converted`);
+  }
   if ( ["dr", "di"].some(trait => traits[trait]?.bypasses?.length) ) notes.push("resistances that magic or silvered weapons bypass are kept whole");
   for ( const mode of SPEEDS ) {
     const distance = number(system.attributes?.movement?.[mode]);

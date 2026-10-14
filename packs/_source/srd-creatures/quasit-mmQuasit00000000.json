@@ -226,6 +226,26 @@
               }
             ]
           },
+          "range": {
+            "type": "touch",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "invisible",
+              "concentration": true
+            }
+          ],
           "configuration": [
             {
               "id": "spell-slot",
@@ -294,7 +314,14 @@
                 "spell-slot.8": 8,
                 "spell-slot.9": 9
               },
-              "effects": []
+              "effects": [
+                {
+                  "type": "scaleTargets",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 2,
+                  "perLevel": 1
+                }
+              ]
             }
           ],
           "label": "Invisibility"
@@ -313,11 +340,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "effect: invisible is not a WildPath condition yet",
-              "concentration: nothing it sustains was converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -392,6 +415,32 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 20,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "value": 10
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "frightened",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "label": "Scare"
         },
         "ruleElements": [
@@ -423,10 +472,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "effect: frightened is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -462,6 +508,16 @@
                 "poison"
               ]
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "poisoned"
+              ]
+            }
           }
         ]
       },
@@ -489,16 +545,10 @@
       "conversion": {
         "notes": [
           "Invisibility: not automated (cast): using it spends its cost; its description says the rest",
-          "Invisibility: not automated (utility): using it spends its cost; its description says the rest",
-          "Invisibility: effect: invisible is not a WildPath condition yet",
-          "Invisibility: concentration: nothing it sustains was converted",
           "Shape-Shift: not automated (utility): using it spends its cost; its description says the rest",
           "Shape-Shift: effect: \"Bat Form\" (its own changes) not converted",
           "Shape-Shift: effect: \"Centipede Form\" (its own changes) not converted",
-          "Shape-Shift: effect: \"Toad Form\" (its own changes) not converted",
-          "Scare: not automated (save): using it spends its cost; its description says the rest",
-          "Scare: effect: frightened is not a WildPath condition yet",
-          "condition immunities (poisoned) not converted"
+          "Shape-Shift: effect: \"Toad Form\" (its own changes) not converted"
         ]
       }
     }

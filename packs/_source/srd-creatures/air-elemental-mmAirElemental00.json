@@ -338,6 +338,23 @@
           },
           {
             "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "exhaustion",
+                "grappled",
+                "paralyzed",
+                "petrified",
+                "poisoned",
+                "prone",
+                "restrained",
+                "unconscious"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
             "id": "speed-fly",
             "type": "GrantMovement",
             "data": {
@@ -371,8 +388,7 @@
       "conversion": {
         "notes": [
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Whirlwind: uses: Recharge 4–6 is not rolled; refill the pool by hand",
-          "condition immunities (exhaustion, grappled, paralyzed, petrified, poisoned, prone, restrained, unconscious) not converted"
+          "Whirlwind: uses: Recharge 4–6 is not rolled; refill the pool by hand"
         ]
       }
     }

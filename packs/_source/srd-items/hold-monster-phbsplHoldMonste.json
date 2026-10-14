@@ -21,6 +21,47 @@
           }
         ]
       },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 90,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "save": {
+        "ability": "wits",
+        "dc": {
+          "valueExpression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 8
+              },
+              {
+                "type": "proficiency-bonus"
+              },
+              {
+                "type": "spellcasting-modifier"
+              }
+            ]
+          }
+        }
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "paralyzed",
+          "saveOutcomePolicy": "failure",
+          "concentration": true
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -68,7 +109,14 @@
             "spell-slot.8": 8,
             "spell-slot.9": 9
           },
-          "effects": []
+          "effects": [
+            {
+              "type": "scaleTargets",
+              "levelChoiceId": "spell-slot",
+              "baseLevel": 5,
+              "perLevel": 1
+            }
+          ]
         }
       ],
       "label": "Hold Monster"
@@ -87,11 +135,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (save): using it spends its cost; its description says the rest",
-          "effect: paralyzed is not a WildPath condition yet",
-          "concentration: nothing it sustains was converted"
-        ]
+        "notes": []
       }
     }
   }

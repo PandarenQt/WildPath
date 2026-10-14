@@ -269,6 +269,18 @@
                 "poison"
               ]
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "charmed",
+                "exhaustion",
+                "poisoned"
+              ]
+            }
           }
         ]
       },
@@ -296,8 +308,7 @@
       "conversion": {
         "notes": [
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Claw: \"save\" is passive or triggered: not automated",
-          "condition immunities (charmed, exhaustion, poisoned) not converted"
+          "Claw: \"save\" is passive or triggered: not automated"
         ]
       }
     }

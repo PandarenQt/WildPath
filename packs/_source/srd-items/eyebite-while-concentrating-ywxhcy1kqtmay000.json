@@ -64,6 +64,13 @@
         {
           "id": "effect-2",
           "type": "condition",
+          "conditionId": "frightened",
+          "saveOutcomePolicy": "failure",
+          "concentration": true
+        },
+        {
+          "id": "effect-3",
+          "type": "condition",
           "conditionId": "poisoned",
           "saveOutcomePolicy": "failure",
           "concentration": true
@@ -128,9 +135,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: frightened is not a WildPath condition yet"
-        ]
+        "notes": []
       }
     }
   }

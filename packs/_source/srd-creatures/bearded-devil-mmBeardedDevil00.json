@@ -349,6 +349,17 @@
                 "poison"
               ]
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "frightened",
+                "poisoned"
+              ]
+            }
           }
         ]
       },
@@ -378,8 +389,7 @@
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
           "Infernal Glaive: \"save\" is passive or triggered: not automated",
           "Infernal Glaive: \"Damage: Infernal Wound\" is passive or triggered: not automated",
-          "Infernal Glaive: not automated (check): using it spends its cost; its description says the rest",
-          "condition immunities (frightened, poisoned) not converted"
+          "Infernal Glaive: not automated (check): using it spends its cost; its description says the rest"
         ]
       }
     }

@@ -134,6 +134,14 @@ const INCAPACITATED = ["action", "bonus", "reaction"];
 /** A forced outcome: automatic failure on saves, or hits against the creature becoming critical. */
 const outcome = (id, domains, forced, predicate=null) => ({schemaVersion: 1, id: `condition.${id}`, type: "RollOutcome",
   label: id, ...(predicate ? {predicate} : {}), data: {domains, outcome: forced}});
+/** A RuleElement of `type` with `data`, as a condition gives it. */
+const grant = (id, type, data, predicate=null) => ({schemaVersion: 1, id: `condition.${id}`, type, label: id,
+  ...(predicate ? {predicate} : {}), data});
+/** Gates a rule on the condition's level (2014 Exhaustion): `source` is the condition effect. */
+const atLevels = values => ({oneOf: {path: "source.level", values}});
+/** Half of a resource's own maximum (base plus bonus), rounded down. */
+const half = id => ({type: "divide", round: "floor", denominator: {type: "constant", value: 2}, numerator: {type: "add",
+  terms: [{type: "context", path: `actorSystem.resources.${id}.base`}, {type: "context", path: `actorSystem.resources.${id}.bonus`}]}});
 /** A Modifier scaled by the condition's level (Exhaustion): `perLevel` per level on `domains`. */
 const perLevel = (id, domains, value) => ({schemaVersion: 1, id: `condition.${id}`, type: "Modifier", label: id,
   data: {domains, modifierType: "untyped",
@@ -225,6 +233,70 @@ WILDPATH.CONDITIONS = {
     img: "icons/svg/poison.svg",
     ruleElements: [rollMode("poisoned.own-rolls", ["attack", "check"], "disadvantage")]
   },
+  incapacitated: {
+    id: "incapacitated",
+    name: "WILDPATH.CONDITIONS.Incapacitated",
+    img: "icons/svg/sleep.svg",
+    endsConcentration: true,
+    ruleElements: [cap("incapacitated.no-actions", INCAPACITATED), rollMode("incapacitated.initiative", ["initiative"], "disadvantage")]
+  },
+  paralyzed: {
+    id: "paralyzed",
+    name: "WILDPATH.CONDITIONS.Paralyzed",
+    img: "icons/svg/paralysis.svg",
+    endsConcentration: true,
+    ruleElements: [cap("paralyzed.incapacitated", INCAPACITATED), cap("paralyzed.speed-0", ["movement"]),
+      rollMode("paralyzed.initiative", ["initiative"], "disadvantage"), rollMode("paralyzed.attacked", ["attacked"], "advantage"),
+      outcome("paralyzed.fails-might-agility-saves", ["save.might", "save.agility"], "automatic-failure"),
+      outcome("paralyzed.critical-within-5ft", ["attacked"], "critical-on-hit", adjacent(true))]
+  },
+  petrified: {
+    id: "petrified",
+    name: "WILDPATH.CONDITIONS.Petrified",
+    img: "icons/svg/statue.svg",
+    endsConcentration: true,
+    ruleElements: [cap("petrified.incapacitated", INCAPACITATED), cap("petrified.speed-0", ["movement"]),
+      rollMode("petrified.initiative", ["initiative"], "disadvantage"), rollMode("petrified.attacked", ["attacked"], "advantage"),
+      outcome("petrified.fails-might-agility-saves", ["save.might", "save.agility"], "automatic-failure"),
+      grant("petrified.resists-all-damage", "GrantResistance", {damageTypes: []}),
+      grant("petrified.not-poisoned", "ConditionImmunity", {conditions: ["poisoned"]})]
+  },
+  invisible: {
+    id: "invisible",
+    name: "WILDPATH.CONDITIONS.Invisible",
+    img: "icons/svg/invisible.svg",
+    // shortcut: a creature that can see the invisible (Truesight, See Invisibility) still has disadvantage; upgrade with senses.
+    ruleElements: [rollMode("invisible.own-attacks", ["attack"], "advantage"), rollMode("invisible.attacked", ["attacked"], "disadvantage"),
+      rollMode("invisible.initiative", ["initiative"], "advantage")]
+  },
+  deafened: {
+    id: "deafened",
+    name: "WILDPATH.CONDITIONS.Deafened",
+    img: "icons/svg/deaf.svg",
+    ruleElements: []
+  },
+  frightened: {
+    id: "frightened",
+    name: "WILDPATH.CONDITIONS.Frightened",
+    img: "icons/svg/terror.svg",
+    // shortcut: always on, not only while the source of fear is in sight; moving closer to it is not prevented.
+    ruleElements: [rollMode("frightened.own-rolls", ["attack", "check"], "disadvantage")]
+  },
+  grappled: {
+    id: "grappled",
+    name: "WILDPATH.CONDITIONS.Grappled",
+    img: "icons/svg/anchor.svg",
+    // `attack.fromTarget` holds the conditions the attacker has from its target, so attacking the grappler is free.
+    ruleElements: [cap("grappled.speed-0", ["movement"]), rollMode("grappled.attacks-other-targets", ["attack"], "disadvantage",
+      {not: {equals: {path: "attack.fromTarget.grappled", value: true}}})]
+  },
+  // Charmed has no rules of its own: the authority refuses a harmful Action against the charmer (the effect's source).
+  charmed: {
+    id: "charmed",
+    name: "WILDPATH.CONDITIONS.Charmed",
+    img: "icons/svg/angel.svg",
+    ruleElements: []
+  },
   // Foundry's Defeated status (CONFIG.specialStatusEffects.DEFEATED): a dead creature neither acts nor moves.
   dead: {
     id: "dead",
@@ -239,6 +311,32 @@ WILDPATH.CONDITIONS = {
   bleeding: damageOverTimeCondition({id: "bleeding", name: "WILDPATH.CONDITIONS.Bleeding",
     img: "icons/skills/wounds/blood-spurt-spray-red.webp", damageType: "bleeding", stacking: false,
     label: "Bleeding Turn Damage"})
+};
+
+/**
+ * The 2014 conditions where they differ from the 2024 ones, for worlds playing by the 2014 rules (the
+ * `rulesVersion` setting): no initiative effects, Stunned and Unconscious stop movement, Grappled only stops it,
+ * Petrified is immune to poison, and Exhaustion is the six-level table (death at 6 is the dying rules').
+ */
+const conditions2024 = WILDPATH.CONDITIONS;
+/** A 2024 condition without its initiative rule, plus `added` rules. */
+const as2014 = (id, added=[]) => ({...conditions2024[id],
+  ruleElements: [...conditions2024[id].ruleElements.filter(rule => !rule.id.endsWith(".initiative")), ...added]});
+WILDPATH.CONDITIONS_2014 = {
+  stunned: as2014("stunned", [cap("stunned.speed-0", ["movement"])]),
+  unconscious: as2014("unconscious"),
+  incapacitated: as2014("incapacitated"),
+  paralyzed: as2014("paralyzed"),
+  petrified: as2014("petrified", [grant("petrified.poison-immunity", "GrantImmunity", {damageTypes: ["poison"]})]),
+  invisible: as2014("invisible"),
+  grappled: {...conditions2024.grappled, ruleElements: [cap("grappled.speed-0", ["movement"])]},
+  exhaustion: {...conditions2024.exhaustion, ruleElements: [
+    rollMode("exhaustion.checks", ["check"], "disadvantage"),
+    // shortcut: halving caps every Speed at half the walking Speed's own maximum; upgrade with per-Speed caps.
+    grant("exhaustion.speed-halved", "ResourceCap", {resources: ["movement"], maximum: half("movement")}, atLevels([2, 3, 4])),
+    rollMode("exhaustion.attacks-saves", ["attack", "save"], "disadvantage", atLevels([3, 4, 5, 6])),
+    grant("exhaustion.hit-point-maximum-halved", "ResourceCap", {resources: ["health"], maximum: half("health")}, atLevels([4, 5, 6])),
+    grant("exhaustion.speed-0", "ResourceCap", {resources: ["movement"], maximum: 0}, atLevels([5, 6]))]}
 };
 
 /* -------------------------------------------- */

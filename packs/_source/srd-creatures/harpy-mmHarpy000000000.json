@@ -144,6 +144,39 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "emanation",
+            "size": {
+              "value": 300,
+              "unit": "ft"
+            }
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "value": 11
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "charmed",
+              "saveOutcomePolicy": "failure"
+            },
+            {
+              "id": "effect-2",
+              "type": "condition",
+              "conditionId": "incapacitated",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "label": "Luring Song"
         },
         "ruleElements": []
@@ -160,11 +193,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "effect: charmed is not a WildPath condition yet",
-              "effect: incapacitated is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -212,11 +241,7 @@
         "challenge": 1
       },
       "conversion": {
-        "notes": [
-          "Luring Song: not automated (save): using it spends its cost; its description says the rest",
-          "Luring Song: effect: charmed is not a WildPath condition yet",
-          "Luring Song: effect: incapacitated is not a WildPath condition yet"
-        ]
+        "notes": []
       }
     }
   }

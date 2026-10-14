@@ -427,6 +427,26 @@
           "costs": {
             "allOf": []
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "save": {
+            "ability": "fortitude",
+            "dc": {
+              "value": 13
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "petrified",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "label": "Petrifying Gaze (Second Save)"
         },
         "ruleElements": [
@@ -459,10 +479,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
               "uses: Recharge 5–6 is not rolled; refill the pool by hand",
-              "activation: turnEnd is not an action-economy cost",
-              "effect: petrified is not a WildPath condition yet",
               "activation: turnEnd is not an action-economy cost"
             ]
           }
@@ -486,9 +503,7 @@
         "notes": [
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
           "Petrifying Gaze: uses: Recharge 5–6 is not rolled; refill the pool by hand",
-          "Petrifying Gaze: not automated (save): using it spends its cost; its description says the rest",
-          "Petrifying Gaze: activation: turnEnd is not an action-economy cost",
-          "Petrifying Gaze: effect: petrified is not a WildPath condition yet"
+          "Petrifying Gaze: activation: turnEnd is not an action-economy cost"
         ]
       }
     }

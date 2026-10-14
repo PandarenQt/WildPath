@@ -482,6 +482,34 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "cone",
+            "size": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "value": 14
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "frightened",
+              "saveOutcomePolicy": "failure",
+              "concentration": true
+            }
+          ],
           "configuration": [
             {
               "id": "spell-slot",
@@ -562,11 +590,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "effect: frightened is not a WildPath condition yet",
-              "concentration: nothing it sustains was converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -704,9 +728,6 @@
           "Cold Breath: uses: Recharge 5–6 is not rolled; refill the pool by hand",
           "Freezing Burst: effect: \"0 ft. Speed\" (its own changes) not converted",
           "Frightful Presence: not automated (cast): using it spends its cost; its description says the rest",
-          "Fear: not automated (save): using it spends its cost; its description says the rest",
-          "Fear: effect: frightened is not a WildPath condition yet",
-          "Fear: concentration: nothing it sustains was converted",
           "Pounce: not automated (utility): using it spends its cost; its description says the rest",
           "Pounce: consumption: attribute 1 not converted"
         ]

@@ -451,6 +451,21 @@
                 "psychic"
               ]
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "charmed",
+                "exhaustion",
+                "frightened",
+                "paralyzed",
+                "petrified",
+                "poisoned"
+              ]
+            }
           }
         ]
       },
@@ -478,8 +493,7 @@
       "conversion": {
         "notes": [
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Poison Breath: uses: Recharge 6 is not rolled; refill the pool by hand",
-          "condition immunities (charmed, exhaustion, frightened, paralyzed, petrified, poisoned) not converted"
+          "Poison Breath: uses: Recharge 6 is not rolled; refill the pool by hand"
         ]
       }
     }

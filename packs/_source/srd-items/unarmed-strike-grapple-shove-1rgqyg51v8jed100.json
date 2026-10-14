@@ -48,6 +48,12 @@
         {
           "id": "effect-1",
           "type": "condition",
+          "conditionId": "grappled",
+          "saveOutcomePolicy": "failure"
+        },
+        {
+          "id": "effect-2",
+          "type": "condition",
           "conditionId": "prone",
           "saveOutcomePolicy": "failure"
         }
@@ -69,8 +75,7 @@
       },
       "conversion": {
         "notes": [
-          "save: a choice of str/dex uses str",
-          "effect: grappled is not a WildPath condition yet"
+          "save: a choice of str/dex uses str"
         ]
       }
     }

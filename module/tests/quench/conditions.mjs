@@ -177,6 +177,32 @@ export function registerConditionTests(quench) {
         assert.isTrue(has(tired,"dead"),"Exhaustion 6 is death");
         assert.equal(tired.system.deathSaves.failures,3);
       });
+
+      it("2024 Paralyzed, Petrified and Grappled, and immunity to a condition", async function () {
+        const {commitConditionEffectMutationPlan} = await import("../../resolvers/condition-effect-commit-resolver.mjs");
+        const held = await fixtures.createActor({name:"paralyzed"});
+        await held.toggleCondition("paralyzed");
+        assert.deepEqual(["action","bonus","reaction","movement"].map(id => held.getResource(id).max),[0,0,0,0],"Incapacitated, Speed 0");
+        assert.deepEqual(held.getRollModes(["attacked"]).map(entry => entry.mode),["advantage"]);
+        assert.deepEqual(held.getRollOutcomes(["attacked"],{context:{attack:{adjacent:true}}}).map(entry => entry.outcome),["critical-on-hit"]);
+        assert.lengthOf(held.getRollOutcomes(["attacked"],{context:{attack:{adjacent:false}}}),0,"Critical only within 5 ft");
+        assert.deepEqual(held.getRollOutcomes(["save","save.might"]).map(entry => entry.outcome),["automatic-failure"]);
+
+        const statue = await fixtures.createActor({name:"petrified"});
+        await statue.toggleCondition("petrified");
+        assert.deepEqual(statue.getConditionImmunities(),["poisoned"]);
+        assert.deepEqual(statue.getDamageProfile().resistances.map(entry => entry.damageTypes),[[]],"Resistance to all damage");
+        const result = await commitConditionEffectMutationPlan(statue,{type:"conditionEffect",conditionId:"poisoned",levels:1});
+        assert.isTrue(result.immune,"Immune to Poisoned");
+        assert.isFalse(statue.statuses.has("poisoned"));
+
+        const grappled = await fixtures.createActor({name:"grappled"});
+        await grappled.toggleCondition("grappled");
+        assert.equal(grappled.system.speeds.walk,0);
+        assert.deepEqual(grappled.getRollModes(["attack"],{context:{attack:{fromTarget:{}}}}).map(entry => entry.mode),["disadvantage"],
+          "Disadvantage on attacks against others");
+        assert.lengthOf(grappled.getRollModes(["attack"],{context:{attack:{fromTarget:{grappled:true}}}}),0,"but not against the grappler");
+      });
     });
   }, {displayName:"WILDPATH: Real Foundry Conditions",preSelected:false});
 }

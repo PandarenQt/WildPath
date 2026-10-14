@@ -1307,6 +1307,14 @@
               }
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "incapacitated",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "label": "Banish"
         },
         "ruleElements": []
@@ -1323,9 +1331,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: incapacitated is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -1675,7 +1681,6 @@
           "Zone of Truth: effect: \"Cannot Lie\" (its own changes) not converted",
           "Weakening Breath: not automated (save): using it spends its cost; its description says the rest",
           "Weakening Breath: effect: \"Weakened\" (its own changes) not converted",
-          "Banish: effect: incapacitated is not a WildPath condition yet",
           "Guiding Light: not automated (cast): using it spends its cost; its description says the rest",
           "Guiding Bolt: effect: marked is not a WildPath condition yet",
           "Pounce: not automated (utility): using it spends its cost; its description says the rest",

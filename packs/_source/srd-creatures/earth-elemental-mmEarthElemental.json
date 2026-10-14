@@ -324,6 +324,30 @@
           },
           {
             "schemaVersion": 1,
+            "id": "vulnerabilities",
+            "type": "GrantVulnerability",
+            "data": {
+              "damageTypes": [
+                "thunder"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "exhaustion",
+                "paralyzed",
+                "petrified",
+                "poisoned",
+                "unconscious"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
             "id": "speed-burrow",
             "type": "GrantMovement",
             "data": {
@@ -356,9 +380,7 @@
       },
       "conversion": {
         "notes": [
-          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "vulnerabilities (thunder) not converted",
-          "condition immunities (exhaustion, paralyzed, petrified, poisoned, unconscious) not converted"
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

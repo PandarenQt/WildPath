@@ -112,7 +112,13 @@ test("an attack cantrip, a healing spell and a class feature with uses", () => {
 });
 
 test("what WildPath cannot automate is a manual Action that spends its cost, named, never approximated", () => {
-  const held = convertItem(hold);
+  const paralysis = convertItem(hold);
+  valid(paralysis.items[0]);
+  assert.deepEqual(paralysis.items[0].system.definition.effects, [{id: "effect-1", type: "condition", conditionId: "paralyzed",
+    saveOutcomePolicy: "failure", concentration: true}], "Paralyzed on a failed save, for as long as the caster concentrates");
+
+  const held = convertItem({...hold, _id: "testSilence00001", name: "Test Silence",
+    effects: [{_id: "paralyze", name: "Silenced", statuses: ["silenced"]}]});
   const [manual] = held.items;
   assert.equal(manual.type, "action");
   assert.deepEqual(manual.system.definition.costs, {allOf: [{capability: "action", amount: 1}]}, "it still costs an Action");
@@ -120,7 +126,7 @@ test("what WildPath cannot automate is a manual Action that spends its cost, nam
   assert.equal(manual.system.definition.save, undefined, "but rolls nothing it cannot resolve");
   assert.equal(validateActionDefinition(manual.system.definition).ok, true);
   assert.match(held.notes[0], /^not automated/);
-  assert.ok(held.notes.includes("effect: paralyzed is not a WildPath condition yet"));
+  assert.ok(held.notes.includes("effect: silenced is not a WildPath condition yet"));
 
   const tripped = convertItem(trip);
   valid(tripped.items[0]);
@@ -173,6 +179,13 @@ test("a creature: proficient saves, its stat block's text with its numbers, and 
   assert.equal(byName("Multiattack").system.description, "<p>The bandit captain makes two attacks, using Scimitar.</p>");
   assert.equal(byName("Pack Tactics").type, "feature", "a passive ability is a feature with its text");
   assert.equal(byName("Pack Tactics").system.description, "<p>Advantage.</p>");
+
+  const golem = convertActor({...captain, _id: "golem00000000001", name: "Golem", items: [], system: {...captain.system,
+    traits: {size: "lg", dv: {value: ["thunder"]}, ci: {value: ["charmed", "petrified", "diseased"]}}}});
+  const rules = golem.actor.items.find(item => item.name === "Traits").system.ruleElements;
+  assert.deepEqual(rules.filter(rule => ["GrantVulnerability", "ConditionImmunity"].includes(rule.type)).map(rule => rule.data),
+    [{damageTypes: ["thunder"]}, {conditions: ["charmed", "petrified"]}]);
+  assert.ok(golem.notes.includes("condition immunities (diseased) not converted"));
 });
 
 test("a book package keeps its art, and its script refuses to write inside the repository", async () => {

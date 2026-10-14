@@ -355,6 +355,23 @@
                 "poison"
               ]
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "exhaustion",
+                "grappled",
+                "paralyzed",
+                "petrified",
+                "poisoned",
+                "prone",
+                "restrained",
+                "unconscious"
+              ]
+            }
           }
         ]
       },
@@ -385,8 +402,7 @@
           "Fire Form: \"damage\" is passive or triggered: not automated",
           "Water Susceptibility: \"Cold Damage\" is passive or triggered: not automated",
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Burn: effect: burning is not a WildPath condition yet",
-          "condition immunities (exhaustion, grappled, paralyzed, petrified, poisoned, prone, restrained, unconscious) not converted"
+          "Burn: effect: burning is not a WildPath condition yet"
         ]
       }
     }

@@ -131,6 +131,13 @@
               "provenance": "weapon-base"
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "grappled"
+            }
+          ],
           "label": "Claw (attack)"
         },
         "ruleElements": []
@@ -147,9 +154,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: grappled is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -198,7 +203,6 @@
       },
       "conversion": {
         "notes": [
-          "Claw: effect: grappled is not a WildPath condition yet",
           "Claw: \"Escape Check\" is passive or triggered: not automated"
         ]
       }

@@ -340,6 +340,21 @@
                 "poison"
               ]
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "charmed",
+                "exhaustion",
+                "frightened",
+                "paralyzed",
+                "petrified",
+                "poisoned"
+              ]
+            }
           }
         ]
       },
@@ -368,8 +383,7 @@
         "notes": [
           "Berserk: \"Berserk Check\" is passive or triggered: not automated",
           "Berserk: \"Calm Check\" is passive or triggered: not automated",
-          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "condition immunities (charmed, exhaustion, frightened, paralyzed, petrified, poisoned) not converted"
+          "Multiattack: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

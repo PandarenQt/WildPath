@@ -225,6 +225,13 @@
               "provenance": "weapon-base"
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "grappled"
+            }
+          ],
           "label": "Tentacle (attack)"
         },
         "ruleElements": []
@@ -241,9 +248,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: grappled is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -350,7 +355,6 @@
         "notes": [
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
           "Bite: \"save\" is passive or triggered: not automated",
-          "Tentacle: effect: grappled is not a WildPath condition yet",
           "Tentacle: \"Escape Check\" is passive or triggered: not automated"
         ]
       }

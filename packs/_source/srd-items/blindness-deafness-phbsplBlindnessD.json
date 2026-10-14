@@ -59,6 +59,12 @@
           "type": "condition",
           "conditionId": "blinded",
           "saveOutcomePolicy": "failure"
+        },
+        {
+          "id": "effect-2",
+          "type": "condition",
+          "conditionId": "deafened",
+          "saveOutcomePolicy": "failure"
         }
       ],
       "configuration": [
@@ -155,9 +161,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: deafened is not a WildPath condition yet"
-        ]
+        "notes": []
       }
     }
   }

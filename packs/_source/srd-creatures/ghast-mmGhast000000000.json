@@ -256,6 +256,25 @@
               }
             ]
           },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "fortitude",
+            "dc": {
+              "value": 10
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "paralyzed",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "label": "Claw (save)"
         },
         "ruleElements": []
@@ -272,10 +291,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "effect: paralyzed is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -309,6 +325,18 @@
                 "poison"
               ]
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "charmed",
+                "exhaustion",
+                "poisoned"
+              ]
+            }
           }
         ]
       },
@@ -335,10 +363,7 @@
       },
       "conversion": {
         "notes": [
-          "Stench: \"save\" is passive or triggered: not automated",
-          "Claw: not automated (save): using it spends its cost; its description says the rest",
-          "Claw: effect: paralyzed is not a WildPath condition yet",
-          "condition immunities (charmed, exhaustion, poisoned) not converted"
+          "Stench: \"save\" is passive or triggered: not automated"
         ]
       }
     }

@@ -1100,6 +1100,14 @@
               }
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "charmed",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "configuration": [
             {
               "id": "spell-slot",
@@ -1180,8 +1188,7 @@
           },
           "conversion": {
             "notes": [
-              "activation: 1 minute is not an action-economy cost",
-              "effect: charmed is not a WildPath condition yet"
+              "activation: 1 minute is not an action-economy cost"
             ]
           }
         }
@@ -1299,6 +1306,19 @@
           },
           {
             "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "charmed",
+                "paralyzed",
+                "poisoned",
+                "restrained"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
             "id": "speed-swim",
             "type": "GrantMovement",
             "data": {
@@ -1348,10 +1368,8 @@
           "Clairvoyance: activation: 10 minute is not an action-economy cost",
           "Flame Strike: area: a cylinder's height is not modeled",
           "Geas: activation: 1 minute is not an action-economy cost",
-          "Geas: effect: charmed is not a WildPath condition yet",
           "True Seeing: not automated (utility): using it spends its cost; its description says the rest",
-          "True Seeing: effect: \"Truesight\" (its own changes) not converted",
-          "condition immunities (charmed, paralyzed, poisoned, restrained) not converted"
+          "True Seeing: effect: \"Truesight\" (its own changes) not converted"
         ]
       }
     }

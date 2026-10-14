@@ -64,6 +64,14 @@
           }
         }
       ],
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "charmed",
+          "saveOutcomePolicy": "failure"
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -144,8 +152,7 @@
       },
       "conversion": {
         "notes": [
-          "activation: 1 minute is not an action-economy cost",
-          "effect: charmed is not a WildPath condition yet"
+          "activation: 1 minute is not an action-economy cost"
         ]
       }
     }

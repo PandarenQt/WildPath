@@ -285,6 +285,23 @@
           },
           {
             "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "charmed",
+                "frightened",
+                "grappled",
+                "paralyzed",
+                "petrified",
+                "prone",
+                "restrained",
+                "stunned"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
             "id": "speed-swim",
             "type": "GrantMovement",
             "data": {
@@ -316,9 +333,7 @@
         "challenge": 1
       },
       "conversion": {
-        "notes": [
-          "condition immunities (charmed, frightened, grappled, paralyzed, petrified, prone, restrained, stunned) not converted"
-        ]
+        "notes": []
       }
     }
   }

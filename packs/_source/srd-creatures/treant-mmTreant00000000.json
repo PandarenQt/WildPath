@@ -349,6 +349,16 @@
                 "piercing"
               ]
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "vulnerabilities",
+            "type": "GrantVulnerability",
+            "data": {
+              "damageTypes": [
+                "fire"
+              ]
+            }
           }
         ]
       },
@@ -376,8 +386,7 @@
       "conversion": {
         "notes": [
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Animate Trees: not automated (summon): using it spends its cost; its description says the rest",
-          "vulnerabilities (fire) not converted"
+          "Animate Trees: not automated (summon): using it spends its cost; its description says the rest"
         ]
       }
     }

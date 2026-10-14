@@ -206,6 +206,13 @@
               "provenance": "weapon-base"
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "grappled"
+            }
+          ],
           "label": "Pincer (attack)"
         },
         "ruleElements": []
@@ -222,9 +229,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: grappled is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -1264,6 +1269,16 @@
                 "poison"
               ]
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "poisoned"
+              ]
+            }
           }
         ]
       },
@@ -1291,7 +1306,6 @@
       "conversion": {
         "notes": [
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Pincer: effect: grappled is not a WildPath condition yet",
           "Pincer: \"Escape Check\" is passive or triggered: not automated",
           "Spellcasting: not automated (cast): using it spends its cost; its description says the rest",
           "Spellcasting: consumption: activityUses 1 not converted",
@@ -1308,8 +1322,7 @@
           "Fly: not automated (utility): using it spends its cost; its description says the rest",
           "Fly: effect: \"Flight\" (its own changes) not converted",
           "Fly: concentration: nothing it sustains was converted",
-          "Power Word Stun: effect: \"No Movement\" (its own changes) not converted",
-          "condition immunities (poisoned) not converted"
+          "Power Word Stun: effect: \"No Movement\" (its own changes) not converted"
         ]
       }
     }

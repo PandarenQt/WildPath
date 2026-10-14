@@ -249,6 +249,33 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "emanation",
+            "size": {
+              "value": 500,
+              "unit": "ft"
+            }
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "value": 20
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "frightened",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "label": "Roar (First Roar: Save)"
         },
         "ruleElements": []
@@ -266,9 +293,6 @@
           },
           "conversion": {
             "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "consumption: activityUses 1 not converted",
-              "effect: frightened is not a WildPath condition yet",
               "consumption: activityUses 1 not converted"
             ]
           }
@@ -295,6 +319,33 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "emanation",
+            "size": {
+              "value": 500,
+              "unit": "ft"
+            }
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "value": 20
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "paralyzed",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "label": "Roar (Second Roar: Save)"
         },
         "ruleElements": []
@@ -312,9 +363,6 @@
           },
           "conversion": {
             "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "consumption: activityUses 1 not converted",
-              "effect: paralyzed is not a WildPath condition yet",
               "consumption: activityUses 1 not converted"
             ]
           }
@@ -1717,6 +1765,17 @@
           },
           {
             "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "charmed",
+                "frightened"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
             "id": "speed-fly",
             "type": "GrantMovement",
             "data": {
@@ -1762,10 +1821,7 @@
         "notes": [
           "Legendary Resistance: \"Expend Use\" is passive or triggered: not automated",
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Roar: not automated (save): using it spends its cost; its description says the rest",
           "Roar: consumption: activityUses 1 not converted",
-          "Roar: effect: frightened is not a WildPath condition yet",
-          "Roar: effect: paralyzed is not a WildPath condition yet",
           "Spellcasting: not automated (cast): using it spends its cost; its description says the rest",
           "Spellcasting: consumption: activityUses 1 not converted",
           "Detect Evil and Good: not automated (utility): using it spends its cost; its description says the rest",
@@ -1786,8 +1842,7 @@
           "Zone of Truth: not automated (save): using it spends its cost; its description says the rest",
           "Zone of Truth: effect: \"Cannot Lie\" (its own changes) not converted",
           "Arcane Prowl: not automated (utility): using it spends its cost; its description says the rest",
-          "Weight of Years: \"Years Older\" is passive or triggered: not automated",
-          "condition immunities (charmed, frightened) not converted"
+          "Weight of Years: \"Years Older\" is passive or triggered: not automated"
         ]
       }
     }

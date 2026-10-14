@@ -280,6 +280,22 @@
           },
           {
             "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "charmed",
+                "deafened",
+                "exhaustion",
+                "frightened",
+                "grappled",
+                "prone",
+                "restrained"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
             "id": "speed-climb",
             "type": "GrantMovement",
             "data": {
@@ -314,8 +330,7 @@
         "notes": [
           "Corrosive Form: \"damage\" is passive or triggered: not automated",
           "Split: not automated (summon): using it spends its cost; its description says the rest",
-          "Dissolving Pseudopod: effect: \"Damaged: -1 AC\" (its own changes) not converted",
-          "condition immunities (charmed, deafened, exhaustion, frightened, grappled, prone, restrained) not converted"
+          "Dissolving Pseudopod: effect: \"Damaged: -1 AC\" (its own changes) not converted"
         ]
       }
     }

@@ -195,6 +195,12 @@
             {
               "id": "effect-1",
               "type": "condition",
+              "conditionId": "paralyzed",
+              "saveOutcomePolicy": "failure"
+            },
+            {
+              "id": "effect-2",
+              "type": "condition",
               "conditionId": "poisoned",
               "saveOutcomePolicy": "failure"
             }
@@ -215,9 +221,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: paralyzed is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -272,6 +276,13 @@
               "provenance": "weapon-base"
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "grappled"
+            }
+          ],
           "label": "Pincer (attack)"
         },
         "ruleElements": []
@@ -288,9 +299,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: grappled is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -312,6 +321,16 @@
             "data": {
               "damageTypes": [
                 "poison"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "poisoned"
               ]
             }
           },
@@ -350,10 +369,7 @@
       "conversion": {
         "notes": [
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Paralyzing Tentacles: effect: paralyzed is not a WildPath condition yet",
-          "Pincer: effect: grappled is not a WildPath condition yet",
-          "Pincer: \"Escape Check\" is passive or triggered: not automated",
-          "condition immunities (poisoned) not converted"
+          "Pincer: \"Escape Check\" is passive or triggered: not automated"
         ]
       }
     }

@@ -475,6 +475,33 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "emanation",
+            "size": {
+              "value": 60,
+              "unit": "ft"
+            }
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "value": 13
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "frightened",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "label": "Moan"
         },
         "ruleElements": []
@@ -491,10 +518,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "effect: frightened is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -549,9 +573,7 @@
           "Mirror Image: not automated (utility): using it spends its cost; its description says the rest",
           "Mirror Image: effect: \"Duplicate A\" (its own changes) not converted",
           "Mirror Image: effect: \"Duplicate B\" (its own changes) not converted",
-          "Mirror Image: effect: \"Duplicate C\" (its own changes) not converted",
-          "Moan: not automated (save): using it spends its cost; its description says the rest",
-          "Moan: effect: frightened is not a WildPath condition yet"
+          "Mirror Image: effect: \"Duplicate C\" (its own changes) not converted"
         ]
       }
     }

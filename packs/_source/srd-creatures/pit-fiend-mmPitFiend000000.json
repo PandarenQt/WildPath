@@ -864,6 +864,33 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 90,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "value": 21
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "paralyzed",
+              "saveOutcomePolicy": "failure",
+              "concentration": true
+            }
+          ],
           "configuration": [
             {
               "id": "spell-slot",
@@ -911,7 +938,14 @@
                 "spell-slot.8": 8,
                 "spell-slot.9": 9
               },
-              "effects": []
+              "effects": [
+                {
+                  "type": "scaleTargets",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 5,
+                  "perLevel": 1
+                }
+              ]
             }
           ],
           "label": "Hold Monster"
@@ -930,11 +964,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "effect: paralyzed is not a WildPath condition yet",
-              "concentration: nothing it sustains was converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -1279,6 +1309,16 @@
           },
           {
             "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "poisoned"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
             "id": "speed-fly",
             "type": "GrantMovement",
             "data": {
@@ -1318,14 +1358,10 @@
           "Bite: activation: turnStart is not an action-economy cost",
           "Hellfire Spellcasting: not automated (cast): using it spends its cost; its description says the rest",
           "Hellfire Spellcasting: uses: Recharge 4–6 is not rolled; refill the pool by hand",
-          "Hold Monster: not automated (save): using it spends its cost; its description says the rest",
-          "Hold Monster: effect: paralyzed is not a WildPath condition yet",
-          "Hold Monster: concentration: nothing it sustains was converted",
           "Wall of Fire: area: 60-ft wall is not supported; the user picks the targets",
           "Wall of Fire: concentration: nothing it sustains was converted",
           "Wall of Fire: area: a cylinder's height is not modeled",
-          "Wall of Fire: \"damage\" is passive or triggered: not automated",
-          "condition immunities (poisoned) not converted"
+          "Wall of Fire: \"damage\" is passive or triggered: not automated"
         ]
       }
     }

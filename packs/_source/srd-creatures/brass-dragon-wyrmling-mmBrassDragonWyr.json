@@ -247,6 +247,33 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "cone",
+            "size": {
+              "value": 15,
+              "unit": "ft"
+            }
+          },
+          "save": {
+            "ability": "fortitude",
+            "dc": {
+              "value": 11
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "incapacitated",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "label": "Sleep Breath (1st Save)"
         },
         "ruleElements": []
@@ -263,10 +290,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "effect: incapacitated is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -395,9 +419,7 @@
       },
       "conversion": {
         "notes": [
-          "Fire Breath: uses: Recharge 5–6 is not rolled; refill the pool by hand",
-          "Sleep Breath: not automated (save): using it spends its cost; its description says the rest",
-          "Sleep Breath: effect: incapacitated is not a WildPath condition yet"
+          "Fire Breath: uses: Recharge 5–6 is not rolled; refill the pool by hand"
         ]
       }
     }

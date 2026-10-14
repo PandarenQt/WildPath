@@ -176,6 +176,32 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 60,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "value": 8
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "frightened",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "label": "Fell Glare"
         },
         "ruleElements": [
@@ -207,10 +233,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "effect: frightened is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -229,10 +252,7 @@
         "challenge": 0
       },
       "conversion": {
-        "notes": [
-          "Fell Glare: not automated (save): using it spends its cost; its description says the rest",
-          "Fell Glare: effect: frightened is not a WildPath condition yet"
-        ]
+        "notes": []
       }
     }
   }

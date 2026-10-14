@@ -274,6 +274,33 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "emanation",
+            "size": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "value": 15
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "frightened",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "label": "Unnerving Gaze"
         },
         "ruleElements": []
@@ -290,10 +317,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "effect: frightened is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -352,6 +376,11 @@
             {
               "id": "effect-1",
               "type": "condition",
+              "conditionId": "grappled"
+            },
+            {
+              "id": "effect-2",
+              "type": "condition",
               "conditionId": "restrained"
             }
           ],
@@ -371,9 +400,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: grappled is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -411,6 +438,16 @@
                 "poison"
               ]
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "poisoned"
+              ]
+            }
           }
         ]
       },
@@ -438,11 +475,7 @@
       "conversion": {
         "notes": [
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Unnerving Gaze: not automated (save): using it spends its cost; its description says the rest",
-          "Unnerving Gaze: effect: frightened is not a WildPath condition yet",
-          "Chain: effect: grappled is not a WildPath condition yet",
-          "Chain: \"Escape Check\" is passive or triggered: not automated",
-          "condition immunities (poisoned) not converted"
+          "Chain: \"Escape Check\" is passive or triggered: not automated"
         ]
       }
     }

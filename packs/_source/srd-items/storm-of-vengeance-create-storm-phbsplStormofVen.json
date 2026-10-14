@@ -62,6 +62,15 @@
           }
         }
       ],
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "deafened",
+          "saveOutcomePolicy": "failure",
+          "concentration": true
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -114,9 +123,7 @@
       },
       "conversion": {
         "notes": [
-          "area: 300-ft circle is not supported; the user picks the targets",
-          "effect: deafened is not a WildPath condition yet",
-          "concentration: nothing it sustains was converted"
+          "area: 300-ft circle is not supported; the user picks the targets"
         ]
       }
     }

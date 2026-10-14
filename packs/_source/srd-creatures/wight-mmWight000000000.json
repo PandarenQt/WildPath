@@ -404,6 +404,17 @@
                 "poison"
               ]
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "exhaustion",
+                "poisoned"
+              ]
+            }
           }
         ]
       },
@@ -431,8 +442,7 @@
       "conversion": {
         "notes": [
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Life Drain: \"Zombie Rises\" is passive or triggered: not automated",
-          "condition immunities (exhaustion, poisoned) not converted"
+          "Life Drain: \"Zombie Rises\" is passive or triggered: not automated"
         ]
       }
     }

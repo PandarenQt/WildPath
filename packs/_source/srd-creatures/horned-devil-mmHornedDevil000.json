@@ -426,6 +426,16 @@
           },
           {
             "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "poisoned"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
             "id": "speed-fly",
             "type": "GrantMovement",
             "data": {
@@ -460,8 +470,7 @@
         "notes": [
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
           "Infernal Tail: \"Target: HP Loss\" is passive or triggered: not automated",
-          "Infernal Tail: \"Stanch Wound Check\" is passive or triggered: not automated",
-          "condition immunities (poisoned) not converted"
+          "Infernal Tail: \"Stanch Wound Check\" is passive or triggered: not automated"
         ]
       }
     }

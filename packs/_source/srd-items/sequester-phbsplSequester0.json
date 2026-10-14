@@ -37,6 +37,11 @@
         {
           "id": "effect-1",
           "type": "condition",
+          "conditionId": "invisible"
+        },
+        {
+          "id": "effect-2",
+          "type": "condition",
           "conditionId": "unconscious"
         }
       ],
@@ -92,9 +97,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: invisible is not a WildPath condition yet"
-        ]
+        "notes": []
       }
     }
   }

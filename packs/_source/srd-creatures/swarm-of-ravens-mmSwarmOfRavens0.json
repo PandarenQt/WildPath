@@ -249,6 +249,37 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "valueExpression": {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "constant",
+                    "value": 8
+                  },
+                  {
+                    "type": "proficiency-bonus"
+                  }
+                ]
+              }
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "deafened",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "label": "Cacophony"
         },
         "ruleElements": [
@@ -281,9 +312,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "uses: Recharge 6 is not rolled; refill the pool by hand",
-              "effect: deafened is not a WildPath condition yet"
+              "uses: Recharge 6 is not rolled; refill the pool by hand"
             ]
           }
         }
@@ -308,6 +337,23 @@
                 "bludgeoning",
                 "piercing",
                 "slashing"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "charmed",
+                "frightened",
+                "grappled",
+                "paralyzed",
+                "petrified",
+                "prone",
+                "restrained",
+                "stunned"
               ]
             }
           },
@@ -345,10 +391,7 @@
       },
       "conversion": {
         "notes": [
-          "Cacophony: not automated (save): using it spends its cost; its description says the rest",
-          "Cacophony: uses: Recharge 6 is not rolled; refill the pool by hand",
-          "Cacophony: effect: deafened is not a WildPath condition yet",
-          "condition immunities (charmed, frightened, grappled, paralyzed, petrified, prone, restrained, stunned) not converted"
+          "Cacophony: uses: Recharge 6 is not rolled; refill the pool by hand"
         ]
       }
     }

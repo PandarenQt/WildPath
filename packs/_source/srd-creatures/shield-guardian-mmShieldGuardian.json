@@ -326,6 +326,21 @@
                 "poison"
               ]
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "charmed",
+                "exhaustion",
+                "frightened",
+                "paralyzed",
+                "petrified",
+                "poisoned"
+              ]
+            }
           }
         ]
       },
@@ -355,8 +370,7 @@
           "Regeneration: \"heal\" is passive or triggered: not automated",
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
           "Protection: not automated (utility): using it spends its cost; its description says the rest",
-          "Protection: effect: \"Protected\" (its own changes) not converted",
-          "condition immunities (charmed, exhaustion, frightened, paralyzed, petrified, poisoned) not converted"
+          "Protection: effect: \"Protected\" (its own changes) not converted"
         ]
       }
     }

@@ -15,6 +15,12 @@
         "Hint": "How rolls are made at this table. With physical dice, the roller rolls real dice and types in the result.",
         "Digital": "Digital dice",
         "Physical": "Physical dice"
+      },
+      "RulesVersion": {
+        "Name": "Rules",
+        "Hint": "Which edition's conditions apply in this world: the 2024 rules, or the 2014 rules (Exhaustion's six levels, Grappled, Incapacitated, Invisible). Takes effect after a reload, for conditions applied from then on.",
+        "Modern": "2024 rules",
+        "Legacy": "2014 rules"
       }
     },
     "ABILITIES": {
@@ -63,7 +69,15 @@
       "Poisoned": "Poisoned",
       "Bleeding": "Bleeding",
       "Envenomed": "Envenomed",
-      "Dead": "Dead"
+      "Dead": "Dead",
+      "Incapacitated": "Incapacitated",
+      "Paralyzed": "Paralyzed",
+      "Petrified": "Petrified",
+      "Invisible": "Invisible",
+      "Deafened": "Deafened",
+      "Frightened": "Frightened",
+      "Grappled": "Grappled",
+      "Charmed": "Charmed"
     },
     "PROMPT": {
       "Confirm": "Confirm",
@@ -197,6 +211,7 @@
       "ModifierType": "Bonus type",
       "ModeLabel": "Advantage or disadvantage",
       "DamageTypes": "Damage types",
+      "Conditions": "Conditions",
       "MovementLabel": "Movement",
       "Distance": "Speed (ft)",
       "ResourceLabel": "Name",
@@ -211,6 +226,8 @@
         "rollMode": "Advantage or disadvantage",
         "resistance": "Resistance",
         "immunity": "Immunity",
+        "vulnerability": "Vulnerability",
+        "conditionImmunity": "Immunity to conditions",
         "speed": "A Speed",
         "resource": "A resource pool",
         "extraDamage": "Extra damage on a hit",

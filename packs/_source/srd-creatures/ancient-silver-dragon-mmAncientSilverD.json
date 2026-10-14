@@ -326,6 +326,39 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "cone",
+            "size": {
+              "value": 90,
+              "unit": "ft"
+            }
+          },
+          "save": {
+            "ability": "fortitude",
+            "dc": {
+              "value": 24
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "incapacitated",
+              "saveOutcomePolicy": "failure"
+            },
+            {
+              "id": "effect-2",
+              "type": "condition",
+              "conditionId": "paralyzed",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "label": "Paralyzing Breath"
         },
         "ruleElements": []
@@ -342,11 +375,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "effect: incapacitated is not a WildPath condition yet",
-              "effect: paralyzed is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -1016,6 +1045,33 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 90,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "value": 23
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "paralyzed",
+              "saveOutcomePolicy": "failure",
+              "concentration": true
+            }
+          ],
           "configuration": [
             {
               "id": "spell-slot",
@@ -1063,7 +1119,14 @@
                 "spell-slot.8": 8,
                 "spell-slot.9": 9
               },
-              "effects": []
+              "effects": [
+                {
+                  "type": "scaleTargets",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 5,
+                  "perLevel": 1
+                }
+              ]
             }
           ],
           "label": "Hold Monster"
@@ -1082,11 +1145,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "effect: paralyzed is not a WildPath condition yet",
-              "concentration: nothing it sustains was converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -1862,6 +1921,33 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 90,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "value": 23
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "paralyzed",
+              "saveOutcomePolicy": "failure",
+              "concentration": true
+            }
+          ],
           "configuration": [
             {
               "id": "spell-slot",
@@ -1909,7 +1995,14 @@
                 "spell-slot.8": 8,
                 "spell-slot.9": 9
               },
-              "effects": []
+              "effects": [
+                {
+                  "type": "scaleTargets",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 5,
+                  "perLevel": 1
+                }
+              ]
             }
           ],
           "label": "Hold Monster"
@@ -1928,11 +2021,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "effect: paralyzed is not a WildPath condition yet",
-              "concentration: nothing it sustains was converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -2005,9 +2094,6 @@
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
           "Legendary Resistance: \"Expend Use\" is passive or triggered: not automated",
           "Cold Breath: uses: Recharge 5–6 is not rolled; refill the pool by hand",
-          "Paralyzing Breath: not automated (save): using it spends its cost; its description says the rest",
-          "Paralyzing Breath: effect: incapacitated is not a WildPath condition yet",
-          "Paralyzing Breath: effect: paralyzed is not a WildPath condition yet",
           "Spellcasting: not automated (cast): using it spends its cost; its description says the rest",
           "Spellcasting: consumption: activityUses 1 not converted",
           "Chill: not automated (cast): using it spends its cost; its description says the rest",
@@ -2016,9 +2102,6 @@
           "Detect Magic: not automated (utility): using it spends its cost; its description says the rest",
           "Detect Magic: effect: \"Detect Magic\" (its own changes) not converted",
           "Detect Magic: concentration: nothing it sustains was converted",
-          "Hold Monster: not automated (save): using it spends its cost; its description says the rest",
-          "Hold Monster: effect: paralyzed is not a WildPath condition yet",
-          "Hold Monster: concentration: nothing it sustains was converted",
           "Ice Knife: \"Shard Explosion\" is passive or triggered: not automated",
           "Shapechange: not automated (utility): using it spends its cost; its description says the rest",
           "Shapechange: concentration: nothing it sustains was converted",
@@ -2028,10 +2111,7 @@
           "Ice Storm: area: a cylinder's height is not modeled",
           "Teleport: not automated (utility): using it spends its cost; its description says the rest",
           "Zone of Truth: not automated (save): using it spends its cost; its description says the rest",
-          "Zone of Truth: effect: \"Cannot Lie\" (its own changes) not converted",
-          "Hold Monster: not automated (save): using it spends its cost; its description says the rest",
-          "Hold Monster: effect: paralyzed is not a WildPath condition yet",
-          "Hold Monster: concentration: nothing it sustains was converted"
+          "Zone of Truth: effect: \"Cannot Lie\" (its own changes) not converted"
         ]
       }
     }

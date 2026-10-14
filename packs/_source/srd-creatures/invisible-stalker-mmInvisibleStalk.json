@@ -281,6 +281,14 @@
               }
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "grappled",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "label": "Vortex (Save)"
         },
         "ruleElements": []
@@ -297,9 +305,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: grappled is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -393,6 +399,23 @@
           },
           {
             "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "exhaustion",
+                "grappled",
+                "paralyzed",
+                "petrified",
+                "poisoned",
+                "prone",
+                "restrained",
+                "unconscious"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
             "id": "speed-fly",
             "type": "GrantMovement",
             "data": {
@@ -426,10 +449,8 @@
       "conversion": {
         "notes": [
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Vortex: effect: grappled is not a WildPath condition yet",
           "Vortex: \"Escape Check\" is passive or triggered: not automated",
-          "Vortex: activation: turnStart is not an action-economy cost",
-          "condition immunities (exhaustion, grappled, paralyzed, petrified, poisoned, prone, restrained, unconscious) not converted"
+          "Vortex: activation: turnStart is not an action-economy cost"
         ]
       }
     }

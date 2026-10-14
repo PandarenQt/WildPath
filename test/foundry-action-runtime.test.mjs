@@ -28,6 +28,7 @@ import {damageProfileFromRuleElements, rollModesFromRuleElements, rollOutcomesFr
 import {WILDPATH} from "../module/config.mjs";
 import {
   buildFoundryActionUseIntent,
+  conditionsFrom,
   foundryActionIntentToStagedOptions
 } from "../module/resolvers/foundry-multiplayer-runtime.mjs";
 import {
@@ -1634,4 +1635,19 @@ test("an aura grants its rules to allies within its radius and to its bearer, bu
   assert.deepEqual(granted(paladin), ["ward"], "the bearer itself");
   assert.deepEqual(granted(far), [], "an ally 15 ft away");
   assert.deepEqual(granted(enemy), [], "an enemy inside the aura");
+});
+
+test("a creature's conditions from another are the effects naming it, its Tokens or its Items as their source", () => {
+  const charmer = {uuid: "Actor.charmer", id: "charmer"};
+  const token = {uuid: "Scene.s.Token.t", id: "t", parent: {id: "s"}, actorLink: true, actorId: "charmer", actor: charmer};
+  const game = {scenes: [{tokens: [token]}]};
+  const effect = (statuses, flags={}, origin=null) => ({statuses: new Set(statuses), flags, origin});
+  const holder = {effects: [
+    effect(["charmed"], {wildpath: {conditionEffect: {sourceRef: "uuid:Actor.charmer.Item.gaze"}}}),
+    effect(["grappled"], {wildpath: {conditionEffect: {sourceRef: "token:t"}}}),
+    effect(["prone"], {}, "Actor.charmerling.Item.x"),
+    effect(["frightened"], {}, "Actor.other.Item.roar")
+  ]};
+  assert.deepEqual(conditionsFrom(holder, charmer, game), {charmed: true, grappled: true});
+  assert.deepEqual(conditionsFrom(holder, null, game), {});
 });

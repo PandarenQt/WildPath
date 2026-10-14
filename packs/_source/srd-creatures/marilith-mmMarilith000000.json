@@ -334,6 +334,12 @@
             {
               "id": "effect-1",
               "type": "condition",
+              "conditionId": "grappled",
+              "saveOutcomePolicy": "failure"
+            },
+            {
+              "id": "effect-2",
+              "type": "condition",
               "conditionId": "restrained",
               "saveOutcomePolicy": "failure"
             }
@@ -354,9 +360,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: grappled is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -501,6 +505,16 @@
           },
           {
             "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "poisoned"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
             "id": "speed-climb",
             "type": "GrantMovement",
             "data": {
@@ -535,12 +549,10 @@
         "notes": [
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
           "Pact Blade: damage: versatile two-handed damage not converted",
-          "Constrict: effect: grappled is not a WildPath condition yet",
           "Constrict: \"Escape Check\" is passive or triggered: not automated",
           "Teleport: not automated (utility): using it spends its cost; its description says the rest",
           "Teleport: uses: Recharge 5–6 is not rolled; refill the pool by hand",
-          "Parry: not automated (utility): using it spends its cost; its description says the rest",
-          "condition immunities (poisoned) not converted"
+          "Parry: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

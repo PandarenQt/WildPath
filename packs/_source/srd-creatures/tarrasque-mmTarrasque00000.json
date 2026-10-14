@@ -242,6 +242,11 @@
             {
               "id": "effect-1",
               "type": "condition",
+              "conditionId": "grappled"
+            },
+            {
+              "id": "effect-2",
+              "type": "condition",
               "conditionId": "restrained"
             }
           ],
@@ -261,9 +266,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: grappled is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -490,6 +493,20 @@
               }
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "deafened",
+              "saveOutcomePolicy": "failure"
+            },
+            {
+              "id": "effect-2",
+              "type": "condition",
+              "conditionId": "frightened",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "label": "Thunderous Bellow"
         },
         "ruleElements": [
@@ -522,9 +539,7 @@
           },
           "conversion": {
             "notes": [
-              "uses: Recharge 6 is not rolled; refill the pool by hand",
-              "effect: deafened is not a WildPath condition yet",
-              "effect: frightened is not a WildPath condition yet"
+              "uses: Recharge 6 is not rolled; refill the pool by hand"
             ]
           }
         }
@@ -766,6 +781,20 @@
           },
           {
             "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "charmed",
+                "deafened",
+                "frightened",
+                "paralyzed",
+                "poisoned"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
             "id": "speed-climb",
             "type": "GrantMovement",
             "data": {
@@ -821,16 +850,12 @@
           "Legendary Resistance: \"Expend Use\" is passive or triggered: not automated",
           "Reflective Carapace: \"Roll d6\" is passive or triggered: not automated",
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Bite: effect: grappled is not a WildPath condition yet",
           "Bite: \"Escape Check\" is passive or triggered: not automated",
           "Thunderous Bellow: uses: Recharge 6 is not rolled; refill the pool by hand",
-          "Thunderous Bellow: effect: deafened is not a WildPath condition yet",
-          "Thunderous Bellow: effect: frightened is not a WildPath condition yet",
           "Swallow: effect: coverTotal is not a WildPath condition yet",
           "Swallow: \"Damage: Swallowed\" is passive or triggered: not automated",
           "Swallow: \"Regurgitate: Save\" is passive or triggered: not automated",
-          "Onslaught: not automated (utility): using it spends its cost; its description says the rest",
-          "condition immunities (charmed, deafened, frightened, paralyzed, poisoned) not converted"
+          "Onslaught: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

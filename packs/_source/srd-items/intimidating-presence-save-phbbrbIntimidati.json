@@ -22,6 +22,48 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "emanation",
+        "size": {
+          "value": 30,
+          "unit": "ft"
+        }
+      },
+      "save": {
+        "ability": "wits",
+        "dc": {
+          "valueExpression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 8
+              },
+              {
+                "type": "ability-modifier",
+                "ability": "might"
+              },
+              {
+                "type": "proficiency-bonus"
+              }
+            ]
+          }
+        }
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "frightened",
+          "saveOutcomePolicy": "failure"
+        }
+      ],
       "label": "Intimidating Presence (save)"
     },
     "ruleElements": [
@@ -53,10 +95,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (save): using it spends its cost; its description says the rest",
-          "effect: frightened is not a WildPath condition yet"
-        ]
+        "notes": []
       }
     }
   }

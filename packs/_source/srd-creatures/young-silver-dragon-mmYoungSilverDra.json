@@ -286,6 +286,39 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "cone",
+            "size": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "save": {
+            "ability": "fortitude",
+            "dc": {
+              "value": 17
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "incapacitated",
+              "saveOutcomePolicy": "failure"
+            },
+            {
+              "id": "effect-2",
+              "type": "condition",
+              "conditionId": "paralyzed",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "label": "Paralyzing Breath"
         },
         "ruleElements": []
@@ -302,11 +335,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "effect: incapacitated is not a WildPath condition yet",
-              "effect: paralyzed is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -366,10 +395,7 @@
       "conversion": {
         "notes": [
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Cold Breath: uses: Recharge 5–6 is not rolled; refill the pool by hand",
-          "Paralyzing Breath: not automated (save): using it spends its cost; its description says the rest",
-          "Paralyzing Breath: effect: incapacitated is not a WildPath condition yet",
-          "Paralyzing Breath: effect: paralyzed is not a WildPath condition yet"
+          "Cold Breath: uses: Recharge 5–6 is not rolled; refill the pool by hand"
         ]
       }
     }

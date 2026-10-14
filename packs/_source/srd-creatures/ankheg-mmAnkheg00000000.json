@@ -141,6 +141,13 @@
               "provenance": "additional"
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "grappled"
+            }
+          ],
           "label": "Bite (attack)"
         },
         "ruleElements": []
@@ -157,9 +164,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: grappled is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -309,7 +314,6 @@
       },
       "conversion": {
         "notes": [
-          "Bite: effect: grappled is not a WildPath condition yet",
           "Bite: \"Escape Check\" is passive or triggered: not automated",
           "Acid Spray: uses: Recharge 6 is not rolled; refill the pool by hand"
         ]

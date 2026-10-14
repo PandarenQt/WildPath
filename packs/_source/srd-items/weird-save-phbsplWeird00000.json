@@ -74,6 +74,14 @@
           }
         }
       ],
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "frightened",
+          "concentration": true
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -112,10 +120,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: frightened is not a WildPath condition yet",
-          "concentration: nothing it sustains was converted"
-        ]
+        "notes": []
       }
     }
   }

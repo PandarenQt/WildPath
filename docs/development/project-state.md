@@ -281,8 +281,19 @@ Wounds, Second Wind and the Bandit Captain, in the new packs `srd-items` and `sr
 
   Who makes death saves is a per-creature setting: by default, characters and the companions and sidekicks
   Players control. Incapacitated ends concentration and gives disadvantage on initiative, rolled by
-  `WildPathCombatant`. Unconscious brings Prone. The 2024 condition set is complete except for stabilizing by
-  an ally and regaining health while stable.
+  `WildPathCombatant`. Unconscious brings Prone.
+
+  **The rest of the 2024 conditions (G2, 2026-10-14):**
+  - Incapacitated, Paralyzed, Petrified, Invisible, Deafened, Frightened, Grappled and Charmed;
+  - Grappled's disadvantage spares attacks on the grappler, and a charmed creature's harmful Action against
+    its charmer is refused. Both read where the condition came from: the Action, Actor or Token its effect
+    names;
+  - `ConditionImmunity` and `GrantVulnerability` RuleElements;
+  - the `rulesVersion` world setting switches to the 2014 conditions: Exhaustion's six-level table, Grappled,
+    Incapacitated, Invisible, Stunned and Petrified.
+
+  Verified in Node, Quench (91/91) and two browsers. Shortcuts: Frightened applies whether or not its source
+  is in sight, and Invisible ignores creatures that can see the invisible.
 
   The pack loads live after the relaunch.
 

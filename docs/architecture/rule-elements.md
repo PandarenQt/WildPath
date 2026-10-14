@@ -24,7 +24,8 @@ The default registry currently supports these contribution types:
 - `Modifier`
 - `GrantResource`
 - `GrantResistance`
-- `GrantImmunity`
+- `GrantImmunity`, `GrantVulnerability`
+- `ConditionImmunity`
 - `GrantMovement`
 - `RollMode`, `ResourceCap`, `RollOutcome`
 - `ExtraDamage`, `Aura`
@@ -38,6 +39,7 @@ Handlers return contribution bundles only:
 - `movement`
 - `rollModes`, `resourceCaps`, `rollOutcomes`
 - `extraDamage`, `auras`
+- `conditionImmunities`
 - `triggers`
 
 `GrantActionEconomyResource` was removed on 2026-10-14: nothing read it. Extra Actions are counters whose maximum
@@ -111,6 +113,9 @@ RuleElement's own predicate sees the roll's `tags` and the creature's current `c
 - `{hasCondition: "raging"}` applies only while the creature has that condition.
 
 Before this, these predicates never matched. Data preparation (resource maxima, Speeds) does not pass them yet.
+
+A rule on an effect also sees that effect's level as `source.level`, wherever it is read, data preparation
+included. The 2014 Exhaustion table gates each of its rules this way: `{oneOf: {path: "source.level", values: [2, 3, 4]}}`.
 
 Invalid or unknown RuleElement types fail explicitly in the collector result. Disabled,
 suppressed, or predicate-failed entries fail closed by contributing nothing while remaining visible
@@ -317,6 +322,14 @@ enabled effects form its damage profile (`WildPathActor#getDamageProfile`, throu
 `damageProfileFromRuleElements`). The Action runtime passes each target's profile into damage
 resolution as `durability.adjustmentProfiles`, and so do reaction children. An Action Item's own
 RuleElements never count: they describe that Action.
+
+`GrantVulnerability` adds a vulnerability to the same profile: the damage resolver doubles that damage.
+
+**Condition immunity (2026-10-14).** `ConditionImmunity {conditions: ["charmed", "poisoned"]}` on a creature's
+active features, gear and enabled effects lists the conditions it ignores (`WildPathActor#getConditionImmunities`).
+When an Action or trigger commits a condition to it, the commit does nothing and reports `immune: true`; removing
+a condition still works. Toggling a status by hand from the Token HUD is the GM's call and is not refused.
+Petrified gives immunity to Poisoned this way.
 
 **Resource grants.** `GrantResource` gives a creature a pool to spend and recover, such as Ki equal to a
 class level. The grant backs a stored pool of the same id in `system.pools`, so payments, rests and the

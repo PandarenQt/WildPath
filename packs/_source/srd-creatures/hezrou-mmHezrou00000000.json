@@ -340,6 +340,16 @@
                 "poison"
               ]
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "poisoned"
+              ]
+            }
           }
         ]
       },
@@ -368,8 +378,7 @@
         "notes": [
           "Stench: \"save\" is passive or triggered: not automated",
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
-          "Leap: not automated (utility): using it spends its cost; its description says the rest",
-          "condition immunities (poisoned) not converted"
+          "Leap: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

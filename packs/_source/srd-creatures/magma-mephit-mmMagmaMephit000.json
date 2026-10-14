@@ -291,6 +291,27 @@
           },
           {
             "schemaVersion": 1,
+            "id": "vulnerabilities",
+            "type": "GrantVulnerability",
+            "data": {
+              "damageTypes": [
+                "cold"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "condition-immunities",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "exhaustion",
+                "poisoned"
+              ]
+            }
+          },
+          {
+            "schemaVersion": 1,
             "id": "speed-fly",
             "type": "GrantMovement",
             "data": {
@@ -324,9 +345,7 @@
       "conversion": {
         "notes": [
           "Death Burst: \"save\" is passive or triggered: not automated",
-          "Fire Breath: uses: Recharge 6 is not rolled; refill the pool by hand",
-          "vulnerabilities (cold) not converted",
-          "condition immunities (exhaustion, poisoned) not converted"
+          "Fire Breath: uses: Recharge 6 is not rolled; refill the pool by hand"
         ]
       }
     }
