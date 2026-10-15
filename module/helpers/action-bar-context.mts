@@ -19,7 +19,7 @@ interface ConditionDefinition {id: string; name: string; img: string; stacking?:
 export interface OddsEntry {name: string; kind: "attack" | "save"; chance: number; modifier: number; rollMode: string;
   defense?: number; dc?: number; ability?: string | null; automatic?: boolean}
 interface BarActor {
-  name?: string; img?: string; items?: Iterable<{id?: string | null; flags?: Data}>;
+  name?: string; img?: string; items?: Iterable<{id?: string | null; flags?: Data; system?: {active?: boolean; attunement?: string}}>;
   effects?: Iterable<{system?: {type?: string; level?: number}; disabled?: boolean}>;
   system?: Data;
   flags?: Data;
@@ -84,8 +84,14 @@ export function actionBarContext({actor, conditions=[], odds={}, common=[]}: {ac
   const byRef = new Map(bar.actions.map(action => [action.ref, action]));
   const items = new Map([...(actor.items ?? [])].map(item => [item.id, item]));
   const commonById = new Map(common.map(action => [action.id, action]));
+  // A magic item's Action needs its item equipped and, when it needs attunement, attuned (as the authority checks).
+  const itemReady = (action: ActionView) => {
+    const source = items.get(String((items.get(action.id ?? "")?.flags?.wildpath as Data | undefined)?.grantedBy ?? ""));
+    return !source || ((source.system?.active !== false) && (source.system?.attunement !== "required"));
+  };
   const view = (groupId: string) => (action: ActionView) => ({id: action.id, label: action.label,
-    img: action.img ?? "icons/svg/sword.svg", enabled: action.enabled, disabledCode: action.disabledCode,
+    img: action.img ?? "icons/svg/sword.svg", enabled: action.enabled && itemReady(action),
+    disabledCode: itemReady(action) ? action.disabledCode : "ITEM_NOT_READY",
     odds: oddsView(odds[action.id ?? ""] ?? []),
     // A reaction's Always / Ask / Never setting (a common reaction's is on its own Action).
     ...(action.group === "reaction" ? {policy: {id: policyOf(items.get(action.id) ?? commonById.get(action.id ?? "")),

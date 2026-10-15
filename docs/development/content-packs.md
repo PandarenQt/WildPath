@@ -237,12 +237,12 @@ equipped. Equipping it (`system.active`) turns its rules on.
   attack's own bonus one on its attack roll.
 - A potion or scroll is only its Actions; using one spends its single use.
 - **Attunement (2024).** A magic item that needs it (`system.attunement: "required"`, 125 SRD Items) gives its
-  rules only once attuned from the sheet, and while equipped. A creature can be attuned to three at most.
+  rules only once attuned from the sheet, and while equipped. A creature can be attuned to three at most. Its Actions
+  (a wand's Fireball) are unavailable on the bar, and refused by the authority, until it is equipped and attuned.
 - **Charges and uses regained in part** (`regain`, rule-elements.md): a wand's "1d6 + 1 charges at dawn" on a long
   rest, a feature's "one use on a Short Rest". Dawn, dusk and "per day" are a long rest. 174 SRD Items.
 - Left by hand:
-  - an item's Actions are usable whether or not the item is equipped, and only an item added from a compendium
-    brings them;
+  - only an item added from a compendium brings its Actions;
   - armor training (proficiency) is not checked.
 
 Live (two browsers, 14.369): Player1 equipped Chain Mail and a Shield (AC 13 to 18), cast Mage Armor, hit the
@@ -251,7 +251,9 @@ Saver saved and QA Failer failed. Dropping the Wand of Fireballs on QA Caster's 
 charges; deleting the wand from the sheet removed it. A character with the wand at 1 charge kept 1 after a short
 rest; a long rest rolled 1d6 + 1 (4 + 1) and it had 6, with "Wand of Fireballs regains 5" whispered to the GM.
 A character's equipped Cloak of Protection gave nothing until Player1 attuned it (AC 10 to 11). With the Ring of
-Protection and Bracers of Defense also attuned (AC 14), attuning a fourth item was refused.
+Protection and Bracers of Defense also attuned (AC 14), attuning a fourth item was refused. With the Wand of
+Fireballs carried but not equipped, its Fireball was greyed out on Player1's bar, and using it anyway was refused
+("Wand of Fireballs must be equipped and attuned to use this."), with no card and no charge spent.
 
 ### Effects with their own changes (G3)
 

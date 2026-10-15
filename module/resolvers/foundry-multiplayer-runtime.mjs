@@ -578,6 +578,13 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
     reason: "A transformed creature can't cast spells."
   };
+  // A magic item's Action (a wand's spell) needs its item equipped and, when it needs attunement, attuned (2024).
+  const grantedBy = action.flags?.wildpath?.grantedBy ? actor.items?.get?.(action.flags.wildpath.grantedBy) : null;
+  if ( !authorityAction && grantedBy && ((grantedBy.system?.active === false) || (grantedBy.system?.attunement === "required")) ) return {
+    ok: false,
+    code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
+    reason: `${grantedBy.name} must be equipped${grantedBy.system?.attunement ? " and attuned" : ""} to use this.`
+  };
   const defenseKey = combatStatistics.defenseKey;
   const sourceTokenResolution = resolveFoundrySourceToken({actor, source: intent.source ?? {}, game});
   if ( !sourceTokenResolution.ok ) return {
