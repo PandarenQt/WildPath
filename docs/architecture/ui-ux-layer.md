@@ -236,7 +236,13 @@ leaves the rules to the documents:
   field is a typed AC that replaces the worked-out one; blank ("Auto") works it out from armor and Agility.
 - **Attunement:** a gear row that needs attunement has an Attuned toggle beside Equipped. Its rules count only when
   both are on; a fourth attunement is refused (2024: three at most).
-- **Rests:** Short and Long Rest buttons call `Actor#rest`.
+- **Rests:** Short and Long Rest buttons call `Actor#rest` (a Short Rest first asks which Hit Dice to spend).
+- **Rolling tests (G8, 2026-10-15):** each ability has a check and a saving throw button, and each skill's name rolls
+  its check (`Actor#rollTest`): the creature's bonus (proficiency or expertise included), its bonus dice and its
+  Advantage or Disadvantage (armor's Stealth, untrained armor, conditions), to chat as "Stealth (Agility) check
+  (2d20kl + 4)". With physical dice the roller types the total. Live (Player1's browser): QA Fighter's Athletics
+  rolled 1d20 + 6, Stealth in Chain Mail 2d20kl + 4, a Might save 1d20 + 6 and a Wits check 1d20 + 2. The ability
+  cards now show their full names, two to a row.
 - **Editing:** abilities, current values, and each resource's and pool's base (which sets its maximum).
   Pool fields are folded into the whole stored array, because V14 drops ArrayField element paths.
 - **Conditions:** a click toggles one; on a stacking condition (Exhaustion, Envenomed) a click adds a

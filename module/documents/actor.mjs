@@ -10,7 +10,8 @@ import {evaluateValueExpression} from "../helpers/value-expressions.mjs";
 import WildPathConditionEffect from "../data/active-effect/condition.mjs";
 import {floatHealthChange} from "../applications/floating-text.mjs";
 import {hitDiceHealing, hitDiePoolId} from "../helpers/spellcasting.mjs";
-import {actorAbilityModifier} from "../helpers/combat-statistics.mjs";
+import {actorAbilityModifier, resolveActorCheckStatistic, resolveActorSaveStatistic} from "../helpers/combat-statistics.mjs";
+import {combineRollModes, d20FormulaWith} from "../helpers/rolls.mjs";
 import {executeConditionEffect} from "../resolvers/effect-resolver.mjs";
 import {executeEffectLifecycleCommit} from "../resolvers/effect-lifecycle-commit-resolver.mjs";
 import {planConditionTriggerConsequences} from "../resolvers/condition-trigger-resolver.mjs";
@@ -589,6 +590,39 @@ export default class WildPathActor extends Actor {
    * @param {"shortRest"|"longRest"} recovery
    * @returns {Promise<void>}
    */
+  /**
+   * A d20 test outside an Action, from the sheet (G8): a saving throw (`save`), a skill check (`skill`, with its
+   * ability unless `ability` names another) or an ability check (`ability`). Its bonus, bonus dice (Guidance) and
+   * Advantage or Disadvantage are the creature's own; the roll goes to chat. With physical dice (the `dicePolicy`
+   * setting) the roller types the total. Returns the total, or null when cancelled.
+   */
+  async rollTest({ability=null, skill=null, save=null}={}) {
+    const {ABILITIES, SKILLS} = CONFIG.WILDPATH;
+    const used = save ?? ability ?? SKILLS[skill]?.ability ?? null;
+    if ( !used ) return null;
+    const statistic = save ? resolveActorSaveStatistic(this, save) : resolveActorCheckStatistic(this, {ability: used, skill});
+    const domains = save ? ["save", `save.${save}`] : ["check", `check.${used}`, ...(skill ? [`check.${skill}`] : [])];
+    const rollMode = combineRollModes(this.getRollModes(domains, {context: save ? {} : {check: {ability: used, skill}}}));
+    const bonus = (statistic?.dice ?? []).filter(die => (Number(die?.number) > 0) && (Number(die?.faces) > 0))
+      .map(die => `${die.sign < 0 ? "-" : "+"} ${die.number}d${die.faces}`);
+    const formula = d20FormulaWith(["1d20", ...bonus].join(" "), {rollMode, modifier: statistic?.totalModifier ?? 0});
+    const abilityLabel = game.i18n.localize(ABILITIES[used]?.label ?? used);
+    const label = save ? game.i18n.format("WILDPATH.ROLL.Save", {ability: abilityLabel})
+      : skill ? game.i18n.format("WILDPATH.ROLL.Skill", {skill: game.i18n.localize(SKILLS[skill]?.label ?? skill), ability: abilityLabel})
+      : game.i18n.format("WILDPATH.ROLL.Check", {ability: abilityLabel});
+    let roll;
+    if ( game.settings.get("wildpath", "dicePolicy") === "physical" ) {
+      const answer = await foundry.applications.api.DialogV2.input({window: {title: label},
+        content: `<label>${game.i18n.format("WILDPATH.PROMPT.Roll.Total", {formula})} <input type="number" name="total" autofocus></label>`,
+        ok: {label: game.i18n.localize("WILDPATH.PROMPT.Confirm")}, rejectClose: false});
+      const total = Number(answer?.total);
+      if ( (answer?.total == null) || (answer.total === "") || !Number.isFinite(total) ) return null;
+      roll = await new Roll(String(total)).evaluate();
+    } else roll = await new Roll(formula).evaluate();
+    await roll.toMessage({speaker: ChatMessage.getSpeaker({actor: this}), flavor: `${label} (${formula})`});
+    return roll.total;
+  }
+
   /**
    * Spend Hit Dice on a short rest (2024): `{faces: count}`, each healing its roll plus the Fortitude modifier, at
    * least 1 (0 under the 2014 rules), rolled in chat. Returns the hit points regained.

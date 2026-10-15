@@ -39,6 +39,7 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
       levelUp: WildPathActorSheet.#onLevelUp,
       abilityScores: WildPathActorSheet.#onAbilityScores,
       togglePrepared: WildPathActorSheet.#onTogglePrepared,
+      rollTest: WildPathActorSheet.#onRollTest,
       deleteEffect: WildPathActorSheet.#onDeleteEffect
     }
   };
@@ -201,6 +202,12 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
       rejectClose: false
     });
     return answer ? Object.fromEntries(Object.entries(answer).map(([faces, count]) => [faces, Number(count) || 0])) : null;
+  }
+
+  /** @this {WildPathActorSheet} An ability check, skill check or saving throw. */
+  static async #onRollTest(event, target) {
+    const {ability, skill, save} = target.dataset;
+    await this.actor.rollTest({ability: ability ?? null, skill: skill ?? null, save: save ?? null});
   }
 
   /** @this {WildPathActorSheet} Prepare or unprepare a spell; preparing more than the classes allow warns, not blocks. */

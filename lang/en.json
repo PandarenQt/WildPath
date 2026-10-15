@@ -218,6 +218,11 @@
       "Use": "Succeed instead",
       "Decline": "Fail the save"
     },
+    "ROLL": {
+      "Check": "{ability} check",
+      "Skill": "{skill} ({ability}) check",
+      "Save": "{ability} saving throw"
+    },
     "ABILITYSCORES": {
       "Button": "Ability Scores",
       "Title": "{name}: Ability Scores",
@@ -708,6 +713,9 @@
       "AcCalculated": "Auto",
       "Equipped": "Equipped",
       "Prepared": "Prepared",
+      "RollCheck": "Roll an ability check",
+      "RollSave": "Roll a saving throw",
+      "RollSkill": "Roll this skill check",
       "NotPrepared": "Not prepared",
       "PreparedCount": "Prepared {count} / {limit}",
       "PreparedOnly": "Prepared {count}",

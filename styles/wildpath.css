@@ -181,7 +181,7 @@
 
 .wildpath.actor-sheet .ability-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(94px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 0.4rem;
 }
 
@@ -455,6 +455,12 @@
 /* Sheet completion: header commands, editable bases, stacking levels, death saves. */
 .wildpath.actor .actor-commands { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.25rem; }
 .wildpath.level-up { max-height: 70vh; overflow-y: auto; }
+.wildpath.actor-sheet .ability > span:first-child { grid-column: 1 / -1; }
+.wildpath.actor-sheet .ability input[type="checkbox"] { width: auto; min-width: 0; }
+.wildpath.actor-sheet .ability .ability-rolls { display: inline-flex; align-items: center; gap: 0.125rem; overflow: visible; justify-self: end; }
+.wildpath.actor .icon-roll { flex: 0 0 auto; width: 1.5rem; height: 1.5rem; padding: 0; line-height: 1; }
+.wildpath.actor button.skill-name { all: unset; cursor: pointer; flex: 1; }
+.wildpath.actor button.skill-name:hover, .wildpath.actor button.skill-name:focus-visible { text-decoration: underline; }
 .wildpath.actor .prepared-count.over-limit { color: var(--color-level-error, #c33); font-weight: bold; }
 .wildpath.ability-scores [hidden] { display: none !important; }
 .wildpath.ability-scores .ability-score-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.25rem 0.75rem; }
