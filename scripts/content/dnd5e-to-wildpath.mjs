@@ -1240,7 +1240,8 @@ function traitRules(system, notes) {
   if ( ["dr", "di"].some(trait => traits[trait]?.bypasses?.length) ) notes.push("resistances that magic or silvered weapons bypass are kept whole");
   for ( const mode of SPEEDS ) {
     const distance = number(system.attributes?.movement?.[mode]);
-    if ( distance ) rules.push({schemaVersion: 1, id: `speed-${mode}`, type: "GrantMovement", data: {mode, distance}});
+    if ( distance ) rules.push({schemaVersion: 1, id: `speed-${mode}`, type: "GrantMovement", data: {mode, distance,
+      ...(((mode === "fly") && system.attributes?.movement?.hover) ? {hover: true} : {})}});
   }
   const legendary = number(system.resources?.legact?.max);
   if ( legendary ) rules.push({schemaVersion: 1, id: "legendary-actions", type: "GrantResource",

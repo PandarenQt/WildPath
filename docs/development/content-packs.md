@@ -226,6 +226,8 @@ equipped. Equipping it (`system.active`) turns its rules on.
   (Unarmored Defense, the Defense fighting style).
 - **AC calculations** in effects become `ArmorClass` rules: Mage Armor, Draconic Resilience, and the Barbarian's,
   Monk's and College of Dance's Unarmored Defense.
+- **Hover (G6).** A creature's fly Speed keeps dnd5e's hover (`GrantMovement` `hover: true`), so it does not fall
+  when knocked Prone (21 SRD creatures).
 - **Area heights (G6).** A Cylinder keeps its height (`area.height`), as a wall does; a circle lies on the ground
   (height 0). See areas.md, "Elevation".
 - **Spells cast from items** are the spell's Action, named after the item ("Wand of Fireballs: Fireball"). They

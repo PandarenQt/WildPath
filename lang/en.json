@@ -204,6 +204,9 @@
       "Use": "Succeed instead",
       "Decline": "Fail the save"
     },
+    "FALLING": {
+      "Fall": "Falling"
+    },
     "RECHARGE": {
       "Recharged": "Recharge {range}: {name} is ready again",
       "Spent": "Recharge {range}: {name} is still spent"

@@ -304,6 +304,16 @@ is the larger of the fields across and the cubes between. A creature flying 10 f
 - Shortcuts: cones and lines are aimed level; Opportunity Attacks measure flat; lasting areas keep their own
   elevation band (open by default).
 
+**Falling (2024).** A creature above the floor of its Level that gets Prone, Grappled, Restrained, Paralyzed,
+Petrified, Stunned or Unconscious falls, unless it can hover (`GrantMovement` `hover: true`; converted from dnd5e's
+hover). The active GM drops its Token to the floor as forced movement and resolves "Falling" as an authority Action:
+1d6 Bludgeoning per full 10 feet (20d6 at most), and Prone (`foundry-v14-falling.mts`).
+- Shortcuts: Prone comes even when it takes no damage (immunity); a Levitate-like effect that holds a creature up is
+  not known, so it falls too; there is no ledge or pit to fall from, only elevation above the floor.
+
+Live (GM browser, 14.369): QA Failer 30 feet up, knocked Prone, dropped to the floor with a "Falling" card of 3d6 (7).
+The SRD Air Elemental (fly 90, hover) knocked Prone 30 feet up stayed there unharmed.
+
 Live (two browsers, 14.369): the Bandit Captain 10 feet up beside QA Caster was out of Player1's Unarmed Strike reach
 ("out of range (15 ft away)" at 15 feet up), and in reach at 5 feet up. Player1's Fireball at the ground hit QA Saver
 and not QA Failer flying 30 feet up; aimed at QA Failer's field, it covered only QA Failer.

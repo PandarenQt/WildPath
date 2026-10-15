@@ -449,7 +449,8 @@ Item was deactivated, and was present at once on an imported Actor. Player1 addi
 own creature stored Ki 3/3 from their own client.
 
 **Movement grants.** `GrantMovement` gives a Speed for a mode (`{mode: "fly", distance: 60}`), prepared into
-`system.speeds`; movement in that mode uses it (movement-paths.md, "Movement modes (2024)").
+`system.speeds`; movement in that mode uses it (movement-paths.md, "Movement modes (2024)"). `hover: true` on a fly
+Speed keeps the creature up when it is knocked Prone (areas.md, "Falling").
 
 **Custom resources and Legendary Actions (2024).** Both are `GrantResource` pools:
 - Spirit Points, maximum 2 × proficiency bonus, recovered on a long rest:

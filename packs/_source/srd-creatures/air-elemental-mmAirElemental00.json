@@ -390,7 +390,8 @@
             "type": "GrantMovement",
             "data": {
               "mode": "fly",
-              "distance": 90
+              "distance": 90,
+              "hover": true
             }
           }
         ]
