@@ -16,6 +16,10 @@
         "Digital": "Digital dice",
         "Physical": "Physical dice"
       },
+      "BonusActionShove": {
+        "Name": "Shove as a Bonus Action (Baldur's Gate 3)",
+        "Hint": "An optional rule from Baldur's Gate 3. On: Shove (to knock Prone or push 5 feet) costs a Bonus Action instead of an Action. Off: it takes an Action, as in the 2024 rules."
+      },
       "HighGround": {
         "Name": "High ground (Baldur's Gate 3)",
         "Hint": "An optional rule from Baldur's Gate 3. On: an attack from 8 feet or more above its target gets +2 to its attack roll, and one from 8 feet or more below gets -2. Off: height gives no bonus, as in the 2024 rules."

@@ -176,6 +176,10 @@ Shortcuts:
 - Disengage stops the common Opportunity Attack, but not a movement reaction a creature's own content defines.
   Being pushed or teleported out of reach provokes none (2024).
 
+With the `bonusActionShove` world setting (Baldur's Gate 3, off by default) both Shoves cost a Bonus Action; the bar
+and the authority build them alike. Live: with it on, Player1's Shove: Push spent QA Caster's Bonus Action and left
+its Action.
+
 Help covers the 2024 attack assist; any creature's next attack uses it, not only an ally's, and helping a check is by
 hand. Live (two browsers): Player1's Help on the Bandit Captain, then an Unarmed Strike while Prone, rolled `1d20 + 1`
 (the advantage cancelled Prone's disadvantage) and Distracted ended.

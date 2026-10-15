@@ -1254,7 +1254,9 @@ export async function foundryCanCommitLocallyForMovement({intent=null, completio
 async function resolveFoundryAction(ref, actor, {game=globalThis.game}={}) {
   // A common action (Dash, Shove...) is built here from its id, never taken from the client.
   const common = commonActionId(ref);
-  if ( common ) return commonAction(actor, common, {localize: key => game?.i18n?.localize?.(key) ?? key});
+  let bonusShove = false;
+  try { bonusShove = game?.settings?.get("wildpath", "bonusActionShove") === true; } catch (_error) {}
+  if ( common ) return commonAction(actor, common, {localize: key => game?.i18n?.localize?.(key) ?? key, bonusShove});
   const value = ref && await resolveFoundryDocumentRef(ref, {game, kind: "item"});
   if ( value ) return value;
   const id = stringOrNull(ref)?.replace(/^Item[.]/, "") ?? null;

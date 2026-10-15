@@ -20,7 +20,7 @@ interface Globals {
   foundry: {applications: {api: {ApplicationV2: AppClass; HandlebarsApplicationMixin(base: AppClass): AppClass}};
     utils: {escapeHTML(text: string): string}};
   canvas?: {tokens?: {controlled?: BarToken[]}};
-  game: {user?: {character?: BarActor | null; isGM?: boolean; targets?: Iterable<BarToken>};
+  game: {user?: {character?: BarActor | null; isGM?: boolean; targets?: Iterable<BarToken>}; settings?: {get(scope: string, key: string): unknown};
     i18n: {localize(key: string): string; format(key: string, data: Record<string, unknown>): string}};
   CONFIG: {WILDPATH: {CONDITIONS: Record<string, {id: string; name: string; img: string; stacking?: boolean}>};
     Item: {documentClass: {prototype: {use(this: unknown): Promise<unknown>}}}};
@@ -73,7 +73,9 @@ export class WildPathActionBar extends HandlebarsApplicationMixin(ApplicationV2)
   /** The common actions as this creature's Actions (Dash, Shove...). */
   #common(actor: BarActor) {
     const localize = (key: string) => globals.game.i18n.localize(key);
-    return COMMON_ACTION_IDS.map(id => commonAction(actor, id, {localize})!);
+    let bonusShove = false;
+    try { bonusShove = globals.game.settings?.get("wildpath", "bonusActionShove") === true; } catch (_error) {}
+    return COMMON_ACTION_IDS.map(id => commonAction(actor, id, {localize, bonusShove})!);
   }
 
   /** The odds of each attack and save Action against the user's targets, as far as this user may see them. */

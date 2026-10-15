@@ -145,6 +145,16 @@ Hooks.once("init", () => {
     default: false
   });
 
+  // Baldur's Gate 3 rule (B3, off by default): Shove costs a Bonus Action instead of an Action.
+  game.settings.register("wildpath", "bonusActionShove", {
+    name: "WILDPATH.SETTINGS.BonusActionShove.Name",
+    hint: "WILDPATH.SETTINGS.BonusActionShove.Hint",
+    scope: "world",
+    config: true,
+    type: Boolean,
+    default: false
+  });
+
   // House rule: whether players see the odds before acting (the GM always does).
   game.settings.register("wildpath", "playersSeeOdds", {
     name: "WILDPATH.SETTINGS.PlayersSeeOdds.Name",
