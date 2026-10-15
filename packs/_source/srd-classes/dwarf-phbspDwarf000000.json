@@ -1,0 +1,59 @@
+{
+  "_id": "phbspDwarf000000",
+  "_key": "!items!phbspDwarf000000",
+  "name": "Dwarf",
+  "type": "species",
+  "img": "icons/environment/wilderness/mine-interior-dungeon-door.webp",
+  "system": {
+    "active": true,
+    "description": "<p></p><h3 data-anchor=\"dwarf-traits\">Dwarf Traits</h3><p><strong>Creature Type: </strong>Humanoid</p><p><strong>Size: </strong>Medium (about 4–5 feet tall)</p><p><strong>Speed:</strong> 30 feet</p><p>As a Dwarf, you have these special traits.</p><p><strong>Darkvision. </strong>You have Darkvision with a range of 120 feet.</p><p><strong>Dwarven Resilience.</strong> You have Resistance to Poison damage. You also have Advantage on saving throws you make to avoid or end the Poisoned condition.</p><p><strong>Dwarven Toughness.</strong> Your Hit Point maximum increases by 1, and it increases by 1 again whenever you gain a level.</p><p><strong>Stonecunning.</strong> As a Bonus Action, you gain Tremorsense with a range of 60 feet for 10 minutes. You must be on a stone surface or touching a stone surface to use this Tremorsense. The stone can be natural or worked.You can use this Bonus Action a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest.</p>",
+    "identifier": "dwarf",
+    "advancement": [
+      {
+        "level": 0,
+        "title": null,
+        "type": "size",
+        "sizes": [
+          "medium"
+        ]
+      },
+      {
+        "level": 0,
+        "title": "Dwarf Traits",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbsptDwarvenRes",
+          "Compendium.wildpath.srd-items.Item.phbsptDwarvenTou",
+          "Compendium.wildpath.srd-items.Item.phbsptStonecunni"
+        ],
+        "optional": false
+      },
+      {
+        "level": 0,
+        "title": "Dwarven Resilience",
+        "type": "trait",
+        "grants": [
+          "dr:poison"
+        ],
+        "choices": []
+      }
+    ],
+    "size": "medium"
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "origins24",
+        "id": "phbspDwarf000000",
+        "type": "race",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

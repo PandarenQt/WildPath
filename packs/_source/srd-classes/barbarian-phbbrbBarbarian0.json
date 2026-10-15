@@ -1,0 +1,377 @@
+{
+  "_id": "phbbrbBarbarian0",
+  "_key": "!items!phbbrbBarbarian0",
+  "name": "Barbarian",
+  "type": "class",
+  "img": "icons/svg/book.svg",
+  "system": {
+    "active": true,
+    "description": "<h3>Core Barbarian Traits</h3><table class=\"core-class-traits\"><tbody><tr><th scope=\"row\"><p>Primary Ability</p></th><td><p>Strength</p></td></tr><tr><th><p><strong>Hit Point Die</strong></p></th><td><p>D12 per Barbarian level</p></td></tr><tr><th><p><strong>Saving Throw Proficiencies</strong></p></th><td><p>Strength and Constitution</p></td></tr><tr><th><p><strong>Skill Proficiencies</strong></p></th><td><p><em>Choose 2:</em> Animal Handling, Athletics, Intimidation, Nature, Perception, or Survival</p></td></tr><tr><th><p><strong>Weapon Proficiencies</strong></p></th><td><p>Simple and Martial weapons</p></td></tr><tr><th><p><strong>Armor Training</strong></p></th><td><p>Light and Medium armor and Shields</p></td></tr><tr><th><p><strong>Starting Equipment</strong></p></th><td><p><em>Choose A or B:</em> (A) Greataxe, 4 Handaxes, Explorer's Pack, and 15GP; or (B) 75GP</p></td></tr></tbody></table><p></p><h2>Becoming a Barbarian …</h2><h3>As a Level 1 Character</h3><ul><li>Gain all the traits in the Core Barbarian Traits table.</li><li>Gain the Barbarian's level 1 features, which are listed in the Barbarian Features table.</li></ul><h3>As a Multiclass Character</h3><ul><li>Gain the following traits from the Core Barbarian Traits table: Hit Point Die, proficiency with Martial weapons, and training with Shields.</li><li>Gain the Barbarian's level 1 features, which are listed in the Barbarian Features table.</li></ul>",
+    "identifier": "barbarian",
+    "advancement": [
+      {
+        "level": 1,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbbrbRage000000",
+          "Compendium.wildpath.srd-items.Item.phbbrbUnarmoredD",
+          "Compendium.wildpath.srd-items.Item.phbbrbWeaponMast"
+        ],
+        "optional": false
+      },
+      {
+        "level": 2,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbbrbDangerSens",
+          "Compendium.wildpath.srd-items.Item.phbbrbRecklessAt"
+        ],
+        "optional": false
+      },
+      {
+        "level": 3,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbbrbPrimalKnow"
+        ],
+        "optional": false
+      },
+      {
+        "level": 4,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      },
+      {
+        "level": 5,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbbrbExtraAttac",
+          "Compendium.wildpath.srd-items.Item.phbbrbFastMoveme"
+        ],
+        "optional": false
+      },
+      {
+        "level": 7,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbbrbFeralInsti",
+          "Compendium.wildpath.srd-items.Item.phbbrbInstinctiv"
+        ],
+        "optional": false
+      },
+      {
+        "level": 8,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      },
+      {
+        "level": 9,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbbrbBrutalStri"
+        ],
+        "optional": false
+      },
+      {
+        "level": 11,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbbrbRelentless"
+        ],
+        "optional": false
+      },
+      {
+        "level": 12,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      },
+      {
+        "level": 13,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbbrbImpBrutalS"
+        ],
+        "optional": false
+      },
+      {
+        "level": 15,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbbrbPersistent"
+        ],
+        "optional": false
+      },
+      {
+        "level": 16,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      },
+      {
+        "level": 17,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbbrbImp2Brutal"
+        ],
+        "optional": false
+      },
+      {
+        "level": 18,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbbrbIndomitabl"
+        ],
+        "optional": false
+      },
+      {
+        "level": 20,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbbrbPrimalCham"
+        ],
+        "optional": false
+      },
+      {
+        "level": 3,
+        "title": "Primal Knowledge",
+        "type": "trait",
+        "grants": [],
+        "choices": [
+          {
+            "count": 1,
+            "pool": [
+              "skills:animal-handling",
+              "skills:athletics",
+              "skills:intimidation",
+              "skills:nature",
+              "skills:perception",
+              "skills:survival"
+            ]
+          }
+        ]
+      },
+      {
+        "level": 3,
+        "title": null,
+        "type": "subclass"
+      },
+      {
+        "level": 1,
+        "title": "Saving Throws Proficiencies",
+        "classRestriction": "primary",
+        "type": "trait",
+        "grants": [
+          "saves:might",
+          "saves:fortitude"
+        ],
+        "choices": []
+      },
+      {
+        "level": 1,
+        "title": "Skill Proficiencies",
+        "classRestriction": "primary",
+        "type": "trait",
+        "grants": [],
+        "choices": [
+          {
+            "count": 2,
+            "pool": [
+              "skills:animal-handling",
+              "skills:athletics",
+              "skills:intimidation",
+              "skills:nature",
+              "skills:perception",
+              "skills:survival"
+            ]
+          }
+        ]
+      },
+      {
+        "level": 1,
+        "title": "Weapon Proficiencies",
+        "classRestriction": "primary",
+        "type": "trait",
+        "grants": [
+          "weapons:simple",
+          "weapons:martial"
+        ],
+        "choices": []
+      },
+      {
+        "level": 1,
+        "title": "Armor Training",
+        "classRestriction": "primary",
+        "type": "trait",
+        "grants": [
+          "armor:light",
+          "armor:medium",
+          "armor:shield"
+        ],
+        "choices": []
+      },
+      {
+        "level": 1,
+        "title": "Weapon Proficiencies",
+        "classRestriction": "secondary",
+        "type": "trait",
+        "grants": [
+          "weapons:martial"
+        ],
+        "choices": []
+      },
+      {
+        "level": 1,
+        "title": "Armor Training",
+        "classRestriction": "secondary",
+        "type": "trait",
+        "grants": [
+          "armor:shield"
+        ],
+        "choices": []
+      },
+      {
+        "level": 1,
+        "title": "Weapon Mastery",
+        "type": "trait",
+        "grants": [],
+        "choices": [
+          {
+            "count": 2,
+            "pool": [
+              "masteries:*"
+            ]
+          }
+        ]
+      },
+      {
+        "level": 4,
+        "title": "Weapon Mastery",
+        "type": "trait",
+        "grants": [],
+        "choices": [
+          {
+            "count": 1,
+            "pool": [
+              "masteries:*"
+            ]
+          }
+        ]
+      },
+      {
+        "level": 10,
+        "title": "Weapon Mastery",
+        "type": "trait",
+        "grants": [],
+        "choices": [
+          {
+            "count": 1,
+            "pool": [
+              "masteries:*"
+            ]
+          }
+        ]
+      },
+      {
+        "level": 19,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      }
+    ],
+    "levels": 1,
+    "hitDie": 12,
+    "original": false,
+    "spellcasting": {
+      "progression": "none",
+      "ability": ""
+    }
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbbrbBarbarian0",
+        "type": "class",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "grant: phbUnarmedStrike was not converted"
+        ]
+      }
+    }
+  }
+}

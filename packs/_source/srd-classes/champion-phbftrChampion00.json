@@ -1,0 +1,97 @@
+{
+  "_id": "phbftrChampion00",
+  "_key": "!items!phbftrChampion00",
+  "name": "Champion",
+  "type": "subclass",
+  "img": "icons/svg/book.svg",
+  "system": {
+    "active": true,
+    "description": "<blockquote><p>Pursue Physical Excellence in Combat</p></blockquote><p>A Champion focuses on the development of martial prowess in a relentless pursuit of victory. Champions combine rigorous training with physical excellence to deal devastating blows, withstand peril, and garner glory. Whether in athletic contests or bloody battle, Champions strive for the crown of the victor.</p>",
+    "identifier": "champion",
+    "advancement": [
+      {
+        "level": 3,
+        "title": "Subclass Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbftrImprovedCr",
+          "Compendium.wildpath.srd-items.Item.phbftrRemarkable"
+        ],
+        "optional": false
+      },
+      {
+        "level": 7,
+        "title": "Subclass Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbftrAdditional"
+        ],
+        "optional": false
+      },
+      {
+        "level": 10,
+        "title": "Subclass Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbftrHeroicWarr"
+        ],
+        "optional": false
+      },
+      {
+        "level": 15,
+        "title": "Subclass Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbftrSuperiorCr"
+        ],
+        "optional": false
+      },
+      {
+        "level": 18,
+        "title": "Subclass Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbftrSurvivor00"
+        ],
+        "optional": false
+      },
+      {
+        "level": 7,
+        "title": "Fighting Style",
+        "type": "choice",
+        "count": 1,
+        "replacement": false,
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbfstArchery000",
+          "Compendium.wildpath.srd-items.Item.phbfstDefense000",
+          "Compendium.wildpath.srd-items.Item.phbfstGreatWeapo",
+          "Compendium.wildpath.srd-items.Item.phbfstTwoWeaponF"
+        ]
+      }
+    ],
+    "classIdentifier": "fighter"
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbftrChampion00",
+        "type": "subclass",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "grant: phbfstBlindFight was not converted",
+          "grant: phbfstDueling000 was not converted",
+          "grant: phbfstIntercepti was not converted",
+          "grant: phbfstProtection was not converted",
+          "grant: phbfstThrownWeap was not converted",
+          "grant: phbfstUnarmedFig was not converted"
+        ]
+      }
+    }
+  }
+}

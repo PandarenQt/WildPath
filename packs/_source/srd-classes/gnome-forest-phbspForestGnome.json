@@ -1,0 +1,67 @@
+{
+  "_id": "phbspForestGnome",
+  "_key": "!items!phbspForestGnome",
+  "name": "Gnome, Forest",
+  "type": "species",
+  "img": "icons/environment/wilderness/tree-oak.webp",
+  "system": {
+    "active": true,
+    "description": "<p></p><h3 data-anchor=\"gnome-traits\">Gnome Traits</h3><p><strong>Creature Type: </strong>Humanoid</p><p><strong>Size: </strong>Small (about 3–4 feet tall)</p><p><strong>Speed:</strong> 30 feet</p><p>As a Gnome, you have these special traits.</p><p><strong>Darkvision. </strong>You have Darkvision with a range of 60 feet.</p><p><strong>Gnomish Cunning.</strong> You have Advantage on Intelligence, Wisdom, and Charisma saving throws.</p><p><strong>Gnomish Lineage.</strong> You are part of a lineage that grants you supernatural abilities. Whichever lineage you choose, Intelligence, Wisdom, or Charisma is your spellcasting ability for the spells you cast with this trait (choose the ability when you select the lineage):</p><p><strong>Forest Gnome.</strong> You know the Minor Illusion cantrip. You also always have the Speak with Animals spell prepared. You can cast it without a spell slot a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest. You can also use any spell slots you have to cast the spell.</p>",
+    "identifier": "gnome-forest",
+    "advancement": [
+      {
+        "level": 0,
+        "title": null,
+        "type": "size",
+        "sizes": [
+          "small"
+        ]
+      },
+      {
+        "level": 0,
+        "title": "Gnome Traits",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbsptGnomishCun",
+          "Compendium.wildpath.srd-items.Item.phbsptForestGnom"
+        ],
+        "optional": false
+      },
+      {
+        "level": 0,
+        "title": "Forest Gnome Lineage Spell",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbsplSpeakwithA"
+        ],
+        "optional": false
+      },
+      {
+        "level": 0,
+        "title": "Forest Gnome Lineage Cantrip",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbsplMinorIllus"
+        ],
+        "optional": false
+      }
+    ],
+    "size": "small"
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "origins24",
+        "id": "phbspForestGnome",
+        "type": "race",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

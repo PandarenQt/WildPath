@@ -1,0 +1,68 @@
+{
+  "_id": "phbrgrHunter0000",
+  "_key": "!items!phbrgrHunter0000",
+  "name": "Hunter",
+  "type": "subclass",
+  "img": "icons/svg/book.svg",
+  "system": {
+    "active": true,
+    "description": "<blockquote><p>Protect Nature and People from Destruction</p></blockquote><p>You stalk prey in the wilds and elsewhere, using your abilities as a Hunter to protect nature and people everywhere from forces that would destroy them.</p>",
+    "identifier": "hunter",
+    "advancement": [
+      {
+        "level": 3,
+        "title": "Subclass Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbrgrHuntersLor",
+          "Compendium.wildpath.srd-items.Item.phbrgrHuntersPre"
+        ],
+        "optional": false
+      },
+      {
+        "level": 7,
+        "title": "Subclass Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbrgrDefensiveT"
+        ],
+        "optional": false
+      },
+      {
+        "level": 11,
+        "title": "Subclass Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbrgrSuperiorHu"
+        ],
+        "optional": false
+      },
+      {
+        "level": 15,
+        "title": "Subclass Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbrgrSuperiorDe"
+        ],
+        "optional": false
+      }
+    ],
+    "classIdentifier": "ranger"
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbrgrHunter0000",
+        "type": "subclass",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

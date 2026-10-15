@@ -1,6 +1,6 @@
 import {mkdirSync, rmSync, writeFileSync} from "node:fs";
 import {join} from "node:path";
-import {convertActor, convertItem, isSrd2024, nameIndex, scaleTables, slugify} from "./dnd5e-to-wildpath.mjs";
+import {PROGRESSION_TYPES, convertActor, convertItem, convertProgression, isSrd2024, nameIndex, scaleTables, slugify} from "./dnd5e-to-wildpath.mjs";
 import {readPack} from "./packs.mjs";
 
 /**
@@ -32,13 +32,29 @@ const creatures = Object.fromEntries(readPack(from, "actors24").filter(document 
 
 const items = [];
 const actors = [];
+const progressions = [];
 const report = [];
+// What each dnd5e document became here: its gear (which brings its Actions), else all its Items.
+const convertedIds = new Map();
 for ( const pack of ITEM_PACKS ) {
   for ( const document of readPack(from, pack).filter(wanted) ) {
     if ( !["spell", "weapon", "feat", "equipment", "consumable", "tool", "loot", "container"].includes(document.type) ) continue;
     const result = convertItem(document, {scales, pack, names, creatures, spells});
     items.push(...result.items);
+    const gear = result.items.filter(item => item.type === "gear");
+    convertedIds.set(document._id, (gear.length ? gear : result.items).map(item => item._id));
     report.push({pack, name: document.name, converted: result.items.map(item => `${item.name} (${kind(item)})`), notes: result.notes});
+  }
+}
+// Classes, subclasses, species and backgrounds (G8), granting what was converted above.
+const uuidOf = uuid => (convertedIds.get(String(uuid).split(".").pop()) ?? []).map(id => `Compendium.wildpath.srd-items.Item.${id}`);
+for ( const pack of ITEM_PACKS ) {
+  for ( const document of readPack(from, pack).filter(wanted) ) {
+    if ( !PROGRESSION_TYPES[document.type] ) continue;
+    const result = convertProgression(document, {uuidOf, pack, names});
+    if ( !result.ok ) continue;
+    progressions.push(result.item);
+    report.push({pack, name: document.name, converted: [`${result.item.name} (${result.item.type})`], notes: result.notes});
   }
 }
 for ( const document of readPack(from, "actors24").filter(wanted) ) {
@@ -55,7 +71,7 @@ function kind(item) {
 }
 
 // Never anything but SRD 5.2 under the repository.
-for ( const document of [...items, ...actors] ) {
+for ( const document of [...items, ...actors, ...progressions] ) {
   if ( (document.flags.wildpath.source.license !== "CC-BY-4.0") || (document.flags.wildpath.source.book !== "SRD 5.2") ) {
     throw new Error(`${document.name} is not SRD 5.2 content; nothing was written`);
   }
@@ -67,6 +83,7 @@ const write = (folder, documents) => {
 };
 write("packs/_source/srd-items", items);
 write("packs/_source/srd-creatures", actors);
+write("packs/_source/srd-classes", progressions);
 
 const counts = items.reduce((total, item) => ({...total, [kind(item)]: (total[kind(item)] ?? 0) + 1}), {});
 const rows = report.sort((a, b) => a.name.localeCompare(b.name)).map(entry => `| ${entry.name} | ${entry.pack} | ${entry.converted.join(", ") || "—"} | ${

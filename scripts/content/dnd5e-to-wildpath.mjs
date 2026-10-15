@@ -393,6 +393,106 @@ function versatileDefinition({document, system, definition}) {
     ? {...entry, expression} : entry))};
 }
 
+/** dnd5e's progression Item types and WildPath's (G8). */
+export const PROGRESSION_TYPES = Object.freeze({class: "class", subclass: "subclass", race: "species", background: "background"});
+const DND_SIZES = Object.freeze({tiny: "tiny", sm: "small", med: "medium", lg: "large", huge: "huge", grg: "gargantuan"});
+const ARMOR_TRAINING = Object.freeze({lgt: "light", med: "medium", hvy: "heavy", shl: "shield"});
+const WEAPON_TRAINING = Object.freeze({sim: "simple", mar: "martial"});
+
+/**
+ * A dnd5e trait key as WildPath's (G8): `skills:ath` is `skills:athletics`, `saves:str` `saves:might`, `armor:lgt`
+ * `armor:light`, `weapon:mar` `weapons:martial` (or `masteries:martial` for Weapon Mastery), `tool:art:calligrapher`
+ * `tools:calligrapher`. Languages are not tracked: null.
+ */
+export function traitKey(key, {mastery=false}={}) {
+  const [kind, ...rest] = String(key).split(":");
+  const tail = rest.join(":");
+  switch ( kind ) {
+    case "skills": return `skills:${tail === "*" ? "*" : slugify(DND_SKILLS[tail] ?? tail)}`;
+    case "saves": return `saves:${ABILITY_MAP[tail] ?? tail}`;
+    case "armor": return `armor:${ARMOR_TRAINING[tail] ?? tail}`;
+    case "weapon": return `${mastery ? "masteries" : "weapons"}:${rest.map(part => WEAPON_TRAINING[part] ?? part).join(":")}`;
+    case "tool": return `tools:${rest.at(-1)}`;
+    case "languages": return null;
+    default: return String(key);
+  }
+}
+
+/**
+ * A dnd5e class, subclass, species or background as its WildPath Item (G8): its fields and its by-level advancement,
+ * with what it grants found through `uuidOf` (a dnd5e uuid to the WildPath uuids it converted to). Hit points and
+ * scale values need no entry: a class's Hit Die, and the tables its features read.
+ */
+export function convertProgression(document, {uuidOf=() => [], licensed=isSrd2024, book="SRD 5.2", pack=null, names={},
+  images=["icons/"]}={}) {
+  if ( !licensed(document) ) return {ok: false, reason: "not SRD 5.2 (CC-BY-4.0, 2024)"};
+  const type = PROGRESSION_TYPES[document.type];
+  if ( !type ) return {ok: false, reason: `not a progression Item: ${document.type}`};
+  const system = document.system ?? {};
+  const notes = [];
+  const uuids = list => list.flatMap(entry => {
+    const found = uuidOf(entry.uuid);
+    if ( !found.length ) notes.push(`grant: ${String(entry.uuid).split(".").pop()} was not converted`);
+    return found;
+  });
+  const advancement = Object.values(system.advancement ?? {}).flatMap(entry => {
+    const config = entry.configuration ?? {};
+    const base = {level: Number(entry.level) || 0, title: entry.title || null,
+      ...(entry.classRestriction ? {classRestriction: entry.classRestriction} : {})};
+    switch ( entry.type ) {
+      case "HitPoints": case "ScaleValue": return [];
+      case "ItemGrant": return [{...base, type: "grant", items: uuids(config.items ?? []), optional: config.optional === true}];
+      case "ItemChoice": return Object.entries(config.choices ?? {}).filter(([, choice]) => Number(choice?.count) > 0)
+        .map(([level, choice]) => ({...base, level: Number(level) || 0, type: "choice", count: Number(choice.count),
+          replacement: choice.replacement === true, items: uuids(config.pool ?? [])}));
+      case "Trait": {
+        const mastery = config.mode === "mastery";
+        const keys = list => list.map(key => traitKey(key, {mastery})).filter(Boolean);
+        if ( [...(config.grants ?? []), ...(config.choices ?? []).flatMap(choice => choice.pool ?? [])].some(key => String(key).startsWith("languages")) ) {
+          notes.push("languages are not tracked");
+        }
+        const grants = keys(config.grants ?? []);
+        const choices = (config.choices ?? []).map(choice => ({count: Number(choice.count) || 1, pool: keys(choice.pool ?? [])}))
+          .filter(choice => choice.pool.length);
+        return (grants.length || choices.length) ? [{...base, type: "trait", grants, choices}] : [];
+      }
+      case "AbilityScoreImprovement": {
+        const locked = new Set(config.locked ?? []);
+        return [{...base, type: "improvement", points: Number(config.points) || 0, cap: Number(config.cap) || 2,
+          abilities: Object.keys(ABILITY_MAP).filter(key => !locked.has(key)).map(key => ABILITY_MAP[key]),
+          fixed: Object.fromEntries(Object.entries(config.fixed ?? {}).filter(([, value]) => Number(value)).map(([key, value]) => [ABILITY_MAP[key], Number(value)])),
+          // An ability increase may be a feat instead (2024), unless it is a background's.
+          feat: type !== "background"}];
+      }
+      case "Subclass": return [{...base, type: "subclass"}];
+      case "Size": return [{...base, type: "size", sizes: (config.sizes ?? []).map(size => DND_SIZES[size] ?? size)}];
+      default:
+        notes.push(`advancement: ${entry.type} not converted`);
+        return [];
+    }
+  });
+  const fields = {identifier: system.identifier || slugify(document.name), advancement};
+  if ( type === "class" ) {
+    const progression = system.spellcasting?.progression ?? "none";
+    // shortcut: the Artificer rounds up like a half caster; third casters and pact magic are not converted.
+    const mapped = {full: "full", half: "half", artificer: "half"}[progression] ?? "none";
+    if ( !["none", "full", "half"].includes(progression) ) notes.push(`spellcasting: ${progression} is treated as ${mapped}`);
+    Object.assign(fields, {levels: 1, hitDie: Number(String(system.hd?.denomination ?? "d8").slice(1)) || 8, original: false,
+      spellcasting: {progression: mapped, ability: ABILITY_MAP[system.spellcasting?.ability] ?? ""}});
+  }
+  if ( type === "subclass" ) fields.classIdentifier = system.classIdentifier ?? "";
+  if ( type === "species" ) {
+    const sizes = advancement.find(entry => entry.type === "size")?.sizes ?? [];
+    fields.size = sizes.includes("medium") ? "medium" : (sizes[0] ?? "medium");
+  }
+  const source = {system: "dnd5e", pack, id: document._id, type: document.type, book,
+    license: system.source?.license || null, rules: system.source?.rules || "2024"};
+  return {ok: true, notes, item: {_id: document._id, _key: `!items!${document._id}`, name: document.name, type,
+    img: kept(document.img, images) ?? "icons/svg/book.svg",
+    system: {active: true, description: describe(document, {names}), ...fields},
+    flags: {wildpath: {source, conversion: {notes: [...new Set(notes)]}}}}};
+}
+
 /** dnd5e Item types that are things a creature carries: WildPath gear. */
 const GEAR_TYPES = new Set(["equipment", "consumable", "tool", "loot", "container"]);
 

@@ -1,0 +1,49 @@
+{
+  "_id": "phbspOrc00000000",
+  "_key": "!items!phbspOrc00000000",
+  "name": "Orc",
+  "type": "species",
+  "img": "icons/commodities/bones/skull-tusked-grey.webp",
+  "system": {
+    "active": true,
+    "description": "<p></p><h3 data-anchor=\"orc-traits\">Orc Traits</h3><p><strong>Creature Type: </strong>Humanoid</p><p><strong>Size: </strong>Medium (about 6–7 feet tall)</p><p><strong>Speed:</strong> 30 feet</p><p>As an Orc, you have these special traits.</p><p><strong>Adrenaline Rush. </strong>You can take the Dash action as a Bonus Action. When you do so, you gain a number of Temporary Hit Points equal to your Proficiency Bonus. You can use this trait a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Short or Long Rest.</p><p><strong>Darkvision.</strong> You have Darkvision with a range of 120 feet.</p><p><strong>Relentless Endurance.</strong> When you are reduced to 0 Hit Points but not killed outright, you can drop to 1 Hit Point instead. Once you use this trait, you can't do so again until you finish a Long Rest.</p>",
+    "identifier": "orc",
+    "advancement": [
+      {
+        "level": 0,
+        "title": null,
+        "type": "size",
+        "sizes": [
+          "medium"
+        ]
+      },
+      {
+        "level": 0,
+        "title": "Orc Traits",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbsptAdrenaline",
+          "Compendium.wildpath.srd-items.Item.phbsptRelentless"
+        ],
+        "optional": false
+      }
+    ],
+    "size": "medium"
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "origins24",
+        "id": "phbspOrc00000000",
+        "type": "race",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

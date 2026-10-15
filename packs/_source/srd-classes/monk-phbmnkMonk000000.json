@@ -1,0 +1,342 @@
+{
+  "_id": "phbmnkMonk000000",
+  "_key": "!items!phbmnkMonk000000",
+  "name": "Monk",
+  "type": "class",
+  "img": "icons/svg/book.svg",
+  "system": {
+    "active": true,
+    "description": "<h3>Core Monk Traits</h3><table class=\"core-class-traits\"><tbody><tr><th scope=\"row\"><p>Primary Ability</p></th><td><p>Dexterity and Wisdom</p></td></tr><tr><th scope=\"row\"><p>Hit Point Die</p></th><td><p>D8 per Monk level</p></td></tr><tr><th scope=\"row\"><p>Saving Throw Proficiencies</p></th><td><p>Strength and Dexterity</p></td></tr><tr><th scope=\"row\"><p>Skill Proficiencies</p></th><td><p><em>Choose 2:</em> Acrobatics, Athletics, History, Insight, Religion, or Stealth</p></td></tr><tr><th scope=\"row\"><p>Weapon Proficiencies</p></th><td><p>Simple weapons and Martial weapons that have the Light property</p></td></tr><tr><th scope=\"row\"><p>Tool Proficiencies</p></th><td><p><em>Choose one type of Artisan's Tools or Musical Instrument</em></p></td></tr><tr><th scope=\"row\"><p>Armor Training</p></th><td><p>None</p></td></tr><tr><th scope=\"row\"><p>Starting Equipment</p></th><td><p><em>Choose A or B:</em> (A) Spear, 5 Daggers, Artisan's Tools or Musical Instrument chosen for the tool proficiency above, Explorer's Pack, and 11GP; or (B) 50GP</p></td></tr></tbody></table><p></p><h2>Becoming a Monk …</h2><h3>As a Level 1 Character</h3><ul><li>Gain all the traits in the Core Monk Traits table.</li><li>Gain the Monk's level 1 features, which are listed in the Monk Features table.</li></ul><h3>As a Multiclass Character</h3><ul><li>Gain the Hit Point Die trait from the Core Monk Traits table.</li><li>Gain the Monk's level 1 features, which are listed in the Monk Features table.</li></ul>",
+    "identifier": "monk",
+    "advancement": [
+      {
+        "level": 1,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbmnkMartialArt",
+          "Compendium.wildpath.srd-items.Item.phbmnkUnarmoredD"
+        ],
+        "optional": false
+      },
+      {
+        "level": 2,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbmnkMonksFocus",
+          "Compendium.wildpath.srd-items.Item.1omiyrmoqijqe000",
+          "Compendium.wildpath.srd-items.Item.1ocjd2n1nxys9t00",
+          "Compendium.wildpath.srd-items.Item.1o2jrdoo4ayu4000",
+          "Compendium.wildpath.srd-items.Item.phbmnkUnarmoredM",
+          "Compendium.wildpath.srd-items.Item.phbmnkUncannyMet"
+        ],
+        "optional": false
+      },
+      {
+        "level": 3,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbmnkDeflectAtt"
+        ],
+        "optional": false
+      },
+      {
+        "level": 4,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbmnkSlowFall00"
+        ],
+        "optional": false
+      },
+      {
+        "level": 5,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbmnkExtraAttac",
+          "Compendium.wildpath.srd-items.Item.phbmnkStunningSt"
+        ],
+        "optional": false
+      },
+      {
+        "level": 6,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbmnkEmpoweredS"
+        ],
+        "optional": false
+      },
+      {
+        "level": 7,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbmnkEvasion000"
+        ],
+        "optional": false
+      },
+      {
+        "level": 9,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbmnkAcrobaticM"
+        ],
+        "optional": false
+      },
+      {
+        "level": 10,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbmnkHeightened"
+        ],
+        "optional": false
+      },
+      {
+        "level": 13,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbmnkDeflectEne"
+        ],
+        "optional": false
+      },
+      {
+        "level": 14,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbmnkDiscipline"
+        ],
+        "optional": false
+      },
+      {
+        "level": 15,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbmnkPerfectFoc"
+        ],
+        "optional": false
+      },
+      {
+        "level": 18,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbmnkSuperiorDe"
+        ],
+        "optional": false
+      },
+      {
+        "level": 20,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbmnkBodyAndMin"
+        ],
+        "optional": false
+      },
+      {
+        "level": 4,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      },
+      {
+        "level": 8,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      },
+      {
+        "level": 12,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      },
+      {
+        "level": 16,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      },
+      {
+        "level": 20,
+        "title": "Body and Mind",
+        "type": "improvement",
+        "points": 0,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {
+          "agility": 4,
+          "wits": 4
+        },
+        "feat": true
+      },
+      {
+        "level": 3,
+        "title": null,
+        "type": "subclass"
+      },
+      {
+        "level": 1,
+        "title": "Saving Throw Proficiencies",
+        "classRestriction": "primary",
+        "type": "trait",
+        "grants": [
+          "saves:might",
+          "saves:agility"
+        ],
+        "choices": []
+      },
+      {
+        "level": 1,
+        "title": "Skill Proficiencies",
+        "classRestriction": "primary",
+        "type": "trait",
+        "grants": [],
+        "choices": [
+          {
+            "count": 2,
+            "pool": [
+              "skills:acrobatics",
+              "skills:athletics",
+              "skills:history",
+              "skills:insight",
+              "skills:religion",
+              "skills:stealth"
+            ]
+          }
+        ]
+      },
+      {
+        "level": 1,
+        "title": "Weapon Proficiencies",
+        "type": "trait",
+        "grants": [
+          "weapons:simple",
+          "weapons:martial:handcrossbow",
+          "weapons:martial:scimitar",
+          "weapons:martial:shortsword"
+        ],
+        "choices": []
+      },
+      {
+        "level": 1,
+        "title": "Tool Proficiencies",
+        "classRestriction": "primary",
+        "type": "trait",
+        "grants": [],
+        "choices": [
+          {
+            "count": 1,
+            "pool": [
+              "tools:*",
+              "tools:*"
+            ]
+          }
+        ]
+      },
+      {
+        "level": 19,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      }
+    ],
+    "levels": 1,
+    "hitDie": 8,
+    "original": false,
+    "spellcasting": {
+      "progression": "none",
+      "ability": ""
+    }
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbmnkMonk000000",
+        "type": "class",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "grant: phbmnkUnarmedStr was not converted",
+          "grant: phbmnkSelfrestor was not converted"
+        ]
+      }
+    }
+  }
+}

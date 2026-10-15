@@ -1,0 +1,119 @@
+{
+  "_id": "phbpdnOathOfDevo",
+  "_key": "!items!phbpdnOathOfDevo",
+  "name": "Oath of Devotion",
+  "type": "subclass",
+  "img": "icons/svg/book.svg",
+  "system": {
+    "active": true,
+    "description": "<blockquote><p>Uphold the Ideals of Justice and Order</p></blockquote><p>The Oath of Devotion binds Paladins to the ideals of justice and order. These Paladins meet the archetype of the knight in shining armor. They hold themselves to the highest standards of conduct, and some—for better or worse—hold the rest of the world to the same standards.</p><p>Many who swear this oath are devoted to gods of law and good and use their gods' tenets as the measure of personal devotion. Others hold angels as their ideals and incorporate images of angelic wings into their helmets or coats of arms.</p><p>These paladins share the following tenets:</p><ul><li>Let your word be your promise.</li><li>Protect the weak and never fear to act.</li><li>Let your honorable deeds be an example.</li></ul>",
+    "identifier": "devotion",
+    "advancement": [
+      {
+        "level": 3,
+        "title": "Subclass Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbpdnDevotionSp",
+          "Compendium.wildpath.srd-items.Item.phbpdnSacredWeap"
+        ],
+        "optional": false
+      },
+      {
+        "level": 7,
+        "title": "Subclass Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbpdnDevotionAu"
+        ],
+        "optional": false
+      },
+      {
+        "level": 15,
+        "title": "Subclass Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbpdnSmiteOfPro"
+        ],
+        "optional": false
+      },
+      {
+        "level": 20,
+        "title": "Subclass Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbpdnHolyNimbus"
+        ],
+        "optional": false
+      },
+      {
+        "level": 3,
+        "title": "Oath of Devotion Spells",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbsplShieldofFa",
+          "Compendium.wildpath.srd-items.Item.phbEvilAndGoodPr"
+        ],
+        "optional": false
+      },
+      {
+        "level": 5,
+        "title": "Oath of Devotion Spells",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbsplZoneofTrut",
+          "Compendium.wildpath.srd-items.Item.phbsplAid0000000"
+        ],
+        "optional": false
+      },
+      {
+        "level": 9,
+        "title": "Oath of Devotion Spells",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbsplDispelMagi",
+          "Compendium.wildpath.srd-items.Item.phbsplBeaconofHo"
+        ],
+        "optional": false
+      },
+      {
+        "level": 13,
+        "title": "Oath of Devotion Spells",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbsplGuardianof",
+          "Compendium.wildpath.srd-items.Item.rm92xp28l78v0000",
+          "Compendium.wildpath.srd-items.Item.phbsplFreedomofM"
+        ],
+        "optional": false
+      },
+      {
+        "level": 17,
+        "title": "Oath of Devotion Spells",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbsplFlameStrik",
+          "Compendium.wildpath.srd-items.Item.phbsplCommune000"
+        ],
+        "optional": false
+      }
+    ],
+    "classIdentifier": "paladin"
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbpdnOathOfDevo",
+        "type": "subclass",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

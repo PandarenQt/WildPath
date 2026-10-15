@@ -1,0 +1,111 @@
+{
+  "_id": "phbwlkFiendPatro",
+  "_key": "!items!phbwlkFiendPatro",
+  "name": "Fiend Patron",
+  "type": "subclass",
+  "img": "icons/svg/book.svg",
+  "system": {
+    "active": true,
+    "description": "<blockquote><p>Make a Deal with the Lower Planes</p></blockquote><p>Your pact draws on the Lower Planes, the realms of perdition. You might forge a bargain with a demon lord such as Demogorgon or Orcus; an archdevil such as Asmodeus; or a pit fiend, balor, yugoloth, or night hag that is especially mighty. That patron's aims are evil—the corruption or destruction of all things, ultimately including you—and your path is defined by the extent to which you strive against those aims.</p>",
+    "identifier": "fiend",
+    "advancement": [
+      {
+        "level": 3,
+        "title": "Subclass Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbwlkDarkOnesBl",
+          "Compendium.wildpath.srd-items.Item.phbwlkFiendSpell"
+        ],
+        "optional": false
+      },
+      {
+        "level": 6,
+        "title": "Subclass Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbwlkDarkOnesOw"
+        ],
+        "optional": false
+      },
+      {
+        "level": 10,
+        "title": "Subclass Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbwlkFiendishRe"
+        ],
+        "optional": false
+      },
+      {
+        "level": 14,
+        "title": "Subclass Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbwlkHurlThroug"
+        ],
+        "optional": false
+      },
+      {
+        "level": 3,
+        "title": "Fiend Spells",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbsplBurningHan",
+          "Compendium.wildpath.srd-items.Item.phbsplCommand000",
+          "Compendium.wildpath.srd-items.Item.phbsplScorchingR",
+          "Compendium.wildpath.srd-items.Item.phbsplSuggestion"
+        ],
+        "optional": false
+      },
+      {
+        "level": 5,
+        "title": "Fiend Spells",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbsplFireball00",
+          "Compendium.wildpath.srd-items.Item.phbsplStinkingCl"
+        ],
+        "optional": false
+      },
+      {
+        "level": 7,
+        "title": "Fiend Spells",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbsplFireShield",
+          "Compendium.wildpath.srd-items.Item.phbsplWallofFire",
+          "Compendium.wildpath.srd-items.Item.19u4c7qxjhshq000"
+        ],
+        "optional": false
+      },
+      {
+        "level": 9,
+        "title": "Fiend Spells",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbsplGeas000000",
+          "Compendium.wildpath.srd-items.Item.phbsplInsectPlag"
+        ],
+        "optional": false
+      }
+    ],
+    "classIdentifier": "warlock"
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbwlkFiendPatro",
+        "type": "subclass",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

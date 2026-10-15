@@ -1,0 +1,51 @@
+{
+  "_id": "phbspHalfling000",
+  "_key": "!items!phbspHalfling000",
+  "name": "Halfling",
+  "type": "species",
+  "img": "icons/equipment/feet/shoes-leather-simple-brown.webp",
+  "system": {
+    "active": true,
+    "description": "<p></p><h3 data-anchor=\"halfling-traits\">Halfling Traits</h3><p><strong>Creature Type: </strong>Humanoid</p><p><strong>Size: </strong>Small (about 2–3 feet tall)</p><p><strong>Speed:</strong> 30 feet</p><p>As a Halfling, you have these special traits.</p><p><strong>Brave.</strong> You have Advantage on saving throws you make to avoid or end the Frightened condition.</p><p><strong>Halfling Nimbleness.</strong> You can move through the space of any creature that is a size larger than you, but you can't stop in the same space.</p><p><strong>Luck.</strong> When you roll a 1 on the d20 of a D20 Test, you can reroll the die, and you must use the new roll.</p><p><strong>Naturally Stealthy.</strong> You can take the Hide action even when you are obscured only by a creature that is at least one size larger than you.</p>",
+    "identifier": "halfling",
+    "advancement": [
+      {
+        "level": 0,
+        "title": null,
+        "type": "size",
+        "sizes": [
+          "small"
+        ]
+      },
+      {
+        "level": 0,
+        "title": "Halfling Traits",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbsptBrave00000",
+          "Compendium.wildpath.srd-items.Item.phbsptHalflingNi",
+          "Compendium.wildpath.srd-items.Item.phbsptLuck000000",
+          "Compendium.wildpath.srd-items.Item.phbsptNaturallyS"
+        ],
+        "optional": false
+      }
+    ],
+    "size": "small"
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "origins24",
+        "id": "phbspHalfling000",
+        "type": "race",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

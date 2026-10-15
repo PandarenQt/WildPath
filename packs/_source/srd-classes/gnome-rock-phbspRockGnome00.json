@@ -1,0 +1,59 @@
+{
+  "_id": "phbspRockGnome00",
+  "_key": "!items!phbspRockGnome00",
+  "name": "Gnome, Rock",
+  "type": "species",
+  "img": "icons/environment/wilderness/terrain-rocks-brown.webp",
+  "system": {
+    "active": true,
+    "description": "<p></p><h3 data-anchor=\"gnome-traits\">Gnome Traits</h3><p><strong>Creature Type: </strong>Humanoid</p><p><strong>Size: </strong>Small (about 3–4 feet tall)</p><p><strong>Speed:</strong> 30 feet</p><p>As a Gnome, you have these special traits.</p><p><strong>Darkvision. </strong>You have Darkvision with a range of 60 feet.</p><p><strong>Gnomish Cunning.</strong> You have Advantage on Intelligence, Wisdom, and Charisma saving throws.</p><p><strong>Gnomish Lineage.</strong> You are part of a lineage that grants you supernatural abilities. Whichever lineage you choose, Intelligence, Wisdom, or Charisma is your spellcasting ability for the spells you cast with this trait (choose the ability when you select the lineage):</p><p><strong>Rock Gnome.</strong> You know the Mending and Prestidigitation cantrips. In addition, you can spend 10 minutes casting <em>Prestidigitation</em> to create a Tiny clockwork device (AC 5, 1 HP), such as a toy, fire starter, or music box. When you create the device, you determine its function by choosing one effect from <em>Prestidigitation</em>; the device produces that effect whenever you or another creature takes a Bonus Action to activate it with a touch. If the chosen effect has options within it, you choose one of those options for the device when you create it. For example, if you choose the spell's ignite-extinguish effect, you determine whether the device ignites or extinguishes fire; the device doesn't do both. You can have three such devices in existence at a time, and each falls apart 8 hours after its creation or when you dismantle it with a touch as a Utilize action.</p>",
+    "identifier": "gnome-rock",
+    "advancement": [
+      {
+        "level": 0,
+        "title": null,
+        "type": "size",
+        "sizes": [
+          "small"
+        ]
+      },
+      {
+        "level": 0,
+        "title": "Gnome Traits",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbsptGnomishCun",
+          "Compendium.wildpath.srd-items.Item.phbsptRockGnomeL"
+        ],
+        "optional": false
+      },
+      {
+        "level": 0,
+        "title": "Rock Gnome Traits",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbsplMending000",
+          "Compendium.wildpath.srd-items.Item.phbsplPrestidigi"
+        ],
+        "optional": false
+      }
+    ],
+    "size": "small"
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "origins24",
+        "id": "phbspRockGnome00",
+        "type": "race",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

@@ -1,0 +1,319 @@
+{
+  "_id": "phbbrdBard000000",
+  "_key": "!items!phbbrdBard000000",
+  "name": "Bard",
+  "type": "class",
+  "img": "icons/svg/book.svg",
+  "system": {
+    "active": true,
+    "description": "<h3>Core Bard Traits</h3><table class=\"core-class-traits\"><tbody><tr><th><p><strong>Primary Ability</strong></p></th><td><p>Charisma</p></td></tr><tr><th><p><strong>Hit Point Die</strong></p></th><td><p>D8 per Bard level</p></td></tr><tr><th><p><strong>Saving Throw Proficiencies</strong></p></th><td><p>Dexterity and Charisma</p></td></tr><tr><th><p><strong>Skill Proficiencies</strong></p></th><td><p><em>Choose any 3 skills</em></p></td></tr><tr><th><p><strong>Weapon Proficiencies</strong></p></th><td><p>Simple weapons</p></td></tr><tr><th><p><strong>Tool Proficiencies</strong></p></th><td><p><em>Choose 3 Musical Instruments</em></p></td></tr><tr><th><p><strong>Armor Training</strong></p></th><td><p>Light armor</p></td></tr><tr><th><p><strong>Starting Equipment</strong></p></th><td><p><em>Choose A or B:</em> (A) Leather Armor, 2 Daggers, Musical Instrument of your choice, Entertainer's Pack, and 19gp; or (B) 90GP</p></td></tr></tbody></table><p></p><h2>Becoming a Bard …</h2><h3>As a Level 1 Character</h3><ul><li>Gain all the traits in the Core Bard Traits table.</li><li>Gain the Bard's level 1 features, which are listed in the Bard Features table.</li></ul><h3>As a Multiclass Character</h3><ul><li>Gain the following traits from the Core Bard Traits table: Hit Point Die, proficiency in one skill of your choice, proficiency with one Musical Instrument of your choice, and training with Light armor.</li><li>Gain the Bard's level 1 features, which are listed in the Bard Features table. See the multiclassing rules in chapter 2 to determine your available spell slots.</li></ul>",
+    "identifier": "bard",
+    "advancement": [
+      {
+        "level": 1,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbbrdBardicInsp",
+          "Compendium.wildpath.srd-items.Item.phbbrdSpellcasti"
+        ],
+        "optional": false
+      },
+      {
+        "level": 2,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbbrdExpertise0",
+          "Compendium.wildpath.srd-items.Item.phbbrdJackOfAllT"
+        ],
+        "optional": false
+      },
+      {
+        "level": 5,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbbrdFontOfInsp"
+        ],
+        "optional": false
+      },
+      {
+        "level": 4,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      },
+      {
+        "level": 7,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbbrdCountercha"
+        ],
+        "optional": false
+      },
+      {
+        "level": 8,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      },
+      {
+        "level": 10,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbbrdMagicalSec"
+        ],
+        "optional": false
+      },
+      {
+        "level": 12,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      },
+      {
+        "level": 16,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      },
+      {
+        "level": 18,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbbrdSuperiorIn"
+        ],
+        "optional": false
+      },
+      {
+        "level": 20,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbbrdWordsOfCre"
+        ],
+        "optional": false
+      },
+      {
+        "level": 2,
+        "title": "Expertise",
+        "type": "trait",
+        "grants": [],
+        "choices": [
+          {
+            "count": 2,
+            "pool": [
+              "skills:*"
+            ]
+          }
+        ]
+      },
+      {
+        "level": 9,
+        "title": null,
+        "type": "trait",
+        "grants": [],
+        "choices": [
+          {
+            "count": 2,
+            "pool": [
+              "skills:*"
+            ]
+          }
+        ]
+      },
+      {
+        "level": 20,
+        "title": "Words of Creation",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbsplPowerWordH",
+          "Compendium.wildpath.srd-items.Item.phbsplPowerWordK"
+        ],
+        "optional": false
+      },
+      {
+        "level": 3,
+        "title": null,
+        "type": "subclass"
+      },
+      {
+        "level": 1,
+        "title": "Saving Throw Proficiencies",
+        "classRestriction": "primary",
+        "type": "trait",
+        "grants": [
+          "saves:agility",
+          "saves:presence"
+        ],
+        "choices": []
+      },
+      {
+        "level": 1,
+        "title": "Skill Proficiencies",
+        "classRestriction": "primary",
+        "type": "trait",
+        "grants": [],
+        "choices": [
+          {
+            "count": 3,
+            "pool": [
+              "skills:*"
+            ]
+          }
+        ]
+      },
+      {
+        "level": 1,
+        "title": "Weapon Proficiencies",
+        "type": "trait",
+        "grants": [
+          "weapons:simple"
+        ],
+        "choices": []
+      },
+      {
+        "level": 1,
+        "title": "Tool Proficiencies",
+        "classRestriction": "primary",
+        "type": "trait",
+        "grants": [],
+        "choices": [
+          {
+            "count": 3,
+            "pool": [
+              "tools:*"
+            ]
+          }
+        ]
+      },
+      {
+        "level": 1,
+        "title": "Armor Training",
+        "type": "trait",
+        "grants": [
+          "armor:light"
+        ],
+        "choices": []
+      },
+      {
+        "level": 1,
+        "title": "Skill Proficiencies",
+        "classRestriction": "secondary",
+        "type": "trait",
+        "grants": [],
+        "choices": [
+          {
+            "count": 1,
+            "pool": [
+              "skills:*"
+            ]
+          }
+        ]
+      },
+      {
+        "level": 1,
+        "title": "Tool Proficiencies",
+        "classRestriction": "secondary",
+        "type": "trait",
+        "grants": [],
+        "choices": [
+          {
+            "count": 1,
+            "pool": [
+              "tools:*"
+            ]
+          }
+        ]
+      },
+      {
+        "level": 19,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      }
+    ],
+    "levels": 1,
+    "hitDie": 8,
+    "original": false,
+    "spellcasting": {
+      "progression": "full",
+      "ability": "presence"
+    }
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbbrdBard000000",
+        "type": "class",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

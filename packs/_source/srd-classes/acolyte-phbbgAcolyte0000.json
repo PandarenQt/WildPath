@@ -1,0 +1,66 @@
+{
+  "_id": "phbbgAcolyte0000",
+  "_key": "!items!phbbgAcolyte0000",
+  "name": "Acolyte",
+  "type": "background",
+  "img": "icons/equipment/neck/necklace-runed-white-red.webp",
+  "system": {
+    "active": true,
+    "description": "<p><strong>Ability Scores:</strong> Intelligence, Wisdom, Charisma</p><p><strong>Feat:</strong> Magic Initiate (Cleric)</p><p><strong>Skill Proficiencies:</strong> Insight and Religion</p><p><strong>Tool Proficiency:</strong> Calligrapher's Supplies</p><p><strong>Equipment:</strong> <em>Choose A or B:</em> (A) Calligrapher's Supplies, Book (prayers), Holy Symbol, Parchment (10 sheets), Robe, 8 GP; or (B) 50 GP</p><p></p>",
+    "identifier": "acolyte",
+    "advancement": [
+      {
+        "level": 0,
+        "title": "Background Ability Score Improvement",
+        "type": "improvement",
+        "points": 3,
+        "cap": 2,
+        "abilities": [
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": false
+      },
+      {
+        "level": 0,
+        "title": "Background Proficiencies",
+        "type": "trait",
+        "grants": [
+          "tools:calligrapher",
+          "skills:insight",
+          "skills:religion"
+        ],
+        "choices": []
+      },
+      {
+        "level": 0,
+        "title": "Background Feat",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbftMagicInitia"
+        ],
+        "optional": false
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "origins24",
+        "id": "phbbgAcolyte0000",
+        "type": "background",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "languages are not tracked"
+        ]
+      }
+    }
+  }
+}

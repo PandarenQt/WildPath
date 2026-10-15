@@ -736,7 +736,8 @@
     "PACKS": {
       "Actions": "WildPath Actions",
       "SrdItems": "SRD 5.2: Spells, Equipment and Features",
-      "SrdCreatures": "SRD 5.2: Creatures"
+      "SrdCreatures": "SRD 5.2: Creatures",
+      "SrdClasses": "SRD 5.2: Classes and Origins"
     },
     "TRANSFORMATION": {
       "Effect": "Transformed: {form}"

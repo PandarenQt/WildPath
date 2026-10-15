@@ -1,0 +1,94 @@
+{
+  "_id": "phbspHighElf0000",
+  "_key": "!items!phbspHighElf0000",
+  "name": "Elf, High",
+  "type": "species",
+  "img": "icons/magic/nature/leaf-oak-wreath-glow-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p></p><h3 data-anchor=\"high-elves\">High Elves</h3><p></p><h3 data-anchor=\"elf-traits\">Elf Traits</h3><p><strong>Creature Type:</strong> Humanoid</p><p><strong>Size: </strong>Medium (about 5–6 feet tall)</p><p><strong>Speed:</strong> 30 feet</p><p>As an Elf, you have these special traits.</p><p><strong>Darkvision. </strong>You have Darkvision with a range of 60 feet.</p><p><strong>Elven Lineage. </strong>You are part of a lineage that grants you supernatural abilities.</p><p>When you reach character levels 3 and 5, you learn a higher-level spell, as shown on the table. You always have that spell prepared. You can cast it once without a spell slot, and you regain the ability to cast it in that way when you finish a Long Rest. You can also cast the spell using any spell slots you have of the appropriate level. Intelligence, Wisdom, or Charisma is your spellcasting ability for the spells you cast with this trait (choose the ability when you select the lineage).</p><table><caption>High Elf Lineage Features</caption><thead><tr><td>Level 1</td><td>Level 3</td><td>Level 5</td></tr></thead><tbody><tr><td>You know the Prestidigitation cantrip. Whenever you finish a Long Rest, you can replace that cantrip with a different cantrip from the Wizard spell list.</td><td>Detect Magic</td><td>Misty Step</td></tr></tbody></table><p><strong>Fey Ancestry.</strong> You have Advantage on saving throws you make to avoid or end the Charmed condition.</p><p><strong>Keen Senses.</strong> You have proficiency in the Insight, Perception, or Survival skill.</p><p><strong>Trance.</strong> You don't need to sleep, and magic can't put you to sleep. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.</p>",
+    "identifier": "elf-high",
+    "advancement": [
+      {
+        "level": 0,
+        "title": null,
+        "type": "size",
+        "sizes": [
+          "medium"
+        ]
+      },
+      {
+        "level": 0,
+        "title": "Elf Traits",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbsptFeyAncestr",
+          "Compendium.wildpath.srd-items.Item.phbsptKeenSenses",
+          "Compendium.wildpath.srd-items.Item.phbsptTrance0000",
+          "Compendium.wildpath.srd-items.Item.phbsptHighElfLin"
+        ],
+        "optional": false
+      },
+      {
+        "level": 0,
+        "title": "Keen Senses",
+        "type": "trait",
+        "grants": [],
+        "choices": [
+          {
+            "count": 1,
+            "pool": [
+              "skills:insight",
+              "skills:perception",
+              "skills:survival"
+            ]
+          }
+        ]
+      },
+      {
+        "level": 1,
+        "title": "High Elf Traits",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbsplPrestidigi"
+        ],
+        "optional": false
+      },
+      {
+        "level": 3,
+        "title": "High Elf Traits",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbsplDetectMagi"
+        ],
+        "optional": false
+      },
+      {
+        "level": 5,
+        "title": "High Elf Traits",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbsplMistyStep0"
+        ],
+        "optional": false
+      }
+    ],
+    "size": "medium"
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "origins24",
+        "id": "phbspHighElf0000",
+        "type": "race",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

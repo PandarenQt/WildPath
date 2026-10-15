@@ -1,0 +1,70 @@
+{
+  "_id": "phbrgeThief00000",
+  "_key": "!items!phbrgeThief00000",
+  "name": "Thief",
+  "type": "subclass",
+  "img": "icons/svg/book.svg",
+  "system": {
+    "active": true,
+    "description": "<blockquote><p>Hunt for Treasure as a Classic Adventurer</p></blockquote><p>A mix of burglar, treasure hunter, and explorer, you are the epitome of an adventurer. In addition to improving your agility and stealth, you gain abilities useful for delving into ruins and getting maximum benefit from the magic items you find there.</p>",
+    "identifier": "thief",
+    "advancement": [
+      {
+        "level": 3,
+        "title": "Subclass Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbrgeFastHands0",
+          "Compendium.wildpath.srd-items.Item.15htbkmrhxne0000",
+          "Compendium.wildpath.srd-items.Item.1zgmeh1lyy66t000",
+          "Compendium.wildpath.srd-items.Item.phbrgeSecondstor"
+        ],
+        "optional": false
+      },
+      {
+        "level": 9,
+        "title": "Subclass Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbrgeSupremeSne"
+        ],
+        "optional": false
+      },
+      {
+        "level": 13,
+        "title": "Subclass Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbrgeUseMagicDe"
+        ],
+        "optional": false
+      },
+      {
+        "level": 17,
+        "title": "Subclass Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbrgeThiefsRefl"
+        ],
+        "optional": false
+      }
+    ],
+    "classIdentifier": "rogue"
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbrgeThief00000",
+        "type": "subclass",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}
