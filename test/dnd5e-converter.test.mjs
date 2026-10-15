@@ -1,6 +1,6 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import {convertActor, convertItem, describe, formulaExpression, isSrd2024, scaleTables} from "../scripts/content/dnd5e-to-wildpath.mjs";
+import {convertActor, convertItem, describe, formulaExpression, houseText, isSrd2024, scaleTables} from "../scripts/content/dnd5e-to-wildpath.mjs";
 import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
 
 // Synthetic documents in dnd5e 6.x's shape (mechanics only), not copies of its compendium.
@@ -623,4 +623,12 @@ test("classes, subclasses, species and backgrounds (G8): their fields and what e
   const species = {_id: "testSpecies00000", name: "Test Human", type: "race", system: {source: SRD, advancement: {
     size: {type: "Size", level: 0, configuration: {sizes: ["sm", "med"]}}}}};
   assert.deepEqual([convertProgression(species, {uuidOf}).item.type, convertProgression(species, {uuidOf}).item.system.size], ["species", "medium"]);
+});
+
+test("house text: the Defense Fighting Style's +1 AC needs no armor, and says so", () => {
+  const html = "<p>While you're wearing Light, Medium, or Heavy armor, you gain a +1 bonus to Armor Class.</p>"
+    + "<section id=\"secret-x\" class=\"secret\"><p>Disable it when you are not wearing armor.</p></section>";
+  const defense = {name: "Defense", type: "feat", system: {type: {value: "feat", subtype: "fightingStyle"}}};
+  assert.equal(houseText(defense, html), "<p>You gain a +1 bonus to Armor Class.</p>");
+  assert.equal(houseText({...defense, name: "Archery"}, html), html, "other features keep their text");
 });

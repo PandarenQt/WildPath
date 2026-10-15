@@ -6,7 +6,7 @@
   "img": "icons/equipment/chest/breastplate-gorget-steel.webp",
   "system": {
     "active": true,
-    "description": "<p><em>(Prerequisite: Fighting Style Feature)</em></p><p>While you're wearing Light, Medium, or Heavy armor, you gain a +1 bonus to Armor Class.</p><section id=\"secret-y8skH0HHunT4I5NR\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect which provides the Armor Class bonus. Disable it when you are not wearing armor.</p></section>",
+    "description": "<p><em>(Prerequisite: Fighting Style Feature)</em></p><p>You gain a +1 bonus to Armor Class.</p>",
     "ruleElements": [
       {
         "schemaVersion": 1,
