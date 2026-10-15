@@ -395,6 +395,17 @@ function versatileDefinition({document, system, definition}) {
     ? {...entry, expression} : entry))};
 }
 
+/**
+ * A class's prepared spells at each level 1 to 20 (2024), from its `max-prepared` scale; empty when it has none.
+ */
+export function preparedTable(system) {
+  const scale = Object.values(system?.advancement ?? {}).find(entry => (entry.type === "ScaleValue")
+    && (entry.configuration?.identifier === "max-prepared"))?.configuration?.scale;
+  if ( !scale ) return [];
+  let value = 0;
+  return Array.from({length: 20}, (_, index) => (value = Number(scale[index + 1]?.value ?? value) || value));
+}
+
 /** dnd5e's progression Item types and WildPath's (G8). */
 export const PROGRESSION_TYPES = Object.freeze({class: "class", subclass: "subclass", race: "species", background: "background"});
 const DND_SIZES = Object.freeze({tiny: "tiny", sm: "small", med: "medium", lg: "large", huge: "huge", grg: "gargantuan"});
@@ -481,7 +492,7 @@ export function convertProgression(document, {uuidOf=() => [], licensed=isSrd202
     if ( !["none", "full", "half"].includes(progression) ) notes.push(`spellcasting: ${progression} is treated as ${mapped}`);
     Object.assign(fields, {levels: 1, hitDie: Number(String(system.hd?.denomination ?? "d8").slice(1)) || 8, original: false,
       primaryAbility: {abilities: (system.primaryAbility?.value ?? []).map(key => ABILITY_MAP[key] ?? key), all: system.primaryAbility?.all !== false},
-      spellcasting: {progression: mapped, ability: ABILITY_MAP[system.spellcasting?.ability] ?? ""}});
+      spellcasting: {progression: mapped, ability: ABILITY_MAP[system.spellcasting?.ability] ?? "", prepared: preparedTable(system)}});
   }
   if ( type === "subclass" ) fields.classIdentifier = system.classIdentifier ?? "";
   if ( type === "species" ) {

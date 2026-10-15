@@ -40,6 +40,7 @@ import {footprintDistance} from "../helpers/grid-footprints.mjs";
 import {combineRollModes, d20Chance} from "../helpers/rolls.mjs";
 import {conditionsFrom, creatureRefs, effectsFrom, revealedTo} from "../helpers/effect-sources.mjs";
 import {customEffectId} from "../helpers/action-definitions.mjs";
+import {isUnprepared} from "../helpers/spellcasting.mjs";
 
 export {conditionsFrom, revealedTo};
 import {commonAction, commonActionId} from "../helpers/common-actions.mjs";
@@ -593,6 +594,12 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     ok: false,
     code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
     reason: "A transformed creature can't cast spells."
+  };
+  // 2024: a spell of 1st level or higher is cast only while prepared.
+  if ( !authorityAction && isUnprepared(action) ) return {
+    ok: false,
+    code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
+    reason: `${action.name} is not prepared.`
   };
   // 2024: a creature wearing armor it isn't trained with can't cast spells.
   const hindering = definition?.tags?.includes("spell") ? actor.getUntrainedArmor?.()?.find(item => item.system.armor !== "shield") : null;

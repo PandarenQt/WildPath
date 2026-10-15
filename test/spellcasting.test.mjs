@@ -42,3 +42,19 @@ test("a spellcasting modifier can name its class, so each class of a multiclass 
   assert.equal(evaluateValueExpression({type: "spellcasting-modifier", class: "paladin"}, {actorSystem}).value, 1);
   assert.equal(evaluateValueExpression({type: "spellcasting-modifier"}, {actorSystem}).value, 3);
 });
+
+test("prepared spells (2024): leveled spells a feature did not give, and the classes' limit", async () => {
+  const {isUnprepared, preparedSpellLimit, preparesSpell} = await import("../module/helpers/spellcasting.mjs");
+  const spell = (configuration, extra={}) => ({type: "action", system: {prepared: true, definition: {tags: ["spell"], configuration}}, ...extra});
+  const fireball = spell([{id: "spell-slot"}]);
+  assert.equal(preparesSpell(fireball), true);
+  assert.equal(preparesSpell(spell([])), false, "a cantrip is always ready");
+  assert.equal(preparesSpell(spell([{id: "spell-slot"}], {flags: {wildpath: {grantedBy: "subclass"}}})), false, "a subclass's spell is always prepared");
+  assert.equal(preparesSpell({type: "action", system: {definition: {tags: [], configuration: [{id: "spell-slot"}]}}}), false);
+  assert.equal(isUnprepared({...fireball, system: {...fireball.system, prepared: false}}), true);
+  assert.equal(isUnprepared(fireball), false);
+  const wizard = {system: {levels: 3, spellcasting: {prepared: [4, 5, 6, 7]}}};
+  const paladin = {system: {levels: 2, spellcasting: {prepared: [2, 3]}}};
+  assert.equal(preparedSpellLimit([wizard, paladin]), 9);
+  assert.equal(preparedSpellLimit([{system: {levels: 5, spellcasting: {prepared: []}}}]), null, "a Fighter prepares none");
+});

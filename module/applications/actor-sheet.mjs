@@ -2,6 +2,7 @@ import {createActorSheetViewModel} from "../helpers/character-sheet-view-models.
 import {actorProficiencyBonus, resolveActorCheckStatistic, resolveActorDefense} from "../helpers/combat-statistics.mjs";
 import {levelUp} from "./level-up.mjs";
 import {chooseAbilityScores} from "./ability-scores.mjs";
+import {preparedSpellLimit, preparesSpell} from "../helpers/spellcasting.mjs";
 
 /** Item types whose drop opens the level-up dialog (G8): a class's first level, a species or background. */
 const LEVELLED = new Set(["class", "species", "background"]);
@@ -37,6 +38,7 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
       toggleAttuned: WildPathActorSheet.#onToggleAttuned,
       levelUp: WildPathActorSheet.#onLevelUp,
       abilityScores: WildPathActorSheet.#onAbilityScores,
+      togglePrepared: WildPathActorSheet.#onTogglePrepared,
       deleteEffect: WildPathActorSheet.#onDeleteEffect
     }
   };
@@ -80,6 +82,16 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
     // Ability scores are generated at creation (2024: after the class, before the background's increases).
     context.canChooseAbilityScores = this.isEditable && (this.actor.type === "character") && (total <= 1)
       && !this.actor.items.some(item => item.type === "background");
+    // Spells of 1st level or higher are prepared (2024): a toggle on each, and the count against the classes' limit.
+    for ( const row of context.actionItems ?? [] ) {
+      const item = this.actor.items.get(row.id);
+      row.prepares = preparesSpell(item);
+      row.prepared = item?.system?.prepared !== false;
+    }
+    const preparing = this.actor.items.filter(preparesSpell);
+    const limit = preparedSpellLimit(classes);
+    const count = preparing.filter(item => item.system.prepared !== false).length;
+    context.preparedSpells = (preparing.length || (limit !== null)) ? {count, limit, over: (limit !== null) && (count > limit)} : null;
     context.dyingModes = {auto: "WILDPATH.SHEET.DyingMode.auto", deathSaves: "WILDPATH.SHEET.DyingMode.deathSaves",
       dies: "WILDPATH.SHEET.DyingMode.dies"};
     return context;
@@ -189,6 +201,19 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
       rejectClose: false
     });
     return answer ? Object.fromEntries(Object.entries(answer).map(([faces, count]) => [faces, Number(count) || 0])) : null;
+  }
+
+  /** @this {WildPathActorSheet} Prepare or unprepare a spell; preparing more than the classes allow warns, not blocks. */
+  static async #onTogglePrepared(event, target) {
+    const item = this.actor.items.get(target.closest("[data-item-id]")?.dataset.itemId);
+    if ( !item ) return;
+    const prepared = item.system.prepared === false;
+    await item.update({"system.prepared": prepared});
+    const limit = preparedSpellLimit(this.actor.items.filter(entry => entry.type === "class"));
+    const count = this.actor.items.filter(entry => preparesSpell(entry) && (entry.system.prepared !== false)).length;
+    if ( prepared && (limit !== null) && (count > limit) ) {
+      ui.notifications.warn(game.i18n.format("WILDPATH.SHEET.PreparedOver", {name: this.actor.name, count, limit}));
+    }
   }
 
   /** @this {WildPathActorSheet} Generate the six ability scores (standard array, point buy or 4d6). */

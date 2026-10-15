@@ -4,6 +4,7 @@ import {placeFoundryArea, placeFoundrySummons} from "../applications/area-placem
 import {areaClickCount} from "../adapters/foundry-v14-area-placement.mjs";
 import {promptActionConfiguration} from "../adapters/foundry-v14-prompt-adapter.mjs";
 import {foundryActorSystemSnapshot} from "../adapters/foundry-v14-actor-system-adapter.mjs";
+import {isUnprepared} from "../helpers/spellcasting.mjs";
 
 /** Item types whose changes rebuild their creature's class records (G8). */
 const CLASS_TYPES = new Set(["class", "subclass"]);
@@ -69,6 +70,11 @@ export default class WildPathItem extends Item {
     const runtime = globalThis.game?.wildpath;
     if ( typeof runtime?.executeActionIntent !== "function" ) {
       console.warn("Wild Path | Multiplayer action runtime is not registered; unable to use this Action.");
+      return false;
+    }
+    // An unprepared spell is refused before its slot or area is asked (the authority refuses it too).
+    if ( isUnprepared(this) ) {
+      globalThis.ui?.notifications?.warn?.(`${this.name} is not prepared.`);
       return false;
     }
     const built = buildFoundryActionUseIntent({actor: this.actor, action: this});

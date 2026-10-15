@@ -29,7 +29,9 @@ export class WildPathClass extends WildPathBaseItem {
       }),
       spellcasting: new SchemaField({
         progression: new StringField({required: true, initial: SPELLCASTING_PROGRESSIONS.NONE, choices: Object.values(SPELLCASTING_PROGRESSIONS)}),
-        ability: new StringField({required: true, blank: true, initial: ""})
+        ability: new StringField({required: true, blank: true, initial: ""}),
+        // How many spells it prepares at each level (2024 class tables; index 0 is level 1).
+        prepared: new ArrayField(new NumberField({required: true, integer: true, min: 0}))
       }),
       advancement: advancementField()
     };

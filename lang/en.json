@@ -707,6 +707,12 @@
       "AcTyped": "A typed Armor Class replaces the one worked out from armor and Agility; bonuses still add. Leave it blank to work it out.",
       "AcCalculated": "Auto",
       "Equipped": "Equipped",
+      "Prepared": "Prepared",
+      "NotPrepared": "Not prepared",
+      "PreparedCount": "Prepared {count} / {limit}",
+      "PreparedOnly": "Prepared {count}",
+      "PreparedHint": "Spells of 1st level or higher are cast only while prepared; your classes' tables say how many you may prepare.",
+      "PreparedOver": "{name} has {count} spells prepared; their classes allow {limit}.",
       "Unequipped": "Not equipped",
       "Skills": "Skills",
       "SkillProficiency": {
