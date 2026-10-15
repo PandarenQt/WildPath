@@ -9,6 +9,8 @@ import {DEFAULT_FORM_STATISTICS, DEFAULT_KEPT_ITEM_TYPES, itemContributesWhileTr
 import {evaluateValueExpression} from "../helpers/value-expressions.mjs";
 import WildPathConditionEffect from "../data/active-effect/condition.mjs";
 import {floatHealthChange} from "../applications/floating-text.mjs";
+import {hitDiceHealing, hitDiePoolId} from "../helpers/spellcasting.mjs";
+import {actorAbilityModifier} from "../helpers/combat-statistics.mjs";
 import {executeConditionEffect} from "../resolvers/effect-resolver.mjs";
 import {executeEffectLifecycleCommit} from "../resolvers/effect-lifecycle-commit-resolver.mjs";
 import {planConditionTriggerConsequences} from "../resolvers/condition-trigger-resolver.mjs";
@@ -581,6 +583,34 @@ export default class WildPathActor extends Actor {
    * @param {"shortRest"|"longRest"} recovery
    * @returns {Promise<void>}
    */
+  /**
+   * Spend Hit Dice on a short rest (2024): `{faces: count}`, each healing its roll plus the Fortitude modifier, at
+   * least 1 (0 under the 2014 rules), rolled in chat. Returns the hit points regained.
+   */
+  async spendHitDice(dice) {
+    const pools = this.toObject(true).system.pools;
+    const fortitude = actorAbilityModifier(this, "fortitude") ?? 0;
+    const minimum = game.settings.get("wildpath", "rulesVersion") === "2014" ? 0 : 1;
+    let healed = 0;
+    let spent = false;
+    for ( const [faces, wanted] of Object.entries(dice ?? {}) ) {
+      const pool = pools.find(entry => entry.id === hitDiePoolId(Number(faces)));
+      const count = Math.min(Math.max(Math.floor(Number(wanted) || 0), 0), pool?.value ?? 0);
+      if ( !count ) continue;
+      const roll = await new Roll(`${count}d${faces}`).evaluate();
+      const amount = hitDiceHealing(roll.dice[0].results.map(result => result.result), fortitude, {minimum});
+      pool.value -= count;
+      healed += amount;
+      spent = true;
+      await roll.toMessage({speaker: ChatMessage.getSpeaker({actor: this}),
+        flavor: game.i18n.format("WILDPATH.REST.HitDice", {name: this.name, count, die: `d${faces}`, amount})});
+    }
+    if ( !spent ) return 0;
+    const health = this.system.resources.health;
+    await this.update({"system.pools": pools, "system.resources.health.value": Math.min(health.max, health.value + healed)});
+    return healed;
+  }
+
   async rest(recovery) {
     const long = recovery === "longRest";
     const health = this.system.resources?.health;
