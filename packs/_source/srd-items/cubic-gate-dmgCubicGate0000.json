@@ -30,7 +30,11 @@
           "concentration: nothing it sustains was converted",
           "not automated (teleport): using it spends its cost; its description says the rest"
         ]
-      }
+      },
+      "grants": [
+        "mazfy1g9p3a70000",
+        "13ok1tq1uc5hnu00"
+      ]
     }
   }
 }

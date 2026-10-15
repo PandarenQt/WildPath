@@ -29,7 +29,10 @@
           "not automated (utility): using it spends its cost; its description says the rest",
           "effect: ethereal is not a WildPath condition yet"
         ]
-      }
+      },
+      "grants": [
+        "dhm25yc9cwgg0000"
+      ]
     }
   }
 }

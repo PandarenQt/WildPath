@@ -29,7 +29,10 @@
           "uses: a partial recovery refills the whole pool",
           "\"save\" is passive or triggered: not automated"
         ]
-      }
+      },
+      "grants": [
+        "dmgRobeOfScintil"
+      ]
     }
   }
 }

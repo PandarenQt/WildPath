@@ -30,7 +30,10 @@
           "summon: a count of \"@scaling\" is not converted",
           "\"Sway Rats\" is passive or triggered: not automated"
         ]
-      }
+      },
+      "grants": [
+        "dmgPipesOfTheSew"
+      ]
     }
   }
 }

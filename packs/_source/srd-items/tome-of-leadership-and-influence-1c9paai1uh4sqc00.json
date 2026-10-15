@@ -31,7 +31,10 @@
           "effect: \"Leader\" (its own changes) not converted",
           "\"Reset Progress\" is passive or triggered: not automated"
         ]
-      }
+      },
+      "grants": [
+        "dmgTomeOfLeaders"
+      ]
     }
   }
 }

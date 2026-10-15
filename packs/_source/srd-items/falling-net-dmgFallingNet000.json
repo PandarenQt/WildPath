@@ -32,7 +32,14 @@
           "not automated (check): using it spends its cost; its description says the rest",
           "activation: 10 minute is not an action-economy cost"
         ]
-      }
+      },
+      "grants": [
+        "10zwsxhp0p2j0000",
+        "r0b3y1gwgxly0000",
+        "h0pezh2t46900000",
+        "713q01ga9cpo0000",
+        "1yy5k05dzr7ov000"
+      ]
     }
   }
 }

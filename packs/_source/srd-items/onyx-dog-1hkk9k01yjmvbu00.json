@@ -32,7 +32,10 @@
           "effect: \"Mastiff Figurine\" change system.traits.languages.value (add) not converted",
           "effect: \"Mastiff Figurine\" change system.attributes.senses.blindsight (upgrade) not converted"
         ]
-      }
+      },
+      "grants": [
+        "dmgFwpOnyxDogRar"
+      ]
     }
   }
 }

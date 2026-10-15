@@ -42,7 +42,11 @@
           "cast: Magic Missile at level 5 is cast at its own level",
           "not automated (utility): using it spends its cost; its description says the rest"
         ]
-      }
+      },
+      "grants": [
+        "18q5ol43xsjmo000",
+        "gqpi181eqeot6000"
+      ]
     }
   }
 }

@@ -28,7 +28,10 @@
           "uses: a partial recovery refills the whole pool",
           "not automated (teleport): using it spends its cost; its description says the rest"
         ]
-      }
+      },
+      "grants": [
+        "1sq7igy1o9qjjc00"
+      ]
     }
   }
 }

@@ -27,7 +27,11 @@
         "notes": [
           "not automated (check): using it spends its cost; its description says the rest"
         ]
-      }
+      },
+      "grants": [
+        "phbmusBagpipes00",
+        "920y821ev5ase000"
+      ]
     }
   }
 }

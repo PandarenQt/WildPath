@@ -62,7 +62,10 @@
         "notes": [
           "\"Non-Fiend or Undead Damage\" is passive or triggered: not automated"
         ]
-      }
+      },
+      "grants": [
+        "dmgTalismanOfUlt"
+      ]
     }
   }
 }

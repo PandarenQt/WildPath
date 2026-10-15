@@ -29,7 +29,11 @@
           "effect: \"X-Ray Vision\" (its own changes) not converted",
           "not automated (save): using it spends its cost; its description says the rest"
         ]
-      }
+      },
+      "grants": [
+        "dmgRingOfXrayVis",
+        "a10axj4a90dr0000"
+      ]
     }
   }
 }

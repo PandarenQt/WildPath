@@ -62,7 +62,10 @@
         "notes": [
           "\"Fiend and Undead Damage\" is passive or triggered: not automated"
         ]
-      }
+      },
+      "grants": [
+        "dmgTalismanOfPur"
+      ]
     }
   }
 }

@@ -67,7 +67,10 @@
           "effect: \"Boots of Speed Active\" change system.attributes.movement.burrow (multiply) not converted",
           "effect: \"Boots of Speed Active\" change system.attributes.movement.swim (multiply) not converted"
         ]
-      }
+      },
+      "grants": [
+        "dmgBootsOfSpeed0"
+      ]
     }
   }
 }

@@ -40,7 +40,17 @@
           "not automated (utility): using it spends its cost; its description says the rest",
           "\"Start of Turn Save\" is passive or triggered: not automated"
         ]
-      }
+      },
+      "grants": [
+        "2on3v1q7ycjl0000",
+        "1sy3fkn1okh5ib00",
+        "6ab2u8iylf3o0000",
+        "1hey0731r717fp00",
+        "76o3t5icug9n0000",
+        "dm7xt91qrm1ld000",
+        "3xmufb1owmdif000",
+        "la6ha7e4y21x0000"
+      ]
     }
   }
 }

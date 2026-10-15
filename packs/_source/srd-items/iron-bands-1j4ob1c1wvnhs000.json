@@ -27,7 +27,10 @@
         "notes": [
           "\"Break Check\" is passive or triggered: not automated"
         ]
-      }
+      },
+      "grants": [
+        "dmgIronBandsOfBi"
+      ]
     }
   }
 }

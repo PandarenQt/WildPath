@@ -32,7 +32,15 @@
           "effect: transformed is not a WildPath condition yet",
           "effect: \"Cloud Form\" change system.attributes.movement.hover (override) not converted"
         ]
-      }
+      },
+      "grants": [
+        "z7vigo44q9c00000",
+        "183ef2q1tuf4qy00",
+        "1xco8yqcnbxjy000",
+        "mqvwwnrai4qj0000",
+        "bz4em1obtbsd0000",
+        "18082cgmp79xk000"
+      ]
     }
   }
 }

@@ -29,7 +29,10 @@
           "\"Damage Rope\" is passive or triggered: not automated",
           "\"Repair Rope\" is passive or triggered: not automated"
         ]
-      }
+      },
+      "grants": [
+        "dmgRopeOfEntangl"
+      ]
     }
   }
 }

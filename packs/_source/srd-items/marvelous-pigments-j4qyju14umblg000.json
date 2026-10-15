@@ -29,7 +29,11 @@
           "consumption: itemUses 1d3 not converted",
           "activation: 10 minute is not an action-economy cost"
         ]
-      }
+      },
+      "grants": [
+        "dmgNolzursMarvel",
+        "195nyj41uf6aaw00"
+      ]
     }
   }
 }

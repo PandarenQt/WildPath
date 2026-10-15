@@ -27,7 +27,12 @@
         "notes": [
           "not automated (utility): using it spends its cost; its description says the rest"
         ]
-      }
+      },
+      "grants": [
+        "dmgDecanterOfEnd",
+        "e9zszs1aq4ani000",
+        "f3ym2pawgh7t0000"
+      ]
     }
   }
 }

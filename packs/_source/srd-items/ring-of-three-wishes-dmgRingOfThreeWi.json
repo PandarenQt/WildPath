@@ -29,7 +29,10 @@
           "effect: \"Wish Stress\" change system.abilities.str.value (downgrade) not converted",
           "effect: \"Wish Stress\" (its own changes) not converted"
         ]
-      }
+      },
+      "grants": [
+        "1w68uf319q5lcf00"
+      ]
     }
   }
 }

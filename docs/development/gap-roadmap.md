@@ -209,7 +209,8 @@ Forced movement and elevation join G6, which becomes "space": areas, elevation a
   - Spells cast from magic items: 162 SRD Actions, with the item's charges and save DC.
   - Versatile weapons get a two-handed Action (25 in the SRD), and magic weapons their bonus.
   - Automated SRD Items rose from 326 to 522; the DMG's from 129 to 316.
-  - Not yet: Weapon Mastery, attunement, charges recovered by formula, an item's Actions granted with it.
+  - A magic item brings its Actions when it is added from a compendium, and takes them when it is deleted.
+  - Not yet: Weapon Mastery, attunement, charges recovered by formula.
 - **G6, space, first part (2026-10-15).** Done:
   - Cubes and squares are blocks of fields, cast at a point or against the caster's edge; circles are radial.
     "Area shape: cube" fell from 118 documents to 10 (sizes from formulas).

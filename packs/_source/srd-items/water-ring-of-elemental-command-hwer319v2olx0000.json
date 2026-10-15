@@ -46,7 +46,15 @@
           "\"Frigid Air\" is passive or triggered: not automated",
           "effect: \"Water Walking\" (its own changes) not converted"
         ]
-      }
+      },
+      "grants": [
+        "dmgWaterRingOfEl",
+        "oigs1lvtjkk70000",
+        "c8avuxjbfc000000",
+        "9hxcbz363ndv0000",
+        "igwhm01mi09ks000",
+        "2e1dlh1t4h7bl000"
+      ]
     }
   }
 }

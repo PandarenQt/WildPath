@@ -556,6 +556,8 @@ test("equipment is gear (G7): armor's AC by kind, a Shield's bonus, worn magic i
       challenge: {attack: null, save: 15, override: true}}, consumption: {targets: [{type: "itemUses", value: "1"}]}})}}};
   const converted = convertItem(wand, {spells: {testFireball0001: fireball}}).items;
   assert.deepEqual(converted.map(item => [item.type, item.name]), [["gear", "Test Wand"], ["action", "Test Wand: Test Fireball"]]);
+  assert.deepEqual(converted[0].flags.wildpath.grants, [converted[1]._id], "its Actions come with it");
+  assert.equal(plate.flags.wildpath.grants, undefined);
   valid(converted[1]);
   assert.deepEqual(converted[1].system.definition.save.dc, {value: 15}, "the item's own save DC");
   assert.deepEqual(converted[1].system.definition.costs.allOf.map(cost => cost.capability), ["action", "test-wand"], "a charge");

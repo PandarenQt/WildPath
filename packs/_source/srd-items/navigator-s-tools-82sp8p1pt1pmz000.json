@@ -27,7 +27,11 @@
         "notes": [
           "not automated (check): using it spends its cost; its description says the rest"
         ]
-      }
+      },
+      "grants": [
+        "phbtulNavigators",
+        "4czrelvav7ij0000"
+      ]
     }
   }
 }

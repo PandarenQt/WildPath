@@ -29,7 +29,10 @@
           "not automated (check): using it spends its cost; its description says the rest",
           "\"save\" is passive or triggered: not automated"
         ]
-      }
+      },
+      "grants": [
+        "1flpzja1h3cfwi00"
+      ]
     }
   }
 }

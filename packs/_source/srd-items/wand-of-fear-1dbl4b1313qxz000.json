@@ -29,7 +29,12 @@
           "uses: a partial recovery refills the whole pool",
           "not automated (save): using it spends its cost; its description says the rest"
         ]
-      }
+      },
+      "grants": [
+        "dmgWandOfFear000",
+        "1yrqcb06b034i000",
+        "1gn9lzwqtdxtw000"
+      ]
     }
   }
 }

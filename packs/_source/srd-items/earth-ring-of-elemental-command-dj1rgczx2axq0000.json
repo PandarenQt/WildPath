@@ -45,7 +45,14 @@
           "effect: \"Earth Focus\" change system.traits.languages.value (add) not converted",
           "effect: \"Earth Focus\" change system.attributes.movement.ignoredDifficultTerrain (add) not converted"
         ]
-      }
+      },
+      "grants": [
+        "dmgEarthRingOfEl",
+        "jzh53u1e8zk90000",
+        "c3eiaeho0reo0000",
+        "yxoxb11uv8yj3000",
+        "qar48m1odspg2000"
+      ]
     }
   }
 }

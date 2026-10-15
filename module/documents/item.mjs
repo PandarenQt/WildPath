@@ -10,10 +10,36 @@ import {foundryActorSystemSnapshot} from "../adapters/foundry-v14-actor-system-a
  */
 export default class WildPathItem extends Item {
 
-  /** A granted resource needs its pool on the Actor (`GrantResource`); the user who made the change stores it. */
+  /**
+   * A granted resource needs its pool on the Actor (`GrantResource`); the user who made the change stores it. A magic
+   * item's Actions come with it.
+   */
   _onCreate(data, options, userId) {
     super._onCreate(data, options, userId);
-    if ( userId === game.user.id ) void this.actor?.ensureGrantedPools?.();
+    if ( userId !== game.user.id ) return;
+    void this.actor?.ensureGrantedPools?.();
+    void this.#addGrantedActions();
+  }
+
+  /** The Actions an item brought with it go with it. */
+  _onDelete(options, userId) {
+    super._onDelete(options, userId);
+    if ( (userId !== game.user.id) || !this.actor ) return;
+    const granted = this.actor.items.filter(item => item.flags?.wildpath?.grantedBy === this.id).map(item => item.id);
+    if ( granted.length ) void this.actor.deleteEmbeddedDocuments("Item", granted);
+  }
+
+  /**
+   * A magic item's Actions (a wand's Fireball, `flags.wildpath.grants`: their ids) from the compendium it came from,
+   * added to its owner and marked as brought by it.
+   */
+  async #addGrantedActions() {
+    const ids = this.flags?.wildpath?.grants;
+    const pack = this.actor && ids?.length ? foundry.utils.parseUuid(this._stats?.compendiumSource ?? "")?.collection : null;
+    if ( !pack?.getDocuments ) return;
+    const actions = await pack.getDocuments({_id__in: ids});
+    if ( actions.length ) await this.actor.createEmbeddedDocuments("Item", actions.map(action => foundry.utils.mergeObject(action.toObject(),
+      {"flags.wildpath.grantedBy": this.id, "_stats.compendiumSource": action.uuid})));
   }
 
   _onUpdate(changed, options, userId) {

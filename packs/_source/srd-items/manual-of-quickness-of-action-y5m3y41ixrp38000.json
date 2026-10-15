@@ -28,7 +28,10 @@
           "not automated (utility): using it spends its cost; its description says the rest",
           "\"Reset Progress\" is passive or triggered: not automated"
         ]
-      }
+      },
+      "grants": [
+        "dmgManualOfQuick"
+      ]
     }
   }
 }

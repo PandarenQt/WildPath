@@ -62,7 +62,10 @@
           "\"Dwarven Plate\" is passive or triggered: not automated",
           "not automated (utility): using it spends its cost; its description says the rest"
         ]
-      }
+      },
+      "grants": [
+        "gj4f476ga3f70000"
+      ]
     }
   }
 }
