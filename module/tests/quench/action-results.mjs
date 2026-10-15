@@ -32,7 +32,7 @@ export function registerActionResultTests(quench) {
         await game.settings.set("core","messageMode",mode);
         const scene = await fixtures.createScene({name:"Action results"});
         const sourceBase = await fixtures.createActor({name:"Source",system:{resources:{action:{base:1,value:1}}}});
-        const targetBase = await fixtures.createActor({name:"Concealed base name",type:"npc",
+        const targetBase = await fixtures.createActor({name:"Concealed base name",
           system:{resources:{health:{base:30,value:30}}}});
         const source = await fixtures.createToken(scene,sourceBase,{name:"Source",x:100,y:100});
         const target = await fixtures.createToken(scene,targetBase,{name:"Masked target",x:200,y:100});

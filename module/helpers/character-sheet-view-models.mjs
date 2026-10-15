@@ -92,7 +92,9 @@ function normalizeActor(actor) {
 function createHeaderView(actor, system, summary, effectiveAc=null) {
   const health = system?.resources?.health ?? null;
   const movement = system?.resources?.movement ?? null;
-  const baseAc = Number(system?.defenses?.ac?.value);
+  // A typed AC, or null when it is worked out.
+  const typedAc = system?.defenses?.ac?.value;
+  const baseAc = ((typedAc == null) || (typedAc === "")) ? null : Number(typedAc);
   const ac = Number.isFinite(Number(effectiveAc)) && (effectiveAc !== null) ? Number(effectiveAc) : baseAc;
   return {
     actorRef: actor.ref,

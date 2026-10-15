@@ -201,8 +201,10 @@ export function createFoundrySummons({ game, companions, fromUuid, logger = glob
         if (bonuses.hp)
             Object.assign(updates, { "system.resources.health.base": (Number(health.base) || 0) + bonuses.hp,
                 "system.resources.health.value": (Number(health.value) || 0) + bonuses.hp });
-        if (bonuses.ac)
-            updates["system.defenses.ac.value"] = (Number(actor.system?.defenses?.ac?.value) || 0) + bonuses.ac;
+        // shortcut: a summon whose AC is worked out (not typed) does not gain the bonus; converted creatures' AC is typed.
+        const typedAc = actor.system?.defenses?.ac?.value;
+        if (bonuses.ac && (typedAc != null))
+            updates["system.defenses.ac.value"] = Number(typedAc) + bonuses.ac;
         if (Object.keys(updates).length)
             await actor.update(updates);
         if (bonuses.rules.length)

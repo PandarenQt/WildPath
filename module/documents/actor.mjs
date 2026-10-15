@@ -18,7 +18,7 @@ import {
   validateTurnRecoveryContext
 } from "../helpers/combat.mjs";
 
-/** 2024: a character's AC without armor is 10 + its Agility modifier. */
+/** 2024: a creature's AC without armor is 10 + its Agility modifier. */
 const UNARMORED = Object.freeze({schemaVersion: 1, id: "unarmored", type: "ArmorClass", data: {label: "Unarmored",
   value: {type: "add", terms: [{type: "constant", value: 10}, {type: "ability-modifier", ability: "agility"}]}}});
 
@@ -177,14 +177,12 @@ export default class WildPathActor extends Actor {
   }
 
   /**
-   * The ways this creature's features, gear and effects work out its Armor Class (`ArmorClass`): `{value, armor}`.
-   * A character also has the 2024 unarmored one, 10 + its Agility modifier.
+   * The ways this creature's features, gear and effects work out its Armor Class (`ArmorClass`): `{value, armor}`,
+   * and the 2024 unarmored one, 10 + its Agility modifier. They count when its AC is not typed.
    */
   getArmorClasses() {
     const context = {actor: this, actorSystem: this.system, conditions: [...(this.statuses ?? [])]};
-    const owners = grantOwners(this);
-    if ( this.type === "character" ) owners.push({ruleElements: [UNARMORED], source: null});
-    return armorClassesFromRuleElements(owners, context);
+    return armorClassesFromRuleElements([...grantOwners(this), {ruleElements: [UNARMORED], source: null}], context);
   }
 
   /** Whether this creature's movement provokes Opportunity Attacks (`AvoidOpportunityAttacks`): `{always, movementModes}`. */

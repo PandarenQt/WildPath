@@ -209,7 +209,7 @@ The actor sheet renders `createActorSheetViewModel` (`helpers/character-sheet-vi
 leaves the rules to the documents:
 - **Header:** AC, level (characters) or threat (NPCs), and every Speed besides walking. The AC is the
   effective one attacks roll against (`resolveActorDefense`: gear, effects and auras). The overview's Armor Class
-  field edits its stored base.
+  field is a typed AC that replaces the worked-out one; blank ("Auto") works it out from armor and Agility.
 - **Rests:** Short and Long Rest buttons call `Actor#rest`.
 - **Editing:** abilities, current values, and each resource's and pool's base (which sets its maximum).
   Pool fields are folded into the whole stored array, because V14 drops ArrayField element paths.

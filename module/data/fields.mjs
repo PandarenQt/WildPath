@@ -36,7 +36,8 @@ export function resourceField({initial=0, recovery="none", counted=false}={}) {
  */
 export function defenseField({initial=10}={}) {
   return new SchemaField({
-    value: new NumberField({required: true, integer: true, initial, min: 0})
+    // A typed value; null (blank) means it is worked out (AC: from armor or 10 + Agility, `ArmorClass` rules).
+    value: new NumberField({required: true, nullable: true, integer: true, initial, min: 0})
   });
 }
 

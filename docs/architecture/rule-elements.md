@@ -517,9 +517,11 @@ or a ValueExpression: Chain Mail is `16`, a Breastplate `14 + min(Agility modifi
 - **Which counts.** `armor: true` marks armor its owner wears. While it wears any, only those count; otherwise its
   unarmored ways do (Unarmored Defense, Mage Armor). The AC is the best that counts, plus `defense.ac` Modifiers (a
   Shield's +2, a Cloak of Protection's +1). `resolveActorDefense` reads them through `actor.getArmorClasses()`.
-- **A character's own.** Every character also has the 2024 unarmored AC, 10 + its Agility modifier.
-- **Never below the stored AC.** The AC on the sheet (`system.defenses.ac.value`) is a floor. A creature's stat
-  block AC is stored there and has no formula added, so creatures keep their own.
+- **Unarmored.** Every creature also has the 2024 unarmored AC, 10 + its Agility modifier.
+- **A typed AC wins** (maintainer, 2026-10-15). The AC typed on the sheet (`system.defenses.ac.value`) replaces the
+  worked-out one; bonuses still add. Blank (null, the default for new creatures) means worked out. A converted
+  creature's stat block AC is typed, so it keeps its own. Actors made before this store 10, which counts as typed
+  until the field is cleared.
 - Gear counts only while equipped (`system.active`); an effect (Mage Armor) while it lasts.
 
 Live (two browsers, 14.369): QA Caster (Agility 16) showed AC 13 unarmored. Player1 equipped the SRD Chain Mail and
