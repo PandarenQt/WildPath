@@ -1,0 +1,69 @@
+{
+  "_id": "phbdrdCirland000",
+  "_key": "!items!phbdrdCirland000",
+  "name": "Circle of the Land",
+  "type": "subclass",
+  "img": "icons/svg/book.svg",
+  "system": {
+    "active": true,
+    "description": "<blockquote><p>Celebrate Connection to the Natural World</p></blockquote><p>The Circle of the Land comprises mystics and sages who safeguard ancient knowledge and rites. These Druids meet within sacred circles of trees or standing stones to whisper primal secrets in Druidic. The circle's wisest members preside as the chief priests of their communities.</p>",
+    "identifier": "land",
+    "advancement": [
+      {
+        "level": 3,
+        "title": "Subclass Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbdrdLandSpells",
+          "Compendium.wildpath.srd-items.Item.phbdrdLandsAid00"
+        ],
+        "optional": false
+      },
+      {
+        "level": 6,
+        "title": "Subclass Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbdrdNaturalRec"
+        ],
+        "optional": false
+      },
+      {
+        "level": 10,
+        "title": "Subclass Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbdrdNaturesWar"
+        ],
+        "optional": false
+      },
+      {
+        "level": 14,
+        "title": "Subclass Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbdrdNaturesSan",
+          "Compendium.wildpath.srd-items.Item.dczcuie7lday0000"
+        ],
+        "optional": false
+      }
+    ],
+    "classIdentifier": "druid"
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbdrdCirland000",
+        "type": "subclass",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

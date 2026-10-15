@@ -1,0 +1,235 @@
+{
+  "_id": "phbwzdWizard0000",
+  "_key": "!items!phbwzdWizard0000",
+  "name": "Wizard",
+  "type": "class",
+  "img": "icons/svg/book.svg",
+  "system": {
+    "active": true,
+    "description": "<h3>Core Wizard Traits</h3><table class=\"core-class-traits\"><tbody><tr><th scope=\"row\"><p><strong>Primary Ability</strong></p></th><td><p>Intelligence</p></td></tr><tr><th scope=\"row\"><p><strong>Hit Point Die</strong></p></th><td><p>D6 per Wizard level</p></td></tr><tr><th scope=\"row\"><p><strong>Saving Throw Proficiencies</strong></p></th><td><p>Intelligence and Wisdom</p></td></tr><tr><th scope=\"row\"><p><strong>Skill Proficiencies</strong></p></th><td><p><em>Choose 2:</em>Arcana, History, Insight, Investigation, Medicine, Nature, or Religion</p></td></tr><tr><th scope=\"row\"><p><strong>Weapon Proficiencies</strong></p></th><td><p>Simple weapons</p></td></tr><tr><th scope=\"row\"><p><strong>Armor Training</strong></p></th><td><p>None</p></td></tr><tr><th scope=\"row\"><p><strong>Starting Equipment</strong></p></th><td><p><em>Choose A or B:</em> (A) 2 Daggers, Arcane Focus (Quarterstaff), Robe, Spellbook, Scholar's Pack, and 5GP; or (B) 55GP</p></td></tr></tbody></table><p></p><h2>Becoming a Wizard …</h2><h3>As a Level 1 Character</h3><ul><li>Gain all the traits in the Core Wizard Traits table.</li><li>Gain the Wizard's level 1 features, which are listed in the Wizard Features table.</li></ul><h3>As a Multiclass Character</h3><ul><li>Gain the Hit Point Die from the Core Wizard Traits table.</li><li>Gain the Wizard's level 1 features, which are listed in the Wizard Features table. See the multiclassing rules to determine your available spell slots.</li></ul><aside class=\"notable\"><p><strong>Expanding and Replacing a Spellbook</strong></p><p>The spells you add to your spellbook as you gain levels reflect your ongoing magical research, but you might find other spells during your adventures that you can add to the book. You could discover a Wizard spell on a Spell Scroll, for example, and then copy it into your spellbook.</p><p><strong>Copying a Spell into the Book.</strong> When you find a level 1+ Wizard spell, you can copy it into your spellbook if it's of a level you can prepare and if you have time to copy it. For each level of the spell, the transcription takes 2 hours and costs 50 GP. Afterward you can prepare the spell like the other spells in your spellbook.</p><p><strong>Copying the Book.</strong> You can copy a spell from your spellbook into another book. This is like copying a new spell into your spellbook but faster, since you already know how to cast the spell. You need spend only 1 hour and 10 GP for each level of the copied spell.</p><p>If you lose your spellbook, you can use the same procedure to transcribe the Wizard spells that you have prepared into a new spellbook. Filling out the remainder of the new book requires you to find new spells to do so. For this reason, many wizards keep a backup spellbook.</p></aside>",
+    "identifier": "wizard",
+    "advancement": [
+      {
+        "level": 1,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbwzdSpellcasti",
+          "Compendium.wildpath.srd-items.Item.phbwzdRitualAdep",
+          "Compendium.wildpath.srd-items.Item.phbwzdArcaneReco"
+        ],
+        "optional": false
+      },
+      {
+        "level": 2,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbwzdScholar000"
+        ],
+        "optional": false
+      },
+      {
+        "level": 5,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbwzdMemorizeSp"
+        ],
+        "optional": false
+      },
+      {
+        "level": 18,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbwzdSpellMaste"
+        ],
+        "optional": false
+      },
+      {
+        "level": 20,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbwzdSignatureS"
+        ],
+        "optional": false
+      },
+      {
+        "level": 4,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      },
+      {
+        "level": 8,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      },
+      {
+        "level": 12,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      },
+      {
+        "level": 16,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      },
+      {
+        "level": 2,
+        "title": "Scholar",
+        "type": "trait",
+        "grants": [],
+        "choices": [
+          {
+            "count": 1,
+            "pool": [
+              "skills:arcana",
+              "skills:history",
+              "skills:investigation",
+              "skills:medicine",
+              "skills:nature",
+              "skills:religion"
+            ]
+          }
+        ]
+      },
+      {
+        "level": 3,
+        "title": null,
+        "type": "subclass"
+      },
+      {
+        "level": 1,
+        "title": "Saving Throw Proficiencies",
+        "classRestriction": "primary",
+        "type": "trait",
+        "grants": [
+          "saves:intellect",
+          "saves:wits"
+        ],
+        "choices": []
+      },
+      {
+        "level": 1,
+        "title": "Skill Proficiencies",
+        "classRestriction": "primary",
+        "type": "trait",
+        "grants": [],
+        "choices": [
+          {
+            "count": 2,
+            "pool": [
+              "skills:arcana",
+              "skills:history",
+              "skills:insight",
+              "skills:investigation",
+              "skills:medicine",
+              "skills:nature",
+              "skills:religion"
+            ]
+          }
+        ]
+      },
+      {
+        "level": 1,
+        "title": "Weapon Proficiencies",
+        "classRestriction": "primary",
+        "type": "trait",
+        "grants": [
+          "weapons:simple"
+        ],
+        "choices": []
+      },
+      {
+        "level": 19,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      }
+    ],
+    "levels": 1,
+    "hitDie": 6,
+    "original": false,
+    "spellcasting": {
+      "progression": "full",
+      "ability": "intellect"
+    }
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbwzdWizard0000",
+        "type": "class",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

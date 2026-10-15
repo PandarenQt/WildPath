@@ -1,0 +1,66 @@
+{
+  "_id": "phbbgSage0000000",
+  "_key": "!items!phbbgSage0000000",
+  "name": "Sage",
+  "type": "background",
+  "img": "icons/sundries/books/book-open-brown.webp",
+  "system": {
+    "active": true,
+    "description": "<p><strong>Ability Scores:</strong> Constitution, Intelligence, Wisdom</p><p><strong>Feat:</strong> Magic Initiate (Wizard)</p><p><strong>Skill Proficiencies:</strong> Arcana and History</p><p><strong>Tool Proficiency:</strong> Calligrapher's Supplies</p><p><strong>Equipment:</strong> <em>Choose A or B:</em> (A) Quarterstaff, Calligrapher's Supplies, Book (history), Parchment (8 sheets), Robe, 8 GP; or (B) 50 GP</p><p></p>",
+    "identifier": "sage",
+    "advancement": [
+      {
+        "level": 0,
+        "title": "Background Ability Score Improvement",
+        "type": "improvement",
+        "points": 3,
+        "cap": 2,
+        "abilities": [
+          "fortitude",
+          "intellect",
+          "wits"
+        ],
+        "fixed": {},
+        "feat": false
+      },
+      {
+        "level": 0,
+        "title": "Background Proficiencies",
+        "type": "trait",
+        "grants": [
+          "tools:calligrapher",
+          "skills:arcana",
+          "skills:history"
+        ],
+        "choices": []
+      },
+      {
+        "level": 0,
+        "title": "Background Feat",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbftMagicInitia"
+        ],
+        "optional": false
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "origins24",
+        "id": "phbbgSage0000000",
+        "type": "background",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "languages are not tracked"
+        ]
+      }
+    }
+  }
+}

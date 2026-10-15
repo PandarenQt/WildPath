@@ -1,0 +1,102 @@
+{
+  "_id": "phbclcLifeDomain",
+  "_key": "!items!phbclcLifeDomain",
+  "name": "Life Domain",
+  "type": "subclass",
+  "img": "icons/svg/book.svg",
+  "system": {
+    "active": true,
+    "description": "<blockquote><p>Soothe the Hurts of the World</p></blockquote><p>The Life Domain focuses on the positive energy that helps sustain all life in the multiverse. Clerics who tap into this domain are masters of healing, using that life force to cure many hurts.</p><p>Existence itself relies on the positive energy associated with this domain, so a Cleric of almost any religious tradition might choose it. This domain is particularly associated with agricultural deities, gods of healing or endurance, and gods of home and community. Religious orders of healing also seek the magic of this domain.</p>",
+    "identifier": "life",
+    "advancement": [
+      {
+        "level": 3,
+        "title": "Subclass Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbclcDiscipleOf",
+          "Compendium.wildpath.srd-items.Item.phbclcLifeSpells",
+          "Compendium.wildpath.srd-items.Item.phbclcPreserveLi"
+        ],
+        "optional": false
+      },
+      {
+        "level": 6,
+        "title": "Subclass Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbclcBlessedHea"
+        ],
+        "optional": false
+      },
+      {
+        "level": 17,
+        "title": "Subclass Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbclcSupremeHea"
+        ],
+        "optional": false
+      },
+      {
+        "level": 3,
+        "title": "Life Domain Spells",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbsplAid0000000",
+          "Compendium.wildpath.srd-items.Item.phbsplCureWounds",
+          "Compendium.wildpath.srd-items.Item.phbsplLesserRest",
+          "Compendium.wildpath.srd-items.Item.phbsplBless00000"
+        ],
+        "optional": false
+      },
+      {
+        "level": 5,
+        "title": "Life Domain Spells",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbsplMassHealin",
+          "Compendium.wildpath.srd-items.Item.phbsplRevivify00"
+        ],
+        "optional": false
+      },
+      {
+        "level": 7,
+        "title": "Life Domain Spells",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbsplAuraofLife",
+          "Compendium.wildpath.srd-items.Item.phbsplDeathWard0"
+        ],
+        "optional": false
+      },
+      {
+        "level": 9,
+        "title": "Life Domain Spells",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbsplGreaterRes",
+          "Compendium.wildpath.srd-items.Item.phbsplMassCureWo"
+        ],
+        "optional": false
+      }
+    ],
+    "classIdentifier": "cleric"
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbclcLifeDomain",
+        "type": "subclass",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

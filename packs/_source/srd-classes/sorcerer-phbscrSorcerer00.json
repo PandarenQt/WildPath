@@ -1,0 +1,272 @@
+{
+  "_id": "phbscrSorcerer00",
+  "_key": "!items!phbscrSorcerer00",
+  "name": "Sorcerer",
+  "type": "class",
+  "img": "icons/svg/book.svg",
+  "system": {
+    "active": true,
+    "description": "<h3>Core Sorcerer Traits</h3><table class=\"core-class-traits\"><tbody><tr><th scope=\"row\"><p><strong>Primary Ability</strong></p></th><td><p>Charisma</p></td></tr><tr><th scope=\"row\"><p><strong>Hit Point Die</strong></p></th><td><p>D6 per Sorcerer level</p></td></tr><tr><th scope=\"row\"><p><strong>Saving Throw Proficiencies</strong></p></th><td><p>Constitution and Charisma</p></td></tr><tr><th scope=\"row\"><p><strong>Skill Proficiencies</strong></p></th><td><p><em>Choose 2:</em> Arcana, Deception, Insight, Intimidation, Persuasion, or Religion</p></td></tr><tr><th scope=\"row\"><p><strong>Weapon Proficiencies</strong></p></th><td><p>Simple weapons</p></td></tr><tr><th scope=\"row\"><p><strong>Armor Training</strong></p></th><td><p>None</p></td></tr><tr><th scope=\"row\"><p><strong>Starting Equipment</strong></p></th><td><p><em>Choose A or B: </em>(A) Spear, 2 Daggers, Arcane Focus (crystal), Dungeoneer's Pack, and 28GP; or (B) 50GP</p></td></tr></tbody></table><p></p><h2>Becoming a Sorcerer …</h2><h3>As a Level 1 Character</h3><ul><li>Gain all the traits in the Core Sorcerer Traits table.</li><li>Gain the Sorcerer's level 1 features, which are listed in the Sorcerer Features table.</li></ul><h3>As a Multiclass Character</h3><ul><li>Gain the Hit Point Die from the Core Sorcerer Traits table.</li><li>Gain the Sorcerer's level 1 features, which are listed in the Sorcerer Features table. See the multiclassing rules to determine your available spell slots.</li></ul>",
+    "identifier": "sorcerer",
+    "advancement": [
+      {
+        "level": 1,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbscrSpellcasti",
+          "Compendium.wildpath.srd-items.Item.phbscrInnateSorc"
+        ],
+        "optional": false
+      },
+      {
+        "level": 2,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbscrFontOfMagi",
+          "Compendium.wildpath.srd-items.Item.phbscrMetamagic0"
+        ],
+        "optional": false
+      },
+      {
+        "level": 5,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbscrSorcerousR"
+        ],
+        "optional": false
+      },
+      {
+        "level": 7,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbscrSorceryInc"
+        ],
+        "optional": false
+      },
+      {
+        "level": 20,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbscrArcaneApot"
+        ],
+        "optional": false
+      },
+      {
+        "level": 4,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      },
+      {
+        "level": 8,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      },
+      {
+        "level": 12,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      },
+      {
+        "level": 16,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      },
+      {
+        "level": 2,
+        "title": "Metamagic",
+        "type": "choice",
+        "count": 2,
+        "replacement": false,
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbmmoCarefulSpe",
+          "Compendium.wildpath.srd-items.Item.phbmmoDistantSpe",
+          "Compendium.wildpath.srd-items.Item.phbmmoEmpoweredS",
+          "Compendium.wildpath.srd-items.Item.phbmmoExtendedSp",
+          "Compendium.wildpath.srd-items.Item.phbmmoHeightened",
+          "Compendium.wildpath.srd-items.Item.phbmmoQuickenedS",
+          "Compendium.wildpath.srd-items.Item.phbmmoSeekingSpe",
+          "Compendium.wildpath.srd-items.Item.phbmmoSubtleSpel",
+          "Compendium.wildpath.srd-items.Item.phbmmoTransmuted",
+          "Compendium.wildpath.srd-items.Item.phbmmoTwinnedSpe"
+        ]
+      },
+      {
+        "level": 10,
+        "title": "Metamagic",
+        "type": "choice",
+        "count": 2,
+        "replacement": false,
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbmmoCarefulSpe",
+          "Compendium.wildpath.srd-items.Item.phbmmoDistantSpe",
+          "Compendium.wildpath.srd-items.Item.phbmmoEmpoweredS",
+          "Compendium.wildpath.srd-items.Item.phbmmoExtendedSp",
+          "Compendium.wildpath.srd-items.Item.phbmmoHeightened",
+          "Compendium.wildpath.srd-items.Item.phbmmoQuickenedS",
+          "Compendium.wildpath.srd-items.Item.phbmmoSeekingSpe",
+          "Compendium.wildpath.srd-items.Item.phbmmoSubtleSpel",
+          "Compendium.wildpath.srd-items.Item.phbmmoTransmuted",
+          "Compendium.wildpath.srd-items.Item.phbmmoTwinnedSpe"
+        ]
+      },
+      {
+        "level": 17,
+        "title": "Metamagic",
+        "type": "choice",
+        "count": 2,
+        "replacement": false,
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbmmoCarefulSpe",
+          "Compendium.wildpath.srd-items.Item.phbmmoDistantSpe",
+          "Compendium.wildpath.srd-items.Item.phbmmoEmpoweredS",
+          "Compendium.wildpath.srd-items.Item.phbmmoExtendedSp",
+          "Compendium.wildpath.srd-items.Item.phbmmoHeightened",
+          "Compendium.wildpath.srd-items.Item.phbmmoQuickenedS",
+          "Compendium.wildpath.srd-items.Item.phbmmoSeekingSpe",
+          "Compendium.wildpath.srd-items.Item.phbmmoSubtleSpel",
+          "Compendium.wildpath.srd-items.Item.phbmmoTransmuted",
+          "Compendium.wildpath.srd-items.Item.phbmmoTwinnedSpe"
+        ]
+      },
+      {
+        "level": 3,
+        "title": null,
+        "type": "subclass"
+      },
+      {
+        "level": 1,
+        "title": "Saving Throw Proficiencies",
+        "classRestriction": "primary",
+        "type": "trait",
+        "grants": [
+          "saves:fortitude",
+          "saves:presence"
+        ],
+        "choices": []
+      },
+      {
+        "level": 1,
+        "title": "Skill Proficiencies",
+        "classRestriction": "primary",
+        "type": "trait",
+        "grants": [],
+        "choices": [
+          {
+            "count": 2,
+            "pool": [
+              "skills:arcana",
+              "skills:deception",
+              "skills:insight",
+              "skills:intimidation",
+              "skills:persuasion",
+              "skills:religion"
+            ]
+          }
+        ]
+      },
+      {
+        "level": 1,
+        "title": "Weapon Proficiencies",
+        "classRestriction": "primary",
+        "type": "trait",
+        "grants": [
+          "weapons:simple"
+        ],
+        "choices": []
+      },
+      {
+        "level": 19,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      }
+    ],
+    "levels": 1,
+    "hitDie": 6,
+    "original": false,
+    "spellcasting": {
+      "progression": "full",
+      "ability": "presence"
+    }
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbscrSorcerer00",
+        "type": "class",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

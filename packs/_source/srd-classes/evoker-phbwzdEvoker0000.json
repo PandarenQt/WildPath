@@ -1,0 +1,68 @@
+{
+  "_id": "phbwzdEvoker0000",
+  "_key": "!items!phbwzdEvoker0000",
+  "name": "Evoker",
+  "type": "subclass",
+  "img": "icons/svg/book.svg",
+  "system": {
+    "active": true,
+    "description": "<blockquote><p>Create Explosive Elemental Effects</p></blockquote><p>Your studies focus on magic that creates powerful elemental effects such as bitter cold, searing flame, rolling thunder, crackling lightning, and burning acid. Some Evokers find employment in military forces, serving as artillery to blast armies from afar. Others use their power to protect others, while some seek their own gain.</p>",
+    "identifier": "evoker",
+    "advancement": [
+      {
+        "level": 3,
+        "title": "Subclass Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbwzdEvocationS",
+          "Compendium.wildpath.srd-items.Item.phbwzdPotentCant"
+        ],
+        "optional": false
+      },
+      {
+        "level": 6,
+        "title": "Subclass Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbwzdSculptSpel"
+        ],
+        "optional": false
+      },
+      {
+        "level": 10,
+        "title": "Subclass Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbwzdEmpoweredE"
+        ],
+        "optional": false
+      },
+      {
+        "level": 14,
+        "title": "Subclass Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbwzdOverchanne"
+        ],
+        "optional": false
+      }
+    ],
+    "classIdentifier": "wizard"
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbwzdEvoker0000",
+        "type": "subclass",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

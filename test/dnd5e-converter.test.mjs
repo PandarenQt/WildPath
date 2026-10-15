@@ -588,3 +588,39 @@ test("weapons (G7): a Versatile weapon's two-handed Action, and a magic weapon's
     [["Modifier", ["attack"], 2], ["Modifier", ["damage"], 2]], "an Action's own Modifiers count for it alone");
   assert.deepEqual(sword.flags.wildpath.conversion.notes, []);
 });
+
+test("classes, subclasses, species and backgrounds (G8): their fields and what each level gives", async () => {
+  const {convertProgression, traitKey} = await import("../scripts/content/dnd5e-to-wildpath.mjs");
+  assert.deepEqual(["skills:ath", "skills:*", "saves:con", "armor:hvy", "weapon:mar", "tool:art:calligrapher", "languages:standard:*"]
+    .map(key => traitKey(key)), ["skills:athletics", "skills:*", "saves:fortitude", "armor:heavy", "weapons:martial", "tools:calligrapher", null]);
+  assert.equal(traitKey("weapon:mar:*", {mastery: true}), "masteries:martial:*");
+  const uuidOf = uuid => (uuid.endsWith("SecondWind") ? ["Compendium.wildpath.srd-items.Item.wind"] : []);
+  const fighter = {_id: "testFighter00000", name: "Test Fighter", type: "class", system: {source: SRD, identifier: "fighter",
+    hd: {denomination: "d10"}, spellcasting: {progression: "none", ability: ""}, advancement: {
+      hp: {type: "HitPoints", configuration: {}},
+      grant: {type: "ItemGrant", level: 1, title: "Class Features", configuration: {items: [{uuid: "Compendium.dnd5e.classes24.Item.SecondWind"},
+        {uuid: "Compendium.dnd5e.classes24.Item.Missing"}]}},
+      saves: {type: "Trait", level: 1, title: "Saves", classRestriction: "primary", configuration: {grants: ["saves:str", "saves:con"], choices: []}},
+      skills: {type: "Trait", level: 1, title: "Skills", configuration: {grants: [], choices: [{count: 2, pool: ["skills:acr", "skills:ath"]}]}},
+      asi: {type: "AbilityScoreImprovement", level: 4, configuration: {points: 2, cap: 2, locked: [], fixed: {}}},
+      sub: {type: "Subclass", level: 3, configuration: {}},
+      style: {type: "ItemChoice", title: "Fighting Style", configuration: {choices: {1: {count: 1}, 2: {count: null}},
+        pool: [{uuid: "Compendium.dnd5e.classes24.Item.SecondWind"}]}}}}};
+  const {item, notes} = convertProgression(fighter, {uuidOf});
+  assert.deepEqual([item.type, item.system.identifier, item.system.hitDie, item.system.levels], ["class", "fighter", 10, 1]);
+  assert.deepEqual(item.system.advancement.map(entry => [entry.level, entry.type]), [[1, "grant"], [1, "trait"], [1, "trait"], [4, "improvement"],
+    [3, "subclass"], [1, "choice"]]);
+  assert.deepEqual(item.system.advancement[0].items, ["Compendium.wildpath.srd-items.Item.wind"]);
+  assert.deepEqual(item.system.advancement[1], {level: 1, title: "Saves", classRestriction: "primary", type: "trait",
+    grants: ["saves:might", "saves:fortitude"], choices: []});
+  assert.deepEqual(item.system.advancement[2].choices, [{count: 2, pool: ["skills:acrobatics", "skills:athletics"]}]);
+  assert.equal(item.system.advancement[3].feat, true, "a class's ability increase may be a feat instead");
+  assert.deepEqual(notes, ["grant: Missing was not converted"]);
+  const background = {_id: "testBackground00", name: "Test Acolyte", type: "background", system: {source: SRD, advancement: {
+    asi: {type: "AbilityScoreImprovement", level: 0, configuration: {points: 3, cap: 2, locked: ["str", "dex", "con"], fixed: {}}}}}};
+  assert.deepEqual(convertProgression(background, {uuidOf}).item.system.advancement[0], {level: 0, title: null, type: "improvement", points: 3,
+    cap: 2, abilities: ["intellect", "wits", "presence"], fixed: {}, feat: false});
+  const species = {_id: "testSpecies00000", name: "Test Human", type: "race", system: {source: SRD, advancement: {
+    size: {type: "Size", level: 0, configuration: {sizes: ["sm", "med"]}}}}};
+  assert.deepEqual([convertProgression(species, {uuidOf}).item.type, convertProgression(species, {uuidOf}).item.system.size], ["species", "medium"]);
+});

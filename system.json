@@ -31,6 +31,23 @@
       "flags": {"wildpath": {"license": "CC-BY-4.0", "source": "SRD 5.2"}}
     },
     {
+      "name": "srd-classes",
+      "label": "WILDPATH.PACKS.SrdClasses",
+      "path": "packs/srd-classes",
+      "type": "Item",
+      "system": "wildpath",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      },
+      "flags": {
+        "wildpath": {
+          "license": "CC-BY-4.0",
+          "source": "SRD 5.2"
+        }
+      }
+    },
+    {
       "name": "srd-creatures",
       "label": "WILDPATH.PACKS.SrdCreatures",
       "path": "packs/srd-creatures",

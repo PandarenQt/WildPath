@@ -2,7 +2,7 @@ import {cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeF
 import {tmpdir} from "node:os";
 import {join, relative, resolve} from "node:path";
 import {compilePack, extractPack} from "@foundryvtt/foundryvtt-cli";
-import {convertActor, convertItem, isSrd2024, nameIndex, scaleTables, slugify} from "./dnd5e-to-wildpath.mjs";
+import {PROGRESSION_TYPES, convertActor, convertItem, convertProgression, isSrd2024, nameIndex, scaleTables, slugify} from "./dnd5e-to-wildpath.mjs";
 import {readPack} from "./packs.mjs";
 import {validateActionDefinition} from "../../module/helpers/action-definitions.mjs";
 
@@ -53,12 +53,17 @@ const options = {scales, names, licensed: () => true, book: manifest.title, imag
 
 const items = [];
 const actors = [];
+const progressions = [];
 const notes = [];
+// What each of the book's documents became: its gear (which brings its Actions), else all its Items.
+const convertedIds = new Map();
 for ( const pack of manifest.packs ?? [] ) {
   for ( const document of documents(pack) ) {
     if ( (pack.type === "Item") && ["spell", "weapon", "feat", "equipment", "consumable", "tool", "loot", "container"].includes(document.type) ) {
       const result = convertItem(document, {...options, pack: pack.name});
       items.push(...result.items);
+      const gear = result.items.filter(item => item.type === "gear");
+      convertedIds.set(document._id, (gear.length ? gear : result.items).map(item => item._id));
       notes.push([document.name, result.notes]);
     } else if ( (pack.type === "Actor") && (document.type === "npc") ) {
       const result = convertActor(document, {...options, pack: pack.name});
@@ -69,17 +74,35 @@ for ( const pack of manifest.packs ?? [] ) {
   }
 }
 
+// Classes, subclasses, species and backgrounds (G8): what they grant is the book's own converted Items, else the SRD's.
+const uuidOf = uuid => {
+  const id = String(uuid).split(".").pop();
+  if ( convertedIds.has(id) ) return convertedIds.get(id).map(entry => `Compendium.wildpath-${moduleId}.items.Item.${entry}`);
+  return String(uuid).startsWith("Compendium.dnd5e.") ? [`Compendium.wildpath.srd-items.Item.${id}`] : [];
+};
+for ( const pack of manifest.packs ?? [] ) {
+  if ( pack.type !== "Item" ) continue;
+  for ( const document of documents(pack) ) {
+    if ( !PROGRESSION_TYPES[document.type] ) continue;
+    const result = convertProgression(document, {...options, uuidOf, pack: pack.name});
+    if ( !result.ok ) continue;
+    progressions.push(result.item);
+    notes.push([document.name, result.notes]);
+  }
+}
+
 // Every Action must be valid and every id unique before anything is written.
 const actions = [...items, ...actors.flatMap(actor => actor.items)].filter(item => item.type === "action");
 const invalid = actions.filter(item => !validateActionDefinition(item.system.definition).ok).map(item => item.name);
 // Ids are unique within each pack (a spell and the creature it summons may share one across the two).
-const duplicates = [items, actors].flatMap(list => list.map(document => document._id).filter((id, index, ids) => ids.indexOf(id) !== index));
+const duplicates = [items, actors, progressions].flatMap(list => list.map(document => document._id).filter((id, index, ids) => ids.indexOf(id) !== index));
 if ( invalid.length || duplicates.length ) throw new Error(`Not written. Invalid Actions: ${invalid.join(", ") || "none"}; duplicate ids: ${duplicates.join(", ") || "none"}`);
 
 // The package: its manifest and its two packs, compiled from JSON sources written in the work folder.
 rmSync(target, {recursive: true, force: true});
 mkdirSync(target, {recursive: true});
-const packs = [["items", "Item", items, `${manifest.title}: Spells, Equipment and Features`], ["creatures", "Actor", actors, `${manifest.title}: Creatures`]]
+const packs = [["items", "Item", items, `${manifest.title}: Spells, Equipment and Features`], ["creatures", "Actor", actors, `${manifest.title}: Creatures`],
+  ["classes", "Item", progressions, `${manifest.title}: Classes and Origins`]]
   .filter(([, , list]) => list.length);
 for ( const [name, , list] of packs ) {
   const folder = join(work, "out", name);

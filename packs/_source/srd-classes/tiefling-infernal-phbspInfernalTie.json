@@ -1,0 +1,95 @@
+{
+  "_id": "phbspInfernalTie",
+  "_key": "!items!phbspInfernalTie",
+  "name": "Tiefling, Infernal",
+  "type": "species",
+  "img": "icons/creatures/unholy/demon-horned-winged-laughing.webp",
+  "system": {
+    "active": true,
+    "description": "<p></p><h3 data-anchor=\"infernal\">Infernal</h3><p></p><h3 data-anchor=\"tiefling-traits\">Tiefling Traits</h3><p><strong>Creature Type:</strong> Humanoid</p><p><strong>Size: </strong>Medium (about 4–7 feet tall) or Small (about 3–4 feet tall), chosen when you select this species</p><p><strong>Speed:</strong> 30 feet</p><p>As a Tiefling, you have the following special traits.</p><p><strong>Darkvision. </strong>You have Darkvision with a range of 60 feet.</p><p><strong>Fiendish Legacy.</strong> You are the recipient of a legacy that grants you supernatural abilities.</p><p>When you reach character levels 3 and 5, you learn a higher-level spell, as shown on the table. You always have that spell prepared. You can cast it once without a spell slot, and you regain the ability to cast it in that way when you finish a Long Rest. You can also cast the spell using any spell slots you have of the appropriate level. Intelligence, Wisdom, or Charisma is your spellcasting ability for the spells you cast with this trait (choose the ability when you select the legacy).</p><p><strong>Otherworldly Presence.</strong> You know the Thaumaturgy cantrip. When you cast it with this trait, the spell uses the same spellcasting ability you use for your Fiendish Legacy trait.</p><table><caption>Fiendish Legacies</caption><thead><tr><td>Level 1</td><td>Level 3</td><td>Level 5</td></tr></thead><tbody><tr><td>You have Resistance to Fire damage. You also know the Fire Bolt cantrip.</td><td>Hellish Rebuke</td><td>Darkness</td></tr></tbody></table>",
+    "identifier": "tiefling-infernal",
+    "advancement": [
+      {
+        "level": 0,
+        "title": null,
+        "type": "size",
+        "sizes": [
+          "small",
+          "medium"
+        ]
+      },
+      {
+        "level": 0,
+        "title": "Tiefling Traits",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbsptOtherworld",
+          "Compendium.wildpath.srd-items.Item.phbsptInfernalLe"
+        ],
+        "optional": false
+      },
+      {
+        "level": 0,
+        "title": "Otherworldly Presence",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbsplThaumaturg"
+        ],
+        "optional": false
+      },
+      {
+        "level": 1,
+        "title": "Infernal Tiefling Traits",
+        "type": "trait",
+        "grants": [
+          "dr:fire"
+        ],
+        "choices": []
+      },
+      {
+        "level": 1,
+        "title": "Infernal Tiefling Traits",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbsplFireBolt00"
+        ],
+        "optional": false
+      },
+      {
+        "level": 3,
+        "title": "Infernal Tiefling Traits",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbsplHellishReb"
+        ],
+        "optional": false
+      },
+      {
+        "level": 5,
+        "title": "Infernal Tiefling Traits",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbsplDarkness00"
+        ],
+        "optional": false
+      }
+    ],
+    "size": "medium"
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "origins24",
+        "id": "phbspInfernalTie",
+        "type": "race",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

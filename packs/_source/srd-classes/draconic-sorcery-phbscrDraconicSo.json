@@ -1,0 +1,134 @@
+{
+  "_id": "phbscrDraconicSo",
+  "_key": "!items!phbscrDraconicSo",
+  "name": "Draconic Sorcery",
+  "type": "subclass",
+  "img": "icons/svg/book.svg",
+  "system": {
+    "active": true,
+    "description": "<blockquote><p>Breathe the Magic of Dragons</p></blockquote><p>Your innate magic comes from the gift of a dragon. Perhaps an ancient dragon facing death bequeathed some of its magical power to you or your ancestor. You might have absorbed magic from a site infused with dragons' power. Or perhaps you handled a treasure taken from a dragon's hoard that was steeped in draconic power. Or you might have a dragon for an ancestor.</p>",
+    "identifier": "draconic",
+    "advancement": [
+      {
+        "level": 3,
+        "title": "Subclass Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbscrDraconicRe",
+          "Compendium.wildpath.srd-items.Item.phbscrDraconicSp"
+        ],
+        "optional": false
+      },
+      {
+        "level": 6,
+        "title": "Subclass Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbscrElementalA"
+        ],
+        "optional": false
+      },
+      {
+        "level": 14,
+        "title": "Subclass Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbscrDragonWing"
+        ],
+        "optional": false
+      },
+      {
+        "level": 18,
+        "title": "Subclass Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbscrDragonComp"
+        ],
+        "optional": false
+      },
+      {
+        "level": 3,
+        "title": "Draconic Spells",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbsplAlterSelf0",
+          "Compendium.wildpath.srd-items.Item.crd0b1v5oxlz0000",
+          "Compendium.wildpath.srd-items.Item.bxe7841tqxl94000",
+          "Compendium.wildpath.srd-items.Item.c7dsx3ujhcpp0000",
+          "Compendium.wildpath.srd-items.Item.bdezu61vlkbxy000",
+          "Compendium.wildpath.srd-items.Item.bnelj5we43ej0000",
+          "Compendium.wildpath.srd-items.Item.phbsplChromaticO",
+          "Compendium.wildpath.srd-items.Item.phbsplCommand000",
+          "Compendium.wildpath.srd-items.Item.phbsplDragonsBre",
+          "Compendium.wildpath.srd-items.Item.1umetkc14r8jgq00"
+        ],
+        "optional": false
+      },
+      {
+        "level": 5,
+        "title": "Draconic Spells",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbsplFear000000",
+          "Compendium.wildpath.srd-items.Item.phbsplFly0000000"
+        ],
+        "optional": false
+      },
+      {
+        "level": 7,
+        "title": "Draconic Spells",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbsplArcaneEye0",
+          "Compendium.wildpath.srd-items.Item.phbsplCharmMonst"
+        ],
+        "optional": false
+      },
+      {
+        "level": 9,
+        "title": "Draconic Spells",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbsplLegendLore",
+          "Compendium.wildpath.srd-items.Item.phbsplSummonDrag"
+        ],
+        "optional": false
+      },
+      {
+        "level": 6,
+        "title": null,
+        "type": "trait",
+        "grants": [],
+        "choices": [
+          {
+            "count": 1,
+            "pool": [
+              "dr:acid",
+              "dr:cold",
+              "dr:fire",
+              "dr:lightning",
+              "dr:poison"
+            ]
+          }
+        ]
+      }
+    ],
+    "classIdentifier": "sorcerer"
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbscrDraconicSo",
+        "type": "subclass",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

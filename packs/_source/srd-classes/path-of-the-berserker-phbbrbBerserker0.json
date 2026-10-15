@@ -1,0 +1,67 @@
+{
+  "_id": "phbbrbBerserker0",
+  "_key": "!items!phbbrbBerserker0",
+  "name": "Path of the Berserker",
+  "type": "subclass",
+  "img": "icons/svg/book.svg",
+  "system": {
+    "active": true,
+    "description": "<blockquote><p>Channel Rage into Violent Fury</p></blockquote><p>Barbarians who walk the Path of the Berserker direct their Rage primarily toward violence. Their path is one of untrammeled fury, and they thrill in the chaos of battle as they allow their Rage to seize and empower them.</p>",
+    "identifier": "berserker",
+    "advancement": [
+      {
+        "level": 3,
+        "title": "Subclass Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbbrbFrenzy0000"
+        ],
+        "optional": false
+      },
+      {
+        "level": 6,
+        "title": "Subclass Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbbrbMindlessRa"
+        ],
+        "optional": false
+      },
+      {
+        "level": 10,
+        "title": "Subclass Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbbrbRetaliatio"
+        ],
+        "optional": false
+      },
+      {
+        "level": 14,
+        "title": "Subclass Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbbrbIntimidati"
+        ],
+        "optional": false
+      }
+    ],
+    "classIdentifier": "barbarian"
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbbrbBerserker0",
+        "type": "subclass",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

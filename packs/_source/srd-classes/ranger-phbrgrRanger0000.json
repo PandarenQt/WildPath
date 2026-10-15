@@ -1,0 +1,374 @@
+{
+  "_id": "phbrgrRanger0000",
+  "_key": "!items!phbrgrRanger0000",
+  "name": "Ranger",
+  "type": "class",
+  "img": "icons/svg/book.svg",
+  "system": {
+    "active": true,
+    "description": "<h3>Core Ranger Traits</h3><table class=\"core-class-traits\"><tbody><tr><th scope=\"row\"><p><strong>Primary Ability</strong></p></th><td><p>Dexterity and Wisdom</p></td></tr><tr><th scope=\"row\"><p><strong>Hit Point Die</strong></p></th><td><p>D10 per Ranger level</p></td></tr><tr><th scope=\"row\"><p><strong>Saving Throw Proficiencies</strong></p></th><td><p>Strength and Dexterity</p></td></tr><tr><th scope=\"row\"><p><strong>Skill Proficiencies</strong></p></th><td><p><em>Choose 3:</em> Animal Handling, Athletics, Insight, Investigation, Nature, Perception, Stealth, or Survival</p></td></tr><tr><th scope=\"row\"><p><strong>Weapon Proficiencies</strong></p></th><td><p>Simple and Martial weapons</p></td></tr><tr><th scope=\"row\"><p><strong>Armor Training</strong></p></th><td><p>Light and Medium armor and Shields</p></td></tr><tr><th scope=\"row\"><p><strong>Starting Equipment</strong></p></th><td><p><em>Choose A or B: </em>(A) Studded Leather Armor, Scimitar, Shortsword, Longbow, 20 Arrows, Quiver, Druidic Focus (sprig of mistletoe), Explorer's Pack, and 7GP; or (B) 150GP</p></td></tr></tbody></table><p></p><h2>Becoming a Ranger …</h2><h3>As a Level 1 Character</h3><ul><li>Gain all the traits in the Core Ranger Traits table.</li><li>Gain the Ranger's level 1 features, which are listed in the Ranger Features table.</li></ul><h3>As a Multiclass Character</h3><ul><li>Gain the following traits from the Core Ranger Traits table: Hit Point Die, proficiency with Martial weapons, proficiency in one skill of your choice from the Ranger's skill list, and training with Light and Medium armor and Shields.</li><li>Gain the Ranger's level 1 features, which are listed in the Ranger Features table. See the multiclassing rules in chapter 2 to determine your available spell slots.</li></ul>",
+    "identifier": "ranger",
+    "advancement": [
+      {
+        "level": 1,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbrgrSpellcasti",
+          "Compendium.wildpath.srd-items.Item.ptz9wzcvkga70000",
+          "Compendium.wildpath.srd-items.Item.phbrgrWeaponMast"
+        ],
+        "optional": false
+      },
+      {
+        "level": 2,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbrgrDeftExplor",
+          "Compendium.wildpath.srd-items.Item.phbrgrFightingSt"
+        ],
+        "optional": false
+      },
+      {
+        "level": 5,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbrgrExtraAttac"
+        ],
+        "optional": false
+      },
+      {
+        "level": 6,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbrgrRoving0000"
+        ],
+        "optional": false
+      },
+      {
+        "level": 9,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbrgrExpertise0"
+        ],
+        "optional": false
+      },
+      {
+        "level": 9,
+        "title": "Expertise",
+        "type": "trait",
+        "grants": [],
+        "choices": [
+          {
+            "count": 2,
+            "pool": [
+              "skills:*"
+            ]
+          }
+        ]
+      },
+      {
+        "level": 10,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbrgrTireless00"
+        ],
+        "optional": false
+      },
+      {
+        "level": 13,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbrgrRelentless"
+        ],
+        "optional": false
+      },
+      {
+        "level": 14,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbrgrNaturesVei"
+        ],
+        "optional": false
+      },
+      {
+        "level": 17,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbrgrPreciseHun"
+        ],
+        "optional": false
+      },
+      {
+        "level": 18,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbrgrFeralSense"
+        ],
+        "optional": false
+      },
+      {
+        "level": 20,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbrgrFoeSlayer0"
+        ],
+        "optional": false
+      },
+      {
+        "level": 4,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      },
+      {
+        "level": 8,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      },
+      {
+        "level": 12,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      },
+      {
+        "level": 16,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      },
+      {
+        "level": 2,
+        "title": "Deft Explorer",
+        "type": "trait",
+        "grants": [],
+        "choices": [
+          {
+            "count": 1,
+            "pool": [
+              "skills:*"
+            ]
+          }
+        ]
+      },
+      {
+        "level": 3,
+        "title": null,
+        "type": "subclass"
+      },
+      {
+        "level": 1,
+        "title": "Saving Throw Proficiencies",
+        "classRestriction": "primary",
+        "type": "trait",
+        "grants": [
+          "saves:might",
+          "saves:agility"
+        ],
+        "choices": []
+      },
+      {
+        "level": 1,
+        "title": "Skill Proficiencies",
+        "classRestriction": "primary",
+        "type": "trait",
+        "grants": [],
+        "choices": [
+          {
+            "count": 3,
+            "pool": [
+              "skills:animal-handling",
+              "skills:athletics",
+              "skills:insight",
+              "skills:investigation",
+              "skills:nature",
+              "skills:perception",
+              "skills:stealth",
+              "skills:survival"
+            ]
+          }
+        ]
+      },
+      {
+        "level": 1,
+        "title": "Weapon Proficiencies",
+        "classRestriction": "primary",
+        "type": "trait",
+        "grants": [
+          "weapons:simple",
+          "weapons:martial"
+        ],
+        "choices": []
+      },
+      {
+        "level": 1,
+        "title": "Armor Training",
+        "type": "trait",
+        "grants": [
+          "armor:light",
+          "armor:medium",
+          "armor:shield"
+        ],
+        "choices": []
+      },
+      {
+        "level": 1,
+        "title": "Skill Proficiencies",
+        "classRestriction": "secondary",
+        "type": "trait",
+        "grants": [],
+        "choices": [
+          {
+            "count": 1,
+            "pool": [
+              "skills:animal-handling",
+              "skills:athletics",
+              "skills:insight",
+              "skills:investigation",
+              "skills:nature",
+              "skills:perception",
+              "skills:stealth",
+              "skills:survival"
+            ]
+          }
+        ]
+      },
+      {
+        "level": 2,
+        "title": "Fighting Style",
+        "type": "choice",
+        "count": 1,
+        "replacement": false,
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbfstArchery000",
+          "Compendium.wildpath.srd-items.Item.phbfstDefense000",
+          "Compendium.wildpath.srd-items.Item.phbfstGreatWeapo",
+          "Compendium.wildpath.srd-items.Item.phbfstTwoWeaponF",
+          "Compendium.wildpath.srd-items.Item.phbfstDruidicWar"
+        ]
+      },
+      {
+        "level": 1,
+        "title": "Weapon Mastery",
+        "type": "trait",
+        "grants": [],
+        "choices": [
+          {
+            "count": 2,
+            "pool": [
+              "masteries:*"
+            ]
+          }
+        ]
+      },
+      {
+        "level": 1,
+        "title": "Weapon Proficiencies",
+        "classRestriction": "secondary",
+        "type": "trait",
+        "grants": [
+          "weapons:martial"
+        ],
+        "choices": []
+      },
+      {
+        "level": 19,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      }
+    ],
+    "levels": 1,
+    "hitDie": 10,
+    "original": false,
+    "spellcasting": {
+      "progression": "half",
+      "ability": "wits"
+    }
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbrgrRanger0000",
+        "type": "class",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "languages are not tracked"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,290 @@
+{
+  "_id": "phbdrdDruid00000",
+  "_key": "!items!phbdrdDruid00000",
+  "name": "Druid",
+  "type": "class",
+  "img": "icons/svg/book.svg",
+  "system": {
+    "active": true,
+    "description": "<h3>Core Druid Traits</h3><table class=\"core-class-traits\"><tbody><tr><th scope=\"row\"><p><strong>Primary Ability</strong></p></th><td><p>Wisdom</p></td></tr><tr><th scope=\"row\"><p><strong>Hit Point Die</strong></p></th><td><p>D8 per Druid level</p></td></tr><tr><th scope=\"row\"><p><strong>Saving Throw Proficiencies</strong></p></th><td><p>Intelligence and Wisdom</p></td></tr><tr><th scope=\"row\"><p><strong>Skill Proficiencies</strong></p></th><td><p><em>Choose 2:</em> Animal Handling, Arcana, Insight, Medicine, Nature, Perception, Religion, or Survival</p></td></tr><tr><th scope=\"row\"><p><strong>Weapon Proficiencies</strong></p></th><td><p>Simple weapons</p></td></tr><tr><th scope=\"row\"><p><strong>Tool Proficiencies</strong></p></th><td><p>Herbalism Kit</p></td></tr><tr><th scope=\"row\"><p><strong>Armor Training</strong></p></th><td><p>Light armor and Shields</p></td></tr><tr><th scope=\"row\"><p><strong>Starting Equipment</strong></p></th><td><p><em>Choose A or B:</em> (A) Leather Armor, Shield, Sickle, Druidic Focus (Quarterstaff), Explorer's Pack, Herbalism Kit, and 9GP; or (B) 50GP</p></td></tr></tbody></table><p></p><h2>Becoming a Druid …</h2><h3>As a Level 1 Character</h3><ul><li>Gain all the traits in the Core Druid Traits table.</li><li>Gain the Druid's level 1 features, which are listed in the Druid Features table.</li></ul><h3>As a Multiclass Character</h3><ul><li>Gain the following traits from the Core Druid Traits table: Hit Point Die and training with Light armor and Shields.</li><li>Gain the Druid's level 1 features, which are listed in the Druid Features table. See the multiclassing rules in chapter 2 to determine your available spell slots.</li></ul>",
+    "identifier": "druid",
+    "advancement": [
+      {
+        "level": 1,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbdrdSpellcasti",
+          "Compendium.wildpath.srd-items.Item.phbdrdDruidic000",
+          "Compendium.wildpath.srd-items.Item.phbdrdPrimalOrde"
+        ],
+        "optional": false
+      },
+      {
+        "level": 2,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbdrdWildShape0",
+          "Compendium.wildpath.srd-items.Item.phbdrdWildCompan",
+          "Compendium.wildpath.srd-items.Item.kxemh8eppid00000"
+        ],
+        "optional": false
+      },
+      {
+        "level": 5,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbdrdWildResurg"
+        ],
+        "optional": false
+      },
+      {
+        "level": 7,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbdrdElementalF"
+        ],
+        "optional": false
+      },
+      {
+        "level": 15,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbdrdImprovedEl"
+        ],
+        "optional": false
+      },
+      {
+        "level": 18,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbdrdBeastSpell"
+        ],
+        "optional": false
+      },
+      {
+        "level": 20,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbdrdArchdruid0"
+        ],
+        "optional": false
+      },
+      {
+        "level": 4,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      },
+      {
+        "level": 8,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      },
+      {
+        "level": 12,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      },
+      {
+        "level": 16,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      },
+      {
+        "level": 1,
+        "title": "Druidic Spells",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbsplSpeakwithA"
+        ],
+        "optional": false
+      },
+      {
+        "level": 1,
+        "title": "Primal Order",
+        "type": "choice",
+        "count": 1,
+        "replacement": false,
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbPrimalOrderMa",
+          "Compendium.wildpath.srd-items.Item.phbPrimalOrderWa"
+        ]
+      },
+      {
+        "level": 7,
+        "title": "Elemental Fury",
+        "type": "choice",
+        "count": 1,
+        "replacement": false,
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbFuryPotentSpe",
+          "Compendium.wildpath.srd-items.Item.phbFuryPrimalStr"
+        ]
+      },
+      {
+        "level": 3,
+        "title": null,
+        "type": "subclass"
+      },
+      {
+        "level": 1,
+        "title": "Saving Throw Proficiencies",
+        "classRestriction": "primary",
+        "type": "trait",
+        "grants": [
+          "saves:intellect",
+          "saves:wits"
+        ],
+        "choices": []
+      },
+      {
+        "level": 1,
+        "title": "Skill Proficiencies",
+        "classRestriction": "primary",
+        "type": "trait",
+        "grants": [],
+        "choices": [
+          {
+            "count": 2,
+            "pool": [
+              "skills:animal-handling",
+              "skills:arcana",
+              "skills:insight",
+              "skills:medicine",
+              "skills:nature",
+              "skills:perception",
+              "skills:religion",
+              "skills:survival"
+            ]
+          }
+        ]
+      },
+      {
+        "level": 1,
+        "title": "Weapon Proficiencies",
+        "classRestriction": "primary",
+        "type": "trait",
+        "grants": [
+          "weapons:simple"
+        ],
+        "choices": []
+      },
+      {
+        "level": 1,
+        "title": "Tool Proficiencies",
+        "classRestriction": "primary",
+        "type": "trait",
+        "grants": [
+          "tools:herb"
+        ],
+        "choices": []
+      },
+      {
+        "level": 1,
+        "title": "Armor Training",
+        "type": "trait",
+        "grants": [
+          "armor:light",
+          "armor:shield"
+        ],
+        "choices": []
+      },
+      {
+        "level": 19,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      }
+    ],
+    "levels": 1,
+    "hitDie": 8,
+    "original": false,
+    "spellcasting": {
+      "progression": "full",
+      "ability": "wits"
+    }
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbdrdDruid00000",
+        "type": "class",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "languages are not tracked"
+        ]
+      }
+    }
+  }
+}

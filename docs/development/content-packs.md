@@ -211,6 +211,24 @@ Flyby on 6 and Regeneration on 4. The book packages convert the same way.
   - Text with two distances, or a pull toward something else (Control Water's whirlpool), is left to the GM.
   - 15 SRD Actions push or pull, from Thunderwave to the Balor's Flame Whip.
 
+### Classes and origins (G8, 2026-10-15)
+
+dnd5e classes, subclasses, species (races) and backgrounds become WildPath class, subclass, species and background
+Items (`convertProgression`), in **SRD 5.2: Classes and Origins** (`srd-classes`: 12 classes, 12 subclasses, 14
+species, 4 backgrounds) and each book package's own `classes` pack.
+- **Fields.** A class's identifier, Hit Die and spellcasting (an Artificer rounds up like a half caster; third
+  casters and pact magic are not converted); a subclass's class; a species' size.
+- **What each level gives** (`advancement`, level 0 for a species or background at creation):
+  - `grant`: the features it gives, as the converted Items' uuids (a magic item's gear, which brings its Actions);
+  - `choice`: a choice of `count` features from `items`;
+  - `trait`: skills, saves, armor, weapons, tools and Weapon Mastery to grant or choose (`skills:athletics`,
+    `saves:might`, `armor:heavy`, `weapons:martial`, `masteries:martial:*`), some only for the original class
+    (`classRestriction: "primary"`) or when multiclassing (`"secondary"`);
+  - `improvement`: ability increases (`points`, `cap`, the `abilities` allowed), or a feat for a class's;
+  - `subclass`, and a species' `size`.
+- Hit points (from the Hit Die) and scale values (the features' own tables) need no entry. Languages are not
+  tracked.
+
 ### Equipment and magic items (G7, 2026-10-15)
 
 dnd5e equipment, consumables, tools, loot and containers become WildPath gear (`type: "gear"`), carried but not

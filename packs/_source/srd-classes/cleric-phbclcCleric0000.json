@@ -1,0 +1,266 @@
+{
+  "_id": "phbclcCleric0000",
+  "_key": "!items!phbclcCleric0000",
+  "name": "Cleric",
+  "type": "class",
+  "img": "icons/svg/book.svg",
+  "system": {
+    "active": true,
+    "description": "<h3>Core Cleric Traits</h3><table class=\"core-class-traits\"><tbody><tr><th scope=\"row\"><p>Primary Ability</p></th><td><p>Wisdom</p></td></tr><tr><th scope=\"row\"><p>Hit Point Die</p></th><td><p>D8 per Cleric level</p></td></tr><tr><th scope=\"row\"><p>Saving Throw Proficiencies</p></th><td><p>Wisdom and Charisma</p></td></tr><tr><th scope=\"row\"><p>Skill Proficiencies</p></th><td><p><em>Choose 2: </em>History, Insight, Medicine, Persuasion, or Religion</p></td></tr><tr><th scope=\"row\"><p>Weapon Proficiencies</p></th><td><p>Simple weapons</p></td></tr><tr><th scope=\"row\"><p>Armor Training</p></th><td><p>Light and Medium armor and Shields</p></td></tr><tr><th scope=\"row\"><p>Starting Equipment</p></th><td><p><em>Choose A or B:</em> (A) Chain Shirt, Shield, Mace, Holy Symbol, Priest's Pack, and 7GP; or (B) 110GP</p></td></tr></tbody></table><p></p><h2>Becoming a Cleric …</h2><h3>As a Level 1 Character</h3><ul><li>Gain all the traits in the Core Cleric Traits table.</li><li>Gain the Cleric's level 1 features, which are listed in the Cleric Features table.</li></ul><h3>As a Multiclass Character</h3><ul><li>Gain the following traits from the Core Cleric Traits table: Hit Point Die and training with Light and Medium armor and Shields.</li><li>Gain the Cleric's level 1 features, which are listed in the Cleric Features table. See the multiclassing rules in chapter 2 to determine your available spell slots.</li></ul>",
+    "identifier": "cleric",
+    "advancement": [
+      {
+        "level": 1,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbclcSpellcasti",
+          "Compendium.wildpath.srd-items.Item.phbclcDivineOrde"
+        ],
+        "optional": false
+      },
+      {
+        "level": 2,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbclcChannelDiv",
+          "Compendium.wildpath.srd-items.Item.1sxm1g41rx00ra00",
+          "Compendium.wildpath.srd-items.Item.1trkuj1s3c7bl000"
+        ],
+        "optional": false
+      },
+      {
+        "level": 5,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbclcSearUndead"
+        ],
+        "optional": false
+      },
+      {
+        "level": 10,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbclcDivineInte"
+        ],
+        "optional": false
+      },
+      {
+        "level": 14,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbclcImprovedBl"
+        ],
+        "optional": false
+      },
+      {
+        "level": 20,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbclcGreaterDiv"
+        ],
+        "optional": false
+      },
+      {
+        "level": 4,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      },
+      {
+        "level": 8,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      },
+      {
+        "level": 12,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      },
+      {
+        "level": 16,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      },
+      {
+        "level": 7,
+        "title": "Blessed Strikes",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbclcBlessedStr"
+        ],
+        "optional": false
+      },
+      {
+        "level": 1,
+        "title": "Divine Order Choice",
+        "type": "choice",
+        "count": 1,
+        "replacement": false,
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbDivineOrderPr",
+          "Compendium.wildpath.srd-items.Item.phbDivineOrderTh"
+        ]
+      },
+      {
+        "level": 7,
+        "title": "Blessed Strikes Choice",
+        "type": "choice",
+        "count": 1,
+        "replacement": false,
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbDivineStrike0",
+          "Compendium.wildpath.srd-items.Item.phbClcPotentSpel"
+        ]
+      },
+      {
+        "level": 3,
+        "title": null,
+        "type": "subclass"
+      },
+      {
+        "level": 1,
+        "title": "Saving Throw Proficiencies",
+        "classRestriction": "primary",
+        "type": "trait",
+        "grants": [
+          "saves:wits",
+          "saves:presence"
+        ],
+        "choices": []
+      },
+      {
+        "level": 1,
+        "title": "Skill Proficiencies",
+        "classRestriction": "primary",
+        "type": "trait",
+        "grants": [],
+        "choices": [
+          {
+            "count": 2,
+            "pool": [
+              "skills:history",
+              "skills:insight",
+              "skills:medicine",
+              "skills:persuasion",
+              "skills:religion"
+            ]
+          }
+        ]
+      },
+      {
+        "level": 1,
+        "title": "Weapon Proficiencies",
+        "classRestriction": "primary",
+        "type": "trait",
+        "grants": [
+          "weapons:simple"
+        ],
+        "choices": []
+      },
+      {
+        "level": 1,
+        "title": "Armor Training",
+        "type": "trait",
+        "grants": [
+          "armor:light",
+          "armor:medium",
+          "armor:shield"
+        ],
+        "choices": []
+      },
+      {
+        "level": 19,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      }
+    ],
+    "levels": 1,
+    "hitDie": 8,
+    "original": false,
+    "spellcasting": {
+      "progression": "full",
+      "ability": "wits"
+    }
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbclcCleric0000",
+        "type": "class",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

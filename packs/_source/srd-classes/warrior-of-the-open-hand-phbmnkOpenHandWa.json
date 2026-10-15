@@ -1,0 +1,67 @@
+{
+  "_id": "phbmnkOpenHandWa",
+  "_key": "!items!phbmnkOpenHandWa",
+  "name": "Warrior of the Open Hand",
+  "type": "subclass",
+  "img": "icons/svg/book.svg",
+  "system": {
+    "active": true,
+    "description": "<blockquote><p>Master Unarmed Combat Techniques</p></blockquote><p>Warriors of the Open Hand are masters of unarmed combat. They learn techniques to push and trip their opponents and manipulate their own energy to protect themselves from harm.</p>",
+    "identifier": "hand",
+    "advancement": [
+      {
+        "level": 3,
+        "title": "Subclass Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbmnkOpenHandTe"
+        ],
+        "optional": false
+      },
+      {
+        "level": 6,
+        "title": "Subclass Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbmnkWholenessO"
+        ],
+        "optional": false
+      },
+      {
+        "level": 11,
+        "title": "Subclass Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbmnkFleetStep0"
+        ],
+        "optional": false
+      },
+      {
+        "level": 17,
+        "title": "Subclass Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.nwo5l4ist6z20000"
+        ],
+        "optional": false
+      }
+    ],
+    "classIdentifier": "monk"
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbmnkOpenHandWa",
+        "type": "subclass",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

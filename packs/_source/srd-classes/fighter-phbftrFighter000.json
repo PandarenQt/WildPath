@@ -1,0 +1,382 @@
+{
+  "_id": "phbftrFighter000",
+  "_key": "!items!phbftrFighter000",
+  "name": "Fighter",
+  "type": "class",
+  "img": "icons/svg/book.svg",
+  "system": {
+    "active": true,
+    "description": "<h3>Core Fighter Traits</h3><table class=\"core-class-traits\"><tbody><tr><th scope=\"row\"><p><strong>Primary Ability</strong></p></th><td><p>Strength or Dexterity</p></td></tr><tr><th scope=\"row\"><p><strong>Hit Point Die</strong></p></th><td><p>D10 per Fighter level</p></td></tr><tr><th scope=\"row\"><p><strong>Saving Throw Proficiencies</strong></p></th><td><p>Strength and Constitution</p></td></tr><tr><th scope=\"row\"><p><strong>Skill Proficiencies</strong></p></th><td><p><em>Choose 2:</em> Acrobatics, Animal Handling, Athletics, History, Insight, Intimidation, Persuasion, Perception, or Survival</p></td></tr><tr><th scope=\"row\"><p><strong>Weapon Proficiencies</strong></p></th><td><p>Simple and Martial weapons</p></td></tr><tr><th scope=\"row\"><p><strong>Armor Training</strong></p></th><td><p>Light, Medium, and Heavy armor and Shields</p></td></tr><tr><th scope=\"row\"><p><strong>Starting Equipment</strong></p></th><td><p><em>Choose A, B, or C:</em> (A) Chain Mail, Greatsword, Flail, 8 Javelins, Dungeoneer's Pack, and 4GP; (B) Studded Leather Armor, Scimitar, Short­sword, Longbow, 20 Arrows, Quiver, Dungeoneer's Pack, and 11GP; or (C) 155GP</p></td></tr></tbody></table><p></p><h2>Becoming a Fighter …</h2><h3>As a Level 1 Character</h3><ul><li>Gain all the traits in the Core Fighter Traits table.</li><li>Gain the Fighter's level 1 features, which are listed in the Fighter Features table.</li></ul><h3>As a Multiclass Character</h3><ul><li>Gain the following traits from the Core Fighter Traits table: Hit Point Die, proficiency with Martial weapons, and training with Light and Medium armor and Shields.</li><li>Gain the Fighter's level 1 features, which are listed in the Fighter Features table.</li></ul>",
+    "identifier": "fighter",
+    "advancement": [
+      {
+        "level": 1,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbftrFightingSt",
+          "Compendium.wildpath.srd-items.Item.phbftrSecondWind",
+          "Compendium.wildpath.srd-items.Item.phbftrWeaponMast"
+        ],
+        "optional": false
+      },
+      {
+        "level": 2,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbftrActionSurg",
+          "Compendium.wildpath.srd-items.Item.phbftrTacticalMi"
+        ],
+        "optional": false
+      },
+      {
+        "level": 5,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbftrExtraAttac",
+          "Compendium.wildpath.srd-items.Item.phbftrTacticalSh"
+        ],
+        "optional": false
+      },
+      {
+        "level": 9,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbftrIndomitabl",
+          "Compendium.wildpath.srd-items.Item.phbftrTacticalMa"
+        ],
+        "optional": false
+      },
+      {
+        "level": 11,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbftrTwoExtraAt"
+        ],
+        "optional": false
+      },
+      {
+        "level": 13,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbftrStudiedAtt"
+        ],
+        "optional": false
+      },
+      {
+        "level": 20,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbftrThreeExtra"
+        ],
+        "optional": false
+      },
+      {
+        "level": 4,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      },
+      {
+        "level": 8,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      },
+      {
+        "level": 12,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      },
+      {
+        "level": 16,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      },
+      {
+        "level": 6,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      },
+      {
+        "level": 14,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      },
+      {
+        "level": 3,
+        "title": null,
+        "type": "subclass"
+      },
+      {
+        "level": 1,
+        "title": "Saving Throw Proficiencies",
+        "classRestriction": "primary",
+        "type": "trait",
+        "grants": [
+          "saves:might",
+          "saves:fortitude"
+        ],
+        "choices": []
+      },
+      {
+        "level": 1,
+        "title": "Skill Proficiencies",
+        "classRestriction": "primary",
+        "type": "trait",
+        "grants": [],
+        "choices": [
+          {
+            "count": 2,
+            "pool": [
+              "skills:acrobatics",
+              "skills:animal-handling",
+              "skills:athletics",
+              "skills:history",
+              "skills:insight",
+              "skills:intimidation",
+              "skills:perception",
+              "skills:persuasion",
+              "skills:survival"
+            ]
+          }
+        ]
+      },
+      {
+        "level": 1,
+        "title": "Weapon Proficiencies",
+        "classRestriction": "primary",
+        "type": "trait",
+        "grants": [
+          "weapons:simple",
+          "weapons:martial"
+        ],
+        "choices": []
+      },
+      {
+        "level": 1,
+        "title": "Armor Training",
+        "classRestriction": "primary",
+        "type": "trait",
+        "grants": [
+          "armor:light",
+          "armor:medium",
+          "armor:heavy",
+          "armor:shield"
+        ],
+        "choices": []
+      },
+      {
+        "level": 1,
+        "title": "Weapon Proficiencies",
+        "classRestriction": "secondary",
+        "type": "trait",
+        "grants": [
+          "weapons:martial"
+        ],
+        "choices": []
+      },
+      {
+        "level": 1,
+        "title": "Armor Training",
+        "classRestriction": "secondary",
+        "type": "trait",
+        "grants": [
+          "armor:light",
+          "armor:medium",
+          "armor:shield"
+        ],
+        "choices": []
+      },
+      {
+        "level": 1,
+        "title": "Weapon Mastery",
+        "type": "trait",
+        "grants": [],
+        "choices": [
+          {
+            "count": 3,
+            "pool": [
+              "masteries:simple:*",
+              "masteries:martial:*"
+            ]
+          }
+        ]
+      },
+      {
+        "level": 1,
+        "title": "Fighting Style",
+        "type": "choice",
+        "count": 1,
+        "replacement": true,
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbfstArchery000",
+          "Compendium.wildpath.srd-items.Item.phbfstDefense000",
+          "Compendium.wildpath.srd-items.Item.phbfstGreatWeapo",
+          "Compendium.wildpath.srd-items.Item.phbfstTwoWeaponF"
+        ]
+      },
+      {
+        "level": 4,
+        "title": "Weapon Mastery",
+        "type": "trait",
+        "grants": [],
+        "choices": [
+          {
+            "count": 1,
+            "pool": [
+              "masteries:simple:*",
+              "masteries:martial:*"
+            ]
+          }
+        ]
+      },
+      {
+        "level": 10,
+        "title": "Weapon Mastery",
+        "type": "trait",
+        "grants": [],
+        "choices": [
+          {
+            "count": 1,
+            "pool": [
+              "masteries:simple:*",
+              "masteries:martial:*"
+            ]
+          }
+        ]
+      },
+      {
+        "level": 16,
+        "title": "Weapon Mastery",
+        "type": "trait",
+        "grants": [],
+        "choices": [
+          {
+            "count": 1,
+            "pool": [
+              "masteries:simple:*",
+              "masteries:martial:*"
+            ]
+          }
+        ]
+      },
+      {
+        "level": 19,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      }
+    ],
+    "levels": 1,
+    "hitDie": 10,
+    "original": false,
+    "spellcasting": {
+      "progression": "none",
+      "ability": ""
+    }
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbftrFighter000",
+        "type": "class",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

@@ -1,0 +1,331 @@
+{
+  "_id": "phbpdnPaladin000",
+  "_key": "!items!phbpdnPaladin000",
+  "name": "Paladin",
+  "type": "class",
+  "img": "icons/svg/book.svg",
+  "system": {
+    "active": true,
+    "description": "<h3>Core Paladin Traits</h3><table class=\"core-class-traits\"><tbody><tr><th scope=\"row\"><p><strong>Primary Ability</strong></p></th><td><p>Strength and Charisma</p></td></tr><tr><th scope=\"row\"><p><strong>Hit Point Die</strong></p></th><td><p>D10 per Paladin level</p></td></tr><tr><th scope=\"row\"><p><strong>Saving Throw Proficiencies</strong></p></th><td><p>Wisdom and Charisma</p></td></tr><tr><th scope=\"row\"><p><strong>Skill Proficiencies</strong></p></th><td><p><em>Choose 2: </em>Athletics, Insight, Intimidation, Medicine, Persuasion, or Religion</p></td></tr><tr><th scope=\"row\"><p><strong>Weapon Proficiencies</strong></p></th><td><p>Simple and Martial weapons</p></td></tr><tr><th scope=\"row\"><p><strong>Armor Training</strong></p></th><td><p>Light, Medium, and Heavy armor and Shields</p></td></tr><tr><th scope=\"row\"><p><strong>Starting Equipment</strong></p></th><td><p><em>Choose A or B:</em> (A) Chain Mail, Shield, Longsword, 6 Javelins, Holy Symbol, Priest's Pack, and 9GP; or (B) 150GP</p></td></tr></tbody></table><p></p><h2>Becoming a Paladin …</h2><h3>As a Level 1 Character</h3><ul><li>Gain all the traits in the Core Paladin Traits table.</li><li>Gain the Paladin's level 1 features, which are listed in the Paladin Features table.</li></ul><h3>As a Multiclass Character</h3><ul><li>Gain the following traits from the Core Paladin Traits table: Hit Point Die, proficiency with Martial weapons, and training with Light and Medium armor and Shields.</li><li>Gain the Paladin's level 1 features, which are listed in the Paladin Features table. See the multiclassing rules in chapter 2 to determine your available spell slots.</li></ul><blockquote><p><strong>Breaking Your Oath</strong></p><p>A Paladin tries to hold to the highest standards of conduct, but even the most dedicated are fallible. Sometimes a Paladin transgresses their oath.</p><p>A Paladin who has broken a vow typically seeks absolution, spending an all-night vigil as a sign of penitence or undertaking a fast. After a rite of forgiveness, the Paladin starts fresh.</p><p>If your Paladin unrepentantly violates their oath, talk to your DM. Your Paladin should probably take a more appropriate subclass or even abandon the class and adopt another one.</p></blockquote>",
+    "identifier": "paladin",
+    "advancement": [
+      {
+        "level": 1,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbpdnLayOnHands",
+          "Compendium.wildpath.srd-items.Item.1q2riufh9mpsd000",
+          "Compendium.wildpath.srd-items.Item.phbpdnSpellcasti",
+          "Compendium.wildpath.srd-items.Item.phbpdnWeaponMast"
+        ],
+        "optional": false
+      },
+      {
+        "level": 2,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbpdnFightingSt",
+          "Compendium.wildpath.srd-items.Item.phbpdnPaladinsSm",
+          "Compendium.wildpath.srd-items.Item.phbsplDivineSmit",
+          "Compendium.wildpath.srd-items.Item.1whw1n114z2zon00"
+        ],
+        "optional": false
+      },
+      {
+        "level": 3,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbpdnChannelDiv"
+        ],
+        "optional": false
+      },
+      {
+        "level": 5,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbpdnExtraAttac",
+          "Compendium.wildpath.srd-items.Item.phbpdnFaithfulSt",
+          "Compendium.wildpath.srd-items.Item.phbsplFindSteed0",
+          "Compendium.wildpath.srd-items.Item.lvtqg5s88bmz0000"
+        ],
+        "optional": false
+      },
+      {
+        "level": 6,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbpdnProtection"
+        ],
+        "optional": false
+      },
+      {
+        "level": 9,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbpdnAbjureFoes"
+        ],
+        "optional": false
+      },
+      {
+        "level": 10,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbpdnCourageAur"
+        ],
+        "optional": false
+      },
+      {
+        "level": 11,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbpdnRadiantStr"
+        ],
+        "optional": false
+      },
+      {
+        "level": 14,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbpdnRestoringT"
+        ],
+        "optional": false
+      },
+      {
+        "level": 18,
+        "title": "Class Features",
+        "type": "grant",
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbpdnAuraExpans"
+        ],
+        "optional": false
+      },
+      {
+        "level": 4,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      },
+      {
+        "level": 8,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      },
+      {
+        "level": 12,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      },
+      {
+        "level": 16,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      },
+      {
+        "level": 3,
+        "title": null,
+        "type": "subclass"
+      },
+      {
+        "level": 1,
+        "title": "Saving Throw Proficiencies",
+        "classRestriction": "primary",
+        "type": "trait",
+        "grants": [
+          "saves:wits",
+          "saves:presence"
+        ],
+        "choices": []
+      },
+      {
+        "level": 1,
+        "title": "Skill Proficiencies",
+        "classRestriction": "primary",
+        "type": "trait",
+        "grants": [],
+        "choices": [
+          {
+            "count": 2,
+            "pool": [
+              "skills:athletics",
+              "skills:insight",
+              "skills:intimidation",
+              "skills:medicine",
+              "skills:persuasion",
+              "skills:religion"
+            ]
+          }
+        ]
+      },
+      {
+        "level": 1,
+        "title": "Weapon Proficiencies",
+        "classRestriction": "primary",
+        "type": "trait",
+        "grants": [
+          "weapons:simple",
+          "weapons:martial"
+        ],
+        "choices": []
+      },
+      {
+        "level": 1,
+        "title": "Armor Training",
+        "classRestriction": "primary",
+        "type": "trait",
+        "grants": [
+          "armor:light",
+          "armor:medium",
+          "armor:heavy",
+          "armor:shield"
+        ],
+        "choices": []
+      },
+      {
+        "level": 1,
+        "title": "Weapon Proficiencies",
+        "classRestriction": "secondary",
+        "type": "trait",
+        "grants": [
+          "weapons:martial"
+        ],
+        "choices": []
+      },
+      {
+        "level": 1,
+        "title": "Armor Training",
+        "classRestriction": "secondary",
+        "type": "trait",
+        "grants": [
+          "armor:light",
+          "armor:medium",
+          "armor:shield"
+        ],
+        "choices": []
+      },
+      {
+        "level": 2,
+        "title": "Fighting Style",
+        "type": "choice",
+        "count": 1,
+        "replacement": false,
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbfstArchery000",
+          "Compendium.wildpath.srd-items.Item.phbfstDefense000",
+          "Compendium.wildpath.srd-items.Item.phbfstGreatWeapo",
+          "Compendium.wildpath.srd-items.Item.phbfstTwoWeaponF",
+          "Compendium.wildpath.srd-items.Item.phbfstBlessedWar"
+        ]
+      },
+      {
+        "level": 1,
+        "title": "Weapon Mastery",
+        "type": "trait",
+        "grants": [],
+        "choices": [
+          {
+            "count": 2,
+            "pool": [
+              "masteries:*"
+            ]
+          }
+        ]
+      },
+      {
+        "level": 19,
+        "title": null,
+        "type": "improvement",
+        "points": 2,
+        "cap": 2,
+        "abilities": [
+          "might",
+          "agility",
+          "fortitude",
+          "intellect",
+          "wits",
+          "presence"
+        ],
+        "fixed": {},
+        "feat": true
+      }
+    ],
+    "levels": 1,
+    "hitDie": 10,
+    "original": false,
+    "spellcasting": {
+      "progression": "half",
+      "ability": "presence"
+    }
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbpdnPaladin000",
+        "type": "class",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}
