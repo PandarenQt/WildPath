@@ -58,6 +58,16 @@ Live (GM browser, after relaunching the world, which is how Foundry learns new I
 added at level 3 gave level 3 and Hit Dice d10 3/3; level 4 raised both; adding the Champion listed it as its
 subclass; deleting the Fighter cleared the records.
 
+**Prepared spells (G8, 2026-10-15).** A spell of 1st level or higher (one that spends a slot) is cast only while
+prepared (`system.prepared`, true by default; `preparesSpell`, `isUnprepared` in `helpers/spellcasting.mts`). A spell a
+feature or item gave (a subclass's, a wand's) is always prepared, and cantrips need none. The sheet has a Prepared
+toggle on each, and counts them against the classes' limit (each class's 2024 table at its level, from dnd5e's
+`max-prepared` scale, `spellcasting.prepared`); more than the limit warns, in red, and does not block. An unprepared
+spell is not on the action bar (Baldur's Gate 3), and is refused before its slot or area is asked, and by the
+authority. Live (Player1's browser): a Wizard 1 with five 1st-level spells showed "Prepared 5 / 4" in red;
+unpreparing Sleep made it 4 / 4, took Sleep off the bar and disabled its Use; preparing it again warned. Unprepared,
+Sleep was refused at once, and Magic Missile sent straight to the authority was refused with no slot spent.
+
 **Ability scores at creation (G8, 2026-10-15).** A character below level 2 without a background has an "Ability
 Scores" button (`applications/ability-scores.mts`): the standard array (15, 14, 13, 12, 10, 8, each placed once), point
 buy (27 points, each score 8 to 15, costs from 2024), or six rolls of 4d6 keeping the highest three, rolled in chat

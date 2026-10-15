@@ -3,6 +3,7 @@ import {reactionPolicyOf} from "./automation-events.mjs";
 import {activeEffectViews} from "./effect-views.mjs";
 import {discoverActionConfigurationChoices} from "./action-configuration.mjs";
 import {actionDefinitionFromAction} from "./action-definitions.mjs";
+import {isUnprepared} from "./spellcasting.mjs";
 
 /**
  * What the in-play action bar shows for one creature (M6): its action-economy counters and pools, its Actions
@@ -160,8 +161,9 @@ export function actionBarContext({actor, conditions=[], odds={}, common=[]}: {ac
       // Legendary Resistance has a setting like a reaction's: the creature's own, as a common reaction's is.
       ...(resource.id === "legendary-resistance" ? {policy: legendaryPolicy(actor)} : {})})),
     groups: [...[...bar.groups.map(group => group.id), ...EXTRA_GROUPS].flatMap(groupId => {
+      // An unprepared spell is not on the bar (Baldur's Gate 3); the sheet prepares it.
       const actions = bar.groups.flatMap(group => group.actions.flatMap(ref => byRef.get(ref) ?? [])
-        .filter(action => placeOf(group.id, action) === groupId));
+        .filter(action => (placeOf(group.id, action) === groupId) && !isUnprepared(items.get(action.id ?? "") as never)));
       const label = GROUP_LABELS[groupId] ?? bar.groups.find(group => group.id === groupId)?.label ?? groupId;
       return actions.length ? [{id: groupId, label, actions: actions.map(view(groupId))}] : [];
     }),

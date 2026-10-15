@@ -359,7 +359,8 @@
     },
     "spellcasting": {
       "progression": "none",
-      "ability": ""
+      "ability": "",
+      "prepared": []
     }
   },
   "flags": {

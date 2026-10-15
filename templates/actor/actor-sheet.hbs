@@ -164,6 +164,11 @@
       <div class="section-heading">
         <h3>{{localize "WILDPATH.SHEET.Section.Actions"}}</h3>
         <span>{{summary.actionCount}}</span>
+        {{#if preparedSpells}}
+          <span class="prepared-count{{#if preparedSpells.over}} over-limit{{/if}}" title="{{localize "WILDPATH.SHEET.PreparedHint"}}">
+            {{#if preparedSpells.limit}}{{localize "WILDPATH.SHEET.PreparedCount" count=preparedSpells.count limit=preparedSpells.limit}}{{else}}{{localize "WILDPATH.SHEET.PreparedOnly" count=preparedSpells.count}}{{/if}}
+          </span>
+        {{/if}}
         <button type="button" class="row-command" data-action="createItem" data-type="action">{{localize "WILDPATH.SHEET.Create"}}</button>
       </div>
 
@@ -175,7 +180,12 @@
               <a class="row-name" data-action="openItem">{{item.name}}</a>
               <span class="row-detail">{{item.availability.reason}}</span>
             </div>
-            <button type="button" class="row-command" data-action="useItem" {{#unless item.availability.enabled}}disabled{{/unless}}>{{localize "WILDPATH.SHEET.Use"}}</button>
+            {{#if item.prepares}}
+              <button type="button" class="row-command" data-action="togglePrepared" aria-pressed="{{#if item.prepared}}true{{else}}false{{/if}}">
+                {{#if item.prepared}}{{localize "WILDPATH.SHEET.Prepared"}}{{else}}{{localize "WILDPATH.SHEET.NotPrepared"}}{{/if}}
+              </button>
+            {{/if}}
+            <button type="button" class="row-command" data-action="useItem" {{#unless item.availability.enabled}}disabled{{/unless}}{{#if item.prepares}}{{#unless item.prepared}} disabled{{/unless}}{{/if}}>{{localize "WILDPATH.SHEET.Use"}}</button>
             <button type="button" class="row-command" data-action="deleteItem" title="{{localize "WILDPATH.SHEET.Delete"}}">✕</button>
           </li>
         {{else}}

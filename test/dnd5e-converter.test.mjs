@@ -641,3 +641,12 @@ test("a weapon's kind: its base (WildPath's name), simple or martial, and its ma
   assert.equal(weaponOf({type: "weapon", system: {type: {value: "natural"}}}), null, "a claw is no weapon to train with");
   assert.equal(weaponOf({type: "spell", system: {}}), null);
 });
+
+test("a class's prepared spells by level, carried forward between its scale's entries", async () => {
+  const {preparedTable} = await import("../scripts/content/dnd5e-to-wildpath.mjs");
+  const table = preparedTable({advancement: {a: {type: "ScaleValue", configuration: {identifier: "max-prepared",
+    scale: {1: {value: 2}, 2: {value: 3}, 5: {value: 6}, 19: {value: 15}}}}}});
+  assert.deepEqual(table.slice(0, 6), [2, 3, 3, 3, 6, 6]);
+  assert.deepEqual([table.length, table[18], table[19]], [20, 15, 15]);
+  assert.deepEqual(preparedTable({advancement: {}}), []);
+});

@@ -7,7 +7,7 @@ import {
 } from "../../helpers/action-definitions.mjs";
 import {computeActionCostMap, computeActivationCost} from "../../helpers/actions.mjs";
 
-const {SchemaField, NumberField, ArrayField, StringField} = foundry.data.fields;
+const {SchemaField, NumberField, ArrayField, StringField, BooleanField} = foundry.data.fields;
 
 /**
  * A spendable Action: the primary vehicle for BG3-style action-economy costs.
@@ -25,6 +25,8 @@ export default class WildPathAction extends WildPathBaseItem {
     return {
       ...super.defineSchema(),
       definition: actionDefinitionField(),
+      // A spell of 1st level or higher is cast only while prepared (2024, G8; helpers/spellcasting.mts `preparesSpell`).
+      prepared: new BooleanField({required: true, initial: true}),
       cost: new SchemaField({
         ...costs,
         /** Additional, freeform resource costs (e.g. a custom "ki" pool). */

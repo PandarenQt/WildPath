@@ -216,7 +216,8 @@ Flyby on 6 and Regeneration on 4. The book packages convert the same way.
 dnd5e classes, subclasses, species (races) and backgrounds become WildPath class, subclass, species and background
 Items (`convertProgression`), in **SRD 5.2: Classes and Origins** (`srd-classes`: 12 classes, 12 subclasses, 14
 species, 4 backgrounds) and each book package's own `classes` pack.
-- **Fields.** A class's identifier, Hit Die, primary abilities (for the multiclassing warning) and spellcasting (an
+- **Fields.** A class's identifier, Hit Die, primary abilities (for the multiclassing warning), prepared spells by
+  level (its `max-prepared` scale) and spellcasting (an
   Artificer rounds up like a half caster; third casters and pact magic are not converted); a subclass's class; a
   species' size.
 - **Feats** keep their dnd5e category in `flags.wildpath.source.feat` (`origin`, `general`, `fightingStyle`,

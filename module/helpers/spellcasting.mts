@@ -80,3 +80,28 @@ export function deriveClassData(classes: readonly ClassRecord[]) {
     hitDice
   };
 }
+
+interface PreparingItem {
+  type?: string; flags?: {wildpath?: {grantedBy?: string | null}};
+  system?: {prepared?: boolean; definition?: {tags?: string[]; configuration?: Array<{id?: string}>}};
+}
+
+/**
+ * Whether a creature prepares this Action (2024): a spell of 1st level or higher (one that spends a spell slot). A
+ * spell a feature or item gave it (a subclass's, a wand's) is always prepared.
+ */
+export function preparesSpell(item: PreparingItem | null | undefined) {
+  const definition = item?.system?.definition;
+  return (item?.type === "action") && !item.flags?.wildpath?.grantedBy && !!definition?.tags?.includes("spell")
+    && !!definition.configuration?.some(choice => choice?.id === "spell-slot");
+}
+
+/** A spell its creature has not prepared, so it can't cast it. */
+export const isUnprepared = (item: PreparingItem | null | undefined) => preparesSpell(item) && (item?.system?.prepared === false);
+
+/** How many spells a creature's classes let it prepare: each class's table at its level, summed; null with none. */
+export function preparedSpellLimit(classes: ReadonlyArray<{system?: {levels?: number; spellcasting?: {prepared?: number[]}}}>) {
+  const limits = classes.map(entry => entry.system?.spellcasting?.prepared?.[(Number(entry.system?.levels) || 1) - 1])
+    .filter((value): value is number => Number.isFinite(value));
+  return limits.length ? limits.reduce((sum, value) => sum + value, 0) : null;
+}
