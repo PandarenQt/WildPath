@@ -140,9 +140,7 @@
         "castBy": "Staff of the Magi"
       },
       "conversion": {
-        "notes": [
-          "area: a cylinder's height is not modeled"
-        ]
+        "notes": []
       }
     }
   }

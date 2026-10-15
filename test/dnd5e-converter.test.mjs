@@ -73,6 +73,10 @@ test("an area save spell: a sphere, the spell save DC, half on a success, and a 
   valid(item);
   const definition = item.system.definition;
   assert.deepEqual(definition.area, {shape: "radial", size: {value: 20, unit: "ft"}});
+  const template = type => convertItem({...burst, system: {...burst.system, target: {...burst.system.target,
+    template: {type, size: "10", height: "40", units: "ft"}}}}).items[0].system.definition.area;
+  assert.deepEqual(template("cylinder"), {shape: "radial", size: {value: 10, unit: "ft"}, height: {value: 40, unit: "ft"}}, "a Cylinder's height");
+  assert.deepEqual(template("circle").height, {value: 0, unit: "ft"}, "a circle lies on the ground");
   assert.equal(definition.save.ability, "agility");
   assert.deepEqual(definition.damage[0].saveOutcomePolicy, {success: "half", failure: "full"});
   assert.deepEqual(definition.configuration[0].cost.anyOf.map(branch => branch[0].capability), [3, 4, 5, 6, 7, 8, 9].map(level => `spell-slot.${level}`));

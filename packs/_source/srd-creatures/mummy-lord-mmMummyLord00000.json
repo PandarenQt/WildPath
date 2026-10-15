@@ -948,6 +948,10 @@
             "size": {
               "value": 5,
               "unit": "ft"
+            },
+            "height": {
+              "value": 0,
+              "unit": "ft"
             }
           },
           "effects": [

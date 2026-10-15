@@ -229,6 +229,11 @@ export function getFootprintVertices(footprint) {
 
 /* -------------------------------------------- */
 
+/**
+ * Distance in fields between two footprints. When both have their vertical extent (`levels: {bottom, top}`, the
+ * grid-sized cubes they fill above the ground), it is 3D: the larger of the fields across and the cubes between
+ * (2024, a flying creature 10 feet up beside you is 10 feet away).
+ */
 export function footprintDistance(sourceFootprint, targetFootprint) {
   const topology = normalizeTopology(sourceFootprint.topology ?? targetFootprint.topology);
   let distance = Infinity;
@@ -237,7 +242,15 @@ export function footprintDistance(sourceFootprint, targetFootprint) {
       distance = Math.min(distance, fieldDistance(source, target, topology));
     }
   }
-  return distance;
+  const [a, b] = [sourceFootprint.levels, targetFootprint.levels];
+  return (a && b) ? Math.max(distance, b.bottom - a.top, a.bottom - b.top) : distance;
+}
+
+/** The grid-sized cubes a creature fills, from its elevation and height (feet): `{bottom, top}`, inclusive. */
+export function footprintLevels(elevation, height, gridDistance) {
+  const size = Number(gridDistance) || 5;
+  const bottom = Math.floor((Number(elevation) || 0) / size);
+  return {bottom, top: Math.max(bottom, Math.ceil(((Number(elevation) || 0) + (Number(height) || size)) / size) - 1)};
 }
 
 export function fieldDistance(a, b, topology) {

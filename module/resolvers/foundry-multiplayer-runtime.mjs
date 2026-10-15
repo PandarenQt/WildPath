@@ -960,7 +960,7 @@ function foundryActionArea({action, actor, intent, sourceToken}) {
   if ( !sourceToken?.parent ) return {ok: false, reason: "An area Action needs its caster's Token on a Scene."};
   const placed = foundryAreaFootprint({definition, sourceToken, points: intent.area?.points ?? []});
   if ( !placed.ok ) return placed;
-  const targetRefs = foundryAreaTargetTokens({sourceToken, footprint: placed.footprint})
+  const targetRefs = foundryAreaTargetTokens({sourceToken, footprint: placed.footprint, definition})
     .map(token => ({actorRef: token.actor?.uuid ?? null, tokenId: token.id, sceneId: token.parent?.id ?? null}))
     .filter(ref => ref.actorRef);
   // A lasting area becomes a Region once the Action completes (see createFoundryPersistentAreas).

@@ -116,7 +116,8 @@ Each is small, and each changes every turn at the table.
    BG3's best tactical moments are shoves off ledges and into fire.
 2. **Elevation in combat:** Token elevation for reach, range and areas, plus flying and falling. Lasting areas
    already have elevation bounds.
-3. **Weapon Mastery** (2024) is the tabletop form of BG3's weapon actions; it is in G7.
+3. **Weapon Mastery** (2024) is the tabletop form of BG3's weapon actions; it waits for G8, which decides how a
+   character chooses its masteries (maintainer, 2026-10-15).
 4. **Areas that react to damage.** A lasting area changes when it takes a damage type:
    - oil explodes into fire;
    - cold freezes water into ice;
@@ -213,7 +214,7 @@ Forced movement and elevation join G6, which becomes "space": areas, elevation a
   - Uses and charges regained in part on a rest: "1d6 + 1 at dawn", "one on a Short Rest" (174 SRD Items).
   - Attunement: an item that needs it gives nothing until attuned, three at most (125 SRD Items).
   - A magic item's Actions need it equipped and, if it needs attunement, attuned.
-  - Not yet: Weapon Mastery.
+  - Weapon Mastery moves to G8, with how a character chooses its masteries (maintainer, 2026-10-15).
 - **G6, space, first part (2026-10-15).** Done:
   - Cubes and squares are blocks of fields, cast at a point or against the caster's edge; circles are radial.
     "Area shape: cube" fell from 118 documents to 10 (sizes from formulas).
@@ -224,7 +225,11 @@ Forced movement and elevation join G6, which becomes "space": areas, elevation a
     movement that stops at walls and creatures and provokes no Opportunity Attack. 15 SRD Actions convert with it.
     The common Shove can now push as well as knock Prone.
   - Moving a Token with V14's Displace or Blink action is a teleport, no longer refused as a walk.
-  - Not yet: cylinder heights (63), elevation in combat, and falling.
+  - Elevation in combat (2026-10-15): distance is 3D, so range, reach, "within 5 feet" and auras count height. An
+    area reaches by its shape (a Sphere both ways, a Cylinder its height up); creatures at another elevation are no
+    longer left out of every area. Cylinders and walls convert with their height: the cylinder census row (83) is
+    gone.
+  - Not yet: falling.
 - **G5, common traits, first part (2026-10-14).** Done:
   - Magic Resistance, Pack Tactics, Regeneration, Legendary Resistance and Flyby, matched by dnd5e identifier. By the
     trait survey these are 142, 52, 21, 82 and 25 stat-block features across the SRD and the four books.
@@ -360,7 +365,6 @@ Each track is ranked by how much content it unblocks across all books, and by ho
    falling (see B2).
 7. **G7, weapons, armor and magic items:**
    - versatile damage and +N weapons;
-   - 2024 Weapon Mastery;
    - armor and AC formulas (Unarmored Defense, natural armor, Mage Armor);
    - attunement and charges, spells cast from items, and potions and scrolls.
 8. **G8, character progression** (needs maintainer decisions):
@@ -368,7 +372,8 @@ Each track is ranked by how much content it unblocks across all books, and by ho
    - skills and tools with proficiency and expertise;
    - Hit Dice and short-rest healing;
    - Heroic Inspiration;
-   - spell preparation.
+   - spell preparation;
+   - 2024 Weapon Mastery, with how a character chooses its masteries (moved here, maintainer, 2026-10-15).
 9. **G9, setting and out-of-combat systems** (design for them, build later): vehicles, Bastions, mythic actions,
    dark gifts, mass combat, roll-table decks, hazards, poisons and diseases, crafting and travel.
 

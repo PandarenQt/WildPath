@@ -38,7 +38,6 @@
         "notes": [
           "not automated (utility): using it spends its cost; its description says the rest",
           "area: 25 + 5 * @item.level-ft cube is not supported; the user picks the targets",
-          "area: a cylinder's height is not modeled",
           "activation: 1 minute is not an action-economy cost",
           "consumption: itemUses -6 not converted",
           "concentration: nothing it sustains was converted",

@@ -226,6 +226,8 @@ equipped. Equipping it (`system.active`) turns its rules on.
   (Unarmored Defense, the Defense fighting style).
 - **AC calculations** in effects become `ArmorClass` rules: Mage Armor, Draconic Resilience, and the Barbarian's,
   Monk's and College of Dance's Unarmored Defense.
+- **Area heights (G6).** A Cylinder keeps its height (`area.height`), as a wall does; a circle lies on the ground
+  (height 0). See areas.md, "Elevation".
 - **Spells cast from items** are the spell's Action, named after the item ("Wand of Fireballs: Fireball"). They
   spend the item's charges, and use its own save DC when it has one (DC 15), else the user's spell save DC.
   162 SRD Actions.

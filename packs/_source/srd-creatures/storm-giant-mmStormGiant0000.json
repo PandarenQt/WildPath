@@ -369,6 +369,10 @@
             "size": {
               "value": 10,
               "unit": "ft"
+            },
+            "height": {
+              "value": 40,
+              "unit": "ft"
             }
           },
           "save": {
@@ -425,9 +429,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "area: a cylinder's height is not modeled"
-            ]
+            "notes": []
           }
         }
       }
@@ -680,7 +682,6 @@
       },
       "conversion": {
         "notes": [
-          "Lightning Storm: area: a cylinder's height is not modeled",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Detect Magic\" (its own changes) not converted",
           "Spellcasting: concentration: nothing it sustains was converted",

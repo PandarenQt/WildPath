@@ -644,6 +644,10 @@
             "size": {
               "value": 10,
               "unit": "ft"
+            },
+            "height": {
+              "value": 40,
+              "unit": "ft"
             }
           },
           "save": {
@@ -715,8 +719,7 @@
           },
           "conversion": {
             "notes": [
-              "cast: Flame Strike at level 6 is cast at its own level",
-              "area: a cylinder's height is not modeled"
+              "cast: Flame Strike at level 6 is cast at its own level"
             ]
           }
         }
@@ -977,7 +980,6 @@
         "notes": [
           "Spellcasting: cast: Cure Wounds at level 6 is cast at its own level",
           "Spellcasting: cast: Flame Strike at level 6 is cast at its own level",
-          "Spellcasting: area: a cylinder's height is not modeled",
           "Spellcasting: cast: Geas at level 6 is cast at its own level",
           "Spellcasting: activation: 1 minute is not an action-economy cost",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",

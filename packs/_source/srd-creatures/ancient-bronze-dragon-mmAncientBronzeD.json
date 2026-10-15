@@ -836,6 +836,10 @@
             "size": {
               "value": 25,
               "unit": "ft"
+            },
+            "height": {
+              "value": -25,
+              "unit": "ft"
             }
           },
           "save": {
@@ -893,7 +897,6 @@
           },
           "conversion": {
             "notes": [
-              "area: a cylinder's height is not modeled",
               "concentration: nothing it sustains was converted",
               "not automated (utility): using it spends its cost; its description says the rest"
             ]
@@ -1343,7 +1346,6 @@
           "Spellcasting: effect: \"Bestial Communication\" change system.traits.languages.custom (add) not converted",
           "Spellcasting: effect: \"Bestial Communication\" (its own changes) not converted",
           "Spellcasting: not automated (save): using it spends its cost; its description says the rest",
-          "Spellcasting: area: a cylinder's height is not modeled",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: \"Create Sensor\" is passive or triggered: not automated",
           "Spellcasting: effect: \"Water Breathing\" (its own changes) not converted",

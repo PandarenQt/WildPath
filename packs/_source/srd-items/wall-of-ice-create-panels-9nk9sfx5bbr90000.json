@@ -36,6 +36,10 @@
         "size": {
           "value": 100,
           "unit": "ft"
+        },
+        "height": {
+          "value": 10,
+          "unit": "ft"
         }
       },
       "save": {

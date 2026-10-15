@@ -850,7 +850,6 @@
           },
           "conversion": {
             "notes": [
-              "area: a cylinder's height is not modeled",
               "concentration: nothing it sustains was converted"
             ]
           }
@@ -877,7 +876,6 @@
           "Spellcasting: effect: \"Bestial Communication\" (its own changes) not converted",
           "Spellcasting: not automated (save): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Carrying Message\" (its own changes) not converted",
-          "Spellcasting: area: a cylinder's height is not modeled",
           "Spellcasting: concentration: nothing it sustains was converted"
         ]
       }

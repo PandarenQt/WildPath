@@ -40,6 +40,10 @@
         "size": {
           "value": 60,
           "unit": "ft"
+        },
+        "height": {
+          "value": 20,
+          "unit": "ft"
         }
       },
       "save": {
@@ -128,7 +132,6 @@
       "conversion": {
         "notes": [
           "concentration: nothing it sustains was converted",
-          "area: a cylinder's height is not modeled",
           "\"damage\" is passive or triggered: not automated"
         ]
       }

@@ -65,7 +65,7 @@ export function placeFoundryArea({definition, sourceToken}: {definition: Definit
       });
       // Every creature the area would hit, as the authority will find them, allies included (Baldur's Gate 3).
       const source = (sourceToken as unknown as {disposition?: number}).disposition ?? 0;
-      const creatures = (foundryAreaTargetTokens({sourceToken, footprint: result.footprint}) as unknown as CoveredToken[])
+      const creatures = (foundryAreaTargetTokens({sourceToken, footprint: result.footprint, definition}) as unknown as CoveredToken[])
         .filter(token => game.user.isGM || !token.hidden)
         .flatMap(token => token.getOccupiedGridSpaceOffsets().map(offset => ({...canvas.grid.getTopLeftPoint(offset),
           color: (token.disposition ?? 0) === source ? ALLY : OTHER})));

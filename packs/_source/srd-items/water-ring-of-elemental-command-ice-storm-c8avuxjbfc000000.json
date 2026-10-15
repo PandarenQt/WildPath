@@ -126,9 +126,7 @@
         "castBy": "Water Ring of Elemental Command"
       },
       "conversion": {
-        "notes": [
-          "area: a cylinder's height is not modeled"
-        ]
+        "notes": []
       }
     }
   }
