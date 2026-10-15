@@ -56,8 +56,14 @@
               <label class="ability">
                 <span>{{localize ability.label}}</span>
                 <input type="number" name="system.abilities.{{ability.key}}.value" value="{{ability.value}}">
-                <input type="checkbox" name="system.abilities.{{ability.key}}.saveProficient" {{checked ability.saveProficient}}
-                       title="{{localize "WILDPATH.SHEET.SaveProficient"}}" aria-label="{{localize "WILDPATH.SHEET.SaveProficient"}}">
+                <span class="ability-rolls">
+                  <input type="checkbox" name="system.abilities.{{ability.key}}.saveProficient" {{checked ability.saveProficient}}
+                         title="{{localize "WILDPATH.SHEET.SaveProficient"}}" aria-label="{{localize "WILDPATH.SHEET.SaveProficient"}}">
+                  <button type="button" class="icon-roll" data-action="rollTest" data-ability="{{ability.key}}"
+                          title="{{localize "WILDPATH.SHEET.RollCheck"}}" aria-label="{{localize "WILDPATH.SHEET.RollCheck"}}"><i class="fa-solid fa-dice-d20"></i></button>
+                  <button type="button" class="icon-roll" data-action="rollTest" data-save="{{ability.key}}"
+                          title="{{localize "WILDPATH.SHEET.RollSave"}}" aria-label="{{localize "WILDPATH.SHEET.RollSave"}}"><i class="fa-solid fa-shield-halved"></i></button>
+                </span>
               </label>
             {{/each}}
           </div>
@@ -109,7 +115,8 @@
                 <select name="system.skills.{{skill.key}}.proficiency" aria-label="{{localize skill.label}}: {{localize "WILDPATH.SHEET.SkillProficiency.Label"}}">
                   {{selectOptions @root.proficiencyLevels selected=skill.proficiency localize=true}}
                 </select>
-                <span class="skill-name">{{localize skill.label}} <span class="skill-ability">({{localize skill.abilityLabel}})</span></span>
+                <button type="button" class="skill-name" data-action="rollTest" data-skill="{{skill.key}}"
+                        title="{{localize "WILDPATH.SHEET.RollSkill"}}">{{localize skill.label}} <span class="skill-ability">({{localize skill.abilityLabel}})</span></button>
                 <span class="skill-modifier">{{skill.modifierText}}</span>
               </li>
             {{/each}}
