@@ -83,3 +83,22 @@ export function multiclassShortfalls(classes, scores) {
         return abilities.length > 0 && !(primaryAbility?.all === false ? abilities.some(met) : abilities.every(met));
     }).map(entry => entry.name);
 }
+/** 2024 ability score generation: the standard array, and point buy's costs (27 points, scores 8 to 15). */
+export const STANDARD_ARRAY = Object.freeze([15, 14, 13, 12, 10, 8]);
+export const POINT_BUY = Object.freeze({ budget: 27, costs: Object.freeze({ 8: 0, 9: 1, 10: 2, 11: 3, 12: 4, 13: 5, 14: 7, 15: 9 }) });
+/** The points `scores` cost to buy, or null when one is outside 8 to 15. */
+export function pointBuySpent(scores) {
+    let spent = 0;
+    for (const score of scores) {
+        const cost = POINT_BUY.costs[score];
+        if (cost === undefined)
+            return null;
+        spent += cost;
+    }
+    return spent;
+}
+/** Whether `scores` use each value of `pool` exactly once (a standard array, or rolled scores). */
+export function usesPool(scores, pool) {
+    const sorted = (list) => [...list].sort((a, b) => a - b).join(",");
+    return (scores.length === pool.length) && (sorted(scores) === sorted(pool));
+}

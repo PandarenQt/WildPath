@@ -1,6 +1,7 @@
 import {createActorSheetViewModel} from "../helpers/character-sheet-view-models.mjs";
 import {actorProficiencyBonus, resolveActorCheckStatistic, resolveActorDefense} from "../helpers/combat-statistics.mjs";
 import {levelUp} from "./level-up.mjs";
+import {chooseAbilityScores} from "./ability-scores.mjs";
 
 /** Item types whose drop opens the level-up dialog (G8): a class's first level, a species or background. */
 const LEVELLED = new Set(["class", "species", "background"]);
@@ -35,6 +36,7 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
       toggleEquipped: WildPathActorSheet.#onToggleEquipped,
       toggleAttuned: WildPathActorSheet.#onToggleAttuned,
       levelUp: WildPathActorSheet.#onLevelUp,
+      abilityScores: WildPathActorSheet.#onAbilityScores,
       deleteEffect: WildPathActorSheet.#onDeleteEffect
     }
   };
@@ -75,6 +77,9 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
     const total = classes.reduce((sum, item) => sum + (Number(item.system.levels) || 0), 0);
     context.levelUps = this.isEditable && (total < 20) ? classes.map(item => ({id: item.id,
       label: game.i18n.format("WILDPATH.LEVELUP.Button", {name: item.name})})) : [];
+    // Ability scores are generated at creation (2024: after the class, before the background's increases).
+    context.canChooseAbilityScores = this.isEditable && (this.actor.type === "character") && (total <= 1)
+      && !this.actor.items.some(item => item.type === "background");
     context.dyingModes = {auto: "WILDPATH.SHEET.DyingMode.auto", deathSaves: "WILDPATH.SHEET.DyingMode.deathSaves",
       dies: "WILDPATH.SHEET.DyingMode.dies"};
     return context;
@@ -184,6 +189,11 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
       rejectClose: false
     });
     return answer ? Object.fromEntries(Object.entries(answer).map(([faces, count]) => [faces, Number(count) || 0])) : null;
+  }
+
+  /** @this {WildPathActorSheet} Generate the six ability scores (standard array, point buy or 4d6). */
+  static async #onAbilityScores() {
+    await chooseAbilityScores(this.actor);
   }
 
   /** @this {WildPathActorSheet} The next level of a class. */
