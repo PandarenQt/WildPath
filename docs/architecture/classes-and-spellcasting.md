@@ -36,6 +36,14 @@ is made of, beside its class records:
 - **Hit Dice.** A class record's `hitDie` (its faces) gives one Hit Die per level, held in a pool per size
   (`hit-die.d10`), created full and recovered on a long rest, like slot pools. A multiclass creature holds several.
 
+**Class, subclass, species and background Items (G8, 2026-10-15).** Four new Item types (`progression.mjs`), each with
+an `identifier` and `advancement`, its by-level entries for the level-up dialog. A class also has its `levels`,
+`hitDie`, `original` and `spellcasting`; a subclass its `classIdentifier`; a species its `size`. A creature's class
+records are rebuilt from its class and subclass Items whenever one is added, changed or removed
+(`syncClassRecords`, `classRecordsFromItems`), so levels, slots and Hit Dice follow them. A creature with no such
+Items keeps the records it was given. Their sheet shows their fields and what each level gives. Not yet verified live:
+Foundry learns new Item types when the world is launched again.
+
 Live (two browsers): a Fighter 3 had "Hit Dice (d10) 3/3". Player1 set its Stealth to Expertise on the sheet (+2 to
 +6), typed its armor training, and ticked Heroic Inspiration.
 

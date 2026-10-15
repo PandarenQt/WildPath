@@ -214,6 +214,14 @@
       "Use": "Succeed instead",
       "Decline": "Fail the save"
     },
+    "SIZES": {
+      "tiny": "Tiny",
+      "small": "Small",
+      "medium": "Medium",
+      "large": "Large",
+      "huge": "Huge",
+      "gargantuan": "Gargantuan"
+    },
     "SKILLS": {
       "Acrobatics": "Acrobatics",
       "AnimalHandling": "Animal Handling",
@@ -306,6 +314,19 @@
       }
     },
     "ITEMSHEET": {
+      "Identifier": "Identifier",
+      "Levels": "Levels",
+      "HitDie": "Hit Die",
+      "Spellcasting": "Spellcasting",
+      "Progression": {
+        "none": "None",
+        "full": "Full caster",
+        "half": "Half caster"
+      },
+      "OriginalClass": "Original class (level 1)",
+      "OfClass": "Class",
+      "Size": "Size",
+      "Level": "Level {level}",
       "Definition": "Action Definition",
       "RuleElements": "Rule Elements",
       "NotSaved": "Not saved: fix these first.",
@@ -740,7 +761,11 @@
     "Item": {
       "feature": "Feature",
       "action": "Action",
-      "gear": "Gear"
+      "gear": "Gear",
+      "class": "Class",
+      "subclass": "Subclass",
+      "species": "Species",
+      "background": "Background"
     },
     "ActiveEffect": {
       "base": "Effect",

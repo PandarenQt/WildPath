@@ -350,6 +350,18 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
     context.system = this.item.system;
     context.isAction = this.item.type === "action";
     context.isGear = this.item.type === "gear";
+    // A class, subclass, species or background (G8): its own fields, and what each level gives.
+    context.progression = ["class", "subclass", "species", "background"].includes(this.item.type) ? {
+      isClass: this.item.type === "class", isSubclass: this.item.type === "subclass", isSpecies: this.item.type === "species",
+      hitDice: {6: "d6", 8: "d8", 10: "d10", 12: "d12"},
+      progressions: {none: "WILDPATH.ITEMSHEET.Progression.none", full: "WILDPATH.ITEMSHEET.Progression.full",
+        half: "WILDPATH.ITEMSHEET.Progression.half"},
+      abilities: Object.fromEntries([["", ""], ...Object.entries(CONFIG.WILDPATH.ABILITIES).map(([key, ability]) => [key, ability.label])]),
+      sizes: Object.fromEntries(["tiny", "small", "medium", "large", "huge", "gargantuan"].map(size => [size, `WILDPATH.SIZES.${size}`])),
+      levels: Object.entries(Object.groupBy(this.item.system.advancement ?? [], entry => Number(entry.level) || 1))
+        .sort(([a], [b]) => Number(a) - Number(b))
+        .map(([level, entries]) => ({level, entries: entries.map(entry => entry.title ?? entry.type ?? "?")}))
+    } : null;
     context.actionCostResources = CONFIG.WILDPATH.ACTION_COST_RESOURCES.map(key => ({key,
       label: CONFIG.WILDPATH.RESOURCES[key]?.label ?? key}));
     context.modifiers = this.item.system.modifiers.map((modifier, index) => ({

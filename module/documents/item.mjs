@@ -5,6 +5,9 @@ import {areaClickCount} from "../adapters/foundry-v14-area-placement.mjs";
 import {promptActionConfiguration} from "../adapters/foundry-v14-prompt-adapter.mjs";
 import {foundryActorSystemSnapshot} from "../adapters/foundry-v14-actor-system-adapter.mjs";
 
+/** Item types whose changes rebuild their creature's class records (G8). */
+const CLASS_TYPES = new Set(["class", "subclass"]);
+
 /**
  * The Item document subclass for the WildPath system.
  */
@@ -19,6 +22,7 @@ export default class WildPathItem extends Item {
     if ( userId !== game.user.id ) return;
     void this.actor?.ensureGrantedPools?.();
     void this.#addGrantedActions();
+    if ( CLASS_TYPES.has(this.type) ) void this.actor?.syncClassRecords?.();
   }
 
   /** The Actions an item brought with it go with it. */
@@ -27,6 +31,7 @@ export default class WildPathItem extends Item {
     if ( (userId !== game.user.id) || !this.actor ) return;
     const granted = this.actor.items.filter(item => item.flags?.wildpath?.grantedBy === this.id).map(item => item.id);
     if ( granted.length ) void this.actor.deleteEmbeddedDocuments("Item", granted);
+    if ( CLASS_TYPES.has(this.type) ) void this.actor.syncClassRecords?.();
   }
 
   /**
@@ -45,6 +50,7 @@ export default class WildPathItem extends Item {
   _onUpdate(changed, options, userId) {
     super._onUpdate(changed, options, userId);
     if ( (userId === game.user.id) && ("system" in changed) ) void this.actor?.ensureGrantedPools?.();
+    if ( (userId === game.user.id) && CLASS_TYPES.has(this.type) ) void this.actor?.syncClassRecords?.();
   }
 
   /**
