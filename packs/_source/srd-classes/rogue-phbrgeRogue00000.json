@@ -360,6 +360,12 @@
     "levels": 1,
     "hitDie": 8,
     "original": false,
+    "primaryAbility": {
+      "abilities": [
+        "agility"
+      ],
+      "all": true
+    },
     "spellcasting": {
       "progression": "none",
       "ability": ""

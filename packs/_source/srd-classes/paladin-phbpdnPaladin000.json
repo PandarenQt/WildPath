@@ -307,6 +307,13 @@
     "levels": 1,
     "hitDie": 10,
     "original": false,
+    "primaryAbility": {
+      "abilities": [
+        "might",
+        "presence"
+      ],
+      "all": true
+    },
     "spellcasting": {
       "progression": "half",
       "ability": "presence"

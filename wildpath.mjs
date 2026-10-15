@@ -140,6 +140,16 @@ Hooks.once("init", () => {
     default: "digital"
   });
 
+  // Hit points on level up (G8): the Hit Die's average by default, or rolled.
+  game.settings.register("wildpath", "rollHitPoints", {
+    name: "WILDPATH.SETTINGS.RollHitPoints.Name",
+    hint: "WILDPATH.SETTINGS.RollHitPoints.Hint",
+    scope: "world",
+    config: true,
+    type: Boolean,
+    default: false
+  });
+
   // Baldur's Gate 3 rule (B3, off by default): +2 to attack rolls from 8 feet or more above the target, -2 from below.
   game.settings.register("wildpath", "highGround", {
     name: "WILDPATH.SETTINGS.HighGround.Name",

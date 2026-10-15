@@ -22,6 +22,11 @@ export class WildPathClass extends WildPathBaseItem {
       hitDie: new NumberField({required: true, integer: true, initial: 8, choices: [6, 8, 10, 12]}),
       // The class it started with (its level-1 class), whose proficiencies and spellcasting ability come first.
       original: new BooleanField({required: true, initial: false}),
+      // Its primary abilities: multiclassing into or out of it wants 13 in all of them (`all`) or in one (a warning).
+      primaryAbility: new SchemaField({
+        abilities: new ArrayField(new StringField({required: true, blank: false})),
+        all: new BooleanField({required: true, initial: true})
+      }),
       spellcasting: new SchemaField({
         progression: new StringField({required: true, initial: SPELLCASTING_PROGRESSIONS.NONE, choices: Object.values(SPELLCASTING_PROGRESSIONS)}),
         ability: new StringField({required: true, blank: true, initial: ""})
