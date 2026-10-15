@@ -230,6 +230,7 @@
     },
     "RULER": {
       "Left": "{distance} {units} left",
+      "Area": "Enters {name}",
       "Over": "Not enough movement",
       "Threat": "Opportunity Attack: {name}"
     },
