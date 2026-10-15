@@ -1,0 +1,43 @@
+{
+  "_id": "phbagSignalWhist",
+  "_key": "!items!phbagSignalWhist",
+  "name": "Signal Whistle",
+  "type": "action",
+  "img": "icons/tools/instruments/pipe-flute-brown.webp",
+  "system": {
+    "active": true,
+    "description": "<p>When blown as a Utilize action, a Signal Whistle produces a sound that can be heard up to 600 feet away.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-signal-whistle-whistle",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Signal Whistle"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagSignalWhist",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

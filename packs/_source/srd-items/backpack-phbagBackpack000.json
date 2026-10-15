@@ -1,0 +1,31 @@
+{
+  "_id": "phbagBackpack000",
+  "_key": "!items!phbagBackpack000",
+  "name": "Backpack",
+  "type": "gear",
+  "img": "icons/containers/bags/pack-simple-leather.webp",
+  "system": {
+    "active": false,
+    "description": "<p>A Backpack holds up to 30 pounds within 1 cubic foot. It can also serve as a saddlebag.</p>",
+    "quantity": 1,
+    "weight": 5,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagBackpack000",
+        "type": "container",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

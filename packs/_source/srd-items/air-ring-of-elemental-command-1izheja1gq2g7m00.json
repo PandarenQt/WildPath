@@ -1,0 +1,61 @@
+{
+  "_id": "1izheja1gq2g7m00",
+  "_key": "!items!1izheja1gq2g7m00",
+  "name": "Air Ring of Elemental Command",
+  "type": "gear",
+  "img": "icons/equipment/finger/ring-cabochon-silver-gold-red.webp",
+  "system": {
+    "active": false,
+    "description": "<p>Ring, Legendary (Requires Attunement)</p><p>Each <em>Ring of Elemental Command</em> is linked to one of the four Elemental Planes. The GM chooses or randomly determines the linked plane. For example, a <em>Ring of Elemental Command</em> (air) is linked to the Elemental Plane of Air.</p><p>Every <em>Ring of Elemental Command</em> has the following two properties:</p><p><strong>Elemental Bane.</strong> While wearing the ring, you have Advantage on attack rolls against Elementals and they have Disadvantage on attack rolls against you.</p><p><strong>Elemental Compulsion.</strong> While wearing the ring, you can take a Magic action to try to compel an Elemental you see within 60 feet of yourself. The Elemental makes a DC 18 Wisdom saving throw. On a failed save, the Elemental has the Charmed condition until the start your next turn, and you determine what it does with its move and action on its next turn.</p><p><em><strong>Elemental Focus.</strong></em> While wearing the ring, you benefit from additional properties corresponding to the ring's linked Elemental Plane:</p><p><strong>Air.</strong> You know Auran, you have Resistance to Lightning damage, and you have a Fly Speed equal to your Speed and can hover.</p><p><em><strong>Spellcasting.</strong></em> The ring has 5 charges and regains 1d4 + 1 expended charges daily at dawn. While wearing the ring, you can cast a spell from it. Choose the spell from the list of available spells based on the Elemental Plane the ring is linked to, as shown in the following table. The table indicates how many charges you must expend to cast the spell, which has a save DC of 18.</p><table><thead><tr><th style=\"min-width:50px\"><p>Plane</p></th><th><p>Spells (Charges)</p></th></tr></thead><tbody><tr><td><p>Air</p></td><td><p>Chain Lightning (3 charges), Feather Fall (0 charges), Gust of Wind (2 charges), Wind Wall (1 charge)</p></td></tr></tbody></table>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "air-focus-1",
+        "type": "GrantMovement",
+        "data": {
+          "mode": "fly",
+          "distance": {
+            "type": "context",
+            "path": "actorSystem.resources.movement.max"
+          }
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "air-focus-2",
+        "type": "GrantResistance",
+        "data": {
+          "damageTypes": [
+            "lightning"
+          ]
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgAirRingOfElem",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool",
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "not automated (save): using it spends its cost; its description says the rest",
+          "concentration: nothing it sustains was converted",
+          "effect: \"Air Focus\" change system.traits.languages.value (add) not converted",
+          "effect: \"Air Focus\" change system.attributes.movement.hover (override) not converted"
+        ]
+      }
+    }
+  }
+}

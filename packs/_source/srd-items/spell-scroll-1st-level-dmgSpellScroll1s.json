@@ -1,0 +1,31 @@
+{
+  "_id": "dmgSpellScroll1s",
+  "_key": "!items!dmgSpellScroll1s",
+  "name": "Spell Scroll, 1st Level",
+  "type": "gear",
+  "img": "icons/sundries/scrolls/scroll-bound-black-tan.webp",
+  "system": {
+    "active": false,
+    "description": "<p></p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgSpellScroll1s",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

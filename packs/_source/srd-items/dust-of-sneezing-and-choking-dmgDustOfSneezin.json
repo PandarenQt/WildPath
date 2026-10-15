@@ -1,0 +1,92 @@
+{
+  "_id": "dmgDustOfSneezin",
+  "_key": "!items!dmgDustOfSneezin",
+  "name": "Dust of Sneezing and Choking",
+  "type": "action",
+  "img": "icons/magic/water/bubbles-air-water-light.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Wondrous Item, Uncommon</em></p><p>Found in a small container, this powder resembles Dust of Disappearance, and <em>Identify</em> reveals it to be such. There is enough of it for one use.</p><p>As a Utilize action, you can throw the dust into the air, forcing yourself and every creature in a 30-foot Emanation originating from you to make a DC 15 Constitution saving throw. Constructs, Elementals, Oozes, Plants, and Undead succeed on the save automatically.</p><p>On a failed save, a creature begins sneezing uncontrollably; it has the Incapacitated condition and is suffocating. The creature repeats the save at the end of each of its turns, ending the effect on itself on a success. The effect also ends on any creature targeted by a <em>Lesser Restoration</em> spell.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-dust-of-sneezing-and-choking",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "dust-of-sneezing-and-choking",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "emanation",
+        "size": {
+          "value": 30,
+          "unit": "ft"
+        }
+      },
+      "save": {
+        "ability": "fortitude",
+        "dc": {
+          "value": 15
+        }
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "incapacitated",
+          "saveOutcomePolicy": "failure"
+        }
+      ],
+      "label": "Dust of Sneezing and Choking"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "dust-of-sneezing-and-choking-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "dust-of-sneezing-and-choking",
+          "label": "Dust of Sneezing and Choking",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgDustOfSneezin",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "effect: suffocation is not a WildPath condition yet"
+        ]
+      }
+    }
+  }
+}

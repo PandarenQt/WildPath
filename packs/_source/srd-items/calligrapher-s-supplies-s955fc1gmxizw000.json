@@ -1,0 +1,33 @@
+{
+  "_id": "s955fc1gmxizw000",
+  "_key": "!items!s955fc1gmxizw000",
+  "name": "Calligrapher's Supplies",
+  "type": "gear",
+  "img": "icons/tools/scribal/pen-steel-grey-brown.webp",
+  "system": {
+    "active": false,
+    "description": "<p class=\"phb-meta\"><strong>Ability:</strong> Dexterity</p><p class=\"phb-meta\"><strong>Utilize:</strong> Write text with impressive flourishes that guard against forgery (DC 15)</p><p class=\"phb-meta\"><strong>Craft:</strong> Ink, <em>Spell Scroll</em></p>",
+    "quantity": 1,
+    "weight": 5,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbtulCalligraph",
+        "type": "tool",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (check): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

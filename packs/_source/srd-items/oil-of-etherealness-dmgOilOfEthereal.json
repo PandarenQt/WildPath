@@ -1,0 +1,66 @@
+{
+  "_id": "dmgOilOfEthereal",
+  "_key": "!items!dmgOilOfEthereal",
+  "name": "Oil of Etherealness",
+  "type": "action",
+  "img": "icons/consumables/potions/bottle-conical-corked-labeled-shell-cyan.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Potion, Rare</em></p><p>One vial of this oil can cover one Medium or smaller creature, along with the equipment it's wearing and carrying (one additional vial is required for each size category above Medium). Applying the oil takes 10 minutes. The affected creature then gains the effect of the Etherealness spell for 1 hour.</p><p>Beads of this cloudy, gray oil form on the outside of its container and quickly evaporate.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-oil-of-etherealness-apply-oil",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "oil-of-etherealness",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Oil of Etherealness"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "oil-of-etherealness-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "oil-of-etherealness",
+          "label": "Oil of Etherealness",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgOilOfEthereal",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: ethereal is not a WildPath condition yet"
+        ]
+      }
+    }
+  }
+}

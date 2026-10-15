@@ -1,0 +1,67 @@
+{
+  "_id": "129igeximv1lj000",
+  "_key": "!items!129igeximv1lj000",
+  "name": "Elven Chain",
+  "type": "gear",
+  "img": "icons/equipment/back/mantle-collared-green.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Armor (Chain Mail or Chain Shirt), Rare</em></p><p>You gain a +1 bonus to Armor Class while you wear this armor. You are considered trained with this armor even if you lack training with Medium or Heavy armor.</p><p></p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "elven-chain",
+        "type": "ArmorClass",
+        "data": {
+          "label": "Elven Chain",
+          "armor": true,
+          "value": 17
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "elven-chain-strength",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "resources.movement.max",
+            "speed"
+          ],
+          "modifierType": "untyped",
+          "valueExpression": {
+            "type": "table",
+            "key": {
+              "type": "ability-score",
+              "ability": "might"
+            },
+            "rows": {
+              "0": -10,
+              "13": 0
+            }
+          }
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgElvenChain000",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (enchant): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

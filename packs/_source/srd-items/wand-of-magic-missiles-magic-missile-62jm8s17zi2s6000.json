@@ -1,0 +1,102 @@
+{
+  "_id": "62jm8s17zi2s6000",
+  "_key": "!items!62jm8s17zi2s6000",
+  "name": "Wand of Magic Missiles: Magic Missile",
+  "type": "action",
+  "img": "icons/magic/light/projectiles-pink-purple.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You create three glowing darts of magical force. Each dart strikes a creature of your choice that you can see within range. A dart deals 1d4 + 1 Force damage to its target. The darts all strike simultaneously, and you can direct them to hit one creature or several.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The spell creates one more dart for each spell slot level above 1.</p><p>Level 1 darts</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-wand-of-magic-missiles-magic-missile",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "wand-of-magic-missiles",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 120,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "multiple",
+        "required": true,
+        "count": 3,
+        "refinementPolicy": {
+          "minSelections": 1
+        }
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "dice",
+                "number": 1,
+                "faces": 4
+              },
+              {
+                "type": "constant",
+                "value": 1
+              }
+            ]
+          },
+          "damageType": "force",
+          "provenance": "spell-base"
+        }
+      ],
+      "label": "Wand of Magic Missiles: Magic Missile"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "wand-of-magic-missiles-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "wand-of-magic-missiles",
+          "label": "Wand of Magic Missiles",
+          "maximum": {
+            "type": "constant",
+            "value": 7
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplMagicMissi",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Wand of Magic Missiles"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool"
+        ]
+      }
+    }
+  }
+}

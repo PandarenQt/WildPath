@@ -1,0 +1,67 @@
+{
+  "_id": "1yrqcb06b034i000",
+  "_key": "!items!1yrqcb06b034i000",
+  "name": "Wand of Fear: Command",
+  "type": "action",
+  "img": "icons/magic/sonic/scream-wail-shout-teal.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You speak a one-word command to a creature you can see within range. The target must succeed on a Wisdom saving throw or follow the command on its next turn. Choose the command from these options:</p><p><strong>Approach.</strong> The target moves toward you by the shortest and most direct route, ending its turn if it moves within 5 feet of you.</p><p><strong>Drop.</strong> The target drops whatever it is holding and then ends its turn.</p><p><strong>Flee.</strong> The target spends its turn moving away from you by the fastest available means.</p><p><strong>Grovel.</strong> The target has the Prone condition and then ends its turn.</p><p><strong>Halt.</strong> On its turn, the target doesn't move and takes no action or Bonus Action.</p><p><strong>Using a Higher-Level Spell Slot.</strong> You can affect one additional creature for each spell slot level above 1.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-wand-of-fear-command",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "wand-of-fear",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Wand of Fear: Command"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "wand-of-fear-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "wand-of-fear",
+          "label": "Wand of Fear",
+          "maximum": {
+            "type": "constant",
+            "value": 7
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplCommand000",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Wand of Fear"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool",
+          "not automated (save): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

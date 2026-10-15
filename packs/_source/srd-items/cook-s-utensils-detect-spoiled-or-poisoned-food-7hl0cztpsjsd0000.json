@@ -1,0 +1,43 @@
+{
+  "_id": "7hl0cztpsjsd0000",
+  "_key": "!items!7hl0cztpsjsd0000",
+  "name": "Cook's Utensils (Detect Spoiled or Poisoned Food)",
+  "type": "action",
+  "img": "icons/tools/laboratory/bowl-mixing.webp",
+  "system": {
+    "active": true,
+    "description": "<p class=\"phb-meta\"><strong>Ability:</strong> Wisdom</p><p class=\"phb-meta\"><strong>Utilize:</strong> Improve food's flavor (DC 10), or detect spoiled or poisoned food (DC 15)</p><p class=\"phb-meta\"><strong>Craft:</strong> Rations</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-cook-s-utensils-detect-spoiled-or-poisoned-food",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Cook's Utensils (Detect Spoiled or Poisoned Food)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbtulCooksUtens",
+        "type": "tool",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (check): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

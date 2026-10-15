@@ -1,0 +1,31 @@
+{
+  "_id": "phbagMap00000000",
+  "_key": "!items!phbagMap00000000",
+  "name": "Map",
+  "type": "gear",
+  "img": "icons/tools/navigation/map-chart-tan.webp",
+  "system": {
+    "active": false,
+    "description": "<p>If you consult an accurate Map, you gain a +5 bonus to Wisdom (Survival) checks you make to find your way in the place represented on it.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagMap00000000",
+        "type": "loot",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "_id": "jLcAY4Oph8ZEniG2",
+  "_key": "!items!jLcAY4Oph8ZEniG2",
+  "name": "Robe",
+  "type": "gear",
+  "img": "icons/equipment/back/mantle-collared-black.webp",
+  "system": {
+    "active": false,
+    "description": "<p>A Robe has vocational or ceremonial significance. Some events and locations admit only people wearing a Robe bearing certain colors or symbols.</p>",
+    "quantity": 1,
+    "weight": 4,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "jLcAY4Oph8ZEniG2",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

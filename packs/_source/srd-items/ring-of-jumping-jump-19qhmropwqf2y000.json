@@ -1,0 +1,48 @@
+{
+  "_id": "19qhmropwqf2y000",
+  "_key": "!items!19qhmropwqf2y000",
+  "name": "Ring of Jumping: Jump",
+  "type": "action",
+  "img": "icons/creatures/mammals/deer-movement-leap-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You touch a willing creature. Once on each of its turns until the spell ends, that creature can jump up to 30 feet by spending 10 feet of movement.</p><p><strong>Using a Higher-Level Spell Slot.</strong>You can target one additional creature for each spell slot level above 1.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-ring-of-jumping-jump",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Ring of Jumping: Jump"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplJump000000",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Ring of Jumping"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Jump\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

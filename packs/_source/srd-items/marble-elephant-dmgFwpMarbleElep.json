@@ -1,0 +1,67 @@
+{
+  "_id": "dmgFwpMarbleElep",
+  "_key": "!items!dmgFwpMarbleElep",
+  "name": "Marble Elephant",
+  "type": "action",
+  "img": "icons/commodities/bones/horn-worn-white.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>See Figurine of Wondrous Power</em></p><p>This marble statuette resembles a trumpeting elephant. It can become an <strong>Elephant</strong> for up to 24 hours. Once it has been used, it can't be used again until 7 days have passed.</p><section class=\"secret\" id=\"secret-RHHx3aKcpKsHN2aK\"><p><strong>Foundry Note</strong></p><p>This item's limited uses represent the 7 days required before the figurine can be used again.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-marble-elephant",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "marble-elephant",
+            "amount": 7
+          }
+        ]
+      },
+      "label": "Marble Elephant"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "marble-elephant-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "marble-elephant",
+          "label": "Marble Elephant",
+          "maximum": {
+            "type": "constant",
+            "value": 7
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgFwpMarbleElep",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (summon): using it spends its cost; its description says the rest",
+          "uses: a partial recovery refills the whole pool",
+          "summon: its creature is not among the converted creatures"
+        ]
+      }
+    }
+  }
+}

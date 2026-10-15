@@ -1,0 +1,33 @@
+{
+  "_id": "dmgspWatersalt00",
+  "_key": "!items!dmgspWatersalt00",
+  "name": "Water, salt (Pint)",
+  "type": "gear",
+  "img": "icons/sundries/survival/waterskin-leather-brown.webp",
+  "system": {
+    "active": false,
+    "description": "",
+    "quantity": 1,
+    "weight": 1,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgspWatersalt00",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Consume\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

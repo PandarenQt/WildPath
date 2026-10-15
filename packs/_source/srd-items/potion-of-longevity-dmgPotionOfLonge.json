@@ -1,0 +1,61 @@
+{
+  "_id": "dmgPotionOfLonge",
+  "_key": "!items!dmgPotionOfLonge",
+  "name": "Potion of Longevity",
+  "type": "action",
+  "img": "icons/consumables/potions/potion-flask-corked-shiny-red.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Potion, Very Rare</em></p><p>When you drink this potion, your physical age is reduced by 1d6 + 6 years, to a minimum of 13 years. Each time you subsequently drink a Potion of Longevity, there is 10 percent cumulative chance that you instead age by 1d6 + 6 years.</p><p>Suspended in this amber liquid is a tiny heart that, against all reason, is still beating. These ingredients vanish when the potion is opened.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-potion-of-longevity-drink",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Potion of Longevity"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "potion-of-longevity-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "potion-of-longevity",
+          "label": "Potion of Longevity",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgPotionOfLonge",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

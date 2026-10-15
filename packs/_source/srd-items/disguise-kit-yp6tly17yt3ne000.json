@@ -1,0 +1,33 @@
+{
+  "_id": "yp6tly17yt3ne000",
+  "_key": "!items!yp6tly17yt3ne000",
+  "name": "Disguise Kit",
+  "type": "gear",
+  "img": "icons/equipment/back/cloak-hooded-blue.webp",
+  "system": {
+    "active": false,
+    "description": "<p class=\"phb-meta\"><strong>Ability:</strong> Charisma</p><p class=\"phb-meta\"><strong>Utilize:</strong> Apply makeup (DC 10)</p><p class=\"phb-meta\"><strong>Craft:</strong> Costume</p>",
+    "quantity": 1,
+    "weight": 3,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbtulDisguiseKi",
+        "type": "tool",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (check): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

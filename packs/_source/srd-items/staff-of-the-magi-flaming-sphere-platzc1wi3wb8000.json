@@ -1,0 +1,91 @@
+{
+  "_id": "platzc1wi3wb8000",
+  "_key": "!items!platzc1wi3wb8000",
+  "name": "Staff of the Magi: Flaming Sphere",
+  "type": "action",
+  "img": "icons/magic/fire/flame-burning-earth-yellow.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You create a 5-foot-diameter sphere of fire in an unoccupied space on the ground within range. It lasts for the duration. Any creature that ends its turn within 5 feet of the sphere makes a Dexterity saving throw saving throw, taking 2d6 Fire damage on a failed save or half as much damage on a successful one.</p><p>As a Bonus Action, you can move the sphere up to 30 feet, rolling it along the ground. If you move the sphere into a creature's space, that creature makes the save against the sphere, and the sphere stops moving for the turn.</p><p>When you move the sphere, you can direct it over barriers up to 5 feet tall and jump it across pits up to 10 feet wide. Flammable objects that aren't being worn or carried start burning if touched by the sphere, and it sheds Bright Light in a 20-foot radius and Dim Light for an additional 20 feet.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The damage increases by 1d6 for each spell slot level above 2.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-staff-of-the-magi-flaming-sphere",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "staff-of-the-magi",
+            "amount": 2
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "summon": {
+        "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbsplFlamingSph",
+        "count": 1,
+        "rounds": 10,
+        "concentration": true,
+        "bonuses": {
+          "saveDamage": {
+            "type": "dice",
+            "number": {
+              "type": "context",
+              "path": "castLevel"
+            },
+            "faces": 6
+          }
+        },
+        "spellLevel": 2
+      },
+      "label": "Staff of the Magi: Flaming Sphere"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "staff-of-the-magi-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "staff-of-the-magi",
+          "label": "Staff of the Magi",
+          "maximum": {
+            "type": "constant",
+            "value": 50
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplFlamingSph",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Staff of the Magi"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool",
+          "concentration: nothing it sustains was converted"
+        ]
+      }
+    }
+  }
+}

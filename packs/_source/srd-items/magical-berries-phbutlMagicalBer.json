@@ -1,0 +1,79 @@
+{
+  "_id": "phbutlMagicalBer",
+  "_key": "!items!phbutlMagicalBer",
+  "name": "Magical Berries",
+  "type": "action",
+  "img": "icons/consumables/fruit/lingonberry-cluster-red.webp",
+  "system": {
+    "active": true,
+    "description": "<p></p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-magical-berries",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          },
+          {
+            "capability": "magical-berries",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "healing": [
+        {
+          "id": "healing-1",
+          "expression": {
+            "type": "constant",
+            "value": 1
+          },
+          "healingType": "healing"
+        }
+      ],
+      "label": "Magical Berries"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "magical-berries-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "magical-berries",
+          "label": "Magical Berries",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "spells24",
+        "id": "phbutlMagicalBer",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

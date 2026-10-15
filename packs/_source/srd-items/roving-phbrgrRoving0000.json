@@ -7,7 +7,44 @@
   "system": {
     "active": true,
     "description": "<p>Your Speed increases by 10 feet while you aren't wearing Heavy armor. You also have a Climb Speed and a Swim Speed equal to your Speed.</p>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "roving-1",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "resources.movement.max"
+          ],
+          "modifierType": "untyped",
+          "value": 10
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "roving-2",
+        "type": "GrantMovement",
+        "data": {
+          "mode": "climb",
+          "distance": {
+            "type": "context",
+            "path": "actorSystem.resources.movement.max"
+          }
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "roving-3",
+        "type": "GrantMovement",
+        "data": {
+          "mode": "swim",
+          "distance": {
+            "type": "context",
+            "path": "actorSystem.resources.movement.max"
+          }
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {

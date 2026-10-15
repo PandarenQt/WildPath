@@ -1,0 +1,33 @@
+{
+  "_id": "1iadvrtgr3ok3000",
+  "_key": "!items!1iadvrtgr3ok3000",
+  "name": "Forgery Kit",
+  "type": "gear",
+  "img": "icons/sundries/documents/envelope-sealed-red-tan.webp",
+  "system": {
+    "active": false,
+    "description": "<p class=\"phb-meta\"><strong>Ability:</strong> Dexterity</p><p class=\"phb-meta\"><strong>Utilize:</strong> Mimic 10 or fewer words of someone else's handwriting (DC 15), or duplicate a wax seal (DC 20)</p>",
+    "quantity": 1,
+    "weight": 5,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbtulForgeryKit",
+        "type": "tool",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (check): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

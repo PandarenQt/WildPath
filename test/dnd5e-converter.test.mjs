@@ -55,14 +55,14 @@ test("only documents whose own source says SRD 5.2 (CC-BY-4.0, 2024) are convert
 
 test("a weapon becomes its attack: finesse, reach, and its own damage that the ability modifier joins", () => {
   const {items, notes} = convertItem(weapon);
-  assert.equal(items.length, 1);
+  assert.equal(items.length, 2, "and its two-handed Action");
   valid(items[0]);
   assert.deepEqual(items[0].system.definition.attack, {type: "melee", statistic: "weapon", defenseKey: "ac", proficient: true,
     properties: ["finesse"]});
   assert.deepEqual(items[0].system.definition.range, {type: "reach", distance: {value: 5, unit: "ft"}});
   assert.deepEqual(items[0].system.definition.damage, [{id: "base", expression: {type: "dice", number: 1, faces: 8}, damageType: "slashing",
     provenance: "weapon-base"}]);
-  assert.deepEqual(notes, ["damage: versatile two-handed damage not converted"]);
+  assert.deepEqual(notes, []);
   assert.equal(items[0].img, "icons/weapons/swords/sword.webp", "core icons are kept");
   assert.deepEqual(items[0].flags.wildpath.source, {system: "dnd5e", pack: null, id: "testLongsword001", type: "weapon", book: "SRD 5.2",
     license: "CC-BY-4.0", rules: "2024"});
@@ -247,11 +247,12 @@ test("an effect with its own changes becomes a custom effect with the rules they
     {key: "system.attributes.movement.walk", value: "0", type: "override"}, {key: "system.attributes.movement.fly", value: "60", type: "upgrade"},
     {key: "system.attributes.ac.calc", value: "mage", type: "override"}]}}, notes);
   assert.deepEqual(mixed.map(rule => [rule.type, rule.predicate ?? null]), [["Modifier", {tagsAny: ["melee"]}], ["RollMode", null],
-    ["ResourceCap", null], ["GrantMovement", null], ["ConditionImmunity", null]]);
+    ["ResourceCap", null], ["GrantMovement", null], ["ArmorClass", null], ["ConditionImmunity", null]]);
   assert.deepEqual(mixed[0].data.domains, ["attack.weapon"], "a melee weapon attack bonus");
   assert.deepEqual(mixed[1].data, {domains: ["check.stealth"], mode: "disadvantage"});
-  assert.deepEqual(notes, ['effect: "Mixed" change system.attributes.ac.calc (override) not converted',
-    'effect: "Mixed" condition immunity diseased not converted']);
+  assert.deepEqual(mixed[4].data.value, {type: "add", terms: [{type: "constant", value: 13}, {type: "ability-modifier", ability: "agility"}]},
+    "Mage Armor: 13 + Agility modifier while unarmored");
+  assert.deepEqual(notes, ['effect: "Mixed" condition immunity diseased not converted']);
   assert.deepEqual(changeValue("-1d4"), {type: "subtract", left: {type: "constant", value: 0}, right: {type: "dice", number: 1, faces: 4}});
 
   const spell = {_id: "testBless0000001", name: "Test Bless", type: "spell", system: {source: SRD, level: 1, preparation: {mode: "prepared"},
@@ -517,4 +518,61 @@ test("forced movement (G6): a failed save pushes, a hit pulls, with any size lim
   {distance: 5, on: "success"}, "pushed on a success");
   assert.equal(validateActionDefinition({...wave.system.definition, push: {distance: 0}}).ok, false);
   assert.equal(validateActionDefinition({...wave.system.definition, push: {distance: 5, maxSize: "big"}}).ok, false);
+});
+
+test("equipment is gear (G7): armor's AC by kind, a Shield's bonus, worn magic items' rules, and spells cast from items", () => {
+  const armor = (name, type, armorData, extra={}) => ({_id: `test${name.replace(/\W/g, "")}`.padEnd(16, "0").slice(0, 16), name, type: "equipment",
+    effects: [], system: {source: SRD, type: {value: type, baseItem: extra.baseItem ?? ""}, armor: {value: null, magicalBonus: null, dex: null,
+      ...armorData}, strength: extra.strength ?? null, properties: extra.properties ?? [], weight: {value: 20, units: "lb"}, quantity: 1,
+      activities: {}}});
+  const gear = document => { const [item] = convertItem(document).items; assert.equal(item.type, "gear", document.name); return item; };
+  const plate = gear(armor("Test Plate", "heavy", {value: 18, dex: 0}, {strength: 15, properties: ["stealthDisadvantage"]}));
+  assert.equal(plate.system.active, false, "carried, not worn, until equipped");
+  assert.deepEqual(plate.system.ruleElements.map(rule => [rule.type, rule.data.value ?? rule.data.valueExpression ?? rule.data.mode]), [
+    ["ArmorClass", 18], ["Modifier", {type: "table", key: {type: "ability-score", ability: "might"}, rows: {0: -10, 15: 0}}],
+    ["RollMode", "disadvantage"]]);
+  assert.equal(plate.system.ruleElements[0].data.armor, true);
+  const agility = {type: "ability-modifier", ability: "agility"};
+  assert.deepEqual(gear(armor("Test Breastplate", "medium", {value: 14, dex: 2})).system.ruleElements[0].data.value,
+    {type: "add", terms: [{type: "constant", value: 14}, {type: "min", terms: [agility, {type: "constant", value: 2}]}]});
+  assert.deepEqual(gear(armor("Test Leather", "light", {value: 11, magicalBonus: 1})).system.ruleElements[0].data.value,
+    {type: "add", terms: [{type: "constant", value: 12}, agility]}, "+1 light armor: 12 + Agility");
+  assert.deepEqual(gear(armor("Test Dwarven", "", {value: 18, magicalBonus: 2}, {baseItem: "plate"})).system.ruleElements[0].data.value, 20,
+    "magic armor that names only its base armor");
+  assert.deepEqual(gear(armor("Test Shield", "shield", {value: 2})).system.ruleElements.map(rule => [rule.type, rule.data.domains, rule.data.value]),
+    [["Modifier", ["defense.ac"], 2]]);
+  const any = convertItem(armor("Test Armor +1", "", {})).items[0];
+  assert.deepEqual(any.system.ruleElements, []);
+
+  const cloak = {...armor("Test Cloak", "wondrous", {}), effects: [{_id: "cloak", name: "Cloak", transfer: true, disabled: false,
+    system: {changes: [{key: "system.attributes.ac.bonus", value: "1", type: "add"}, {key: "system.bonuses.abilities.save", value: "1", type: "add"}]}},
+    {_id: "variant", name: "Variant", transfer: true, disabled: true, system: {changes: [{key: "system.attributes.ac.bonus", value: "3", type: "add"}]}}]};
+  assert.deepEqual(gear(cloak).system.ruleElements.map(rule => [rule.data.domains, rule.data.value]), [[["defense.ac"], 1], [["save"], 1]],
+    "its passive effects, never a disabled variant");
+
+  const fireball = {...burst, _id: "testFireball0001", name: "Test Fireball"};
+  const wand = {...armor("Test Wand", "wand", {}), system: {...armor("Test Wand", "wand", {}).system, uses: {max: "7", spent: 0, recovery: []},
+    activities: {c: activity("cast", {spell: {uuid: "Compendium.dnd5e.spells24.Item.testFireball0001", level: "3", ability: "",
+      challenge: {attack: null, save: 15, override: true}}, consumption: {targets: [{type: "itemUses", value: "1"}]}})}}};
+  const converted = convertItem(wand, {spells: {testFireball0001: fireball}}).items;
+  assert.deepEqual(converted.map(item => [item.type, item.name]), [["gear", "Test Wand"], ["action", "Test Wand: Test Fireball"]]);
+  valid(converted[1]);
+  assert.deepEqual(converted[1].system.definition.save.dc, {value: 15}, "the item's own save DC");
+  assert.deepEqual(converted[1].system.definition.costs.allOf.map(cost => cost.capability), ["action", "test-wand"], "a charge");
+});
+
+test("weapons (G7): a Versatile weapon's two-handed Action, and a magic weapon's bonus to its own attack and damage", () => {
+  const items = convertItem(weapon).items;
+  assert.deepEqual(items.map(item => item.name), ["Test Sword", "Test Sword (Two-Handed)"]);
+  items.forEach(valid);
+  assert.deepEqual(items.map(item => item.system.definition.damage[0].expression.faces), [8, 10]);
+  assert.notEqual(items[0]._id, items[1]._id);
+  const spear = {...weapon, system: {...weapon.system, damage: {base: {number: 1, denomination: 6, types: ["piercing"], bonus: ""},
+    versatile: {number: null, denomination: 0}}}};
+  assert.equal(convertItem(spear).items[1].system.definition.damage[0].expression.faces, 8, "no die given: one larger");
+  const magic = {...weapon, system: {...weapon.system, properties: [], magicalBonus: 2}};
+  const [sword] = convertItem(magic).items;
+  assert.deepEqual(sword.system.ruleElements.map(rule => [rule.type, rule.data.domains, rule.data.value]),
+    [["Modifier", ["attack"], 2], ["Modifier", ["damage"], 2]], "an Action's own Modifiers count for it alone");
+  assert.deepEqual(sword.flags.wildpath.conversion.notes, []);
 });

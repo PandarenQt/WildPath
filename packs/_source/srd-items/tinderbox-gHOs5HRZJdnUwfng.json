@@ -1,0 +1,43 @@
+{
+  "_id": "gHOs5HRZJdnUwfng",
+  "_key": "!items!gHOs5HRZJdnUwfng",
+  "name": "Tinderbox",
+  "type": "action",
+  "img": "icons/sundries/lights/torch-black.webp",
+  "system": {
+    "active": true,
+    "description": "<p>A Tinderbox is a small container holding flint, fire steel, and tinder (usually dry cloth soaked in light oil) used to kindle a fire. Using it to light a Candle, Lamp, Lantern, or Torch—or anything else with exposed fuel—takes a Bonus Action. Lighting any other fire takes 1 minute.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-tinderbox-light",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Tinderbox"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "gHOs5HRZJdnUwfng",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

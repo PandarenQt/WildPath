@@ -21,7 +21,9 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "effect: \"Jack of All Trades\" change flags.dnd5e.jackOfAllTrades (override) not converted"
+        ]
       }
     }
   }

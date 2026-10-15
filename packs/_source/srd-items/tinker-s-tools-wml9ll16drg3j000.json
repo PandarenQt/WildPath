@@ -1,0 +1,33 @@
+{
+  "_id": "wml9ll16drg3j000",
+  "_key": "!items!wml9ll16drg3j000",
+  "name": "Tinker's Tools",
+  "type": "gear",
+  "img": "icons/commodities/cloth/thread-spindle-white-needle.webp",
+  "system": {
+    "active": false,
+    "description": "<p class=\"phb-meta\"><strong>Ability:</strong> Dexterity</p><p class=\"phb-meta\"><strong>Utilize:</strong> Assemble a Tiny item composed of scrap, which falls apart in 1 minute (DC 20)</p><p class=\"phb-meta\"><strong>Craft:</strong> Musket, Pistol, Bell, Bullseye Lantern, Flask, Hooded Lantern, Hunting Trap, Lock, Manacles, Mirror, Shovel, Signal Whistle, Tinderbox</p>",
+    "quantity": 1,
+    "weight": 10,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbtulTinkersToo",
+        "type": "tool",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (check): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

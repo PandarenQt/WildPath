@@ -1,0 +1,31 @@
+{
+  "_id": "phbagSpikesIron0",
+  "_key": "!items!phbagSpikesIron0",
+  "name": "Spikes, Iron",
+  "type": "gear",
+  "img": "icons/tools/fasteners/nails-steel-brown.webp",
+  "system": {
+    "active": false,
+    "description": "<p>Iron Spikes come in bundles of ten. As a Utilize action, you can use a blunt object, such as a Light Hammer, to hammer a spike into wood, earth, or a similar material. You can do so to jam a door shut or to then tie a Rope or Chain to the Spike.</p>",
+    "quantity": 10,
+    "weight": 0.5,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagSpikesIron0",
+        "type": "loot",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

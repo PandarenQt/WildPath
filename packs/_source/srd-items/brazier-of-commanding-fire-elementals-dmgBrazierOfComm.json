@@ -1,0 +1,74 @@
+{
+  "_id": "dmgBrazierOfComm",
+  "_key": "!items!dmgBrazierOfComm",
+  "name": "Brazier of Commanding Fire Elementals",
+  "type": "action",
+  "img": "icons/tools/laboratory/bowl-liquid-orange.webp",
+  "system": {
+    "active": true,
+    "description": "<div><p><em>Wondrous Item, Rare</em></p></div><p>While you are within 5 feet of this brazier, you can take a Magic action to summon a <strong>Fire Elemental</strong>. The elemental appears in an unoccupied space as close to the brazier as possible, understands your languages, obeys your commands, and takes its turn immediately after you on your Initiative count. The elemental disappears after 1 hour, when it dies, or when you dismiss it as a Bonus Action. The brazier can't be used this way again until the next dawn.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-brazier-of-commanding-fire-elementals",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "brazier-of-commanding-fire-elementals",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "summon": {
+        "actorRef": "Compendium.wildpath.srd-creatures.Actor.mmFireElemental0",
+        "count": 1
+      },
+      "label": "Brazier of Commanding Fire Elementals"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "brazier-of-commanding-fire-elementals-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "brazier-of-commanding-fire-elementals",
+          "label": "Brazier of Commanding Fire Elementals",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgBrazierOfComm",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

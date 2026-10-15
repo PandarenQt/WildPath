@@ -1,0 +1,106 @@
+{
+  "_id": "2vrizkujrek80000",
+  "_key": "!items!2vrizkujrek80000",
+  "name": "Staff of Charming: Charm Person",
+  "type": "action",
+  "img": "icons/magic/control/hypnosis-mesmerism-eye.webp",
+  "system": {
+    "active": true,
+    "description": "<p>One Humanoid you can see within range makes a Wisdom saving throw. It does so with Advantage if you or your allies are fighting it. On a failed save, the target has the Charmed condition until the spell ends or until you or your allies damage it. The Charmed creature is Friendly to you. When the spell ends, the target knows it was Charmed by you.</p><p><strong>Using a Higher-Level Spell Slot.</strong> You can target one additional creature for each spell slot level above 1.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-staff-of-charming-charm-person",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "staff-of-charming",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 30,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "save": {
+        "ability": "wits",
+        "dc": {
+          "valueExpression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 8
+              },
+              {
+                "type": "proficiency-bonus"
+              },
+              {
+                "type": "spellcasting-modifier"
+              }
+            ]
+          }
+        }
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "charmed",
+          "saveOutcomePolicy": "failure"
+        }
+      ],
+      "label": "Staff of Charming: Charm Person"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "staff-of-charming-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "staff-of-charming",
+          "label": "Staff of Charming",
+          "maximum": {
+            "type": "constant",
+            "value": 10
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplCharmPerso",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Staff of Charming"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool"
+        ]
+      }
+    }
+  }
+}

@@ -640,11 +640,14 @@
       "_id": "bm5Xk3RgW5IFauNT",
       "_key": "!actors.items!mmPriestAcolyte0.bm5Xk3RgW5IFauNT",
       "name": "Holy Symbol",
-      "type": "feature",
+      "type": "gear",
       "img": "icons/sundries/flags/banner-symbol-sun-gold-red.webp",
       "system": {
-        "active": true,
+        "active": false,
         "description": "<p>A Holy Symbol takes one of the forms in the Holy Symbol table and is bejeweled or painted to channel divine magic. A Cleric or Paladin can use a Holy Symbol as a Spellcasting Focus.</p><p>The table indicates whether a Holy Symbol needs to be held, worn, or borne on fabric (such as a tabard or banner) or a Shield.</p><table><caption>Holy Symbols</caption><thead><tr><td>Symbol</td><td>Weight</td><td>Cost</td></tr></thead><tbody><tr><td>Amulet (worn or held)</td><td>1 lb.</td><td>5 GP</td></tr><tr><td>Emblem (borne on fabric or a Shield)</td><td>—</td><td>5 GP</td></tr><tr><td>Reliquary (held)</td><td>2 lb.</td><td>5 GP</td></tr></tbody></table>",
+        "quantity": 1,
+        "weight": 0,
+        "slot": "",
         "ruleElements": []
       },
       "flags": {

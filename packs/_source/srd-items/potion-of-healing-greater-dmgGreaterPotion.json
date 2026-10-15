@@ -1,0 +1,89 @@
+{
+  "_id": "dmgGreaterPotion",
+  "_key": "!items!dmgGreaterPotion",
+  "name": "Potion of Healing (Greater)",
+  "type": "action",
+  "img": "icons/consumables/potions/bottle-bulb-corked-glowing-red.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Potion, Uncommon</em></p><p>You regain 4d4 + 4 Hit Points when you drink this potion.</p><p>Whatever its potency, the potion's red liquid glimmers when agitated.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-potion-of-healing-greater-consume",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          },
+          {
+            "capability": "potion-of-healing-greater",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "healing": [
+        {
+          "id": "healing-1",
+          "expression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "dice",
+                "number": 4,
+                "faces": 4
+              },
+              {
+                "type": "constant",
+                "value": 4
+              }
+            ]
+          },
+          "healingType": "healing"
+        }
+      ],
+      "label": "Potion of Healing (Greater)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "potion-of-healing-greater-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "potion-of-healing-greater",
+          "label": "Potion of Healing (Greater)",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgGreaterPotion",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

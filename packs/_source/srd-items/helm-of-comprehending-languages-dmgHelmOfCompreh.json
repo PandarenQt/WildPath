@@ -1,0 +1,35 @@
+{
+  "_id": "dmgHelmOfCompreh",
+  "_key": "!items!dmgHelmOfCompreh",
+  "name": "Helm of Comprehending Languages",
+  "type": "gear",
+  "img": "icons/equipment/head/helm-spangen-ridged.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Wondrous Item, Uncommon</em></p><p>While wearing this helm, you can cast Comprehend Languages from it.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgHelmOfCompreh",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Comprehension\" change system.traits.languages.value (add) not converted",
+          "effect: \"Comprehension\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

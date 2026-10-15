@@ -1,0 +1,31 @@
+{
+  "_id": "phbhsyReliquaryh",
+  "_key": "!items!phbhsyReliquaryh",
+  "name": "Reliquary",
+  "type": "gear",
+  "img": "icons/containers/chest/chest-reinforced-steel-red.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em><strong>Usage Requirement: </strong>Held</em></p><p>A Holy Symbol takes one of the forms in the Holy Symbol table and is bejeweled or painted to channel divine magic. A Cleric or Paladin can use a Holy Symbol as a Spellcasting Focus.</p>",
+    "quantity": 1,
+    "weight": 2,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbhsyReliquaryh",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

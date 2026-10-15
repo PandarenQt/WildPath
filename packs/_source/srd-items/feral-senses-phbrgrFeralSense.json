@@ -21,7 +21,9 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "effect: \"Feral Senses\" change system.attributes.senses.blindsight (upgrade) not converted"
+        ]
       }
     }
   }

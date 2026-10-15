@@ -1,0 +1,76 @@
+{
+  "_id": "dmgFwpEbonyFlyRa",
+  "_key": "!items!dmgFwpEbonyFlyRa",
+  "name": "Ebony Fly",
+  "type": "action",
+  "img": "icons/commodities/biological/legs-insect-brown.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>See Figurine of Wondrous Power</em></p><p>This ebony statuette, carved in the likeness of a horsefly, can become a <strong>Giant Fly</strong> for up to 12 hours and can be ridden as a mount. Once it has been used, it can't be used again until 2 days have passed.</p><section class=\"secret\" id=\"secret-50TFh1zOfnv1SBKO\"><p><strong>Foundry Note</strong></p><p>This item's limited uses represent the 2 days required before the figurine can be used again.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-ebony-fly",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "ebony-fly",
+            "amount": 2
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "summon": {
+        "actorRef": "Compendium.wildpath.srd-creatures.Actor.dmgGiantFly00000",
+        "count": 1
+      },
+      "label": "Ebony Fly"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "ebony-fly-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "ebony-fly",
+          "label": "Ebony Fly",
+          "maximum": {
+            "type": "constant",
+            "value": 2
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgFwpEbonyFlyRa",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool"
+        ]
+      }
+    }
+  }
+}

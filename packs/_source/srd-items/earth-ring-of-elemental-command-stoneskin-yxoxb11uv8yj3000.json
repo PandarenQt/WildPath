@@ -1,0 +1,106 @@
+{
+  "_id": "yxoxb11uv8yj3000",
+  "_key": "!items!yxoxb11uv8yj3000",
+  "name": "Earth Ring of Elemental Command: Stoneskin",
+  "type": "action",
+  "img": "icons/magic/defensive/armor-stone-skin.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Until the spell ends, one willing creature you touch has Resistance to Bludgeoning, Piercing, and Slashing damage.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-earth-ring-of-elemental-command-stoneskin",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "earth-ring-of-elemental-command",
+            "amount": 3
+          }
+        ]
+      },
+      "range": {
+        "type": "touch",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Stoneskin",
+          "img": "icons/magic/defensive/armor-stone-skin.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "stoneskin-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "bludgeoning",
+                  "piercing",
+                  "slashing"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        }
+      ],
+      "label": "Earth Ring of Elemental Command: Stoneskin"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "earth-ring-of-elemental-command-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "earth-ring-of-elemental-command",
+          "label": "Earth Ring of Elemental Command",
+          "maximum": {
+            "type": "constant",
+            "value": 5
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplStoneskin0",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Earth Ring of Elemental Command"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool"
+        ]
+      }
+    }
+  }
+}

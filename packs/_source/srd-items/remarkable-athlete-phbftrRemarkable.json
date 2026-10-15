@@ -21,7 +21,9 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "effect: \"Remarkable Athlete\" change flags.dnd5e.remarkableAthlete (override) not converted"
+        ]
       }
     }
   }

@@ -1,0 +1,68 @@
+{
+  "_id": "dmgGlovesOfSwimm",
+  "_key": "!items!dmgGlovesOfSwimm",
+  "name": "Gloves of Swimming and Climbing",
+  "type": "gear",
+  "img": "icons/equipment/hand/glove-cuffed-leather-purple.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Wondrous Item, Uncommon (Requires Attunement)</em></p><p>While wearing these gloves, you have a Climb Speed and a Swim Speed equal to your Speed, and you gain a +5 bonus to Strength (Athletics) checks made to climb or swim.</p><section class=\"secret\" id=\"secret-9sClXeq4AMq44GSR\"><p><strong>Foundry Note</strong></p><p>The +5 bonus to checks made to climb or swim should be added as a situational bonus when applicable.</p></section>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "gloves-on-1",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "check.athletics"
+          ],
+          "modifierType": "untyped",
+          "value": 5
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "gloves-on-2",
+        "type": "GrantMovement",
+        "data": {
+          "mode": "climb",
+          "distance": {
+            "type": "context",
+            "path": "actorSystem.resources.movement.max"
+          }
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "gloves-on-3",
+        "type": "GrantMovement",
+        "data": {
+          "mode": "swim",
+          "distance": {
+            "type": "context",
+            "path": "actorSystem.resources.movement.max"
+          }
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgGlovesOfSwimm",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

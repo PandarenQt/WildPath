@@ -1,0 +1,65 @@
+{
+  "_id": "dmgScarabOfProte",
+  "_key": "!items!dmgScarabOfProte",
+  "name": "Scarab of Protection",
+  "type": "action",
+  "img": "icons/environment/creatures/bug-larva-orange.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Wondrous Item, Legendary (Requires Attunement)</em></p><p>This beetle-shaped medallion provides three benefits while it is on your person.</p><p><em><strong>Defense.</strong></em> You gain a +1 bonus to Armor Class.</p><p><em><strong>Preservation.</strong></em> The scarab has 12 charges. If you fail a saving throw against a Necromancy spell or a harmful effect originating from an Undead, you can take a Reaction to expend 1 charge and turn the failed save into a successful one. The scarab crumbles into powder and is destroyed when its last charge is expended.</p><p><em><strong>Spell Resistance.</strong></em> You have Advantage on saving throws against spells.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-scarab-of-protection-preserve",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "reaction",
+            "amount": 1
+          },
+          {
+            "capability": "scarab-of-protection",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Scarab of Protection"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "scarab-of-protection-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "scarab-of-protection",
+          "label": "Scarab of Protection",
+          "maximum": {
+            "type": "constant",
+            "value": 12
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgScarabOfProte",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

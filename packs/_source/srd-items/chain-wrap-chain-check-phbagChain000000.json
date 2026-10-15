@@ -1,0 +1,43 @@
+{
+  "_id": "phbagChain000000",
+  "_key": "!items!phbagChain000000",
+  "name": "Chain (Wrap Chain Check)",
+  "type": "action",
+  "img": "icons/tools/fasteners/chain-steel-grey.webp",
+  "system": {
+    "active": true,
+    "description": "<p>As a Utilize action, you can wrap a Chain around an unwilling creature within 5 feet of yourself that has the Grappled, Incapacitated, or Restrained condition if you succeed on a DC 13 Strength (Athletics) check. If the creature's legs are bound, the creature has the Restrained condition until it escapes. Escaping the Chain requires the creature to make a successful DC 18 Dexterity (Acrobatics) check as an action. Bursting the Chain requires a successful DC 20 Strength (Athletics) check as an action.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-chain-wrap-chain-check",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Chain (Wrap Chain Check)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagChain000000",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (check): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

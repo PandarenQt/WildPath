@@ -1,0 +1,31 @@
+{
+  "_id": "phbagShovel00000",
+  "_key": "!items!phbagShovel00000",
+  "name": "Shovel",
+  "type": "gear",
+  "img": "icons/tools/hand/shovel-spade-steel-grey.webp",
+  "system": {
+    "active": false,
+    "description": "<p>Working for 1 hour, you can use a Shovel to dig a hole that is 5 feet on each side in soil or similar material.</p>",
+    "quantity": 1,
+    "weight": 5,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagShovel00000",
+        "type": "loot",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

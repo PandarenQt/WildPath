@@ -53,7 +53,44 @@
       ],
       "label": "Mace of Smiting (Attack Construct)"
     },
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "magic-attack",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "attack"
+          ],
+          "modifierType": "untyped",
+          "value": 1
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "magic-damage",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "damage"
+          ],
+          "modifierType": "untyped",
+          "value": 1
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "attack-bonus",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "attack"
+          ],
+          "modifierType": "untyped",
+          "value": 2
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -67,10 +104,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "attack: bonus \"2\" not converted",
-          "attack: +1 magic bonus not converted"
-        ]
+        "notes": []
       }
     }
   }

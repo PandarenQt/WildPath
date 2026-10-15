@@ -18,6 +18,52 @@
           }
         ]
       },
+      "range": {
+        "type": "touch",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Mage Armor",
+          "img": "icons/equipment/chest/breastplate-helmet-metal.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "mage-armor-1",
+              "type": "ArmorClass",
+              "data": {
+                "label": "Mage Armor",
+                "value": {
+                  "type": "add",
+                  "terms": [
+                    {
+                      "type": "constant",
+                      "value": 13
+                    },
+                    {
+                      "type": "ability-modifier",
+                      "ability": "agility"
+                    }
+                  ]
+                }
+              }
+            }
+          ],
+          "duration": {
+            "value": 28800,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "label": "Armor of Shadows"
     },
     "ruleElements": []
@@ -34,11 +80,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Mage Armor\" change system.attributes.ac.calc (override) not converted",
-          "effect: \"Mage Armor\" (its own changes) not converted"
-        ]
+        "notes": []
       }
     }
   }

@@ -21,7 +21,9 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "effect: \"Eldritch Mind\" change system.attributes.concentration.roll.mode (add) not converted"
+        ]
       }
     }
   }

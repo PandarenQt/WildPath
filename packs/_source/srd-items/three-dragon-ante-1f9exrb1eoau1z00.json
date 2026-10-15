@@ -1,0 +1,33 @@
+{
+  "_id": "1f9exrb1eoau1z00",
+  "_key": "!items!1f9exrb1eoau1z00",
+  "name": "Three-dragon ante",
+  "type": "gear",
+  "img": "icons/sundries/gaming/playing-cards-brown.webp",
+  "system": {
+    "active": false,
+    "description": "<p><strong>Ability:</strong> Wisdom</p><p class=\"phb-meta\"><strong>Utilize:</strong> Discern whether someone is cheating (DC 10), or win the game (DC 20)</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbgstThreedrago",
+        "type": "tool",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (check): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

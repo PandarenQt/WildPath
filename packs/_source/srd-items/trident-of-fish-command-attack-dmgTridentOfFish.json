@@ -87,8 +87,7 @@
       },
       "conversion": {
         "notes": [
-          "uses: a partial recovery refills the whole pool",
-          "damage: versatile two-handed damage not converted"
+          "uses: a partial recovery refills the whole pool"
         ]
       }
     }

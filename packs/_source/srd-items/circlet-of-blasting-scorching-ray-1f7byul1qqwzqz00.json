@@ -1,0 +1,94 @@
+{
+  "_id": "1f7byul1qqwzqz00",
+  "_key": "!items!1f7byul1qqwzqz00",
+  "name": "Circlet of Blasting: Scorching Ray",
+  "type": "action",
+  "img": "icons/magic/fire/projectiles-salvo-trio-orange.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You hurl three fiery rays. You can hurl them at one target within range or at several. Make a ranged spell attack for each ray. On a hit, the target takes 2d6 Fire damage.</p><p><strong>Using a Higher-Level Spell Slot.</strong> You create one additional ray for each spell slot level above 2.</p><p>Total Rays</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-circlet-of-blasting-scorching-ray",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "circlet-of-blasting",
+            "amount": 1
+          }
+        ]
+      },
+      "attack": {
+        "type": "ranged",
+        "statistic": "spell",
+        "defenseKey": "ac",
+        "proficient": true
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 120,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "dice",
+            "number": 2,
+            "faces": 6
+          },
+          "damageType": "fire",
+          "provenance": "spell-base"
+        }
+      ],
+      "label": "Circlet of Blasting: Scorching Ray"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "circlet-of-blasting-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "circlet-of-blasting",
+          "label": "Circlet of Blasting",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplScorchingR",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Circlet of Blasting"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

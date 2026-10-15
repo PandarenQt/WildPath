@@ -1,0 +1,38 @@
+{
+  "_id": "y46w6auotrtc0000",
+  "_key": "!items!y46w6auotrtc0000",
+  "name": "Silver Raven",
+  "type": "gear",
+  "img": "icons/commodities/materials/feather-blue-grey.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>See Figurine of Wondrous Power</em></p><p>This silver statuette of a raven can become a <strong>Raven</strong> for up to 12 hours. Once it has been used, it can't be used again until 2 days have passed. While in raven form, the figurine grants you the ability to cast <em>Animal Messenger</em> on it.</p><section class=\"secret\" id=\"secret-1zjsYfZzKHfXhi9j\"><p><strong>Foundry Note</strong></p><p>This item's limited uses represent the 2 days required before the figurine can be used again.</p></section>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgFwpSilverRave",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (summon): using it spends its cost; its description says the rest",
+          "uses: a partial recovery refills the whole pool",
+          "summon: its creature is not among the converted creatures",
+          "consumption: itemUses @item.uses.max not converted",
+          "not automated (save): using it spends its cost; its description says the rest",
+          "effect: \"Carrying Message\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

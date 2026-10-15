@@ -1,0 +1,31 @@
+{
+  "_id": "phbdfcYewwand000",
+  "_key": "!items!phbdfcYewwand000",
+  "name": "Yew wand",
+  "type": "gear",
+  "img": "icons/weapons/staves/staff-ornate-wood.webp",
+  "system": {
+    "active": false,
+    "description": "<p>A Druidic Focus takes one of the forms in the Druidic Focuses table and is carved, tied with ribbon, or painted to channel primal magic. A Druid or Ranger can use such an object as a Spellcasting Focus.</p>",
+    "quantity": 1,
+    "weight": 1,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbdfcYewwand000",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

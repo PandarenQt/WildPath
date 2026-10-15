@@ -1,0 +1,62 @@
+{
+  "_id": "phbagLamp0000000",
+  "_key": "!items!phbagLamp0000000",
+  "name": "Lamp",
+  "type": "action",
+  "img": "icons/sundries/lights/lantern-iron-yellow.webp",
+  "system": {
+    "active": true,
+    "description": "<p>A Lamp burns Oil as fuel to cast Bright Light in a 15-foot radius and Dim Light for an additional 30 feet.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-lamp-light",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "lamp",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Lamp"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "lamp-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "lamp",
+          "label": "Lamp",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagLamp0000000",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

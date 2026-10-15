@@ -1,0 +1,33 @@
+{
+  "_id": "dmgRingOfRegener",
+  "_key": "!items!dmgRingOfRegener",
+  "name": "Ring of Regeneration",
+  "type": "gear",
+  "img": "icons/equipment/finger/ring-faceted-gold-purple.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Ring, Very Rare (Requires Attunement)</em></p><p>While wearing this ring, you regain 1d6 Hit Points every 10 minutes if you have at least 1 Hit Point. If you lose a body part, the ring causes the missing part to regrow and return to full functionality after 1d6 + 1 days if you have at least 1 Hit Point the whole time.</p><section class=\"secret\" id=\"secret-N3RMelHP7jT5vBMy\"><p><strong>Foundry Note</strong></p><p>The <strong>Heal</strong> activity allows you to enter the number of 10 minute increments that have passed and will automatically scale the healing formula. For example, if it's been an hour, you can enter 6 and it will roll 6d6.</p></section>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgRingOfRegener",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"heal\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

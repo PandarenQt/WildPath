@@ -1,0 +1,31 @@
+{
+  "_id": "dmgSpellScroll5t",
+  "_key": "!items!dmgSpellScroll5t",
+  "name": "Spell Scroll, 5th Level",
+  "type": "gear",
+  "img": "icons/sundries/scrolls/scroll-bound-sealed-black-red.webp",
+  "system": {
+    "active": false,
+    "description": "<p></p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgSpellScroll5t",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

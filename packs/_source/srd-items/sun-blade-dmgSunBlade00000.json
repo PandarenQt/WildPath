@@ -56,7 +56,32 @@
       ],
       "label": "Sun Blade"
     },
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "magic-attack",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "attack"
+          ],
+          "modifierType": "untyped",
+          "value": 2
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "magic-damage",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "damage"
+          ],
+          "modifierType": "untyped",
+          "value": 2
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -70,10 +95,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "attack: +2 magic bonus not converted",
-          "damage: versatile two-handed damage not converted"
-        ]
+        "notes": []
       }
     }
   }

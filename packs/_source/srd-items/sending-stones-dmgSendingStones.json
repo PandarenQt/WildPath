@@ -1,0 +1,33 @@
+{
+  "_id": "dmgSendingStones",
+  "_key": "!items!dmgSendingStones",
+  "name": "Sending Stones",
+  "type": "gear",
+  "img": "icons/commodities/gems/pearl-rough-white.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Wondrous Item, Uncommon</em></p><p><em>Sending Stones</em> come in pairs, with each stone carved to match the other so the pairing is easily recognized. While you touch one stone, you can cast Sending from it. The target is the bearer of the other stone. If no creature bears the other stone, you know that fact as soon as you use the stone, and you don't cast the spell.</p><p>Once <em>Sending</em> is cast using either stone, the stones can't be used again until the next dawn. If one of the stones in a pair is destroyed, the other one becomes nonmagical.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgSendingStones",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

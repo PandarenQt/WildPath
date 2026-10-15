@@ -1,0 +1,36 @@
+{
+  "_id": "1oj5nhjgqbuof000",
+  "_key": "!items!1oj5nhjgqbuof000",
+  "name": "Gem of Seeing",
+  "type": "gear",
+  "img": "icons/commodities/gems/gem-rough-rose-teal.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Wondrous Item, Rare (Requires Attunement)</em></p><p>This gem has 3 charges. As a Magic action, you can expend 1 charge. For the next 10 minutes, you have Truesight out to 120 feet when you peer through the gem.</p><p>The gem regains 1d3 expended charges daily at dawn.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgGemOfSeeing00",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "uses: a partial recovery refills the whole pool",
+          "effect: \"Seeing\" change system.attributes.senses.trueseight (upgrade) not converted",
+          "effect: \"Seeing\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

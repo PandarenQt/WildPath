@@ -1,0 +1,43 @@
+{
+  "_id": "phbagGrapplingHo",
+  "_key": "!items!phbagGrapplingHo",
+  "name": "Grappling Hook",
+  "type": "action",
+  "img": "icons/tools/fishing/hook-multi-steel-brown.webp",
+  "system": {
+    "active": true,
+    "description": "<p>As a Utilize action, you can throw the Grappling Hook at a railing, a ledge, or another catch within 50 feet of yourself, and the hook catches on if you succeed on a DC 13 Dexterity (Acrobatics) check. If you tied a Rope to the hook, you can then climb it.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-grappling-hook-throw",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Grappling Hook"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagGrapplingHo",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (check): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

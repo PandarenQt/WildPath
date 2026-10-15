@@ -1,0 +1,91 @@
+{
+  "_id": "17d0vivwqxvcb000",
+  "_key": "!items!17d0vivwqxvcb000",
+  "name": "Staff of Charming (attack) (Two-Handed)",
+  "type": "action",
+  "img": "icons/weapons/staves/staff-ornate-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Staff, Rare (Requires Attunement by a Bard, Cleric, Druid, Sorcerer, Warlock, or Wizard)</em></p><p>This staff has 10 charges. While holding the staff, you can use any of its properties:</p><p><strong>Cast Spell.</strong> You can expend 1 of the staff's charges to cast Charm Person, Command, or Comprehend Languages from it using your spell save DC.</p><p><strong>Reflect Enchantment.</strong> If you succeed on a saving throw against an Enchantment spell that targets only you, you can take a Reaction to expend 1 charge from the staff and turn the spell back on its caster as if you had cast the spell.</p><p><strong>Resist Enchantment.</strong> If you fail a saving throw against an Enchantment spell that targets only you, you can turn your failed save into a successful one. You can't use this property of the staff again until the next dawn.</p><p><em><strong>Regaining Charges.</strong></em> The staff regains 1d8 + 2 expended charges daily at dawn. If you expend the last charge, roll 1d20. On a 1, the staff crumbles to dust and is destroyed.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-staff-of-charming-two-handed",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "attack": {
+        "type": "melee",
+        "statistic": "weapon",
+        "defenseKey": "ac",
+        "proficient": true
+      },
+      "range": {
+        "type": "reach",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "damage": [
+        {
+          "id": "base",
+          "expression": {
+            "type": "dice",
+            "number": 1,
+            "faces": 8
+          },
+          "damageType": "bludgeoning",
+          "provenance": "weapon-base"
+        }
+      ],
+      "label": "Staff of Charming (attack) (Two-Handed)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "staff-of-charming-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "staff-of-charming",
+          "label": "Staff of Charming",
+          "maximum": {
+            "type": "constant",
+            "value": 10
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgStaffOfCharmi",
+        "type": "weapon",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool"
+        ]
+      }
+    }
+  }
+}

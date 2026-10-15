@@ -1,0 +1,43 @@
+{
+  "_id": "phbtulLeatherwor",
+  "_key": "!items!phbtulLeatherwor",
+  "name": "Leatherworker's Tools",
+  "type": "action",
+  "img": "icons/commodities/leather/leather-buckle-steel-tan.webp",
+  "system": {
+    "active": true,
+    "description": "<p class=\"phb-meta\"><strong>Ability:</strong> Dexterity</p><p class=\"phb-meta\"><strong>Utilize:</strong> Add a design to a leather item (DC 10)</p><p class=\"phb-meta\"><strong>Craft:</strong> Sling, Whip, Hide Armor, Leather Armor, Studded Leather Armor, Backpack, Crossbow Bolt Case, Map or Scroll Case, Parchment, Pouch, Quiver, Waterskin</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-leatherworker-s-tools-add-design",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Leatherworker's Tools"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbtulLeatherwor",
+        "type": "tool",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (check): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

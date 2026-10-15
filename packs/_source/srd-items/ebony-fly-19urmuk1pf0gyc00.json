@@ -1,0 +1,33 @@
+{
+  "_id": "19urmuk1pf0gyc00",
+  "_key": "!items!19urmuk1pf0gyc00",
+  "name": "Ebony Fly",
+  "type": "gear",
+  "img": "icons/commodities/biological/legs-insect-brown.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>See Figurine of Wondrous Power</em></p><p>This ebony statuette, carved in the likeness of a horsefly, can become a <strong>Giant Fly</strong> for up to 12 hours and can be ridden as a mount. Once it has been used, it can't be used again until 2 days have passed.</p><section class=\"secret\" id=\"secret-50TFh1zOfnv1SBKO\"><p><strong>Foundry Note</strong></p><p>This item's limited uses represent the 2 days required before the figurine can be used again.</p></section>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgFwpEbonyFlyRa",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool"
+        ]
+      }
+    }
+  }
+}

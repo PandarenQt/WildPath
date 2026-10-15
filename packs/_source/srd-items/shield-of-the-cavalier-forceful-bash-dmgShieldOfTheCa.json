@@ -1,0 +1,113 @@
+{
+  "_id": "dmgShieldOfTheCa",
+  "_key": "!items!dmgShieldOfTheCa",
+  "name": "Shield of the Cavalier (Forceful Bash)",
+  "type": "action",
+  "img": "icons/equipment/shield/pavise-wooden-wings-blue-white.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Armor (Shield), Very Rare (Requires Attunement)</em></p><p>While holding this Shield, you have a +2 bonus to Armor Class. This bonus is in addition to the Shield's normal bonus to AC.</p><p>The Shield has the following additional properties that you can use while holding it.</p><p><em><strong>Forceful Bash</strong></em><strong>.</strong> When you take the Attack action, you can make one of the attack rolls using the Shield against a target within 5 feet of yourself. Apply your Proficiency Bonus and Strength modifier to the attack roll. On a hit, the Shield deals Force damage to the target equal to 2d6 + 2 plus your Strength modifier, and if the target is a creature, you can push it up to 10 feet directly away from yourself. If the creature is your size or smaller, you can also knock it down, giving it the Prone condition.</p><p><em><strong>Protective Field.</strong></em> As a Reaction, when you or an ally you can see within 5 feet of you is targeted by an attack or makes a saving throw against an area of effect, you can use the Shield to create an immobile 5-foot Emanation originating from you. When the Emanation appears, any creatures or objects not fully contained within it are pushed into the nearest unoccupied spaces outside it. The attack or area of effect that triggered the Reaction has no effect on creatures and objects inside the Emanation, which lasts as long as you maintain Concentration, up to 1 minute. Nothing can pass into or out of the Emanation. A creature or object inside the Emanation can't be damaged by attacks or effects originating from outside, nor can a creature inside the Emanation damage anything outside it. Once this property is used, it can't be used again until the next dawn.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-shield-of-the-cavalier-forceful-bash",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "attack": {
+        "type": "melee",
+        "statistic": "weapon",
+        "defenseKey": "ac",
+        "proficient": true
+      },
+      "range": {
+        "type": "reach",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "dice",
+                "number": 2,
+                "faces": 6
+              },
+              {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "constant",
+                    "value": 2
+                  },
+                  {
+                    "type": "spellcasting-modifier"
+                  }
+                ]
+              }
+            ]
+          },
+          "damageType": "force",
+          "provenance": "additional"
+        }
+      ],
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "prone"
+        }
+      ],
+      "label": "Shield of the Cavalier (Forceful Bash)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "shield-of-the-cavalier-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "shield-of-the-cavalier",
+          "label": "Shield of the Cavalier",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgShieldOfTheCa",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

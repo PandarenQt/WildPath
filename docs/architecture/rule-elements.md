@@ -509,6 +509,24 @@ rules to the creatures within `radius` feet of its bearer.
 Live (GM browser, 14.369, physical dice): a paladin's +1 AC aura gave an ally 10 ft away AC 15 (14 + 1). A goblin's
 14 missed it there, and hit once the ally stood 20 ft away.
 
+## ArmorClass (2026-10-15)
+
+`{type: "ArmorClass", data: {value, armor?}}` is a way to work out its owner's Armor Class (2024). `value` is a number
+or a ValueExpression: Chain Mail is `16`, a Breastplate `14 + min(Agility modifier, 2)`, Unarmored Defense
+`10 + Agility + Fortitude modifiers`, Mage Armor `13 + Agility modifier`.
+- **Which counts.** `armor: true` marks armor its owner wears. While it wears any, only those count; otherwise its
+  unarmored ways do (Unarmored Defense, Mage Armor). The AC is the best that counts, plus `defense.ac` Modifiers (a
+  Shield's +2, a Cloak of Protection's +1). `resolveActorDefense` reads them through `actor.getArmorClasses()`.
+- **A character's own.** Every character also has the 2024 unarmored AC, 10 + its Agility modifier.
+- **Never below the stored AC.** The AC on the sheet (`system.defenses.ac.value`) is a floor. A creature's stat
+  block AC is stored there and has no formula added, so creatures keep their own.
+- Gear counts only while equipped (`system.active`); an effect (Mage Armor) while it lasts.
+
+Live (two browsers, 14.369): QA Caster (Agility 16) showed AC 13 unarmored. Player1 equipped the SRD Chain Mail and
+Shield from the sheet: AC 18, and 10 feet less Speed (Might 10 under the armor's 13). Unequipping the Chain Mail gave
+15. Player1's Mage Armor on themself made it 18, and with Agility 20 Mage Armor's 18 lost to the worn Chain Mail's
+16 (AC 18 with the Shield).
+
 ## Future Types
 
 When adding a RuleElement type:

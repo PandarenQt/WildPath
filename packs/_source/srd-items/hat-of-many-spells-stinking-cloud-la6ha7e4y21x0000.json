@@ -1,0 +1,49 @@
+{
+  "_id": "la6ha7e4y21x0000",
+  "_key": "!items!la6ha7e4y21x0000",
+  "name": "Hat of Many Spells: Stinking Cloud",
+  "type": "action",
+  "img": "icons/magic/air/fog-gas-smoke-dense-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You create a 20-foot-radius Sphere of yellow, nauseating gas centered on a point within range. The cloud is Heavilyobscured. The cloud lingers in the air for the duration or until a strong wind (such as the one created by <em>Gust of Wind</em>) disperses it.</p><p>Each creature that starts its turn in the Sphere must succeed on a Constitution saving throw or have the Poisoned condition until the end of the current turn. While Poisoned in this way, the creature can't take an action or a Bonus Action.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-hat-of-many-spells-stinking-cloud",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Hat of Many Spells: Stinking Cloud"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplStinkingCl",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Hat of Many Spells"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "concentration: nothing it sustains was converted",
+          "\"Start of Turn Save\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

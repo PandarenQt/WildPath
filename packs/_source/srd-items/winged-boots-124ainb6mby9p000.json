@@ -1,0 +1,33 @@
+{
+  "_id": "124ainb6mby9p000",
+  "_key": "!items!124ainb6mby9p000",
+  "name": "Winged Boots",
+  "type": "gear",
+  "img": "icons/skills/movement/feet-winged-boots-brown.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Wondrous Item, Uncommon (Requires Attunement)</em></p><p>These boots have 4 charges and regain 1d4 expended charges daily at dawn. While wearing the boots, you can take a Magic action to expend 1 charge, gaining a Fly Speed of 30 feet for 1 hour. If you are flying when the duration expires, you descend at a rate of 30 feet per round until you land.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgWingedBoots00",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool"
+        ]
+      }
+    }
+  }
+}

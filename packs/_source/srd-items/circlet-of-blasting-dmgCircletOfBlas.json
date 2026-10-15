@@ -1,0 +1,31 @@
+{
+  "_id": "dmgCircletOfBlas",
+  "_key": "!items!dmgCircletOfBlas",
+  "name": "Circlet of Blasting",
+  "type": "gear",
+  "img": "icons/equipment/finger/ring-cabochon-notched-gold-green.webp",
+  "system": {
+    "active": false,
+    "description": "<div><p><em>Wondrous Item, Uncommon</em></p></div><p>While wearing this circlet, you can cast <em>Scorching Ray</em> with it (+5 to hit). The circlet can't cast this spell again until the next dawn.</p>",
+    "quantity": 1,
+    "weight": 0.2,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgCircletOfBlas",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "_id": "dmgCloakOfInvisi",
+  "_key": "!items!dmgCloakOfInvisi",
+  "name": "Cloak of Invisibility",
+  "type": "action",
+  "img": "icons/equipment/back/cloak-hooded-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<div><p><em>Wondrous Item, Legendary (Requires Attunement)</em></p></div><p>This cloak has 3 charges and regains 1d3 expended charges daily at dawn . While wearing the cloak, you can take a Magic action to pull its hood over your head and expend 1 charge to give yourself the Invisible condition for 1 hour. The effect ends early if you pull the hood down (no action required) or cease wearing the cloak.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-cloak-of-invisibility-raise-hood",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "cloak-of-invisibility",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "invisible"
+        }
+      ],
+      "label": "Cloak of Invisibility"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "cloak-of-invisibility-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "cloak-of-invisibility",
+          "label": "Cloak of Invisibility",
+          "maximum": {
+            "type": "constant",
+            "value": 3
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgCloakOfInvisi",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool"
+        ]
+      }
+    }
+  }
+}

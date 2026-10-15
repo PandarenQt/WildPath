@@ -1,0 +1,33 @@
+{
+  "_id": "dmgDmtPuzzle0000",
+  "_key": "!items!dmgDmtPuzzle0000",
+  "name": "Puzzle",
+  "type": "gear",
+  "img": "icons/skills/trades/academics-investigation-puzzles.webp",
+  "system": {
+    "active": false,
+    "description": "<p> Permanently reduce your Intelligence or Wisdom by 1d4 + 1 (to a minimum score of 1). You can draw one additional card beyond your declared draws.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgDmtPuzzle0000",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Card Effect\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

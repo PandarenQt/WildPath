@@ -1,0 +1,102 @@
+{
+  "_id": "h116ww1uy99hm000",
+  "_key": "!items!h116ww1uy99hm000",
+  "name": "Staff of Power: Magic Missile",
+  "type": "action",
+  "img": "icons/magic/light/projectiles-pink-purple.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You create three glowing darts of magical force. Each dart strikes a creature of your choice that you can see within range. A dart deals 1d4 + 1 Force damage to its target. The darts all strike simultaneously, and you can direct them to hit one creature or several.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The spell creates one more dart for each spell slot level above 1.</p><p>Level 1 darts</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-staff-of-power-magic-missile",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "staff-of-power",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 120,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "multiple",
+        "required": true,
+        "count": 3,
+        "refinementPolicy": {
+          "minSelections": 1
+        }
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "dice",
+                "number": 1,
+                "faces": 4
+              },
+              {
+                "type": "constant",
+                "value": 1
+              }
+            ]
+          },
+          "damageType": "force",
+          "provenance": "spell-base"
+        }
+      ],
+      "label": "Staff of Power: Magic Missile"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "staff-of-power-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "staff-of-power",
+          "label": "Staff of Power",
+          "maximum": {
+            "type": "constant",
+            "value": 20
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplMagicMissi",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Staff of Power"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool"
+        ]
+      }
+    }
+  }
+}

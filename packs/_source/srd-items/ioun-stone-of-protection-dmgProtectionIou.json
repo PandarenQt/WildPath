@@ -1,0 +1,44 @@
+{
+  "_id": "dmgProtectionIou",
+  "_key": "!items!dmgProtectionIou",
+  "name": "Ioun Stone of Protection",
+  "type": "gear",
+  "img": "icons/commodities/gems/gem-rough-ball-purple.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>See: Ioun Stone</em></p><p>When you take a Magic action to toss an <em>Ioun Stone</em> into the air, the stone orbits your head at a distance of 1d3 feet, conferring its benefit to you while doing so. You can have up to three <em>Ioun Stones</em> orbiting your head at the same time.</p><p>As a Utilize action, you can seize and stow any number of <em>Ioun Stones</em> orbiting your head. If your Attunement to an <em>Ioun Stone</em> ends while it's orbiting your head, the stone falls as though you had dropped it.</p><p>You gain a +1 bonus to Armor Class while this dusty-rose prism orbits your head.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "enhanced-protection-1-ac-1",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "defense.ac"
+          ],
+          "modifierType": "untyped",
+          "value": 1
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgProtectionIou",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

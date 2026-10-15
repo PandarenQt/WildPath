@@ -1,0 +1,31 @@
+{
+  "_id": "rvz6gQc3OcOMgIQz",
+  "_key": "!items!rvz6gQc3OcOMgIQz",
+  "name": "Crowbar",
+  "type": "gear",
+  "img": "icons/tools/hand/pickaxe-steel-white.webp",
+  "system": {
+    "active": false,
+    "description": "<p>Using a Crowbar gives you Advantage on Strength checks where the Crowbar's leverage can be applied.</p>",
+    "quantity": 1,
+    "weight": 5,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "rvz6gQc3OcOMgIQz",
+        "type": "loot",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

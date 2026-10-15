@@ -1,0 +1,35 @@
+{
+  "_id": "1dbl4b1313qxz000",
+  "_key": "!items!1dbl4b1313qxz000",
+  "name": "Wand of Fear",
+  "type": "gear",
+  "img": "icons/weapons/staves/staff-animal-skull-horned.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Wand, Rare (Requires Attunement)</em></p><p>This wand has 7 charges.</p><p><em><strong>Spells.</strong></em> While holding the wand, you can cast one of the spells (save DC 15) on the following table from it. The table indicates how many charges you must expend to cast the spell.</p><table><thead><tr><th><p>Spell</p></th><th><p>Charge Cost</p></th><th></th></tr></thead><tbody><tr><td><p>Command (\"flee\" or \"grovel\" only)</p></td><td><p>1</p></td><td></td></tr><tr><td><p>Fear (60-foot Cone)</p></td><td><p>3</p></td><td></td></tr></tbody></table><p><em><strong>Regaining Charges.</strong></em> The wand regains 1d6 + 1 expended charges daily at dawn. If you expend the wand's last charge, roll 1d20. On a 1, the wand crumbles into ashes and is destroyed.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgWandOfFear000",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (attack): using it spends its cost; its description says the rest",
+          "uses: a partial recovery refills the whole pool",
+          "not automated (save): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "_id": "dmgEversmokingBo",
+  "_key": "!items!dmgEversmokingBo",
+  "name": "Eversmoking Bottle",
+  "type": "action",
+  "img": "icons/commodities/tech/smoke-bomb-purple.webp",
+  "system": {
+    "active": true,
+    "description": "<div><p><em>Wondrous Item, Uncommon</em></p></div><p>As a Magic action, you can open or close this bottle.</p><p>Opening the bottle causes thick smoke to billow out, forming a cloud that fills a 60-foot Emanation originating from the bottle. The area within the smoke is HeavilyObscured.</p><p>Each minute the bottle remains open, the size of the Emanation increases by 10 feet until it reaches its maximum size of 120 feet.</p><p>Closing the bottle causes the cloud to become fixed in place until it disperses after 10 minutes. A strong wind (such as that created by the <em>Gust of Wind</em> spell) disperses the cloud after 1 minute.</p><section class=\"secret\" id=\"secret-O7B8LCiiU4CnDjQw\"><p><strong>Foundry Note</strong></p><p>The scaling slider of the <strong>Open Bottle</strong> activity controls the size of the created Emanation from 60 feet at scaling value 1 to 120 feet at scaling value 7 (increments of 10 feet).</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-eversmoking-bottle-open-bottle",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Eversmoking Bottle"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgEversmokingBo",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "area: 50 + @scaling * 10-ft radius is not supported; the user picks the targets"
+        ]
+      }
+    }
+  }
+}

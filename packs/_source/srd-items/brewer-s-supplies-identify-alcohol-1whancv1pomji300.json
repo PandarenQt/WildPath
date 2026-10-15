@@ -1,0 +1,43 @@
+{
+  "_id": "1whancv1pomji300",
+  "_key": "!items!1whancv1pomji300",
+  "name": "Brewer's Supplies (Identify Alcohol)",
+  "type": "action",
+  "img": "icons/consumables/plants/herb-marjoram-basil-oregano-leaf-bunch-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p class=\"phb-meta\"><strong>Ability:</strong> Intelligence</p><p class=\"phb-meta\"><strong>Utilize:</strong> Detect poisoned drink (DC 15), or identify alcohol (DC 10)</p><p class=\"phb-meta\"><strong>Craft:</strong> Antitoxin</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-brewer-s-supplies-identify-alcohol",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Brewer's Supplies (Identify Alcohol)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbtulBrewersSup",
+        "type": "tool",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (check): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

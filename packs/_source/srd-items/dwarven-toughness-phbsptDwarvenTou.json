@@ -21,7 +21,9 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "effect: \"Dwarven Toughness\" change system.attributes.hp.bonuses.level (add) not converted"
+        ]
       }
     }
   }

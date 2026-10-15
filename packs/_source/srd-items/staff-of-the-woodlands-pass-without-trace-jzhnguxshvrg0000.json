@@ -1,0 +1,100 @@
+{
+  "_id": "jzhnguxshvrg0000",
+  "_key": "!items!jzhnguxshvrg0000",
+  "name": "Staff of the Woodlands: Pass without Trace",
+  "type": "action",
+  "img": "icons/creatures/mammals/humanoid-cat-skulking-teal.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You radiate a concealing aura in a 30-foot Emanation for the duration. While in the aura, you and each creature you choose have a +10 bonus to Dexterity (Stealth) check checks and leave no tracks.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-staff-of-the-woodlands-pass-without-trace-pass-without-trace",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "staff-of-the-woodlands",
+            "amount": 2
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Concealed",
+          "img": "icons/magic/nature/stealth-hide-beast-eyes-green.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "concealed-1",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "check.stealth"
+                ],
+                "modifierType": "untyped",
+                "value": 10
+              }
+            }
+          ],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        }
+      ],
+      "label": "Staff of the Woodlands: Pass without Trace"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "staff-of-the-woodlands-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "staff-of-the-woodlands",
+          "label": "Staff of the Woodlands",
+          "maximum": {
+            "type": "constant",
+            "value": 6
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplPasswithou",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Staff of the Woodlands"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "_id": "dmgDmtThrone0000",
+  "_key": "!items!dmgDmtThrone0000",
+  "name": "Throne",
+  "type": "gear",
+  "img": "icons/commodities/treasure/brooch-crown-gold.webp",
+  "system": {
+    "active": false,
+    "description": "<p>You gain proficiency and Expertise in your choice of History, Insight, Intimidation, or Persuasion. In addition, you gain rightful ownership of a small keep somewhere in the world. However, the keep is currently home to one or more monsters, which must be cleared out before you can claim the keep as yours.</p><section id=\"secret-KpjqOSPJGy0Ec8YA\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>Unlike the other cards from the Deck, this item will <em>not</em> destroy itself upon use in order to serve as a symbol of ownership of the keep.</p></section>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgDmtThrone0000",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Card Effect\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

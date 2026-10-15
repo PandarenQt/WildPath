@@ -1,0 +1,101 @@
+{
+  "_id": "4f24a51dyn8s7000",
+  "_key": "!items!4f24a51dyn8s7000",
+  "name": "Fire Ring of Elemental Command: Burning Hands",
+  "type": "action",
+  "img": "icons/magic/fire/blast-jet-stream-embers-red.webp",
+  "system": {
+    "active": true,
+    "description": "<p>A thin sheet of flames shoots forth from you. Each creature in a 15-foot Cone makes a Dexterity saving throw, taking 3d6 Fire damage on a failed save or half as much damage on a successful one.</p><p>Flammable objects in the Cone that aren't being worn or carried start burning.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The damage increases by 1d6 for each spell slot level above 1.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-fire-ring-of-elemental-command-burning-hands",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "fire-ring-of-elemental-command",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "cone",
+        "size": {
+          "value": 15,
+          "unit": "ft"
+        }
+      },
+      "save": {
+        "ability": "agility",
+        "dc": {
+          "value": 18
+        }
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "dice",
+            "number": 3,
+            "faces": 6
+          },
+          "damageType": "fire",
+          "provenance": "spell-base",
+          "saveOutcomePolicy": {
+            "success": "half",
+            "failure": "full"
+          }
+        }
+      ],
+      "label": "Fire Ring of Elemental Command: Burning Hands"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "fire-ring-of-elemental-command-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "fire-ring-of-elemental-command",
+          "label": "Fire Ring of Elemental Command",
+          "maximum": {
+            "type": "constant",
+            "value": 5
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplBurningHan",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Fire Ring of Elemental Command"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool"
+        ]
+      }
+    }
+  }
+}

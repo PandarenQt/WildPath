@@ -1,0 +1,77 @@
+{
+  "_id": "bz4em1obtbsd0000",
+  "_key": "!items!bz4em1obtbsd0000",
+  "name": "Necklace of Prayer Beads: Guardian of Faith",
+  "type": "action",
+  "img": "icons/magic/holy/barrier-shield-winged-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p>A Large spectral guardian appears and hovers for the duration in an unoccupied space that you can see within range. The guardian occupies that space and is invulnerable, and it appears in a form appropriate for your deity or pantheon.</p><p>Any enemy that moves to a space within 10 feet of the guardian for the first time on a turn or starts its turn there makes a Dexterity saving throw, taking 20 Radiant damage on a failed save or half as much damage on a successful one. The guardian vanishes when it has dealt a total of 60 damage.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-necklace-of-prayer-beads-guardian-of-faith",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          },
+          {
+            "capability": "necklace-of-prayer-beads-phbsplguardianof",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 30,
+          "unit": "ft"
+        }
+      },
+      "summon": {
+        "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbsplGuardianof",
+        "count": 1,
+        "rounds": 4800,
+        "spellLevel": 4
+      },
+      "label": "Necklace of Prayer Beads: Guardian of Faith"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "necklace-of-prayer-beads-phbsplguardianof-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "necklace-of-prayer-beads-phbsplguardianof",
+          "label": "Necklace of Prayer Beads (Guardian of Faith)",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplGuardianof",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Necklace of Prayer Beads"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

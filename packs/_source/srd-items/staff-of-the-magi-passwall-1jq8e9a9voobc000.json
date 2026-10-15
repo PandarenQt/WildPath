@@ -1,0 +1,67 @@
+{
+  "_id": "1jq8e9a9voobc000",
+  "_key": "!items!1jq8e9a9voobc000",
+  "name": "Staff of the Magi: Passwall",
+  "type": "action",
+  "img": "icons/environment/wilderness/arch-stone.webp",
+  "system": {
+    "active": true,
+    "description": "<p>A passage appears at a point that you can see on a wooden, plaster, or stone surface (such as a wall, ceiling, or floor) within range and lasts for the duration. You choose the opening's dimensions: up to 5 feet wide, 8 feet tall, and 20 feet deep. The passage creates no instability in a structure surrounding it.</p><p>When the opening disappears, any creatures or objects still in the passage created by the spell are safely ejected to an unoccupied space nearest to the surface on which you cast the spell.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-staff-of-the-magi-passwall",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "staff-of-the-magi",
+            "amount": 5
+          }
+        ]
+      },
+      "label": "Staff of the Magi: Passwall"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "staff-of-the-magi-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "staff-of-the-magi",
+          "label": "Staff of the Magi",
+          "maximum": {
+            "type": "constant",
+            "value": 50
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplPasswall00",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Staff of the Magi"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool",
+          "not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

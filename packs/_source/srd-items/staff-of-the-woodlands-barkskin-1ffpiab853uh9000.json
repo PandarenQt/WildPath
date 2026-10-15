@@ -1,0 +1,69 @@
+{
+  "_id": "1ffpiab853uh9000",
+  "_key": "!items!1ffpiab853uh9000",
+  "name": "Staff of the Woodlands: Barkskin",
+  "type": "action",
+  "img": "icons/magic/nature/thorns-hand-glow-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You touch a willing creature. Until the spell ends, the target's skin assumes a bark-like appearance, and the target has an Armor Class of 17 if its AC is lower than that.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-staff-of-the-woodlands-barkskin-barkskin",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "staff-of-the-woodlands",
+            "amount": 2
+          }
+        ]
+      },
+      "label": "Staff of the Woodlands: Barkskin"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "staff-of-the-woodlands-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "staff-of-the-woodlands",
+          "label": "Staff of the Woodlands",
+          "maximum": {
+            "type": "constant",
+            "value": 6
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplBarkskin00",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Staff of the Woodlands"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool",
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Bark-like Skin\" change system.attributes.ac.min (upgrade) not converted",
+          "effect: \"Bark-like Skin\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

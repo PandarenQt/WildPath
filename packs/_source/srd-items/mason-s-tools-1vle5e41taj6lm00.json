@@ -1,0 +1,33 @@
+{
+  "_id": "1vle5e41taj6lm00",
+  "_key": "!items!1vle5e41taj6lm00",
+  "name": "Mason's Tools",
+  "type": "gear",
+  "img": "icons/tools/hand/hammer-and-nail.webp",
+  "system": {
+    "active": false,
+    "description": "<p class=\"phb-meta\"><strong>Ability:</strong> Strength</p><p class=\"phb-meta\"><strong>Utilize:</strong> Chisel a symbol or hole in stone (DC 10)</p><p class=\"phb-meta\"><strong>Craft:</strong> Block and Tackle</p>",
+    "quantity": 1,
+    "weight": 8,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbtulMasonsTool",
+        "type": "tool",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (check): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

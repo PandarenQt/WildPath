@@ -1,0 +1,37 @@
+{
+  "_id": "1jqwfr31ctv4qn00",
+  "_key": "!items!1jqwfr31ctv4qn00",
+  "name": "Tome of Understanding",
+  "type": "gear",
+  "img": "icons/sundries/books/book-turquoise-moon.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Wondrous Item, Very Rare</em></p><p>This book contains intuition and insight exercises, and its words are charged with magic. If you spend 48 hours over a period of 6 days or fewer studying the book's contents and practicing its guidelines, your Wisdom increases by 2, to a maximum of 30. The manual then loses its magic, but regains it in a century.</p><section class=\"secret\" id=\"secret-geGQeemrI6uIgb0R\"><p><strong>Foundry Note</strong></p><p>This item includes 48 max uses for tracking hours read.</p><p>The <strong>Read</strong> activity includes a scaling value that lets you enter the amount of hours you've read. Once you hit 48 you can use the included Active Effect to increase your Wisdom.</p><p>The <strong>Reset Progress</strong> activity resets your uses to 0 if you fail to complete the book within 6 days and need to start over.</p></section>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgTomeOfUnderst",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Understanding\" change system.abilities.wis.value (add) not converted",
+          "effect: \"Understanding\" change system.abilities.wis.max (upgrade) not converted",
+          "effect: \"Understanding\" (its own changes) not converted",
+          "\"Reset Progress\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

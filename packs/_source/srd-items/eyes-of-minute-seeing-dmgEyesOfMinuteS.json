@@ -1,0 +1,31 @@
+{
+  "_id": "dmgEyesOfMinuteS",
+  "_key": "!items!dmgEyesOfMinuteS",
+  "name": "Eyes of Minute Seeing",
+  "type": "gear",
+  "img": "icons/tools/scribal/spectacles-glasses.webp",
+  "system": {
+    "active": false,
+    "description": "<div><p><em>Wondrous Item, Uncommon</em></p></div><p>These crystal lenses fit over the eyes. While wearing them, your vision improves significantly out to a range of 1 foot, granting you Darkvision within that range and Advantage on Intelligence (Investigation) checks made to examine something within that range.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgEyesOfMinuteS",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

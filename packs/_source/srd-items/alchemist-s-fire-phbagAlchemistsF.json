@@ -1,0 +1,111 @@
+{
+  "_id": "phbagAlchemistsF",
+  "_key": "!items!phbagAlchemistsF",
+  "name": "Alchemist's Fire",
+  "type": "action",
+  "img": "icons/consumables/potions/bottle-round-label-cork-yellow.webp",
+  "system": {
+    "active": true,
+    "description": "<p>When you take the Attack action, you can replace one of your attacks with throwing a flask of Alchemist's Fire. Target one creature or object you can see within 20 feet of yourself. The target must succeed on a Dexterity saving throw (DC 8 plus your Dexterity modifier and Proficiency Bonus) or take 1d4 Fire damage and start Burning.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-alchemist-s-fire",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "alchemist-s-fire",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 20,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "save": {
+        "ability": "agility",
+        "dc": {
+          "valueExpression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 8
+              },
+              {
+                "type": "proficiency-bonus"
+              },
+              {
+                "type": "ability-modifier",
+                "ability": "agility"
+              }
+            ]
+          }
+        }
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "dice",
+            "number": 1,
+            "faces": 4
+          },
+          "damageType": "fire",
+          "provenance": "additional",
+          "saveOutcomePolicy": {
+            "success": "none",
+            "failure": "full"
+          }
+        }
+      ],
+      "label": "Alchemist's Fire"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "alchemist-s-fire-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "alchemist-s-fire",
+          "label": "Alchemist's Fire",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagAlchemistsF",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "effect: \"Burning.\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

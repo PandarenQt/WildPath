@@ -1,0 +1,69 @@
+{
+  "_id": "160hfrl1xh9b6900",
+  "_key": "!items!160hfrl1xh9b6900",
+  "name": "Ring of Shooting Stars: Faerie Fire",
+  "type": "action",
+  "img": "icons/magic/fire/projectile-meteor-salvo-strong-pink.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Objects in a 20-foot Cube within range are outlined in blue, green, or violet light (your choice). Each creature in the Cube is also outlined if it fails a Dexterity saving throw. For the duration, objects and affected creatures shed Dimlight in a 10-foot radius and can't benefit from the Invisible condition.</p><p>Attack rolls against an affected creature or object have Advantage if the attacker can see it.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-ring-of-shooting-stars-faerie-fire",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "ring-of-shooting-stars",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Ring of Shooting Stars: Faerie Fire"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "ring-of-shooting-stars-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "ring-of-shooting-stars",
+          "label": "Ring of Shooting Stars",
+          "maximum": {
+            "type": "constant",
+            "value": 6
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplFaerieFire",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Ring of Shooting Stars"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool",
+          "not automated (save): using it spends its cost; its description says the rest",
+          "effect: \"Outlined\" (its own changes) not converted",
+          "concentration: nothing it sustains was converted"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "_id": "dmgFwpBronzeGrif",
+  "_key": "!items!dmgFwpBronzeGrif",
+  "name": "Bronze Griffon",
+  "type": "action",
+  "img": "icons/commodities/bones/hurn-curved-yellow.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>See Figurine of Wondrous Power</em></p><p>This bronze statuette is of a griffon rampant. It can become a <strong>Griffon</strong> for up to 6 hours. Once it has been used, it can't be used again until 5 days have passed.</p><section class=\"secret\" id=\"secret-CyXRwZfsh4tOiRUf\"><p><strong>Foundry Note</strong></p><p>This item's limited uses represent the 5 days required before the figurine can be used again.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-bronze-griffon",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "bronze-griffon",
+            "amount": 5
+          }
+        ]
+      },
+      "label": "Bronze Griffon"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "bronze-griffon-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "bronze-griffon",
+          "label": "Bronze Griffon",
+          "maximum": {
+            "type": "constant",
+            "value": 5
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgFwpBronzeGrif",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (summon): using it spends its cost; its description says the rest",
+          "uses: a partial recovery refills the whole pool",
+          "summon: its creature is not among the converted creatures"
+        ]
+      }
+    }
+  }
+}

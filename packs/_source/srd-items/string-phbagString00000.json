@@ -1,0 +1,31 @@
+{
+  "_id": "phbagString00000",
+  "_key": "!items!phbagString00000",
+  "name": "String",
+  "type": "gear",
+  "img": "icons/tools/hand/needle-grey.webp",
+  "system": {
+    "active": false,
+    "description": "<p>String is 10 feet long. You can tie a knot in it as a Utilize action.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagString00000",
+        "type": "loot",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

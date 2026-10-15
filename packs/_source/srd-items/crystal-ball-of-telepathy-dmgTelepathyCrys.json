@@ -1,0 +1,36 @@
+{
+  "_id": "dmgTelepathyCrys",
+  "_key": "!items!dmgTelepathyCrys",
+  "name": "Crystal Ball of Telepathy",
+  "type": "gear",
+  "img": "icons/commodities/treasure/crystal-ball-blue-purple.webp",
+  "system": {
+    "active": false,
+    "description": "<div><p><em>Wondrous Item, Legendary (Requires Attunement)</em></p></div><p>While touching this crystal orb, you can cast <em>Scrying</em> (save DC 17) with it. In addition, you can communicate telepathically with creatures you can see within 30 feet of the spell's sensor. You can also cast <em>Suggestion</em> (save DC 17) through the sensor on one of those creatures. You don't need to concentrate on this <em>Suggestion</em> to maintain it during its duration, but it ends if <em>Scrying</em> ends. You can't cast <em>Suggestion</em> in this way again until the next dawn.</p>",
+    "quantity": 1,
+    "weight": 1,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgTelepathyCrys",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (save): using it spends its cost; its description says the rest",
+          "activation: 10 minute is not an action-economy cost",
+          "concentration: nothing it sustains was converted",
+          "\"Create Sensor\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

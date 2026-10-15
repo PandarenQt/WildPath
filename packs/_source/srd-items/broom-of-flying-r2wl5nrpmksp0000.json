@@ -1,0 +1,40 @@
+{
+  "_id": "r2wl5nrpmksp0000",
+  "_key": "!items!r2wl5nrpmksp0000",
+  "name": "Broom of Flying",
+  "type": "gear",
+  "img": "icons/tools/hand/broom-straw-brown.webp",
+  "system": {
+    "active": false,
+    "description": "<div><p><em>Wondrous Item, Uncommon (Requires Attunement)</em></p></div><p>This wooden broom functions like a mundane broom until you stand astride it and take a Magic action to make it hover beneath you, at which time it can be ridden in the air. It has a Fly Speed of 50 feet. It can carry up to 400 pounds, but its Fly Speed becomes 30 feet while carrying over 200 pounds. The broom stops hovering when you land or when you're no longer riding it.</p><p>As a Magic action, you can send the broom to travel alone to a destination within 1 mile of you if you name the location and are familiar with it. The broom comes back to you when you take a Magic action and use a command word if the broom is still within 1 mile of you.</p>",
+    "quantity": 1,
+    "weight": 2,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgBroomOfFlying",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "effect: flying is not a WildPath condition yet",
+          "effect: \"Riding Broom (Low Weight)\" change system.attributes.movement.swim (override) not converted",
+          "effect: \"Riding Broom (Low Weight)\" change system.attributes.movement.burrow (override) not converted",
+          "effect: \"Riding Broom (Low Weight)\" change system.attributes.movement.climb (override) not converted",
+          "effect: \"Riding Broom (High Weight)\" change system.attributes.movement.swim (override) not converted",
+          "effect: \"Riding Broom (High Weight)\" change system.attributes.movement.burrow (override) not converted",
+          "effect: \"Riding Broom (High Weight)\" change system.attributes.movement.climb (override) not converted",
+          "not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

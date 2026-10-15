@@ -1,0 +1,110 @@
+{
+  "_id": "mqvwwnrai4qj0000",
+  "_key": "!items!mqvwwnrai4qj0000",
+  "name": "Necklace of Prayer Beads: Shining Smite",
+  "type": "action",
+  "img": "icons/skills/melee/strike-sword-dagger-runes-yellow.webp",
+  "system": {
+    "active": true,
+    "description": "<p>The target hit by the strike takes an extra 2d6 Radiant damage from the attack. Until the spell ends, the target sheds BrightLight in a 5-foot radius, attack rolls against it have Advantage, and it can't benefit from the Invisible condition.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The damage increases by 1d6 for each spell slot level above 2.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-necklace-of-prayer-beads-shining-smite",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "necklace-of-prayer-beads-phbsplshiningsmi",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "dice",
+            "number": 2,
+            "faces": 6
+          },
+          "damageType": "radiant",
+          "provenance": "spell-base"
+        }
+      ],
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Shining",
+          "img": "icons/magic/light/explosion-star-glow-silhouette.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "shining-1",
+              "type": "ConditionImmunity",
+              "data": {
+                "conditions": [
+                  "invisible"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        }
+      ],
+      "label": "Necklace of Prayer Beads: Shining Smite"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "necklace-of-prayer-beads-phbsplshiningsmi-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "necklace-of-prayer-beads-phbsplshiningsmi",
+          "label": "Necklace of Prayer Beads (Shining Smite)",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplShiningSmi",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Necklace of Prayer Beads"
+      },
+      "conversion": {
+        "notes": [
+          "effect: marked is not a WildPath condition yet"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "_id": "1v0kb6s1n57lr800",
+  "_key": "!items!1v0kb6s1n57lr800",
+  "name": "Cube of Force: Wall of Force",
+  "type": "action",
+  "img": "icons/magic/defensive/barrier-shield-dome-deflect-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p>An Invisible wall of force springs into existence at a point you choose within range. The wall appears in any orientation you choose, as a horizontal or vertical barrier or at an angle. It can be free floating or resting on a solid surface. You can form it into a hemispherical dome or a globe with a radius of up to 10 feet, or you can shape a flat surface made up of ten 10-foot-by-10-foot panels. Each panel must be contiguous with another panel. In any form, the wall is 1/4 inch thick and lasts for the duration. If the wall cuts through a creature's space when it appears, the creature is pushed to one side of the wall (you choose which side).</p><p>Nothing can physically pass through the wall. It is immune to all damage and can't be dispelled by <em>Dispel Magic.</em> A <em>Disintegrate</em> spell destroys the wall instantly, however. The wall also extends into the Ethereal Plane and blocks ethereal travel through the wall.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-cube-of-force-wall-of-force",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "cube-of-force",
+            "amount": 5
+          }
+        ]
+      },
+      "label": "Cube of Force: Wall of Force"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "cube-of-force-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "cube-of-force",
+          "label": "Cube of Force",
+          "maximum": {
+            "type": "constant",
+            "value": 10
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplWallofForc",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Cube of Force"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool",
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "concentration: nothing it sustains was converted"
+        ]
+      }
+    }
+  }
+}

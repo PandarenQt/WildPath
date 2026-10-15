@@ -1,0 +1,65 @@
+{
+  "_id": "dmgManualOfBodil",
+  "_key": "!items!dmgManualOfBodil",
+  "name": "Manual of Bodily Health (Read)",
+  "type": "action",
+  "img": "icons/sundries/books/book-red-square.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Wondrous Item, Very Rare</em></p><p>This book contains health and nutrition tips, and its words are charged with magic. If you spend 48 hours over a period of 6 days or fewer studying the book's contents and practicing its guidelines, your Constitution increases by 2, to a maximum of 30. The manual then loses its magic but regains it in a century.</p><section class=\"secret\" id=\"secret-SOm6BCXpqNkcxRCM\"><p><strong>Foundry Note</strong></p><p>This item includes 48 max uses for tracking hours read.</p><p>The <strong>Read</strong> activity includes a scaling value that lets you enter the amount of hours you've read. Once you hit 48 you can use the included Active Effect to increase your Constitution.</p><p>The <strong>Reset Progress</strong> activity resets your uses to 0 if you fail to complete the book within 6 days and need to start over.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-manual-of-bodily-health-read",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "manual-of-bodily-health",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Manual of Bodily Health (Read)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "manual-of-bodily-health-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "manual-of-bodily-health",
+          "label": "Manual of Bodily Health",
+          "maximum": {
+            "type": "constant",
+            "value": 48
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgManualOfBodil",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

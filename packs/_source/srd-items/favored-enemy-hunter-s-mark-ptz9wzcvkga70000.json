@@ -1,0 +1,79 @@
+{
+  "_id": "ptz9wzcvkga70000",
+  "_key": "!items!ptz9wzcvkga70000",
+  "name": "Favored Enemy: Hunter's Mark",
+  "type": "action",
+  "img": "icons/skills/targeting/crosshair-scope-sniper-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You magically mark one creature you can see within range as your quarry. Until the spell ends, you deal an extra 1d6 Force damage to the target whenever you hit it with an attack roll. You also have Advantage on any Wisdom (Perception) check or Wisdom (Survival) check check you make to find it.</p><p>If the target drops to 0 Hit Points before this spell ends, you can take a Bonus Action to move the mark to a new creature you can see within range.</p><p><strong>Using a Higher-Level Spell Slot.</strong> Your Concentration can last longer with a spell slot of level 3–4 (up to 8 hours) or 5+ (up to 24 hours).</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-favored-enemy-hunter-s-mark",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          },
+          {
+            "capability": "favored-enemy",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Favored Enemy: Hunter's Mark"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "favored-enemy-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "favored-enemy",
+          "label": "Favored Enemy",
+          "maximum": {
+            "type": "table",
+            "key": {
+              "type": "class-level",
+              "class": "ranger"
+            },
+            "rows": {
+              "1": 2,
+              "5": 3,
+              "9": 4,
+              "13": 5,
+              "17": 6
+            }
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbsplHuntersMar",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Favored Enemy"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: marked is not a WildPath condition yet",
+          "concentration: nothing it sustains was converted",
+          "\"Bonus Mark Damage\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

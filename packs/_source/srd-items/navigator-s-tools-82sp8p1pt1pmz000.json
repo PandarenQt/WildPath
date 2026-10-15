@@ -1,0 +1,33 @@
+{
+  "_id": "82sp8p1pt1pmz000",
+  "_key": "!items!82sp8p1pt1pmz000",
+  "name": "Navigator's Tools",
+  "type": "gear",
+  "img": "icons/tools/navigation/sextant-brass-brown.webp",
+  "system": {
+    "active": false,
+    "description": "<p class=\"phb-meta\"><strong>Ability:</strong> Wisdom</p><p class=\"phb-meta\"><strong>Utilize:</strong> Plot a course (DC 10), or determine position by stargazing (DC 15)</p>",
+    "quantity": 1,
+    "weight": 2,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbtulNavigators",
+        "type": "tool",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (check): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "_id": "dmgBroochOfShiel",
+  "_key": "!items!dmgBroochOfShiel",
+  "name": "Brooch of Shielding",
+  "type": "gear",
+  "img": "icons/equipment/neck/pendant-bronze-gem-blue.webp",
+  "system": {
+    "active": false,
+    "description": "<div><p><em>Wondrous Item, Uncommon (Requires Attunement)</em></p></div><p>While wearing this brooch, you have Resistance to Force damage, and you have Immunity to damage from the <em>Magic Missile</em> spell.</p>",
+    "quantity": 1,
+    "weight": 0.2,
+    "slot": "",
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "resistance-force-1",
+        "type": "GrantResistance",
+        "data": {
+          "damageTypes": [
+            "force"
+          ]
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgBroochOfShiel",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

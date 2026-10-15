@@ -1,0 +1,46 @@
+{
+  "_id": "dmgImmovableRod0",
+  "_key": "!items!dmgImmovableRod0",
+  "name": "Immovable Rod (Make Immovable)",
+  "type": "action",
+  "img": "icons/commodities/tech/pipe-lead-closed.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Rod, Uncommon</em></p><p>This iron rod has a button on one end. You can take a Utilize action to press the button, which causes the rod to become magically fixed in place. Until you or another creature takes a Utilize action to push the button again, the rod doesn't move, even if it defies gravity. The rod can hold up to 8,000 pounds of weight. More weight causes the rod to deactivate and fall. A creature can take a Utilize action to make a DC 30 Strength (Athletics) check, moving the fixed rod up to 10 feet on a successful check.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-immovable-rod-make-immovable",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Immovable Rod (Make Immovable)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgImmovableRod0",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

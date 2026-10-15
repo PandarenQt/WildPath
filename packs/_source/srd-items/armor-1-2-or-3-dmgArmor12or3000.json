@@ -1,0 +1,33 @@
+{
+  "_id": "dmgArmor12or3000",
+  "_key": "!items!dmgArmor12or3000",
+  "name": "Armor, +1, +2, or +3",
+  "type": "gear",
+  "img": "icons/equipment/chest/breastplate-gorget-steel-white.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Armor (Any Light, Medium, or Heavy), Rare (+1), Very Rare (+2), or Legendary (+3)</em></p><p>You have a bonus to Armor Class while wearing this armor. The bonus is determined by its rarity.</p><p></p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgArmor12or3000",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Armor, +1, +2, or +3\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

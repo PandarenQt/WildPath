@@ -1,0 +1,31 @@
+{
+  "_id": "yoRKNd2QddQp1XuX",
+  "_key": "!items!yoRKNd2QddQp1XuX",
+  "name": "Perfume",
+  "type": "gear",
+  "img": "icons/consumables/potions/bottle-bulb-corked-purple.webp",
+  "system": {
+    "active": false,
+    "description": "<p>Perfume comes in a 4-ounce vial. For 1 hour after applying Perfume to yourself, you have Advantage on Charisma (Persuasion) checks made to influence an Indifferent Humanoid within 5 feet of yourself.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "yoRKNd2QddQp1XuX",
+        "type": "loot",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

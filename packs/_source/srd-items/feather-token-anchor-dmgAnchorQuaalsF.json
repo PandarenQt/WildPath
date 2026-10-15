@@ -1,0 +1,66 @@
+{
+  "_id": "dmgAnchorQuaalsF",
+  "_key": "!items!dmgAnchorQuaalsF",
+  "name": "Feather Token (Anchor)",
+  "type": "action",
+  "img": "icons/commodities/materials/feather-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Wondrous Item, Uncommon, See: Feather Token</em></p><p>You can take a Magic action to touch the token to a boat or ship. For the next 24 hours, the vessel can't be moved by any means. Touching the token to the vessel again ends the effect. When the effect ends, the token disappears.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-feather-token-anchor-use",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "feather-token-anchor",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Feather Token (Anchor)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "feather-token-anchor-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "feather-token-anchor",
+          "label": "Feather Token (Anchor)",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgAnchorQuaalsF",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Anchor\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

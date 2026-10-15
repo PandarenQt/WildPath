@@ -1,0 +1,33 @@
+{
+  "_id": "otcb7c1xbzwdq000",
+  "_key": "!items!otcb7c1xbzwdq000",
+  "name": "Amulet of the Planes",
+  "type": "gear",
+  "img": "icons/equipment/neck/pendant-faceted-green.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Wondrous Item, Very Rare (Requires Attunement)</em></p><p>While wearing this amulet, you can take a Magic action to name a location that you are familiar with on another plane of existence. Then make a DC 15 Intelligence (Arcana) check. On a successful check, you cast Plane Shift . On a failed check, you and each creature and object within 15 feet of you travel to a random destination determined by rolling 1d100 and consulting the following table.</p><p></p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgAmuletOfThePl",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (check): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

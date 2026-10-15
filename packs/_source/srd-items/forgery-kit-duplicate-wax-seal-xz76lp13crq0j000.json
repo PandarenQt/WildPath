@@ -1,0 +1,43 @@
+{
+  "_id": "xz76lp13crq0j000",
+  "_key": "!items!xz76lp13crq0j000",
+  "name": "Forgery Kit (Duplicate Wax Seal)",
+  "type": "action",
+  "img": "icons/sundries/documents/envelope-sealed-red-tan.webp",
+  "system": {
+    "active": true,
+    "description": "<p class=\"phb-meta\"><strong>Ability:</strong> Dexterity</p><p class=\"phb-meta\"><strong>Utilize:</strong> Mimic 10 or fewer words of someone else's handwriting (DC 15), or duplicate a wax seal (DC 20)</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-forgery-kit-duplicate-wax-seal",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Forgery Kit (Duplicate Wax Seal)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbtulForgeryKit",
+        "type": "tool",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (check): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "_id": "dmgRingOfResista",
+  "_key": "!items!dmgRingOfResista",
+  "name": "Ring of Resistance",
+  "type": "action",
+  "img": "icons/equipment/finger/ring-faceted-gold-purple.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Ring, Rare</em></p><p>You have Resistance to one damage type while wearing this ring. The gemstone in the ring indicates the type, which the GM chooses or determines randomly by rolling on the following table.</p><p></p><p></p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-ring-of-resistance-ring-of-resistance",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Ring of Resistance"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgRingOfResista",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (enchant): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

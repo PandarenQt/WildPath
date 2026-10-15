@@ -1,0 +1,31 @@
+{
+  "_id": "phbagChest000000",
+  "_key": "!items!phbagChest000000",
+  "name": "Chest",
+  "type": "gear",
+  "img": "icons/containers/chest/chest-reinforced-steel-walnut-brown.webp",
+  "system": {
+    "active": false,
+    "description": "<p>A Chest holds up to 12 cubic feet of contents.</p>",
+    "quantity": 1,
+    "weight": 25,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagChest000000",
+        "type": "container",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

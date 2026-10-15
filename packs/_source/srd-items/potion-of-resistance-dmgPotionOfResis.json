@@ -1,0 +1,301 @@
+{
+  "_id": "dmgPotionOfResis",
+  "_key": "!items!dmgPotionOfResis",
+  "name": "Potion of Resistance",
+  "type": "action",
+  "img": "icons/consumables/potions/potion-bottle-labeled-medicine-capped-red-black.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Potion, Uncommon</em></p><p>When you drink this potion, you have Resistance to one type of damage for 1 hour. The GM chooses the type or determines it randomly by rolling on the following table.</p><p></p><section class=\"secret\" id=\"secret-yI26znYuybVCz6iX\"><p><strong>Foundry Note</strong></p><p>This item includes Active Effects for each type of resistance. Use the AE for the type of damage chosen by your DM.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-potion-of-resistance-drink-potion",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "potion-of-resistance",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Acid  Resistance",
+          "img": "systems/dnd5e/icons/svg/damage/acid.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "acid-resistance-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "acid"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-2",
+          "type": "effect",
+          "name": "Cold Resistance",
+          "img": "systems/dnd5e/icons/svg/damage/cold.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "cold-resistance-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "cold"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-3",
+          "type": "effect",
+          "name": "Fire Resistance",
+          "img": "systems/dnd5e/icons/svg/damage/fire.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "fire-resistance-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "fire"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-4",
+          "type": "effect",
+          "name": "Force Resistance",
+          "img": "systems/dnd5e/icons/svg/damage/force.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "force-resistance-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "force"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-5",
+          "type": "effect",
+          "name": "Lightning Resistance",
+          "img": "systems/dnd5e/icons/svg/damage/lightning.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "lightning-resistance-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "lightning"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-6",
+          "type": "effect",
+          "name": "Necrotic Resistance",
+          "img": "systems/dnd5e/icons/svg/damage/necrotic.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "necrotic-resistance-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "necrotic"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-7",
+          "type": "effect",
+          "name": "Poison Resistance",
+          "img": "systems/dnd5e/icons/svg/damage/poison.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "poison-resistance-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "poison"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-8",
+          "type": "effect",
+          "name": "Psychic Resistance",
+          "img": "systems/dnd5e/icons/svg/damage/psychic.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "psychic-resistance-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "psychic"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-9",
+          "type": "effect",
+          "name": "Radiant Resistance",
+          "img": "systems/dnd5e/icons/svg/damage/radiant.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "radiant-resistance-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "radiant"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-10",
+          "type": "effect",
+          "name": "Thunder Resistance",
+          "img": "systems/dnd5e/icons/svg/damage/thunder.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "thunder-resistance-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "thunder"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
+      "label": "Potion of Resistance"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "potion-of-resistance-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "potion-of-resistance",
+          "label": "Potion of Resistance",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgPotionOfResis",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

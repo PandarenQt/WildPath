@@ -1,0 +1,43 @@
+{
+  "_id": "1divoec77g7bi000",
+  "_key": "!items!1divoec77g7bi000",
+  "name": "Dragonchess (Play to Win)",
+  "type": "action",
+  "img": "icons/sundries/gaming/chess-knight-white.webp",
+  "system": {
+    "active": true,
+    "description": "<p><strong>Ability:</strong> Wisdom</p><p class=\"phb-meta\"><strong>Utilize:</strong> Discern whether someone is cheating (DC 10), or win the game (DC 20)</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-dragonchess-play-to-win",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Dragonchess (Play to Win)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbgstDragonches",
+        "type": "tool",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (check): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

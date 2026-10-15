@@ -1,0 +1,33 @@
+{
+  "_id": "2b3paccnm8hc0000",
+  "_key": "!items!2b3paccnm8hc0000",
+  "name": "Carpenter's Tools",
+  "type": "gear",
+  "img": "icons/tools/hand/saw-steel-grey.webp",
+  "system": {
+    "active": false,
+    "description": "<p class=\"phb-meta\"><strong>Ability:</strong> Strength</p><p class=\"phb-meta\"><strong>Utilize:</strong> Seal or pry open a door or container (DC 20)</p><p class=\"phb-meta\"><strong>Craft:</strong> Club, Greatclub, Quarterstaff, Barrel, Chest, Ladder, Pole, Portable Ram, Torch</p>",
+    "quantity": 1,
+    "weight": 6,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbtulCarpenters",
+        "type": "tool",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (check): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

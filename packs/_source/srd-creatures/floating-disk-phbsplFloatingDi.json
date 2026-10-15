@@ -57,11 +57,14 @@
       "_id": "KTWQy1Nv101ubAeN",
       "_key": "!actors.items!phbsplFloatingDi.KTWQy1Nv101ubAeN",
       "name": "Carry Weight Adjustment",
-      "type": "feature",
+      "type": "gear",
       "img": "icons/skills/social/trading-injustice-scale-gray.webp",
       "system": {
-        "active": true,
+        "active": false,
         "description": "<section id=\"secret-xvPfZzVKWfhDyIwx\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This item serves to offset the disk's computed carry weight capacity from 510 lbs. to 500 lbs. in accordance with the spell's description.</p></section>",
+        "quantity": 1,
+        "weight": 10,
+        "slot": "",
         "ruleElements": []
       },
       "flags": {

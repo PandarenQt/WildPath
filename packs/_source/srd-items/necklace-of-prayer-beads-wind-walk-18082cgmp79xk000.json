@@ -1,0 +1,129 @@
+{
+  "_id": "18082cgmp79xk000",
+  "_key": "!items!18082cgmp79xk000",
+  "name": "Necklace of Prayer Beads: Wind Walk",
+  "type": "action",
+  "img": "icons/magic/air/wind-weather-snow-gusts.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You and up to ten willing creatures of your choice within range assume gaseous forms for the duration, appearing as wisps of cloud. While in this cloud form, a target has a Fly Speed of 300 feet and can hover; it has Immunity to the Prone condition; and it has Resistance to Bludgeoning, Piercing, and Slashing damage. The only actions a target can take in this form are the Dash action or a Magic action to begin reverting to its normal form. Reverting takes 1 minute, during which the target has the Stunned condition. Until the spell ends, the target can revert to cloud form, which also requires a Magic action followed by a 1-minute transformation.</p><p>If a target is in cloud form and flying when the effect ends, the target descends 60 feet per round for 1 minute until it lands, which it does safely. If it can't land after 1 minute, it falls the remaining distance.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-necklace-of-prayer-beads-wind-walk",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          },
+          {
+            "capability": "necklace-of-prayer-beads-phbsplwindwalk00",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 30,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "multiple",
+        "required": true,
+        "count": 11,
+        "refinementPolicy": {
+          "minSelections": 1
+        }
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Cloud Form",
+          "img": "icons/magic/air/weather-clouds.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "cloud-form-1",
+              "type": "GrantMovement",
+              "data": {
+                "mode": "fly",
+                "distance": 300
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "cloud-form-2",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "bludgeoning",
+                  "piercing",
+                  "slashing"
+                ]
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "cloud-form-3",
+              "type": "ConditionImmunity",
+              "data": {
+                "conditions": [
+                  "prone"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 28800,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
+      "label": "Necklace of Prayer Beads: Wind Walk"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "necklace-of-prayer-beads-phbsplwindwalk00-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "necklace-of-prayer-beads-phbsplwindwalk00",
+          "label": "Necklace of Prayer Beads (Wind Walk)",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplWindWalk00",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Necklace of Prayer Beads"
+      },
+      "conversion": {
+        "notes": [
+          "activation: 1 minute is not an action-economy cost",
+          "effect: transformed is not a WildPath condition yet",
+          "effect: \"Cloud Form\" change system.attributes.movement.hover (override) not converted"
+        ]
+      }
+    }
+  }
+}

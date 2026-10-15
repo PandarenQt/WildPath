@@ -1,0 +1,95 @@
+{
+  "_id": "dmgWingedBoots00",
+  "_key": "!items!dmgWingedBoots00",
+  "name": "Winged Boots",
+  "type": "action",
+  "img": "icons/skills/movement/feet-winged-boots-brown.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Wondrous Item, Uncommon (Requires Attunement)</em></p><p>These boots have 4 charges and regain 1d4 expended charges daily at dawn. While wearing the boots, you can take a Magic action to expend 1 charge, gaining a Fly Speed of 30 feet for 1 hour. If you are flying when the duration expires, you descend at a rate of 30 feet per round until you land.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-winged-boots-fly",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "winged-boots",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Winged",
+          "img": "icons/magic/holy/angel-wings-gray.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "winged-1",
+              "type": "GrantMovement",
+              "data": {
+                "mode": "fly",
+                "distance": 30
+              }
+            }
+          ],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
+      "label": "Winged Boots"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "winged-boots-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "winged-boots",
+          "label": "Winged Boots",
+          "maximum": {
+            "type": "constant",
+            "value": 4
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgWingedBoots00",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool"
+        ]
+      }
+    }
+  }
+}

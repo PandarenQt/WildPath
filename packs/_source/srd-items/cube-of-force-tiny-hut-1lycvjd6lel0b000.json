@@ -1,0 +1,68 @@
+{
+  "_id": "1lycvjd6lel0b000",
+  "_key": "!items!1lycvjd6lel0b000",
+  "name": "Cube of Force: Tiny Hut",
+  "type": "action",
+  "img": "icons/environment/settlement/hut.webp",
+  "system": {
+    "active": true,
+    "description": "<p>A 10-foot Emanation springs into existence around you and remains stationary for the duration. The spell fails when you cast it if the Emanation isn't big enough to fully encapsulate all creatures in its area.</p><p>Creatures and objects within the Emanation when you cast the spell can move through it freely. All other creatures and objects are barred from passing through it. Spells of level 3 or lower can't be cast through it, and the effects of such spells can't extend into it.</p><p>The atmosphere inside the Emanation is comfortable and dry, regardless of the weather outside. Until the spell ends, you can command the interior to have Dimlight or Darkness (no action required). The Emanation is opaque from the outside and of any color you choose, but it's transparent from the inside.</p><p>The spell ends early if you leave the Emanation or if you cast it again.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-cube-of-force-tiny-hut",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "cube-of-force",
+            "amount": 3
+          }
+        ]
+      },
+      "label": "Cube of Force: Tiny Hut"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "cube-of-force-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "cube-of-force",
+          "label": "Cube of Force",
+          "maximum": {
+            "type": "constant",
+            "value": 10
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplLeomundsTi",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Cube of Force"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool",
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "activation: 1 minute is not an action-economy cost"
+        ]
+      }
+    }
+  }
+}

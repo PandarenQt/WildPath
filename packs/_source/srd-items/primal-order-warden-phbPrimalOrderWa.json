@@ -21,7 +21,10 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "effect: \"Primal Order: Warden\" change system.traits.armorProf.value (add) not converted",
+          "effect: \"Primal Order: Warden\" change system.traits.weaponProf.value (add) not converted"
+        ]
       }
     }
   }

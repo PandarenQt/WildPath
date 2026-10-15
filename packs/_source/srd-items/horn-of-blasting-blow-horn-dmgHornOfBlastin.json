@@ -1,0 +1,87 @@
+{
+  "_id": "dmgHornOfBlastin",
+  "_key": "!items!dmgHornOfBlastin",
+  "name": "Horn of Blasting (Blow Horn)",
+  "type": "action",
+  "img": "icons/tools/instruments/flute-simple-wood.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Wondrous Item, Rare</em></p><p>You can take a Magic action to blow the horn, which emits a thunderous blast in a 30-foot Cone that is audible out to 600 feet. Each creature in the Cone makes a DC 15 Constitution saving throw. On a failed save, a creature takes 5d8 Thunder damage and has the Deafened condition for 1 minute. On a successful save, a creature takes half as much damage only. Glass or crystal objects in the Cone that aren't being worn or carried take 10d8 Thunder damage.</p><p>Each use of the horn's magic has a 20 percent chance of causing the horn to explode. The explosion deals 10d6 Force damage to the user and destroys the horn.</p><section class=\"secret\" id=\"secret-rkHeC2mFJBKqNOh0\"><p><strong>Foundry Note</strong></p><p>The <strong>Roll for Explosion Chance</strong> activity will return 1 if it explodes otherwise it will return 0.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-horn-of-blasting-blow-horn",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "cone",
+        "size": {
+          "value": 30,
+          "unit": "ft"
+        }
+      },
+      "save": {
+        "ability": "fortitude",
+        "dc": {
+          "value": 15
+        }
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "dice",
+            "number": 5,
+            "faces": 8
+          },
+          "damageType": "thunder",
+          "provenance": "additional",
+          "saveOutcomePolicy": {
+            "success": "half",
+            "failure": "full"
+          }
+        }
+      ],
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "deafened",
+          "saveOutcomePolicy": "failure"
+        }
+      ],
+      "label": "Horn of Blasting (Blow Horn)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgHornOfBlastin",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "_id": "phbtulMasonsTool",
+  "_key": "!items!phbtulMasonsTool",
+  "name": "Mason's Tools",
+  "type": "action",
+  "img": "icons/tools/hand/hammer-and-nail.webp",
+  "system": {
+    "active": true,
+    "description": "<p class=\"phb-meta\"><strong>Ability:</strong> Strength</p><p class=\"phb-meta\"><strong>Utilize:</strong> Chisel a symbol or hole in stone (DC 10)</p><p class=\"phb-meta\"><strong>Craft:</strong> Block and Tackle</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-mason-s-tools-chisel-a-symbol-or-hole",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Mason's Tools"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbtulMasonsTool",
+        "type": "tool",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (check): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

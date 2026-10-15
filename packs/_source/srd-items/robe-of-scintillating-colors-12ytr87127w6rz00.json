@@ -1,0 +1,35 @@
+{
+  "_id": "12ytr87127w6rz00",
+  "_key": "!items!12ytr87127w6rz00",
+  "name": "Robe of Scintillating Colors",
+  "type": "gear",
+  "img": "icons/equipment/chest/robe-layered-red.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Wondrous Item, Very Rare (Requires Attunement)</em></p><p>This robe has 3 charges, and it regains 1d3 expended charges daily at dawn. While you wear it, you can take a Magic action and expend 1 charge to cause the garment to display a shifting pattern of dazzling hues until the end of your next turn.</p><p>During this time, the robe sheds Bright Light in a 30-foot radius and Dim Light for an additional 30 feet, and creatures that can see you have Disadvantage on attack rolls against you. Any creature in the Bright Light that can see you when the robe's power is activated must succeed on a DC 15 Wisdom saving throw or have the Stunned condition until the effect ends.</p><section class=\"secret\" id=\"secret-fHn9nt3cSF0lOwcT\"><p><strong>Foundry Note</strong></p><p>The <strong>Display Dazzling Hues</strong> activity includes a measured template which can be used for tracking the area of Bright Light.</p></section>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgRobeOfScintil",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "uses: a partial recovery refills the whole pool",
+          "\"save\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

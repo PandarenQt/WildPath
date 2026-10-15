@@ -1,0 +1,33 @@
+{
+  "_id": "dmgOilOfTaggit00",
+  "_key": "!items!dmgOilOfTaggit00",
+  "name": "Oil of Taggit",
+  "type": "gear",
+  "img": "icons/consumables/potions/potion-bottle-labeled-medicine-capped-red-black.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Contact Poison</em></p><p>A creature subjected to Oil of Taggit must succeed on a DC 13 Constitution saving throw or have the Poisoned condition for 24 hours. The creature also has the Unconscious condition while Poisoned in this way. It wakes up if it takes damage.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgOilOfTaggit00",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Use Poison\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

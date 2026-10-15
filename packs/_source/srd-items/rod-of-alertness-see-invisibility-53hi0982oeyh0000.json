@@ -1,0 +1,64 @@
+{
+  "_id": "53hi0982oeyh0000",
+  "_key": "!items!53hi0982oeyh0000",
+  "name": "Rod of Alertness: See Invisibility",
+  "type": "action",
+  "img": "icons/magic/perception/orb-eye-scrying.webp",
+  "system": {
+    "active": true,
+    "description": "<p>For the duration, you see creatures and objects that have the Invisible condition as if they were visible, and you can see into the Ethereal Plane. Creatures and objects there appear ghostly.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-rod-of-alertness-see-invisibility",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Rod of Alertness: See Invisibility"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "rod-of-alertness-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "rod-of-alertness",
+          "label": "Rod of Alertness",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplSeeInvisib",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Rod of Alertness"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"See Invisibility\" change system.attributes.senses.special (add) not converted",
+          "effect: \"See Invisibility\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

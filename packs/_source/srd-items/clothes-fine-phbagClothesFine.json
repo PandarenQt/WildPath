@@ -1,0 +1,31 @@
+{
+  "_id": "phbagClothesFine",
+  "_key": "!items!phbagClothesFine",
+  "name": "Clothes, Fine",
+  "type": "gear",
+  "img": "icons/equipment/back/cloak-collared-feathers-green.webp",
+  "system": {
+    "active": false,
+    "description": "<p>Fine Clothes are made of expensive fabrics and adorned with expertly crafted details. Some events and locations admit only people wearing these clothes.</p>",
+    "quantity": 1,
+    "weight": 6,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagClothesFine",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

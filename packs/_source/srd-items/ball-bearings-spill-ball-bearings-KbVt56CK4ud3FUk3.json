@@ -1,0 +1,91 @@
+{
+  "_id": "KbVt56CK4ud3FUk3",
+  "_key": "!items!KbVt56CK4ud3FUk3",
+  "name": "Ball Bearings (Spill Ball Bearings)",
+  "type": "action",
+  "img": "icons/weapons/ammunition/shot-round-brown.webp",
+  "system": {
+    "active": true,
+    "description": "<p>As a Utilize action, you can spill Ball Bearings from their pouch. They spread to cover a level, 10-foot-square area within 10 feet of yourself. A creature that enters this area for the first time on a turn must succeed on a DC 10 Dexterity saving throw or have the Prone condition. It takes 10 minutes to recover the Ball Bearings.</p><section id=\"secret-bbcC5syRGw0PCZnG\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>The <strong>Recover Ball Bearings</strong> activity grants another use of this item.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-ball-bearings-spill-ball-bearings",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "ball-bearings",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 10,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "cube",
+        "size": {
+          "value": 10,
+          "unit": "ft"
+        }
+      },
+      "save": {
+        "ability": "agility",
+        "dc": {
+          "value": 10
+        }
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "prone",
+          "saveOutcomePolicy": "failure"
+        }
+      ],
+      "label": "Ball Bearings (Spill Ball Bearings)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "ball-bearings-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "ball-bearings",
+          "label": "Ball Bearings",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "KbVt56CK4ud3FUk3",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

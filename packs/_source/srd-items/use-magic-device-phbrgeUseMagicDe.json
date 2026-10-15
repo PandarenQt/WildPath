@@ -21,7 +21,9 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "effect: \"Attunement Bonus\" change system.attributes.attunement.max (add) not converted"
+        ]
       }
     }
   }

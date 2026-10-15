@@ -56,7 +56,7 @@ const actors = [];
 const notes = [];
 for ( const pack of manifest.packs ?? [] ) {
   for ( const document of documents(pack) ) {
-    if ( (pack.type === "Item") && ["spell", "weapon", "feat"].includes(document.type) ) {
+    if ( (pack.type === "Item") && ["spell", "weapon", "feat", "equipment", "consumable", "tool", "loot", "container"].includes(document.type) ) {
       const result = convertItem(document, {...options, pack: pack.name});
       items.push(...result.items);
       notes.push([document.name, result.notes]);
@@ -79,7 +79,7 @@ if ( invalid.length || duplicates.length ) throw new Error(`Not written. Invalid
 // The package: its manifest and its two packs, compiled from JSON sources written in the work folder.
 rmSync(target, {recursive: true, force: true});
 mkdirSync(target, {recursive: true});
-const packs = [["items", "Item", items, `${manifest.title}: Spells, Weapons and Features`], ["creatures", "Actor", actors, `${manifest.title}: Creatures`]]
+const packs = [["items", "Item", items, `${manifest.title}: Spells, Equipment and Features`], ["creatures", "Actor", actors, `${manifest.title}: Creatures`]]
   .filter(([, , list]) => list.length);
 for ( const [name, , list] of packs ) {
   const folder = join(work, "out", name);
@@ -101,7 +101,7 @@ writeFileSync(join(target, "module.json"), `${JSON.stringify({
 writeFileSync(join(target, "conversion-notes.json"), JSON.stringify(Object.fromEntries(notes.filter(([, list]) => list.length)), null, 2));
 rmSync(work, {recursive: true, force: true});
 const kinds = items.reduce((total, item) => {
-  const kind = item.type === "feature" ? "feature" : (item.flags.wildpath.conversion.notes.some(note => note.startsWith("not automated")) ? "manual" : "automated");
+  const kind = ["feature", "gear"].includes(item.type) ? item.type : (item.flags.wildpath.conversion.notes.some(note => note.startsWith("not automated")) ? "manual" : "automated");
   return {...total, [kind]: (total[kind] ?? 0) + 1};
 }, {});
 console.log(`${target}: Items ${JSON.stringify(kinds)}, creatures ${actors.length}${existsSync(join(target, "module.json")) ? "" : " (no manifest!)"}`);

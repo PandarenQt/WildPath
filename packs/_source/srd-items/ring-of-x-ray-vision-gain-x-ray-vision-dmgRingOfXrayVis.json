@@ -1,0 +1,47 @@
+{
+  "_id": "dmgRingOfXrayVis",
+  "_key": "!items!dmgRingOfXrayVis",
+  "name": "Ring of X-ray Vision (Gain X-Ray Vision)",
+  "type": "action",
+  "img": "icons/equipment/finger/ring-eye-silver-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Ring, Rare (Requires Attunement)</em></p><p>While wearing this ring, you can take a Magic action to gain X-ray vision with a range of 30 feet for 1 minute. To you, solid objects within that radius appear transparent and don't prevent light from passing through them. The vision can penetrate 1 foot of stone, 1 inch of common metal, or up to 3 feet of wood or dirt. Thicker substances or a thin sheet of lead block the vision.</p><p>Whenever you use the ring again before taking a Long Rest, you must succeed on a DC 15 Constitution saving throw or gain 1 Exhaustion level.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-ring-of-x-ray-vision-gain-x-ray-vision",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Ring of X-ray Vision (Gain X-Ray Vision)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgRingOfXrayVis",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"X-Ray Vision\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

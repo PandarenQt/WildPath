@@ -1,0 +1,44 @@
+{
+  "_id": "dmgBracersOfDefe",
+  "_key": "!items!dmgBracersOfDefe",
+  "name": "Bracers of Defense",
+  "type": "gear",
+  "img": "icons/equipment/wrist/bracer-yellow-fancy.webp",
+  "system": {
+    "active": false,
+    "description": "<div><p><em>Wondrous Item, Rare (Requires Attunement)</em></p></div><p>While wearing these bracers, you gain a +2 bonus to Armor Class if you are wearing no armor and using no Shield.</p>",
+    "quantity": 1,
+    "weight": 1,
+    "slot": "",
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "bonus-ac-unarmored-1",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "defense.ac"
+          ],
+          "modifierType": "untyped",
+          "value": 2
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgBracersOfDefe",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

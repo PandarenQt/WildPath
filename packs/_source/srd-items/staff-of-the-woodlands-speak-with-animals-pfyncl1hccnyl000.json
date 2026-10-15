@@ -1,0 +1,69 @@
+{
+  "_id": "pfyncl1hccnyl000",
+  "_key": "!items!pfyncl1hccnyl000",
+  "name": "Staff of the Woodlands: Speak with Animals",
+  "type": "action",
+  "img": "icons/creatures/mammals/dog-husky-white-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p>For the duration, you can comprehend and verbally communicate with Beasts, and you can use any of the Influence action's skill options with them.</p><p>Most Beasts have little to say about topics that don't pertain to survival or companionship, but at minimum, a Beast can give you information about nearby locations and monsters, including whatever it has perceived within the past day.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-staff-of-the-woodlands-speak-with-animals-speak-with-animals",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "staff-of-the-woodlands",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Staff of the Woodlands: Speak with Animals"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "staff-of-the-woodlands-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "staff-of-the-woodlands",
+          "label": "Staff of the Woodlands",
+          "maximum": {
+            "type": "constant",
+            "value": 6
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplSpeakwithA",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Staff of the Woodlands"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool",
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Bestial Communication\" change system.traits.languages.custom (add) not converted",
+          "effect: \"Bestial Communication\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "_id": "phbarmChainShirt",
+  "_key": "!items!phbarmChainShirt",
+  "name": "Chain Shirt",
+  "type": "gear",
+  "img": "icons/equipment/chest/breastplate-scale-grey.webp",
+  "system": {
+    "active": false,
+    "description": "",
+    "quantity": 1,
+    "weight": 20,
+    "slot": "",
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "chain-shirt",
+        "type": "ArmorClass",
+        "data": {
+          "label": "Chain Shirt",
+          "armor": true,
+          "value": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 13
+              },
+              {
+                "type": "min",
+                "terms": [
+                  {
+                    "type": "ability-modifier",
+                    "ability": "agility"
+                  },
+                  {
+                    "type": "constant",
+                    "value": 2
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbarmChainShirt",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "_id": "phbagMagnifyingG",
+  "_key": "!items!phbagMagnifyingG",
+  "name": "Magnifying Glass",
+  "type": "gear",
+  "img": "icons/tools/scribal/magnifying-glass.webp",
+  "system": {
+    "active": false,
+    "description": "<p>A Magnifying Glass grants Advantage on any ability check made to appraise or inspect a highly detailed item. Lighting a fire with a Magnifying Glass requires light as bright as sunlight to focus, tinder to ignite, and about 5 minutes for the fire to ignite.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagMagnifyingG",
+        "type": "loot",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

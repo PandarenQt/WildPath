@@ -1,0 +1,120 @@
+{
+  "_id": "5cjznfy17obn0000",
+  "_key": "!items!5cjznfy17obn0000",
+  "name": "Staff of Swarming Insects: Insect Plague",
+  "type": "action",
+  "img": "icons/creatures/invertebrates/wasp-swarm-attack.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Swarming locusts fill a 20-foot-radius Sphere centered on a point you choose within range. The Sphere remains for the duration, and its area is LightlyObscured and DifficultTerrain.</p><p>When the swarm appears, each creature in it makes a Constitution saving throw, taking 4d10 Piercing damage on a failed save or half as much damage on a successful one. A creature also makes this save when it enters the spell's area for the first time on a turn or ends its turn there. A creature makes this save only once per turn.</p><p><strong>Using a Higher-Level Spell Slot.</strong>The damage increases by 1d10 for each spell slot level above 5.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-staff-of-swarming-insects-insect-plague",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "staff-of-swarming-insects",
+            "amount": 5
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 300,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "radial",
+        "size": {
+          "value": 20,
+          "unit": "ft"
+        }
+      },
+      "save": {
+        "ability": "fortitude",
+        "dc": {
+          "valueExpression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 8
+              },
+              {
+                "type": "proficiency-bonus"
+              },
+              {
+                "type": "spellcasting-modifier"
+              }
+            ]
+          }
+        }
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "dice",
+            "number": 4,
+            "faces": 10
+          },
+          "damageType": "piercing",
+          "provenance": "spell-base",
+          "saveOutcomePolicy": {
+            "success": "half",
+            "failure": "full"
+          }
+        }
+      ],
+      "label": "Staff of Swarming Insects: Insect Plague"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "staff-of-swarming-insects-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "staff-of-swarming-insects",
+          "label": "Staff of Swarming Insects",
+          "maximum": {
+            "type": "constant",
+            "value": 10
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplInsectPlag",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Staff of Swarming Insects"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool",
+          "concentration: nothing it sustains was converted"
+        ]
+      }
+    }
+  }
+}

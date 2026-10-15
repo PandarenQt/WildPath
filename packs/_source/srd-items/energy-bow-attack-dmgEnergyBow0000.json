@@ -38,8 +38,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (attack): using it spends its cost; its description says the rest",
-          "attack: +1 magic bonus not converted"
+          "not automated (attack): using it spends its cost; its description says the rest"
         ]
       }
     }

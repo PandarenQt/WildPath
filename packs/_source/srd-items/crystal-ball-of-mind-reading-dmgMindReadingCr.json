@@ -1,0 +1,37 @@
+{
+  "_id": "dmgMindReadingCr",
+  "_key": "!items!dmgMindReadingCr",
+  "name": "Crystal Ball of Mind Reading",
+  "type": "gear",
+  "img": "icons/commodities/materials/glass-orb-blue-gold.webp",
+  "system": {
+    "active": false,
+    "description": "<div><p><em>Wondrous Item, Legendary (Requires Attunement)</em></p></div><p>While touching this crystal orb, you can cast <em>Scrying</em> (save DC 17) with it. In addition, you can cast <em>Detect Thoughts</em> (save DC 17) targeting creatures you can see within 30 feet of the spell's sensor. You don't need to concentrate on this <em>Detect Thoughts</em> spell to maintain it during its duration, but it ends if the <em>Scrying</em> spell ends.</p>",
+    "quantity": 1,
+    "weight": 1,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgMindReadingCr",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (save): using it spends its cost; its description says the rest",
+          "activation: 10 minute is not an action-economy cost",
+          "concentration: nothing it sustains was converted",
+          "\"Create Sensor\" is passive or triggered: not automated",
+          "not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "_id": "dmgLanternOfReve",
+  "_key": "!items!dmgLanternOfReve",
+  "name": "Lantern of Revealing",
+  "type": "action",
+  "img": "icons/sundries/lights/lantern-iron-yellow.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Wondrous Item, Uncommon</em></p><p>While lit, this hooded lantern burns for 6 hours on 1 pint of oil, shedding Bright Light in a 30-foot radius and Dim Light for an additional 30 feet. Invisible creatures and objects are visible as long as they are in the lantern's Bright Light. You can take a Utilize action to lower the hood, reducing the lantern's light to Dim Light in a 5-foot radius.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-lantern-of-revealing-consume-oil",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "lantern-of-revealing",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Lantern of Revealing"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "lantern-of-revealing-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "lantern-of-revealing",
+          "label": "Lantern of Revealing",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgLanternOfReve",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

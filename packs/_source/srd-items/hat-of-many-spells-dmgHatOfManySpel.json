@@ -1,0 +1,46 @@
+{
+  "_id": "dmgHatOfManySpel",
+  "_key": "!items!dmgHatOfManySpel",
+  "name": "Hat of Many Spells",
+  "type": "gear",
+  "img": "icons/equipment/head/hat-pointed-leather-purple.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Wondrous Item, Very Rare (Requires Attunement by a Wizard)</em></p><p>This pointed hat has the following properties.</p><p><em><strong>Spellcasting Focus.</strong></em> While holding the hat, you can use it as a Spellcasting Focus for your Wizard spells. Any spell you cast using the hat gains a special Somatic component: you must reach into the hat and \"pull\" the spell out of it.</p><p><em><strong>Unknown Spell.</strong></em> While holding the hat, you can try to cast a level 1+ spell you don't know. The spell must be on the Wizard spell list, it must be of a level you can cast, and it can't have Material components costing more than 1,000 GP. Once you decide on the spell, you must expend a spell slot of the spell's level. Then, to determine whether you cast the spell, make an Intelligence (Arcana) check (DC 10 plus the spell's level). On a successful check, you cast the spell using its normal casting time, and you can't use this property again until you finish a Short or Long Rest. On a failed check, you fail to cast the spell and a random effect occurs instead, determined by rolling on the following table.</p><p>Any spell you cast from the hat uses your spell save DC and spell attack bonus.</p><details><summary>Roll Table</summary><p></p></details>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgHatOfManySpel",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Unknown Spell Check\" is passive or triggered: not automated",
+          "effect: \"Enlarged\" change system.rolls.damage.mwak.bonus (add) not converted",
+          "effect: \"Enlarged\" change system.rolls.damage.rwak.bonus (add) not converted",
+          "effect: \"Enlarged\" change system.traits.size (add) not converted",
+          "effect: \"Reduced\" change system.rolls.damage.mwak.bonus (subtract) not converted",
+          "effect: \"Reduced\" change system.rolls.damage.rwak.bonus (subtract) not converted",
+          "effect: \"Reduced\" change system.traits.size (subtract) not converted",
+          "not automated (save): using it spends its cost; its description says the rest",
+          "effect: \"Outlined\" (its own changes) not converted",
+          "concentration: nothing it sustains was converted",
+          "effect: \"Seeing Illusions\" (its own changes) not converted",
+          "\"Phantasm Damage\" is passive or triggered: not automated",
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "\"Start of Turn Save\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "_id": "dmgRingOfWaterWa",
+  "_key": "!items!dmgRingOfWaterWa",
+  "name": "Ring of Water Walking",
+  "type": "gear",
+  "img": "icons/equipment/finger/ring-faceted-gold-purple.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Ring, Uncommon</em></p><p>While wearing this ring, you cast Water Walk from it, targeting only yourself.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgRingOfWaterWa",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Water Walking\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

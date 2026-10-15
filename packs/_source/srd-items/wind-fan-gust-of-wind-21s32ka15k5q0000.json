@@ -1,0 +1,67 @@
+{
+  "_id": "21s32ka15k5q0000",
+  "_key": "!items!21s32ka15k5q0000",
+  "name": "Wind Fan: Gust of Wind",
+  "type": "action",
+  "img": "icons/magic/air/air-wave-gust-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p>A Line of strong wind 60 feet long and 10 feet wide blasts from you in a direction you choose for the duration. Each creature in the Line must succeed on a Strength saving throw or be pushed 15 feet away from you in a direction following the Line. A creature that ends its turn in the Line must make the same save.</p><p>Any creature in the Line must spend 2 feet of movement for every 1 foot it moves when moving closer to you.</p><p>The gust disperses gas or vapor, and it extinguishes candles and similar unprotected flames in the area. It causes protected flames, such as those of lanterns, to dance wildly and has a 50 percent chance to extinguish them.</p><p>As a Bonus Action on your later turns, you can change the direction in which the Line blasts from you.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-wind-fan-gust-of-wind-gust-of-wind",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "wind-fan",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Wind Fan: Gust of Wind"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "wind-fan-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "wind-fan",
+          "label": "Wind Fan",
+          "maximum": {
+            "type": "constant",
+            "value": 5
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplGustofWind",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Wind Fan"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (save): using it spends its cost; its description says the rest",
+          "concentration: nothing it sustains was converted"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "_id": "1gn9lzwqtdxtw000",
+  "_key": "!items!1gn9lzwqtdxtw000",
+  "name": "Wand of Fear: Fear",
+  "type": "action",
+  "img": "icons/magic/unholy/silhouette-robe-evil-glow.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Each creature in a 30-foot Cone must succeed on a Wisdom saving throw or drop whatever it is holding and have the Frightened condition for the duration.</p><p>A Frightened creature takes the Dash action and moves away from you by the safest route on each of its turns unless there is nowhere to move. If the creature ends its turn in a space where it doesn't have line of sight to you, the creature makes a Wisdom saving throw. On a successful save, the spell ends on that creature.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-wand-of-fear-fear",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "wand-of-fear",
+            "amount": 3
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "cone",
+        "size": {
+          "value": 30,
+          "unit": "ft"
+        }
+      },
+      "save": {
+        "ability": "wits",
+        "dc": {
+          "value": 15
+        }
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "frightened",
+          "saveOutcomePolicy": "failure",
+          "concentration": true
+        }
+      ],
+      "label": "Wand of Fear: Fear"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "wand-of-fear-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "wand-of-fear",
+          "label": "Wand of Fear",
+          "maximum": {
+            "type": "constant",
+            "value": 7
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplFear000000",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Wand of Fear"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool"
+        ]
+      }
+    }
+  }
+}

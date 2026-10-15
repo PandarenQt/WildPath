@@ -1,0 +1,89 @@
+{
+  "_id": "dmgPotionOfHeali",
+  "_key": "!items!dmgPotionOfHeali",
+  "name": "Potion of Healing",
+  "type": "action",
+  "img": "icons/consumables/potions/potion-tube-corked-red.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Potion, Common</em></p><p>You regain 2d4 + 2 Hit Points when you drink this potion.</p><p>Whatever its potency, the potion's red liquid glimmers when agitated.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-potion-of-healing-consume",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          },
+          {
+            "capability": "potion-of-healing",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "healing": [
+        {
+          "id": "healing-1",
+          "expression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "dice",
+                "number": 2,
+                "faces": 4
+              },
+              {
+                "type": "constant",
+                "value": 2
+              }
+            ]
+          },
+          "healingType": "healing"
+        }
+      ],
+      "label": "Potion of Healing"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "potion-of-healing-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "potion-of-healing",
+          "label": "Potion of Healing",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgPotionOfHeali",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

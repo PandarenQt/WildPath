@@ -1,0 +1,31 @@
+{
+  "_id": "phbagTent0000000",
+  "_key": "!items!phbagTent0000000",
+  "name": "Tent",
+  "type": "gear",
+  "img": "icons/environment/settlement/tent.webp",
+  "system": {
+    "active": false,
+    "description": "<p>A Tent sleeps up to two Small or Medium creatures.</p>",
+    "quantity": 1,
+    "weight": 20,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagTent0000000",
+        "type": "loot",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

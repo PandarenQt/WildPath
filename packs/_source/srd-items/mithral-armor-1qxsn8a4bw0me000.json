@@ -1,0 +1,33 @@
+{
+  "_id": "1qxsn8a4bw0me000",
+  "_key": "!items!1qxsn8a4bw0me000",
+  "name": "Mithral Armor",
+  "type": "gear",
+  "img": "icons/equipment/chest/breastplate-gorget-steel.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Armor (Any Medium or Heavy, Except Hide Armor), Uncommon</em></p><p>Mithral is a light, flexible metal. Armor made of this substance can be worn under normal clothes. If the armor normally imposes Disadvantage on Dexterity (Stealth) checks or has a Strength requirement, the mithral version of the armor doesn't.</p><p></p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgMithralArmor0",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (enchant): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

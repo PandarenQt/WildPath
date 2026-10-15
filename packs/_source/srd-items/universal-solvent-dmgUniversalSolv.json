@@ -1,0 +1,35 @@
+{
+  "_id": "dmgUniversalSolv",
+  "_key": "!items!dmgUniversalSolv",
+  "name": "Universal Solvent",
+  "type": "gear",
+  "img": "icons/consumables/potions/potion-bottle-corked-white.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Wondrous Item, Legendary</em></p><p>This tube holds milky liquid with a strong alcohol smell. When found, a tube contains 1d6 + 1 ounces.</p><p>You can take a Utilize action to pour 1 or more ounces of solvent from the tube onto a surface within reach. Each ounce instantly dissolves up to 1 square foot of adhesive it touches, including Sovereign Glue.</p><section class=\"secret\" id=\"secret-cCr2F0ctb7qvQ3x8\"><p><strong>Foundry Note</strong></p><p>This item includes 7 limited uses. The <strong>Determine Ounces</strong> activity can be used to determine the number of ounces equivalent to 1d6 + 1.</p><p>The <strong>Apply Solvent</strong> activity allows you to select the number of ounces you're applying.</p></section>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgUniversalSolv",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Determine Ounces\" is passive or triggered: not automated",
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "area: @scaling-ft square is not supported; the user picks the targets"
+        ]
+      }
+    }
+  }
+}

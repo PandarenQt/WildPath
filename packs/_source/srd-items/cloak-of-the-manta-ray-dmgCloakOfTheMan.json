@@ -1,0 +1,41 @@
+{
+  "_id": "dmgCloakOfTheMan",
+  "_key": "!items!dmgCloakOfTheMan",
+  "name": "Cloak of the Manta Ray",
+  "type": "gear",
+  "img": "icons/equipment/head/hood-cloth-teal-gold.webp",
+  "system": {
+    "active": false,
+    "description": "<div><p><em>Wondrous Item, Uncommon (Requires Attunement)</em></p></div><p>While wearing this cloak, you can breathe underwater, and you have a Swim Speed of 60 feet.</p>",
+    "quantity": 1,
+    "weight": 2,
+    "slot": "",
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "aquatic-bonuses-swimming-and-breathing-1",
+        "type": "GrantMovement",
+        "data": {
+          "mode": "swim",
+          "distance": 60
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgCloakOfTheMan",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

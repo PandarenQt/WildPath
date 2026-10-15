@@ -1,0 +1,33 @@
+{
+  "_id": "dmgDmtRuin000000",
+  "_key": "!items!dmgDmtRuin000000",
+  "name": "Ruin",
+  "type": "gear",
+  "img": "icons/environment/settlement/building-rubble.webp",
+  "system": {
+    "active": false,
+    "description": "<p>All forms of wealth that you carry or own, other than magic items, are lost to you. Portable property vanishes. Businesses, buildings, and land you own are lost in a way that alters reality the least. Any documentation that proves you should own something lost to this card also disappears.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgDmtRuin000000",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Card Effect\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

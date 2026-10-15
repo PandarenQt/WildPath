@@ -759,6 +759,54 @@
               }
             ]
           },
+          "range": {
+            "type": "touch",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Mage Armor",
+              "img": "icons/equipment/chest/breastplate-helmet-metal.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "mage-armor-1",
+                  "type": "ArmorClass",
+                  "data": {
+                    "label": "Mage Armor",
+                    "value": {
+                      "type": "add",
+                      "terms": [
+                        {
+                          "type": "constant",
+                          "value": 13
+                        },
+                        {
+                          "type": "ability-modifier",
+                          "ability": "agility"
+                        }
+                      ]
+                    }
+                  }
+                }
+              ],
+              "duration": {
+                "value": 28800,
+                "units": "seconds",
+                "expiry": "turnStart"
+              }
+            }
+          ],
           "label": "Mage Armor"
         },
         "ruleElements": []
@@ -776,11 +824,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "effect: \"Mage Armor\" change system.attributes.ac.calc (override) not converted",
-              "effect: \"Mage Armor\" (its own changes) not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -1496,8 +1540,6 @@
           "Spellcasting: concentration: nothing it sustains was converted",
           "Spellcasting: not automated (save): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Disguised\" (its own changes) not converted",
-          "Spellcasting: effect: \"Mage Armor\" change system.attributes.ac.calc (override) not converted",
-          "Spellcasting: effect: \"Mage Armor\" (its own changes) not converted",
           "Spellcasting: effect: \"Flight\" change system.attributes.movement.hover (override) not converted",
           "Spellcasting: cast: Lightning Bolt at level 7 is cast at its own level",
           "Spellcasting: cast: Cone of Cold at level 9 is cast at its own level",

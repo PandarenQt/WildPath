@@ -1,0 +1,31 @@
+{
+  "_id": "phbagLadder00000",
+  "_key": "!items!phbagLadder00000",
+  "name": "Ladder",
+  "type": "gear",
+  "img": "icons/sundries/misc/ladder-improvised.webp",
+  "system": {
+    "active": false,
+    "description": "<p>A Ladder is 10 feet tall. You must climb to move up or down it.</p>",
+    "quantity": 1,
+    "weight": 25,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagLadder00000",
+        "type": "loot",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

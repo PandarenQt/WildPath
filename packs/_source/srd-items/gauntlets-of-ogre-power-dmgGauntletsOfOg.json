@@ -1,0 +1,33 @@
+{
+  "_id": "dmgGauntletsOfOg",
+  "_key": "!items!dmgGauntletsOfOg",
+  "name": "Gauntlets of Ogre Power",
+  "type": "gear",
+  "img": "icons/equipment/hand/gauntlet-armored-steel-grey.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Wondrous Item, Uncommon (Requires Attunement)</em></p><p>Your Strength is 19 while you wear these gauntlets. They have no effect on you if your Strength is 19 or higher without them.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgGauntletsOfOg",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "effect: \"Ogre Strength\" change system.abilities.str.value (upgrade) not converted"
+        ]
+      }
+    }
+  }
+}

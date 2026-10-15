@@ -1,0 +1,66 @@
+{
+  "_id": "z6fwza271z2o0000",
+  "_key": "!items!z6fwza271z2o0000",
+  "name": "Golden Lions (Use Second Lion)",
+  "type": "action",
+  "img": "icons/commodities/claws/claw-bear-brown-grey.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>See Figurine of Wondrous Power</em></p><p>These gold statuettes of lions are always created in pairs. You can use one figurine or both simultaneously. Each can become a <strong>Lion</strong> for up to 1 hour. Once a lion has been used, it can't be used again until 7 days have passed.</p><section class=\"secret\" id=\"secret-e1wLN4czlgS5CpcW\"><p><strong>Foundry Note</strong></p><p>Each <strong>Use Lion</strong> activity has limited uses which represent the 7 days required before that particular paired figurine can be used again.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-golden-lions-use-second-lion",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "golden-lions-use-second-lion",
+            "amount": 7
+          }
+        ]
+      },
+      "label": "Golden Lions (Use Second Lion)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "golden-lions-use-second-lion-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "golden-lions-use-second-lion",
+          "label": "Golden Lions (Use Second Lion)",
+          "maximum": {
+            "type": "constant",
+            "value": 7
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgFwpGoldenLion",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (summon): using it spends its cost; its description says the rest",
+          "summon: its creature is not among the converted creatures"
+        ]
+      }
+    }
+  }
+}

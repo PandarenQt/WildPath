@@ -1,0 +1,108 @@
+{
+  "_id": "1qrk8tcffl0sm000",
+  "_key": "!items!1qrk8tcffl0sm000",
+  "name": "Fire Ring of Elemental Command: Wall of Fire",
+  "type": "action",
+  "img": "icons/magic/fire/flame-burning-fence.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You create a wall of fire on a solid surface within range. You can make the wall up to 60 feet long, 20 feet high, and 1 foot thick, or a ringed wall up to 20 feet in diameter, 20 feet high, and 1 foot thick. The wall is opaque and lasts for the duration.</p><p>When the wall appears, each creature in its area makes a Dexterity saving throw, taking 5d8 Fire damage on a failed save or half as much damage on a successful one.</p><p>One side of the wall, selected by you when you cast this spell, deals 5d8 Fire damage to each creature that ends its turn within 10 feet of that side or inside the wall. A creature takes the same damage when it enters the wall for the first time on a turn or ends its turn there. The other side of the wall deals no damage.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The damage increases by 1d8 for each spell slot level above 4.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-fire-ring-of-elemental-command-wall-of-fire",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "fire-ring-of-elemental-command",
+            "amount": 3
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 120,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "wall",
+        "size": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "save": {
+        "ability": "agility",
+        "dc": {
+          "value": 18
+        }
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "dice",
+            "number": 5,
+            "faces": 8
+          },
+          "damageType": "fire",
+          "provenance": "spell-base",
+          "saveOutcomePolicy": {
+            "success": "half",
+            "failure": "full"
+          }
+        }
+      ],
+      "label": "Fire Ring of Elemental Command: Wall of Fire"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "fire-ring-of-elemental-command-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "fire-ring-of-elemental-command",
+          "label": "Fire Ring of Elemental Command",
+          "maximum": {
+            "type": "constant",
+            "value": 5
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplWallofFire",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Fire Ring of Elemental Command"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool",
+          "concentration: nothing it sustains was converted",
+          "area: a cylinder's height is not modeled",
+          "\"damage\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

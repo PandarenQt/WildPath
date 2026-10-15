@@ -1,0 +1,63 @@
+{
+  "_id": "phbarmHideArmor0",
+  "_key": "!items!phbarmHideArmor0",
+  "name": "Hide Armor",
+  "type": "gear",
+  "img": "icons/equipment/chest/vest-cloth-tattered-tan.webp",
+  "system": {
+    "active": false,
+    "description": "",
+    "quantity": 1,
+    "weight": 12,
+    "slot": "",
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "hide-armor",
+        "type": "ArmorClass",
+        "data": {
+          "label": "Hide Armor",
+          "armor": true,
+          "value": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 12
+              },
+              {
+                "type": "min",
+                "terms": [
+                  {
+                    "type": "ability-modifier",
+                    "ability": "agility"
+                  },
+                  {
+                    "type": "constant",
+                    "value": 2
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbarmHideArmor0",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

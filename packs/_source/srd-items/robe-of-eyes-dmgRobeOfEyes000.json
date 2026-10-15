@@ -1,0 +1,36 @@
+{
+  "_id": "dmgRobeOfEyes000",
+  "_key": "!items!dmgRobeOfEyes000",
+  "name": "Robe of Eyes",
+  "type": "gear",
+  "img": "icons/equipment/head/hood-red.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Wondrous Item, Rare (Requires Attunement)</em></p><p>This robe is adorned with eyelike patterns. While you wear the robe, you gain the following benefits:</p><p><strong>All-Around Vision.</strong> The robe gives you Advantage on Wisdom (Perception) checks that rely on sight.</p><p><strong>Special Senses.</strong> You have Darkvision and Truesight, both with a range of 120 feet.</p><p><em><strong>Drawbacks.</strong></em> A<em> </em>Light spell cast on the robe or a Daylight spell cast within 5 feet of the robe gives you the Blinded condition for 1 minute. At the end of each of your turns, you make a Constitution saving throw (DC 11 for <em>Light</em> or DC 15 for <em>Daylight</em>), ending the condition on yourself on a success.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgRobeOfEyes000",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Light Save\" is passive or triggered: not automated",
+          "\"Daylight Save\" is passive or triggered: not automated",
+          "effect: \"Special Senses\" change system.attributes.senses.darkvision (upgrade) not converted",
+          "effect: \"Special Senses\" change system.attributes.senses.truesight (upgrade) not converted"
+        ]
+      }
+    }
+  }
+}

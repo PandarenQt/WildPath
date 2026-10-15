@@ -1,0 +1,51 @@
+{
+  "_id": "dj1rgczx2axq0000",
+  "_key": "!items!dj1rgczx2axq0000",
+  "name": "Earth Ring of Elemental Command",
+  "type": "gear",
+  "img": "icons/equipment/finger/ring-band-engraved-scrolls-silver.webp",
+  "system": {
+    "active": false,
+    "description": "<p>Ring, Legendary (Requires Attunement)</p><p>Each <em>Ring of Elemental Command</em> is linked to one of the four Elemental Planes. The GM chooses or randomly determines the linked plane. For example, a <em>Ring of Elemental Command</em> (air) is linked to the Elemental Plane of Air.</p><p>Every <em>Ring of Elemental Command</em> has the following two properties:</p><p><strong>Elemental Bane.</strong> While wearing the ring, you have Advantage on attack rolls against Elementals and they have Disadvantage on attack rolls against you.</p><p><strong>Elemental Compulsion.</strong> While wearing the ring, you can take a Magic action to try to compel an Elemental you see within 60 feet of yourself. The Elemental makes a DC 18 Wisdom saving throw. On a failed save, the Elemental has the Charmed condition until the start your next turn, and you determine what it does with its move and action on its next turn.</p><p><em><strong>Elemental Focus.</strong></em> While wearing the ring, you benefit from additional properties corresponding to the ring's linked Elemental Plane:</p><p><strong>Earth.</strong> You know Terran, and you have Resistance to Acid damage. Terrain composed of rubble, rocks, or dirt isn't Difficult Terrain for you. In addition, you can move through solid earth or rock as if those areas were Difficult Terrain without disturbing the matter through which you pass. If you end your turn in solid earth or rock, you are shunted out to the nearest unoccupied space you last occupied.</p><p><em><strong>Spellcasting.</strong></em> The ring has 5 charges and regains 1d4 + 1 expended charges daily at dawn. While wearing the ring, you can cast a spell from it. Choose the spell from the list of available spells based on the Elemental Plane the ring is linked to, as shown in the following table. The table indicates how many charges you must expend to cast the spell, which has a save DC of 18.</p><table><thead><tr><th style=\"min-width:50px\"><p>Plane</p></th><th><p>Spells (Charges)</p></th></tr></thead><tbody><tr><td><p>Earth</p></td><td><p>Earthquake (5 charges), Stone Shape (2 charges), Stoneskin (3 charges), Wall of Stone (3 charges)</p></td></tr></tbody></table>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "earth-focus-1",
+        "type": "GrantResistance",
+        "data": {
+          "damageTypes": [
+            "acid"
+          ]
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgEarthRingOfEl",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool",
+          "not automated (save): using it spends its cost; its description says the rest",
+          "concentration: nothing it sustains was converted",
+          "\"End of Turn Fissures\" is passive or triggered: not automated",
+          "\"Collapsing Structure Save\" is passive or triggered: not automated",
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Earth Focus\" change system.traits.languages.value (add) not converted",
+          "effect: \"Earth Focus\" change system.attributes.movement.ignoredDifficultTerrain (add) not converted"
+        ]
+      }
+    }
+  }
+}

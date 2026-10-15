@@ -1,0 +1,43 @@
+{
+  "_id": "1rxoob8mcx3zm000",
+  "_key": "!items!1rxoob8mcx3zm000",
+  "name": "Horn (Improvise a Song)",
+  "type": "action",
+  "img": "icons/tools/instruments/horn-flared-wood.webp",
+  "system": {
+    "active": true,
+    "description": "<p><strong>Ability:</strong> Charisma</p><p class=\"phb-meta\"><strong>Utilize:</strong> Play a known tune (DC 10), or improvise a song (DC 15)</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-horn-improvise-a-song",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Horn (Improvise a Song)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbmusHorn000000",
+        "type": "tool",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (check): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

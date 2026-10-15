@@ -1,0 +1,46 @@
+{
+  "_id": "dmgGlovesOfMissi",
+  "_key": "!items!dmgGlovesOfMissi",
+  "name": "Gloves of Missile Snaring",
+  "type": "action",
+  "img": "icons/equipment/hand/glove-tooled-leather-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Wondrous Item, Uncommon (Requires Attunement)</em></p><p>If you're hit by an attack roll made with a Ranged or Thrown weapon while wearing these gloves, you can take a Reaction to reduce the damage by 1d10 plus your Dexterity modifier if you have a free hand. If you reduce the damage to 0, you can catch the ammunition or weapon if it is small enough for you to hold in that hand.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-gloves-of-missile-snaring-snare-missile",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "reaction",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Gloves of Missile Snaring"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgGlovesOfMissi",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

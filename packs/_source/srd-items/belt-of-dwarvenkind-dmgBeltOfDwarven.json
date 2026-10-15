@@ -1,0 +1,31 @@
+{
+  "_id": "dmgBeltOfDwarven",
+  "_key": "!items!dmgBeltOfDwarven",
+  "name": "Belt of Dwarvenkind",
+  "type": "gear",
+  "img": "icons/equipment/waist/belt-armored-steel.webp",
+  "system": {
+    "active": false,
+    "description": "<div><p><em>Wondrous Item, Rare (Requires Attunement)</em></p></div><p>While wearing this belt, you gain the following benefits:</p><div class=\"def-block\"><p><strong>Dwarvish.</strong> You know Dwarvish.</p><p><strong>Friend of Dwarvenkind.</strong> You have Advantage on Charisma (Persuasion) checks made to interact with dwarves and duergar.</p><p><strong>Toughness.</strong> Your Constitution increases by 2, to a maximum of 20.</p></div><p>In addition, while attuned to the belt, you have a 50 percent chance each day at dawn of growing a full beard if you can grow one, or a thicker beard if you already have one.</p><p>If you aren't a dwarf or duergar, you gain the following additional benefits while wearing the belt:</p><div class=\"def-block\"><p><strong>Darkvision.</strong> You have Darkvision with a range of 60 feet.</p><p><strong>Resilience.</strong> You have Resistance to Poison damage. You also have Advantage on saving throws you make to avoid or end the Poisoned condition.</p></div>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgBeltOfDwarven",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

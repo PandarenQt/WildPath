@@ -1,0 +1,31 @@
+{
+  "_id": "phbagJug00000000",
+  "_key": "!items!phbagJug00000000",
+  "name": "Jug",
+  "type": "gear",
+  "img": "icons/containers/kitchenware/jug-terracotta-orange.webp",
+  "system": {
+    "active": false,
+    "description": "<p>A Jug holds up to 1 gallon.</p>",
+    "quantity": 1,
+    "weight": 4,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagJug00000000",
+        "type": "container",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

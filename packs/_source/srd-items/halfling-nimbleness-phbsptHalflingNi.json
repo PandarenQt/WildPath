@@ -21,7 +21,9 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "effect: \"Halfling Nimbleness\" change flags.dnd5e.halflingNimbleness (override) not converted"
+        ]
       }
     }
   }

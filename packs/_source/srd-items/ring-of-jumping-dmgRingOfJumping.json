@@ -1,0 +1,34 @@
+{
+  "_id": "dmgRingOfJumping",
+  "_key": "!items!dmgRingOfJumping",
+  "name": "Ring of Jumping",
+  "type": "gear",
+  "img": "icons/equipment/finger/ring-winged-gold-blue.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Ring, Uncommon (Requires Attunement)</em></p><p>While wearing this ring, you can cast Jump from it, but can target only yourself when you do so.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgRingOfJumping",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Jump\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "_id": "1kt9thw1qorh7c00",
+  "_key": "!items!1kt9thw1qorh7c00",
+  "name": "Poisoner's Kit",
+  "type": "gear",
+  "img": "icons/containers/bags/pouch-gold-green.webp",
+  "system": {
+    "active": false,
+    "description": "<p class=\"phb-meta\"><strong>Ability:</strong> Intelligence</p><p class=\"phb-meta\"><strong>Utilize:</strong> Detect a poisoned object (DC 10)</p><p class=\"phb-meta\"><strong>Craft:</strong> Basic Poison</p>",
+    "quantity": 1,
+    "weight": 2,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbtulPoisonersK",
+        "type": "tool",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (check): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

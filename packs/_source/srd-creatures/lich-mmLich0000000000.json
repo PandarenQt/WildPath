@@ -61,11 +61,14 @@
       "_id": "cWsXcEl8uW2q33U8",
       "_key": "!actors.items!mmLich0000000000.cWsXcEl8uW2q33U8",
       "name": "Component Pouch",
-      "type": "feature",
+      "type": "gear",
       "img": "icons/containers/bags/pouch-leather-pink.webp",
       "system": {
-        "active": true,
+        "active": false,
         "description": "<p>A Component Pouch is watertight and filled with compartments that hold all the free Material components of your spells.</p>",
+        "quantity": 1,
+        "weight": 2,
+        "slot": "",
         "ruleElements": []
       },
       "flags": {

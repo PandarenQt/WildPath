@@ -1,0 +1,67 @@
+{
+  "_id": "13ok1tq1uc5hnu00",
+  "_key": "!items!13ok1tq1uc5hnu00",
+  "name": "Cubic Gate: Plane Shift",
+  "type": "action",
+  "img": "icons/skills/targeting/target-glowing-yellow.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You and up to eight willing creatures who link hands in a circle are transported to a different plane of existence. You can specify a target destination in general terms, such as the City of Brass on the Elemental Plane of Fire or the palace of Dispater on the second level of the Nine Hells, and you appear in or near that destination, as determined by the DM.</p><p>Alternatively, if you know the sigil sequence of a teleportation circle on another plane of existence, this spell can take you to that circle. If the teleportation circle is too small to hold all the creatures you transported, they appear in the closest unoccupied spaces next to the circle.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-cubic-gate-plane-shift",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "cubic-gate",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Cubic Gate: Plane Shift"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "cubic-gate-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "cubic-gate",
+          "label": "Cubic Gate",
+          "maximum": {
+            "type": "constant",
+            "value": 3
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplPlaneShift",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Cubic Gate"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool",
+          "not automated (teleport): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

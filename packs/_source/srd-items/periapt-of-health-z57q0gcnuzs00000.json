@@ -1,0 +1,31 @@
+{
+  "_id": "z57q0gcnuzs00000",
+  "_key": "!items!z57q0gcnuzs00000",
+  "name": "Periapt of Health",
+  "type": "gear",
+  "img": "icons/equipment/neck/pendant-faceted-red.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Wondrous Item, Uncommon (Requires Attunement)</em></p><p>While wearing this pendant, you can take a Magic action to regain 2d4 + 2 Hit Points. Once used, this property can't be used again until the next dawn.</p><p>In addition, you have Advantage on saving throws to avoid or end the Poisoned condition while you wear this pendant.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgPeriaptOfHeal",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

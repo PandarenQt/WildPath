@@ -1,0 +1,109 @@
+{
+  "_id": "phbagHolyWater00",
+  "_key": "!items!phbagHolyWater00",
+  "name": "Holy Water",
+  "type": "action",
+  "img": "icons/consumables/potions/bottle-round-empty-glass.webp",
+  "system": {
+    "active": true,
+    "description": "<p>When you take the Attack action, you can replace one of your attacks with throwing a flask of Holy Water. Target one creature you can see within 20 feet of yourself. The target must succeed on a Dexterity saving throw (DC 8 plus your Dexterity modifier and Proficiency Bonus) or take 2d8 Radiant damage if it is a Fiend or an Undead.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-holy-water-throw",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "holy-water",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 20,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "save": {
+        "ability": "agility",
+        "dc": {
+          "valueExpression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 8
+              },
+              {
+                "type": "proficiency-bonus"
+              },
+              {
+                "type": "ability-modifier",
+                "ability": "agility"
+              }
+            ]
+          }
+        }
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "dice",
+            "number": 2,
+            "faces": 8
+          },
+          "damageType": "radiant",
+          "provenance": "additional",
+          "saveOutcomePolicy": {
+            "success": "none",
+            "failure": "full"
+          }
+        }
+      ],
+      "label": "Holy Water"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "holy-water-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "holy-water",
+          "label": "Holy Water",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagHolyWater00",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

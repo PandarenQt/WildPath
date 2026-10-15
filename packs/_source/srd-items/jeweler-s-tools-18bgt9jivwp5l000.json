@@ -1,0 +1,33 @@
+{
+  "_id": "18bgt9jivwp5l000",
+  "_key": "!items!18bgt9jivwp5l000",
+  "name": "Jeweler's Tools",
+  "type": "gear",
+  "img": "icons/commodities/gems/gem-rough-rose-teal.webp",
+  "system": {
+    "active": false,
+    "description": "<p class=\"phb-meta\"><strong>Ability:</strong> Intelligence</p><p class=\"phb-meta\"><strong>Utilize:</strong> Discern a gem's value (DC 15)</p><p class=\"phb-meta\"><strong>Craft:</strong> Arcane Focus, Holy Symbol</p>",
+    "quantity": 1,
+    "weight": 2,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbtulJewelersTo",
+        "type": "tool",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (check): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

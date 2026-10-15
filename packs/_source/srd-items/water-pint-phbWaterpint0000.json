@@ -1,0 +1,33 @@
+{
+  "_id": "phbWaterpint0000",
+  "_key": "!items!phbWaterpint0000",
+  "name": "Water (Pint)",
+  "type": "gear",
+  "img": "icons/magic/water/water-drop-swirl-blue.webp",
+  "system": {
+    "active": false,
+    "description": "<p>If you don't drink sufficient water, you risk Dehydration.</p>",
+    "quantity": 1,
+    "weight": 1,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbWaterpint0000",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Consume\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

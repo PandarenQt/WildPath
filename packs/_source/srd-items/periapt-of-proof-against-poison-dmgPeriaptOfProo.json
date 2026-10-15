@@ -1,0 +1,52 @@
+{
+  "_id": "dmgPeriaptOfProo",
+  "_key": "!items!dmgPeriaptOfProo",
+  "name": "Periapt of Proof against Poison",
+  "type": "gear",
+  "img": "icons/equipment/neck/necklace-hook-brown.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Wondrous Item, Rare (Requires Attunement)</em></p><p>This delicate silver chain has a brilliant-cut black gem pendant. While you wear it, you have Immunity to the Poisoned condition and Poison damage.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "protected-against-poison-1",
+        "type": "GrantImmunity",
+        "data": {
+          "damageTypes": [
+            "poison"
+          ]
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "protected-against-poison-2",
+        "type": "ConditionImmunity",
+        "data": {
+          "conditions": [
+            "poisoned"
+          ]
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgPeriaptOfProo",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

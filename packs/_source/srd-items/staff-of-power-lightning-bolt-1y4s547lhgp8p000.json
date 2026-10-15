@@ -1,0 +1,120 @@
+{
+  "_id": "1y4s547lhgp8p000",
+  "_key": "!items!1y4s547lhgp8p000",
+  "name": "Staff of Power: Lightning Bolt",
+  "type": "action",
+  "img": "icons/magic/lightning/bolt-strike-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p>A stroke of lightning forming a 100-foot-long, 5-foot-wide Line blasts out from you in a direction you choose. Each creature in the Line makes a Dexterity saving throw, taking 8d6 Lightning damage on a failed save or half as much damage on a successful one.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The damage increases by 1d6 for each spell slot level above 3.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-staff-of-power-lightning-bolt",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "staff-of-power",
+            "amount": 5
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "line",
+        "size": {
+          "value": 100,
+          "unit": "ft"
+        },
+        "width": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "save": {
+        "ability": "agility",
+        "dc": {
+          "valueExpression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 8
+              },
+              {
+                "type": "proficiency-bonus"
+              },
+              {
+                "type": "spellcasting-modifier"
+              }
+            ]
+          }
+        }
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "dice",
+            "number": 8,
+            "faces": 6
+          },
+          "damageType": "lightning",
+          "provenance": "spell-base",
+          "saveOutcomePolicy": {
+            "success": "half",
+            "failure": "full"
+          }
+        }
+      ],
+      "label": "Staff of Power: Lightning Bolt"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "staff-of-power-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "staff-of-power",
+          "label": "Staff of Power",
+          "maximum": {
+            "type": "constant",
+            "value": 20
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplLightningB",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Staff of Power"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool",
+          "cast: Lightning Bolt at level 5 is cast at its own level"
+        ]
+      }
+    }
+  }
+}

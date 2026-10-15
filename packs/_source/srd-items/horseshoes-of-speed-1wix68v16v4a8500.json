@@ -1,0 +1,31 @@
+{
+  "_id": "1wix68v16v4a8500",
+  "_key": "!items!1wix68v16v4a8500",
+  "name": "Horseshoes of Speed",
+  "type": "gear",
+  "img": "icons/tools/smithing/horseshoe-steel-blue.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Wondrous Item, Rare</em></p><p>These horseshoes come in a set of four. As a Magic action, you can touch one of the horseshoes to the hoof of a horse or similar creature, whereupon the horseshoe affixes itself to the hoof. Removing a horseshoe also takes a Magic action.</p><p>While all four horseshoes are attached to the same creature, its Speed is increased by 30 feet.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgHorseshoesOfS",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "_id": "dmgCrystalBall00",
+  "_key": "!items!dmgCrystalBall00",
+  "name": "Crystal Ball",
+  "type": "gear",
+  "img": "icons/commodities/materials/glass-orb.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Wondrous Item, Very Rare (Requires Attunement)</em></p><p>While touching this crystal orb, you can cast Scrying (save DC 17) with it.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgCrystalBall00",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (save): using it spends its cost; its description says the rest",
+          "activation: 10 minute is not an action-economy cost",
+          "concentration: nothing it sustains was converted",
+          "\"Create Sensor\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

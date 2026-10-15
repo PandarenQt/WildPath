@@ -33,7 +33,7 @@ Live (14.369, after the maintainer relaunched the world):
 
 ## SRD 5.2 packs (2026-10-14)
 
-**SRD 5.2: Spells, Weapons and Features** (`srd-items`, Items) and **SRD 5.2: Creatures** (`srd-creatures`,
+**SRD 5.2: Spells, Equipment and Features** (`srd-items`, Items) and **SRD 5.2: Creatures** (`srd-creatures`,
 Actors) are converted from dnd5e 6.0.2's 2024 compendiums by `scripts/content/convert-dnd5e-srd.mjs`. The mapping
 itself is `dnd5e-to-wildpath.mjs`.
 
@@ -210,6 +210,38 @@ Flyby on 6 and Regeneration on 4. The book packages convert the same way.
   - "If the target is a Large or smaller creature" becomes its `maxSize`. A push in "Success:" text is on a success.
   - Text with two distances, or a pull toward something else (Control Water's whirlpool), is left to the GM.
   - 15 SRD Actions push or pull, from Thunderwave to the Balor's Flame Whip.
+
+### Equipment and magic items (G7, 2026-10-15)
+
+dnd5e equipment, consumables, tools, loot and containers become WildPath gear (`type: "gear"`), carried but not
+equipped. Equipping it (`system.active`) turns its rules on.
+- **Armor** gets an `ArmorClass` rule (rule-elements.md): its AC plus its magic bonus, with the whole Agility
+  modifier for light armor, up to 2 for medium, none for heavy. A Shield is a `defense.ac` Modifier.
+  - Heavy armor's Strength requirement is a Speed Modifier: -10 feet below that Might score.
+  - Armor that gives Disadvantage on Stealth has a `RollMode` on `check.stealth`.
+  - Magic armor naming only its base (Dwarven Plate) gets that armor's kind. Armor of any kind ("Armor, +1, +2, or
+    +3", Mithral Armor) is left to the GM.
+- **Worn magic items** carry their passive effects' rules (a Cloak of Protection's +1 AC and saves). Disabled
+  effects, which dnd5e uses for variants, are left out. Features get their passive effects' rules the same way
+  (Unarmored Defense, the Defense fighting style).
+- **AC calculations** in effects become `ArmorClass` rules: Mage Armor, Draconic Resilience, and the Barbarian's,
+  Monk's and College of Dance's Unarmored Defense.
+- **Spells cast from items** are the spell's Action, named after the item ("Wand of Fireballs: Fireball"). They
+  spend the item's charges, and use its own save DC when it has one (DC 15), else the user's spell save DC.
+  162 SRD Actions.
+- **Weapons.** A Versatile weapon also has a two-handed Action rolling its larger die ("Longsword (Two-Handed)",
+  1d10; a Spear's d6 becomes a d8). A magic weapon's bonus is a Modifier on its own attack and damage rolls, and an
+  attack's own bonus one on its attack roll.
+- A potion or scroll is only its Actions; using one spends its single use.
+- Left by hand:
+  - an item's Actions are separate pack entries, usable whether or not the item is equipped;
+  - attunement is not tracked;
+  - charges recover in full on a long rest, not "1d6 + 1 at dawn";
+  - armor training (proficiency) is not checked.
+
+Live (two browsers, 14.369): Player1 equipped Chain Mail and a Shield (AC 13 to 18), cast Mage Armor, hit the
+Bandit Captain with Longsword (Two-Handed) for 1d10, and cast the Wand of Fireballs' Fireball: one charge spent, QA
+Saver saved and QA Failer failed.
 
 ### Effects with their own changes (G3)
 

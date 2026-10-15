@@ -134,9 +134,82 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "damage: versatile two-handed damage not converted"
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "4wmw796vdw4x0000",
+      "_key": "!actors.items!mmToughBoss00000.4wmw796vdw4x0000",
+      "name": "Warhammer (Two-Handed)",
+      "type": "action",
+      "img": "icons/weapons/hammers/hammer-drilling-spiked.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +5, reach 5 ft. Hit: 12 (2d8 + 3) Bludgeoning damage. If the target is a Large or smaller creature, the tough boss pushes the target up to 10 feet straight away from itself.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-warhammer-two-handed",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
             ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 10
+              },
+              "damageType": "bludgeoning",
+              "provenance": "weapon-base"
+            }
+          ],
+          "push": {
+            "distance": 10,
+            "maxSize": "large"
+          },
+          "label": "Warhammer (Two-Handed)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "iD5121TXziB6ZcSt",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
           }
         }
       }
@@ -348,9 +421,7 @@
         "challenge": 4
       },
       "conversion": {
-        "notes": [
-          "Warhammer: damage: versatile two-handed damage not converted"
-        ]
+        "notes": []
       }
     }
   }

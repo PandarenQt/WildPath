@@ -1,0 +1,79 @@
+{
+  "_id": "dmgEfreetiBottle",
+  "_key": "!items!dmgEfreetiBottle",
+  "name": "Efreeti Bottle (Remove Stopper)",
+  "type": "action",
+  "img": "icons/consumables/potions/potion-flask-corked-orange.webp",
+  "system": {
+    "active": true,
+    "description": "<div><p><em>Wondrous Item, Very Rare</em></p></div><p>When you take a Magic action to remove the stopper of this painted brass bottle, a cloud of thick smoke flows out of it. At the end of your turn, the smoke disappears with a flash of harmless fire, and an <strong>Efreeti</strong> appears in an unoccupied space within 30 feet of you.</p><p></p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-efreeti-bottle-remove-stopper",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "efreeti-bottle-remove-stopper",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Efreeti Bottle (Remove Stopper)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "efreeti-bottle-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "efreeti-bottle",
+          "label": "Efreeti Bottle",
+          "maximum": {
+            "type": "constant",
+            "value": 4
+          },
+          "recovery": "none"
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "efreeti-bottle-remove-stopper-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "efreeti-bottle-remove-stopper",
+          "label": "Efreeti Bottle (Remove Stopper)",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgEfreetiBottle",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

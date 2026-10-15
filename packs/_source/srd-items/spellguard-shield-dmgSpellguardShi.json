@@ -1,0 +1,44 @@
+{
+  "_id": "dmgSpellguardShi",
+  "_key": "!items!dmgSpellguardShi",
+  "name": "Spellguard Shield",
+  "type": "gear",
+  "img": "icons/equipment/shield/kite-wooden-sigil-purple.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Armor (Shield), Very Rare (Requires Attunement)</em></p><p>While holding this Shield, you have Advantage on saving throws against spells and other magical effects, and spell attack rolls have Disadvantage against you.</p>",
+    "quantity": 1,
+    "weight": 6,
+    "slot": "",
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "spellguard-shield",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "defense.ac"
+          ],
+          "modifierType": "untyped",
+          "value": 2
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgSpellguardShi",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

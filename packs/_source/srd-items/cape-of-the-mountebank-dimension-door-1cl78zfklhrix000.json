@@ -1,0 +1,62 @@
+{
+  "_id": "1cl78zfklhrix000",
+  "_key": "!items!1cl78zfklhrix000",
+  "name": "Cape of the Mountebank: Dimension Door",
+  "type": "action",
+  "img": "icons/environment/wilderness/portal.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You teleport to a location within range. You arrive at exactly the spot desired. It can be a place you can see, one you can visualize, or one you can describe by stating distance and direction, such as \"200 feet straight downward\" or \"300 feet upward to the northwest at a 45-degree angle.\"</p><p>You can also teleport one willing creature. The creature must be within 5 feet of you when you teleport, and it teleports to a space within 5 feet of your destination space.</p><p>If you, the other creature, or both would arrive in a space occupied by a creature or completely filled by one or more objects, you and any creature traveling with you each take 4d6 Force damage, and the teleportation fails.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-cape-of-the-mountebank-dimension-door",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Cape of the Mountebank: Dimension Door"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "cape-of-the-mountebank-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "cape-of-the-mountebank",
+          "label": "Cape of the Mountebank",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplDimensionD",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Cape of the Mountebank"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (teleport): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

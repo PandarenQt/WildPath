@@ -1,0 +1,49 @@
+{
+  "_id": "7h096e1ugrlwu000",
+  "_key": "!items!7h096e1ugrlwu000",
+  "name": "Helm of Comprehending Languages: Comprehend Languages",
+  "type": "action",
+  "img": "icons/sundries/documents/document-writing-pink.webp",
+  "system": {
+    "active": true,
+    "description": "<p>For the duration, you understand the literal meaning of any language that you hear or see signed. You also understand any written language that you see, but you must be touching the surface on which the words are written. It takes about 1 minute to read one page of text. This spell doesn't decode symbols or secret messages.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-helm-of-comprehending-languages-comprehend-languages",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Helm of Comprehending Languages: Comprehend Languages"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplComprehend",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Helm of Comprehending Languages"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Comprehension\" change system.traits.languages.value (add) not converted",
+          "effect: \"Comprehension\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

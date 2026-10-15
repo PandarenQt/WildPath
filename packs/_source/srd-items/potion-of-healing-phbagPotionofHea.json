@@ -1,0 +1,95 @@
+{
+  "_id": "phbagPotionofHea",
+  "_key": "!items!phbagPotionofHea",
+  "name": "Potion of Healing",
+  "type": "action",
+  "img": "icons/consumables/potions/potion-tube-corked-red.webp",
+  "system": {
+    "active": true,
+    "description": "<p>This potion is a magic item. As a Bonus Action, you can drink it or administer it to another creature within 5 feet of yourself. The creature that drinks the magical red fluid in this vial regains 2d4 + 2 Hit Points.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-potion-of-healing",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          },
+          {
+            "capability": "potion-of-healing",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "touch",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "healing": [
+        {
+          "id": "healing-1",
+          "expression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "dice",
+                "number": 2,
+                "faces": 4
+              },
+              {
+                "type": "constant",
+                "value": 2
+              }
+            ]
+          },
+          "healingType": "healing"
+        }
+      ],
+      "label": "Potion of Healing"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "potion-of-healing-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "potion-of-healing",
+          "label": "Potion of Healing",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagPotionofHea",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

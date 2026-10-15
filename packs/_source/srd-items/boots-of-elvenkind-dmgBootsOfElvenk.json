@@ -1,0 +1,33 @@
+{
+  "_id": "dmgBootsOfElvenk",
+  "_key": "!items!dmgBootsOfElvenk",
+  "name": "Boots of Elvenkind",
+  "type": "gear",
+  "img": "icons/equipment/feet/boots-pointed-cloth-green.webp",
+  "system": {
+    "active": false,
+    "description": "<div><p><em>Wondrous Item, Uncommon</em></p></div><p>While you wear these boots, your steps make no sound, regardless of the surface you are moving across. You also have Advantage on Dexterity (Stealth) checks.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgBootsOfElvenk",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "effect: \"Boots of Elvenkind\" change  (add) not converted"
+        ]
+      }
+    }
+  }
+}

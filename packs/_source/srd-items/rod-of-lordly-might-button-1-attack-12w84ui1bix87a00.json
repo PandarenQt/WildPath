@@ -62,7 +62,44 @@
       ],
       "label": "Rod of Lordly Might (Button 1 Attack)"
     },
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "magic-attack",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "attack"
+          ],
+          "modifierType": "untyped",
+          "value": 3
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "magic-damage",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "damage"
+          ],
+          "modifierType": "untyped",
+          "value": 3
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "attack-bonus",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "attack"
+          ],
+          "modifierType": "untyped",
+          "value": -3
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -76,10 +113,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "attack: bonus \"-3\" not converted",
-          "attack: +3 magic bonus not converted"
-        ]
+        "notes": []
       }
     }
   }

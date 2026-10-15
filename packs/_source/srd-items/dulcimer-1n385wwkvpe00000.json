@@ -1,0 +1,33 @@
+{
+  "_id": "1n385wwkvpe00000",
+  "_key": "!items!1n385wwkvpe00000",
+  "name": "Dulcimer",
+  "type": "gear",
+  "img": "icons/tools/instruments/lute-gold-brown.webp",
+  "system": {
+    "active": false,
+    "description": "<p><strong>Ability:</strong> Charisma</p><p class=\"phb-meta\"><strong>Utilize:</strong> Play a known tune (DC 10), or improvise a song (DC 15)</p>",
+    "quantity": 1,
+    "weight": 10,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbmusDulcimer00",
+        "type": "tool",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (check): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

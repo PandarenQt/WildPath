@@ -1,0 +1,69 @@
+{
+  "_id": "966k61z2hn1h0000",
+  "_key": "!items!966k61z2hn1h0000",
+  "name": "Cube of Force: Private Sanctum",
+  "type": "action",
+  "img": "icons/environment/wilderness/cave-entrance-dwarven-hill.webp",
+  "system": {
+    "active": true,
+    "description": "<div><p>You make an area within range magically secure. The area is a Cube that can be as small as 5 feet to as large as 100 feet on each side. The spell lasts for the duration.</p><p>When you cast the spell, you decide what sort of security the spell provides, choosing any of the following properties:</p><ul><li>Sound can't pass through the barrier at the edge of the warded area.</li><li>The barrier of the warded area appears dark and foggy, preventing vision (including Darkvision) through it.</li><li>Sensors created by Divination spells can't appear inside the protected area or pass through the barrier at its perimeter.</li><li>Creatures in the area can't be targeted by Divination spells.</li><li>Nothing can teleport into or out of the warded area.</li><li>Planar travel is blocked within the warded area.</li></ul><p>Casting this spell on the same spot every day for 365 days makes the spell last until dispelled.</p><p><strong>Using a Higher-Level Spell Slot.</strong> You can increase the size of the Cube by 100 feet for each spell slot level above 4.</p></div>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-cube-of-force-private-sanctum",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "cube-of-force",
+            "amount": 4
+          }
+        ]
+      },
+      "label": "Cube of Force: Private Sanctum"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "cube-of-force-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "cube-of-force",
+          "label": "Cube of Force",
+          "maximum": {
+            "type": "constant",
+            "value": 10
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbPrivateSanctu",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Cube of Force"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool",
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "activation: 10 minute is not an action-economy cost",
+          "area: 100 * @item.level - 300-ft cube is not supported; the user picks the targets"
+        ]
+      }
+    }
+  }
+}

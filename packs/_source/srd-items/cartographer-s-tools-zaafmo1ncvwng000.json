@@ -1,0 +1,33 @@
+{
+  "_id": "zaafmo1ncvwng000",
+  "_key": "!items!zaafmo1ncvwng000",
+  "name": "Cartographer's Tools",
+  "type": "gear",
+  "img": "icons/tools/navigation/map-chart-tan.webp",
+  "system": {
+    "active": false,
+    "description": "<p class=\"phb-meta\"><strong>Ability:</strong> Wisdom</p><p class=\"phb-meta\"><strong>Utilize:</strong> Draft a map of a small area (DC 15)</p><p class=\"phb-meta\"><strong>Craft:</strong> Map</p>",
+    "quantity": 1,
+    "weight": 6,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbtulCartograph",
+        "type": "tool",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (check): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

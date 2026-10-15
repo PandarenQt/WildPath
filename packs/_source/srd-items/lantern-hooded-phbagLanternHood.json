@@ -1,0 +1,62 @@
+{
+  "_id": "phbagLanternHood",
+  "_key": "!items!phbagLanternHood",
+  "name": "Lantern, Hooded",
+  "type": "action",
+  "img": "icons/sundries/lights/lantern-steel.webp",
+  "system": {
+    "active": true,
+    "description": "<p>A Hooded Lantern burns Oil as fuel to cast Bright Light in a 30-foot radius and Dim Light for an additional 30 feet. As a Bonus Action, you can lower the hood, reducing the light to Dim Light in a 5-foot radius, or raise it again.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-lantern-hooded-light",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "lantern-hooded",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Lantern, Hooded"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "lantern-hooded-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "lantern-hooded",
+          "label": "Lantern, Hooded",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagLanternHood",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

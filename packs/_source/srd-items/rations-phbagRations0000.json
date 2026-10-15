@@ -1,0 +1,62 @@
+{
+  "_id": "phbagRations0000",
+  "_key": "!items!phbagRations0000",
+  "name": "Rations",
+  "type": "action",
+  "img": "icons/consumables/food/berries-ration-round-red.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Rations consist of travel-ready food, including jerky, dried fruit, hardtack, and nuts. See Malnutrition in the rules glossary for the risks of not eating.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-rations-consume",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "rations",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Rations"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "rations-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "rations",
+          "label": "Rations",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagRations0000",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

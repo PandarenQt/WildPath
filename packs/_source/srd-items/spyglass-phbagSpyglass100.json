@@ -1,0 +1,31 @@
+{
+  "_id": "phbagSpyglass100",
+  "_key": "!items!phbagSpyglass100",
+  "name": "Spyglass",
+  "type": "gear",
+  "img": "icons/tools/navigation/spyglass-telescope-brass.webp",
+  "system": {
+    "active": false,
+    "description": "<p>Objects viewed through a Spyglass are magnified to twice their size.</p>",
+    "quantity": 1,
+    "weight": 1,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagSpyglass100",
+        "type": "loot",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

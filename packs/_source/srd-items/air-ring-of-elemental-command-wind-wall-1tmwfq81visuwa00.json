@@ -1,0 +1,106 @@
+{
+  "_id": "1tmwfq81visuwa00",
+  "_key": "!items!1tmwfq81visuwa00",
+  "name": "Air Ring of Elemental Command: Wind Wall",
+  "type": "action",
+  "img": "icons/magic/air/wind-tornado-funnel-damage-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p>A wall of strong wind rises from the ground at a point you choose within range. You can make the wall up to 50 feet long, 15 feet high, and 1 foot thick. You can shape the wall in any way you choose so long as it makes one continuous path along the ground. The wall lasts for the duration.</p><p>When the wall appears, each creature in its area makes a Strength saving throw, taking 4d8 Bludgeoning damage on a failed save or half as much damage on a successful one.</p><p>The strong wind keeps fog, smoke, and other gases at bay. Small or smaller flying creatures or objects can't pass through the wall. Loose, lightweight materials brought into the wall fly upward. Arrows, bolts, and other ordinary projectiles launched at targets behind the wall are deflected upward and miss automatically. Boulders hurled by Giants or siege engines, and similar projectiles, are unaffected. Creatures in gaseous form can't pass through it.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-air-ring-of-elemental-command-wind-wall",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "air-ring-of-elemental-command",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 120,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "wall",
+        "size": {
+          "value": 50,
+          "unit": "ft"
+        }
+      },
+      "save": {
+        "ability": "might",
+        "dc": {
+          "value": 18
+        }
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "dice",
+            "number": 4,
+            "faces": 8
+          },
+          "damageType": "bludgeoning",
+          "provenance": "spell-base",
+          "saveOutcomePolicy": {
+            "success": "half",
+            "failure": "full"
+          }
+        }
+      ],
+      "label": "Air Ring of Elemental Command: Wind Wall"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "air-ring-of-elemental-command-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "air-ring-of-elemental-command",
+          "label": "Air Ring of Elemental Command",
+          "maximum": {
+            "type": "constant",
+            "value": 5
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplWindWall00",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Air Ring of Elemental Command"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool",
+          "concentration: nothing it sustains was converted"
+        ]
+      }
+    }
+  }
+}

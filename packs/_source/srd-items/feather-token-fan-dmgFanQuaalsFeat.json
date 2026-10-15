@@ -1,0 +1,66 @@
+{
+  "_id": "dmgFanQuaalsFeat",
+  "_key": "!items!dmgFanQuaalsFeat",
+  "name": "Feather Token (Fan)",
+  "type": "action",
+  "img": "icons/commodities/materials/feather-colored-red.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Wondrous Item, Uncommon, See: Feather Token</em></p><p>If you are on a boat or ship, you can take a Magic action to toss the token up to 10 feet in the air. The token disappears, and a giant flapping fan takes its place. The fan floats and creates a strong wind. This wind can fill the sails of one ship, increasing its speed by 5 miles per hour for 8 hours. You can dismiss the fan as a Magic action.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-feather-token-fan-use",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "feather-token-fan",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Feather Token (Fan)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "feather-token-fan-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "feather-token-fan",
+          "label": "Feather Token (Fan)",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgFanQuaalsFeat",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Feather Token: Fan\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

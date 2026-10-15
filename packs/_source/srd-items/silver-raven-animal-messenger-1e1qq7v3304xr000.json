@@ -1,0 +1,64 @@
+{
+  "_id": "1e1qq7v3304xr000",
+  "_key": "!items!1e1qq7v3304xr000",
+  "name": "Silver Raven: Animal Messenger",
+  "type": "action",
+  "img": "icons/creatures/mammals/rabbit-movement-glowing-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p>A Tiny Beast of your choice that you can see within range must succeed on a Charisma saving throw, or it attempts to deliver a message for you (if the target's Challenge Rating isn't 0, it automatically succeeds). You specify a location you have visited and a recipient who matches a general description, such as \"a person dressed in the uniform of the town guard\" or \"a red-haired dwarf wearing a pointed hat.\" You also communicate a message of up to twenty-five words. The Beast travels for the duration toward the specified location, covering about 25 miles per 24 hours or 50 miles if the Beast can fly.</p><p>When the Beast arrives, it delivers your message to the creature that you described, mimicking your communication. If the Beast doesn't reach its destination before the spell ends, the message is lost, and the Beast returns to where you cast the spell.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The spell's duration increases by 48 hours for each spell slot level above 2.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-silver-raven-animal-messenger",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Silver Raven: Animal Messenger"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "silver-raven-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "silver-raven",
+          "label": "Silver Raven",
+          "maximum": {
+            "type": "constant",
+            "value": 2
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplAnimalMess",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Silver Raven"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool",
+          "not automated (save): using it spends its cost; its description says the rest",
+          "effect: \"Carrying Message\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

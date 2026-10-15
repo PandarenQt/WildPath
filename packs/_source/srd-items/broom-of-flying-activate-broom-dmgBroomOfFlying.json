@@ -1,0 +1,117 @@
+{
+  "_id": "dmgBroomOfFlying",
+  "_key": "!items!dmgBroomOfFlying",
+  "name": "Broom of Flying (Activate Broom)",
+  "type": "action",
+  "img": "icons/tools/hand/broom-straw-brown.webp",
+  "system": {
+    "active": true,
+    "description": "<div><p><em>Wondrous Item, Uncommon (Requires Attunement)</em></p></div><p>This wooden broom functions like a mundane broom until you stand astride it and take a Magic action to make it hover beneath you, at which time it can be ridden in the air. It has a Fly Speed of 50 feet. It can carry up to 400 pounds, but its Fly Speed becomes 30 feet while carrying over 200 pounds. The broom stops hovering when you land or when you're no longer riding it.</p><p>As a Magic action, you can send the broom to travel alone to a destination within 1 mile of you if you name the location and are familiar with it. The broom comes back to you when you take a Magic action and use a command word if the broom is still within 1 mile of you.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-broom-of-flying-activate-broom",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Riding Broom (Low Weight)",
+          "img": "icons/tools/hand/broom-straw-brown.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "riding-broom-low-weight-1",
+              "type": "GrantMovement",
+              "data": {
+                "mode": "fly",
+                "distance": 50
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "riding-broom-low-weight-2",
+              "type": "ResourceCap",
+              "data": {
+                "resources": [
+                  "movement"
+                ],
+                "maximum": 0
+              }
+            }
+          ]
+        },
+        {
+          "id": "effect-2",
+          "type": "effect",
+          "name": "Riding Broom (High Weight)",
+          "img": "icons/tools/hand/broom-straw-brown.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "riding-broom-high-weight-1",
+              "type": "GrantMovement",
+              "data": {
+                "mode": "fly",
+                "distance": 30
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "riding-broom-high-weight-2",
+              "type": "ResourceCap",
+              "data": {
+                "resources": [
+                  "movement"
+                ],
+                "maximum": 0
+              }
+            }
+          ]
+        }
+      ],
+      "label": "Broom of Flying (Activate Broom)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgBroomOfFlying",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "effect: flying is not a WildPath condition yet",
+          "effect: \"Riding Broom (Low Weight)\" change system.attributes.movement.swim (override) not converted",
+          "effect: \"Riding Broom (Low Weight)\" change system.attributes.movement.burrow (override) not converted",
+          "effect: \"Riding Broom (Low Weight)\" change system.attributes.movement.climb (override) not converted",
+          "effect: flying is not a WildPath condition yet",
+          "effect: \"Riding Broom (High Weight)\" change system.attributes.movement.swim (override) not converted",
+          "effect: \"Riding Broom (High Weight)\" change system.attributes.movement.burrow (override) not converted",
+          "effect: \"Riding Broom (High Weight)\" change system.attributes.movement.climb (override) not converted"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "_id": "dmgAmuletOfHealt",
+  "_key": "!items!dmgAmuletOfHealt",
+  "name": "Amulet of Health",
+  "type": "gear",
+  "img": "icons/equipment/neck/pendant-faceted-red.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Wondrous Item, Rare (Requires Attunement)</em></p><p>Your Constitution is 19 while you wear this amulet. It has no effect on you if your Constitution is 19 or higher without it.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgAmuletOfHealt",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "effect: \"Upgraded Constitution\" change system.abilities.con.value (upgrade) not converted"
+        ]
+      }
+    }
+  }
+}

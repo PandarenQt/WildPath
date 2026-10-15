@@ -1,0 +1,179 @@
+{
+  "_id": "y7mu7512u8rdv000",
+  "_key": "!items!y7mu7512u8rdv000",
+  "name": "Potion of Diminution: Enlarge/Reduce",
+  "type": "action",
+  "img": "icons/consumables/mushrooms/mushroom-spotted-red.webp",
+  "system": {
+    "active": true,
+    "description": "<p>For the duration, the spell enlarges or reduces a creature or an object you can see within range (see the chosen effect below). A targeted object must be neither worn nor carried. If the target is an unwilling creature, it can make a Constitution saving throw. On a successful save, the spell has no effect.</p><p>Everything that a targeted creature is wearing and carrying changes size with it. Any item it drops returns to normal size at once. A thrown weapon or piece of ammunition returns to normal size immediately after it hits or misses a target.</p><p><strong>Enlarge.</strong> The target's size increases by one category—from Medium to Large, for example. The target also has Advantage on Strength checks and Strength saving throws. The target's attacks with its enlarged weapons or Unarmed Strikes deal an extra 1d4 damage on a hit.</p><p><strong>Reduce.</strong> The target's size decreases by one category—from Medium to Small, for example. The target also has Disadvantage on Strength checks and Strength saving throws. The target's attacks with its reduced weapons or Unarmed Strikes deal 1d4 less damage on a hit (this can't reduce the damage below 1).</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-potion-of-diminution-enlarge-reduce",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          },
+          {
+            "capability": "potion-of-diminution",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 30,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "save": {
+        "ability": "fortitude",
+        "dc": {
+          "valueExpression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 8
+              },
+              {
+                "type": "proficiency-bonus"
+              },
+              {
+                "type": "spellcasting-modifier"
+              }
+            ]
+          }
+        }
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Enlarged",
+          "img": "icons/magic/control/silhouette-grow-shrink-tan.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "enlarged-1",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "check.might"
+                ],
+                "mode": "advantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "enlarged-2",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "save.might"
+                ],
+                "mode": "advantage"
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "saveOutcomePolicy": "failure",
+          "concentration": true
+        },
+        {
+          "id": "effect-2",
+          "type": "effect",
+          "name": "Reduced",
+          "img": "icons/magic/control/silhouette-grow-shrink-blue.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "reduced-1",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "check.might"
+                ],
+                "mode": "disadvantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "reduced-2",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "save.might"
+                ],
+                "mode": "disadvantage"
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "saveOutcomePolicy": "failure",
+          "concentration": true
+        }
+      ],
+      "label": "Potion of Diminution: Enlarge/Reduce"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "potion-of-diminution-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "potion-of-diminution",
+          "label": "Potion of Diminution",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplEnlargeRed",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Potion of Diminution"
+      },
+      "conversion": {
+        "notes": [
+          "effect: \"Enlarged\" change system.rolls.damage.mwak.bonus (add) not converted",
+          "effect: \"Enlarged\" change system.rolls.damage.rwak.bonus (add) not converted",
+          "effect: \"Enlarged\" change system.traits.size (add) not converted",
+          "effect: \"Reduced\" change system.rolls.damage.mwak.bonus (subtract) not converted",
+          "effect: \"Reduced\" change system.rolls.damage.rwak.bonus (subtract) not converted",
+          "effect: \"Reduced\" change system.traits.size (subtract) not converted"
+        ]
+      }
+    }
+  }
+}

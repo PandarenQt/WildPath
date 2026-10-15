@@ -7,7 +7,33 @@
   "system": {
     "active": true,
     "description": "<p>While you aren't wearing armor or wielding a Shield, your base Armor Class equals 10 plus your Dexterity and Wisdom modifiers.</p><section class=\"secret\" id=\"secret-yjsIRRlbUz035Dnj\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect which updates your Armor Class.</p></section>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "unarmored-defense-1",
+        "type": "ArmorClass",
+        "data": {
+          "label": "Unarmored Defense",
+          "value": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 10
+              },
+              {
+                "type": "ability-modifier",
+                "ability": "agility"
+              },
+              {
+                "type": "ability-modifier",
+                "ability": "wits"
+              }
+            ]
+          }
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {

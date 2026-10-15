@@ -1,0 +1,35 @@
+{
+  "_id": "dmgRodOfResurrec",
+  "_key": "!items!dmgRodOfResurrec",
+  "name": "Rod of Resurrection",
+  "type": "gear",
+  "img": "icons/weapons/staves/staff-spiked-grey.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Rod, Legendary (Requires Attunement)</em></p><p>The rod has 5 charges. While you hold it, you can cast one of the following spells from it: Heal (expends 1 charge) or Resurrection (expends 5 charges).</p><p>The rod regains 1 expended charge daily at dawn. If you expend the last charge, roll 1d20. On a 1, the rod disappears in a harmless burst of radiance.</p>",
+    "quantity": 1,
+    "weight": 3,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgRodOfResurrec",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool",
+          "activation: 1 hour is not an action-economy cost",
+          "effect: \"Spell Taxed\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

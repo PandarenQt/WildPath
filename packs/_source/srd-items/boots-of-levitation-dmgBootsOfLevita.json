@@ -1,0 +1,35 @@
+{
+  "_id": "dmgBootsOfLevita",
+  "_key": "!items!dmgBootsOfLevita",
+  "name": "Boots of Levitation",
+  "type": "gear",
+  "img": "icons/equipment/feet/boots-armored-steel-purple.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Wondrous Item, Rare (Requires Attunement)</em></p><p>While you wear these boots, you can cast <em>Levitate</em> on yourself.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgBootsOfLevita",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (save): using it spends its cost; its description says the rest",
+          "effect: \"Levitating\" (its own changes) not converted",
+          "concentration: nothing it sustains was converted"
+        ]
+      }
+    }
+  }
+}

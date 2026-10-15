@@ -7,7 +7,41 @@
   "system": {
     "active": true,
     "description": "<p>You have Advantage on Intelligence, Wisdom, and Charisma saving throws.</p>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "gnomish-cunning-1",
+        "type": "RollMode",
+        "data": {
+          "domains": [
+            "save.intellect"
+          ],
+          "mode": "advantage"
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "gnomish-cunning-2",
+        "type": "RollMode",
+        "data": {
+          "domains": [
+            "save.wits"
+          ],
+          "mode": "advantage"
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "gnomish-cunning-3",
+        "type": "RollMode",
+        "data": {
+          "domains": [
+            "save.presence"
+          ],
+          "mode": "advantage"
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {

@@ -1,0 +1,31 @@
+{
+  "_id": "phbagAmmunitionV",
+  "_key": "!items!phbagAmmunitionV",
+  "name": "Ammunition (Varies)",
+  "type": "gear",
+  "img": "icons/weapons/ammunition/bullets-cartridge-shell-gray.webp",
+  "system": {
+    "active": false,
+    "description": "<p>Ammunition is required by a weapon that has the Ammunition property. A weapon's description specifies the type of ammunition used by the weapon. The Ammunition table lists the different types and the amount you get when you buy them. The table also lists the item that is typically used to store each type; storage must be bought separately.</p><table><caption>Ammunition</caption><thead><tr><td>Type</td><td>Amount</td><td>Storage</td><td>Weight</td><td>Cost</td></tr></thead><tbody><tr><td>Arrows</td><td>20</td><td>Quiver</td><td>1 lb.</td><td>1 GP</td></tr><tr><td>Bolts</td><td>20</td><td>Case</td><td>1½ lb.</td><td>1 GP</td></tr><tr><td>Bullets, Firearm</td><td>10</td><td>Pouch</td><td>2 lb.</td><td>3 GP</td></tr><tr><td>Bullets, Sling</td><td>20</td><td>Pouch</td><td>1½ lb.</td><td>4 CP</td></tr><tr><td>Needles</td><td>50</td><td>Pouch</td><td>1 lb.</td><td>1 GP</td></tr></tbody></table>",
+    "quantity": 0,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagAmmunitionV",
+        "type": "loot",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

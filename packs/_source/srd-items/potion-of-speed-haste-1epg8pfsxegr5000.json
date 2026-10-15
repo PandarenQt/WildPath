@@ -1,0 +1,118 @@
+{
+  "_id": "1epg8pfsxegr5000",
+  "_key": "!items!1epg8pfsxegr5000",
+  "name": "Potion of Speed: Haste",
+  "type": "action",
+  "img": "icons/magic/time/clock-spinning-gold-pink.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Choose a willing creature that you can see within range. Until the spell ends, the target's Speed is doubled, it gains a +2 bonus to Armor Class, it has Advantage on Dexterity saving throws, and it gains an additional action on each of its turns. That action can be used to take only the Attack (one attack only), Dash, Disengage, Hide, or Utilize action.</p><p>When the spell ends, the target is Incapacitated and has a Speed of 0 until the end of its next turn, as a wave of lethargy washes over it.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-potion-of-speed-haste",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          },
+          {
+            "capability": "potion-of-speed",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 30,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Hasted",
+          "img": "icons/magic/time/clock-spinning-gold-pink.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "hasted-1",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "defense.ac"
+                ],
+                "modifierType": "untyped",
+                "value": 2
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "hasted-2",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "save.agility"
+                ],
+                "mode": "advantage"
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        }
+      ],
+      "label": "Potion of Speed: Haste"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "potion-of-speed-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "potion-of-speed",
+          "label": "Potion of Speed",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplHaste00000",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Potion of Speed"
+      },
+      "conversion": {
+        "notes": [
+          "effect: \"Hasted\" change system.attributes.movement.multiplier (multiply) not converted",
+          "\"Apply Lethargy\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

@@ -64,9 +64,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "damage: versatile two-handed damage not converted"
-        ]
+        "notes": []
       }
     }
   }

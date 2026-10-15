@@ -1,0 +1,130 @@
+{
+  "_id": "phbagCaltrops000",
+  "_key": "!items!phbagCaltrops000",
+  "name": "Caltrops",
+  "type": "action",
+  "img": "icons/weapons/thrown/bomb-spiked-purple.webp",
+  "system": {
+    "active": true,
+    "description": "<p>As a Utilize action, you can spread Caltrops from their bag to cover a 5-foot-square area within 5 feet of yourself. A creature that enters this area for the first time on a turn must succeed on a DC 15 Dexterity saving throw or take 1 Piercing damage and have its Speed reduced to 0 until the start of its next turn. It takes 10 minutes to recover the Caltrops.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-caltrops",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "caltrops",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "cube",
+        "size": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "save": {
+        "ability": "agility",
+        "dc": {
+          "value": 15
+        }
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "constant",
+            "value": 1
+          },
+          "damageType": "piercing",
+          "provenance": "additional",
+          "saveOutcomePolicy": {
+            "success": "none",
+            "failure": "full"
+          }
+        }
+      ],
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Slowed",
+          "img": "icons/weapons/thrown/bomb-spiked-purple.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "slowed-1",
+              "type": "ResourceCap",
+              "data": {
+                "resources": [
+                  "movement"
+                ],
+                "maximum": 0
+              }
+            }
+          ],
+          "duration": {
+            "value": 1,
+            "units": "turns",
+            "expiry": "turnStart"
+          },
+          "saveOutcomePolicy": "failure"
+        }
+      ],
+      "label": "Caltrops"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "caltrops-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "caltrops",
+          "label": "Caltrops",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagCaltrops000",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "effect: \"Slowed\" change system.attributes.movement.fly (override) not converted",
+          "effect: \"Slowed\" change system.attributes.movement.swim (override) not converted",
+          "effect: \"Slowed\" change system.attributes.movement.climb (override) not converted",
+          "effect: \"Slowed\" change system.attributes.movement.burrow (override) not converted"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "_id": "dmgRingOfEvasion",
+  "_key": "!items!dmgRingOfEvasion",
+  "name": "Ring of Evasion",
+  "type": "action",
+  "img": "icons/equipment/finger/ring-eye-silver-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Ring, Rare (Requires Attunement)</em></p><p>This ring has 3 charges, and it regains 1d3 expended charges daily at dawn. When you fail a Dexterity saving throw while wearing the ring, you can take a Reaction to expend 1 charge to succeed on that save instead.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-ring-of-evasion-succeed",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "reaction",
+            "amount": 1
+          },
+          {
+            "capability": "ring-of-evasion",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Ring of Evasion"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "ring-of-evasion-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "ring-of-evasion",
+          "label": "Ring of Evasion",
+          "maximum": {
+            "type": "constant",
+            "value": 3
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgRingOfEvasion",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "uses: a partial recovery refills the whole pool"
+        ]
+      }
+    }
+  }
+}

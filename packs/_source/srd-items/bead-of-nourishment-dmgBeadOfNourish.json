@@ -1,0 +1,33 @@
+{
+  "_id": "dmgBeadOfNourish",
+  "_key": "!items!dmgBeadOfNourish",
+  "name": "Bead of Nourishment",
+  "type": "gear",
+  "img": "icons/equipment/neck/necklace-simple-mushroom-red.webp",
+  "system": {
+    "active": false,
+    "description": "<div><p><em>Wondrous Item, Common</em></p><p>This flavorless, gelatinous bead dissolves on your tongue and provides as much nourishment as 1 day of Rations.</p></div>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgBeadOfNourish",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Consume\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

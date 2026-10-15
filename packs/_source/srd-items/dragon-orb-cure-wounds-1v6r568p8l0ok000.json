@@ -1,0 +1,79 @@
+{
+  "_id": "1v6r568p8l0ok000",
+  "_key": "!items!1v6r568p8l0ok000",
+  "name": "Dragon Orb: Cure Wounds",
+  "type": "action",
+  "img": "icons/magic/nature/leaf-drip-light-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p>A creature you touch regains a number of Hit Points equal to 2d8 plus your spellcasting ability modifier.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The healing increases by 2d8 for each spell slot level above 1.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-dragon-orb-cure-wounds",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "touch",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "healing": [
+        {
+          "id": "healing-1",
+          "expression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "dice",
+                "number": 2,
+                "faces": 8
+              },
+              {
+                "type": "spellcasting-modifier"
+              }
+            ]
+          },
+          "healingType": "healing"
+        }
+      ],
+      "label": "Dragon Orb: Cure Wounds"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplCureWounds",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Dragon Orb"
+      },
+      "conversion": {
+        "notes": [
+          "consumption: itemUses 4 not converted",
+          "cast: Cure Wounds at level 9 is cast at its own level"
+        ]
+      }
+    }
+  }
+}

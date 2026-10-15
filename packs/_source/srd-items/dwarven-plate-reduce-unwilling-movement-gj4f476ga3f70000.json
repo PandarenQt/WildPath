@@ -1,0 +1,46 @@
+{
+  "_id": "gj4f476ga3f70000",
+  "_key": "!items!gj4f476ga3f70000",
+  "name": "Dwarven Plate (Reduce Unwilling Movement)",
+  "type": "action",
+  "img": "icons/equipment/chest/breastplate-layered-steel-green.webp",
+  "system": {
+    "active": true,
+    "description": "<div><p><em>Armor (Half Plate or Plate Armor), Very Rare</em></p></div><p>While wearing this armor, you gain a +2 bonus to Armor Class. In addition, if an effect moves you against your will along the ground, you can take a Reaction to reduce the distance you are moved by up to 10 feet.</p><p></p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-dwarven-plate-reduce-unwilling-movement",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "reaction",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Dwarven Plate (Reduce Unwilling Movement)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgDwarvenPlate0",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

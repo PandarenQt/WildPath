@@ -1,0 +1,65 @@
+{
+  "_id": "7a0v9i1fj0ckk000",
+  "_key": "!items!7a0v9i1fj0ckk000",
+  "name": "Staff of the Magi: Protection from Evil and Good",
+  "type": "action",
+  "img": "icons/magic/symbols/fleur-de-lis-yellow.webp",
+  "system": {
+    "active": true,
+    "description": "<div><p>Until the spell ends, one willing creature you touch is protected against creatures that are Aberrations, Celestials, Elementals, Fey, Fiends, or Undead. The protection grants several benefits. Creatures of those types have Disadvantage on attack rolls against the target. The target also can't be possessed by or gain the Charmed or Frightened conditions from them. If the target is already possessed, Charmed, or Frightened by such a creature, the target has Advantage on any new saving throw against the relevant effect.</p></div>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-staff-of-the-magi-protection-from-evil-and-good",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Staff of the Magi: Protection from Evil and Good"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "staff-of-the-magi-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "staff-of-the-magi",
+          "label": "Staff of the Magi",
+          "maximum": {
+            "type": "constant",
+            "value": 50
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbEvilAndGoodPr",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Staff of the Magi"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool",
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Protected\" (its own changes) not converted",
+          "concentration: nothing it sustains was converted"
+        ]
+      }
+    }
+  }
+}

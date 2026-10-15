@@ -1,0 +1,68 @@
+{
+  "_id": "dmgDwarvenPlate0",
+  "_key": "!items!dmgDwarvenPlate0",
+  "name": "Dwarven Plate",
+  "type": "gear",
+  "img": "icons/equipment/chest/breastplate-layered-steel-green.webp",
+  "system": {
+    "active": false,
+    "description": "<div><p><em>Armor (Half Plate or Plate Armor), Very Rare</em></p></div><p>While wearing this armor, you gain a +2 bonus to Armor Class. In addition, if an effect moves you against your will along the ground, you can take a Reaction to reduce the distance you are moved by up to 10 feet.</p><p></p>",
+    "quantity": 1,
+    "weight": 65,
+    "slot": "",
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "dwarven-plate",
+        "type": "ArmorClass",
+        "data": {
+          "label": "Dwarven Plate",
+          "armor": true,
+          "value": 20
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "dwarven-plate-strength",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "resources.movement.max",
+            "speed"
+          ],
+          "modifierType": "untyped",
+          "valueExpression": {
+            "type": "table",
+            "key": {
+              "type": "ability-score",
+              "ability": "might"
+            },
+            "rows": {
+              "0": -10,
+              "15": 0
+            }
+          }
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgDwarvenPlate0",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Dwarven Plate\" is passive or triggered: not automated",
+          "not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

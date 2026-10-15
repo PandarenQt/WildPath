@@ -1,0 +1,31 @@
+{
+  "_id": "phbagInk00000000",
+  "_key": "!items!phbagInk00000000",
+  "name": "Ink",
+  "type": "gear",
+  "img": "icons/tools/scribal/ink-quill-red.webp",
+  "system": {
+    "active": false,
+    "description": "<p>Ink comes in a 1-ounce bottle, which provides enough ink to write about 500 pages.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagInk00000000",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

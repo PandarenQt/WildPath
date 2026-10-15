@@ -1,0 +1,69 @@
+{
+  "_id": "l5xyxzrk54700000",
+  "_key": "!items!l5xyxzrk54700000",
+  "name": "Staff of Frost: Fog Cloud",
+  "type": "action",
+  "img": "icons/magic/air/fog-gas-smoke-dense-white.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You create a 20-foot-radius Sphere of fog centered on a point within range. The Sphere is Heavilyobscured. It lasts for the duration or until a strong wind (such as one created by <em>Gust of Wind</em>) disperses it.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The fog's radius increases by 20 feet for each spell slot level above 1.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-staff-of-frost-fog-cloud",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "staff-of-frost",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Staff of Frost: Fog Cloud"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "staff-of-frost-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "staff-of-frost",
+          "label": "Staff of Frost",
+          "maximum": {
+            "type": "constant",
+            "value": 10
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplFogCloud00",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Staff of Frost"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool",
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "area: 20 * @item.level-ft sphere is not supported; the user picks the targets",
+          "concentration: nothing it sustains was converted"
+        ]
+      }
+    }
+  }
+}

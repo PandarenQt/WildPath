@@ -1,0 +1,98 @@
+{
+  "_id": "dmgPotionOfFlyin",
+  "_key": "!items!dmgPotionOfFlyin",
+  "name": "Potion of Flying",
+  "type": "action",
+  "img": "icons/consumables/potions/potion-bottle-corked-white.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Potion, Very Rare</em></p><p>When you drink this potion, you gain a Fly Speed equal to your Speed for 1 hour and can hover. If you're in the air when the potion wears off, you fall unless you have some other means of staying aloft.</p><p>This potion's clear liquid floats at the top of its container and has cloudy white impurities drifting in it.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-potion-of-flying-drink",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          },
+          {
+            "capability": "potion-of-flying",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Flyer",
+          "img": "icons/consumables/potions/potion-bottle-corked-white.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "flyer-1",
+              "type": "GrantMovement",
+              "data": {
+                "mode": "fly",
+                "distance": {
+                  "type": "context",
+                  "path": "actorSystem.resources.movement.max"
+                }
+              }
+            }
+          ],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
+      "label": "Potion of Flying"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "potion-of-flying-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "potion-of-flying",
+          "label": "Potion of Flying",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgPotionOfFlyin",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "effect: \"Flyer\" change system.attributes.movement.hover (override) not converted"
+        ]
+      }
+    }
+  }
+}

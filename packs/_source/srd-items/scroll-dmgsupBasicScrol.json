@@ -1,0 +1,31 @@
+{
+  "_id": "dmgsupBasicScrol",
+  "_key": "!items!dmgsupBasicScrol",
+  "name": "Scroll",
+  "type": "gear",
+  "img": "icons/sundries/scrolls/scroll-bound-blue-tan.webp",
+  "system": {
+    "active": false,
+    "description": "",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgsupBasicScrol",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

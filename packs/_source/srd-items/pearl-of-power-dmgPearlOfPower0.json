@@ -1,0 +1,67 @@
+{
+  "_id": "dmgPearlOfPower0",
+  "_key": "!items!dmgPearlOfPower0",
+  "name": "Pearl of Power",
+  "type": "action",
+  "img": "icons/commodities/gems/pearl-blue-gold.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Wondrous Item, Uncommon (Requires Attunement by a Spellcaster)</em></p><p>While this pearl is on your person, you can take a Magic action to regain one expended spell slot of level 3 or lower. Once you use the pearl, it can't be used again until the next dawn.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-pearl-of-power-regain-spell-slot",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "pearl-of-power",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Pearl of Power"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "pearl-of-power-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "pearl-of-power",
+          "label": "Pearl of Power",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgPearlOfPower0",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "consumption: spellSlots -1 not converted",
+          "consumption: spellSlots -1 not converted"
+        ]
+      }
+    }
+  }
+}

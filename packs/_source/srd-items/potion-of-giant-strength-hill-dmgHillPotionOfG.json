@@ -1,0 +1,67 @@
+{
+  "_id": "dmgHillPotionOfG",
+  "_key": "!items!dmgHillPotionOfG",
+  "name": "Potion of Giant Strength (Hill)",
+  "type": "action",
+  "img": "icons/consumables/potions/bottle-bulb-corked-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Potion, Uncommon</em></p><p>When you drink this potion, your Strength score changes for 1 hour to 21. The type of giant determines the score. The potion has no effect on you if your Strength is equal to or greater than that score.</p><p>This potion's transparent liquid has floating in it a sliver of light resembling a giant's fingernail.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-potion-of-giant-strength-hill-drink-potion",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "potion-of-giant-strength-hill",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Potion of Giant Strength (Hill)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "potion-of-giant-strength-hill-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "potion-of-giant-strength-hill",
+          "label": "Potion of Giant Strength (Hill)",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgHillPotionOfG",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Strength of Hills\" change system.abilities.str.value (upgrade) not converted",
+          "effect: \"Strength of Hills\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

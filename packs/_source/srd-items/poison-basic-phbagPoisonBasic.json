@@ -1,0 +1,78 @@
+{
+  "_id": "phbagPoisonBasic",
+  "_key": "!items!phbagPoisonBasic",
+  "name": "Poison, Basic",
+  "type": "action",
+  "img": "icons/consumables/potions/potion-bottle-skull-label-poison-teal.webp",
+  "system": {
+    "active": true,
+    "description": "<p>As a Bonus Action, you can use a vial of Basic Poison to coat one weapon or up to three pieces of ammunition. A creature that takes Piercing or Slashing damage from the poisoned weapon or ammunition takes an extra 1d4 Poison damage. Once applied, the poison retains potency for 1 minute or until its damage is dealt, whichever comes first.</p><section id=\"secret-YwO5GX35V4XweNWL\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This feature includes a roll for the Poison damage.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-poison-basic",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          },
+          {
+            "capability": "poison-basic",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "dice",
+            "number": 1,
+            "faces": 4
+          },
+          "damageType": "poison",
+          "provenance": "additional"
+        }
+      ],
+      "label": "Poison, Basic"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "poison-basic-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "poison-basic",
+          "label": "Poison, Basic",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagPoisonBasic",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}
