@@ -632,3 +632,12 @@ test("house text: the Defense Fighting Style's +1 AC needs no armor, and says so
   assert.equal(houseText(defense, html), "<p>You gain a +1 bonus to Armor Class.</p>");
   assert.equal(houseText({...defense, name: "Archery"}, html), html, "other features keep their text");
 });
+
+test("a weapon's kind: its base (WildPath's name), simple or martial, and its mastery", async () => {
+  const {weaponOf} = await import("../scripts/content/dnd5e-to-wildpath.mjs");
+  assert.deepEqual(weaponOf({type: "weapon", system: {type: {value: "simpleR", baseItem: "lightcrossbow"}, mastery: "slow"}}),
+    {category: "simple", base: "light-crossbow", mastery: "slow"});
+  assert.deepEqual(weaponOf({type: "weapon", system: {type: {value: "martialM", baseItem: ""}}}), {category: "martial"});
+  assert.equal(weaponOf({type: "weapon", system: {type: {value: "natural"}}}), null, "a claw is no weapon to train with");
+  assert.equal(weaponOf({type: "spell", system: {}}), null);
+});

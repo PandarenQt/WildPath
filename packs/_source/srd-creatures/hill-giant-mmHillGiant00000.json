@@ -149,7 +149,12 @@
             "type": "melee",
             "statistic": "weapon",
             "defenseKey": "ac",
-            "proficient": true
+            "proficient": true,
+            "weapon": {
+              "category": "simple",
+              "base": "club",
+              "mastery": "slow"
+            }
           },
           "range": {
             "type": "reach",
@@ -236,7 +241,10 @@
             "statistic": "weapon",
             "defenseKey": "ac",
             "proficient": true,
-            "ability": "might"
+            "ability": "might",
+            "weapon": {
+              "category": "simple"
+            }
           },
           "range": {
             "type": "ranged",

@@ -300,7 +300,12 @@
             "type": "melee",
             "statistic": "weapon",
             "defenseKey": "ac",
-            "proficient": true
+            "proficient": true,
+            "weapon": {
+              "category": "martial",
+              "base": "glaive",
+              "mastery": "graze"
+            }
           },
           "range": {
             "type": "reach",

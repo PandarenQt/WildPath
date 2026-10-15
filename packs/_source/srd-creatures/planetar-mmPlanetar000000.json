@@ -272,7 +272,12 @@
             "statistic": "weapon",
             "defenseKey": "ac",
             "proficient": true,
-            "ability": "might"
+            "ability": "might",
+            "weapon": {
+              "category": "martial",
+              "base": "longsword",
+              "mastery": "sap"
+            }
           },
           "range": {
             "type": "reach",

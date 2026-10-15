@@ -875,6 +875,22 @@ function slotConfiguration(level, damage, {healing=[], perLevel=0}={}) {
     levelByResourceId: Object.fromEntries(levels.map(each => [`spell-slot.${each}`, each])), effects: scaling}];
 }
 
+/** dnd5e's base weapon ids where WildPath's differ (`light-crossbow`, as the training lists name them). */
+const WEAPON_BASES = Object.freeze({lightcrossbow: "light-crossbow", handcrossbow: "hand-crossbow", heavycrossbow: "heavy-crossbow",
+  lighthammer: "light-hammer", warpick: "war-pick"});
+
+/**
+ * A weapon's kind (G8): its base weapon (`longsword`), `simple` or `martial`, and its 2024 mastery (`sap`), which
+ * training and Weapon Mastery read. Null for anything not a weapon.
+ */
+export function weaponOf(document) {
+  const type = document?.type === "weapon" ? document.system?.type ?? {} : null;
+  const category = /^(simple|martial)/u.exec(type?.value ?? "")?.[1];
+  if ( !category ) return null;
+  const base = type.baseItem ? (WEAPON_BASES[type.baseItem] ?? type.baseItem) : null;
+  return {category, ...(base ? {base} : {}), ...(document.system?.mastery ? {mastery: document.system.mastery} : {})};
+}
+
 function convertActivity({document, activity, system, spell, level, scales, notes, pool, saveDC, spellDC=null, creature=null}) {
   const definition = baseDefinition({document, activity, system, spell, notes, pool});
 
@@ -886,6 +902,8 @@ function convertActivity({document, activity, system, spell, level, scales, note
   if ( attack ) {
     if ( (system.properties ?? []).includes("fin") ) attack.properties = ["finesse"];
     if ( attackData.ability && ABILITY_MAP[attackData.ability] ) attack.ability = ABILITY_MAP[attackData.ability];
+    const weapon = weaponOf(document);
+    if ( weapon ) attack.weapon = weapon;
     definition.attack = attack;
   }
   const range = rangeOf({activity, system, document, attack});

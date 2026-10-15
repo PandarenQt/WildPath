@@ -85,7 +85,12 @@
             "type": "ranged",
             "statistic": "weapon",
             "defenseKey": "ac",
-            "proficient": true
+            "proficient": true,
+            "weapon": {
+              "category": "martial",
+              "base": "longbow",
+              "mastery": "slow"
+            }
           },
           "range": {
             "type": "ranged",

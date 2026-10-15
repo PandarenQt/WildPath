@@ -88,7 +88,12 @@
             "type": "melee",
             "statistic": "weapon",
             "defenseKey": "ac",
-            "proficient": true
+            "proficient": true,
+            "weapon": {
+              "category": "martial",
+              "base": "warhammer",
+              "mastery": "push"
+            }
           },
           "range": {
             "type": "reach",
@@ -163,7 +168,12 @@
             "type": "melee",
             "statistic": "weapon",
             "defenseKey": "ac",
-            "proficient": true
+            "proficient": true,
+            "weapon": {
+              "category": "martial",
+              "base": "warhammer",
+              "mastery": "push"
+            }
           },
           "range": {
             "type": "reach",
@@ -246,7 +256,12 @@
             "type": "ranged",
             "statistic": "weapon",
             "defenseKey": "ac",
-            "proficient": true
+            "proficient": true,
+            "weapon": {
+              "category": "martial",
+              "base": "heavy-crossbow",
+              "mastery": "push"
+            }
           },
           "range": {
             "type": "ranged",

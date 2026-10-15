@@ -22,7 +22,12 @@
         "type": "melee",
         "statistic": "weapon",
         "defenseKey": "ac",
-        "proficient": true
+        "proficient": true,
+        "weapon": {
+          "category": "simple",
+          "base": "handaxe",
+          "mastery": "vex"
+        }
       },
       "range": {
         "type": "reach",

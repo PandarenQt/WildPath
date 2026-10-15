@@ -427,7 +427,10 @@
             "type": "melee",
             "statistic": "weapon",
             "defenseKey": "ac",
-            "proficient": true
+            "proficient": true,
+            "weapon": {
+              "category": "simple"
+            }
           },
           "range": {
             "type": "reach",

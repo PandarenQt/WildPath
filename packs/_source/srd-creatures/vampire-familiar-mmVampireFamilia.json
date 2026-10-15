@@ -182,7 +182,12 @@
             "proficient": true,
             "properties": [
               "finesse"
-            ]
+            ],
+            "weapon": {
+              "category": "simple",
+              "base": "dagger",
+              "mastery": "nick"
+            }
           },
           "range": {
             "type": "ranged",

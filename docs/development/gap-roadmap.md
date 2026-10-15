@@ -116,8 +116,8 @@ Each is small, and each changes every turn at the table.
    BG3's best tactical moments are shoves off ledges and into fire.
 2. **Elevation in combat:** Token elevation for reach, range and areas, plus flying and falling. Lasting areas
    already have elevation bounds.
-3. **Weapon Mastery** (2024) is the tabletop form of BG3's weapon actions; it waits for G8, which decides how a
-   character chooses its masteries (maintainer, 2026-10-15).
+3. **Weapon Mastery** (2024) is the tabletop form of BG3's weapon actions. Done in G8 (2026-10-15): masteries are
+   chosen at level up, and Push, Slow, Sap, Vex, Topple and Graze apply automatically; Cleave and Nick are manual.
 4. **Areas that react to damage.** A lasting area changes when it takes a damage type:
    - oil explodes into fire;
    - cold freezes water into ice;
@@ -373,8 +373,8 @@ Each track is ranked by how much content it unblocks across all books, and by ho
    - armor and AC formulas (Unarmored Defense, natural armor, Mage Armor);
    - attunement and charges, spells cast from items, and potions and scrolls.
 8. **G8, character progression** (decided 2026-10-15: the maintainer approved the recommended design; skills,
-   training, Heroic Inspiration, Hit Dice (spent on a short rest), class and origin Items and the level-up dialog are
-   done):
+   training, Heroic Inspiration, Hit Dice (spent on a short rest), class and origin Items, the level-up dialog,
+   weapon proficiency from training and Weapon Mastery are done):
    - classes, subclasses, species, backgrounds and feats, with level-up from dnd5e advancements;
    - skills and tools with proficiency and expertise;
    - Hit Dice and short-rest healing;

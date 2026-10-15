@@ -313,7 +313,12 @@
             "type": "melee",
             "statistic": "weapon",
             "defenseKey": "ac",
-            "proficient": true
+            "proficient": true,
+            "weapon": {
+              "category": "martial",
+              "base": "longsword",
+              "mastery": "sap"
+            }
           },
           "range": {
             "type": "reach",
@@ -394,7 +399,12 @@
             "type": "melee",
             "statistic": "weapon",
             "defenseKey": "ac",
-            "proficient": true
+            "proficient": true,
+            "weapon": {
+              "category": "martial",
+              "base": "longsword",
+              "mastery": "sap"
+            }
           },
           "range": {
             "type": "reach",

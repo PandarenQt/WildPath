@@ -155,7 +155,12 @@
             "proficient": true,
             "properties": [
               "finesse"
-            ]
+            ],
+            "weapon": {
+              "category": "martial",
+              "base": "shortsword",
+              "mastery": "vex"
+            }
           },
           "range": {
             "type": "reach",

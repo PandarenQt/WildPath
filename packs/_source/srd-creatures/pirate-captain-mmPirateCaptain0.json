@@ -92,7 +92,12 @@
             "proficient": true,
             "properties": [
               "finesse"
-            ]
+            ],
+            "weapon": {
+              "category": "martial",
+              "base": "rapier",
+              "mastery": "vex"
+            }
           },
           "range": {
             "type": "reach",
@@ -171,7 +176,11 @@
             "type": "ranged",
             "statistic": "weapon",
             "defenseKey": "ac",
-            "proficient": true
+            "proficient": true,
+            "weapon": {
+              "category": "martial",
+              "mastery": "vex"
+            }
           },
           "range": {
             "type": "ranged",

@@ -85,7 +85,12 @@
             "type": "melee",
             "statistic": "weapon",
             "defenseKey": "ac",
-            "proficient": true
+            "proficient": true,
+            "weapon": {
+              "category": "martial",
+              "base": "battleaxe",
+              "mastery": "topple"
+            }
           },
           "range": {
             "type": "reach",
@@ -163,7 +168,12 @@
             "type": "melee",
             "statistic": "weapon",
             "defenseKey": "ac",
-            "proficient": true
+            "proficient": true,
+            "weapon": {
+              "category": "martial",
+              "base": "battleaxe",
+              "mastery": "topple"
+            }
           },
           "range": {
             "type": "reach",
@@ -249,7 +259,12 @@
             "type": "melee",
             "statistic": "weapon",
             "defenseKey": "ac",
-            "proficient": true
+            "proficient": true,
+            "weapon": {
+              "category": "martial",
+              "base": "morningstar",
+              "mastery": "sap"
+            }
           },
           "range": {
             "type": "reach",

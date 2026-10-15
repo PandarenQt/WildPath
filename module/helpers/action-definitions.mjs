@@ -9,6 +9,10 @@ import {
   validateRuleElementDefinition
 } from "./rule-elements.mjs";
 import {WILDPATH} from "../config.mjs";
+import {withWeaponMastery} from "./weapon-mastery.mjs";
+
+/** When a custom effect ends early: its creature is attacked, attacked by the creature that applied it, or attacks. */
+export const CUSTOM_EFFECT_ENDS_WHEN = Object.freeze(["attacked", "attackedBySource", "attacks"]);
 
 /** V14's ActiveEffect duration units and expiry events (CONST), for a custom effect's native duration. */
 export const CUSTOM_EFFECT_DURATION_UNITS = Object.freeze(["years", "months", "days", "hours", "minutes", "seconds", "rounds", "turns"]);
@@ -210,7 +214,8 @@ export function serializeActionDefinition(rawDefinition={}, options={}) {
 
 export function actionDefinitionFromItem(item, options={}) {
   const system = item?.system ?? {};
-  const raw = withExtraAttacks(system.definition ?? system.actionDefinition ?? item?.definition ?? item?.actionDefinition ?? null, item);
+  const raw = withWeaponMastery(withExtraAttacks(system.definition ?? system.actionDefinition ?? item?.definition ?? item?.actionDefinition ?? null,
+    item), item?.actor ?? null);
   const migrated = !hasAuthoredDefinition(raw);
   const source = sourceFromItem(item);
   const legacyActivationCost = options.legacyActivationCost
@@ -807,8 +812,9 @@ function validateCustomEffect(effect, path, errors) {
         `Unknown RuleElement type: ${ruleElement.type}`));
     }
   });
-  if ( (effect.endsWhen != null) && (effect.endsWhen !== "attacked") ) {
-    errors.push(error(ACTION_DEFINITION_CODES.INVALID_EFFECT, `${path}.endsWhen`, "A custom effect ends early only when its creature is attacked."));
+  if ( (effect.endsWhen != null) && !CUSTOM_EFFECT_ENDS_WHEN.includes(effect.endsWhen) ) {
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_EFFECT, `${path}.endsWhen`,
+      `A custom effect ends early only when: ${CUSTOM_EFFECT_ENDS_WHEN.join(", ")}.`));
   }
   const duration = effect.duration;
   if ( duration && duration.units && !CUSTOM_EFFECT_DURATION_UNITS.includes(duration.units) ) {
