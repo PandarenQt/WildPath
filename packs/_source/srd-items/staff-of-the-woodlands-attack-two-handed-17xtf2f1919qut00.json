@@ -65,7 +65,14 @@
             "type": "constant",
             "value": 6
           },
-          "recovery": "longRest"
+          "recovery": "none",
+          "regain": {
+            "longRest": {
+              "type": "dice",
+              "number": 1,
+              "faces": 6
+            }
+          }
         }
       },
       {
@@ -106,9 +113,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "uses: a partial recovery refills the whole pool"
-        ]
+        "notes": []
       }
     }
   }

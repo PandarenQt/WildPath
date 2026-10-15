@@ -711,14 +711,22 @@ function poolOf(uses, {id, label, scales}) {
   if ( !maximum ) notes.push(`uses: maximum "${uses.max}" not converted`);
   // Older dnd5e data (before 4.0) stores the recovery period as a plain string.
   const recoveries = Array.isArray(uses.recovery) ? uses.recovery : (uses.recovery ? [{period: uses.recovery}] : []);
-  const periods = recoveries.map(entry => entry.period);
-  // 2024 often recovers one use on a short rest and all on a long one; WildPath pools refill whole.
+  // A full refill on its rest; a partial one ("regain one use on a Short Rest", "1d6 + 1 charges at dawn") is `regain`.
+  const periods = recoveries.filter(entry => !["formula", "loseAll"].includes(entry.type) && (entry.period !== "recharge"))
+    .map(entry => entry.period);
   const recovery = RECOVERY[periods.includes("sr") ? "sr" : periods[0]] ?? "none";
-  if ( recoveries.some(entry => entry.type === "formula") ) notes.push("uses: a partial recovery refills the whole pool");
+  const regain = {};
+  for ( const entry of recoveries.filter(each => each.type === "formula") ) {
+    const rest = ["shortRest", "longRest"].includes(RECOVERY[entry.period]) ? RECOVERY[entry.period] : null;
+    const amount = rest ? formulaExpression(String(entry.formula ?? ""), {scales}) : null;
+    if ( amount ) regain[rest] = (amount.type === "constant") ? amount.value : amount;
+    else notes.push(`uses: regaining "${entry.formula}" (${entry.period}) not converted`);
+  }
   // Recharge 5-6: rolled at the start of the creature's turn.
   const recharge = Number(recoveries.find(entry => entry.period === "recharge")?.formula);
   return {id, notes, rule: {schemaVersion: 1, id: `${id}-uses`, type: "GrantResource",
-    data: {resourceId: id, label, maximum: maximum ?? 1, recovery, ...(recharge >= 2 && recharge <= 6 ? {recharge} : {})}}};
+    data: {resourceId: id, label, maximum: maximum ?? 1, recovery, ...(recharge >= 2 && recharge <= 6 ? {recharge} : {}),
+      ...(Object.keys(regain).length ? {regain} : {})}}};
 }
 
 /** An Action's identity and costs: its activation in the action economy and the uses it spends. */

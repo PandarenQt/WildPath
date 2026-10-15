@@ -24,9 +24,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "uses: a partial recovery refills the whole pool"
-        ]
+        "notes": []
       },
       "grants": [
         "62jm8s17zi2s6000"

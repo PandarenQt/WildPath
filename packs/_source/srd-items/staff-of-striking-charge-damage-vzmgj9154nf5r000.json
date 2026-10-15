@@ -39,7 +39,23 @@
             "type": "constant",
             "value": 10
           },
-          "recovery": "longRest"
+          "recovery": "none",
+          "regain": {
+            "longRest": {
+              "type": "add",
+              "terms": [
+                {
+                  "type": "dice",
+                  "number": 1,
+                  "faces": 6
+                },
+                {
+                  "type": "constant",
+                  "value": 4
+                }
+              ]
+            }
+          }
         }
       }
     ]
@@ -58,7 +74,6 @@
       "conversion": {
         "notes": [
           "not automated (damage): using it spends its cost; its description says the rest",
-          "uses: a partial recovery refills the whole pool",
           "damage 1: custom formula \"(@scaling)d6\" not converted"
         ]
       }

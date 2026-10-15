@@ -88,7 +88,10 @@
               "18": 4
             }
           },
-          "recovery": "shortRest"
+          "recovery": "longRest",
+          "regain": {
+            "shortRest": 1
+          }
         }
       }
     ]
@@ -105,9 +108,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "uses: a partial recovery refills the whole pool"
-        ]
+        "notes": []
       }
     }
   }

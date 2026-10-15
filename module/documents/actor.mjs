@@ -6,6 +6,7 @@ import {
   armorClassesFromRuleElements
 } from "../helpers/rule-elements.mjs";
 import {DEFAULT_FORM_STATISTICS, DEFAULT_KEPT_ITEM_TYPES, itemContributesWhileTransformed} from "../helpers/transformations.mjs";
+import {evaluateValueExpression} from "../helpers/value-expressions.mjs";
 import WildPathConditionEffect from "../data/active-effect/condition.mjs";
 import {floatHealthChange} from "../applications/floating-text.mjs";
 import {executeConditionEffect} from "../resolvers/effect-resolver.mjs";
@@ -17,6 +18,25 @@ import {
   getRestLifecycleEvents,
   validateTurnRecoveryContext
 } from "../helpers/combat.mjs";
+
+/** An amount regained on a rest, its dice rolled first: `{total, rolls}`. */
+async function rollAmount(expression, context) {
+  const rolls = [];
+  const roll = async node => {
+    if ( !node || (typeof node !== "object") ) return node;
+    if ( node.type === "dice" ) {
+      const result = await new Roll(`${node.number ?? 1}d${node.faces}`).evaluate();
+      rolls.push(result);
+      return {...node, total: result.total + (Number(node.bonus) || 0)};
+    }
+    const next = {...node};
+    if ( Array.isArray(next.terms) ) next.terms = await Promise.all(next.terms.map(roll));
+    for ( const key of ["value", "left", "right", "numerator", "denominator"] ) if ( next[key] ) next[key] = await roll(next[key]);
+    return next;
+  };
+  const result = evaluateValueExpression(await roll(expression), context);
+  return {total: result.ok ? Math.floor(result.value) : 0, rolls};
+}
 
 /** 2024: a creature's AC without armor is 10 + its Agility modifier. */
 const UNARMORED = Object.freeze({schemaVersion: 1, id: "unarmored", type: "ArmorClass", data: {label: "Unarmored",
@@ -551,10 +571,23 @@ export default class WildPathActor extends Actor {
       if ( recovers(resource.recovery) ) updates[`system.resources.${id}.value`] = resource.max;
     }
     const pools = this.toObject(true).system.pools;
+    const grants = new Map(this.getGrantedResources().map(grant => [grant.id, grant]));
     for ( const [index, resource] of this.system.pools.entries() ) {
-      if ( !recovers(resource.recovery) ) continue;
-      pools[index].value = resource.max;
+      if ( recovers(resource.recovery) ) {
+        pools[index].value = resource.max;
+        updates["system.pools"] = pools;
+        continue;
+      }
+      // A partial refill (`GrantResource` `regain`): one use on a short rest, a wand's 1d6 + 1 charges.
+      const grant = grants.get(resource.id);
+      const amount = grant?.regain?.[recovery] ?? (long ? grant?.regain?.shortRest : null);
+      if ( (amount == null) || (resource.value >= resource.max) ) continue;
+      const {total, rolls} = await rollAmount(amount, {actor: this, actorSystem: this.system});
+      pools[index].value = Math.min(resource.max, resource.value + Math.max(total, 0));
       updates["system.pools"] = pools;
+      if ( rolls.length ) await rolls[0].toMessage({speaker: ChatMessage.getSpeaker({actor: this}),
+        flavor: game.i18n.format("WILDPATH.REST.Regained", {name: grant.label, amount: pools[index].value - resource.value})},
+      {messageMode: "gm"});
     }
     if ( !foundry.utils.isEmpty(updates) ) await this.update(updates);
     // 2024: a long rest removes one level of Exhaustion.

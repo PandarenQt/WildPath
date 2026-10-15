@@ -53,7 +53,10 @@
             "type": "constant",
             "value": 30
           },
-          "recovery": "longRest"
+          "recovery": "none",
+          "regain": {
+            "longRest": 1
+          }
         }
       }
     ]

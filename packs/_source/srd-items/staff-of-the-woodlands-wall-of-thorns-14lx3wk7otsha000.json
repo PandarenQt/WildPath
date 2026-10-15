@@ -92,7 +92,14 @@
             "type": "constant",
             "value": 6
           },
-          "recovery": "longRest"
+          "recovery": "none",
+          "regain": {
+            "longRest": {
+              "type": "dice",
+              "number": 1,
+              "faces": 6
+            }
+          }
         }
       }
     ]
@@ -111,7 +118,6 @@
       },
       "conversion": {
         "notes": [
-          "uses: a partial recovery refills the whole pool",
           "concentration: nothing it sustains was converted",
           "area: a cylinder's height is not modeled",
           "\"Traversal Save\" is passive or triggered: not automated"

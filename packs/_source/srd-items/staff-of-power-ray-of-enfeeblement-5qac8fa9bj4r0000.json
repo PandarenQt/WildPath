@@ -110,7 +110,23 @@
             "type": "constant",
             "value": 20
           },
-          "recovery": "longRest"
+          "recovery": "none",
+          "regain": {
+            "longRest": {
+              "type": "add",
+              "terms": [
+                {
+                  "type": "dice",
+                  "number": 2,
+                  "faces": 8
+                },
+                {
+                  "type": "constant",
+                  "value": 4
+                }
+              ]
+            }
+          }
         }
       }
     ]
@@ -129,7 +145,6 @@
       },
       "conversion": {
         "notes": [
-          "uses: a partial recovery refills the whole pool",
           "effect: \"Brief Enfeeblement\" (its own changes) not converted",
           "effect: \"Enervated\" change system.bonuses.mwak.damage (add) not converted",
           "effect: \"Enervated\" change system.bonuses.rwak.damage (add) not converted",

@@ -26,7 +26,6 @@
       "conversion": {
         "notes": [
           "not automated (summon): using it spends its cost; its description says the rest",
-          "uses: a partial recovery refills the whole pool",
           "summon: a count of \"@scaling\" is not converted",
           "\"Sway Rats\" is passive or triggered: not automated"
         ]

@@ -92,7 +92,23 @@
             "type": "constant",
             "value": 20
           },
-          "recovery": "longRest"
+          "recovery": "none",
+          "regain": {
+            "longRest": {
+              "type": "add",
+              "terms": [
+                {
+                  "type": "dice",
+                  "number": 2,
+                  "faces": 8
+                },
+                {
+                  "type": "constant",
+                  "value": 4
+                }
+              ]
+            }
+          }
         }
       }
     ]
@@ -111,7 +127,6 @@
       },
       "conversion": {
         "notes": [
-          "uses: a partial recovery refills the whole pool",
           "cast: Lightning Bolt at level 5 is cast at its own level"
         ]
       }

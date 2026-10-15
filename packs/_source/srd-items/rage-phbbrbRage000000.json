@@ -101,7 +101,10 @@
               "17": 6
             }
           },
-          "recovery": "shortRest"
+          "recovery": "longRest",
+          "regain": {
+            "shortRest": 1
+          }
         }
       }
     ]
@@ -119,7 +122,6 @@
       },
       "conversion": {
         "notes": [
-          "uses: a partial recovery refills the whole pool",
           "effect: \"Rage\" change system.bonuses.mwak.damage (add) not converted"
         ]
       }

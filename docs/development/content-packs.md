@@ -236,17 +236,19 @@ equipped. Equipping it (`system.active`) turns its rules on.
   1d10; a Spear's d6 becomes a d8). A magic weapon's bonus is a Modifier on its own attack and damage rolls, and an
   attack's own bonus one on its attack roll.
 - A potion or scroll is only its Actions; using one spends its single use.
+- **Charges and uses regained in part** (`regain`, rule-elements.md): a wand's "1d6 + 1 charges at dawn" on a long
+  rest, a feature's "one use on a Short Rest". Dawn, dusk and "per day" are a long rest. 174 SRD Items.
 - Left by hand:
   - an item's Actions are usable whether or not the item is equipped, and only an item added from a compendium
     brings them;
   - attunement is not tracked;
-  - charges recover in full on a long rest, not "1d6 + 1 at dawn";
   - armor training (proficiency) is not checked.
 
 Live (two browsers, 14.369): Player1 equipped Chain Mail and a Shield (AC 13 to 18), cast Mage Armor, hit the
 Bandit Captain with Longsword (Two-Handed) for 1d10, and cast the Wand of Fireballs' Fireball: one charge spent, QA
 Saver saved and QA Failer failed. Dropping the Wand of Fireballs on QA Caster's sheet added its Fireball with 7
-charges; deleting the wand from the sheet removed it.
+charges; deleting the wand from the sheet removed it. A character with the wand at 1 charge kept 1 after a short
+rest; a long rest rolled 1d6 + 1 (4 + 1) and it had 6, with "Wand of Fireballs regains 5" whispered to the GM.
 
 ### Effects with their own changes (G3)
 

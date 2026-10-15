@@ -61,7 +61,10 @@
             "type": "constant",
             "value": 5
           },
-          "recovery": "longRest"
+          "recovery": "none",
+          "regain": {
+            "longRest": 1
+          }
         }
       }
     ]
@@ -79,9 +82,7 @@
         "castBy": "Rod of Resurrection"
       },
       "conversion": {
-        "notes": [
-          "uses: a partial recovery refills the whole pool"
-        ]
+        "notes": []
       }
     }
   }

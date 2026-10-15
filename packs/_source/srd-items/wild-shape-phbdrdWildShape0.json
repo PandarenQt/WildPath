@@ -44,7 +44,10 @@
               "17": 4
             }
           },
-          "recovery": "shortRest"
+          "recovery": "longRest",
+          "regain": {
+            "shortRest": 1
+          }
         }
       }
     ]
@@ -62,8 +65,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (transform): using it spends its cost; its description says the rest",
-          "uses: a partial recovery refills the whole pool"
+          "not automated (transform): using it spends its cost; its description says the rest"
         ]
       }
     }

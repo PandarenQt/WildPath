@@ -67,7 +67,14 @@
             "type": "constant",
             "value": 10
           },
-          "recovery": "longRest"
+          "recovery": "none",
+          "regain": {
+            "longRest": {
+              "type": "dice",
+              "number": 1,
+              "faces": 6
+            }
+          }
         }
       }
     ]
@@ -85,9 +92,7 @@
         "castBy": "Cube of Force"
       },
       "conversion": {
-        "notes": [
-          "uses: a partial recovery refills the whole pool"
-        ]
+        "notes": []
       }
     }
   }

@@ -277,7 +277,10 @@
             "type": "constant",
             "value": 5
           },
-          "recovery": "longRest"
+          "recovery": "none",
+          "regain": {
+            "longRest": 1
+          }
         }
       }
     ]
@@ -296,7 +299,6 @@
       },
       "conversion": {
         "notes": [
-          "uses: a partial recovery refills the whole pool",
           "activation: 1 hour is not an action-economy cost",
           "effect: \"Spell Taxed\" (its own changes) not converted"
         ]

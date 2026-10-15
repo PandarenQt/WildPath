@@ -92,7 +92,23 @@
             "type": "constant",
             "value": 5
           },
-          "recovery": "longRest"
+          "recovery": "none",
+          "regain": {
+            "longRest": {
+              "type": "add",
+              "terms": [
+                {
+                  "type": "dice",
+                  "number": 1,
+                  "faces": 4
+                },
+                {
+                  "type": "constant",
+                  "value": 1
+                }
+              ]
+            }
+          }
         }
       }
     ]
@@ -111,7 +127,6 @@
       },
       "conversion": {
         "notes": [
-          "uses: a partial recovery refills the whole pool",
           "area: a cylinder's height is not modeled"
         ]
       }

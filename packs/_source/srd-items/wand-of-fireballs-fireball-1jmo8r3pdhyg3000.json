@@ -78,7 +78,23 @@
             "type": "constant",
             "value": 7
           },
-          "recovery": "longRest"
+          "recovery": "none",
+          "regain": {
+            "longRest": {
+              "type": "add",
+              "terms": [
+                {
+                  "type": "dice",
+                  "number": 1,
+                  "faces": 6
+                },
+                {
+                  "type": "constant",
+                  "value": 1
+                }
+              ]
+            }
+          }
         }
       }
     ]
@@ -96,9 +112,7 @@
         "castBy": "Wand of Fireballs"
       },
       "conversion": {
-        "notes": [
-          "uses: a partial recovery refills the whole pool"
-        ]
+        "notes": []
       }
     }
   }

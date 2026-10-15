@@ -38,7 +38,6 @@
       },
       "conversion": {
         "notes": [
-          "uses: a partial recovery refills the whole pool",
           "cast: Magic Missile at level 5 is cast at its own level",
           "not automated (utility): using it spends its cost; its description says the rest"
         ]

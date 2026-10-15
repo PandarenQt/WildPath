@@ -35,7 +35,10 @@
             "type": "constant",
             "value": 2
           },
-          "recovery": "longRest"
+          "recovery": "none",
+          "regain": {
+            "longRest": 1
+          }
         }
       }
     ]
@@ -54,7 +57,6 @@
       "conversion": {
         "notes": [
           "not automated (summon): using it spends its cost; its description says the rest",
-          "uses: a partial recovery refills the whole pool",
           "summon: its creature is not among the converted creatures",
           "consumption: itemUses @item.uses.max not converted"
         ]

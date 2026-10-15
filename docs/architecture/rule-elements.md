@@ -433,6 +433,11 @@ sheet treat it like any other pool:
   once.
 - **Removal.** The pool stays when its grant goes. With nothing granting it, its maximum falls back to its
   own base (0), and adding the grant back restores it.
+- **Partial refills (2026-10-15, G7).** `regain: {shortRest?, longRest?}` gives back an amount (a number or
+  ValueExpression) on that rest, up to the maximum; `recovery` still refills it whole. A long rest also gives what
+  a short rest does. Second Wind is `{recovery: "longRest", regain: {shortRest: 1}}`, a Wand of Fireballs
+  `{recovery: "none", regain: {longRest: 1d6 + 1}}`. Dice are rolled when the rest is taken and whispered to the GM
+  ("Wand of Fireballs regains 5").
 
 ```js
 {type: "GrantResource", data: {resourceId: "ki", label: "Ki", recovery: "shortRest",

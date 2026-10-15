@@ -26,7 +26,6 @@
       "conversion": {
         "notes": [
           "not automated (summon): using it spends its cost; its description says the rest",
-          "uses: a partial recovery refills the whole pool",
           "summon: its creature is not among the converted creatures",
           "effect: \"Mastiff Figurine\" change system.abilities.int.value (upgrade) not converted",
           "effect: \"Mastiff Figurine\" change system.traits.languages.value (add) not converted",
