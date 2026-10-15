@@ -63,6 +63,18 @@ function bestArmorClass(actor) {
 /* -------------------------------------------- */
 
 /**
+ * Whether a creature is proficient with an attack: the attack's own `proficient`, and for a weapon (`attack.weapon`,
+ * G8) of a creature with weapon training, that training naming its category (`martial`) or the weapon itself. A
+ * creature without weapon training (a stat block) keeps what the attack says.
+ */
+export function attackProficient(actor, attack) {
+  if ( attack?.proficient !== true ) return false;
+  const trained = actor?.system?.training?.weapons ?? [];
+  const weapon = attack.weapon;
+  return !weapon || !trained.length || trained.includes(weapon.category) || (!!weapon.base && trained.includes(weapon.base));
+}
+
+/**
  * Resolve the attack statistic declared by an ActionDefinition into a roll modifier snapshot.
  * Every matching domain stacks (`attack.weapon` + `attack.melee` + `attack`); which modifiers apply is
  * decided by their source and predicate (see `WildPathActor#getStatistic`).
@@ -89,7 +101,7 @@ export function resolveActorAttackStatistic(actor, attack={}, {item=null, tags=[
   const abilityModifier = actorAbilityModifier(actor, ability);
   if ( !statistic.known && (abilityModifier == null) ) return null;
   // 2024: the proficiency bonus joins only an attack the creature is proficient with (maintainer decision).
-  const proficiency = attack.proficient === true ? actorProficiencyBonus(actor) : 0;
+  const proficiency = attackProficient(actor, attack) ? actorProficiencyBonus(actor) : 0;
   const total = (statistic.value ?? 0) + (abilityModifier ?? 0) + proficiency;
   return {
     key,

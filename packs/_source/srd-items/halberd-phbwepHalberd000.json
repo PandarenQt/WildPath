@@ -22,7 +22,12 @@
         "type": "melee",
         "statistic": "weapon",
         "defenseKey": "ac",
-        "proficient": true
+        "proficient": true,
+        "weapon": {
+          "category": "martial",
+          "base": "halberd",
+          "mastery": "cleave"
+        }
       },
       "range": {
         "type": "reach",

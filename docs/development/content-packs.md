@@ -260,6 +260,9 @@ equipped. Equipping it (`system.active`) turns its rules on.
 - **An item's Actions come with it.** Its gear lists them (`flags.wildpath.grants`, ids in its own pack). Adding
   it to a creature from the compendium adds them too, marked `flags.wildpath.grantedBy`, and deleting it deletes
   them (`WildPathItem`).
+- **Weapon kind (G8).** A weapon's attack carries `attack.weapon`: its base weapon (`longsword`, `light-crossbow`),
+  `simple` or `martial`, and its 2024 mastery (`sap`), which weapon training and Weapon Mastery read. 93 SRD weapon
+  Actions have one.
 - **Weapons.** A Versatile weapon also has a two-handed Action rolling its larger die ("Longsword (Two-Handed)",
   1d10; a Spear's d6 becomes a d8). A magic weapon's bonus is a Modifier on its own attack and damage rolls, and an
   attack's own bonus one on its attack roll.

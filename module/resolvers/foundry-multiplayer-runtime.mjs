@@ -23,6 +23,7 @@ import {createFoundryDying} from "../adapters/foundry-v14-dying.mjs";
 import {createFoundrySummons} from "../adapters/foundry-v14-summons.mjs";
 import {createFoundryForcedMovement} from "../adapters/foundry-v14-forced-movement.mjs";
 import {createFoundryFalling} from "../adapters/foundry-v14-falling.mjs";
+import {createFoundryWeaponMastery} from "../adapters/foundry-v14-weapon-mastery.mjs";
 import {
   buildFoundryMovementCompletion,
   buildFoundryMovementProgressObservation,
@@ -37,7 +38,8 @@ import {actionDefinitionActivationCost, actionDefinitionFromAction, actionDefini
 import {tokenRef} from "../helpers/entity-refs.mjs";
 import {footprintDistance} from "../helpers/grid-footprints.mjs";
 import {combineRollModes, d20Chance} from "../helpers/rolls.mjs";
-import {conditionsFrom, creatureRefs, revealedTo} from "../helpers/effect-sources.mjs";
+import {conditionsFrom, creatureRefs, effectsFrom, revealedTo} from "../helpers/effect-sources.mjs";
+import {customEffectId} from "../helpers/action-definitions.mjs";
 
 export {conditionsFrom, revealedTo};
 import {commonAction, commonActionId} from "../helpers/common-actions.mjs";
@@ -122,6 +124,7 @@ export function registerFoundryV14MultiplayerResolution({
       await applyActionTransformation(event, {logger});
       await summons.afterResolution(event);
       await pushes.afterResolution(event);
+      await masteries.afterResolution(event);
       await endEffectsWhenAttacked(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
     },
     logger
@@ -167,6 +170,9 @@ export function registerFoundryV14MultiplayerResolution({
     resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});
   globalThis.Hooks?.on?.("createActiveEffect", effect => void falling.onEffectCreated(effect)
     .catch(error => logger?.warn?.("Wild Path | A fall could not resolve", error)));
+  // Weapon Mastery that follows an attack (Topple, Graze), each as its own authority Action.
+  const masteries = createFoundryWeaponMastery({game, coordinator, logger, fromUuid: globalThis.fromUuid ?? (() => null),
+    resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});
   // 2024: a stable creature regains 1 health after 1d4 hours; world time moving on (or a rest, Actor#rest) counts.
   globalThis.Hooks?.on?.("updateWorldTime", worldTime => void dying.onWorldTime(worldTime)
     .catch(error => logger?.warn?.("Wild Path | Stable recovery failed", error)));
@@ -881,7 +887,8 @@ function foundryAttackOutcomes({definition, targets, targetEntries, spatial, gam
 
 /**
  * What RuleElement predicates see about an attack on one target: its type, whether it is within 5 ft, the
- * conditions the attacker has from that target (`fromTarget.grappled`), whether one of the attacker's allies
+ * conditions the attacker has from that target (`fromTarget.grappled`) and the target from the attacker
+ * (`fromAttacker`, a Vex), whether one of the attacker's allies
  * stands within 5 ft of it (`allyNearTarget`, Pack Tactics), and whether the attacker stands in sunlight (`inSunlight`).
  */
 function attackContext(type, spatial, entry, game, sourceToken, attacker=null) {
@@ -892,7 +899,8 @@ function attackContext(type, spatial, entry, game, sourceToken, attacker=null) {
     ? createFoundryV14TacticalGridAdapter({scene: token.parent}).tokenToFootprint(token) : null;
   const fields = footprint?.ok && footprint.footprint ? footprintDistance(source, footprint.footprint) : null;
   return {attack: {type, ...(Number.isFinite(fields) ? {adjacent: fields * spatial.context.gridDistance <= 5} : {}),
-    fromTarget: conditionsFrom(attacker, entry?.actor, game), allyNearTarget: allyNearTarget(sourceToken, token)},
+    fromTarget: conditionsFrom(attacker, entry?.actor, game), fromAttacker: conditionsFrom(entry?.actor, attacker, game),
+    allyNearTarget: allyNearTarget(sourceToken, token)},
     ...sunlightContext(sourceToken)};
 }
 
@@ -984,21 +992,37 @@ async function foundryActionController({action, actor, intent, sender, game}) {
 }
 
 /**
- * After an attack Action: each creature it attacked loses its effects that end when it is attacked (`endsWhen:
- * "attacked"`, Help's Distracted), now that the attack has had them.
+ * After an attack Action, the effects that end on an attack, now that the attack has had them (`endsWhen`): each
+ * attacked creature's `attacked` effects (Help's Distracted) and those from the attacker (`attackedBySource`, a Vex),
+ * and the attacker's own `attacks` effects (a Sap). An effect this Action has just applied to a creature it hit stays.
  */
 export async function endEffectsWhenAttacked({state}, {fromUuid}) {
-  const attacked = (state?.results?.attackResolution?.results ?? []).filter(result => result?.ok !== false)
-    .map(result => result.target?.tokenId).filter(Boolean);
-  if ( !attacked.length ) return [];
-  const scene = (await fromUuid(String(state?.source?.tokenRef ?? "")))?.parent ?? null;
-  const ended = [];
-  for ( const tokenId of new Set(attacked) ) {
-    const actor = scene?.tokens?.get(tokenId)?.actor;
-    const effects = [...(actor?.effects ?? [])].filter(effect => effect.flags?.wildpath?.conditionEffect?.definition?.endsWhen === "attacked");
-    if ( effects.length ) await actor.deleteEmbeddedDocuments("ActiveEffect", effects.map(effect => effect.id));
-    ended.push(...effects.map(effect => effect.id));
+  const attacked = new Map();
+  for ( const result of state?.results?.attackResolution?.results ?? [] ) {
+    const tokenId = result?.target?.tokenId;
+    if ( (result?.ok !== false) && tokenId ) attacked.set(tokenId, attacked.get(tokenId) || (result.hit === true));
   }
+  if ( !attacked.size ) return [];
+  const sourceToken = await fromUuid(String(state?.source?.tokenRef ?? ""));
+  const scene = sourceToken?.parent ?? null;
+  const attacker = sourceToken?.actor ?? null;
+  const definition = state?.actionDefinition ?? {};
+  const applied = new Set((definition.effects ?? []).filter(effect => effect?.type === "effect").map(effect => customEffectId(definition.id, effect)));
+  const endsWhen = effect => effect.flags?.wildpath?.conditionEffect?.definition?.endsWhen;
+  const ended = [];
+  const end = async (actor, effects) => {
+    if ( !effects.length ) return;
+    await actor.deleteEmbeddedDocuments("ActiveEffect", effects.map(effect => effect.id));
+    ended.push(...effects.map(effect => effect.id));
+  };
+  for ( const [tokenId, hit] of attacked ) {
+    const actor = scene?.tokens?.get(tokenId)?.actor;
+    if ( !actor ) continue;
+    const fromAttacker = new Set(attacker ? effectsFrom(actor, attacker).map(effect => effect.id) : []);
+    await end(actor, [...actor.effects].filter(effect => !(hit && [...(effect.statuses ?? [])].some(status => applied.has(status)))
+      && ((endsWhen(effect) === "attacked") || ((endsWhen(effect) === "attackedBySource") && fromAttacker.has(effect.id)))));
+  }
+  if ( attacker ) await end(attacker, [...attacker.effects].filter(effect => endsWhen(effect) === "attacks"));
   return ended;
 }
 

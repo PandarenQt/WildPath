@@ -88,7 +88,12 @@
             "proficient": true,
             "properties": [
               "finesse"
-            ]
+            ],
+            "weapon": {
+              "category": "martial",
+              "base": "scimitar",
+              "mastery": "nick"
+            }
           },
           "range": {
             "type": "reach",
@@ -162,7 +167,12 @@
             "proficient": true,
             "properties": [
               "finesse"
-            ]
+            ],
+            "weapon": {
+              "category": "martial",
+              "base": "scimitar",
+              "mastery": "nick"
+            }
           },
           "range": {
             "type": "reach",
@@ -251,7 +261,12 @@
             "type": "ranged",
             "statistic": "weapon",
             "defenseKey": "ac",
-            "proficient": true
+            "proficient": true,
+            "weapon": {
+              "category": "simple",
+              "base": "shortbow",
+              "mastery": "vex"
+            }
           },
           "range": {
             "type": "ranged",
@@ -326,7 +341,12 @@
             "type": "ranged",
             "statistic": "weapon",
             "defenseKey": "ac",
-            "proficient": true
+            "proficient": true,
+            "weapon": {
+              "category": "simple",
+              "base": "shortbow",
+              "mastery": "vex"
+            }
           },
           "range": {
             "type": "ranged",

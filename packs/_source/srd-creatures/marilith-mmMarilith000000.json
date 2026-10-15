@@ -272,7 +272,12 @@
             "statistic": "weapon",
             "defenseKey": "ac",
             "proficient": true,
-            "ability": "agility"
+            "ability": "agility",
+            "weapon": {
+              "category": "martial",
+              "base": "longsword",
+              "mastery": "sap"
+            }
           },
           "range": {
             "type": "reach",
@@ -354,7 +359,12 @@
             "statistic": "weapon",
             "defenseKey": "ac",
             "proficient": true,
-            "ability": "agility"
+            "ability": "agility",
+            "weapon": {
+              "category": "martial",
+              "base": "longsword",
+              "mastery": "sap"
+            }
           },
           "range": {
             "type": "reach",

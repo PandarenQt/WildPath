@@ -79,7 +79,12 @@
             "statistic": "weapon",
             "defenseKey": "ac",
             "proficient": true,
-            "ability": "wits"
+            "ability": "wits",
+            "weapon": {
+              "category": "martial",
+              "base": "longsword",
+              "mastery": "sap"
+            }
           },
           "range": {
             "type": "reach",
@@ -161,7 +166,12 @@
             "statistic": "weapon",
             "defenseKey": "ac",
             "proficient": true,
-            "ability": "wits"
+            "ability": "wits",
+            "weapon": {
+              "category": "martial",
+              "base": "longsword",
+              "mastery": "sap"
+            }
           },
           "range": {
             "type": "reach",

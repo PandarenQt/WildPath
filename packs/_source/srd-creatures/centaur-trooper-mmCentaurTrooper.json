@@ -85,7 +85,12 @@
             "type": "melee",
             "statistic": "weapon",
             "defenseKey": "ac",
-            "proficient": true
+            "proficient": true,
+            "weapon": {
+              "category": "martial",
+              "base": "pike",
+              "mastery": "push"
+            }
           },
           "range": {
             "type": "reach",
@@ -164,7 +169,12 @@
             "type": "ranged",
             "statistic": "weapon",
             "defenseKey": "ac",
-            "proficient": true
+            "proficient": true,
+            "weapon": {
+              "category": "martial",
+              "base": "longbow",
+              "mastery": "slow"
+            }
           },
           "range": {
             "type": "ranged",

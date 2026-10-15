@@ -152,7 +152,12 @@
             "type": "melee",
             "statistic": "weapon",
             "defenseKey": "ac",
-            "proficient": true
+            "proficient": true,
+            "weapon": {
+              "category": "martial",
+              "base": "greataxe",
+              "mastery": "cleave"
+            }
           },
           "range": {
             "type": "reach",
@@ -242,7 +247,12 @@
             "statistic": "weapon",
             "defenseKey": "ac",
             "proficient": true,
-            "ability": "might"
+            "ability": "might",
+            "weapon": {
+              "category": "martial",
+              "base": "longbow",
+              "mastery": "slow"
+            }
           },
           "range": {
             "type": "ranged",

@@ -36,3 +36,15 @@ test("an attack adds Might in melee, Agility at range, the better of the two wit
   assert.equal(validateActionDefinition(definition({type: "melee", statistic: "weapon", properties: ["finesse"]})).ok, true);
   assert.equal(validateActionDefinition(definition({type: "melee", statistic: "weapon", properties: "finesse"})).ok, false);
 });
+
+test("weapon proficiency follows weapon training (G8); without training, the attack's own flag", async () => {
+  const {attackProficient} = await import("../module/helpers/combat-statistics.mjs");
+  const longsword = {proficient: true, weapon: {category: "martial", base: "longsword", mastery: "sap"}};
+  const trained = weapons => ({system: {training: {weapons}}});
+  assert.equal(attackProficient(trained(["simple", "martial"]), longsword), true);
+  assert.equal(attackProficient(trained(["simple", "longsword"]), longsword), true, "the weapon itself");
+  assert.equal(attackProficient(trained(["simple"]), longsword), false, "a Wizard with a longsword");
+  assert.equal(attackProficient(trained([]), longsword), true, "a stat block keeps what the attack says");
+  assert.equal(attackProficient(trained(["martial"]), {...longsword, proficient: false}), false, "unticked stays unticked");
+  assert.equal(attackProficient(trained(["simple"]), {proficient: true}), true, "not a weapon: a spell attack");
+});

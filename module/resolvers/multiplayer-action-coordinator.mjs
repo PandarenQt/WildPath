@@ -851,15 +851,8 @@ export function createMultiplayerActionCoordinator({
       }
     });
     const sent = await sendEnvelope(envelope);
-    // Authority follow-ups (e.g. a lasting area's Region) run once the outcome is committed; they never change it.
-    if ( (typeof afterCompleted === "function") && (record.state?.status === RESOLUTION_STATE_STATUS.COMPLETED) ) {
-      try {
-        await afterCompleted({resolutionId: record.resolutionId, options: record.options, state: record.state});
-      } catch (error) {
-        (logger ?? console).warn("Wild Path | Post-resolution step failed", error);
-      }
-    }
-    // Presentation (e.g. a chat card) sees only the public projection and never changes the outcome.
+    // Presentation (e.g. a chat card) sees only the public projection and never changes the outcome; it comes before
+    // the follow-ups, so their own cards (a fall, a Graze) come after it.
     if ( typeof publishResult === "function" ) {
       try {
         await publishResult({
@@ -872,6 +865,14 @@ export function createMultiplayerActionCoordinator({
         });
       } catch (error) {
         (logger ?? console).warn("Wild Path | Result publication failed", error);
+      }
+    }
+    // Authority follow-ups (e.g. a lasting area's Region) run once the outcome is committed; they never change it.
+    if ( (typeof afterCompleted === "function") && (record.state?.status === RESOLUTION_STATE_STATUS.COMPLETED) ) {
+      try {
+        await afterCompleted({resolutionId: record.resolutionId, options: record.options, state: record.state});
+      } catch (error) {
+        (logger ?? console).warn("Wild Path | Post-resolution step failed", error);
       }
     }
     const ok = sent.ok && participantSent?.ok !== false;

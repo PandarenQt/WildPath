@@ -87,7 +87,12 @@
             "type": "ranged",
             "statistic": "weapon",
             "defenseKey": "ac",
-            "proficient": true
+            "proficient": true,
+            "weapon": {
+              "category": "simple",
+              "base": "javelin",
+              "mastery": "slow"
+            }
           },
           "range": {
             "type": "ranged",
@@ -162,7 +167,12 @@
             "type": "melee",
             "statistic": "weapon",
             "defenseKey": "ac",
-            "proficient": true
+            "proficient": true,
+            "weapon": {
+              "category": "martial",
+              "base": "morningstar",
+              "mastery": "sap"
+            }
           },
           "range": {
             "type": "reach",

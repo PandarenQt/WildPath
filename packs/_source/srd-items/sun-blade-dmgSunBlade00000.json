@@ -28,7 +28,12 @@
         "proficient": true,
         "properties": [
           "finesse"
-        ]
+        ],
+        "weapon": {
+          "category": "martial",
+          "base": "longsword",
+          "mastery": "sap"
+        }
       },
       "range": {
         "type": "reach",

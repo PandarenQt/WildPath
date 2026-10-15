@@ -84,7 +84,12 @@
             "type": "melee",
             "statistic": "weapon",
             "defenseKey": "ac",
-            "proficient": true
+            "proficient": true,
+            "weapon": {
+              "category": "martial",
+              "base": "greatsword",
+              "mastery": "graze"
+            }
           },
           "range": {
             "type": "reach",
@@ -177,7 +182,12 @@
             "type": "melee",
             "statistic": "weapon",
             "defenseKey": "ac",
-            "proficient": true
+            "proficient": true,
+            "weapon": {
+              "category": "martial",
+              "base": "longsword",
+              "mastery": "sap"
+            }
           },
           "range": {
             "type": "reach",
@@ -270,7 +280,12 @@
             "type": "melee",
             "statistic": "weapon",
             "defenseKey": "ac",
-            "proficient": true
+            "proficient": true,
+            "weapon": {
+              "category": "martial",
+              "base": "longsword",
+              "mastery": "sap"
+            }
           },
           "range": {
             "type": "reach",
@@ -366,7 +381,12 @@
             "proficient": true,
             "properties": [
               "finesse"
-            ]
+            ],
+            "weapon": {
+              "category": "martial",
+              "base": "rapier",
+              "mastery": "vex"
+            }
           },
           "range": {
             "type": "reach",
@@ -462,7 +482,12 @@
             "proficient": true,
             "properties": [
               "finesse"
-            ]
+            ],
+            "weapon": {
+              "category": "martial",
+              "base": "scimitar",
+              "mastery": "nick"
+            }
           },
           "range": {
             "type": "reach",
@@ -558,7 +583,12 @@
             "proficient": true,
             "properties": [
               "finesse"
-            ]
+            ],
+            "weapon": {
+              "category": "martial",
+              "base": "shortsword",
+              "mastery": "vex"
+            }
           },
           "range": {
             "type": "reach",

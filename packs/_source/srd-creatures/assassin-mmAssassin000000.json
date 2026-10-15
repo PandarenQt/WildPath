@@ -90,7 +90,12 @@
             "proficient": true,
             "properties": [
               "finesse"
-            ]
+            ],
+            "weapon": {
+              "category": "martial",
+              "base": "shortsword",
+              "mastery": "vex"
+            }
           },
           "range": {
             "type": "reach",
@@ -186,7 +191,12 @@
             "type": "ranged",
             "statistic": "weapon",
             "defenseKey": "ac",
-            "proficient": true
+            "proficient": true,
+            "weapon": {
+              "category": "simple",
+              "base": "light-crossbow",
+              "mastery": "slow"
+            }
           },
           "range": {
             "type": "ranged",

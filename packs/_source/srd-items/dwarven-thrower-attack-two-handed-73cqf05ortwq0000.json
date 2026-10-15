@@ -25,7 +25,12 @@
         "type": "ranged",
         "statistic": "weapon",
         "defenseKey": "ac",
-        "proficient": true
+        "proficient": true,
+        "weapon": {
+          "category": "martial",
+          "base": "warhammer",
+          "mastery": "push"
+        }
       },
       "range": {
         "type": "ranged",

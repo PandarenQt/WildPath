@@ -399,7 +399,12 @@
             "statistic": "weapon",
             "defenseKey": "ac",
             "proficient": true,
-            "ability": "agility"
+            "ability": "agility",
+            "weapon": {
+              "category": "martial",
+              "base": "longbow",
+              "mastery": "slow"
+            }
           },
           "range": {
             "type": "ranged",

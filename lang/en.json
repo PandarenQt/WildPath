@@ -218,6 +218,10 @@
       "Use": "Succeed instead",
       "Decline": "Fail the save"
     },
+    "MASTERY": {
+      "topple": "Topple",
+      "graze": "Graze"
+    },
     "LEVELUP": {
       "Button": "Level up {name}",
       "Title": "{name}: level {level}",
