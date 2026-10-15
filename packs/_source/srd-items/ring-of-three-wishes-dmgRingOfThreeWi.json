@@ -1,0 +1,35 @@
+{
+  "_id": "dmgRingOfThreeWi",
+  "_key": "!items!dmgRingOfThreeWi",
+  "name": "Ring of Three Wishes",
+  "type": "gear",
+  "img": "icons/equipment/finger/ring-cabochon-gold-purple.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Ring, Legendary</em></p><p>While wearing this ring, you can expend 1 of its 3 charges to cast Wish from it. The ring becomes nonmagical when you use the last charge.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgRingOfThreeWi",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Wish Stress\" change system.abilities.str.value (downgrade) not converted",
+          "effect: \"Wish Stress\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

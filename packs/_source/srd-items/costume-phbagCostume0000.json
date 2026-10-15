@@ -1,0 +1,31 @@
+{
+  "_id": "phbagCostume0000",
+  "_key": "!items!phbagCostume0000",
+  "name": "Costume",
+  "type": "gear",
+  "img": "icons/equipment/head/hood-purple-mask.webp",
+  "system": {
+    "active": false,
+    "description": "<p>While wearing a Costume, you have Advantage on any ability check you make to impersonate the person or type of person it represents.</p>",
+    "quantity": 1,
+    "weight": 4,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagCostume0000",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "_id": "phbagClothesTrav",
+  "_key": "!items!phbagClothesTrav",
+  "name": "Clothes, Traveler's",
+  "type": "gear",
+  "img": "icons/equipment/chest/shirt-collared-yellow.webp",
+  "system": {
+    "active": false,
+    "description": "<p>Traveler's Clothes are resilient garments designed for travel in various environments.</p>",
+    "quantity": 1,
+    "weight": 4,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagClothesTrav",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

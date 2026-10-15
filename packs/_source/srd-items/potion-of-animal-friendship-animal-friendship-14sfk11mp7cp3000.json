@@ -1,0 +1,106 @@
+{
+  "_id": "14sfk11mp7cp3000",
+  "_key": "!items!14sfk11mp7cp3000",
+  "name": "Potion of Animal Friendship: Animal Friendship",
+  "type": "action",
+  "img": "icons/creatures/abilities/paw-glowing-yellow.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Target a Beast that you can see within range. The target must succeed on a Wisdom saving throw or have the Charmed condition for the duration. If you or one of your allies deals damage to the target, the spells ends.</p><p><strong>Using a Higher-Level Spell Slot.</strong> You can target one additional Beast for each spell slot level above 1.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-potion-of-animal-friendship-animal-friendship",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          },
+          {
+            "capability": "potion-of-animal-friendship",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 30,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "save": {
+        "ability": "wits",
+        "dc": {
+          "valueExpression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 8
+              },
+              {
+                "type": "proficiency-bonus"
+              },
+              {
+                "type": "spellcasting-modifier"
+              }
+            ]
+          }
+        }
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "charmed",
+          "saveOutcomePolicy": "failure"
+        }
+      ],
+      "label": "Potion of Animal Friendship: Animal Friendship"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "potion-of-animal-friendship-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "potion-of-animal-friendship",
+          "label": "Potion of Animal Friendship",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplAnimalFrie",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Potion of Animal Friendship"
+      },
+      "conversion": {
+        "notes": [
+          "cast: Animal Friendship at level 3 is cast at its own level"
+        ]
+      }
+    }
+  }
+}

@@ -21,7 +21,9 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "effect: \"Reliable Talent\" change flags.dnd5e.reliableTalent (override) not converted"
+        ]
       }
     }
   }

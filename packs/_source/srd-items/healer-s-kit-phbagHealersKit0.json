@@ -1,0 +1,62 @@
+{
+  "_id": "phbagHealersKit0",
+  "_key": "!items!phbagHealersKit0",
+  "name": "Healer's Kit",
+  "type": "action",
+  "img": "icons/containers/bags/sack-leather-brown-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p>A Healer's Kit has ten uses. As a Utilize action, you can expend one of its uses to stabilize an Unconscious creature that has 0 Hit Points without needing to make a Wisdom (Medicine) check.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-healer-s-kit-stabilize",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "healer-s-kit",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Healer's Kit"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "healer-s-kit-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "healer-s-kit",
+          "label": "Healer's Kit",
+          "maximum": {
+            "type": "constant",
+            "value": 10
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagHealersKit0",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

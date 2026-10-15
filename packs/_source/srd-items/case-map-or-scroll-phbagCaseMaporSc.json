@@ -1,0 +1,31 @@
+{
+  "_id": "phbagCaseMaporSc",
+  "_key": "!items!phbagCaseMaporSc",
+  "name": "Case, Map or Scroll",
+  "type": "gear",
+  "img": "icons/containers/bags/case-leather-tan.webp",
+  "system": {
+    "active": false,
+    "description": "<p>A Map or Scroll Case holds up to 10 sheets of paper or 5 sheets of parchment.</p>",
+    "quantity": 1,
+    "weight": 1,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagCaseMaporSc",
+        "type": "container",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

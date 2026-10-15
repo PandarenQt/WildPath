@@ -1,0 +1,36 @@
+{
+  "_id": "dmgWandOfMagicDe",
+  "_key": "!items!dmgWandOfMagicDe",
+  "name": "Wand of Magic Detection",
+  "type": "gear",
+  "img": "icons/weapons/wands/wand-gem-purple.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Wand, Uncommon</em></p><p>This wand has 3 charges. While holding it, you can expend 1 charge to cast Detect Magic from it. The wand regains 1d3 expended charges daily at dawn.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgWandOfMagicDe",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool",
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Detect Magic\" (its own changes) not converted",
+          "concentration: nothing it sustains was converted"
+        ]
+      }
+    }
+  }
+}

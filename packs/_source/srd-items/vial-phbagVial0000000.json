@@ -1,0 +1,31 @@
+{
+  "_id": "phbagVial0000000",
+  "_key": "!items!phbagVial0000000",
+  "name": "Vial",
+  "type": "gear",
+  "img": "icons/consumables/potions/vial-cork-empty.webp",
+  "system": {
+    "active": false,
+    "description": "<p>A Vial holds up to 4 ounces.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagVial0000000",
+        "type": "container",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

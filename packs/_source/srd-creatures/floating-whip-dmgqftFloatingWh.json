@@ -117,7 +117,20 @@
           ],
           "label": "Melee Spell Attack"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "attack-bonus",
+            "type": "Modifier",
+            "data": {
+              "domains": [
+                "attack"
+              ],
+              "modifierType": "untyped",
+              "value": 9
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -131,9 +144,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "attack: bonus \"9\" not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -152,9 +163,7 @@
         "challenge": 0
       },
       "conversion": {
-        "notes": [
-          "Melee Spell Attack: attack: bonus \"9\" not converted"
-        ]
+        "notes": []
       }
     }
   }

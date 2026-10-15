@@ -1,0 +1,36 @@
+{
+  "_id": "dmgHelmOfTelepat",
+  "_key": "!items!dmgHelmOfTelepat",
+  "name": "Helm of Telepathy",
+  "type": "gear",
+  "img": "icons/equipment/head/helm-spangen.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Wondrous Item, Uncommon (Requires Attunement)</em></p><p>While wearing this helm, you have telepathy with a range of 30 feet, and you can cast Detect Thoughts or Suggestion (save DC 13) from the helm. Once either spell is cast from the helm, that spell can't be cast from it again until the next dawn.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgHelmOfTelepat",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "concentration: nothing it sustains was converted",
+          "not automated (save): using it spends its cost; its description says the rest",
+          "effect: \"Telepathy\" change system.traits.languages.custom (add) not converted"
+        ]
+      }
+    }
+  }
+}

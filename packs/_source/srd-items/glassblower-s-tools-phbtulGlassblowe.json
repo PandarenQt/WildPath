@@ -1,0 +1,43 @@
+{
+  "_id": "phbtulGlassblowe",
+  "_key": "!items!phbtulGlassblowe",
+  "name": "Glassblower's Tools",
+  "type": "action",
+  "img": "icons/commodities/tech/metal-insert.webp",
+  "system": {
+    "active": true,
+    "description": "<p class=\"phb-meta\"><strong>Ability:</strong> Intelligence</p><p class=\"phb-meta\"><strong>Utilize:</strong> Discern what a glass object held in the past 24 hours (DC 15)</p><p class=\"phb-meta\"><strong>Craft:</strong> Glass Bottle, Magnifying Glass, Spyglass, Vial</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-glassblower-s-tools-discern-previous-contents",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Glassblower's Tools"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbtulGlassblowe",
+        "type": "tool",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (check): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

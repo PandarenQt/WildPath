@@ -21,7 +21,9 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "effect: \"Feral Instinct\" change system.attributes.init.roll.mode (add) not converted"
+        ]
       }
     }
   }

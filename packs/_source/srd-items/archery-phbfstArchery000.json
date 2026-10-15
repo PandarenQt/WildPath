@@ -7,7 +7,25 @@
   "system": {
     "active": true,
     "description": "<p><em>(Prerequisite: Fighting Style Feature)</em></p><p>You gain a +2 bonus to attack rolls you make with Ranged weapons.</p><section id=\"secret-n13Z6zR2u0CiIA7D\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect which adds the bonus to Ranged weapon attack rolls.</p></section>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "archery-style-1",
+        "type": "Modifier",
+        "predicate": {
+          "tagsAny": [
+            "ranged"
+          ]
+        },
+        "data": {
+          "domains": [
+            "attack.weapon"
+          ],
+          "modifierType": "untyped",
+          "value": 2
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {

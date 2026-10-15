@@ -1,0 +1,65 @@
+{
+  "_id": "dmgElixirOfHealt",
+  "_key": "!items!dmgElixirOfHealt",
+  "name": "Elixir of Health",
+  "type": "action",
+  "img": "icons/consumables/potions/potion-flask-corked-shiny-red.webp",
+  "system": {
+    "active": true,
+    "description": "<div><p><em>Potion, Rare</em></p></div><p>When you drink this potion, you are cured of all magical contagions. In addition, the following conditions end on you: Blinded, Deafened, Paralyzed, and Poisoned.</p><p>The clear, red liquid has tiny bubbles of light in it.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-elixir-of-health-utilize",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "elixir-of-health",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Elixir of Health"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "elixir-of-health-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "elixir-of-health",
+          "label": "Elixir of Health",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgElixirOfHealt",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

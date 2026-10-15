@@ -1,0 +1,43 @@
+{
+  "_id": "phbagNet00000000",
+  "_key": "!items!phbagNet00000000",
+  "name": "Net",
+  "type": "action",
+  "img": "icons/tools/fishing/net-simple-brown.webp",
+  "system": {
+    "active": true,
+    "description": "<p>When you take the Attack action, you can replace one of your attacks with throwing a Net. Target a creature you can see within 15 feet of yourself. The target must succeed on a Dexterity saving throw (DC 8 plus your Dexterity modifier and Proficiency Bonus) or have the Restrained condition until it escapes. The target succeeds automatically if it is Huge or larger.</p><p>To escape, the target or a creature within 5 feet of it must take an action to make a (Athletics) check check, freeing the Restrained creature on a success. Destroying the Net (AC 10; 5 HP; Immunity to Bludgeoning, Poison, and Psychic damage) also frees the target, ending the effect.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-net",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Net"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagNet00000000",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (save): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

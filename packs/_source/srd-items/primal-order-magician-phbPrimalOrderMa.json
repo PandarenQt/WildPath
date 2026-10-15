@@ -7,7 +7,56 @@
   "system": {
     "active": true,
     "description": "<p>You know one extra cantrip from the Druid spell list. In addition, your mystical connection to nature gives you a bonus to your Intelligence (Arcana or Nature) checks. The bonus equals your Wisdom modifier (minimum bonus of +1, currently ).</p><section class=\"secret\" id=\"secret-adiIB9wCX5zZdZ9F\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect which automates the increase to your known cantrips and the bonus to your Arcane and Nature checks.</p></section>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "magician-1",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "check.arcana"
+          ],
+          "modifierType": "untyped",
+          "valueExpression": {
+            "type": "max",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 1
+              },
+              {
+                "type": "ability-modifier",
+                "ability": "wits"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "magician-2",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "check.nature"
+          ],
+          "modifierType": "untyped",
+          "valueExpression": {
+            "type": "max",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 1
+              },
+              {
+                "type": "ability-modifier",
+                "ability": "wits"
+              }
+            ]
+          }
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -21,7 +70,9 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "effect: \"Magician\" change system.scale.druid.cantrips-known.value (add) not converted"
+        ]
       }
     }
   }

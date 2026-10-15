@@ -1,0 +1,31 @@
+{
+  "_id": "1dfxmq9xrz9s7000",
+  "_key": "!items!1dfxmq9xrz9s7000",
+  "name": "Censer of Controlling Air Elementals",
+  "type": "gear",
+  "img": "icons/commodities/treasure/goblet-worn-gold.webp",
+  "system": {
+    "active": false,
+    "description": "<div><p><em>Wondrous Item, Rare</em></p></div><p>While gently swinging this censer, you can take a Magic action to summon an <strong>Air Elemental</strong>. The elemental appears in an unoccupied space as close to the censer as possible, understands your languages, obeys your commands, and takes its turn immediately after you on your Initiative count. The elemental disappears after 1 hour, when it dies, or when you dismiss it as a Bonus Action. The censer can't be used this way again until the next dawn.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgCenserOfContr",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

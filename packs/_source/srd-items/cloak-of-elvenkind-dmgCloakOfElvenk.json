@@ -1,0 +1,33 @@
+{
+  "_id": "dmgCloakOfElvenk",
+  "_key": "!items!dmgCloakOfElvenk",
+  "name": "Cloak of Elvenkind",
+  "type": "gear",
+  "img": "icons/equipment/back/cloak-collared-feathers-green.webp",
+  "system": {
+    "active": false,
+    "description": "<div><p><em>Wondrous Item, Uncommon (Requires Attunement)</em></p></div><p>While you wear this cloak, Wisdom (Perception) checks made to perceive you have Disadvantage, and you have Advantage on Dexterity (Stealth) checks.</p>",
+    "quantity": 1,
+    "weight": 2,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgCloakOfElvenk",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "effect: \"Cloak of Elvenkind\" change  (add) not converted"
+        ]
+      }
+    }
+  }
+}

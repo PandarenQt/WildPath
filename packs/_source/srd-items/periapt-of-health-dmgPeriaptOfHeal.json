@@ -1,0 +1,89 @@
+{
+  "_id": "dmgPeriaptOfHeal",
+  "_key": "!items!dmgPeriaptOfHeal",
+  "name": "Periapt of Health",
+  "type": "action",
+  "img": "icons/equipment/neck/pendant-faceted-red.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Wondrous Item, Uncommon (Requires Attunement)</em></p><p>While wearing this pendant, you can take a Magic action to regain 2d4 + 2 Hit Points. Once used, this property can't be used again until the next dawn.</p><p>In addition, you have Advantage on saving throws to avoid or end the Poisoned condition while you wear this pendant.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-periapt-of-health",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "periapt-of-health",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "healing": [
+        {
+          "id": "healing-1",
+          "expression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "dice",
+                "number": 2,
+                "faces": 4
+              },
+              {
+                "type": "constant",
+                "value": 2
+              }
+            ]
+          },
+          "healingType": "healing"
+        }
+      ],
+      "label": "Periapt of Health"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "periapt-of-health-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "periapt-of-health",
+          "label": "Periapt of Health",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgPeriaptOfHeal",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

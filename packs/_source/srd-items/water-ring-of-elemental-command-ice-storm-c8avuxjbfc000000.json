@@ -1,0 +1,120 @@
+{
+  "_id": "c8avuxjbfc000000",
+  "_key": "!items!c8avuxjbfc000000",
+  "name": "Water Ring of Elemental Command: Ice Storm",
+  "type": "action",
+  "img": "icons/magic/water/projectile-ice-chunks-salvo.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Hail falls in a 20-foot-radius, 40-foot-high Cylinder centered on a point within range. Each creature in the Cylinder makes a Dexterity saving throw. A creature takes 2d10 Bludgeoning damage and 4d6 Cold damage on a failed save or half as much damage on a successful one.</p><p>Hailstones turn ground in the Cylinder into DifficultTerrain until the end of your next turn.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The Bludgeoning damage increases by 1d10 for each spell slot level above 4.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-water-ring-of-elemental-command-ice-storm",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "water-ring-of-elemental-command",
+            "amount": 2
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 300,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "radial",
+        "size": {
+          "value": 20,
+          "unit": "ft"
+        }
+      },
+      "save": {
+        "ability": "agility",
+        "dc": {
+          "value": 18
+        }
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "dice",
+            "number": 2,
+            "faces": 10
+          },
+          "damageType": "bludgeoning",
+          "provenance": "spell-base",
+          "saveOutcomePolicy": {
+            "success": "half",
+            "failure": "full"
+          }
+        },
+        {
+          "id": "damage-2",
+          "expression": {
+            "type": "dice",
+            "number": 4,
+            "faces": 6
+          },
+          "damageType": "cold",
+          "provenance": "spell-base",
+          "saveOutcomePolicy": {
+            "success": "half",
+            "failure": "full"
+          }
+        }
+      ],
+      "label": "Water Ring of Elemental Command: Ice Storm"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "water-ring-of-elemental-command-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "water-ring-of-elemental-command",
+          "label": "Water Ring of Elemental Command",
+          "maximum": {
+            "type": "constant",
+            "value": 5
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplIceStorm00",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Water Ring of Elemental Command"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool",
+          "area: a cylinder's height is not modeled"
+        ]
+      }
+    }
+  }
+}

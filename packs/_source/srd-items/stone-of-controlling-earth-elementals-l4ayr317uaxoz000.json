@@ -1,0 +1,31 @@
+{
+  "_id": "l4ayr317uaxoz000",
+  "_key": "!items!l4ayr317uaxoz000",
+  "name": "Stone of Controlling Earth Elementals",
+  "type": "gear",
+  "img": "icons/commodities/stone/engraved-symbol-water-grey.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Wondrous Item, Rare</em></p><p>While touching this 5-pound stone to the ground, you can take a Magic action to summon an <strong>Earth Elemental</strong>. The elemental appears in an unoccupied space you choose within 30 feet of yourself, obeys your commands, and takes its turn immediately after you on your Initiative count. The elemental disappears after 1 hour, when it dies, or when you dismiss it as a Bonus Action. The stone can't be used this way again until the next dawn.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgStoneOfContro",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

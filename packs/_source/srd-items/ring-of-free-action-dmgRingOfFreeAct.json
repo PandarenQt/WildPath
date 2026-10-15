@@ -1,0 +1,33 @@
+{
+  "_id": "dmgRingOfFreeAct",
+  "_key": "!items!dmgRingOfFreeAct",
+  "name": "Ring of Free Action",
+  "type": "gear",
+  "img": "icons/equipment/finger/ring-shield-silver.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Ring, Rare (Requires Attunement)</em></p><p>While you wear this ring, Difficult doesn't cost you extra movement. In addition, magic can neither reduce any of your Speeds nor cause you to have the Paralyzed or Restrained condition.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgRingOfFreeAct",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "effect: \"Free Action\" change system.attributes.movement.ignoredDifficultTerrain (add) not converted"
+        ]
+      }
+    }
+  }
+}

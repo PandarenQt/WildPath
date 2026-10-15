@@ -1,0 +1,107 @@
+{
+  "_id": "194zwas13ff29s00",
+  "_key": "!items!194zwas13ff29s00",
+  "name": "Staff of Power: Hold Monster",
+  "type": "action",
+  "img": "icons/magic/control/encase-creature-monster-hold.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Choose a creature that you can see within range. The target must succeed on a Wisdom saving throw or have the Paralyzed condition for the duration. At the end of each of its turns, the target repeats the save, ending the spell on itself on a success.</p><p><strong>Using a Higher-Level Spell Slot.</strong> You can target one additional creature for each spell slot level above 5.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-staff-of-power-hold-monster",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "staff-of-power",
+            "amount": 5
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 90,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "save": {
+        "ability": "wits",
+        "dc": {
+          "valueExpression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 8
+              },
+              {
+                "type": "proficiency-bonus"
+              },
+              {
+                "type": "spellcasting-modifier"
+              }
+            ]
+          }
+        }
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "paralyzed",
+          "saveOutcomePolicy": "failure",
+          "concentration": true
+        }
+      ],
+      "label": "Staff of Power: Hold Monster"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "staff-of-power-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "staff-of-power",
+          "label": "Staff of Power",
+          "maximum": {
+            "type": "constant",
+            "value": 20
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplHoldMonste",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Staff of Power"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool"
+        ]
+      }
+    }
+  }
+}

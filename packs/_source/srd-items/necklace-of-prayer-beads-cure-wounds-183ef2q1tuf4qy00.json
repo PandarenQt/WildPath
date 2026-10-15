@@ -1,0 +1,97 @@
+{
+  "_id": "183ef2q1tuf4qy00",
+  "_key": "!items!183ef2q1tuf4qy00",
+  "name": "Necklace of Prayer Beads: Cure Wounds",
+  "type": "action",
+  "img": "icons/magic/nature/leaf-drip-light-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p>A creature you touch regains a number of Hit Points equal to 2d8 plus your spellcasting ability modifier.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The healing increases by 2d8 for each spell slot level above 1.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-necklace-of-prayer-beads-cure-wounds",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          },
+          {
+            "capability": "necklace-of-prayer-beads-phbsplcurewounds",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "touch",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "healing": [
+        {
+          "id": "healing-1",
+          "expression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "dice",
+                "number": 2,
+                "faces": 8
+              },
+              {
+                "type": "spellcasting-modifier"
+              }
+            ]
+          },
+          "healingType": "healing"
+        }
+      ],
+      "label": "Necklace of Prayer Beads: Cure Wounds"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "necklace-of-prayer-beads-phbsplcurewounds-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "necklace-of-prayer-beads-phbsplcurewounds",
+          "label": "Necklace of Prayer Beads (Cure Wounds)",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplCureWounds",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Necklace of Prayer Beads"
+      },
+      "conversion": {
+        "notes": [
+          "cast: Cure Wounds at level 2 is cast at its own level"
+        ]
+      }
+    }
+  }
+}

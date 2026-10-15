@@ -1,0 +1,31 @@
+{
+  "_id": "phbagArcaneFocus",
+  "_key": "!items!phbagArcaneFocus",
+  "name": "Arcane Focus (Varies)",
+  "type": "gear",
+  "img": "icons/commodities/gems/gem-faceted-large-green.webp",
+  "system": {
+    "active": false,
+    "description": "<p>An Arcane Focus takes one of the forms in the Arcane Focuses table and is bejeweled or carved to channel arcane magic. A Sorcerer, Warlock, or Wizard can use such an item as a Spellcasting Focus.</p><table><caption>Arcane Focuses</caption><thead><tr><td>Focus</td><td>Weight</td><td>Cost</td></tr></thead><tbody><tr><td>Crystal</td><td>1 lb.</td><td>10 GP</td></tr><tr><td>Orb</td><td>3 lb.</td><td>20 GP</td></tr><tr><td>Rod</td><td>2 lb.</td><td>10 GP</td></tr><tr><td>Staff (also a Quarterstaff)</td><td>4 lb.</td><td>5 GP</td></tr><tr><td>Wand</td><td>1 lb.</td><td>10 GP</td></tr></tbody></table>",
+    "quantity": 0,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagArcaneFocus",
+        "type": "loot",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

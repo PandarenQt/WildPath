@@ -1,0 +1,66 @@
+{
+  "_id": "dmgPotionOfVital",
+  "_key": "!items!dmgPotionOfVital",
+  "name": "Potion of Vitality",
+  "type": "action",
+  "img": "icons/consumables/potions/potion-flask-corled-pink-red.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Potion, Very Rare</em></p><p>When you drink this potion, it removes any Exhaustion levels you have and ends the Poisoned condition on you. For the next 24 hours, you regain the maximum number of Hit Points for any Hit Point Die you spend.</p><p>This potion's crimson liquid regularly pulses with dull light, calling to mind a heartbeat.</p><section class=\"secret\" id=\"secret-z0SSGecWIDLeIdS3\"><p><strong>Foundry Note</strong></p><p>The <strong>Full of Vitality</strong> Active Effect can be used for tracking.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-potion-of-vitality-drink",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          },
+          {
+            "capability": "potion-of-vitality",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Potion of Vitality"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "potion-of-vitality-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "potion-of-vitality",
+          "label": "Potion of Vitality",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgPotionOfVital",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Full of Vitality\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

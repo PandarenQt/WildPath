@@ -1,0 +1,67 @@
+{
+  "_id": "c3eiaeho0reo0000",
+  "_key": "!items!c3eiaeho0reo0000",
+  "name": "Earth Ring of Elemental Command: Stone Shape",
+  "type": "action",
+  "img": "icons/commodities/stone/ore-pile-white.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You touch a stone object of Medium size or smaller or a section of stone no more than 5 feet in any dimension and form it into any shape you like. For example, you could shape a large rock into a weapon, statue, or coffer, or you could make a small passage through a wall that is 5 feet thick. You could also shape a stone door or its frame to seal the door shut. The object you create can have up to two hinges and a latch, but finer mechanical detail isn't possible.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-earth-ring-of-elemental-command-stone-shape",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "earth-ring-of-elemental-command",
+            "amount": 2
+          }
+        ]
+      },
+      "label": "Earth Ring of Elemental Command: Stone Shape"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "earth-ring-of-elemental-command-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "earth-ring-of-elemental-command",
+          "label": "Earth Ring of Elemental Command",
+          "maximum": {
+            "type": "constant",
+            "value": 5
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplStoneShape",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Earth Ring of Elemental Command"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool",
+          "not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

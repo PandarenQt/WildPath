@@ -21,7 +21,9 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "effect: \"Powerful Build\" change flags.dnd5e.powerfulBuild (override) not converted"
+        ]
       }
     }
   }

@@ -1,0 +1,43 @@
+{
+  "_id": "phbtulAlchemists",
+  "_key": "!items!phbtulAlchemists",
+  "name": "Alchemist's Supplies",
+  "type": "action",
+  "img": "icons/tools/cooking/mortar-herbs-yellow.webp",
+  "system": {
+    "active": true,
+    "description": "<p class=\"phb-meta\"><strong>Ability:</strong> Intelligence</p><p class=\"phb-meta\"><strong>Utilize:</strong> Identify a substance (DC 15), or start a fire (DC 15)</p><p class=\"phb-meta\"><strong>Craft:</strong> Acid, Alchemist's Fire, Component Pouch, Oil, Paper, Perfume</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-alchemist-s-supplies",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Alchemist's Supplies"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbtulAlchemists",
+        "type": "tool",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (check): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

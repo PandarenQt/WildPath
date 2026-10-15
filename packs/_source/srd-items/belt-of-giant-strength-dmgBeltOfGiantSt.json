@@ -1,0 +1,31 @@
+{
+  "_id": "dmgBeltOfGiantSt",
+  "_key": "!items!dmgBeltOfGiantSt",
+  "name": "Belt of Giant Strength",
+  "type": "gear",
+  "img": "icons/equipment/waist/belt-coiled-leather-steel.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Wondrous Item, Rarity Varies (Requires Attunement)</em></p><p>While wearing this belt, your Strength changes to a score granted by the belt. The type of giant determines the score (see the table below). The item has no effect on you if your Strength without the belt is equal to or greater than the belt's score.</p><table><thead><tr><td>Belt</td><td>Str.</td><td>Rarity</td></tr></thead><tbody><tr><td><em>Belt of Giant Strength</em> (hill)</td><td>21</td><td>Rare</td></tr><tr><td><em>Belt of Giant Strength</em> (frost or stone)</td><td>23</td><td>Very Rare</td></tr><tr><td><em>Belt of Giant Strength</em> (fire)</td><td>25</td><td>Very Rare</td></tr><tr><td><em>Belt of Giant Strength</em> (cloud)</td><td>27</td><td>Legendary</td></tr><tr><td><em>Belt of Giant Strength</em> (storm)</td><td>29</td><td>Legendary</td></tr></tbody></table>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgBeltOfGiantSt",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

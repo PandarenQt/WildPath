@@ -12,6 +12,7 @@ export const RULE_ELEMENT_TYPES = Object.freeze({
   CONDITION_IMMUNITY: "ConditionImmunity",
   AVOID_OPPORTUNITY_ATTACKS: "AvoidOpportunityAttacks",
   EXTRA_ATTACK: "ExtraAttack",
+  ARMOR_CLASS: "ArmorClass",
   REVEAL: "Reveal",
   GRANT_MOVEMENT: "GrantMovement",
   ROLL_MODE: "RollMode",
@@ -56,6 +57,7 @@ const TYPE_ALIASES = Object.freeze({
   conditionimmunity: RULE_ELEMENT_TYPES.CONDITION_IMMUNITY,
   avoidopportunityattacks: RULE_ELEMENT_TYPES.AVOID_OPPORTUNITY_ATTACKS,
   extraattack: RULE_ELEMENT_TYPES.EXTRA_ATTACK,
+  armorclass: RULE_ELEMENT_TYPES.ARMOR_CLASS,
   reveal: RULE_ELEMENT_TYPES.REVEAL,
   grantmovement: RULE_ELEMENT_TYPES.GRANT_MOVEMENT,
   movement: RULE_ELEMENT_TYPES.GRANT_MOVEMENT,
@@ -112,6 +114,7 @@ export function createDefaultRuleElementRegistry() {
     [RULE_ELEMENT_TYPES.CONDITION_IMMUNITY, conditionImmunityRuleElement],
     [RULE_ELEMENT_TYPES.AVOID_OPPORTUNITY_ATTACKS, avoidOpportunityAttacksRuleElement],
     [RULE_ELEMENT_TYPES.EXTRA_ATTACK, extraAttackRuleElement],
+    [RULE_ELEMENT_TYPES.ARMOR_CLASS, armorClassRuleElement],
     [RULE_ELEMENT_TYPES.REVEAL, revealRuleElement],
     [RULE_ELEMENT_TYPES.GRANT_MOVEMENT, grantMovementRuleElement],
     [RULE_ELEMENT_TYPES.TRIGGER, triggerRuleElement]
@@ -374,6 +377,12 @@ export function extraAttacksFromRuleElements(owners=[], context={}) {
     collectRuleElementContributions({ruleElements, context, source}).contributions.extraAttacks))];
 }
 
+/** The ways a creature's owners give it to work out its Armor Class (`ArmorClass`), as `{id, label, value, armor}`. */
+export function armorClassesFromRuleElements(owners=[], context={}) {
+  return owners.flatMap(({ruleElements=[], source=null}) =>
+    collectRuleElementContributions({ruleElements, context, source}).contributions.armorClasses);
+}
+
 /** The auras (`Aura`) a creature's owners give it: each grants its rules to creatures within its radius. */
 export function aurasFromRuleElements(owners=[], context={}) {
   return owners.flatMap(({ruleElements=[], source=null}) => collectRuleElementContributions({ruleElements, context, source}).contributions.auras);
@@ -536,6 +545,19 @@ function extraAttackRuleElement(ruleElement) {
   const resourceId = ruleElement.data.resourceId ?? ruleElement.data.resource ?? null;
   if ( !resourceId ) return handlerFailure(RULE_ELEMENT_CODES.INVALID, "ExtraAttack RuleElement requires a resourceId.");
   return success({extraAttacks: [String(resourceId)]});
+}
+
+/**
+ * A way to work out the creature's Armor Class (2024): `value`, a number or ValueExpression ("11 + Agility modifier",
+ * "10 + Agility + Fortitude modifiers"). `armor: true` is armor it wears; while it wears any, its unarmored ways
+ * (Unarmored Defense, Mage Armor) do not count. Its AC uses the best that counts; bonuses (a Shield) add to it.
+ */
+function armorClassRuleElement(ruleElement, context) {
+  const data = ruleElement.data;
+  const value = evaluateNumeric(data.value ?? data.valueExpression, context);
+  if ( !value.ok ) return value;
+  return success({armorClasses: [{id: data.id ?? ruleElement.id, label: data.label ?? ruleElement.label ?? ruleElement.id,
+    value: value.value, armor: data.armor === true, source: ruleElementSource(ruleElement)}]});
 }
 
 /** The creature provokes no Opportunity Attacks: when it moves in one of `movementModes`, or always when none is named. */
@@ -758,6 +780,7 @@ function emptyContributions() {
     conditionImmunities: [],
     opportunityAttackAvoidance: [],
     extraAttacks: [],
+    armorClasses: [],
     reveals: [],
     triggers: []
   };
@@ -781,6 +804,7 @@ function mergeContributions(target, source={}) {
   target.conditionImmunities.push(...(source.conditionImmunities ?? []));
   target.opportunityAttackAvoidance.push(...(source.opportunityAttackAvoidance ?? []));
   target.extraAttacks.push(...(source.extraAttacks ?? []));
+  target.armorClasses.push(...(source.armorClasses ?? []));
   target.reveals.push(...(source.reveals ?? []));
   target.triggers.push(...(source.triggers ?? []));
 

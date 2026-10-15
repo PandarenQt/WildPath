@@ -74,6 +74,30 @@
           },
           "recovery": "longRest"
         }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "magic-attack",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "attack"
+          ],
+          "modifierType": "untyped",
+          "value": 1
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "magic-damage",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "damage"
+          ],
+          "modifierType": "untyped",
+          "value": 1
+        }
       }
     ]
   },
@@ -89,9 +113,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "attack: +1 magic bonus not converted"
-        ]
+        "notes": []
       }
     }
   }

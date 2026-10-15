@@ -1,0 +1,62 @@
+{
+  "_id": "1cblc691i2xq8700",
+  "_key": "!items!1cblc691i2xq8700",
+  "name": "Oil of Slipperiness: Grease",
+  "type": "action",
+  "img": "icons/commodities/materials/liquid-purple.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Nonflammable grease covers the ground in a 10-foot square centered on a point within range and turns it into Difficultterrain for the duration.</p><p>When the grease appears, each creature standing in its area must succeed on a Dexterity saving throw or have the Prone condition. A creature that enters the area or ends its turn there must also succeed on that save or fall Prone.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-oil-of-slipperiness-pour-on-ground-grease",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Oil of Slipperiness: Grease"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "oil-of-slipperiness-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "oil-of-slipperiness",
+          "label": "Oil of Slipperiness",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplGrease0000",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Oil of Slipperiness"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (save): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "_id": "dmgFoldingBoat00",
+  "_key": "!items!dmgFoldingBoat00",
+  "name": "Folding Boat",
+  "type": "gear",
+  "img": "icons/environment/settlement/ship.webp",
+  "system": {
+    "active": false,
+    "description": "<div><p><em>Wondrous Item, Rare</em></p></div><p>This object appears as a wooden box that measures 12 inches long, 6 inches wide, and 6 inches deep. It weighs 4 pounds and floats. It can be opened to store items inside. This item also has three command words, each requiring a Magic action to use:</p><p></p>",
+    "quantity": 1,
+    "weight": 4,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgFoldingBoat00",
+        "type": "container",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "_id": "dmgWandOfPolymor",
+  "_key": "!items!dmgWandOfPolymor",
+  "name": "Wand of Polymorph",
+  "type": "gear",
+  "img": "icons/weapons/wands/wand-gem-red.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Wand, Very Rare (Requires Attunement by a Spellcaster)</em></p><p>This wand has 7 charges. While holding it, you can expend 1 charge to cast Polymorph (save DC 15) from it.</p><p><em><strong>Regaining Charges.</strong></em> The wand regains 1d6 + 1 expended charges daily at dawn. If you expend the wand's last charge, roll 1d20. On a 1, the wand crumbles into ashes and is destroyed.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgWandOfPolymor",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool",
+          "not automated (save): using it spends its cost; its description says the rest",
+          "concentration: nothing it sustains was converted"
+        ]
+      }
+    }
+  }
+}

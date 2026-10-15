@@ -1,0 +1,74 @@
+{
+  "_id": "dmgBirdQuaalsFea",
+  "_key": "!items!dmgBirdQuaalsFea",
+  "name": "Feather Token (Bird)",
+  "type": "action",
+  "img": "icons/commodities/materials/feather-yellow.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Wondrous Item, Rare, See: Feather Token</em></p><p>You can take a Magic action to toss the token 5 feet into the air. The token disappears and an enormous, multicolored bird takes its place. The bird has the statistics of a <strong>Roc</strong>, but it can't attack. It obeys your simple commands and can carry up to 500 pounds while flying at its maximum speed (16 miles per hour for a maximum of 144 miles per day, with a 1-hour rest for every 3 hours of flying) or 1,000 pounds at half that speed. The bird disappears after flying its maximum distance for a day or if it drops to 0 Hit Points. You can dismiss the bird as a Magic action.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-feather-token-bird-use",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "feather-token-bird",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "summon": {
+        "actorRef": "Compendium.wildpath.srd-creatures.Actor.mmRoc00000000000",
+        "count": 1
+      },
+      "label": "Feather Token (Bird)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "feather-token-bird-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "feather-token-bird",
+          "label": "Feather Token (Bird)",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgBirdQuaalsFea",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

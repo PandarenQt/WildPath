@@ -1,0 +1,74 @@
+{
+  "_id": "dmgWhipQuaalsFea",
+  "_key": "!items!dmgWhipQuaalsFea",
+  "name": "Feather Token (Whip)",
+  "type": "action",
+  "img": "icons/commodities/materials/feather-colored-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Wondrous Item, Rare, See: Feather Token</em></p><p>You can take a Magic action to throw the token to a point within 10 feet of yourself. The token disappears, and a floating whip takes its place. You can then take a Bonus Action to make a melee spell attack against a creature within 10 feet of the whip, with an attack bonus of +9. On a hit, the target takes 1d6 + 5 Force damage.</p><p>As a Bonus Action, you can direct the whip to fly up to 20 feet and repeat the attack against a creature within 10 feet of the whip. The whip disappears after 1 hour, when you take a Magic action to dismiss it, or when you die or have the Incapacitated condition.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-feather-token-whip-use",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "feather-token-whip",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 10,
+          "unit": "ft"
+        }
+      },
+      "summon": {
+        "actorRef": "Compendium.wildpath.srd-creatures.Actor.dmgqftFloatingWh",
+        "count": 1
+      },
+      "label": "Feather Token (Whip)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "feather-token-whip-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "feather-token-whip",
+          "label": "Feather Token (Whip)",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgWhipQuaalsFea",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

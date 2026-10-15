@@ -1,0 +1,66 @@
+{
+  "_id": "1mqz1s73rjdht000",
+  "_key": "!items!1mqz1s73rjdht000",
+  "name": "Sending Stones: Sending",
+  "type": "action",
+  "img": "icons/skills/social/diplomacy-writing-letter.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You send a short message of 25 words or fewer to a creature you have met or a creature described to you by someone who has met it. The target hears the message in its mind, recognizes you as the sender if it knows you, and can answer in a like manner immediately. The spell enables targets to understand the meaning of your message.</p><p>You can send the message across any distance and even to other planes of existence, but if the target is on a different plane than you, there is a 5 percent chance that the message doesn't arrive. You know if the delivery fails.</p><p>Upon receiving your message, a creature can block your ability to reach it again with this spell for 8 hours. If you try to send another message during that time, you learn that you are blocked, and the spell fails.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-sending-stones-sending",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "sending-stones",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Sending Stones: Sending"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "sending-stones-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "sending-stones",
+          "label": "Sending Stones",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplSending000",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Sending Stones"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

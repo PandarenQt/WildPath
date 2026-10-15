@@ -21,7 +21,9 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "effect: \"Tactial Master\" change system.traits.weaponProf.mastery.bonus (add) not converted"
+        ]
       }
     }
   }

@@ -1,0 +1,31 @@
+{
+  "_id": "phbagBottleGlass",
+  "_key": "!items!phbagBottleGlass",
+  "name": "Bottle, Glass",
+  "type": "gear",
+  "img": "icons/consumables/potions/bottle-bulb-empty-glass.webp",
+  "system": {
+    "active": false,
+    "description": "<p>A Glass Bottle holds up to 1½ pints.</p>",
+    "quantity": 1,
+    "weight": 2,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagBottleGlass",
+        "type": "container",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

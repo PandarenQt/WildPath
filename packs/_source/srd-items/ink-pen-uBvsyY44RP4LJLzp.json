@@ -1,0 +1,31 @@
+{
+  "_id": "uBvsyY44RP4LJLzp",
+  "_key": "!items!uBvsyY44RP4LJLzp",
+  "name": "Ink Pen",
+  "type": "gear",
+  "img": "icons/tools/scribal/pen-steel-grey-brown.webp",
+  "system": {
+    "active": false,
+    "description": "<p>Using Ink, an Ink Pen is used to write or draw.</p>",
+    "quantity": 5,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "uBvsyY44RP4LJLzp",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

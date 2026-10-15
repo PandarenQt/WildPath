@@ -1,0 +1,114 @@
+{
+  "_id": "184vzy6wiyrjo000",
+  "_key": "!items!184vzy6wiyrjo000",
+  "name": "Cube of Force: Mage Armor",
+  "type": "action",
+  "img": "icons/equipment/head/hat-pointed-buckle-leather-purple.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You touch a willing creature who isn't wearing armor. Until the spell ends, the target's base AC becomes 13 plus its Dexterity modifier. The spell ends early if the target dons armor.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-cube-of-force-mage-armor",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "cube-of-force",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "touch",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Mage Armor",
+          "img": "icons/equipment/chest/breastplate-helmet-metal.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "mage-armor-1",
+              "type": "ArmorClass",
+              "data": {
+                "label": "Mage Armor",
+                "value": {
+                  "type": "add",
+                  "terms": [
+                    {
+                      "type": "constant",
+                      "value": 13
+                    },
+                    {
+                      "type": "ability-modifier",
+                      "ability": "agility"
+                    }
+                  ]
+                }
+              }
+            }
+          ],
+          "duration": {
+            "value": 28800,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
+      "label": "Cube of Force: Mage Armor"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "cube-of-force-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "cube-of-force",
+          "label": "Cube of Force",
+          "maximum": {
+            "type": "constant",
+            "value": 10
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplMageArmor0",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Cube of Force"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool"
+        ]
+      }
+    }
+  }
+}

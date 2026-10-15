@@ -1,0 +1,33 @@
+{
+  "_id": "1ue62d3hvoanv000",
+  "_key": "!items!1ue62d3hvoanv000",
+  "name": "Brewer's Supplies",
+  "type": "gear",
+  "img": "icons/consumables/plants/herb-marjoram-basil-oregano-leaf-bunch-green.webp",
+  "system": {
+    "active": false,
+    "description": "<p class=\"phb-meta\"><strong>Ability:</strong> Intelligence</p><p class=\"phb-meta\"><strong>Utilize:</strong> Detect poisoned drink (DC 15), or identify alcohol (DC 10)</p><p class=\"phb-meta\"><strong>Craft:</strong> Antitoxin</p>",
+    "quantity": 1,
+    "weight": 9,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbtulBrewersSup",
+        "type": "tool",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (check): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

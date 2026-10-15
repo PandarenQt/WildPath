@@ -1,0 +1,35 @@
+{
+  "_id": "dmgPlateArmorOfE",
+  "_key": "!items!dmgPlateArmorOfE",
+  "name": "Plate Armor of Etherealness",
+  "type": "gear",
+  "img": "icons/equipment/chest/breastplate-collared-steel.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Armor (Half Plate Armor or Plate Armor), Legendary (Requires Attunement)</em></p><p>While you're wearing this armor, you can take a Magic action and use a command word to gain the effect of the <em>Etherealness</em> spell. The spell ends immediately if you remove the armor or take a Magic action to repeat the command word. This property of the armor can't be used again until the next dawn.</p><p></p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgPlateArmorOfE",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Plate Armor of Etherealness\" is passive or triggered: not automated",
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: ethereal is not a WildPath condition yet"
+        ]
+      }
+    }
+  }
+}

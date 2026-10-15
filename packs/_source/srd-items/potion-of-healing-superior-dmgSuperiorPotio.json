@@ -1,0 +1,89 @@
+{
+  "_id": "dmgSuperiorPotio",
+  "_key": "!items!dmgSuperiorPotio",
+  "name": "Potion of Healing (Superior)",
+  "type": "action",
+  "img": "icons/consumables/potions/bottle-round-corked-red.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Potion, Rare</em></p><p>You regain 8d4 + 8 Hit Points when you drink this potion.</p><p>Whatever its potency, the potion's red liquid glimmers when agitated.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-potion-of-healing-superior-consume",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          },
+          {
+            "capability": "potion-of-healing-superior",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "healing": [
+        {
+          "id": "healing-1",
+          "expression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "dice",
+                "number": 8,
+                "faces": 4
+              },
+              {
+                "type": "constant",
+                "value": 8
+              }
+            ]
+          },
+          "healingType": "healing"
+        }
+      ],
+      "label": "Potion of Healing (Superior)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "potion-of-healing-superior-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "potion-of-healing-superior",
+          "label": "Potion of Healing (Superior)",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgSuperiorPotio",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

@@ -1,0 +1,134 @@
+{
+  "_id": "1f5z10e1vk4z6i00",
+  "_key": "!items!1f5z10e1vk4z6i00",
+  "name": "Ring of Resistance",
+  "type": "gear",
+  "img": "icons/equipment/finger/ring-faceted-gold-purple.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Ring, Rare</em></p><p>You have Resistance to one damage type while wearing this ring. The gemstone in the ring indicates the type, which the GM chooses or determines randomly by rolling on the following table.</p><p></p><p></p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "acid-resistance-1",
+        "type": "GrantResistance",
+        "data": {
+          "damageTypes": [
+            "acid"
+          ]
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "cold-resistance-1",
+        "type": "GrantResistance",
+        "data": {
+          "damageTypes": [
+            "cold"
+          ]
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "fire-resistance-1",
+        "type": "GrantResistance",
+        "data": {
+          "damageTypes": [
+            "fire"
+          ]
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "force-resistance-1",
+        "type": "GrantResistance",
+        "data": {
+          "damageTypes": [
+            "force"
+          ]
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "lightning-resistance-1",
+        "type": "GrantResistance",
+        "data": {
+          "damageTypes": [
+            "lightning"
+          ]
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "necrotic-resistance-1",
+        "type": "GrantResistance",
+        "data": {
+          "damageTypes": [
+            "necrotic"
+          ]
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "poison-resistance-1",
+        "type": "GrantResistance",
+        "data": {
+          "damageTypes": [
+            "poison"
+          ]
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "psychic-resistance-1",
+        "type": "GrantResistance",
+        "data": {
+          "damageTypes": [
+            "psychic"
+          ]
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "radiant-resistance-1",
+        "type": "GrantResistance",
+        "data": {
+          "damageTypes": [
+            "radiant"
+          ]
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "thunder-resistance-1",
+        "type": "GrantResistance",
+        "data": {
+          "damageTypes": [
+            "thunder"
+          ]
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgRingOfResista",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (enchant): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

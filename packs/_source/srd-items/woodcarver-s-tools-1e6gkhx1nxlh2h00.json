@@ -1,0 +1,33 @@
+{
+  "_id": "1e6gkhx1nxlh2h00",
+  "_key": "!items!1e6gkhx1nxlh2h00",
+  "name": "Woodcarver's Tools",
+  "type": "gear",
+  "img": "icons/tools/hand/chisel-steel-brown.webp",
+  "system": {
+    "active": false,
+    "description": "<p class=\"phb-meta\"><strong>Ability:</strong> Dexterity</p><p class=\"phb-meta\"><strong>Utilize:</strong> Carve a pattern in wood (DC 10)</p><p class=\"phb-meta\"><strong>Craft:</strong> Club, Greatclub, Quarterstaff, Ranged weapons (except Pistol, Musket, and Sling), Arcane Focus, Arrows, Bolts, Druidic Focus, Ink Pen, Needles</p>",
+    "quantity": 1,
+    "weight": 5,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbtulWoodcarver",
+        "type": "tool",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (check): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

@@ -35,8 +35,8 @@ const actors = [];
 const report = [];
 for ( const pack of ITEM_PACKS ) {
   for ( const document of readPack(from, pack).filter(wanted) ) {
-    if ( !["spell", "weapon", "feat"].includes(document.type) ) continue;
-    const result = convertItem(document, {scales, pack, names, creatures});
+    if ( !["spell", "weapon", "feat", "equipment", "consumable", "tool", "loot", "container"].includes(document.type) ) continue;
+    const result = convertItem(document, {scales, pack, names, creatures, spells});
     items.push(...result.items);
     report.push({pack, name: document.name, converted: result.items.map(item => `${item.name} (${kind(item)})`), notes: result.notes});
   }
@@ -50,7 +50,7 @@ for ( const document of readPack(from, "actors24").filter(wanted) ) {
 
 /** What a converted Item is: automated, manual (it spends its cost only), or a passive feature. */
 function kind(item) {
-  if ( item.type === "feature" ) return "feature";
+  if ( (item.type === "feature") || (item.type === "gear") ) return item.type;
   return item.flags.wildpath.conversion.notes.some(note => note.startsWith("not automated")) ? "manual" : "automated";
 }
 

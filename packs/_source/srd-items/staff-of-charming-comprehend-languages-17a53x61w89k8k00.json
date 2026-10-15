@@ -1,0 +1,69 @@
+{
+  "_id": "17a53x61w89k8k00",
+  "_key": "!items!17a53x61w89k8k00",
+  "name": "Staff of Charming: Comprehend Languages",
+  "type": "action",
+  "img": "icons/sundries/documents/document-writing-pink.webp",
+  "system": {
+    "active": true,
+    "description": "<p>For the duration, you understand the literal meaning of any language that you hear or see signed. You also understand any written language that you see, but you must be touching the surface on which the words are written. It takes about 1 minute to read one page of text. This spell doesn't decode symbols or secret messages.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-staff-of-charming-comprehend-languages",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "staff-of-charming",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Staff of Charming: Comprehend Languages"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "staff-of-charming-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "staff-of-charming",
+          "label": "Staff of Charming",
+          "maximum": {
+            "type": "constant",
+            "value": 10
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplComprehend",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Staff of Charming"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool",
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Comprehension\" change system.traits.languages.value (add) not converted",
+          "effect: \"Comprehension\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

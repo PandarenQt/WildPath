@@ -1,0 +1,62 @@
+{
+  "_id": "rwITntQ6OAy0neX8",
+  "_key": "!items!rwITntQ6OAy0neX8",
+  "name": "Oil (Throw)",
+  "type": "action",
+  "img": "icons/consumables/potions/bottle-bulb-empty-glass.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You can douse a creature, object, or space with Oil or use it as fuel, as detailed below.</p><p><strong>Dousing a Creature or an Object.</strong> When you take the Attack action, you can replace one of your attacks with throwing an Oil flask. Target one creature or object within 20 feet of yourself. The target must succeed on a Dexterity saving throw (DC 8 plus your Dexterity modifier and Proficiency Bonus) or be covered in oil. If the target takes Fire damage before the oil dries (after 1 minute), the target takes an extra 5 Fire damage from burning oil.</p><p><strong>Dousing a Space.</strong> You can take the Utilize action to pour an Oil flask on level ground to cover a 5-foot-square area within 5 feet of yourself. If lit, the oil burns until the end of the turn 2 rounds from when the oil was lit (or 12 seconds) and deals 5 Fire damage to any creature that enters the area or ends its turn there. A creature can take this damage only once per turn.</p><p><strong>Fuel.</strong> Oil serves as fuel for Lamps and Lanterns. Once lit, a flask of Oil burns for 6 hours in a Lamp or Lantern. That duration doesn't need to be consecutive; you can extinguish the burning Oil (as a Utilize action) and rekindle it again until it has burned for a total of 6 hours.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-oil-throw",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "oil",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Oil (Throw)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "oil-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "oil",
+          "label": "Oil",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "rwITntQ6OAy0neX8",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (save): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "_id": "vea8qa1b3cvm4000",
+  "_key": "!items!vea8qa1b3cvm4000",
+  "name": "Air Ring of Elemental Command: Feather Fall",
+  "type": "action",
+  "img": "icons/commodities/materials/feather-blue-glowing.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Choose up to five falling creatures within range. A falling creature's rate of descent slows to 60 feet per round until the spell ends. If a creature lands before the spell ends, the creature takes no damage from the fall, and the spell ends for that creature.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-air-ring-of-elemental-command-feather-fall",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Air Ring of Elemental Command: Feather Fall"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "air-ring-of-elemental-command-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "air-ring-of-elemental-command",
+          "label": "Air Ring of Elemental Command",
+          "maximum": {
+            "type": "constant",
+            "value": 5
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplFeatherFal",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Air Ring of Elemental Command"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool",
+          "not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

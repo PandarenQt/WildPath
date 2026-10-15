@@ -7,7 +7,33 @@
   "system": {
     "active": true,
     "description": "<p>The magic in your body manifests physical traits of your draconic gift. Your Hit Point maximum increases by 3, and it increases by 1 whenever you gain another Sorcerer level.</p><p>Parts of you are also covered by dragon-like scales. While you aren't wearing armor, your base Armor Class equals 10 plus your Dexterity and Charisma modifiers.</p><section class=\"secret\" id=\"secret-uBlQVhOqmjWWiLc4\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect that automatically increases your Hit Point maximum and sets up your Unarmored Defense which can be disabled if you would prefer to use armor.</p></section>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "draconic-resilience-armor-1",
+        "type": "ArmorClass",
+        "data": {
+          "label": "Draconic Resilience: Armor",
+          "value": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 10
+              },
+              {
+                "type": "ability-modifier",
+                "ability": "agility"
+              },
+              {
+                "type": "ability-modifier",
+                "ability": "presence"
+              }
+            ]
+          }
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -21,7 +47,9 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "effect: \"Draconic Resilience: HP\" change system.attributes.hp.bonuses.overall (add) not converted"
+        ]
       }
     }
   }

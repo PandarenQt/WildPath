@@ -1,0 +1,62 @@
+{
+  "_id": "1h0dmz3jn4g5x000",
+  "_key": "!items!1h0dmz3jn4g5x000",
+  "name": "Oil of Sharpness (Apply Oil to Ammunition)",
+  "type": "action",
+  "img": "icons/consumables/potions/vial-ornet-silver-black.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Potion, Very Rare</em></p><p>One vial of this oil can coat one Melee weapon or twenty pieces of ammunition, but only ammunition and Melee weapons that are nonmagical and deal Slashing or Piercing damage are affected. Applying the oil takes 1 minute, after which the oil magically seeps into whatever it coats, turning the coated weapon into a +3 Weapon or the coated ammunition into +3 Ammunition.</p><p>This clear, gelatinous oil sparkles with tiny, ultrathin silver shards.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-oil-of-sharpness-apply-oil-to-ammunition",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "oil-of-sharpness",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Oil of Sharpness (Apply Oil to Ammunition)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "oil-of-sharpness-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "oil-of-sharpness",
+          "label": "Oil of Sharpness",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgOilOfSharpnes",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (enchant): using it spends its cost; its description says the rest",
+          "activation: 1 minute is not an action-economy cost"
+        ]
+      }
+    }
+  }
+}

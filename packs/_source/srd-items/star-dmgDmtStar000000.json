@@ -1,0 +1,33 @@
+{
+  "_id": "dmgDmtStar000000",
+  "_key": "!items!dmgDmtStar000000",
+  "name": "Star",
+  "type": "gear",
+  "img": "icons/magic/symbols/star-rising-purple.webp",
+  "system": {
+    "active": false,
+    "description": "<p> Increase one of your ability scores by 2, to a maximum of 24.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgDmtStar000000",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Card Effect\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

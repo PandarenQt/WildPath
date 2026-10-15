@@ -1,0 +1,67 @@
+{
+  "_id": "e64w151x1kfah000",
+  "_key": "!items!e64w151x1kfah000",
+  "name": "Staff of Healing: Lesser Restoration",
+  "type": "action",
+  "img": "icons/magic/holy/prayer-hands-glowing-yellow-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You touch a creature and end one condition on it: Blinded, Deafened, Paralyzed, or Poisoned.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-staff-of-healing-lesser-restoration",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "staff-of-healing",
+            "amount": 2
+          }
+        ]
+      },
+      "label": "Staff of Healing: Lesser Restoration"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "staff-of-healing-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "staff-of-healing",
+          "label": "Staff of Healing",
+          "maximum": {
+            "type": "constant",
+            "value": 10
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplLesserRest",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Staff of Healing"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool",
+          "not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

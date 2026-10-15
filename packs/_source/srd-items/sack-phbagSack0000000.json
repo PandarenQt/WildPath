@@ -1,0 +1,31 @@
+{
+  "_id": "phbagSack0000000",
+  "_key": "!items!phbagSack0000000",
+  "name": "Sack",
+  "type": "gear",
+  "img": "icons/containers/bags/sack-cloth-orange.webp",
+  "system": {
+    "active": false,
+    "description": "<p>A Sack holds up to 30 pounds within 1 cubic foot.</p>",
+    "quantity": 1,
+    "weight": 0.5,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagSack0000000",
+        "type": "container",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

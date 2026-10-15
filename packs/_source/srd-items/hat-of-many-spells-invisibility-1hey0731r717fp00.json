@@ -1,0 +1,65 @@
+{
+  "_id": "1hey0731r717fp00",
+  "_key": "!items!1hey0731r717fp00",
+  "name": "Hat of Many Spells: Invisibility",
+  "type": "action",
+  "img": "icons/creatures/magical/spirit-undead-ghost-purple.webp",
+  "system": {
+    "active": true,
+    "description": "<p>A creature you touch has the Invisible condition until the spell ends. The spell ends early immediately after the target makes an attack roll, deals damage, or casts a spell.</p><p><strong>Using a Higher-Level Spell Slot.</strong> You can target one additional creature for each spell slot level above 2.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-hat-of-many-spells-invisibility",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "touch",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "invisible",
+          "concentration": true
+        }
+      ],
+      "label": "Hat of Many Spells: Invisibility"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplInvisibili",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Hat of Many Spells"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

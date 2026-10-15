@@ -1,0 +1,43 @@
+{
+  "_id": "phbtulDisguiseKi",
+  "_key": "!items!phbtulDisguiseKi",
+  "name": "Disguise Kit",
+  "type": "action",
+  "img": "icons/equipment/back/cloak-hooded-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p class=\"phb-meta\"><strong>Ability:</strong> Charisma</p><p class=\"phb-meta\"><strong>Utilize:</strong> Apply makeup (DC 10)</p><p class=\"phb-meta\"><strong>Craft:</strong> Costume</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-disguise-kit-apply-makeup",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Disguise Kit"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbtulDisguiseKi",
+        "type": "tool",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (check): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "_id": "dmgPotionOfWater",
+  "_key": "!items!dmgPotionOfWater",
+  "name": "Potion of Water Breathing",
+  "type": "action",
+  "img": "icons/consumables/potions/potion-bottle-corked-labeled-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Potion, Uncommon</em></p><p>You can breathe underwater for 24 hours after drinking this potion.</p><p>This potion's cloudy green fluid smells of the sea and has a jellyfish-like bubble floating in it.</p><section class=\"secret\" id=\"secret-Hak8pdfo1Rbwhrgv\"><p><strong>Foundry Note</strong></p><p>The <strong>Water Breather</strong> Active Effect can be used for tracking.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-potion-of-water-breathing-drink",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          },
+          {
+            "capability": "potion-of-water-breathing",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Potion of Water Breathing"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "potion-of-water-breathing-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "potion-of-water-breathing",
+          "label": "Potion of Water Breathing",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgPotionOfWater",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Water Breather\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

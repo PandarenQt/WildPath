@@ -1,0 +1,33 @@
+{
+  "_id": "dmgMidnightTears",
+  "_key": "!items!dmgMidnightTears",
+  "name": "Midnight Tears",
+  "type": "gear",
+  "img": "icons/consumables/potions/flask-ornate-skull-green.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Ingested Poison</em></p><p>A creature that ingests Midnight Tears suffers no effect until the stroke of midnight. Any effect that ends the Poisoned condition neutralizes this poison. If the poison hasn't been neutralized before midnight, the creature makes a DC 17 Constitution saving throw, taking 31 (9d6) Poison damage on a failed save or half as much damage on a successful one.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgMidnightTears",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Use Poison\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

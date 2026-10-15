@@ -1,0 +1,31 @@
+{
+  "_id": "phbagDruidicFocu",
+  "_key": "!items!phbagDruidicFocu",
+  "name": "Druidic Focus (Varies)",
+  "type": "gear",
+  "img": "icons/consumables/plants/fern-lady-green.webp",
+  "system": {
+    "active": false,
+    "description": "<p>A Druidic Focus takes one of the forms in the Druidic Focuses table and is carved, tied with ribbon, or painted to channel primal magic. A Druid or Ranger can use such an object as a Spellcasting Focus.</p><table><caption>Druidic Focuses</caption><thead><tr><td>Focus</td><td>Weight</td><td>Cost</td></tr></thead><tbody><tr><td>Sprig of mistletoe</td><td>—</td><td>1 GP</td></tr><tr><td>Wooden staff (also a Quarterstaff)</td><td>4 lb.</td><td>5 GP</td></tr><tr><td>Yew wand</td><td>1 lb.</td><td>10 GP</td></tr></tbody></table>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagDruidicFocu",
+        "type": "loot",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

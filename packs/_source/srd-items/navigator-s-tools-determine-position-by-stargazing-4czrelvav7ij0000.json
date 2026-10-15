@@ -1,0 +1,43 @@
+{
+  "_id": "4czrelvav7ij0000",
+  "_key": "!items!4czrelvav7ij0000",
+  "name": "Navigator's Tools (Determine Position by Stargazing)",
+  "type": "action",
+  "img": "icons/tools/navigation/sextant-brass-brown.webp",
+  "system": {
+    "active": true,
+    "description": "<p class=\"phb-meta\"><strong>Ability:</strong> Wisdom</p><p class=\"phb-meta\"><strong>Utilize:</strong> Plot a course (DC 10), or determine position by stargazing (DC 15)</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-navigator-s-tools-determine-position-by-stargazing",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Navigator's Tools (Determine Position by Stargazing)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbtulNavigators",
+        "type": "tool",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (check): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

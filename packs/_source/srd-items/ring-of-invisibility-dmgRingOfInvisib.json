@@ -1,0 +1,31 @@
+{
+  "_id": "dmgRingOfInvisib",
+  "_key": "!items!dmgRingOfInvisib",
+  "name": "Ring of Invisibility",
+  "type": "gear",
+  "img": "icons/equipment/finger/ring-eye-gold-red.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Ring, Legendary (Requires Attunement)</em></p><p>While wearing this ring, you can take a Magic action to give yourself the Invisible condition. You remain Invisible until the ring is removed or until you take a Bonus Action to become visible again.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgRingOfInvisib",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

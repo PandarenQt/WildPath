@@ -30,9 +30,12 @@ export function resolveActorDefense(actor, defenseKey="ac") {
     key === "ac" ? actor.system?.ac?.value : null,
     key === "ac" ? actor.system?.ac : null
   ]);
+  // 2024: the AC from the creature's best way of working it out (`ArmorClass`), never below the AC stored on it.
+  const formula = (key === "ac") ? bestArmorClass(actor) : null;
+  const ac = (formula == null) ? base : Math.max(base ?? formula, formula);
   const statistic = resolveActorStatisticModifier(actor, [`defense.${key}`, key]);
   const modifier = statistic.known ? statistic.value : null;
-  const value = base == null && modifier == null ? null : (base ?? 0) + (modifier ?? 0);
+  const value = ac == null && modifier == null ? null : (ac ?? 0) + (modifier ?? 0);
   if ( value == null ) return null;
   return {
     value,
@@ -42,11 +45,19 @@ export function resolveActorDefense(actor, defenseKey="ac") {
       actorId: actor.id ?? actor.actorId ?? null,
       actorRef: actor.uuid ?? (actor.id ? `Actor.${actor.id}` : null),
       statisticKey: key,
-      base,
+      base: ac,
       modifier,
       statistic: statistic.trace ?? null
     }
   };
+}
+
+/** The best of a creature's ways to work out its AC: the armor it wears, else its unarmored ways. */
+function bestArmorClass(actor) {
+  const formulas = actor.getArmorClasses?.() ?? [];
+  const worn = formulas.filter(formula => formula.armor);
+  const counted = worn.length ? worn : formulas;
+  return counted.length ? Math.max(...counted.map(formula => formula.value)) : null;
 }
 
 /* -------------------------------------------- */

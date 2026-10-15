@@ -1,0 +1,33 @@
+{
+  "_id": "dmgSerpentVenom0",
+  "_key": "!items!dmgSerpentVenom0",
+  "name": "Serpent Venom",
+  "type": "gear",
+  "img": "icons/consumables/potions/round-decorated-snake-green.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Injury Poison</em></p><p>A creature subjected to Serpent Venom must succeed on a DC 11 Constitution saving throw, taking 10 (3d6) Poison damage on a failed save or half as much damage on a successful one.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgSerpentVenom0",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Use Poison\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,102 @@
+{
+  "_id": "1ycovv2dqesp6000",
+  "_key": "!items!1ycovv2dqesp6000",
+  "name": "Staff of Healing: Mass Cure Wounds",
+  "type": "action",
+  "img": "icons/magic/life/cross-area-circle-green-white.webp",
+  "system": {
+    "active": true,
+    "description": "<p>A wave of healing energy washes out from a point you can see within range. Choose up to six creatures in a 30-foot-radius Sphere centered on that point. Each target regains Hit Points equal to 5d8 plus your spellcasting ability modifier.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The healing increases by 1d8 for each spell slot level above 5.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-staff-of-healing-mass-cure-wounds",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "staff-of-healing",
+            "amount": 5
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "radial",
+        "size": {
+          "value": 30,
+          "unit": "ft"
+        }
+      },
+      "healing": [
+        {
+          "id": "healing-1",
+          "expression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "dice",
+                "number": 5,
+                "faces": 8
+              },
+              {
+                "type": "spellcasting-modifier"
+              }
+            ]
+          },
+          "healingType": "healing"
+        }
+      ],
+      "label": "Staff of Healing: Mass Cure Wounds"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "staff-of-healing-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "staff-of-healing",
+          "label": "Staff of Healing",
+          "maximum": {
+            "type": "constant",
+            "value": 10
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplMassCureWo",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Staff of Healing"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool"
+        ]
+      }
+    }
+  }
+}

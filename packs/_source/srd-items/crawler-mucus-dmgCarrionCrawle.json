@@ -1,0 +1,33 @@
+{
+  "_id": "dmgCarrionCrawle",
+  "_key": "!items!dmgCarrionCrawle",
+  "name": "Crawler Mucus",
+  "type": "gear",
+  "img": "icons/consumables/potions/vial-cork-green.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Contact Poison</em></p><p>A creature subjected to Carrion Crawler Mucus must succeed on a DC 13 Constitution saving throw or have the Poisoned condition for 1 minute. The creature also has the Paralyzed condition while Poisoned in this way. The creature repeats the save at the end of each of its turns, ending the effect on itself on a success.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgCarrionCrawle",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Use Poison\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

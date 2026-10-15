@@ -1,0 +1,136 @@
+{
+  "_id": "dmg1WandOfTheWar",
+  "_key": "!items!dmg1WandOfTheWar",
+  "name": "Wand of the War Mage, +1, +2, or +3",
+  "type": "gear",
+  "img": "icons/weapons/wands/wand-gem-blue.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Wand, Uncommon (+1), Rare (+2), or Very Rare (+3) (Requires Attunement by a Spellcaster)</em></p><p>While holding this wand, you gain a bonus to spell attack rolls determined by the wand's rarity. In addition, you ignore HalfCover when making a spell attack roll.</p><p></p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "war-mage-1-1",
+        "type": "Modifier",
+        "predicate": {
+          "tagsAny": [
+            "melee"
+          ]
+        },
+        "data": {
+          "domains": [
+            "attack.spell"
+          ],
+          "modifierType": "untyped",
+          "value": 1
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "war-mage-1-2",
+        "type": "Modifier",
+        "predicate": {
+          "tagsAny": [
+            "ranged"
+          ]
+        },
+        "data": {
+          "domains": [
+            "attack.spell"
+          ],
+          "modifierType": "untyped",
+          "value": 1
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "war-mage-2-1",
+        "type": "Modifier",
+        "predicate": {
+          "tagsAny": [
+            "melee"
+          ]
+        },
+        "data": {
+          "domains": [
+            "attack.spell"
+          ],
+          "modifierType": "untyped",
+          "value": 2
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "war-mage-2-2",
+        "type": "Modifier",
+        "predicate": {
+          "tagsAny": [
+            "ranged"
+          ]
+        },
+        "data": {
+          "domains": [
+            "attack.spell"
+          ],
+          "modifierType": "untyped",
+          "value": 2
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "war-mage-3-1",
+        "type": "Modifier",
+        "predicate": {
+          "tagsAny": [
+            "melee"
+          ]
+        },
+        "data": {
+          "domains": [
+            "attack.spell"
+          ],
+          "modifierType": "untyped",
+          "value": 3
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "war-mage-3-2",
+        "type": "Modifier",
+        "predicate": {
+          "tagsAny": [
+            "ranged"
+          ]
+        },
+        "data": {
+          "domains": [
+            "attack.spell"
+          ],
+          "modifierType": "untyped",
+          "value": 3
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmg1WandOfTheWar",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Wand of the War Mage, +1, +2, or +3\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

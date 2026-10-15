@@ -1,0 +1,86 @@
+{
+  "_id": "pgel1beb94g50000",
+  "_key": "!items!pgel1beb94g50000",
+  "name": "Staff of the Magi: Invisibility",
+  "type": "action",
+  "img": "icons/creatures/magical/spirit-undead-ghost-purple.webp",
+  "system": {
+    "active": true,
+    "description": "<p>A creature you touch has the Invisible condition until the spell ends. The spell ends early immediately after the target makes an attack roll, deals damage, or casts a spell.</p><p><strong>Using a Higher-Level Spell Slot.</strong> You can target one additional creature for each spell slot level above 2.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-staff-of-the-magi-invisibility",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "staff-of-the-magi",
+            "amount": 2
+          }
+        ]
+      },
+      "range": {
+        "type": "touch",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "invisible",
+          "concentration": true
+        }
+      ],
+      "label": "Staff of the Magi: Invisibility"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "staff-of-the-magi-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "staff-of-the-magi",
+          "label": "Staff of the Magi",
+          "maximum": {
+            "type": "constant",
+            "value": 50
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplInvisibili",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Staff of the Magi"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "_id": "dmgGogglesOfNigh",
+  "_key": "!items!dmgGogglesOfNigh",
+  "name": "Goggles of Night",
+  "type": "gear",
+  "img": "icons/equipment/head/goggles-leather-blue.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Wondrous Item, Uncommon</em></p><p>While wearing these dark lenses, you have Darkvision out to 60 feet. If you already have Darkvision, wearing the goggles increases its range by 60 feet.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgGogglesOfNigh",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "effect: \"Goggles On\" change system.attributes.senses.darkvision (add) not converted"
+        ]
+      }
+    }
+  }
+}

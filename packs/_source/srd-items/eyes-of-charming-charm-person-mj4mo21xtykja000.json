@@ -1,0 +1,90 @@
+{
+  "_id": "mj4mo21xtykja000",
+  "_key": "!items!mj4mo21xtykja000",
+  "name": "Eyes of Charming: Charm Person",
+  "type": "action",
+  "img": "icons/magic/control/hypnosis-mesmerism-eye.webp",
+  "system": {
+    "active": true,
+    "description": "<p>One Humanoid you can see within range makes a Wisdom saving throw. It does so with Advantage if you or your allies are fighting it. On a failed save, the target has the Charmed condition until the spell ends or until you or your allies damage it. The Charmed creature is Friendly to you. When the spell ends, the target knows it was Charmed by you.</p><p><strong>Using a Higher-Level Spell Slot.</strong> You can target one additional creature for each spell slot level above 1.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-eyes-of-charming-charm-person",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "eyes-of-charming",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 30,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "save": {
+        "ability": "wits",
+        "dc": {
+          "value": 13
+        }
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "charmed",
+          "saveOutcomePolicy": "failure"
+        }
+      ],
+      "label": "Eyes of Charming: Charm Person"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "eyes-of-charming-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "eyes-of-charming",
+          "label": "Eyes of Charming",
+          "maximum": {
+            "type": "constant",
+            "value": 3
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplCharmPerso",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Eyes of Charming"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

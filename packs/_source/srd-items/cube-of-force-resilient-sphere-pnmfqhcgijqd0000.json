@@ -1,0 +1,68 @@
+{
+  "_id": "pnmfqhcgijqd0000",
+  "_key": "!items!pnmfqhcgijqd0000",
+  "name": "Cube of Force: Resilient Sphere",
+  "type": "action",
+  "img": "icons/commodities/gems/pearl-swirl-teal.webp",
+  "system": {
+    "active": true,
+    "description": "<p>A shimmering sphere encloses a Large or smaller creature or object within range. An unwilling creature must succeed on a Dexterity saving throw or be enclosed for the duration.</p><p>Nothing—not physical objects, energy, or other spell effects—can pass through the barrier, in or out, though a creature in the sphere can breathe there. The sphere is immune to all damage, and a creature or object inside can't be damaged by attacks or effects originating from outside, nor can a creature inside the sphere damage anything outside it.</p><p>The sphere is weightless and just large enough to contain the creature or object inside. An enclosed creature can take an action to push against the sphere's walls and thus roll the sphere at up to half the creature's Speed. Similarly, the globe can be picked up and moved by other creatures.</p><p>A <em>Disintegrate</em> spell targeting the globe destroys it without harming anything inside.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-cube-of-force-resilient-sphere",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "cube-of-force",
+            "amount": 4
+          }
+        ]
+      },
+      "label": "Cube of Force: Resilient Sphere"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "cube-of-force-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "cube-of-force",
+          "label": "Cube of Force",
+          "maximum": {
+            "type": "constant",
+            "value": 10
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplOtilukesRe",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Cube of Force"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool",
+          "not automated (save): using it spends its cost; its description says the rest",
+          "effect: \"Enclosed in Sphere\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

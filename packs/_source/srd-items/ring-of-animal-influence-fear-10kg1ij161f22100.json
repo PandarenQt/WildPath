@@ -1,0 +1,94 @@
+{
+  "_id": "10kg1ij161f22100",
+  "_key": "!items!10kg1ij161f22100",
+  "name": "Ring of Animal Influence: Fear",
+  "type": "action",
+  "img": "icons/magic/unholy/silhouette-robe-evil-glow.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Each creature in a 30-foot Cone must succeed on a Wisdom saving throw or drop whatever it is holding and have the Frightened condition for the duration.</p><p>A Frightened creature takes the Dash action and moves away from you by the safest route on each of its turns unless there is nowhere to move. If the creature ends its turn in a space where it doesn't have line of sight to you, the creature makes a Wisdom saving throw. On a successful save, the spell ends on that creature.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-ring-of-animal-influence-fear-affects-beasts-only-fear",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "ring-of-animal-influence",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "cone",
+        "size": {
+          "value": 30,
+          "unit": "ft"
+        }
+      },
+      "save": {
+        "ability": "wits",
+        "dc": {
+          "value": 13
+        }
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "frightened",
+          "saveOutcomePolicy": "failure",
+          "concentration": true
+        }
+      ],
+      "label": "Ring of Animal Influence: Fear"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "ring-of-animal-influence-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "ring-of-animal-influence",
+          "label": "Ring of Animal Influence",
+          "maximum": {
+            "type": "constant",
+            "value": 3
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplFear000000",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Ring of Animal Influence"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool"
+        ]
+      }
+    }
+  }
+}

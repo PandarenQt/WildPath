@@ -135,9 +135,82 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "damage: versatile two-handed damage not converted"
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "7fg6g77zuh400000",
+      "_key": "!actors.items!mmGladiator00000.7fg6g77zuh400000",
+      "name": "Spear (Two-Handed)",
+      "type": "action",
+      "img": "icons/weapons/polearms/spear-flared-green.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +7, reach 20 ft. Hit: 11 (2d6 + 4) Piercing damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spear-two-handed",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
             ]
+          },
+          "attack": {
+            "type": "ranged",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 20,
+              "unit": "ft"
+            },
+            "long": {
+              "value": 60,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 8
+              },
+              "damageType": "piercing",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Spear (Two-Handed)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "vTZW4dSRGXTDWvRd",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
           }
         }
       }
@@ -384,7 +457,6 @@
       },
       "conversion": {
         "notes": [
-          "Spear: damage: versatile two-handed damage not converted",
           "Parry: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }

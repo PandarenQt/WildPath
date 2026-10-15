@@ -1,0 +1,33 @@
+{
+  "_id": "dmgAdamantineArm",
+  "_key": "!items!dmgAdamantineArm",
+  "name": "Adamantine Armor",
+  "type": "gear",
+  "img": "icons/equipment/chest/breastplate-layered-leather-blue.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Armor (Any Medium or Heavy, Except Hide Armor), Uncommon</em></p><p>This suit of armor is reinforced with adamantine, one of the hardest substances in existence. While you're wearing it, any CriticalHits against you becomes a normal hit.</p><p></p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgAdamantineArm",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Adamantine Armor\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

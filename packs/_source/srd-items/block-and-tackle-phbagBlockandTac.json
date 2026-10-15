@@ -1,0 +1,31 @@
+{
+  "_id": "phbagBlockandTac",
+  "_key": "!items!phbagBlockandTac",
+  "name": "Block and Tackle",
+  "type": "gear",
+  "img": "icons/tools/fishing/reel-brown-white.webp",
+  "system": {
+    "active": false,
+    "description": "<p>A Block and Tackle allows you to hoist up to four times the weight you can normally lift.</p>",
+    "quantity": 1,
+    "weight": 5,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagBlockandTac",
+        "type": "loot",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

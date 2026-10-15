@@ -1,0 +1,34 @@
+{
+  "_id": "1zuyou1rgopy4000",
+  "_key": "!items!1zuyou1rgopy4000",
+  "name": "Shield, +1, +2, or +3",
+  "type": "gear",
+  "img": "icons/equipment/shield/buckler-wooden-boss-glowing-blue.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Armor (Shield), Uncommon (+1), Rare (+2), or Very Rare (+3)</em></p><p>While holding this Shield, you have a bonus to Armor Class determined by the Shield's rarity, in addition to the Shield's normal bonus to AC.</p><p></p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgShield12or300",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (enchant): using it spends its cost; its description says the rest",
+          "armor: of any kind; give it its armor's AC by hand"
+        ]
+      }
+    }
+  }
+}

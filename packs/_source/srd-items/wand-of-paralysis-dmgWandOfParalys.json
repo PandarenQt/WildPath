@@ -1,0 +1,91 @@
+{
+  "_id": "dmgWandOfParalys",
+  "_key": "!items!dmgWandOfParalys",
+  "name": "Wand of Paralysis",
+  "type": "action",
+  "img": "icons/weapons/wands/wand-gem-violet.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Wand, Rare (Requires Attunement by a Spellcaster)</em></p><p>This wand has 7 charges. While holding it, you can take a Magic action to expend 1 charge to cause a thin blue ray to streak from the tip toward a creature you can see within 60 feet of yourself. The target must succeed on a DC 15 Constitution saving throw or have the Paralyzed condition for 1 minute. At the end of each of the target's turns, it repeats the save, ending the effect on itself on a success.</p><p><em><strong>Regaining Charges.</strong></em> The wand regains 1d6 + 1 expended charges daily at dawn. If you expend the wand's last charge, roll 1d20. On a 1, the wand crumbles into ashes and is destroyed.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-wand-of-paralysis-paralyze",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "wand-of-paralysis",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "save": {
+        "ability": "fortitude",
+        "dc": {
+          "value": 15
+        }
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "paralyzed",
+          "saveOutcomePolicy": "failure"
+        }
+      ],
+      "label": "Wand of Paralysis"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "wand-of-paralysis-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "wand-of-paralysis",
+          "label": "Wand of Paralysis",
+          "maximum": {
+            "type": "constant",
+            "value": 7
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgWandOfParalys",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool"
+        ]
+      }
+    }
+  }
+}

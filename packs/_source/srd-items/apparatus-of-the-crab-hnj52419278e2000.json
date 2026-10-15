@@ -1,0 +1,33 @@
+{
+  "_id": "hnj52419278e2000",
+  "_key": "!items!hnj52419278e2000",
+  "name": "Apparatus of the Crab",
+  "type": "gear",
+  "img": "icons/containers/barrels/barrel-walnut-steel-brown.webp",
+  "system": {
+    "active": false,
+    "description": "<div><p><em>Wondrous Item, Legendary</em></p><p>This item first appears to be a sealed iron barrel weighing 500 pounds. The barrel has a hidden catch, which can be found with a successful DC 20 Intelligence (Investigation) check check. Releasing the catch unlocks a hatch at one end of the barrel, allowing two Medium or smaller creatures to crawl inside. Ten levers are set in a row at the far end, each in a neutral position, able to move up or down. When certain levers are used, the apparatus transforms to resemble a giant lobster.</p><p>The <em>Apparatus of the Crab</em> is a Large object with the following statistics: AC 20; HP 200; Speed 30 ft., Swim 30 ft. (or 0 ft. for both if the legs aren't extended); Immunity to Poison and Psychic damage.</p><p></p></div>",
+    "quantity": 1,
+    "weight": 500,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgApparatusOfKw",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

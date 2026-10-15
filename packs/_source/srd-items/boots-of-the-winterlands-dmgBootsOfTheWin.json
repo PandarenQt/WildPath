@@ -1,0 +1,44 @@
+{
+  "_id": "dmgBootsOfTheWin",
+  "_key": "!items!dmgBootsOfTheWin",
+  "name": "Boots of the Winterlands",
+  "type": "gear",
+  "img": "icons/equipment/feet/boots-leather-banded-furred.webp",
+  "system": {
+    "active": false,
+    "description": "<div><p><em>Wondrous Item, Uncommon (Requires Attunement)</em></p></div><p>These furred boots are snug and feel warm. While wearing them, you gain the following benefits.</p><p><strong>Cold Resistance.</strong> You have Resistance to Cold damage and can tolerate temperatures of 0 degrees Fahrenheit or lower without any additional protection.</p><p><strong>Winter Strider.</strong> You ignore Difficult Terrain created by ice or snow.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "cold-resistance-1",
+        "type": "GrantResistance",
+        "data": {
+          "damageTypes": [
+            "cold"
+          ]
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgBootsOfTheWin",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "effect: \"Winter Strider\" change system.attributes.movement.ignoredDifficultTerrain (add) not converted"
+        ]
+      }
+    }
+  }
+}

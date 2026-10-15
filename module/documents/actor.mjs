@@ -2,7 +2,8 @@ import {WildPathModifier, WildPathStatistic} from "../helpers/modifiers.mjs";
 import {
   damageProfileFromRuleElements, grantedMovementFromRuleElements, grantedResourcesFromRuleElements, modifiersFromRuleElements,
   resourceCapsFromRuleElements, rollModesFromRuleElements, rollOutcomesFromRuleElements, extraDamageFromRuleElements, aurasFromRuleElements,
-  conditionImmunitiesFromRuleElements, opportunityAttackAvoidanceFromRuleElements, extraAttacksFromRuleElements, normalizeRuleElementType
+  conditionImmunitiesFromRuleElements, opportunityAttackAvoidanceFromRuleElements, extraAttacksFromRuleElements, normalizeRuleElementType,
+  armorClassesFromRuleElements
 } from "../helpers/rule-elements.mjs";
 import {DEFAULT_FORM_STATISTICS, DEFAULT_KEPT_ITEM_TYPES, itemContributesWhileTransformed} from "../helpers/transformations.mjs";
 import WildPathConditionEffect from "../data/active-effect/condition.mjs";
@@ -16,6 +17,10 @@ import {
   getRestLifecycleEvents,
   validateTurnRecoveryContext
 } from "../helpers/combat.mjs";
+
+/** 2024: a character's AC without armor is 10 + its Agility modifier. */
+const UNARMORED = Object.freeze({schemaVersion: 1, id: "unarmored", type: "ArmorClass", data: {label: "Unarmored",
+  value: {type: "add", terms: [{type: "constant", value: 10}, {type: "ability-modifier", ability: "agility"}]}}});
 
 /**
  * The Actor document subclass for the WildPath system.
@@ -169,6 +174,17 @@ export default class WildPathActor extends Actor {
   /** The pools this creature's further attacks of an Attack action are paid from (`ExtraAttack`). */
   getExtraAttacks() {
     return extraAttacksFromRuleElements(grantOwners(this), {actor: this, actorSystem: this.system, conditions: [...(this.statuses ?? [])]});
+  }
+
+  /**
+   * The ways this creature's features, gear and effects work out its Armor Class (`ArmorClass`): `{value, armor}`.
+   * A character also has the 2024 unarmored one, 10 + its Agility modifier.
+   */
+  getArmorClasses() {
+    const context = {actor: this, actorSystem: this.system, conditions: [...(this.statuses ?? [])]};
+    const owners = grantOwners(this);
+    if ( this.type === "character" ) owners.push({ruleElements: [UNARMORED], source: null});
+    return armorClassesFromRuleElements(owners, context);
   }
 
   /** Whether this creature's movement provokes Opportunity Attacks (`AvoidOpportunityAttacks`): `{always, movementModes}`. */

@@ -1,0 +1,65 @@
+{
+  "_id": "150zibs1adbbsk00",
+  "_key": "!items!150zibs1adbbsk00",
+  "name": "Robe of Useful Items (Dagger)",
+  "type": "action",
+  "img": "icons/equipment/back/cloak-simple-tan.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Wondrous Item, Uncommon</em></p><p>This robe has cloth patches of various shapes and colors covering it. While wearing the robe, you can take a Magic action to detach one of the patches, causing it to become the object or creature it represents. Once the last patch is removed, the robe becomes an ordinary garment.</p><p>The robe has two of each of the following patches:</p><ul><li>Bullseye Lantern (filled and lit)</li> <li>Dagger</li> <li>Mirror</li> <li>Pole</li> <li>Rope (coiled)</li><li>Sack</li></ul><p>In addition, the robe has 4d4 other patches. The GM chooses the patches or determines them randomly by rolling on the following table.</p><details><summary>Table</summary><p></p></details><section class=\"secret\" id=\"secret-xQk1DSLrx4a4jmWy\"><p><strong>Foundry Note</strong></p><p>This item includes activities for each of the always present patches above which include limited uses for tracking how many are left. They can be duplicated and renamed for the additional patches after rolling for the results.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-robe-of-useful-items-dagger",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "robe-of-useful-items-dagger",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Robe of Useful Items (Dagger)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "robe-of-useful-items-dagger-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "robe-of-useful-items-dagger",
+          "label": "Robe of Useful Items (Dagger)",
+          "maximum": {
+            "type": "constant",
+            "value": 2
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgRobeOfUsefulI",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

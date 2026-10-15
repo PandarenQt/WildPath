@@ -1,0 +1,31 @@
+{
+  "_id": "phbagComponentPo",
+  "_key": "!items!phbagComponentPo",
+  "name": "Component Pouch",
+  "type": "gear",
+  "img": "icons/containers/bags/pouch-leather-pink.webp",
+  "system": {
+    "active": false,
+    "description": "<p>A Component Pouch is watertight and filled with compartments that hold all the free Material components of your spells.</p>",
+    "quantity": 1,
+    "weight": 2,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagComponentPo",
+        "type": "container",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

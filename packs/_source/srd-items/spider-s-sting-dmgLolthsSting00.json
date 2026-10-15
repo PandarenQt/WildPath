@@ -1,0 +1,33 @@
+{
+  "_id": "dmgLolthsSting00",
+  "_key": "!items!dmgLolthsSting00",
+  "name": "Spider's Sting",
+  "type": "gear",
+  "img": "icons/skills/wounds/injury-pain-impaled-hand-blood.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Injury Poison</em></p><p>A creature subjected to Lolth's Sting must succeed on a DC 13 Constitution saving throw or have the Poisoned condition for 1 hour. If the creature fails the save by 5 or more, the creature also has the Unconscious condition while Poisoned in this way. The creature wakes up if it takes damage or if another creature takes an action to shake it awake.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgLolthsSting00",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Use Poison\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

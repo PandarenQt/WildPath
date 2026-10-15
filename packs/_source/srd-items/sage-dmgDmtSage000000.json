@@ -1,0 +1,33 @@
+{
+  "_id": "dmgDmtSage000000",
+  "_key": "!items!dmgDmtSage000000",
+  "name": "Sage",
+  "type": "gear",
+  "img": "icons/environment/people/cleric-grey.webp",
+  "system": {
+    "active": false,
+    "description": "<p> At any time you choose within one year of drawing this card, you can ask a question in meditation and mentally receive a truthful answer to that question.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgDmtSage000000",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Card Effect\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

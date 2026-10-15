@@ -1,0 +1,113 @@
+{
+  "_id": "1kulefclqdjbm000",
+  "_key": "!items!1kulefclqdjbm000",
+  "name": "Oil of Slipperiness: Freedom of Movement",
+  "type": "action",
+  "img": "icons/magic/water/elemental-water.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You touch a willing creature. For the duration, the target's movement is unaffected by DifficultTerrain, and spells and other magical effects can neither reduce the target's Speed nor cause the target to have the Paralyzed or Restrained conditions. The target also has a Swim Speed equal to its Speed.</p><p>In addition, the target can spend 5 feet of movement to automatically escape from nonmagical restraints, such as manacles or a creature imposing the Grappled condition on it.</p><p><strong>Using a Higher-Level Spell Slot.</strong> You can target one additional creature for each spell slot level above 4.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-oil-of-slipperiness-cover-creature-freedom-of-movement",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "oil-of-slipperiness",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "touch",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Unrestricted Movement",
+          "img": "icons/skills/movement/feet-bladed-boots-fire.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "unrestricted-movement-1",
+              "type": "GrantMovement",
+              "data": {
+                "mode": "swim",
+                "distance": {
+                  "type": "context",
+                  "path": "actorSystem.resources.movement.max"
+                }
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "unrestricted-movement-2",
+              "type": "ConditionImmunity",
+              "data": {
+                "conditions": [
+                  "paralyzed",
+                  "restrained"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
+      "label": "Oil of Slipperiness: Freedom of Movement"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "oil-of-slipperiness-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "oil-of-slipperiness",
+          "label": "Oil of Slipperiness",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplFreedomofM",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Oil of Slipperiness"
+      },
+      "conversion": {
+        "notes": [
+          "activation: 10 minute is not an action-economy cost",
+          "effect: \"Unrestricted Movement\" change system.attributes.movement.ignoredDifficultTerrain (add) not converted"
+        ]
+      }
+    }
+  }
+}

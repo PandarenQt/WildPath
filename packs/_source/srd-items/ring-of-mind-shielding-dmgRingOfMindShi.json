@@ -1,0 +1,31 @@
+{
+  "_id": "dmgRingOfMindShi",
+  "_key": "!items!dmgRingOfMindShi",
+  "name": "Ring of Mind Shielding",
+  "type": "gear",
+  "img": "icons/equipment/finger/ring-cabochon-gold-purple.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Ring, Uncommon (Requires Attunement)</em></p><p>While wearing this ring, you are immune to magic that allows other creatures to read your thoughts, determine whether you are lying, know your alignment, or know your creature type. Creatures can telepathically communicate with you only if you allow it.</p><p>You can take a Magic action to cause the ring to become imperceptible until you take another Magic action to make it perceptible, until you remove the ring, or until you die.</p><p>If you die while wearing the ring, your soul enters it, unless it already houses a soul. You can remain in the ring or depart for the afterlife. As long as your soul is in the ring, you can telepathically communicate with any creature wearing it. A wearer can't prevent this telepathic communication.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgRingOfMindShi",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

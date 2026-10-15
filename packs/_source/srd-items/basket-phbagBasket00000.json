@@ -1,0 +1,31 @@
+{
+  "_id": "phbagBasket00000",
+  "_key": "!items!phbagBasket00000",
+  "name": "Basket",
+  "type": "gear",
+  "img": "icons/containers/misc/basket-handle-woven-gold.webp",
+  "system": {
+    "active": false,
+    "description": "<p>A Basket holds up to 40 pounds within 2 cubic feet.</p>",
+    "quantity": 1,
+    "weight": 2,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagBasket00000",
+        "type": "container",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

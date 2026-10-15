@@ -1,0 +1,33 @@
+{
+  "_id": "dmgDmtVoid000000",
+  "_key": "!items!dmgDmtVoid000000",
+  "name": "Void",
+  "type": "gear",
+  "img": "icons/magic/unholy/orb-stone-pink.webp",
+  "system": {
+    "active": false,
+    "description": "<p>Your soul is drawn from your body and contained in an object in a place of the DM's choice. One or more powerful beings guard the place. While your soul is trapped in this way, your body is inert, ceases aging, and requires no food, air, or water. A <em>Wish</em> spell can't return your soul to your body, but the spell reveals the location of the object that holds your soul. You draw no more cards.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgDmtVoid000000",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Card Effect\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

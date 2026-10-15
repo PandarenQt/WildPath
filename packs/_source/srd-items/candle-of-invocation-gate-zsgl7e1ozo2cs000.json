@@ -1,0 +1,64 @@
+{
+  "_id": "zsgl7e1ozo2cs000",
+  "_key": "!items!zsgl7e1ozo2cs000",
+  "name": "Candle of Invocation: Gate",
+  "type": "action",
+  "img": "icons/magic/symbols/circled-gem-pink.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You conjure a portal linking an unoccupied space you can see within range to a precise location on a different plane of existence. The portal is a circular opening, which you can make 5 to 20 feet in diameter. You can orient the portal in any direction you choose. The portal lasts for the duration, and the portal's destination is visible through it.</p><p>The portal has a front and a back on each plane where it appears. Travel through the portal is possible only by moving through its front. Anything that does so is instantly transported to the other plane, appearing in the unoccupied space nearest to the portal.</p><p>Deities and other planar rulers can prevent portals created by this spell from opening in their presence or anywhere within their domains.</p><p>When you cast this spell, you can speak the name of a specific creature (a pseudonym, title, or nickname doesn't work). If that creature is on a plane other than the one you are on, the portal opens next to the named creature and transports it to the nearest unoccupied space on your side of the portal. You gain no special power over the creature, and it is free to act as the DM deems appropriate. It might leave, attack you, or help you.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-candle-of-invocation-burn-and-cast-gate",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Candle of Invocation: Gate"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "candle-of-invocation-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "candle-of-invocation",
+          "label": "Candle of Invocation",
+          "maximum": {
+            "type": "constant",
+            "value": 240
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplGate000000",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Candle of Invocation"
+      },
+      "conversion": {
+        "notes": [
+          "consumption: itemUses @item.uses.max not converted",
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "concentration: nothing it sustains was converted"
+        ]
+      }
+    }
+  }
+}

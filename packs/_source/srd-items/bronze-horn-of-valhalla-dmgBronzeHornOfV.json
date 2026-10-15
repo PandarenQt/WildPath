@@ -1,0 +1,72 @@
+{
+  "_id": "dmgBronzeHornOfV",
+  "_key": "!items!dmgBronzeHornOfV",
+  "name": "Bronze Horn of Valhalla",
+  "type": "action",
+  "img": "icons/tools/instruments/flute-simple-wood.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>See: Horn of Valhalla</em></p><p><em>Requirement: Training with all Medium armor</em></p><p><em>Spirits: 4</em></p><p>You can take a Magic action to blow this horn. In response, warrior spirits from the plane of Ysgard appear in unoccupied spaces within 60 feet of you. Each spirit uses the <strong>Berserker</strong> stat block and returns to Ysgard after 1 hour or when it drops to 0 Hit Points. The spirits look like living, breathing warriors, and they have Immunity to the Charmed and Frightened conditions. Once you use the horn, it can't be used again until 7 days have passed.</p><p>If you blow the horn without meeting its requirement, the summoned spirits attack you. If you meet the requirement, they are Friendly to you and your allies and follow your commands.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-bronze-horn-of-valhalla-summon-warriors",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "summon": {
+        "actorRef": "Compendium.wildpath.srd-creatures.Actor.mmBerserker00000",
+        "count": 4
+      },
+      "label": "Bronze Horn of Valhalla"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "bronze-horn-of-valhalla-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "bronze-horn-of-valhalla",
+          "label": "Bronze Horn of Valhalla",
+          "maximum": {
+            "type": "constant",
+            "value": 7
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgBronzeHornOfV",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "_id": "367zwx9epd6d0000",
+  "_key": "!items!367zwx9epd6d0000",
+  "name": "Elemental Gem (Red Corundum)",
+  "type": "action",
+  "img": "icons/commodities/gems/gem-rough-rose-teal.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Wondrous Item, Uncommon</em></p><p>This gem contains a mote of elemental energy. When you take a Utilize action to break the gem, an elemental is summoned, and the gem ceases to be magical. The elemental appears in an unoccupied space as close to the broken gem as possible, understands your languages, obeys your commands, and takes its turn immediately after you on your Initiative count. The elemental disappears after 1 hour, when it dies, or when you dismiss it as a Bonus Action. The type of gem determines the elemental, as shown in the following table.</p><table><thead><tr><td>Gem</td><td>Summoned Elemental</td></tr></thead><tbody><tr><td>Blue sapphire</td><td>Air Elemental</td></tr><tr><td>Emerald</td><td>Water Elemental</td></tr><tr><td>Red corundum</td><td>Fire Elemental</td></tr><tr><td>Yellow diamond</td><td>Earth Elemental</td></tr></tbody></table>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-elemental-gem-red-corundum",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "elemental-gem",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Elemental Gem (Red Corundum)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "elemental-gem-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "elemental-gem",
+          "label": "Elemental Gem",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgElementalGem0",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (summon): using it spends its cost; its description says the rest",
+          "summon: its creature is not among the converted creatures"
+        ]
+      }
+    }
+  }
+}

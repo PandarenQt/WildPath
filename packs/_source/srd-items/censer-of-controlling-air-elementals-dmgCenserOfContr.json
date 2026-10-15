@@ -1,0 +1,74 @@
+{
+  "_id": "dmgCenserOfContr",
+  "_key": "!items!dmgCenserOfContr",
+  "name": "Censer of Controlling Air Elementals",
+  "type": "action",
+  "img": "icons/commodities/treasure/goblet-worn-gold.webp",
+  "system": {
+    "active": true,
+    "description": "<div><p><em>Wondrous Item, Rare</em></p></div><p>While gently swinging this censer, you can take a Magic action to summon an <strong>Air Elemental</strong>. The elemental appears in an unoccupied space as close to the censer as possible, understands your languages, obeys your commands, and takes its turn immediately after you on your Initiative count. The elemental disappears after 1 hour, when it dies, or when you dismiss it as a Bonus Action. The censer can't be used this way again until the next dawn.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-censer-of-controlling-air-elementals",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "censer-of-controlling-air-elementals",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "summon": {
+        "actorRef": "Compendium.wildpath.srd-creatures.Actor.mmAirElemental00",
+        "count": 1
+      },
+      "label": "Censer of Controlling Air Elementals"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "censer-of-controlling-air-elementals-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "censer-of-controlling-air-elementals",
+          "label": "Censer of Controlling Air Elementals",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgCenserOfContr",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

@@ -67,6 +67,30 @@
           },
           "recovery": "longRest"
         }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "magic-attack",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "attack"
+          ],
+          "modifierType": "untyped",
+          "value": 3
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "magic-damage",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "damage"
+          ],
+          "modifierType": "untyped",
+          "value": 3
+        }
       }
     ]
   },
@@ -83,9 +107,7 @@
       },
       "conversion": {
         "notes": [
-          "uses: a partial recovery refills the whole pool",
-          "attack: +3 magic bonus not converted",
-          "damage: versatile two-handed damage not converted"
+          "uses: a partial recovery refills the whole pool"
         ]
       }
     }

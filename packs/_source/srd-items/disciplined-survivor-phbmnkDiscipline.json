@@ -22,7 +22,8 @@
       },
       "conversion": {
         "notes": [
-          "\"Consume Focus Point\" is passive or triggered: not automated"
+          "\"Consume Focus Point\" is passive or triggered: not automated",
+          "effect: \"Disciplined Survivor\" change flags.dnd5e.diamondSoul (override) not converted"
         ]
       }
     }

@@ -1,0 +1,43 @@
+{
+  "_id": "phbtulPottersToo",
+  "_key": "!items!phbtulPottersToo",
+  "name": "Potter's Tools",
+  "type": "action",
+  "img": "icons/containers/kitchenware/vase-bottle-brown.webp",
+  "system": {
+    "active": true,
+    "description": "<p class=\"phb-meta\"><strong>Ability:</strong> Intelligence <strong>Weight:</strong> 3 lb.</p><p class=\"phb-meta\"><strong>Utilize:</strong> Discern what a ceramic object held in the past 24 hours (DC 15)</p><p class=\"phb-meta\"><strong>Craft:</strong> Jug, Lamp</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-potter-s-tools-discern-previous-contents",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Potter's Tools"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbtulPottersToo",
+        "type": "tool",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (check): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

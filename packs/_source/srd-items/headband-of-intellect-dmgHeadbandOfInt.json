@@ -1,0 +1,33 @@
+{
+  "_id": "dmgHeadbandOfInt",
+  "_key": "!items!dmgHeadbandOfInt",
+  "name": "Headband of Intellect",
+  "type": "gear",
+  "img": "icons/equipment/finger/ring-cabochon-silver-gold-red.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Wondrous Item, Uncommon (Requires Attunement)</em></p><p>Your Intelligence is 19 while you wear this headband. It has no effect on you if your Intelligence is 19 or higher without it.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgHeadbandOfInt",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "effect: \"Intelligent\" change system.abilities.int.value (upgrade) not converted"
+        ]
+      }
+    }
+  }
+}

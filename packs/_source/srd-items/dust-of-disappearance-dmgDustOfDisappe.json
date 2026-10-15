@@ -1,0 +1,83 @@
+{
+  "_id": "dmgDustOfDisappe",
+  "_key": "!items!dmgDustOfDisappe",
+  "name": "Dust of Disappearance",
+  "type": "action",
+  "img": "icons/magic/water/bubbles-air-water-light.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Wondrous Item, Uncommon</em></p><p>This powder resembles fine sand. There is enough of it for one use. When you take a Utilize action to throw the dust into the air, you and each creature and object within a 10-foot Emanation originating from you have the Invisible condition for 2d4 minutes. The duration is the same for all subjects, and the dust is consumed when its magic takes effect. Immediately after an affected creature makes an attack roll, deals damage, or casts a spell, the Invisible condition ends for that creature.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-dust-of-disappearance-utilize",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "dust-of-disappearance",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "emanation",
+        "size": {
+          "value": 10,
+          "unit": "ft"
+        }
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "invisible"
+        }
+      ],
+      "label": "Dust of Disappearance"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "dust-of-disappearance-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "dust-of-disappearance",
+          "label": "Dust of Disappearance",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgDustOfDisappe",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

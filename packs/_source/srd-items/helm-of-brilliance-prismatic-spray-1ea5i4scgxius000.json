@@ -1,0 +1,96 @@
+{
+  "_id": "1ea5i4scgxius000",
+  "_key": "!items!1ea5i4scgxius000",
+  "name": "Helm of Brilliance: Prismatic Spray",
+  "type": "action",
+  "img": "icons/magic/light/beams-strike-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Eight rays of light flash from you in a 60-foot Cone. Each creature in the Cone makes a Dexterity saving throw. For each target, roll 1d8 to determine which color ray affects it, consulting the Prismatic Rays table.</p><p></p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-helm-of-brilliance-prismatic-spray",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "cone",
+        "size": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "save": {
+        "ability": "agility",
+        "dc": {
+          "value": 18
+        }
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "dice",
+            "number": 12,
+            "faces": 6
+          },
+          "damageType": "acid",
+          "provenance": "spell-base",
+          "saveOutcomePolicy": {
+            "success": "half",
+            "failure": "full"
+          }
+        }
+      ],
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "restrained",
+          "saveOutcomePolicy": "failure"
+        },
+        {
+          "id": "effect-2",
+          "type": "condition",
+          "conditionId": "blinded"
+        }
+      ],
+      "label": "Helm of Brilliance: Prismatic Spray"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplPrismaticS",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Helm of Brilliance"
+      },
+      "conversion": {
+        "notes": [
+          "damage 1: a choice of acid/cold/fire/lightning/poison uses acid",
+          "not automated (save): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

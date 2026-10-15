@@ -1,0 +1,33 @@
+{
+  "_id": "dmgBootsOfStridi",
+  "_key": "!items!dmgBootsOfStridi",
+  "name": "Boots of Striding and Springing",
+  "type": "gear",
+  "img": "icons/equipment/feet/boots-collared-leather-brown.webp",
+  "system": {
+    "active": false,
+    "description": "<div><p><em>Wondrous Item, Uncommon (Requires Attunement)</em></p></div><p>While you wear these boots, your Speed becomes 30 feet unless your Speed is higher, and your Speed isn't reduced by you carrying weight in excess of your carrying capacity or wearing Heavy Armor.</p><p>Once on each of your turns, you can jump up to 30 feet by spending only 10 feet of movement.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgBootsOfStridi",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "effect: \"Unburdened Movement\" change system.attributes.movement.walk (upgrade) not converted"
+        ]
+      }
+    }
+  }
+}

@@ -57,11 +57,14 @@
       "_id": "cdo7WnGawlzIo3MD",
       "_key": "!actors.items!dmg4x6CarpetofFl.cdo7WnGawlzIo3MD",
       "name": "Carry Weight Adjustment",
-      "type": "feature",
+      "type": "gear",
       "img": "icons/skills/social/trading-injustice-scale-gray.webp",
       "system": {
-        "active": true,
+        "active": false,
         "description": "<p>This item serves to offset the carpet's computed carry weight capacity in accordance with the carpet's dimensions.</p>",
+        "quantity": 1,
+        "weight": 5,
+        "slot": "",
         "ruleElements": []
       },
       "flags": {

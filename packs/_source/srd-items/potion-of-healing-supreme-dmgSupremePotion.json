@@ -1,0 +1,89 @@
+{
+  "_id": "dmgSupremePotion",
+  "_key": "!items!dmgSupremePotion",
+  "name": "Potion of Healing (Supreme)",
+  "type": "action",
+  "img": "icons/consumables/potions/potion-flask-stopped-red.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Potion, Very Rare</em></p><p>You regain 10d4 + 20 Hit Points when you drink this potion.</p><p>Whatever its potency, the potion's red liquid glimmers when agitated.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-potion-of-healing-supreme-consume",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          },
+          {
+            "capability": "potion-of-healing-supreme",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "healing": [
+        {
+          "id": "healing-1",
+          "expression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "dice",
+                "number": 10,
+                "faces": 4
+              },
+              {
+                "type": "constant",
+                "value": 20
+              }
+            ]
+          },
+          "healingType": "healing"
+        }
+      ],
+      "label": "Potion of Healing (Supreme)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "potion-of-healing-supreme-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "potion-of-healing-supreme",
+          "label": "Potion of Healing (Supreme)",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgSupremePotion",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

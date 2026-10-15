@@ -1,0 +1,40 @@
+{
+  "_id": "1br99oqzcc0dk000",
+  "_key": "!items!1br99oqzcc0dk000",
+  "name": "Rod of Alertness",
+  "type": "gear",
+  "img": "icons/weapons/maces/mace-round-steel.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Rod, Very Rare (Requires Attunement)</em></p><p>This rod has the following properties.</p><p><strong>Alertness.</strong> While holding the rod, you have Advantage on Wisdom (Perception) checks and on Initiative rolls.</p><p><strong>Spells.</strong> While holding the rod, you can cast the following spells from it:</p><ul><li><p>Detect Evil and Good</p></li><li><p>Detect Magic</p></li><li><p>Detect Poison and Disease</p></li><li><p>See Invisibility</p></li></ul><p><strong>Protective Aura.</strong> As a Magic action, you can plant the haft end of the rod in the ground, whereupon the rod's head sheds Bright Light in a 60-foot radius and Dim Light for an additional 60 feet. While in that Bright Light, you and your allies gain a +1 bonus to Armor Class and saving throws and can sense the location of any Invisible creature that is also in the Bright Light.</p><p>The rod's head stops glowing and the effect ends after 10 minutes or when a creature takes a Magic action to pull the rod from the ground. Once used, this property can't be used again until the next dawn.</p><section class=\"secret\" id=\"secret-jGrucoqKAFLoFtqT\"><p><strong>Foundry Note</strong></p><p>The <strong>Plant Rod</strong> activity can be used to place a 60 foot template representing the Bright Light radius. It includes an Active Effect which can be applied to the relevant Actors and adds the +1 bonus to AC and Saving Throws.</p></section>",
+    "quantity": 1,
+    "weight": 3,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgRodOfAlertnes",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (cast): using it spends its cost; its description says the rest",
+          "cast: its spell was not found among the converted spells",
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Detect Magic\" (its own changes) not converted",
+          "concentration: nothing it sustains was converted",
+          "effect: \"Detect Poison and Disease\" (its own changes) not converted",
+          "effect: \"See Invisibility\" change system.attributes.senses.special (add) not converted",
+          "effect: \"See Invisibility\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

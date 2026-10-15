@@ -1,0 +1,31 @@
+{
+  "_id": "dmgAmuletOfProof",
+  "_key": "!items!dmgAmuletOfProof",
+  "name": "Amulet of Proof against Detection and Location",
+  "type": "gear",
+  "img": "icons/equipment/neck/pendant-faceted-blue.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Wondrous Item, Uncommon (Requires Attunement)</em></p><p>While wearing this amulet, you can't be targeted by Divination spells or perceived through magical scrying sensors unless you allow it.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgAmuletOfProof",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

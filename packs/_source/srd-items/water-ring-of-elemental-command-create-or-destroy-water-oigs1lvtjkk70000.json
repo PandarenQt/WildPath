@@ -1,0 +1,68 @@
+{
+  "_id": "oigs1lvtjkk70000",
+  "_key": "!items!oigs1lvtjkk70000",
+  "name": "Water Ring of Elemental Command: Create or Destroy Water",
+  "type": "action",
+  "img": "icons/magic/water/water-hand.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You do one of the following:</p><p><strong>Create Water.</strong> You create up to 10 gallons of clean water within range in an open container. Alternatively, the water falls as rain in a 30-foot Cube within range, extinguishing exposed flames there.</p><p><strong>Destroy Water.</strong> You destroy up to 10 gallons of water in an open container within range. Alternatively, you destroy fog in a 30-foot Cube within range.</p><p><strong>Using a Higher-Level Spell Slot.</strong> You create or destroy 10 additional gallons of water, or the size of the Cube increases by 5 feet, for each spell slot level above 1.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-water-ring-of-elemental-command-create-or-destroy-water",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "water-ring-of-elemental-command",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Water Ring of Elemental Command: Create or Destroy Water"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "water-ring-of-elemental-command-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "water-ring-of-elemental-command",
+          "label": "Water Ring of Elemental Command",
+          "maximum": {
+            "type": "constant",
+            "value": 5
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplCreateorDe",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Water Ring of Elemental Command"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool",
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "area: 25 + 5 * @item.level-ft cube is not supported; the user picks the targets"
+        ]
+      }
+    }
+  }
+}

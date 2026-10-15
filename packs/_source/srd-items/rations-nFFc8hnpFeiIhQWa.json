@@ -1,0 +1,31 @@
+{
+  "_id": "nFFc8hnpFeiIhQWa",
+  "_key": "!items!nFFc8hnpFeiIhQWa",
+  "name": "Rations",
+  "type": "gear",
+  "img": "icons/consumables/food/berries-ration-round-red.webp",
+  "system": {
+    "active": false,
+    "description": "<p>Rations consist of travel-ready food, including jerky, dried fruit, hardtack, and nuts. See Malnutrition in the rules glossary for the risks of not eating.</p>",
+    "quantity": 10,
+    "weight": 2,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "nFFc8hnpFeiIhQWa",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

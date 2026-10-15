@@ -1,0 +1,31 @@
+{
+  "_id": "phbagPaper000000",
+  "_key": "!items!phbagPaper000000",
+  "name": "Paper",
+  "type": "gear",
+  "img": "icons/sundries/documents/paper-plain-white.webp",
+  "system": {
+    "active": false,
+    "description": "<p>One sheet of Paper can hold about 250 handwritten words.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagPaper000000",
+        "type": "loot",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

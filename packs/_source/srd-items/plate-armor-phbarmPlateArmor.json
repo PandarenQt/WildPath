@@ -1,0 +1,76 @@
+{
+  "_id": "phbarmPlateArmor",
+  "_key": "!items!phbarmPlateArmor",
+  "name": "Plate Armor",
+  "type": "gear",
+  "img": "icons/equipment/chest/breastplate-collared-steel.webp",
+  "system": {
+    "active": false,
+    "description": "",
+    "quantity": 1,
+    "weight": 65,
+    "slot": "",
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "plate-armor",
+        "type": "ArmorClass",
+        "data": {
+          "label": "Plate Armor",
+          "armor": true,
+          "value": 18
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "plate-armor-strength",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "resources.movement.max",
+            "speed"
+          ],
+          "modifierType": "untyped",
+          "valueExpression": {
+            "type": "table",
+            "key": {
+              "type": "ability-score",
+              "ability": "might"
+            },
+            "rows": {
+              "0": -10,
+              "15": 0
+            }
+          }
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "plate-armor-stealth",
+        "type": "RollMode",
+        "data": {
+          "domains": [
+            "check.stealth"
+          ],
+          "mode": "disadvantage"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbarmPlateArmor",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

@@ -143,3 +143,27 @@ test("Sneak Attack: a Finesse or ranged weapon, with Advantage or an ally beside
   const bow = {...rapier, attack: {type: "ranged", statistic: "weapon"}};
   assert.equal(extra(bow, {rollMode: "advantage"}).length, 1, "a ranged weapon");
 });
+
+test("2024 Armor Class: worn armor, else the best unarmored way, never below the stored AC; a Shield adds", () => {
+  const armorClass = (id, value, armor=false) => ({id, uuid: `Actor.hero.Item.${id}`, type: "gear", system: {active: true, modifiers: [],
+    ruleElements: [{schemaVersion: 1, id, type: "ArmorClass", data: {value, ...(armor ? {armor: true} : {})}}]}});
+  const agility = {type: "ability-modifier", ability: "agility"};
+  const hero = (items, stored=10) => Object.assign(Object.create(WildPathActor.prototype), {id: "hero", uuid: "Actor.hero", type: "character",
+    effects: [], items, system: {defenses: {ac: {value: stored}}, abilities: {agility: {value: 16}, fortitude: {value: 14}}},
+    allApplicableEffects: () => []});
+  assert.equal(resolveActorDefense(hero([]), "ac").value, 13, "unarmored: 10 + Agility modifier 3");
+  const chain = armorClass("chain-mail", 16, true);
+  const breastplate = armorClass("breastplate", {type: "add", terms: [{type: "constant", value: 14}, {type: "min", terms: [agility,
+    {type: "constant", value: 2}]}]}, true);
+  const unarmoredDefense = armorClass("unarmored-defense", {type: "add", terms: [{type: "constant", value: 10}, agility,
+    {type: "ability-modifier", ability: "fortitude"}]});
+  assert.equal(resolveActorDefense(hero([breastplate]), "ac").value, 16, "medium armor: 14 + Agility up to 2");
+  assert.equal(resolveActorDefense(hero([unarmoredDefense]), "ac").value, 15, "Unarmored Defense: 10 + 3 + 2");
+  assert.equal(resolveActorDefense(hero([unarmoredDefense, chain]), "ac").value, 16, "wearing armor, Unarmored Defense does not count");
+  assert.equal(resolveActorDefense(hero([{...chain, system: {...chain.system, active: false}}]), "ac").value, 13, "unequipped");
+  const shield = item("shield", "gear", [modifier("shield", ["defense.ac"], 2)]);
+  assert.equal(resolveActorDefense(hero([chain, shield]), "ac").value, 18, "a Shield adds to armor");
+  assert.equal(resolveActorDefense(hero([], 17), "ac").value, 17, "a stored AC above the formulas is kept");
+  const monster = Object.assign(hero([]), {type: "npc"});
+  assert.equal(resolveActorDefense(monster, "ac").value, 10, "a creature's stat block AC has no unarmored formula added");
+});

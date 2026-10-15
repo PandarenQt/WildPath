@@ -255,7 +255,7 @@ export function upgradeLegacy(document) {
  * `scales` maps `<class>.<scale>` to `{level: value}` rows (from the class's ScaleValue advancements).
  * @returns {{ok: true, items: object[], notes: string[]} | {ok: false, reason: string}}
  */
-export function convertItem(document, {scales={}, pack=null, saveDC=null, names={}, creature=null, licensed=isSrd2024, book="SRD 5.2",
+export function convertItem(document, {scales={}, pack=null, saveDC=null, spellDC=null, names={}, creature=null, licensed=isSrd2024, book="SRD 5.2",
   images=["icons/"], spells={}, creatures={}}={}) {
   if ( !licensed(document) ) return {ok: false, reason: "not SRD 5.2 (CC-BY-4.0)"};
   document = upgradeLegacy(document);
@@ -296,7 +296,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, names=
       }
     }
     let definition = ACTIVITIES.has(activity.type)
-      ? convertActivity({document, activity, system, spell, level, scales, notes, pool, saveDC, creature})
+      ? convertActivity({document, activity, system, spell, level, scales, notes, pool, saveDC, spellDC, creature})
       : ((activity.type === "summon") ? summonDefinition({document, activity, system, spell, level, notes, pool, creatures, names}) : null);
     if ( !definition ) {
       // Used but not automated: using it spends its cost (and a spell's slot); its description says the rest.
@@ -314,21 +314,116 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, names=
     if ( push ) definition = {...definition, push};
     const suffix = usable.length > 1 ? ` (${label})` : "";
     const id = index ? stableId(`${document._id}:${index}`) : document._id;
-    items.push({
-      _id: id, _key: `!items!${id}`, name: `${document.name}${suffix}`, type: "action", img,
-      system: {active: true, description, definition: {...definition, label: `${document.name}${suffix}`},
-        ruleElements: [pool?.rule, activityPool({document, activity, scales})?.rule].filter(Boolean)},
+    const action = (actionId, name, actionDefinition) => ({
+      _id: actionId, _key: `!items!${actionId}`, name, type: "action", img,
+      system: {active: true, description, definition: {...actionDefinition, label: name},
+        ruleElements: [pool?.rule, activityPool({document, activity, scales})?.rule, ...attackModifiers({activity, system,
+          definition: actionDefinition, notes})].filter(Boolean)},
       flags: {wildpath: {source, conversion: {notes}}}
     });
+    items.push(action(id, `${document.name}${suffix}`, definition));
+    // 2024 Versatile: the weapon with both hands is its own Action, rolling its larger die.
+    const twoHanded = versatileDefinition({document, system, definition});
+    if ( twoHanded ) items.push(action(stableId(`${id}:two-handed`), `${document.name}${suffix} (Two-Handed)`, twoHanded));
     allNotes.push(...notes);
+  }
+  // What it gives while it is had (worn, for gear): its passive effects' rules.
+  const passive = (document.effects ?? []).filter(effect => effect.transfer && !effect.disabled).flatMap(effect => effectRules(effect, allNotes));
+  // Equipment is gear its owner equips (G7): armor's AC, and its passive effects. A potion or scroll is only its Actions.
+  if ( GEAR_TYPES.has(document.type) && !((document.type === "consumable") && items.length) ) {
+    const gearId = items.some(item => item._id === document._id) ? stableId(`${document._id}:gear`) : document._id;
+    items.unshift({_id: gearId, _key: `!items!${gearId}`, name: document.name, type: "gear", img,
+      system: {active: false, description, quantity: Math.max(0, Math.round(number(system.quantity) ?? 1)),
+        weight: number(system.weight?.value ?? system.weight) ?? 0, slot: "", ruleElements: [...armorRules(document, allNotes), ...passive]},
+      flags: {wildpath: {source, conversion: {notes: [...new Set(allNotes)]}}}});
   }
   // Nothing to use: a passive ability is a feature carrying its text (and any uses its other Actions spend).
   if ( !items.length ) {
     items.push({_id: document._id, _key: `!items!${document._id}`, name: document.name, type: "feature", img,
-      system: {active: true, description, ruleElements: [pool?.rule, ...(trait?.rules ?? [])].filter(Boolean)},
+      system: {active: true, description, ruleElements: [pool?.rule, ...(trait?.rules ?? []), ...passive].filter(Boolean)},
       flags: {wildpath: {source, conversion: {notes: [...new Set(allNotes)]}}}});
   }
   return {ok: true, items, notes: [...new Set(allNotes)]};
+}
+
+/** Each dnd5e base armor's kind. */
+const ARMOR_KINDS = Object.freeze({padded: "light", leather: "light", studded: "light", hide: "medium", chainshirt: "medium",
+  scalemail: "medium", breastplate: "medium", halfplate: "medium", ringmail: "heavy", chainmail: "heavy", splint: "heavy",
+  plate: "heavy", shield: "shield"});
+
+/**
+ * What an attack adds for itself (G7), as Modifiers of its own Action: a weapon's magic bonus (+1) to its attack and
+ * damage rolls, and an attack's own bonus to its attack roll.
+ */
+function attackModifiers({activity, system, definition, notes}) {
+  if ( !definition.attack ) return [];
+  const rules = [];
+  const modifier = (id, domains, value) => rules.push({schemaVersion: 1, id, type: "Modifier", data: {domains, modifierType: "untyped",
+    ...(value.type === "constant" ? {value: value.value} : {valueExpression: value})}});
+  const magic = number(system.magicalBonus);
+  if ( magic ) {
+    modifier("magic-attack", ["attack"], {type: "constant", value: magic});
+    modifier("magic-damage", ["damage"], {type: "constant", value: magic});
+  }
+  const bonus = activity.attack?.bonus;
+  const expression = bonus ? formulaExpression(String(bonus)) : null;
+  if ( expression ) modifier("attack-bonus", ["attack"], expression);
+  else if ( bonus ) notes.push(`attack: bonus "${bonus}" not converted`);
+  return rules;
+}
+
+/** One die larger: a Versatile weapon's die when its own is not given (a Spear's d6 becomes a d8). */
+const LARGER_DIE = Object.freeze({4: 6, 6: 8, 8: 10, 10: 12});
+
+/** A Versatile weapon's two-handed attack: its definition with the larger die, or null. */
+function versatileDefinition({document, system, definition}) {
+  if ( (document.type !== "weapon") || !(system.properties ?? []).includes("ver") ) return null;
+  const base = system.damage?.base ?? {};
+  const component = definition.damage?.find(entry => entry.provenance === "weapon-base");
+  const faces = number(system.damage?.versatile?.denomination) || LARGER_DIE[number(base.denomination)];
+  if ( !component || !faces ) return null;
+  const count = number(system.damage?.versatile?.number) || number(base.number) || 1;
+  const bonus = base.bonus ? formulaExpression(String(base.bonus)) : null;
+  const expression = bonus ? add([dice(count, faces), bonus]) : dice(count, faces);
+  return {...definition, id: `${definition.id}-two-handed`, damage: definition.damage.map(entry => (entry === component
+    ? {...entry, expression} : entry))};
+}
+
+/** dnd5e Item types that are things a creature carries: WildPath gear. */
+const GEAR_TYPES = new Set(["equipment", "consumable", "tool", "loot", "container"]);
+
+/**
+ * Armor's rules (2024): its AC, the whole Agility modifier for light armor, up to its cap for medium (2), none for
+ * heavy, plus any magic bonus; a Shield adds its AC. Heavy armor whose Strength the wearer lacks costs 10 feet of
+ * Speed, and some armor gives Disadvantage on Stealth. Armor of any kind ("Armor, +1") is left to the GM.
+ */
+function armorRules(document, notes) {
+  const system = document.system ?? {};
+  const base = number(system.armor?.value);
+  // Specific magic armor (Dwarven Plate) may name only its base armor, or only its Agility cap.
+  const cap = number(system.armor?.dex);
+  const kind = system.type?.value || ((base == null) ? null : (ARMOR_KINDS[system.type?.baseItem] ?? {0: "heavy", 2: "medium"}[cap] ?? "light"));
+  if ( !["light", "medium", "heavy", "shield"].includes(kind) ) return [];
+  if ( base == null ) {
+    notes.push("armor: of any kind; give it its armor's AC by hand");
+    return [];
+  }
+  const id = slugify(document.name);
+  const value = base + (number(system.armor?.magicalBonus) ?? 0);
+  if ( kind === "shield" ) return [{schemaVersion: 1, id, type: "Modifier", data: {domains: ["defense.ac"], modifierType: "untyped", value}}];
+  const limit = cap ?? {medium: 2, heavy: 0}[kind] ?? null;
+  const agility = {type: "ability-modifier", ability: "agility"};
+  const bonus = (limit == null) ? agility : {type: "min", terms: [agility, {type: "constant", value: limit}]};
+  const rules = [{schemaVersion: 1, id, type: "ArmorClass", data: {label: document.name, armor: true,
+    value: (limit === 0) ? value : {type: "add", terms: [{type: "constant", value}, bonus]}}}];
+  const strength = number(system.strength);
+  if ( strength ) rules.push({schemaVersion: 1, id: `${id}-strength`, type: "Modifier", data: {domains: ["resources.movement.max", "speed"],
+    modifierType: "untyped", valueExpression: {type: "table", key: {type: "ability-score", ability: "might"},
+      rows: {0: -10, [strength]: 0}}}});
+  if ( (system.properties ?? []).includes("stealthDisadvantage") ) {
+    rules.push({schemaVersion: 1, id: `${id}-stealth`, type: "RollMode", data: {domains: ["check.stealth"], mode: "disadvantage"}});
+  }
+  return rules;
 }
 
 /**
@@ -507,12 +602,16 @@ function castSpell({document, activity, system, notes, pool: itemPool=null, opti
   const creature = options.creature && casting
     ? {...options.creature, spellDC: options.creature.saveDC?.(Object.keys(ABILITY_MAP).find(key => ABILITY_MAP[key] === casting))?.value
       ?? options.creature.spellDC} : options.creature;
-  const converted = convertItem(spellDocument, {...options, creature, licensed: () => true});
+  // A magic item's own save DC ("Wand of Fireballs: DC 15"), else its user's spell save DC.
+  const challenge = activity.spell?.challenge;
+  const fixedDC = challenge?.override ? number(challenge.save) : null;
+  const converted = convertItem(spellDocument, {...options, creature, spellDC: fixedDC, licensed: () => true});
   const action = converted.items?.find(item => item.type === "action");
   if ( !action ) return null;
   // A wand's charges (the item's uses) or the activity's own uses pay for it.
   const base = baseDefinition({document, activity, system, spell: false, notes, pool: itemPool});
-  const definition = {...action.system.definition, id: `${base.id}-${slugify(spellDocument.name)}`, label: spellDocument.name,
+  const definition = {...action.system.definition, id: `${base.id}-${slugify(spellDocument.name)}`,
+    label: options.creature ? spellDocument.name : `${document.name}: ${spellDocument.name}`,
     tags: [...new Set([...(action.system.definition.tags ?? []), "spell"])], costs: base.costs};
   delete definition.configuration;
   if ( definition.attack && casting ) definition.attack = {...definition.attack, ability: casting};
@@ -521,7 +620,9 @@ function castSpell({document, activity, system, notes, pool: itemPool=null, opti
   notes.push(...converted.notes.filter(note => !note.startsWith("uses:")));
   const pool = activityPool({document, activity, scales: options.scales, spellName: spellDocument.name});
   const id = stableId(`${document._id}:cast:${activity._id ?? spellDocument._id}`);
-  return {_id: id, _key: `!items!${id}`, name: spellDocument.name, type: "action",
+  // A creature's spell keeps its name; a magic item's is named after the item too ("Wand of Fireballs: Fireball").
+  const name = options.creature ? spellDocument.name : `${document.name}: ${spellDocument.name}`;
+  return {_id: id, _key: `!items!${id}`, name, type: "action",
     img: kept(spellDocument.img, options.images ?? ["icons/"]) ?? action.img,
     system: {active: true, description: action.system.description, definition, ruleElements: [itemPool?.rule, pool?.rule].filter(Boolean)},
     flags: {wildpath: {source: {...action.flags.wildpath.source, castBy: document.name}, conversion: {notes: [...notes]}}}};
@@ -659,7 +760,7 @@ function slotConfiguration(level, damage, {healing=[], perLevel=0}={}) {
     levelByResourceId: Object.fromEntries(levels.map(each => [`spell-slot.${each}`, each])), effects: scaling}];
 }
 
-function convertActivity({document, activity, system, spell, level, scales, notes, pool, saveDC, creature=null}) {
+function convertActivity({document, activity, system, spell, level, scales, notes, pool, saveDC, spellDC=null, creature=null}) {
   const definition = baseDefinition({document, activity, system, spell, notes, pool});
 
   const attackData = activity.type === "attack" ? activity.attack ?? {} : null;
@@ -670,8 +771,6 @@ function convertActivity({document, activity, system, spell, level, scales, note
   if ( attack ) {
     if ( (system.properties ?? []).includes("fin") ) attack.properties = ["finesse"];
     if ( attackData.ability && ABILITY_MAP[attackData.ability] ) attack.ability = ABILITY_MAP[attackData.ability];
-    if ( attackData.bonus ) notes.push(`attack: bonus "${attackData.bonus}" not converted`);
-    if ( number(system.magicalBonus) ) notes.push(`attack: +${system.magicalBonus} magic bonus not converted`);
     definition.attack = attack;
   }
   const range = rangeOf({activity, system, document, attack});
@@ -688,8 +787,10 @@ function convertActivity({document, activity, system, spell, level, scales, note
     // character's is 8 + proficiency + that ability's modifier. Else a written formula ("@attributes.spell.dc + 2").
     const fromAbility = ABILITY_MAP[dc.calculation] ? (saveDC?.(dc.calculation) ?? {valueExpression: {type: "add", terms: [
       {type: "constant", value: 8}, {type: "proficiency-bonus"}, {type: "ability-modifier", ability: ABILITY_MAP[dc.calculation]}]}}) : null;
-    const written = dc.formula ? formulaExpression(dc.formula, {spell, scales, spellDC: creature?.spellDC, challenge: creature?.challenge}) : null;
-    const value = dc.calculation === "spellcasting" ? (creature?.spellDC ? {value: creature.spellDC} : {valueExpression: SPELL_DC})
+    // A fixed spell save DC: a magic item's own, else a creature's.
+    const fixed = spellDC ?? creature?.spellDC;
+    const written = dc.formula ? formulaExpression(dc.formula, {spell, scales, spellDC: fixed, challenge: creature?.challenge}) : null;
+    const value = dc.calculation === "spellcasting" ? (fixed ? {value: fixed} : {valueExpression: SPELL_DC})
       : (fromAbility ?? (written ? (written.type === "constant" ? {value: written.value} : {valueExpression: written}) : null));
     if ( !ability || !value ) {
       notes.push(`save: ${abilities.join("/") || "?"} DC (${dc.calculation || dc.formula || "?"}) not converted`);
@@ -705,7 +806,6 @@ function convertActivity({document, activity, system, spell, level, scales, note
   const baseExpression = base ? partExpression(base, {spell, ability: null, scales, notes, label: "base damage"}) : null;
   if ( activity.damage?.includeBase && (document.type === "weapon") && baseExpression ) {
     damage.push({id: "base", expression: baseExpression, damageType: base.types?.[0] ?? "untyped", provenance: "weapon-base"});
-    if ( (system.properties ?? []).includes("ver") ) notes.push("damage: versatile two-handed damage not converted");
   } else if ( activity.damage?.includeBase && baseExpression ) {
     notes.push("damage: the item's base damage not converted");
   }
@@ -1210,6 +1310,10 @@ export function effectRules(effect, notes=[]) {
       rule("RollMode", {domains: [`check.${slugify(DND_SKILLS[match[1]])}`], mode: number > 0 ? "advantage" : "disadvantage"});
     } else if ( (key === "system.attributes.ac.bonus") && (type === "add") && value ) {
       modifier(["defense.ac"], value);
+    } else if ( (key === "system.attributes.ac.calc") && UNARMORED_AC[change.value] ) {
+      // Mage Armor, Unarmored Defense, Draconic Resilience: a way to work out AC while wearing no armor.
+      rule("ArmorClass", {label: effect.name, value: {type: "add", terms: [{type: "constant", value: UNARMORED_AC[change.value][0]},
+        ...UNARMORED_AC[change.value].slice(1).map(ability => ({type: "ability-modifier", ability}))]}});
     } else if ( (key === "system.attributes.init.bonus") && (type === "add") && value ) {
       modifier(["initiative"], value);
     } else if ( (key === "system.attributes.hp.tempmax") && (type === "add") && value ) {
@@ -1241,6 +1345,10 @@ export function effectRules(effect, notes=[]) {
   for ( const id of adjustments.ci.filter(id => !CONDITION_MAP[id]) ) notes.push(`effect: "${effect.name}" condition immunity ${id} not converted`);
   return rules;
 }
+
+/** dnd5e's unarmored AC calculations: base, then the abilities whose modifiers add. */
+const UNARMORED_AC = Object.freeze({mage: [13, "agility"], draconic: [13, "agility"], unarmoredMonk: [10, "agility", "wits"],
+  unarmoredBarb: [10, "agility", "fortitude"], unarmoredBard: [10, "agility", "presence"]});
 
 const DND_ABILITY_NAMES = Object.freeze({str: "Strength", dex: "Dexterity", con: "Constitution", int: "Intelligence", wis: "Wisdom",
   cha: "Charisma"});

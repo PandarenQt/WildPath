@@ -1,0 +1,31 @@
+{
+  "_id": "phbagBarrel00000",
+  "_key": "!items!phbagBarrel00000",
+  "name": "Barrel",
+  "type": "gear",
+  "img": "icons/containers/barrels/barrel-oak-banded-tan.webp",
+  "system": {
+    "active": false,
+    "description": "<p>A Barrel holds up to 40 gallons of liquid or up to 4 cubic feet of dry goods.</p>",
+    "quantity": 1,
+    "weight": 70,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagBarrel00000",
+        "type": "container",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

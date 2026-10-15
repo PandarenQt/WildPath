@@ -1,0 +1,49 @@
+{
+  "_id": "l3ls1zgfl06r0000",
+  "_key": "!items!l3ls1zgfl06r0000",
+  "name": "Dragon Orb: Death Ward",
+  "type": "action",
+  "img": "icons/magic/death/skull-horned-worn-fire-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You touch a creature and grant it a measure of protection from death. The first time the target would drop to 0 Hit Points before the spell ends, the target instead drops to 1 Hit Point, and the spell ends.</p><p>If the spell is still in effect when the target is subjected to an effect that would kill it instantly without dealing damage, that effect is negated against the target, and the spell ends.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-dragon-orb-death-ward",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Dragon Orb: Death Ward"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplDeathWard0",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Dragon Orb"
+      },
+      "conversion": {
+        "notes": [
+          "consumption: itemUses 2 not converted",
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Protection from Death\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

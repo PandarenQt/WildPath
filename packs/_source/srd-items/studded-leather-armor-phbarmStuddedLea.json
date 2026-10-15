@@ -1,0 +1,54 @@
+{
+  "_id": "phbarmStuddedLea",
+  "_key": "!items!phbarmStuddedLea",
+  "name": "Studded Leather Armor",
+  "type": "gear",
+  "img": "icons/equipment/chest/breastplate-rivited-red.webp",
+  "system": {
+    "active": false,
+    "description": "",
+    "quantity": 1,
+    "weight": 13,
+    "slot": "",
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "studded-leather-armor",
+        "type": "ArmorClass",
+        "data": {
+          "label": "Studded Leather Armor",
+          "armor": true,
+          "value": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 12
+              },
+              {
+                "type": "ability-modifier",
+                "ability": "agility"
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbarmStuddedLea",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

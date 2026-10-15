@@ -1,0 +1,67 @@
+{
+  "_id": "dmgFwpOnyxDogRar",
+  "_key": "!items!dmgFwpOnyxDogRar",
+  "name": "Onyx Dog",
+  "type": "action",
+  "img": "icons/sundries/misc/pet-collar-red.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>See Figurine of Wondrous Power</em></p><p>This onyx statuette of a dog can become a <strong>Mastiff</strong> for up to 6 hours. The mastiff has an Intelligence of 8 and can speak Common. It also has Blindsight with a range of 60 feet. Once it has been used, it can't be used again until 7 days have passed.</p><section class=\"secret\" id=\"secret-61PsF1VxjiD2gq06\"><p><strong>Foundry Note</strong></p><p>This item's limited uses represent the 7 days required before the figurine can be used again.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-onyx-dog",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "onyx-dog",
+            "amount": 7
+          }
+        ]
+      },
+      "label": "Onyx Dog"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "onyx-dog-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "onyx-dog",
+          "label": "Onyx Dog",
+          "maximum": {
+            "type": "constant",
+            "value": 7
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgFwpOnyxDogRar",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (summon): using it spends its cost; its description says the rest",
+          "uses: a partial recovery refills the whole pool",
+          "summon: its creature is not among the converted creatures"
+        ]
+      }
+    }
+  }
+}

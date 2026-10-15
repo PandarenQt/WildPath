@@ -1,0 +1,66 @@
+{
+  "_id": "dmgTreeQuaalsFea",
+  "_key": "!items!dmgTreeQuaalsFea",
+  "name": "Feather Token (Tree)",
+  "type": "action",
+  "img": "icons/commodities/materials/feather-colored-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Wondrous Item, Uncommon, See: Feather Token</em></p><p>You must be outdoors to use this token. You can take a Magic action to touch it to an unoccupied space on the ground. The token disappears, and in its place a nonmagical oak tree springs into existence. The tree is 60 feet tall and has a 5-foot-diameter trunk, and its branches at the top spread out in a 20-foot radius.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-feather-token-tree-use",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "feather-token-tree",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Feather Token (Tree)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "feather-token-tree-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "feather-token-tree",
+          "label": "Feather Token (Tree)",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgTreeQuaalsFea",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "area: a cylinder's height is not modeled"
+        ]
+      }
+    }
+  }
+}

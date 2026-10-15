@@ -1,0 +1,36 @@
+{
+  "_id": "dmgTrueSeeingCry",
+  "_key": "!items!dmgTrueSeeingCry",
+  "name": "Crystal Ball of True Seeing",
+  "type": "gear",
+  "img": "icons/tools/laboratory/alembic-glass-ball-blue.webp",
+  "system": {
+    "active": false,
+    "description": "<div><p><em>Wondrous Item, Legendary (Requires Attunement)</em></p></div><p>While touching this crystal orb, you can cast <em>Scrying</em> (save DC 17) with it. In addition, you have Truesight with a range of 120 feet centered on the spell's sensor.</p>",
+    "quantity": 1,
+    "weight": 1,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgTrueSeeingCry",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (save): using it spends its cost; its description says the rest",
+          "activation: 10 minute is not an action-economy cost",
+          "concentration: nothing it sustains was converted",
+          "\"Create Sensor\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

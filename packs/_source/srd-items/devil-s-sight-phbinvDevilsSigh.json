@@ -21,7 +21,9 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "effect: \"Devil's Sight\" change system.attributes.senses.darkvision (upgrade) not converted"
+        ]
       }
     }
   }

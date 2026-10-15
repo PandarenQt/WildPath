@@ -1,0 +1,46 @@
+{
+  "_id": "dmgDemonArmor000",
+  "_key": "!items!dmgDemonArmor000",
+  "name": "Demon Armor",
+  "type": "action",
+  "img": "icons/equipment/chest/breastplate-layered-leather-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Armor (Any Light, Medium, or Heavy), Very Rare (Requires Attunement)</em></p><p>While wearing this armor, you gain a +1 bonus to Armor Class, and you know Abyssal. In addition, the armor's clawed gauntlets allow your Unarmed Strikes to deal 1d8 Slashing damage instead of the usual Bludgeoning damage, and you gain a +1 bonus to the attack and damage rolls of your Unarmed Strikes.</p><section class=\"secret\" id=\"secret-i2l0Ym3XkTC4Qm8z\"><p><strong>Curse.</strong> Once you don this cursed armor, you can't doff it unless you are targeted by a <em>Remove Curse</em> spell or similar magic. While wearing the armor, you have Disadvantage on attack rolls against demons and on saving throws against their spells and special abilities.</p></section> <p></p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-demon-armor-demon-armor",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Demon Armor"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgDemonArmor000",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (enchant): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

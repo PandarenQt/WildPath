@@ -1,0 +1,63 @@
+{
+  "_id": "phbagAntitoxin00",
+  "_key": "!items!phbagAntitoxin00",
+  "name": "Antitoxin",
+  "type": "action",
+  "img": "icons/consumables/potions/bottle-round-corked-pink.webp",
+  "system": {
+    "active": true,
+    "description": "<p>As a Bonus Action, you can drink a vial of Antitoxin to gain Advantage on saving throws to avoid or end the Poisoned condition for 1 hour.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-antitoxin",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          },
+          {
+            "capability": "antitoxin",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Antitoxin"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "antitoxin-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "antitoxin",
+          "label": "Antitoxin",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagAntitoxin00",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Antitoxin\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

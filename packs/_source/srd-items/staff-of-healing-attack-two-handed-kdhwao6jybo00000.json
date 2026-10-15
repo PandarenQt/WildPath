@@ -1,0 +1,91 @@
+{
+  "_id": "kdhwao6jybo00000",
+  "_key": "!items!kdhwao6jybo00000",
+  "name": "Staff of Healing (attack) (Two-Handed)",
+  "type": "action",
+  "img": "icons/weapons/staves/staff-ornate-cross.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Staff, Rare (Requires Attunement by a Bard, Cleric, or Druid)</em></p><p>This staff has 10 charges. While holding the staff, you can cast one of the spells on the following table from it, using your spellcasting ability modifier. The table indicates how many charges you must expend to cast the spell.</p><table><thead><tr><th><p>Spell</p></th><th><p>Charge Cost</p></th><th></th></tr></thead><tbody><tr><td><p>Cure Wounds</p></td><td><p>1 charge per spell level (maximum 4 for a <span>level 4</span> spell)</p></td><td></td></tr><tr><td><p>Lesser Restoration</p></td><td><p>2</p></td><td></td></tr><tr><td><p>Mass Cure Wounds</p></td><td><p>5</p></td><td></td></tr></tbody></table><p><em><strong>Regaining Charges.</strong></em> The staff regains 1d6 + 4 expended charges daily at dawn. If you expend the last charge, roll 1d20. On a 1, the staff vanishes in a flash of light, lost forever.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-staff-of-healing-two-handed",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "attack": {
+        "type": "melee",
+        "statistic": "weapon",
+        "defenseKey": "ac",
+        "proficient": true
+      },
+      "range": {
+        "type": "reach",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "damage": [
+        {
+          "id": "base",
+          "expression": {
+            "type": "dice",
+            "number": 1,
+            "faces": 8
+          },
+          "damageType": "bludgeoning",
+          "provenance": "weapon-base"
+        }
+      ],
+      "label": "Staff of Healing (attack) (Two-Handed)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "staff-of-healing-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "staff-of-healing",
+          "label": "Staff of Healing",
+          "maximum": {
+            "type": "constant",
+            "value": 10
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgStaffOfHealin",
+        "type": "weapon",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool"
+        ]
+      }
+    }
+  }
+}

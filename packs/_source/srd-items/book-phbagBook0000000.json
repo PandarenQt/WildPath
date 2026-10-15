@@ -1,0 +1,31 @@
+{
+  "_id": "phbagBook0000000",
+  "_key": "!items!phbagBook0000000",
+  "name": "Book",
+  "type": "gear",
+  "img": "icons/sundries/books/book-worn-brown.webp",
+  "system": {
+    "active": false,
+    "description": "<p>A Book contains fiction or nonfiction. If you consult an accurate nonfiction Book about its topic, you gain a +5 bonus to Intelligence (Arcana, History, Nature, or Religion) checks you make about that topic.</p>",
+    "quantity": 1,
+    "weight": 5,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagBook0000000",
+        "type": "loot",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

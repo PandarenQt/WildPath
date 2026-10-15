@@ -1,0 +1,35 @@
+{
+  "_id": "dmgSovereignGlue",
+  "_key": "!items!dmgSovereignGlue",
+  "name": "Sovereign Glue",
+  "type": "gear",
+  "img": "icons/consumables/drinks/tea-jug-gourd-brown.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Wondrous Item, Legendary</em></p><p>This viscous, milky-white substance can form a permanent adhesive bond between any two objects. It must be stored in a jar or flask that has been coated inside with Oil of Slipperiness. When found, a container contains 1d6 + 1 ounces.</p><p>One ounce of the glue can cover a 1-foot square surface. Applying an ounce of <em>Sovereign Glue</em> takes a Utilize action, and the applied glue takes 1 minute to set. Once it has done so, the bond it creates can be broken only by the application of Universal Solvent or Oil of Etherealness, or with a Wish spell.</p><section class=\"secret\" id=\"secret-5E4TGkxH4i9Bo67I\"><p><strong>Foundry Note</strong></p><p>This item includes 7 limited uses. The <strong>Determine Ounces</strong> activity can be used to determine the number of ounces equivalent to 1d6 + 1.</p><p>The <strong>Apply Glue</strong> activity allows you to select the number of ounces you're applying.</p></section>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgSovereignGlue",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Determine Ounces\" is passive or triggered: not automated",
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "area: @scaling-ft square is not supported; the user picks the targets"
+        ]
+      }
+    }
+  }
+}

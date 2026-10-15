@@ -1,0 +1,31 @@
+{
+  "_id": "dmgSpellScroll3r",
+  "_key": "!items!dmgSpellScroll3r",
+  "name": "Spell Scroll, 3rd Level",
+  "type": "gear",
+  "img": "icons/sundries/scrolls/scroll-bound-orange-tan.webp",
+  "system": {
+    "active": false,
+    "description": "<p></p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgSpellScroll3r",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

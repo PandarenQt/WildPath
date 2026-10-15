@@ -1,0 +1,43 @@
+{
+  "_id": "12ul1nv14nswrd00",
+  "_key": "!items!12ul1nv14nswrd00",
+  "name": "Dice (Play to Win)",
+  "type": "action",
+  "img": "icons/sundries/gaming/dice-runed-brown.webp",
+  "system": {
+    "active": true,
+    "description": "<p><strong>Ability:</strong> Wisdom</p><p class=\"phb-meta\"><strong>Utilize:</strong> Discern whether someone is cheating (DC 10), or win the game (DC 20)</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-dice-play-to-win",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Dice (Play to Win)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbgstDice000000",
+        "type": "tool",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (check): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

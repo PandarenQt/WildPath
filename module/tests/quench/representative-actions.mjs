@@ -27,7 +27,8 @@ export function registerRepresentativeActionTests(quench) {
         const size = scene.grid.size;
         const sourceBase = await fixtures.createActor({name:"Source",system:foundry.utils.mergeObject(
           {resources:{action:{base:1,value:1},bonus:{base:1,value:1}}},structuredClone(sourceSystem))});
-        const targetBase = await fixtures.createActor({name:"Target",
+        // A creature, whose AC is what is stored: a character's never falls below 10 + its Agility modifier.
+        const targetBase = await fixtures.createActor({name:"Target",type:"npc",
           system:{resources:{health:{base:30,value:targetHealth}}}});
         const source = await fixtures.createToken(scene,sourceBase,{name:"Source",x:size,y:size});
         const target = await fixtures.createToken(scene,targetBase,{name:"Target",

@@ -1,0 +1,46 @@
+{
+  "_id": "dmgSentinelShiel",
+  "_key": "!items!dmgSentinelShiel",
+  "name": "Sentinel Shield",
+  "type": "gear",
+  "img": "icons/equipment/shield/targe-copper-eye.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Armor (Shield), Uncommon</em></p><p>While holding this Shield, you have Advantage on Initiative rolls and Wisdom (Perception) checks. The Shield is emblazoned with a symbol of an eye.</p>",
+    "quantity": 1,
+    "weight": 6,
+    "slot": "",
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "sentinel-shield",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "defense.ac"
+          ],
+          "modifierType": "untyped",
+          "value": 2
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgSentinelShiel",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "effect: \"Initiative Advantage\" change system.attributes.init.roll.mode (add) not converted"
+        ]
+      }
+    }
+  }
+}

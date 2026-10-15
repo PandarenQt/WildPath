@@ -1,0 +1,31 @@
+{
+  "_id": "phbafcOrb0000000",
+  "_key": "!items!phbafcOrb0000000",
+  "name": "Orb",
+  "type": "gear",
+  "img": "icons/commodities/gems/pearl-purple-smooth.webp",
+  "system": {
+    "active": false,
+    "description": "<p>An Arcane Focus is bejeweled or carved to channel arcane magic. A Sorcerer, Warlock, or Wizard can use such an item as a Spellcasting Focus.</p>",
+    "quantity": 1,
+    "weight": 3,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbafcOrb0000000",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

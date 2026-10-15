@@ -1,0 +1,64 @@
+{
+  "_id": "dmgFwpObsidianSt",
+  "_key": "!items!dmgFwpObsidianSt",
+  "name": "Obsidian Steed",
+  "type": "action",
+  "img": "icons/commodities/bones/hooves-cloven-brown.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>See Figurine of Wondrous Power</em></p><p>This polished obsidian horse can become a <strong>Nightmare</strong> for up to 24 hours. The nightmare fights only to defend itself. Once it has been used, it can't be used again until 5 days have passed.</p><p>The figurine has a 10 percent chance each time you use it to ignore your orders, including a command to revert to figurine form. If you mount the nightmare while it is ignoring your orders, you and the nightmare are instantly transported to a random location on the plane of Hades, where the nightmare reverts to figurine form.</p><section class=\"secret\" id=\"secret-OH9v7OxKinHyCnIQ\"><p><strong>Foundry Note</strong></p><p>This item's limited uses represent the 5 days required before the figurine can be used again.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-obsidian-steed",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Obsidian Steed"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "obsidian-steed-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "obsidian-steed",
+          "label": "Obsidian Steed",
+          "maximum": {
+            "type": "constant",
+            "value": 5
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgFwpObsidianSt",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (summon): using it spends its cost; its description says the rest",
+          "uses: a partial recovery refills the whole pool",
+          "summon: its creature is not among the converted creatures",
+          "consumption: itemUses @item.uses.max not converted"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "_id": "ow0vbe1wrjjlc000",
+  "_key": "!items!ow0vbe1wrjjlc000",
+  "name": "Cobbler's Tools",
+  "type": "gear",
+  "img": "icons/tools/hand/awl-steel-tan.webp",
+  "system": {
+    "active": false,
+    "description": "<p class=\"phb-meta\"><strong>Ability:</strong> Dexterity</p><p class=\"phb-meta\"><strong>Utilize:</strong> Modify footwear to give Advantage on the wearer's next Dexterity (Acrobatics) check (DC 10)</p><p class=\"phb-meta\"><strong>Craft:</strong> Climber's Kit</p>",
+    "quantity": 1,
+    "weight": 5,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbtulCobblersTo",
+        "type": "tool",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (check): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

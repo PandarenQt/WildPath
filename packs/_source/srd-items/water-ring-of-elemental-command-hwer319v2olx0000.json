@@ -1,0 +1,52 @@
+{
+  "_id": "hwer319v2olx0000",
+  "_key": "!items!hwer319v2olx0000",
+  "name": "Water Ring of Elemental Command",
+  "type": "gear",
+  "img": "icons/equipment/finger/ring-cabochon-gold-purple.webp",
+  "system": {
+    "active": false,
+    "description": "<p>Ring, Legendary (Requires Attunement)</p><p>Each <em>Ring of Elemental Command</em> is linked to one of the four Elemental Planes. The GM chooses or randomly determines the linked plane. For example, a <em>Ring of Elemental Command</em> (air) is linked to the Elemental Plane of Air.</p><p>Every <em>Ring of Elemental Command</em> has the following two properties:</p><p><strong>Elemental Bane.</strong> While wearing the ring, you have Advantage on attack rolls against Elementals and they have Disadvantage on attack rolls against you.</p><p><strong>Elemental Compulsion.</strong> While wearing the ring, you can take a Magic action to try to compel an Elemental you see within 60 feet of yourself. The Elemental makes a DC 18 Wisdom saving throw. On a failed save, the Elemental has the Charmed condition until the start your next turn, and you determine what it does with its move and action on its next turn.</p><p><em><strong>Elemental Focus.</strong></em> While wearing the ring, you benefit from additional properties corresponding to the ring's linked Elemental Plane:</p><p><strong>Water.</strong> You know Aquan, you gain a Swim Speed of 60 feet, and you can breathe underwater.</p><p><em><strong>Spellcasting.</strong></em> The ring has 5 charges and regains 1d4 + 1 expended charges daily at dawn. While wearing the ring, you can cast a spell from it. Choose the spell from the list of available spells based on the Elemental Plane the ring is linked to, as shown in the following table. The table indicates how many charges you must expend to cast the spell, which has a save DC of 18.</p><table><thead><tr><th style=\"min-width:50px\"><p>Plane</p></th><th><p>Spells (Charges)</p></th></tr></thead><tbody><tr><td><p>Water</p></td><td><p>Create or Destroy Water (1 charge), Ice Storm (2 charges), Tsunami (5 charges), Wall of Ice (3 charges), Water Walk (2 charges)</p></td></tr></tbody></table>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "water-focus-1",
+        "type": "GrantMovement",
+        "data": {
+          "mode": "swim",
+          "distance": 60
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgWaterRingOfEl",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool",
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "area: 25 + 5 * @item.level-ft cube is not supported; the user picks the targets",
+          "area: a cylinder's height is not modeled",
+          "activation: 1 minute is not an action-economy cost",
+          "consumption: itemUses -6 not converted",
+          "concentration: nothing it sustains was converted",
+          "\"Start of Turn Effects\" is passive or triggered: not automated",
+          "\"Frigid Air\" is passive or triggered: not automated",
+          "effect: \"Water Walking\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

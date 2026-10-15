@@ -1,0 +1,68 @@
+{
+  "_id": "dteph11wo6efv000",
+  "_key": "!items!dteph11wo6efv000",
+  "name": "Staff of Power: Wall of Force",
+  "type": "action",
+  "img": "icons/magic/defensive/barrier-shield-dome-deflect-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p>An Invisible wall of force springs into existence at a point you choose within range. The wall appears in any orientation you choose, as a horizontal or vertical barrier or at an angle. It can be free floating or resting on a solid surface. You can form it into a hemispherical dome or a globe with a radius of up to 10 feet, or you can shape a flat surface made up of ten 10-foot-by-10-foot panels. Each panel must be contiguous with another panel. In any form, the wall is 1/4 inch thick and lasts for the duration. If the wall cuts through a creature's space when it appears, the creature is pushed to one side of the wall (you choose which side).</p><p>Nothing can physically pass through the wall. It is immune to all damage and can't be dispelled by <em>Dispel Magic.</em> A <em>Disintegrate</em> spell destroys the wall instantly, however. The wall also extends into the Ethereal Plane and blocks ethereal travel through the wall.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-staff-of-power-wall-of-force",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "staff-of-power",
+            "amount": 5
+          }
+        ]
+      },
+      "label": "Staff of Power: Wall of Force"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "staff-of-power-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "staff-of-power",
+          "label": "Staff of Power",
+          "maximum": {
+            "type": "constant",
+            "value": 20
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplWallofForc",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Staff of Power"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool",
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "concentration: nothing it sustains was converted"
+        ]
+      }
+    }
+  }
+}

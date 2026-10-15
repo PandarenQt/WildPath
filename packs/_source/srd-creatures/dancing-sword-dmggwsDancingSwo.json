@@ -234,9 +234,100 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "damage: versatile two-handed damage not converted"
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "183xz14sno3wk000",
+      "_key": "!actors.items!dmggwsDancingSwo.183xz14sno3wk000",
+      "name": "Longsword (Two-Handed)",
+      "type": "action",
+      "img": "icons/weapons/swords/greatsword-guard.webp",
+      "system": {
+        "active": true,
+        "description": "",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-longsword-command-move-and-attack-two-handed",
+          "tags": [
+            "magical"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              },
+              {
+                "capability": "longsword",
+                "amount": 1
+              }
             ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 10
+              },
+              "damageType": "slashing",
+              "provenance": "weapon-base"
+            }
+          ],
+          "label": "Longsword (Two-Handed)"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "longsword-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "longsword",
+              "label": "Longsword",
+              "maximum": {
+                "type": "constant",
+                "value": 4
+              },
+              "recovery": "none"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "DPH6ngFfFJHdxMYe",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
           }
         }
       }
@@ -543,9 +634,7 @@
         "challenge": 0
       },
       "conversion": {
-        "notes": [
-          "Longsword: damage: versatile two-handed damage not converted"
-        ]
+        "notes": []
       }
     }
   }

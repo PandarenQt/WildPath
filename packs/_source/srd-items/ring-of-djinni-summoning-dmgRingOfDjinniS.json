@@ -1,0 +1,74 @@
+{
+  "_id": "dmgRingOfDjinniS",
+  "_key": "!items!dmgRingOfDjinniS",
+  "name": "Ring of Djinni Summoning",
+  "type": "action",
+  "img": "icons/equipment/finger/ring-faceted-gold-purple.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Ring, Legendary (Requires Attunement)</em></p><p>While wearing this ring, you can take a Magic action to summon a particular <strong>Djinni</strong> from the Elemental Plane of Air. The djinni appears in an unoccupied space you choose within 120 feet of yourself. It remains as long as you maintain Concentration, to a maximum of 1 hour, or until it drops to 0 Hit Points.</p><p>While summoned, the djinni is Friendly to you and your allies, and it obeys your commands. If you fail to command it, the djinni defends itself against attackers but takes no other actions.</p><p>After the djinni departs, it can't be summoned again for 24 hours, and the ring becomes nonmagical if the djinni dies.</p><p><em>Rings of Djinni Summoning</em> are often created by the djinn they summon and given to mortals as gifts of friendship or tokens of esteem.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-ring-of-djinni-summoning",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "ring-of-djinni-summoning",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 120,
+          "unit": "ft"
+        }
+      },
+      "summon": {
+        "actorRef": "Compendium.wildpath.srd-creatures.Actor.mmDjinni00000000",
+        "count": 1
+      },
+      "label": "Ring of Djinni Summoning"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "ring-of-djinni-summoning-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "ring-of-djinni-summoning",
+          "label": "Ring of Djinni Summoning",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgRingOfDjinniS",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

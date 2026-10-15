@@ -1,0 +1,33 @@
+{
+  "_id": "dmgChimeOfOpenin",
+  "_key": "!items!dmgChimeOfOpenin",
+  "name": "Chime of Opening",
+  "type": "gear",
+  "img": "icons/commodities/tech/pipe-cylinder.webp",
+  "system": {
+    "active": false,
+    "description": "<div><p><em>Wondrous Item, Rare</em></p></div><p>This hollow metal tube measures about 1 foot long and weighs 1 pound. As a Magic action, you can strike the chime to cast <em>Knock</em>. The spell's customary knocking sound is replaced by the clear, ringing tone of the chime, which is audible out to 300 feet.</p><p>The chime can be used 10 times. After the tenth time, it cracks and becomes useless.</p>",
+    "quantity": 1,
+    "weight": 1,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgChimeOfOpenin",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

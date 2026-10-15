@@ -1,0 +1,73 @@
+{
+  "_id": "razpdp14yhn15000",
+  "_key": "!items!razpdp14yhn15000",
+  "name": "Boots of Speed",
+  "type": "gear",
+  "img": "icons/equipment/feet/boots-leather-green.webp",
+  "system": {
+    "active": false,
+    "description": "<div><p><em>Wondrous Item, Rare (Requires Attunement)</em></p></div><p>While you wear these boots, you can take a Bonus Action to click the boots' heels together. If you do, the boots double your Speed, and any creature that makes an Opportunity Attack against you has Disadvantage on the attack roll. If you click your heels together again, you end the effect.</p><p>When you've used the boots' property for a total of 10 minutes, the magic ceases to function for you until you finish a Long Rest.</p><section class=\"secret\" id=\"secret-KMziCIYbAAst6X5k\"><p><strong>Foundry Note</strong></p><p>This item's Limited Uses are provided to manually track the number of <em>seconds</em> the item has been in use.</p></section>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "boots-of-speed-active-1",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "resources.movement.max"
+          ],
+          "modifierType": "untyped",
+          "valueExpression": {
+            "type": "floor",
+            "value": {
+              "type": "multiply",
+              "terms": [
+                {
+                  "type": "constant",
+                  "value": 1
+                },
+                {
+                  "type": "add",
+                  "terms": [
+                    {
+                      "type": "context",
+                      "path": "actorSystem.resources.movement.base"
+                    },
+                    {
+                      "type": "context",
+                      "path": "actorSystem.resources.movement.bonus"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgBootsOfSpeed0",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "effect: \"Boots of Speed Active\" change system.attributes.movement.fly (multiply) not converted",
+          "effect: \"Boots of Speed Active\" change system.attributes.movement.climb (multiply) not converted",
+          "effect: \"Boots of Speed Active\" change system.attributes.movement.burrow (multiply) not converted",
+          "effect: \"Boots of Speed Active\" change system.attributes.movement.swim (multiply) not converted"
+        ]
+      }
+    }
+  }
+}

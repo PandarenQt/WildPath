@@ -1,0 +1,31 @@
+{
+  "_id": "dmgRingOfWarmth0",
+  "_key": "!items!dmgRingOfWarmth0",
+  "name": "Ring of Warmth",
+  "type": "gear",
+  "img": "icons/equipment/finger/ring-cabochon-gold-orange.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Ring, Uncommon (Requires Attunement)</em></p><p>If you take Cold damage while wearing this ring, the ring reduces the damage you take by 2d8.</p><p>In addition, while wearing this ring, you and everything you wear and carry are unharmed by temperatures of 0 degrees Fahrenheit or lower.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgRingOfWarmth0",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

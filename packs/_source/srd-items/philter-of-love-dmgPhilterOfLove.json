@@ -1,0 +1,76 @@
+{
+  "_id": "dmgPhilterOfLove",
+  "_key": "!items!dmgPhilterOfLove",
+  "name": "Philter of Love",
+  "type": "action",
+  "img": "icons/consumables/potions/potion-bottle-corked-labeled-red.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Potion, Uncommon</em></p><p>The next time you see a creature within 10 minutes after drinking this philter, you are charmed by that creature and have the Charmed condition for 1 hour.</p><p>This rose-hued, effervescent liquid contains one easy-to-miss bubble shaped like a heart.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-philter-of-love-drink",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          },
+          {
+            "capability": "philter-of-love",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "charmed"
+        }
+      ],
+      "label": "Philter of Love"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "philter-of-love-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "philter-of-love",
+          "label": "Philter of Love",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgPhilterOfLove",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

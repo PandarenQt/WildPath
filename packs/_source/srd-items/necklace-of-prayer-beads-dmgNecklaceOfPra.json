@@ -1,0 +1,38 @@
+{
+  "_id": "dmgNecklaceOfPra",
+  "_key": "!items!dmgNecklaceOfPra",
+  "name": "Necklace of Prayer Beads",
+  "type": "gear",
+  "img": "icons/equipment/neck/necklace-runed-white-red.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Wondrous Item, Rare (Requires Attunement by a Cleric, Druid, or Paladin)</em></p><p>This necklace has 1d4 + 2 magic beads made from aquamarine, black pearl, or topaz. It also has many nonmagical beads made from stones such as amber, bloodstone, citrine, coral, jade, pearl, or quartz. If a magic bead is removed from the necklace, that bead loses its magic.</p><p>Six types of magic beads exist. The GM decides the type of each bead on the necklace or determines it randomly by rolling on the table below. A necklace can have more than one bead of the same type. To use one, you must be wearing the necklace. Each bead contains a spell that you can cast from it as a Bonus Action (using your spell save DC if a save is necessary). Once a magic bead's spell is cast, that bead can't be used again until the next dawn.</p><p></p><section class=\"secret\" id=\"secret-T9EktTumIxEuAXft\"><p><strong>Foundry Note</strong></p><p>This item includes an activity for each spell with a limited use per dawn. You can remove the activities for the beads that aren't available on this necklace and duplicate ones that are included multiple times before giving it to a player.</p></section>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgNecklaceOfPra",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "cast: Cure Wounds at level 2 is cast at its own level",
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: marked is not a WildPath condition yet",
+          "activation: 1 minute is not an action-economy cost",
+          "effect: transformed is not a WildPath condition yet",
+          "effect: \"Cloud Form\" change system.attributes.movement.hover (override) not converted"
+        ]
+      }
+    }
+  }
+}

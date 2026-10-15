@@ -21,7 +21,9 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "effect: \"Radiant Strikes\" change system.bonuses.mwak.damage (add) not converted"
+        ]
       }
     }
   }

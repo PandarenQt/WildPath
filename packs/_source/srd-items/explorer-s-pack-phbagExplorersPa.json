@@ -1,0 +1,31 @@
+{
+  "_id": "phbagExplorersPa",
+  "_key": "!items!phbagExplorersPa",
+  "name": "Explorer's Pack",
+  "type": "gear",
+  "img": "icons/containers/bags/pack-simple-leather-fur-tan.webp",
+  "system": {
+    "active": false,
+    "description": "<p>An Explorer's Pack contains the following items: Backpack, Bedroll, 2 flasks of Oil, 10 days of Rations, Rope, Tinderbox, 10 Torches, and Waterskin.</p>",
+    "quantity": 1,
+    "weight": 5,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagExplorersPa",
+        "type": "container",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "_id": "dmgCloakOfProtec",
+  "_key": "!items!dmgCloakOfProtec",
+  "name": "Cloak of Protection",
+  "type": "gear",
+  "img": "icons/equipment/back/cloak-heavy-fur-blue.webp",
+  "system": {
+    "active": false,
+    "description": "<div><p><em>Wondrous Item, Uncommon (Requires Attunement)</em></p></div><p>You gain a +1 bonus to Armor Class and saving throws while you wear this cloak.</p>",
+    "quantity": 1,
+    "weight": 2,
+    "slot": "",
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "bonus-ac-saves-1-1",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "defense.ac"
+          ],
+          "modifierType": "untyped",
+          "value": 1
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "bonus-ac-saves-1-2",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "save"
+          ],
+          "modifierType": "untyped",
+          "value": 1
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgCloakOfProtec",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

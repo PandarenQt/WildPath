@@ -1,0 +1,31 @@
+{
+  "_id": "dmgFigurineOfWon",
+  "_key": "!items!dmgFigurineOfWon",
+  "name": "Figurine of Wondrous Power",
+  "type": "gear",
+  "img": "icons/magic/light/beam-red-orange.webp",
+  "system": {
+    "active": false,
+    "description": "<div><p><em>Wondrous Item, Rarity Varies</em></p></div><p>A <em>Figurine of Wondrous Power</em> is a statuette small enough to fit in a pocket. If you take a Magic action to throw the figurine to a point on the ground within 60 feet of yourself, the figurine becomes a living creature specified in the figurine's description below. If the space where the creature would appear is occupied by other creatures or objects, or if there isn't enough space for the creature, the figurine doesn't become a creature.</p><p>The creature is Friendly to you and your allies. It understands your languages, obeys your commands, and takes its turn immediately after you on your Initiative count. If you issue no commands, the creature defends itself but takes no other actions.</p><p>The creature exists for a duration specific to each figurine. At the end of the duration, the creature reverts to its figurine form. It reverts to a figurine early if its creature form drops to 0 Hit Points or if you take a Magic action while touching the creature to make it revert to figurine form. When the creature becomes a figurine again, its property can't be used again until a certain amount of time has passed, as specified in the figurine's description.</p><p>Bronze Griffon (Rare)</p><p>Ebony Fly (Rare)</p><p>Golden Lions (Rare)</p><p>Ivory Goats (Rare)</p><p>Marble Elephant (Rare)</p><p>Obsidian Steed (Very Rare)</p><p>Onyx Dog (Rare)</p><p>Serpentine Owl (Rare)</p><p>Silver Raven (Uncommon)</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgFigurineOfWon",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

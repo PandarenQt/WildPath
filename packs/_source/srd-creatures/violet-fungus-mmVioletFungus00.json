@@ -177,7 +177,20 @@
           ],
           "label": "Rotting Touch"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "attack-bonus",
+            "type": "Modifier",
+            "data": {
+              "domains": [
+                "attack"
+              ],
+              "modifierType": "untyped",
+              "value": 2
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -191,9 +204,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "attack: bonus \"2\" not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -212,9 +223,7 @@
         "challenge": 0.25
       },
       "conversion": {
-        "notes": [
-          "Rotting Touch: attack: bonus \"2\" not converted"
-        ]
+        "notes": []
       }
     }
   }

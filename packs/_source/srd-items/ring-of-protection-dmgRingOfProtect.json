@@ -1,0 +1,56 @@
+{
+  "_id": "dmgRingOfProtect",
+  "_key": "!items!dmgRingOfProtect",
+  "name": "Ring of Protection",
+  "type": "gear",
+  "img": "icons/equipment/finger/ring-cabochon-silver-gold-red.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Ring, Rare (Requires Attunement)</em></p><p>You gain a +1 bonus to Armor Class and saving throws while wearing this ring.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "ring-of-protection-1",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "defense.ac"
+          ],
+          "modifierType": "untyped",
+          "value": 1
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "ring-of-protection-2",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "save"
+          ],
+          "modifierType": "untyped",
+          "value": 1
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgRingOfProtect",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

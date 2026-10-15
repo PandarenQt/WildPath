@@ -1,0 +1,31 @@
+{
+  "_id": "SoNpADeVEx2DDZgB",
+  "_key": "!items!SoNpADeVEx2DDZgB",
+  "name": "Mirror",
+  "type": "gear",
+  "img": "icons/sundries/survival/mirror-plain.webp",
+  "system": {
+    "active": false,
+    "description": "<p>A handheld steel Mirror is useful for personal cosmetics but also for peeking around corners and reflecting light as a signal.</p>",
+    "quantity": 1,
+    "weight": 0.5,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "SoNpADeVEx2DDZgB",
+        "type": "loot",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

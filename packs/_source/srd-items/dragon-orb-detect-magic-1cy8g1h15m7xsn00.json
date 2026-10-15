@@ -1,0 +1,49 @@
+{
+  "_id": "1cy8g1h15m7xsn00",
+  "_key": "!items!1cy8g1h15m7xsn00",
+  "name": "Dragon Orb: Detect Magic",
+  "type": "action",
+  "img": "icons/magic/symbols/runes-carved-stone-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p>For the duration, you sense the presence of magical effects within 30 feet of yourself. If you sense such effects, you can take the Magic action to see a faint aura around any visible creature or object in the area that bears the magic, and if an effect was created by a spell, you learn the spell's school of magic.</p><p>The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-dragon-orb-detect-magic",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Dragon Orb: Detect Magic"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplDetectMagi",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Dragon Orb"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Detect Magic\" (its own changes) not converted",
+          "concentration: nothing it sustains was converted"
+        ]
+      }
+    }
+  }
+}

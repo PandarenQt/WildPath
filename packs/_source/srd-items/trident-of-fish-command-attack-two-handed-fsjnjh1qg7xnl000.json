@@ -1,0 +1,95 @@
+{
+  "_id": "fsjnjh1qg7xnl000",
+  "_key": "!items!fsjnjh1qg7xnl000",
+  "name": "Trident of Fish Command (attack) (Two-Handed)",
+  "type": "action",
+  "img": "icons/weapons/polearms/trident-ice-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Weapon (Trident), Uncommon (Requires Attunement)</em></p><p>This magic weapon has 3 charges, and it regains 1d3 expended charges daily at dawn. While you carry it, you can expend 1 charge to cast Dominate Beast (save DC 15) from it on a Beast that has a Swim Speed.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-trident-of-fish-command-two-handed",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "attack": {
+        "type": "ranged",
+        "statistic": "weapon",
+        "defenseKey": "ac",
+        "proficient": true
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 20,
+          "unit": "ft"
+        },
+        "long": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "damage": [
+        {
+          "id": "base",
+          "expression": {
+            "type": "dice",
+            "number": 1,
+            "faces": 10
+          },
+          "damageType": "piercing",
+          "provenance": "weapon-base"
+        }
+      ],
+      "label": "Trident of Fish Command (attack) (Two-Handed)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "trident-of-fish-command-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "trident-of-fish-command",
+          "label": "Trident of Fish Command",
+          "maximum": {
+            "type": "constant",
+            "value": 3
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgTridentOfFish",
+        "type": "weapon",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool"
+        ]
+      }
+    }
+  }
+}

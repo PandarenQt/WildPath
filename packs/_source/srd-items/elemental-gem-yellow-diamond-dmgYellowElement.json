@@ -1,0 +1,70 @@
+{
+  "_id": "dmgYellowElement",
+  "_key": "!items!dmgYellowElement",
+  "name": "Elemental Gem (Yellow Diamond)",
+  "type": "action",
+  "img": "icons/commodities/gems/gem-faceted-octagon-yellow.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>See: Elemental Gem</em></p><p>This gem contains a mote of elemental energy. When you take a Utilize action to break the gem, an Earth Elemental is summoned, and the gem ceases to be magical. The elemental appears in an unoccupied space as close to the broken gem as possible, understands your languages, obeys your commands, and takes its turn immediately after you on your Initiative count. The elemental disappears after 1 hour, when it dies, or when you dismiss it as a Bonus Action.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-elemental-gem-yellow-diamond-utilize",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "elemental-gem-yellow-diamond",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "summon": {
+        "actorRef": "Compendium.wildpath.srd-creatures.Actor.mmEarthElemental",
+        "count": 1
+      },
+      "label": "Elemental Gem (Yellow Diamond)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "elemental-gem-yellow-diamond-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "elemental-gem-yellow-diamond",
+          "label": "Elemental Gem (Yellow Diamond)",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgYellowElement",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

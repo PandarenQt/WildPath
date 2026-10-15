@@ -1,0 +1,43 @@
+{
+  "_id": "phbtulThievesToo",
+  "_key": "!items!phbtulThievesToo",
+  "name": "Thieves' Tools",
+  "type": "action",
+  "img": "icons/tools/hand/lockpicks-steel-grey.webp",
+  "system": {
+    "active": true,
+    "description": "<p class=\"phb-meta\"><strong>Ability:</strong> Dexterity</p><p class=\"phb-meta\"><strong>Utilize:</strong> Pick a lock (DC 15), or disarm a trap (DC 15)</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-thieves-tools-pick-a-lock-disarm-a-trap",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Thieves' Tools"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbtulThievesToo",
+        "type": "tool",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (check): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

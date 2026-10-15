@@ -1,0 +1,44 @@
+{
+  "_id": "phbarmShield0000",
+  "_key": "!items!phbarmShield0000",
+  "name": "Shield",
+  "type": "gear",
+  "img": "icons/equipment/shield/round-wooden-boss-steel-brown.webp",
+  "system": {
+    "active": false,
+    "description": "<p>You gain the Armor Class benefit of a Shield only if you have training with it.</p>",
+    "quantity": 1,
+    "weight": 6,
+    "slot": "",
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "shield",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "defense.ac"
+          ],
+          "modifierType": "untyped",
+          "value": 2
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbarmShield0000",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "_id": "f7wuy11r5wvdn000",
+  "_key": "!items!f7wuy11r5wvdn000",
+  "name": "Lamp",
+  "type": "gear",
+  "img": "icons/sundries/lights/lantern-iron-yellow.webp",
+  "system": {
+    "active": false,
+    "description": "<p>A Lamp burns Oil as fuel to cast Bright Light in a 15-foot radius and Dim Light for an additional 30 feet.</p>",
+    "quantity": 1,
+    "weight": 1,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "SMj5QHHkDCdvkx35",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

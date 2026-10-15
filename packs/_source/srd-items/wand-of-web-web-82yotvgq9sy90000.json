@@ -1,0 +1,98 @@
+{
+  "_id": "82yotvgq9sy90000",
+  "_key": "!items!82yotvgq9sy90000",
+  "name": "Wand of Web: Web",
+  "type": "action",
+  "img": "icons/creatures/webs/web-spider-casting-caught-purple.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You conjure a mass of sticky webbing at a point within range. The webs fill a 20-foot Cube there for the duration. The webs are Difficultterrain, and the area within them is Lightlyobscured.</p><p>If the webs aren't anchored between two solid masses (such as walls or trees) or layered across a floor, wall, or ceiling, the web collapses on itself, and the spell ends at the start of your next turn. Webs layered over a flat surface have a depth of 5 feet.</p><p>The first time a creature enters the webs on a turn or starts its turn there, it must succeed on a Dexterity saving throw or have the Restrained condition while in the webs or until it breaks free.</p><p>A creature Restrained by the webs can take an action to make a DC @attributes.spell.dc Strength (Athletics) check check against your spell save DC. If it succeeds, it is no longer Restrained.</p><p>The webs are flammable. Any 5-foot Cube of webs exposed to fire burns away in 1 round, dealing 2d4 Fire damage to any creature that starts its turn in the fire.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-wand-of-web-web",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "cube",
+        "size": {
+          "value": 20,
+          "unit": "ft"
+        }
+      },
+      "save": {
+        "ability": "agility",
+        "dc": {
+          "value": 13
+        }
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "dice",
+            "number": 2,
+            "faces": 4
+          },
+          "damageType": "fire",
+          "provenance": "spell-base"
+        }
+      ],
+      "label": "Wand of Web: Web"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "wand-of-web-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "wand-of-web",
+          "label": "Wand of Web",
+          "maximum": {
+            "type": "constant",
+            "value": 7
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplWeb0000000",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Wand of Web"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool",
+          "concentration: nothing it sustains was converted"
+        ]
+      }
+    }
+  }
+}

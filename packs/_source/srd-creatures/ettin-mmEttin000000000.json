@@ -134,9 +134,85 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "damage: versatile two-handed damage not converted"
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "1nckq97up7oqb000",
+      "_key": "!actors.items!mmEttin000000000.1nckq97up7oqb000",
+      "name": "Battleaxe (Two-Handed)",
+      "type": "action",
+      "img": "icons/weapons/axes/axe-battle-black.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +7, reach 5 ft. Hit: 14 (2d8 + 5) Slashing damage. If the target is a Large or smaller creature, it has the Prone condition.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-battleaxe-two-handed",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
             ]
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "base",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 10
+              },
+              "damageType": "slashing",
+              "provenance": "weapon-base"
+            }
+          ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "prone"
+            }
+          ],
+          "label": "Battleaxe (Two-Handed)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "2zUJENAN0VZgqxYm",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
           }
         }
       }
@@ -318,7 +394,6 @@
       },
       "conversion": {
         "notes": [
-          "Battleaxe: damage: versatile two-handed damage not converted",
           "Morningstar: effect: \"Next Attack: Disadv.\" (its own changes) not converted"
         ]
       }

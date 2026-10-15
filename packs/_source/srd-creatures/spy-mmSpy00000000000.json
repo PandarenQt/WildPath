@@ -266,6 +266,39 @@
       }
     },
     {
+      "_id": "3p1pcf1355zpz000",
+      "_key": "!actors.items!mmSpy00000000000.3p1pcf1355zpz000",
+      "name": "Thieves' Tools",
+      "type": "gear",
+      "img": "icons/tools/hand/lockpicks-steel-grey.webp",
+      "system": {
+        "active": false,
+        "description": "<p class=\"phb-meta\"><strong>Ability:</strong> Dexterity</p><p class=\"phb-meta\"><strong>Utilize:</strong> Pick a lock (DC 15), or disarm a trap (DC 15)</p>",
+        "quantity": 1,
+        "weight": 1,
+        "slot": "",
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "NHMv5kWuMNacIv5i",
+            "type": "tool",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (check): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
       "_id": "NHMv5kWuMNacIv5i",
       "_key": "!actors.items!mmSpy00000000000.NHMv5kWuMNacIv5i",
       "name": "Thieves' Tools",

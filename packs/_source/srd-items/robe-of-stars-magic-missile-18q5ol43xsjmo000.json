@@ -1,0 +1,103 @@
+{
+  "_id": "18q5ol43xsjmo000",
+  "_key": "!items!18q5ol43xsjmo000",
+  "name": "Robe of Stars: Magic Missile",
+  "type": "action",
+  "img": "icons/magic/light/projectiles-pink-purple.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You create three glowing darts of magical force. Each dart strikes a creature of your choice that you can see within range. A dart deals 1d4 + 1 Force damage to its target. The darts all strike simultaneously, and you can direct them to hit one creature or several.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The spell creates one more dart for each spell slot level above 1.</p><p>Level 1 darts</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-robe-of-stars-magic-missile",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "robe-of-stars",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 120,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "multiple",
+        "required": true,
+        "count": 3,
+        "refinementPolicy": {
+          "minSelections": 1
+        }
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "dice",
+                "number": 1,
+                "faces": 4
+              },
+              {
+                "type": "constant",
+                "value": 1
+              }
+            ]
+          },
+          "damageType": "force",
+          "provenance": "spell-base"
+        }
+      ],
+      "label": "Robe of Stars: Magic Missile"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "robe-of-stars-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "robe-of-stars",
+          "label": "Robe of Stars",
+          "maximum": {
+            "type": "constant",
+            "value": 6
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplMagicMissi",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Robe of Stars"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool",
+          "cast: Magic Missile at level 5 is cast at its own level"
+        ]
+      }
+    }
+  }
+}

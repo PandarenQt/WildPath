@@ -1,0 +1,88 @@
+{
+  "_id": "deu7fi18523jo000",
+  "_key": "!items!deu7fi18523jo000",
+  "name": "Rod of Resurrection: Heal",
+  "type": "action",
+  "img": "icons/magic/life/heart-glowing-red.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Choose a creature that you can see within range. Positive energy washes through the target, restoring 70 Hit Points. This spell also ends the Blinded, Deafened, and Poisoned conditions on the target.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The healing increases by 10 for each spell slot level above 6.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-rod-of-resurrection-heal",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "rod-of-resurrection",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "healing": [
+        {
+          "id": "healing-1",
+          "expression": {
+            "type": "constant",
+            "value": 70
+          },
+          "healingType": "healing"
+        }
+      ],
+      "label": "Rod of Resurrection: Heal"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "rod-of-resurrection-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "rod-of-resurrection",
+          "label": "Rod of Resurrection",
+          "maximum": {
+            "type": "constant",
+            "value": 5
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplHeal000000",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Rod of Resurrection"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool"
+        ]
+      }
+    }
+  }
+}

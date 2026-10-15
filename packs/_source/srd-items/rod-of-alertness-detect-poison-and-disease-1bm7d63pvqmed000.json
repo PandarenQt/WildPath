@@ -1,0 +1,64 @@
+{
+  "_id": "1bm7d63pvqmed000",
+  "_key": "!items!1bm7d63pvqmed000",
+  "name": "Rod of Alertness: Detect Poison and Disease",
+  "type": "action",
+  "img": "icons/skills/toxins/poison-bottle-open-fire-purple.webp",
+  "system": {
+    "active": true,
+    "description": "<p>For the duration, you sense the location of poisons, poisonous or venomous creatures, and magical contagions within 30 feet of yourself. You sense the kind of poison, creature, or contagion in each case.</p><p>The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-rod-of-alertness-detect-poison-and-disease",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Rod of Alertness: Detect Poison and Disease"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "rod-of-alertness-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "rod-of-alertness",
+          "label": "Rod of Alertness",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplDetectPois",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Rod of Alertness"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Detect Poison and Disease\" (its own changes) not converted",
+          "concentration: nothing it sustains was converted"
+        ]
+      }
+    }
+  }
+}

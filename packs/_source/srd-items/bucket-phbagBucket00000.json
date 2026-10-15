@@ -1,0 +1,31 @@
+{
+  "_id": "phbagBucket00000",
+  "_key": "!items!phbagBucket00000",
+  "name": "Bucket",
+  "type": "gear",
+  "img": "icons/containers/misc/bucket-steel.webp",
+  "system": {
+    "active": false,
+    "description": "<p>A Bucket holds up to half a cubic foot of contents.</p>",
+    "quantity": 1,
+    "weight": 2,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagBucket00000",
+        "type": "container",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

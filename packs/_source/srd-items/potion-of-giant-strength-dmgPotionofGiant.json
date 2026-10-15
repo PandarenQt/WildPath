@@ -1,0 +1,31 @@
+{
+  "_id": "dmgPotionofGiant",
+  "_key": "!items!dmgPotionofGiant",
+  "name": "Potion of Giant Strength",
+  "type": "gear",
+  "img": "icons/consumables/potions/bottle-round-corked-blue.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Potion, Rarity Varies</em></p><p>When you drink this potion, your Strength score changes for 1 hour. The type of giant determines the score (see the table below). The potion has no effect on you if your Strength is equal to or greater than that score.</p><p>This potion's transparent liquid has floating in it a sliver of light resembling a giant's fingernail.</p><table><thead><tr><td>Potion</td><td>Str.</td><td>Rarity</td></tr></thead><tbody><tr><td><em>Potion of Giant Strength</em> (hill)</td><td>21</td><td>Uncommon</td></tr><tr><td><em>Potion of Giant Strength</em> (frost or stone)</td><td>23</td><td>Rare</td></tr><tr><td><em>Potion of Giant Strength</em> (fire)</td><td>25</td><td>Rare</td></tr><tr><td><em>Potion of Giant Strength</em> (cloud)</td><td>27</td><td>Very Rare</td></tr><tr><td><em>Potion of Giant Strength</em> (storm)</td><td>29</td><td>Legendary</td></tr></tbody></table>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgPotionofGiant",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "_id": "phbagPriestsPack",
+  "_key": "!items!phbagPriestsPack",
+  "name": "Priest's Pack",
+  "type": "gear",
+  "img": "icons/containers/bags/pack-engraved-leather-blue.webp",
+  "system": {
+    "active": false,
+    "description": "<p>A Priest's Pack contains the following items: Backpack, Blanket, Holy Water, Lamp, 7 days of Rations, Robe, and Tinderbox.</p>",
+    "quantity": 1,
+    "weight": 5,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagPriestsPack",
+        "type": "container",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "_id": "dmgPeriaptOfWoun",
+  "_key": "!items!dmgPeriaptOfWoun",
+  "name": "Periapt of Wound Closure",
+  "type": "gear",
+  "img": "icons/equipment/neck/pendant-faceted-blue.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Wondrous Item, Uncommon (Requires Attunement)</em></p><p>While wearing this pendant, you gain the following benefits.</p><p><em><strong>Life Preservation.</strong></em> Whenever you make a Death Saving Throw, you can change a roll of 9 or lower to a 10, turning a failed save into a successful one.</p><p><em><strong>Natural Healing Boost.</strong></em> Whenever you roll a Hit Point Die to regain Hit Points, double the number of Hit Points it restores.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgPeriaptOfWoun",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

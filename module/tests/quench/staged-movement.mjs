@@ -82,7 +82,8 @@ export function registerStagedMovementTests(quench) {
         assert.equal(game.users.activeGM?.id,game.user.id,"Run as the active GM");
         assert.exists(game.wildpath?.multiplayer,"WildPath must finish runtime initialization");
         const viewedScene = game.scenes.viewed?.id;
-        const baseMover = await fixtures.createActor({name:`${mode} mover`,system:{
+        // A creature, whose AC is what is stored: a character's never falls below 10 + its Agility modifier.
+        const baseMover = await fixtures.createActor({name:`${mode} mover`,type:"npc",system:{
           traits:{size:hex ? "large" : "medium"}, defenses:{ac:{value:mode === "miss" ? 100 : 1}},
           resources:{health:{base:30,value:30},movement:{base:30,value:30}}}});
         const baseReactor = await fixtures.createActor({name:`${mode} reactor`,system:{
@@ -270,7 +271,7 @@ export function registerStagedMovementTests(quench) {
 
       it("a hostile guard's Trigger RuleElement makes an opportunity attack through the production provider", async function () {
         assert.equal(game.users.activeGM?.id,game.user.id,"Run as the active GM");
-        const baseMover = await fixtures.createActor({name:"provider mover",system:{traits:{size:"medium"},
+        const baseMover = await fixtures.createActor({name:"provider mover",type:"npc",system:{traits:{size:"medium"},
           defenses:{ac:{value:1}},resources:{health:{base:30,value:30},movement:{base:30,value:30}}}});
         const baseGuard = await fixtures.createActor({name:"provider guard",system:{traits:{size:"medium"},
           abilities:{might:{value:14}},resources:{reaction:{base:1,value:1}}}});

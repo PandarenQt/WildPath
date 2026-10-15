@@ -1,0 +1,31 @@
+{
+  "_id": "dmgQuaalsFeather",
+  "_key": "!items!dmgQuaalsFeather",
+  "name": "Feather Token",
+  "type": "gear",
+  "img": "icons/commodities/materials/feathers-brown.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Wondrous Item, Rarity Varies</em></p><p>This object looks like a feather. Different types of feather tokens exist, each with a different <span class=\"no-break\">single</span>-use effect. The GM chooses the kind of token or determines it randomly by rolling on the Feather Tokens table. The type of token determines its rarity.</p><p></p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgQuaalsFeather",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

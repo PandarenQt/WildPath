@@ -1,0 +1,33 @@
+{
+  "_id": "19wbgkfkab8f7000",
+  "_key": "!items!19wbgkfkab8f7000",
+  "name": "Painter's Supplies",
+  "type": "gear",
+  "img": "icons/tools/hand/brush-paint-brown-white.webp",
+  "system": {
+    "active": false,
+    "description": "<p class=\"phb-meta\"><strong>Ability:</strong> Wisdom</p><p class=\"phb-meta\"><strong>Utilize:</strong> Paint a recognizable image of something you've seen (DC 10)</p><p class=\"phb-meta\"><strong>Craft:</strong> Druidic Focus, Holy Symbol</p>",
+    "quantity": 1,
+    "weight": 5,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbtulPaintersSu",
+        "type": "tool",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (check): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

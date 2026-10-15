@@ -1,0 +1,76 @@
+{
+  "_id": "dmgPotionOfInvis",
+  "_key": "!items!dmgPotionOfInvis",
+  "name": "Potion of Invisibility",
+  "type": "action",
+  "img": "icons/consumables/potions/bottle-bulb-empty-glass.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Potion, Rare</em></p><p>This potion's container looks empty but feels as though it holds liquid. When you drink the potion, you have the Invisible condition for 1 hour. The effect ends early if you make an attack roll, deal damage, or cast a spell.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-potion-of-invisibility-drink",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          },
+          {
+            "capability": "potion-of-invisibility",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "invisible"
+        }
+      ],
+      "label": "Potion of Invisibility"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "potion-of-invisibility-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "potion-of-invisibility",
+          "label": "Potion of Invisibility",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgPotionOfInvis",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

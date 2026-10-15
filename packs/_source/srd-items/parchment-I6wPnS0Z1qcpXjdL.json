@@ -1,0 +1,31 @@
+{
+  "_id": "I6wPnS0Z1qcpXjdL",
+  "_key": "!items!I6wPnS0Z1qcpXjdL",
+  "name": "Parchment",
+  "type": "gear",
+  "img": "icons/sundries/scrolls/scroll-plain-tan.webp",
+  "system": {
+    "active": false,
+    "description": "<p>One sheet of Parchment can hold about 250 handwritten words.</p>",
+    "quantity": 5,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "I6wPnS0Z1qcpXjdL",
+        "type": "loot",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

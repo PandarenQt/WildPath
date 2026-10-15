@@ -21,7 +21,10 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "effect: \"Divine Order: Protector\" change system.traits.weaponProf.value (add) not converted",
+          "effect: \"Divine Order: Protector\" change system.traits.armorProf.value (add) not converted"
+        ]
       }
     }
   }

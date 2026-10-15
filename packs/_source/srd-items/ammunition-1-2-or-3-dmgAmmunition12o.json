@@ -1,0 +1,46 @@
+{
+  "_id": "dmgAmmunition12o",
+  "_key": "!items!dmgAmmunition12o",
+  "name": "Ammunition, +1, +2, or +3",
+  "type": "action",
+  "img": "icons/weapons/ammunition/arrow-head-war-flight.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Weapon (Any Ammunition), Uncommon (+1), Rare (+2), or Very Rare (+3)</em></p><p>You have a bonus to attack rolls and damage rolls made with this piece of magic ammunition. The bonus is determined by the rarity of the ammunition. Once it hits a target, the ammunition is no longer magical.</p><p>This ammunition is typically found or sold in quantities of ten or twenty pieces. Ten pieces of this ammunition are equivalent in value to a potion of the same rarity.</p><p></p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-ammunition-1-2-or-3-ammunition-1-2-or-3",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Ammunition, +1, +2, or +3"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgAmmunition12o",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (enchant): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

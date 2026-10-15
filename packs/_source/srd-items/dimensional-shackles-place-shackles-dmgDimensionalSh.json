@@ -1,0 +1,47 @@
+{
+  "_id": "dmgDimensionalSh",
+  "_key": "!items!dmgDimensionalSh",
+  "name": "Dimensional Shackles (Place Shackles)",
+  "type": "action",
+  "img": "icons/magic/control/debuff-chains-shackles-movement-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<div><p><em>Wondrous Item, Rare</em></p></div><p>You can take a Utilize action to place these shackles on a creature that has the Incapacitated condition. The shackles adjust to fit a creature of Small to Large size. The shackles prevent a creature bound by them from using any method of extradimensional movement, including teleportation or travel to a different plane of existence. They don't prevent the creature from passing through an interdimensional portal.</p><p>You and any creature you designate when you use the shackles can take a Utilize action to remove them. Once every 30 days, the bound creature can make a DC 30 Strength (Athletics) check. On a successful check, the creature breaks free and destroys the shackles.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-dimensional-shackles-place-shackles",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Dimensional Shackles (Place Shackles)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgDimensionalSh",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Dimensionally Bound\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

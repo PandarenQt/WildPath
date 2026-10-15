@@ -1,0 +1,34 @@
+{
+  "_id": "dmgDmtComet00000",
+  "_key": "!items!dmgDmtComet00000",
+  "name": "Comet",
+  "type": "gear",
+  "img": "icons/magic/earth/projectile-stone-boulder-blue.webp",
+  "system": {
+    "active": false,
+    "description": "<p> The next time you enter combat against one or more Hostile creatures, you can select one of them as your foe when you roll Initiative. If you reduce your foe to 0 Hit Points during that combat, you have Advantage on Death Saving Throws for 1 year. If someone else reduces your chosen foe to 0 Hit Points or you don't choose a foe, this card has no effect.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgDmtComet00000",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Card Effect: Start\" is passive or triggered: not automated",
+          "\"Card Effect: Resolve\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

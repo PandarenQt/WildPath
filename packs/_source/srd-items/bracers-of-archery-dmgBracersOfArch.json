@@ -1,0 +1,51 @@
+{
+  "_id": "dmgBracersOfArch",
+  "_key": "!items!dmgBracersOfArch",
+  "name": "Bracers of Archery",
+  "type": "gear",
+  "img": "icons/equipment/wrist/bracer-banded-leather.webp",
+  "system": {
+    "active": false,
+    "description": "<div><p><em>Wondrous Item, Uncommon (Requires Attunement)</em></p></div><p>While wearing these bracers, you have proficiency with the Longbow and Shortbow, and you gain a +2 bonus to damage rolls made with such weapons.</p><section class=\"secret\" id=\"secret-l1W6lw8WR2ku4qP2\"><p><strong>Foundry Note</strong></p><p>The <strong>Bonus Damage: Bows</strong> passive effect applies the damage bonus to <em>all</em> ranged weapon damage rolls and should be disabled before rolling damage for weapons other than a Longbow or Shortbow.</p></section>",
+    "quantity": 1,
+    "weight": 1,
+    "slot": "",
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "bonus-damage-bows-1",
+        "type": "Modifier",
+        "predicate": {
+          "tagsAny": [
+            "ranged"
+          ]
+        },
+        "data": {
+          "domains": [
+            "damage.weapon"
+          ],
+          "modifierType": "untyped",
+          "value": 2
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgBracersOfArch",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "effect: \"Bow Proficiencies\" change system.traits.weaponProf.value (add) not converted"
+        ]
+      }
+    }
+  }
+}

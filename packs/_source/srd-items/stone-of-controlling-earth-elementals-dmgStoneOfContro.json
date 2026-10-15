@@ -1,0 +1,74 @@
+{
+  "_id": "dmgStoneOfContro",
+  "_key": "!items!dmgStoneOfContro",
+  "name": "Stone of Controlling Earth Elementals",
+  "type": "action",
+  "img": "icons/commodities/stone/engraved-symbol-water-grey.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Wondrous Item, Rare</em></p><p>While touching this 5-pound stone to the ground, you can take a Magic action to summon an <strong>Earth Elemental</strong>. The elemental appears in an unoccupied space you choose within 30 feet of yourself, obeys your commands, and takes its turn immediately after you on your Initiative count. The elemental disappears after 1 hour, when it dies, or when you dismiss it as a Bonus Action. The stone can't be used this way again until the next dawn.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-stone-of-controlling-earth-elementals-summon-elemental",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "stone-of-controlling-earth-elementals",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 30,
+          "unit": "ft"
+        }
+      },
+      "summon": {
+        "actorRef": "Compendium.wildpath.srd-creatures.Actor.mmEarthElemental",
+        "count": 1
+      },
+      "label": "Stone of Controlling Earth Elementals"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "stone-of-controlling-earth-elementals-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "stone-of-controlling-earth-elementals",
+          "label": "Stone of Controlling Earth Elementals",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgStoneOfContro",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

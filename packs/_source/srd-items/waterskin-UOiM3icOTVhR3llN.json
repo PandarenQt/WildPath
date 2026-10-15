@@ -1,0 +1,31 @@
+{
+  "_id": "UOiM3icOTVhR3llN",
+  "_key": "!items!UOiM3icOTVhR3llN",
+  "name": "Waterskin",
+  "type": "gear",
+  "img": "icons/sundries/survival/waterskin-leather-brown.webp",
+  "system": {
+    "active": false,
+    "description": "<p>A Waterskin holds up to 4 pints. If you don't drink sufficient water, you risk Dehydration.</p>",
+    "quantity": 1,
+    "weight": 1,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "UOiM3icOTVhR3llN",
+        "type": "container",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

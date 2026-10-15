@@ -1,0 +1,46 @@
+{
+  "_id": "8b650ud4jpni0000",
+  "_key": "!items!8b650ud4jpni0000",
+  "name": "Arrow-Catching Shield",
+  "type": "gear",
+  "img": "icons/skills/melee/shield-block-fire-orange.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Armor (Shield), Rare (Requires Attunement)</em></p><p>You gain a +2 bonus to Armor Class against ranged attack rolls while you wield this Shield. This bonus is in addition to the Shield's normal bonus to AC.</p><p>Whenever an attacker makes a ranged attack roll against a target within 5 feet of you, you can take a Reaction to become the target of the attack instead.</p><section class=\"secret\" id=\"secret-n4z3GTIVyxRRS17N\"><p><strong>Foundry Note</strong></p><p>The <strong>Ranged Attack AC Bonus</strong> effect is provided for optional use and may be toggled active before a ranged attack roll is made against the wearer.</p></section>",
+    "quantity": 1,
+    "weight": 6,
+    "slot": "",
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "arrow-catching-shield",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "defense.ac"
+          ],
+          "modifierType": "untyped",
+          "value": 2
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgArrowcatching",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

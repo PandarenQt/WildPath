@@ -1,0 +1,31 @@
+{
+  "_id": "phbagClimbersKit",
+  "_key": "!items!phbagClimbersKit",
+  "name": "Climber's Kit",
+  "type": "gear",
+  "img": "icons/sundries/survival/climbing-anchor-steel-grey.webp",
+  "system": {
+    "active": false,
+    "description": "<p>A Climber's Kit includes boot tips, gloves, pitons, and a harness. As a Utilize action, you can use the Climber's Kit to anchor yourself; when you do, you can't fall more than 25 feet from the anchor point, and you can't move more than 25 feet from there without undoing the anchor as a Bonus Action.</p>",
+    "quantity": 1,
+    "weight": 12,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagClimbersKit",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

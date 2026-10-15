@@ -1,0 +1,33 @@
+{
+  "_id": "dmgfroBeltofGian",
+  "_key": "!items!dmgfroBeltofGian",
+  "name": "Belt of Giant Strength (frost)",
+  "type": "gear",
+  "img": "icons/equipment/waist/belt-buckle-gold-blue.webp",
+  "system": {
+    "active": false,
+    "description": "<div><p><em>See: Belt of Giant Strength</em></p><p>While wearing this belt, your Strength changes to 23. The type of giant determines the score. The item has no effect on you if your Strength without the belt is equal to or greater than 23.</p></div>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgfroBeltofGian",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "effect: \"Frost Giant Strength\" change system.abilities.str.value (upgrade) not converted"
+        ]
+      }
+    }
+  }
+}

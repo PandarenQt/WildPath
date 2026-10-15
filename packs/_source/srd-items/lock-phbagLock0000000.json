@@ -1,0 +1,31 @@
+{
+  "_id": "phbagLock0000000",
+  "_key": "!items!phbagLock0000000",
+  "name": "Lock",
+  "type": "gear",
+  "img": "icons/sundries/misc/lock-bronze-reinforced.webp",
+  "system": {
+    "active": false,
+    "description": "<p>A Lock comes with a key. Without the key, a creature can use Thieves' Tools to pick this Lock with a successful Dexterity check check.</p>",
+    "quantity": 1,
+    "weight": 1,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagLock0000000",
+        "type": "loot",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

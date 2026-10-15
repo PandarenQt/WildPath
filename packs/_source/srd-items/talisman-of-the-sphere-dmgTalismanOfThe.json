@@ -1,0 +1,31 @@
+{
+  "_id": "dmgTalismanOfThe",
+  "_key": "!items!dmgTalismanOfThe",
+  "name": "Talisman of the Sphere",
+  "type": "gear",
+  "img": "icons/commodities/treasure/brooch-jeweled-pink.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Wondrous Item, Legendary (Requires Attunement)</em></p><p>While holding or wearing this talisman, you have Advantage on any (Arcana) check  check you make to control a Sphere of Annihilation. In addition, when you start your turn in control of a <em>Sphere of Annihilation</em>, you can take a Magic action to move it 10 feet plus a number of additional feet equal to 10 times your Intelligence modifier. This movement doesn't have to be in a straight line.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgTalismanOfThe",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

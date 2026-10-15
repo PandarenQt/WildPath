@@ -1,0 +1,62 @@
+{
+  "_id": "phbagLanternBull",
+  "_key": "!items!phbagLanternBull",
+  "name": "Lantern, Bullseye",
+  "type": "action",
+  "img": "icons/sundries/lights/lantern-bullseye-signal-copper.webp",
+  "system": {
+    "active": true,
+    "description": "<p>A Bullseye Lantern burns Oil as fuel to cast Bright Light in a 60-foot Cone and Dim Light for an additional 60 feet.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-lantern-bullseye-light",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "lantern-bullseye",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Lantern, Bullseye"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "lantern-bullseye-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "lantern-bullseye",
+          "label": "Lantern, Bullseye",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagLanternBull",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

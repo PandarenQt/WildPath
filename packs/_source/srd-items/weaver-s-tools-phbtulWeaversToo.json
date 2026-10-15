@@ -1,0 +1,43 @@
+{
+  "_id": "phbtulWeaversToo",
+  "_key": "!items!phbtulWeaversToo",
+  "name": "Weaver's Tools",
+  "type": "action",
+  "img": "icons/equipment/back/cloak-hooded-pink.webp",
+  "system": {
+    "active": true,
+    "description": "<p class=\"phb-meta\"><strong>Ability:</strong> Dexterity</p><p class=\"phb-meta\"><strong>Utilize:</strong> Mend a tear in clothing (DC 10), or sew a Tiny design (DC 10)</p><p class=\"phb-meta\"><strong>Craft:</strong> Padded Armor, Basket, Bedroll, Blanket, Fine Clothes, Net, Robe, Rope, Sack, String, Tent, Traveler's Clothes</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-weaver-s-tools-mend-or-sew",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Weaver's Tools"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbtulWeaversToo",
+        "type": "tool",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (check): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

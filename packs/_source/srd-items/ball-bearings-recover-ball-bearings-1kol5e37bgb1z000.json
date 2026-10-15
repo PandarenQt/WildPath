@@ -1,0 +1,57 @@
+{
+  "_id": "1kol5e37bgb1z000",
+  "_key": "!items!1kol5e37bgb1z000",
+  "name": "Ball Bearings (Recover Ball Bearings)",
+  "type": "action",
+  "img": "icons/weapons/ammunition/shot-round-brown.webp",
+  "system": {
+    "active": true,
+    "description": "<p>As a Utilize action, you can spill Ball Bearings from their pouch. They spread to cover a level, 10-foot-square area within 10 feet of yourself. A creature that enters this area for the first time on a turn must succeed on a DC 10 Dexterity saving throw or have the Prone condition. It takes 10 minutes to recover the Ball Bearings.</p><section id=\"secret-bbcC5syRGw0PCZnG\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>The <strong>Recover Ball Bearings</strong> activity grants another use of this item.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-ball-bearings-recover-ball-bearings",
+      "costs": {
+        "allOf": []
+      },
+      "label": "Ball Bearings (Recover Ball Bearings)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "ball-bearings-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "ball-bearings",
+          "label": "Ball Bearings",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbagBallBearing",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "activation: 10 minute is not an action-economy cost",
+          "consumption: itemUses -1 not converted",
+          "activation: 10 minute is not an action-economy cost",
+          "consumption: itemUses -1 not converted"
+        ]
+      }
+    }
+  }
+}

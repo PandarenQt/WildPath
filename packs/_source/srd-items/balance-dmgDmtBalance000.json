@@ -1,0 +1,33 @@
+{
+  "_id": "dmgDmtBalance000",
+  "_key": "!items!dmgDmtBalance000",
+  "name": "Balance",
+  "type": "gear",
+  "img": "icons/tools/hand/scale-balances-merchant-brown.webp",
+  "system": {
+    "active": false,
+    "description": "<p>You can increase one of your ability scores by 2, to a maximum of 22, provided you also decrease another one of your ability scores by 2. You can't decrease an ability that has a score of 5 or lower. Alternatively, you can choose not to adjust your ability scores, in which case this card has <span class=\"no-break\">no effect</span>.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgDmtBalance000",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Card Effect\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

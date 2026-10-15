@@ -1,0 +1,44 @@
+{
+  "_id": "dmgBoatUtility00",
+  "_key": "!items!dmgBoatUtility00",
+  "name": "Activate Folding Boat (1st and 2nd Command)",
+  "type": "action",
+  "img": "icons/skills/trades/profession-sailing-ship.webp",
+  "system": {
+    "active": true,
+    "description": "<p><strong>First Command Word.</strong> The box unfolds into a Rowboat.</p><p><strong>Second Command Word.</strong> The box unfolds into a Keelboat.</p><p><strong>Third Command Word.</strong> The <em>Folding Boat</em> folds back into a box if no creatures are aboard. Any objects in the vessel that can't fit inside the box remain outside the box as it folds. Any objects in the vessel that can fit inside the box do so.</p><p>When the box becomes a vessel, its weight becomes that of a normal vessel its size, and anything that was stored in the box remains in the boat.</p><p>Statistics for the Rowboat and Keelboat appear in Equipment. If either vessel is reduced to 0 Hit Points, the <em>Folding Boat</em> is destroyed.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-activate-folding-boat-1st-and-2nd-command",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Activate Folding Boat (1st and 2nd Command)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgBoatUtility00",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (summon): using it spends its cost; its description says the rest",
+          "summon: its creature is not among the converted creatures"
+        ]
+      }
+    }
+  }
+}

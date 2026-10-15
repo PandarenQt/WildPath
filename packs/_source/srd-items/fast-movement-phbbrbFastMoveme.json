@@ -7,7 +7,20 @@
   "system": {
     "active": true,
     "description": "<p>Your speed increases by 10 feet while you aren't wearing Heavy armor.</p><section id=\"secret-6cmMiIJhUk5cpOGz\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect which will automatically increase your movement speed. Disable the Fast Movement Active Effect if you're wearing Heavy armor.</p></section>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "fast-movement-1",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "resources.movement.max"
+          ],
+          "modifierType": "untyped",
+          "value": 10
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {

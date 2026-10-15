@@ -1,0 +1,89 @@
+{
+  "_id": "dmgRodOfRulershi",
+  "_key": "!items!dmgRodOfRulershi",
+  "name": "Rod of Rulership",
+  "type": "action",
+  "img": "icons/weapons/staves/staff-ornate-orb-steel-red.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Rod, Rare (Requires Attunement)</em></p><p>You can take a Magic action to present the rod and command obedience from each creature of your choice that you can see within 120 feet of yourself. Each target must succeed on a DC 15 Wisdom saving throw or have the Charmed condition for 8 hours. While Charmed in this way, the creature regards you as its trusted leader. If harmed by you or your allies or commanded to do something contrary to its nature, a target ceases to be Charmed in this way. Once used, this property can't be used again until the next dawn.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-rod-of-rulership-command-obedience",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "rod-of-rulership",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 120,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "save": {
+        "ability": "wits",
+        "dc": {
+          "value": 15
+        }
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "charmed",
+          "saveOutcomePolicy": "failure"
+        }
+      ],
+      "label": "Rod of Rulership"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "rod-of-rulership-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "rod-of-rulership",
+          "label": "Rod of Rulership",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgRodOfRulershi",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

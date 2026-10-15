@@ -1,0 +1,33 @@
+{
+  "_id": "dmgDmtKnight0000",
+  "_key": "!items!dmgDmtKnight0000",
+  "name": "Knight",
+  "type": "gear",
+  "img": "icons/environment/people/infantry-armored.webp",
+  "system": {
+    "active": false,
+    "description": "<p>You gain the service of a <strong>Knight</strong>, who magically appears in an unoccupied space you choose within 30 feet of yourself. The knight has the same alignment as you and serves you loyally until death, believing the two of you have been drawn together by fate. Work with your GM to create a name and backstory for this NPC. The GM can use a different stat block to represent the knight, <span class=\"no-break\">as desired</span>.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgDmtKnight0000",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Card Effect\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

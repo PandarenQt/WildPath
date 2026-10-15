@@ -1,0 +1,67 @@
+{
+  "_id": "dmgFirePotionOfG",
+  "_key": "!items!dmgFirePotionOfG",
+  "name": "Potion of Giant Strength (Fire)",
+  "type": "action",
+  "img": "icons/consumables/potions/bottle-round-corked-yellow.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Potion, Rare</em></p><p>When you drink this potion, your Strength score changes for 1 hour to 25. The type of giant determines the score. The potion has no effect on you if your Strength is equal to or greater than that score.</p><p>This potion's transparent liquid has floating in it a sliver of light resembling a giant's fingernail.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-potion-of-giant-strength-fire-drink-potion",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "potion-of-giant-strength-fire",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Potion of Giant Strength (Fire)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "potion-of-giant-strength-fire-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "potion-of-giant-strength-fire",
+          "label": "Potion of Giant Strength (Fire)",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgFirePotionOfG",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "effect: \"Strength of Fire\" change system.abilities.str.value (upgrade) not converted",
+          "effect: \"Strength of Fire\" (its own changes) not converted"
+        ]
+      }
+    }
+  }
+}

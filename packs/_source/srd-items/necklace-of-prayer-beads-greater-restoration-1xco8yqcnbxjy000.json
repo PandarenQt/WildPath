@@ -1,0 +1,66 @@
+{
+  "_id": "1xco8yqcnbxjy000",
+  "_key": "!items!1xco8yqcnbxjy000",
+  "name": "Necklace of Prayer Beads: Greater Restoration",
+  "type": "action",
+  "img": "icons/magic/life/heart-hand-gold-green-light.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You touch a creature and magically remove one of the following effects from it:</p><ul><li>1 Exhaustion level</li><li>The Charmed or Petrified condition</li><li>A curse, including the target's Attunement to a cursed magic item</li><li>Any reduction to one of the target's ability scores</li><li>Any reduction to the target's Hit Point maximum</li></ul>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-necklace-of-prayer-beads-greater-restoration",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          },
+          {
+            "capability": "necklace-of-prayer-beads-phbsplgreaterres",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Necklace of Prayer Beads: Greater Restoration"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "necklace-of-prayer-beads-phbsplgreaterres-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "necklace-of-prayer-beads-phbsplgreaterres",
+          "label": "Necklace of Prayer Beads (Greater Restoration)",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplGreaterRes",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Necklace of Prayer Beads"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (utility): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

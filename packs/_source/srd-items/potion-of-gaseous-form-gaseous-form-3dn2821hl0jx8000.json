@@ -1,0 +1,160 @@
+{
+  "_id": "3dn2821hl0jx8000",
+  "_key": "!items!3dn2821hl0jx8000",
+  "name": "Potion of Gaseous Form: Gaseous Form",
+  "type": "action",
+  "img": "icons/magic/air/air-smoke-casting.webp",
+  "system": {
+    "active": true,
+    "description": "<p>A willing creature you touch shape-shifts, along with everything it's wearing and carrying, into a misty cloud for the duration. The spell ends on the target if it drops to 0 Hit Points or if it takes a Magic action to end the spell on itself.</p><p>While in this form, the target's only method of movement is a Fly Speed of 10 feet, and it can hover. The target can enter and occupy the space of another creature. The target has Resistance to Bludgeoning, Piercing, and Slashing damage; it has Immunity to the Prone condition; and it has Advantage on Strength, Dexterity, and Constitution saving throws. The target can pass through narrow openings, but it treats liquids as though they were solid surfaces.</p><p>The target can't talk or manipulate objects, and any objects it was carrying or holding can't be dropped, used, or otherwise interacted with. Finally, the target can't attack or cast spells.</p><p><strong>Using a Higher-Level Spell Slot.</strong> You can target one additional creature for each spell slot level above 3.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-potion-of-gaseous-form-gaseous-form",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          },
+          {
+            "capability": "potion-of-gaseous-form",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "touch",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Gaseous Form",
+          "img": "icons/magic/air/wind-vortex-swirl-blue-purple.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "gaseous-form-1",
+              "type": "GrantMovement",
+              "data": {
+                "mode": "fly",
+                "distance": 10
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "gaseous-form-2",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "save.might"
+                ],
+                "mode": "advantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "gaseous-form-3",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "save.agility"
+                ],
+                "mode": "advantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "gaseous-form-4",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "save.fortitude"
+                ],
+                "mode": "advantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "gaseous-form-5",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "bludgeoning",
+                  "piercing",
+                  "slashing"
+                ]
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "gaseous-form-6",
+              "type": "ConditionImmunity",
+              "data": {
+                "conditions": [
+                  "prone"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        }
+      ],
+      "label": "Potion of Gaseous Form: Gaseous Form"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "potion-of-gaseous-form-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "potion-of-gaseous-form",
+          "label": "Potion of Gaseous Form",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplGaseousFor",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Potion of Gaseous Form"
+      },
+      "conversion": {
+        "notes": [
+          "effect: transformed is not a WildPath condition yet",
+          "effect: \"Gaseous Form\" change system.attributes.movement.hover (override) not converted",
+          "effect: \"Gaseous Form\" change img (override) not converted"
+        ]
+      }
+    }
+  }
+}

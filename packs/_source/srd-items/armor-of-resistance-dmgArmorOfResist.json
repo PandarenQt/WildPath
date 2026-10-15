@@ -1,0 +1,46 @@
+{
+  "_id": "dmgArmorOfResist",
+  "_key": "!items!dmgArmorOfResist",
+  "name": "Armor of Resistance",
+  "type": "action",
+  "img": "icons/equipment/chest/breastplate-layered-gold.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Armor (Any Light, Medium, or Heavy), Rare (Requires Attunement)</em></p><p>You have Resistance to one type of damage while you wear this armor. The GM chooses the type or determines it randomly by rolling on the following table.</p><p></p><p></p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-armor-of-resistance-armor-of-resistance",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Armor of Resistance"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgArmorOfResist",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (enchant): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

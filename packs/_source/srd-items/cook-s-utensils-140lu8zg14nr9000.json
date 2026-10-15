@@ -1,0 +1,33 @@
+{
+  "_id": "140lu8zg14nr9000",
+  "_key": "!items!140lu8zg14nr9000",
+  "name": "Cook's Utensils",
+  "type": "gear",
+  "img": "icons/tools/laboratory/bowl-mixing.webp",
+  "system": {
+    "active": false,
+    "description": "<p class=\"phb-meta\"><strong>Ability:</strong> Wisdom</p><p class=\"phb-meta\"><strong>Utilize:</strong> Improve food's flavor (DC 10), or detect spoiled or poisoned food (DC 15)</p><p class=\"phb-meta\"><strong>Craft:</strong> Rations</p>",
+    "quantity": 1,
+    "weight": 8,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbtulCooksUtens",
+        "type": "tool",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (check): using it spends its cost; its description says the rest"
+        ]
+      }
+    }
+  }
+}

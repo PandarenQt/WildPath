@@ -1,0 +1,142 @@
+{
+  "_id": "5qac8fa9bj4r0000",
+  "_key": "!items!5qac8fa9bj4r0000",
+  "name": "Staff of Power: Ray of Enfeeblement",
+  "type": "action",
+  "img": "icons/magic/lightning/bolt-strike-beam-purple.webp",
+  "system": {
+    "active": true,
+    "description": "<p>A beam of enervating energy shoots from you toward a creature within range. The target must make a Constitution saving throw. On a successful save, the target has Disadvantage on the next attack roll it makes until the start of your next turn.</p><p>On a failed save, the target has Disadvantage on Strength-based D20 Tests for the duration. During that time, it also subtracts 1d8 from all its damage rolls. The target repeats the save at the end of each of its turns, ending the spell on a success.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-staff-of-power-ray-of-enfeeblement",
+      "tags": [
+        "spell"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "staff-of-power",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "save": {
+        "ability": "fortitude",
+        "dc": {
+          "valueExpression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 8
+              },
+              {
+                "type": "proficiency-bonus"
+              },
+              {
+                "type": "spellcasting-modifier"
+              }
+            ]
+          }
+        }
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Enervated",
+          "img": "icons/skills/wounds/blood-cells-disease-green.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "enervated-1",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "check.might"
+                ],
+                "mode": "disadvantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "enervated-2",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "save.might"
+                ],
+                "mode": "disadvantage"
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "saveOutcomePolicy": "failure",
+          "concentration": true
+        }
+      ],
+      "label": "Staff of Power: Ray of Enfeeblement"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "staff-of-power-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "staff-of-power",
+          "label": "Staff of Power",
+          "maximum": {
+            "type": "constant",
+            "value": 20
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplRayofEnfee",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "castBy": "Staff of Power"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool",
+          "effect: \"Brief Enfeeblement\" (its own changes) not converted",
+          "effect: \"Enervated\" change system.bonuses.mwak.damage (add) not converted",
+          "effect: \"Enervated\" change system.bonuses.rwak.damage (add) not converted",
+          "effect: \"Enervated\" change system.bonuses.msak.damage (add) not converted",
+          "effect: \"Enervated\" change system.bonuses.rsak.damage (add) not converted"
+        ]
+      }
+    }
+  }
+}

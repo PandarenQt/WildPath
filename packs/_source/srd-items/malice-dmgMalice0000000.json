@@ -1,0 +1,33 @@
+{
+  "_id": "dmgMalice0000000",
+  "_key": "!items!dmgMalice0000000",
+  "name": "Malice",
+  "type": "gear",
+  "img": "icons/magic/air/fog-gas-smoke-orange.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Inhaled Poison</em></p><p>A creature subjected to Malice must succeed on a DC 15 Constitution saving throw or have the Poisoned condition for 1 hour. The creature also has the Blinded condition while Poisoned in this way.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgMalice0000000",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Use Poison\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

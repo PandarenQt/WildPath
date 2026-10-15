@@ -1,0 +1,66 @@
+{
+  "_id": "dmgPotionOfHeroi",
+  "_key": "!items!dmgPotionOfHeroi",
+  "name": "Potion of Heroism",
+  "type": "action",
+  "img": "icons/consumables/potions/bottle-conical-bubbling-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Potion, Rare</em></p><p>When you drink this potion, you gain 10 Temporary Hit Points that last for 1 hour. For the same duration, you are under the effect of the Bless spell (no Concentration required).</p><p>This potion's blue liquid bubbles and steams as if boiling.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-potion-of-heroism-drink",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          },
+          {
+            "capability": "potion-of-heroism",
+            "amount": 1
+          }
+        ]
+      },
+      "label": "Potion of Heroism"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "potion-of-heroism-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "potion-of-heroism",
+          "label": "Potion of Heroism",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgPotionOfHeroi",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "not automated (heal): using it spends its cost; its description says the rest",
+          "healing: temporary Hit Points not converted"
+        ]
+      }
+    }
+  }
+}

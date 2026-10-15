@@ -1,0 +1,33 @@
+{
+  "_id": "dmgDmtDonjon0000",
+  "_key": "!items!dmgDmtDonjon0000",
+  "name": "Donjon",
+  "type": "gear",
+  "img": "icons/magic/symbols/ring-circle-smoke-blue.webp",
+  "system": {
+    "active": false,
+    "description": "<p>You disappear and become entombed in a state of suspended animation in an extradimensional sphere. Everything you're wearing and carrying disappears with you except for Artifacts, which stay behind in the space you occupied when you disappeared. You remain imprisoned until you are found and removed from the sphere. You can't be located by any Divination magic, but a <em>Wish</em> spell can reveal the location of your prison. You draw no more cards.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgDmtDonjon0000",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "\"Card Effect\" is passive or triggered: not automated"
+        ]
+      }
+    }
+  }
+}

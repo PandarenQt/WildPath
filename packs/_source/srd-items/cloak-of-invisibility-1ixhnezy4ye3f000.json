@@ -1,0 +1,33 @@
+{
+  "_id": "1ixhnezy4ye3f000",
+  "_key": "!items!1ixhnezy4ye3f000",
+  "name": "Cloak of Invisibility",
+  "type": "gear",
+  "img": "icons/equipment/back/cloak-hooded-blue.webp",
+  "system": {
+    "active": false,
+    "description": "<div><p><em>Wondrous Item, Legendary (Requires Attunement)</em></p></div><p>This cloak has 3 charges and regains 1d3 expended charges daily at dawn . While wearing the cloak, you can take a Magic action to pull its hood over your head and expend 1 charge to give yourself the Invisible condition for 1 hour. The effect ends early if you pull the hood down (no action required) or cease wearing the cloak.</p>",
+    "quantity": 1,
+    "weight": 2,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgCloakOfInvisi",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "uses: a partial recovery refills the whole pool"
+        ]
+      }
+    }
+  }
+}

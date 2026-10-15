@@ -1,0 +1,31 @@
+{
+  "_id": "dmgEyesOfCharmin",
+  "_key": "!items!dmgEyesOfCharmin",
+  "name": "Eyes of Charming",
+  "type": "gear",
+  "img": "icons/tools/scribal/spectacles-glasses.webp",
+  "system": {
+    "active": false,
+    "description": "<div><p><em>Wondrous Item, Uncommon (Requires Attunement)</em></p></div><p>These crystal lenses fit over the eyes. They have 3 charges. While wearing them, you can expend 1 or more charges to cast <em>Charm Person</em> (save DC 13). For 1 charge, you cast the level 1 version of the spell. You increase the spell's level by one for each additional charge you expend. The lenses regain all expended charges daily at dawn.</p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgEyesOfCharmin",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}
