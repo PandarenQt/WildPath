@@ -34,7 +34,11 @@
           "effect: \"Riding Broom (High Weight)\" change system.attributes.movement.climb (override) not converted",
           "not automated (utility): using it spends its cost; its description says the rest"
         ]
-      }
+      },
+      "grants": [
+        "dmgBroomOfFlying",
+        "c8r0nv1v3r7g1000"
+      ]
     }
   }
 }

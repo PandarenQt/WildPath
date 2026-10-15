@@ -31,7 +31,10 @@
           "effect: \"Understanding\" (its own changes) not converted",
           "\"Reset Progress\" is passive or triggered: not automated"
         ]
-      }
+      },
+      "grants": [
+        "dmgTomeOfUnderst"
+      ]
     }
   }
 }

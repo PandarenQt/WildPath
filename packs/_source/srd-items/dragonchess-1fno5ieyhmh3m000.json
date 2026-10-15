@@ -27,7 +27,11 @@
         "notes": [
           "not automated (check): using it spends its cost; its description says the rest"
         ]
-      }
+      },
+      "grants": [
+        "phbgstDragonches",
+        "1divoec77g7bi000"
+      ]
     }
   }
 }

@@ -31,7 +31,11 @@
           "\"Create Sensor\" is passive or triggered: not automated",
           "not automated (utility): using it spends its cost; its description says the rest"
         ]
-      }
+      },
+      "grants": [
+        "18099012qdysk000",
+        "gueo268rq4wk0000"
+      ]
     }
   }
 }

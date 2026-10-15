@@ -29,7 +29,10 @@
           "uses: a partial recovery refills the whole pool",
           "summon: its creature is not among the converted creatures"
         ]
-      }
+      },
+      "grants": [
+        "dmgFwpMarbleElep"
+      ]
     }
   }
 }

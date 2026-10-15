@@ -28,7 +28,10 @@
           "not automated (utility): using it spends its cost; its description says the rest",
           "effect: \"Jump\" (its own changes) not converted"
         ]
-      }
+      },
+      "grants": [
+        "19qhmropwqf2y000"
+      ]
     }
   }
 }

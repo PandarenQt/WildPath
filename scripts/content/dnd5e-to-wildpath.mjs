@@ -335,7 +335,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     items.unshift({_id: gearId, _key: `!items!${gearId}`, name: document.name, type: "gear", img,
       system: {active: false, description, quantity: Math.max(0, Math.round(number(system.quantity) ?? 1)),
         weight: number(system.weight?.value ?? system.weight) ?? 0, slot: "", ruleElements: [...armorRules(document, allNotes), ...passive]},
-      flags: {wildpath: {source, conversion: {notes: [...new Set(allNotes)]}}}});
+      // Its Actions come with it when it is added to a creature (WildPathItem).
+      flags: {wildpath: {source, conversion: {notes: [...new Set(allNotes)]}, ...(items.length ? {grants: items.map(item => item._id)} : {})}}});
   }
   // Nothing to use: a passive ability is a feature carrying its text (and any uses its other Actions spend).
   if ( !items.length ) {

@@ -39,7 +39,16 @@
           "activation: 10 minute is not an action-economy cost",
           "\"Create Sensor\" is passive or triggered: not automated"
         ]
-      }
+      },
+      "grants": [
+        "jrh9hnyf5kpb0000",
+        "1bkni9egx5nbo000",
+        "1v6r568p8l0ok000",
+        "1tfi1f1h7unmr000",
+        "l3ls1zgfl06r0000",
+        "1cy8g1h15m7xsn00",
+        "1eqglru1rrsqdk00"
+      ]
     }
   }
 }

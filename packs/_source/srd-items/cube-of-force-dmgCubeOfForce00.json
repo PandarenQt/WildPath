@@ -34,7 +34,15 @@
           "effect: \"Enclosed in Sphere\" (its own changes) not converted",
           "concentration: nothing it sustains was converted"
         ]
-      }
+      },
+      "grants": [
+        "184vzy6wiyrjo000",
+        "14iz26y75mcnu000",
+        "1lycvjd6lel0b000",
+        "966k61z2hn1h0000",
+        "pnmfqhcgijqd0000",
+        "1v0kb6s1n57lr800"
+      ]
     }
   }
 }

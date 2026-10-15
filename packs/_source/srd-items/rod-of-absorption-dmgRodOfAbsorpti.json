@@ -28,7 +28,10 @@
           "\"Restore Slots\" is passive or triggered: not automated",
           "not automated (utility): using it spends its cost; its description says the rest"
         ]
-      }
+      },
+      "grants": [
+        "hxq7u41nmls3i000"
+      ]
     }
   }
 }

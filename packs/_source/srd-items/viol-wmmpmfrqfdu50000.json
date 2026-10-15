@@ -27,7 +27,11 @@
         "notes": [
           "not automated (check): using it spends its cost; its description says the rest"
         ]
-      }
+      },
+      "grants": [
+        "phbmusViol000000",
+        "1ndzsvz1ke2njp00"
+      ]
     }
   }
 }

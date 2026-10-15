@@ -28,7 +28,10 @@
           "\"save\" is passive or triggered: not automated",
           "not automated (check): using it spends its cost; its description says the rest"
         ]
-      }
+      },
+      "grants": [
+        "k5831m18msjn4000"
+      ]
     }
   }
 }

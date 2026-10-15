@@ -29,7 +29,11 @@
           "summon: its creature is not among the converted creatures",
           "not automated (utility): using it spends its cost; its description says the rest"
         ]
-      }
+      },
+      "grants": [
+        "dmgBoatUtility00",
+        "19uyfwi17kp9ea00"
+      ]
     }
   }
 }

@@ -27,7 +27,10 @@
         "notes": [
           "uses: a partial recovery refills the whole pool"
         ]
-      }
+      },
+      "grants": [
+        "dmgFwpEbonyFlyRa"
+      ]
     }
   }
 }

@@ -28,7 +28,11 @@
           "not automated (summon): using it spends its cost; its description says the rest",
           "summon: its creature is not among the converted creatures"
         ]
-      }
+      },
+      "grants": [
+        "dmgFwpGoldenLion",
+        "z6fwza271z2o0000"
+      ]
     }
   }
 }

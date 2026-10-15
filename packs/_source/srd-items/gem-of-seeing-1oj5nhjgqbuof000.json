@@ -30,7 +30,10 @@
           "effect: \"Seeing\" change system.attributes.senses.trueseight (upgrade) not converted",
           "effect: \"Seeing\" (its own changes) not converted"
         ]
-      }
+      },
+      "grants": [
+        "dmgGemOfSeeing00"
+      ]
     }
   }
 }

@@ -30,7 +30,10 @@
           "effect: \"Detect Magic\" (its own changes) not converted",
           "concentration: nothing it sustains was converted"
         ]
-      }
+      },
+      "grants": [
+        "7rj9sx19jklib000"
+      ]
     }
   }
 }

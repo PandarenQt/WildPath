@@ -30,7 +30,12 @@
           "effect: \"Bestial Communication\" change system.traits.languages.custom (add) not converted",
           "effect: \"Bestial Communication\" (its own changes) not converted"
         ]
-      }
+      },
+      "grants": [
+        "ba3i6h1w67pov000",
+        "10kg1ij161f22100",
+        "b073ap1ogevv3000"
+      ]
     }
   }
 }

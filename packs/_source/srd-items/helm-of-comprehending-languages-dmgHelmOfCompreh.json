@@ -29,7 +29,10 @@
           "effect: \"Comprehension\" change system.traits.languages.value (add) not converted",
           "effect: \"Comprehension\" (its own changes) not converted"
         ]
-      }
+      },
+      "grants": [
+        "7h096e1ugrlwu000"
+      ]
     }
   }
 }

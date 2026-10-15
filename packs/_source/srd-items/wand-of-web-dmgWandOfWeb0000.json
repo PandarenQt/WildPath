@@ -28,7 +28,10 @@
           "uses: a partial recovery refills the whole pool",
           "concentration: nothing it sustains was converted"
         ]
-      }
+      },
+      "grants": [
+        "82yotvgq9sy90000"
+      ]
     }
   }
 }

@@ -55,7 +55,14 @@
           "effect: \"Air Focus\" change system.traits.languages.value (add) not converted",
           "effect: \"Air Focus\" change system.attributes.movement.hover (override) not converted"
         ]
-      }
+      },
+      "grants": [
+        "dmgAirRingOfElem",
+        "zf35ey1d06og0000",
+        "vea8qa1b3cvm4000",
+        "87cd6p1md1gqp000",
+        "1tmwfq81visuwa00"
+      ]
     }
   }
 }

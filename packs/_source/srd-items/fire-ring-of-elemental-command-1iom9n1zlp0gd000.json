@@ -42,7 +42,14 @@
           "\"damage\" is passive or triggered: not automated",
           "effect: \"Fire Focus\" change system.traits.languages.value (add) not converted"
         ]
-      }
+      },
+      "grants": [
+        "dmgFireRingOfEle",
+        "4f24a51dyn8s7000",
+        "787xe9tsv3990000",
+        "t1tydqlcenxa0000",
+        "1qrk8tcffl0sm000"
+      ]
     }
   }
 }

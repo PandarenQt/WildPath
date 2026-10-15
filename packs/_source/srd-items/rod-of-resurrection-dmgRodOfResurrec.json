@@ -29,7 +29,11 @@
           "activation: 1 hour is not an action-economy cost",
           "effect: \"Spell Taxed\" (its own changes) not converted"
         ]
-      }
+      },
+      "grants": [
+        "deu7fi18523jo000",
+        "1k36x9e13579zq00"
+      ]
     }
   }
 }

@@ -28,7 +28,11 @@
           "\"Object Damage\" is passive or triggered: not automated",
           "\"Roll for Explosion Chance\" is passive or triggered: not automated"
         ]
-      }
+      },
+      "grants": [
+        "dmgHornOfBlastin",
+        "1g20d0b6bffh5000"
+      ]
     }
   }
 }

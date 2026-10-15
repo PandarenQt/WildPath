@@ -29,7 +29,10 @@
           "not automated (utility): using it spends its cost; its description says the rest",
           "area: @scaling-ft square is not supported; the user picks the targets"
         ]
-      }
+      },
+      "grants": [
+        "erdhapmp60u90000"
+      ]
     }
   }
 }

@@ -27,7 +27,11 @@
         "notes": [
           "not automated (check): using it spends its cost; its description says the rest"
         ]
-      }
+      },
+      "grants": [
+        "phbtulBrewersSup",
+        "1whancv1pomji300"
+      ]
     }
   }
 }

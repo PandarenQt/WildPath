@@ -30,7 +30,11 @@
           "not automated (save): using it spends its cost; its description says the rest",
           "effect: \"Telepathy\" change system.traits.languages.custom (add) not converted"
         ]
-      }
+      },
+      "grants": [
+        "1lpl3lj1sw54nh00",
+        "1d8sewb1xqr4pv00"
+      ]
     }
   }
 }

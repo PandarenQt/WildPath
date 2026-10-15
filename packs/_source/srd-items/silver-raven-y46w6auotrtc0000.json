@@ -32,7 +32,11 @@
           "not automated (save): using it spends its cost; its description says the rest",
           "effect: \"Carrying Message\" (its own changes) not converted"
         ]
-      }
+      },
+      "grants": [
+        "dmgFwpSilverRave",
+        "1e1qq7v3304xr000"
+      ]
     }
   }
 }

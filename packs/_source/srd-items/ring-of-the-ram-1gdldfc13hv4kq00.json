@@ -28,7 +28,11 @@
           "uses: a partial recovery refills the whole pool",
           "not automated (utility): using it spends its cost; its description says the rest"
         ]
-      }
+      },
+      "grants": [
+        "dmgRingOfTheRam0",
+        "1w6420y1urbrmu00"
+      ]
     }
   }
 }

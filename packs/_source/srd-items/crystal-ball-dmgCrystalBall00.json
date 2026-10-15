@@ -30,7 +30,10 @@
           "concentration: nothing it sustains was converted",
           "\"Create Sensor\" is passive or triggered: not automated"
         ]
-      }
+      },
+      "grants": [
+        "11x9k74lkt6k0000"
+      ]
     }
   }
 }

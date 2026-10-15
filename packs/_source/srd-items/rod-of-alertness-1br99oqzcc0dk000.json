@@ -34,7 +34,14 @@
           "effect: \"See Invisibility\" change system.attributes.senses.special (add) not converted",
           "effect: \"See Invisibility\" (its own changes) not converted"
         ]
-      }
+      },
+      "grants": [
+        "dmgRodOfAlertnes",
+        "aocl0w1ydrui4000",
+        "jrff8xaknotn0000",
+        "1bm7d63pvqmed000",
+        "53hi0982oeyh0000"
+      ]
     }
   }
 }

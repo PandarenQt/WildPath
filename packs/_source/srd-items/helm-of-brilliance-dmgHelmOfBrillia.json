@@ -46,7 +46,14 @@
           "\"Explosive Emanation\" is passive or triggered: not automated",
           "armor: of any kind; give it its armor's AC by hand"
         ]
-      }
+      },
+      "grants": [
+        "ruuzfi8jll520000",
+        "1r5x35o17khuk800",
+        "10lydoc1hv4x5u00",
+        "1ea5i4scgxius000",
+        "1q4o1361y0rj6q00"
+      ]
     }
   }
 }
