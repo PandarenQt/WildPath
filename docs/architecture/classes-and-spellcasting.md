@@ -41,8 +41,10 @@ an `identifier` and `advancement`, its by-level entries for the level-up dialog.
 `hitDie`, `original` and `spellcasting`; a subclass its `classIdentifier`; a species its `size`. A creature's class
 records are rebuilt from its class and subclass Items whenever one is added, changed or removed
 (`syncClassRecords`, `classRecordsFromItems`), so levels, slots and Hit Dice follow them. A creature with no such
-Items keeps the records it was given. Their sheet shows their fields and what each level gives. Not yet verified live:
-Foundry learns new Item types when the world is launched again.
+Items keeps the records it was given. Their sheet shows their fields and what each level gives.
+Live (GM browser, after relaunching the world, which is how Foundry learns new Item types and packs): the SRD Fighter
+added at level 3 gave level 3 and Hit Dice d10 3/3; level 4 raised both; adding the Champion listed it as its
+subclass; deleting the Fighter cleared the records.
 
 Live (two browsers): a Fighter 3 had "Hit Dice (d10) 3/3". Player1 set its Stealth to Expertise on the sheet (+2 to
 +6), typed its armor training, and ticked Heroic Inspiration.
