@@ -197,6 +197,12 @@
                 <button type="button" class="row-command" data-action="toggleEquipped" aria-pressed="{{#if item.active}}true{{else}}false{{/if}}">
                   {{#if item.active}}{{localize "WILDPATH.SHEET.Equipped"}}{{else}}{{localize "WILDPATH.SHEET.Unequipped"}}{{/if}}
                 </button>
+                {{#if item.attunement}}
+                  <button type="button" class="row-command" data-action="toggleAttuned" title="{{localize "WILDPATH.SHEET.AttunementHint"}}"
+                          aria-pressed="{{#if item.attuned}}true{{else}}false{{/if}}">
+                    {{#if item.attuned}}{{localize "WILDPATH.SHEET.Attuned"}}{{else}}{{localize "WILDPATH.SHEET.NotAttuned"}}{{/if}}
+                  </button>
+                {{/if}}
                 <button type="button" class="row-command" data-action="deleteItem" title="{{localize "WILDPATH.SHEET.Delete"}}">✕</button>
               </li>
             {{else}}

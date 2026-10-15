@@ -26,6 +26,7 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
       openEffect: WildPathActorSheet.#onOpenEffect,
       toggleEffect: WildPathActorSheet.#onToggleEffect,
       toggleEquipped: WildPathActorSheet.#onToggleEquipped,
+      toggleAttuned: WildPathActorSheet.#onToggleAttuned,
       deleteEffect: WildPathActorSheet.#onDeleteEffect
     }
   };
@@ -148,6 +149,17 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
   static async #onToggleEquipped(event, target) {
     const item = this.actor.items.get(target.closest("[data-item-id]")?.dataset.itemId);
     if ( item ) await item.update({"system.active": !item.system.active});
+  }
+
+  /** 2024: a creature is attuned to at most three magic items at once. */
+  static async #onToggleAttuned(event, target) {
+    const item = this.actor.items.get(target.closest("[data-item-id]")?.dataset.itemId);
+    if ( !item ) return;
+    const attuning = item.system.attunement === "required";
+    if ( attuning && (this.actor.items.filter(entry => entry.system?.attunement === "attuned").length >= 3) ) {
+      return void ui.notifications.warn(game.i18n.localize("WILDPATH.SHEET.AttuneLimit"));
+    }
+    await item.update({"system.attunement": attuning ? "attuned" : "required"});
   }
 
   /** @this {WildPathActorSheet} */

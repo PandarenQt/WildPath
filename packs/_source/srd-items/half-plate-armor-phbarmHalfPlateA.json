@@ -53,7 +53,8 @@
           "mode": "disadvantage"
         }
       }
-    ]
+    ],
+    "attunement": ""
   },
   "flags": {
     "wildpath": {

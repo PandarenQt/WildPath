@@ -334,7 +334,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     const gearId = items.some(item => item._id === document._id) ? stableId(`${document._id}:gear`) : document._id;
     items.unshift({_id: gearId, _key: `!items!${gearId}`, name: document.name, type: "gear", img,
       system: {active: false, description, quantity: Math.max(0, Math.round(number(system.quantity) ?? 1)),
-        weight: number(system.weight?.value ?? system.weight) ?? 0, slot: "", ruleElements: [...armorRules(document, allNotes), ...passive]},
+        weight: number(system.weight?.value ?? system.weight) ?? 0, slot: "", ruleElements: [...armorRules(document, allNotes), ...passive],
+        attunement: (system.attunement === "required") ? "required" : ""},
       // Its Actions come with it when it is added to a creature (WildPathItem).
       flags: {wildpath: {source, conversion: {notes: [...new Set(allNotes)]}, ...(items.length ? {grants: items.map(item => item._id)} : {})}}});
   }

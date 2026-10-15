@@ -553,6 +553,8 @@ test("equipment is gear (G7): armor's AC by kind, a Shield's bonus, worn magic i
     {_id: "variant", name: "Variant", transfer: true, disabled: true, system: {changes: [{key: "system.attributes.ac.bonus", value: "3", type: "add"}]}}]};
   assert.deepEqual(gear(cloak).system.ruleElements.map(rule => [rule.data.domains, rule.data.value]), [[["defense.ac"], 1], [["save"], 1]],
     "its passive effects, never a disabled variant");
+  assert.equal(gear(cloak).system.attunement, "");
+  assert.equal(gear({...cloak, system: {...cloak.system, attunement: "required"}}).system.attunement, "required", "until attuned");
 
   const fireball = {...burst, _id: "testFireball0001", name: "Test Fireball"};
   const wand = {...armor("Test Wand", "wand", {}), system: {...armor("Test Wand", "wand", {}).system, uses: {max: "7", spent: 0, recovery: []},

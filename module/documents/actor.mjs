@@ -100,7 +100,7 @@ export default class WildPathActor extends Actor {
 
     const transformation = this.transformation;
     for ( const owner of this.items ) {
-      if ( owner.system?.active === false ) continue;
+      if ( !contributes(owner) ) continue;
       if ( (owner.type === "action") && (owner.id !== item?.id) ) continue;
       if ( transformation && !contributesWhileTransformed(owner, transformation) ) continue;
       for ( const m of owner.system?.modifiers ?? [] ) {
@@ -722,12 +722,17 @@ function tokensOf(actor) {
 /** Grants count from active features and gear (those a transformation keeps) and enabled effects. */
 function grantOwners(actor) {
   const transformation = actor.transformation;
-  const items = [...(actor.items ?? [])].filter(item => (item.system?.active !== false) && (item.type !== "action")
+  const items = [...(actor.items ?? [])].filter(item => contributes(item) && (item.type !== "action")
     && (!transformation || contributesWhileTransformed(item, transformation)))
     .map(item => ({ruleElements: item.system?.ruleElements ?? [], source: documentRuleElementSource(item, "item")}));
   const effects = [...(actor.allApplicableEffects?.() ?? actor.effects)].filter(effect => !effect.disabled && !effect.isSuppressed)
     .map(effect => ({ruleElements: effect.system?.ruleElements ?? [], source: documentRuleElementSource(effect, "effect")}));
   return [...items, ...effects];
+}
+
+/** An Item's rules count while it is active (gear: equipped) and, when it needs attunement (2024), attuned. */
+function contributes(item) {
+  return (item.system?.active !== false) && (item.system?.attunement !== "required");
 }
 
 /** The form's copied Items always count; of the creature's own, only the kept types do. */

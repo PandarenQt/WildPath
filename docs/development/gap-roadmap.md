@@ -211,7 +211,8 @@ Forced movement and elevation join G6, which becomes "space": areas, elevation a
   - Automated SRD Items rose from 326 to 522; the DMG's from 129 to 316.
   - A magic item brings its Actions when it is added from a compendium, and takes them when it is deleted.
   - Uses and charges regained in part on a rest: "1d6 + 1 at dawn", "one on a Short Rest" (174 SRD Items).
-  - Not yet: Weapon Mastery, attunement.
+  - Attunement: an item that needs it gives nothing until attuned, three at most (125 SRD Items).
+  - Not yet: Weapon Mastery; an unattuned or unequipped item's Actions are still usable.
 - **G6, space, first part (2026-10-15).** Done:
   - Cubes and squares are blocks of fields, cast at a point or against the caster's edge; circles are radial.
     "Area shape: cube" fell from 118 documents to 10 (sizes from formulas).
