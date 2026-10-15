@@ -7,6 +7,32 @@
     {{#if isGear}}{{localize "WILDPATH.SHEET.Equipped"}}{{else}}{{localize "WILDPATH.ITEMSHEET.Active"}}{{/if}}
   </label>
 </header>
+{{#if progression}}
+<div class="progression-fields">
+  <label>{{localize "WILDPATH.ITEMSHEET.Identifier"}} <input type="text" name="system.identifier" value="{{system.identifier}}"></label>
+  {{#if progression.isClass}}
+    <label>{{localize "WILDPATH.ITEMSHEET.Levels"}} <input type="number" name="system.levels" value="{{system.levels}}" min="1" max="20" step="1"></label>
+    <label>{{localize "WILDPATH.ITEMSHEET.HitDie"}} <select name="system.hitDie">{{selectOptions progression.hitDice selected=system.hitDie}}</select></label>
+    <label>{{localize "WILDPATH.ITEMSHEET.Spellcasting"}}
+      <select name="system.spellcasting.progression">{{selectOptions progression.progressions selected=system.spellcasting.progression localize=true}}</select>
+      <select name="system.spellcasting.ability">{{selectOptions progression.abilities selected=system.spellcasting.ability localize=true}}</select></label>
+    <label><input type="checkbox" name="system.original" {{checked system.original}}> {{localize "WILDPATH.ITEMSHEET.OriginalClass"}}</label>
+  {{/if}}
+  {{#if progression.isSubclass}}
+    <label>{{localize "WILDPATH.ITEMSHEET.OfClass"}} <input type="text" name="system.classIdentifier" value="{{system.classIdentifier}}"></label>
+  {{/if}}
+  {{#if progression.isSpecies}}
+    <label>{{localize "WILDPATH.ITEMSHEET.Size"}} <select name="system.size">{{selectOptions progression.sizes selected=system.size localize=true}}</select></label>
+  {{/if}}
+</div>
+{{#if progression.levels.length}}
+<ol class="progression-levels">
+  {{#each progression.levels as |row|}}
+    <li><strong>{{localize "WILDPATH.ITEMSHEET.Level" level=row.level}}</strong> {{#each row.entries as |entry|}}<span class="progression-entry">{{entry}}</span>{{/each}}</li>
+  {{/each}}
+</ol>
+{{/if}}
+{{/if}}
 {{#if isGear}}
 <div class="gear-fields">
   <label>{{localize "WILDPATH.SHEET.Quantity"}} <input type="number" name="system.quantity" value="{{system.quantity}}" min="0" step="1"></label>

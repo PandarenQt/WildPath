@@ -38,6 +38,22 @@ async function rollAmount(expression, context) {
   return {total: result.ok ? Math.floor(result.value) : 0, rolls};
 }
 
+/** An Item's identifier, else its name as one ("Fighter" is "fighter"). */
+const identifierOf = item => item.system?.identifier || String(item.name ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+/**
+ * Class records from class and subclass Items: each class with its levels, Hit Die, spellcasting and the subclasses
+ * that name it. The class marked original (its level-1 class), else the first, is the original one.
+ */
+export function classRecordsFromItems(items) {
+  const classes = items.filter(item => item.type === "class");
+  const marked = classes.some(item => item.system?.original);
+  return classes.map((item, index) => ({id: identifierOf(item), name: item.name ?? "", level: Number(item.system?.levels) || 1,
+    hitDie: Number(item.system?.hitDie) || null, original: marked ? item.system?.original === true : index === 0,
+    subclasses: items.filter(entry => (entry.type === "subclass") && (entry.system?.classIdentifier === identifierOf(item))).map(identifierOf),
+    spellcasting: {progression: item.system?.spellcasting?.progression ?? "none", ability: item.system?.spellcasting?.ability ?? ""}}));
+}
+
 /** 2024: a creature's AC without armor is 10 + its Agility modifier. */
 const UNARMORED = Object.freeze({schemaVersion: 1, id: "unarmored", type: "ArmorClass", data: {label: "Unarmored",
   value: {type: "add", terms: [{type: "constant", value: 10}, {type: "ability-modifier", ability: "agility"}]}}});
@@ -250,6 +266,16 @@ export default class WildPathActor extends Actor {
       return [{id, label: label || id, base: 0, bonus: 0, max: maximum, value: Math.min(current ?? maximum, maximum),
         recovery: ["turn", "shortRest", "longRest"].includes(recovery) ? recovery : "none"}];
     });
+  }
+
+  /**
+   * Its class records (levels, Hit Dice, spellcasting, subclasses) from its class and subclass Items (G8), stored where
+   * every reader of classes looks. Called when one of those Items is added, changed or removed; a creature with no
+   * such Items keeps the records it was given.
+   */
+  async syncClassRecords() {
+    const records = classRecordsFromItems([...this.items]);
+    if ( JSON.stringify(this.toObject(true).system.classes ?? []) !== JSON.stringify(records) ) await this.update({"system.classes": records});
   }
 
   /** Store any pool a grant newly needs (an Item or effect with `GrantResource` was added or changed). */

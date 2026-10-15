@@ -12,6 +12,7 @@ import WildPathNPC from "./module/data/actor/npc.mjs";
 import WildPathFeature from "./module/data/item/feature.mjs";
 import WildPathAction from "./module/data/item/action.mjs";
 import WildPathGear from "./module/data/item/gear.mjs";
+import {WildPathBackground, WildPathClass, WildPathSpecies, WildPathSubclass} from "./module/data/item/progression.mjs";
 
 import WildPathBaseEffect from "./module/data/active-effect/base.mjs";
 import WildPathConditionEffect from "./module/data/active-effect/condition.mjs";
@@ -65,7 +66,11 @@ Hooks.once("init", () => {
   CONFIG.Item.dataModels = {
     feature: WildPathFeature,
     action: WildPathAction,
-    gear: WildPathGear
+    gear: WildPathGear,
+    class: WildPathClass,
+    subclass: WildPathSubclass,
+    species: WildPathSpecies,
+    background: WildPathBackground
   };
 
   // ActiveEffect "base" is Foundry's reserved fallback type; WildPath's generic subtype is "effect".
@@ -174,7 +179,7 @@ Hooks.once("init", () => {
   });
 
   DocumentSheetConfig.registerSheet(WildPathItem, "wildpath", WildPathItemSheet, {
-    types: ["feature", "action", "gear"],
+    types: ["feature", "action", "gear", "class", "subclass", "species", "background"],
     makeDefault: true,
     label: "WILDPATH.SheetItem"
   });

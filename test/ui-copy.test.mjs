@@ -46,3 +46,21 @@ test("the Foundry prompt adapter localizes titles and labels and fills in the fo
   assert.equal(shown.ok.label, "Confirm");
   assert.match(shown.content, /Total rolled \(1d8\)/u);
 });
+
+test("lang/en.json has no duplicate keys (a later one would silently replace the earlier)", async () => {
+  const {readFileSync} = await import("node:fs");
+  const text = readFileSync("lang/en.json", "utf8");
+  const duplicates = [];
+  // A key repeated within one object: track the keys of each nesting level.
+  const stack = [new Set()];
+  // Whole strings are consumed, so braces inside values ("{name}") do not count; only a key is followed by a colon.
+  for ( const match of text.matchAll(/"((?:[^"\\]|\\.)*)"(\s*:\s*(\{)?)?|(\})/g) ) {
+    if ( match[4] ) { stack.pop(); continue; }
+    if ( !match[2] ) continue;
+    const keys = stack.at(-1);
+    if ( keys.has(match[1]) ) duplicates.push(match[1]);
+    keys.add(match[1]);
+    if ( match[3] ) stack.push(new Set());
+  }
+  assert.deepEqual(duplicates, []);
+});

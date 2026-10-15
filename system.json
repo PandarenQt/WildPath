@@ -69,6 +69,8 @@
       "action": {
         "htmlFields": ["description"]
       },
+      "class": {"htmlFields": ["description"]}, "subclass": {"htmlFields": ["description"]},
+      "species": {"htmlFields": ["description"]}, "background": {"htmlFields": ["description"]},
       "gear": {
         "htmlFields": ["description"]
       }

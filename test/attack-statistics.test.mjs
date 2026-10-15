@@ -194,3 +194,17 @@ test("Hit Dice (G8): one per class level, by each class's die size", async () =>
   assert.deepEqual(deriveClassData([{id: "fighter", level: 3, hitDie: 10}, {id: "wizard", level: 2, hitDie: 6},
     {id: "paladin", level: 1, hitDie: 10}, {id: "old", level: 4}]).hitDice, {"hit-die.d10": 4, "hit-die.d6": 2});
 });
+
+test("class records come from class and subclass Items (G8): levels, Hit Die, spellcasting, subclasses, the original class", async () => {
+  const {classRecordsFromItems} = await import("../module/documents/actor.mjs");
+  const item = (type, name, system) => ({type, name, system});
+  const records = classRecordsFromItems([
+    item("class", "Wizard", {identifier: "wizard", levels: 3, hitDie: 6, original: false, spellcasting: {progression: "full", ability: "intellect"}}),
+    item("class", "Fighter", {identifier: "", levels: 2, hitDie: 10, original: true, spellcasting: {progression: "none", ability: ""}}),
+    item("subclass", "Evoker", {identifier: "evoker", classIdentifier: "wizard"}),
+    item("feature", "Second Wind", {})]);
+  assert.deepEqual(records, [
+    {id: "wizard", name: "Wizard", level: 3, hitDie: 6, original: false, subclasses: ["evoker"], spellcasting: {progression: "full", ability: "intellect"}},
+    {id: "fighter", name: "Fighter", level: 2, hitDie: 10, original: true, subclasses: [], spellcasting: {progression: "none", ability: ""}}]);
+  assert.equal(classRecordsFromItems([item("class", "Rogue", {levels: 1, hitDie: 8})])[0].original, true, "the first, when none is marked");
+});
