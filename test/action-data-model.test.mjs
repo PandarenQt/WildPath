@@ -61,7 +61,8 @@ test("WildPathBaseActor DataModel persists canonical defense baselines for runti
   assert.equal(schema.defenses instanceof SchemaField, true);
   assert.equal(schema.defenses.fields.ac instanceof SchemaField, true);
   assert.equal(schema.defenses.fields.ac.fields.value instanceof Field, true);
-  assert.equal(schema.defenses.fields.ac.fields.value.options.initial, 10);
+  assert.equal(schema.defenses.fields.ac.fields.value.options.initial, null, "blank: worked out from armor and Agility");
+  assert.equal(schema.defenses.fields.ac.fields.value.options.nullable, true);
 });
 
 test("WildPathAction translates persisted definition costs before legacy cost shortcuts", async () => {

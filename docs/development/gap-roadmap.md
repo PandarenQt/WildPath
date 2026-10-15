@@ -202,7 +202,8 @@ Forced movement and elevation join G6, which becomes "space": areas, elevation a
     applied nothing.
 
 - **G7, weapons, armor and magic items, first part (2026-10-15).** Done:
-  - An `ArmorClass` rule: armor, Unarmored Defense and Mage Armor, and a character's 10 + Agility unarmored.
+  - An `ArmorClass` rule: armor, Unarmored Defense and Mage Armor, and 10 + Agility unarmored. A typed AC on the
+    sheet wins; blank means worked out (maintainer, 2026-10-15).
   - Equipment converts as gear: armor and shields with their AC, Strength and Stealth, and worn magic items'
     passive rules. The SRD pack gained 454 gear items.
   - Spells cast from magic items: 162 SRD Actions, with the item's charges and save DC.

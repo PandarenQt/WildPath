@@ -30,9 +30,8 @@ export function resolveActorDefense(actor, defenseKey="ac") {
     key === "ac" ? actor.system?.ac?.value : null,
     key === "ac" ? actor.system?.ac : null
   ]);
-  // 2024: the AC from the creature's best way of working it out (`ArmorClass`), never below the AC stored on it.
-  const formula = (key === "ac") ? bestArmorClass(actor) : null;
-  const ac = (formula == null) ? base : Math.max(base ?? formula, formula);
+  // A typed AC wins (maintainer, 2026-10-15); a blank one is the creature's best way of working it out (2024).
+  const ac = ((key === "ac") && (base == null)) ? bestArmorClass(actor) : base;
   const statistic = resolveActorStatisticModifier(actor, [`defense.${key}`, key]);
   const modifier = statistic.known ? statistic.value : null;
   const value = ac == null && modifier == null ? null : (ac ?? 0) + (modifier ?? 0);

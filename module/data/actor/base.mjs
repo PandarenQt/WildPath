@@ -35,7 +35,7 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
       biography: new HTMLField({required: true, blank: true}),
       abilities: new SchemaField(abilities),
       defenses: new SchemaField({
-        ac: defenseField({initial: 10})
+        ac: defenseField({initial: null})
       }),
       resources: new SchemaField({
         health: resourceField({initial: 10, recovery: "none"}),
