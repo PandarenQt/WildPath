@@ -38,6 +38,7 @@
   <label>{{localize "WILDPATH.SHEET.Quantity"}} <input type="number" name="system.quantity" value="{{system.quantity}}" min="0" step="1"></label>
   <label>{{localize "WILDPATH.ITEMSHEET.WeightLabel"}} <input type="number" name="system.weight" value="{{system.weight}}" min="0" step="0.1"></label>
   <label>{{localize "WILDPATH.ITEMSHEET.Slot"}} <input type="text" name="system.slot" value="{{system.slot}}" placeholder="{{localize "WILDPATH.ITEMSHEET.SlotPlaceholder"}}"></label>
+  <label>{{localize "WILDPATH.ITEMSHEET.Armor"}} <select name="system.armor">{{selectOptions armorKinds selected=system.armor localize=true}}</select></label>
 </div>
 {{/if}}
 </div>

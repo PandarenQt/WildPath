@@ -45,6 +45,7 @@ export {conditionsFrom, revealedTo};
 import {commonAction, commonActionId} from "../helpers/common-actions.mjs";
 import {
   actionCombatStatistics,
+  attackAbility,
   attackForcesCritical,
   attackRollMode,
   resolveActorCheckStatistic,
@@ -539,7 +540,9 @@ function notifyMultiplayerMovementFailure(event={}, {logger=globalThis.console}=
 /** The acting creature's own check: its bonus, and its advantage or disadvantage on the same domains. */
 function actionCheckInput(actor, {ability=null, skill=null}={}, sourceToken=null) {
   const bonus = resolveActorCheckStatistic(actor, {ability, skill});
-  const domains = ["check", ability ? `check.${ability}` : null, skill ? `check.${skill}` : null].filter(Boolean);
+  // A skill check uses its skill's ability unless it names another (`check.might` reaches an Athletics check).
+  const used = ability ?? WILDPATH.SKILLS?.[skill]?.ability ?? null;
+  const domains = ["check", used ? `check.${used}` : null, skill ? `check.${skill}` : null].filter(Boolean);
   return {...(bonus ? {modifier: bonus.totalModifier} : {}), ...(bonus?.dice?.length ? {dice: bonus.dice} : {}),
     rollMode: combineRollModes(actor.getRollModes?.(domains, {context: {check: {ability, skill}, ...sunlightContext(sourceToken)}}) ?? [])};
 }
@@ -590,6 +593,13 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     ok: false,
     code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
     reason: "A transformed creature can't cast spells."
+  };
+  // 2024: a creature wearing armor it isn't trained with can't cast spells.
+  const hindering = definition?.tags?.includes("spell") ? actor.getUntrainedArmor?.()?.find(item => item.system.armor !== "shield") : null;
+  if ( !authorityAction && hindering ) return {
+    ok: false,
+    code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
+    reason: `${actor.name} can't cast spells while wearing ${hindering.name} without training in it.`
   };
   // A magic item's Action (a wand's spell) needs its item equipped and, when it needs attunement, attuned (2024).
   const grantedBy = action.flags?.wildpath?.grantedBy ? actor.items?.get?.(action.flags.wildpath.grantedBy) : null;
@@ -845,7 +855,8 @@ export async function endConcentrationOnIncapacitation(effect, game=globalThis.g
 function foundryAttackRollMode({actor, action, definition, targetEntries, spatial, game, sourceToken}) {
   const type = definition.attack.type ?? null;
   const target = targetEntries[0] ?? null;
-  return attackRollMode(actor, target?.actor, {type, item: action, context: attackContext(type, spatial, target, game, sourceToken, actor)});
+  return attackRollMode(actor, target?.actor, {type, item: action, ability: attackAbility(actor, definition.attack),
+    context: attackContext(type, spatial, target, game, sourceToken, actor)});
 }
 
 /**

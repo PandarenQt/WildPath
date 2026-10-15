@@ -117,8 +117,9 @@ export default class WildPathActor extends Actor {
     const seen = {tags: [...new Set(tags.filter(Boolean).map(String))], conditions: [...(this.statuses ?? [])]};
 
     const transformation = this.transformation;
+    const untrained = untrainedArmor(this);
     for ( const owner of this.items ) {
-      if ( !contributes(owner) ) continue;
+      if ( !contributes(owner, untrained) ) continue;
       if ( (owner.type === "action") && (owner.id !== item?.id) ) continue;
       if ( transformation && !contributesWhileTransformed(owner, transformation) ) continue;
       for ( const m of owner.system?.modifiers ?? [] ) {
@@ -218,6 +219,11 @@ export default class WildPathActor extends Actor {
    * The ways this creature's features, gear and effects work out its Armor Class (`ArmorClass`): `{value, armor}`,
    * and the 2024 unarmored one, 10 + its Agility modifier. They count when its AC is not typed.
    */
+  /** The armor and Shields this creature wears without the training for them (G8, 2024). */
+  getUntrainedArmor() {
+    return untrainedArmor(this);
+  }
+
   getArmorClasses() {
     const context = {actor: this, actorSystem: this.system, conditions: [...(this.statuses ?? [])]};
     return armorClassesFromRuleElements([...grantOwners(this), {ruleElements: [UNARMORED], source: null}], context);
@@ -775,20 +781,44 @@ function tokensOf(actor) {
     .filter(token => token.actorLink && (token.actorId === actor.id));
 }
 
-/** Grants count from active features and gear (those a transformation keeps) and enabled effects. */
+/**
+ * Grants count from active features and gear (those a transformation keeps) and enabled effects. Armor worn without
+ * its training adds Disadvantage on Might and Agility attack rolls, saves and checks (2024).
+ */
 function grantOwners(actor) {
   const transformation = actor.transformation;
-  const items = [...(actor.items ?? [])].filter(item => contributes(item) && (item.type !== "action")
+  const untrained = untrainedArmor(actor);
+  const items = [...(actor.items ?? [])].filter(item => contributes(item, untrained) && (item.type !== "action")
     && (!transformation || contributesWhileTransformed(item, transformation)))
     .map(item => ({ruleElements: item.system?.ruleElements ?? [], source: documentRuleElementSource(item, "item")}));
   const effects = [...(actor.allApplicableEffects?.() ?? actor.effects)].filter(effect => !effect.disabled && !effect.isSuppressed)
     .map(effect => ({ruleElements: effect.system?.ruleElements ?? [], source: documentRuleElementSource(effect, "effect")}));
-  return [...items, ...effects];
+  const hindering = untrained.find(item => item.system.armor !== "shield");
+  return [...items, ...effects, ...(hindering ? [{ruleElements: [UNTRAINED_ARMOR], source: documentRuleElementSource(hindering, "item")}] : [])];
 }
 
-/** An Item's rules count while it is active (gear: equipped) and, when it needs attunement (2024), attuned. */
-function contributes(item) {
-  return (item.system?.active !== false) && (item.system?.attunement !== "required");
+/** 2024: armor worn without training gives Disadvantage on D20 Tests with Might or Agility. */
+const UNTRAINED_ARMOR = Object.freeze({schemaVersion: 1, id: "untrained-armor", type: "RollMode", data: {mode: "disadvantage",
+  domains: ["attack.might", "attack.agility", "save.might", "save.agility", "check.might", "check.agility"]}});
+
+/**
+ * The armor and Shields a creature wears without the training for them (G8). A creature with no armor training at
+ * all (a stat block) wears what it wears.
+ */
+export function untrainedArmor(actor) {
+  const trained = actor?.system?.training?.armor ?? [];
+  if ( !trained.length ) return [];
+  return [...(actor.items ?? [])].filter(item => (item.type === "gear") && (item.system?.active === true) && item.system?.armor
+    && !trained.includes(item.system.armor));
+}
+
+/**
+ * An Item's rules count while it is active (gear: equipped) and, when it needs attunement (2024), attuned. A Shield
+ * worn without training gives no AC (`untrained`: the creature's untrained armor).
+ */
+function contributes(item, untrained=[]) {
+  return (item.system?.active !== false) && (item.system?.attunement !== "required")
+    && !((item.system?.armor === "shield") && untrained.includes(item));
 }
 
 /** The form's copied Items always count; of the creature's own, only the kept types do. */
