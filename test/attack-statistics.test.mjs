@@ -208,3 +208,28 @@ test("class records come from class and subclass Items (G8): levels, Hit Die, sp
     {id: "fighter", name: "Fighter", level: 2, hitDie: 10, original: true, subclasses: [], spellcasting: {progression: "none", ability: ""}}]);
   assert.equal(classRecordsFromItems([item("class", "Rogue", {levels: 1, hitDie: 8})])[0].original, true, "the first, when none is marked");
 });
+
+test("armor worn without training (2024): Disadvantage on Might and Agility tests, and a Shield gives no AC", async () => {
+  const {untrainedArmor} = await import("../module/documents/actor.mjs");
+  const gear = (id, armor, ruleElements) => ({id, uuid: `Actor.wizard.Item.${id}`, name: id, type: "gear",
+    system: {active: true, armor, modifiers: [], ruleElements}});
+  const shield = gear("shield", "shield", [{schemaVersion: 1, id: "shield", type: "Modifier", data: {domains: ["defense.ac"], value: 2}}]);
+  const plate = gear("plate", "heavy", []);
+  const wizard = (armor, items) => Object.assign(Object.create(WildPathActor.prototype), {id: "wizard", uuid: "Actor.wizard", effects: [],
+    items, system: {defenses: {ac: {value: 12}}, training: {armor}}, allApplicableEffects: () => []});
+  const modes = (actor, domains) => actor.getRollModes(domains).map(entry => entry.mode);
+
+  const untrained = wizard(["light"], [shield, plate]);
+  assert.deepEqual(untrainedArmor(untrained).map(item => item.id), ["shield", "plate"]);
+  assert.equal(resolveActorDefense(untrained, "ac").value, 12, "the untrained Shield gives nothing");
+  assert.deepEqual(modes(untrained, ["save", "save.agility"]), ["disadvantage"]);
+  assert.deepEqual(modes(untrained, ["check", "check.might"]), ["disadvantage"]);
+  assert.deepEqual(modes(untrained, ["attack", "attack.melee", "attack.might"]), ["disadvantage"]);
+  assert.deepEqual(modes(untrained, ["save", "save.wits"]), [], "only Might and Agility");
+
+  const trained = wizard(["light", "heavy", "shield"], [shield, plate]);
+  assert.equal(resolveActorDefense(trained, "ac").value, 14);
+  assert.deepEqual(modes(trained, ["save.agility"]), []);
+  assert.deepEqual(untrainedArmor(wizard([], [shield, plate])), [], "no armor training at all: a stat block wears what it wears");
+  assert.deepEqual(modes(wizard(["light"], [shield]), ["save.agility"]), [], "an untrained Shield alone only loses its AC");
+});

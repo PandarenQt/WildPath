@@ -154,7 +154,8 @@
         }
       }
     ],
-    "attunement": "required"
+    "attunement": "required",
+    "armor": "medium"
   },
   "flags": {
     "wildpath": {

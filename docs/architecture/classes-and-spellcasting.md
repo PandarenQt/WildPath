@@ -33,8 +33,14 @@ is made of, beside its class records:
 - **Training.** `system.training`: `armor`, `weapons`, `tools` and `masteries` (the weapons whose mastery it uses),
   lists of names typed on the sheet. Weapon training decides weapon proficiency (`attackProficient`): a weapon
   attack (`attack.weapon`) adds the proficiency bonus only when the training names its category or the weapon
-  itself; a creature with no weapon training (a stat block) keeps the attack's own `proficient`. Armor training is
-  not read yet.
+  itself; a creature with no weapon training (a stat block) keeps the attack's own `proficient`. Armor training
+  (2024) is checked against a gear Item's `armor` kind (light, medium, heavy, shield): armor worn without it gives
+  Disadvantage on attack rolls, saves and checks with Might or Agility (`attack.<ability>` joins an attack's roll-mode
+  domains, and a skill check its skill's ability) and blocks casting spells; a Shield worn without it gives no AC.
+  A creature with no armor training at all keeps what it wears. Live (GM browser): the QA Fighter in Chain Mail and a
+  Shield went from AC 19 to 17 with only light armor training, had Disadvantage on Agility saves and Athletics, rolled
+  its Longsword with `2d20kl` (a plain `1d20` once trained again), and its Fire Bolt was refused "while wearing Chain
+  Mail without training in it".
 - **Heroic Inspiration.** `system.heroicInspiration`, a checkbox for now.
 - **Hit Dice.** A class record's `hitDie` (its faces) gives one Hit Die per level, held in a pool per size
   (`hit-die.d10`), created full and recovered on a long rest, like slot pools. A multiclass creature holds several.

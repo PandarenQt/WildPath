@@ -372,6 +372,14 @@
       "WeightLabel": "Weight (lb.)",
       "Slot": "Slot",
       "SlotPlaceholder": "body, hands, ring...",
+      "Armor": "Armor",
+      "ArmorKind": {
+        "none": "Not armor",
+        "light": "Light armor",
+        "medium": "Medium armor",
+        "heavy": "Heavy armor",
+        "shield": "Shield"
+      },
       "Tab": {
         "builder": "Builder",
         "rules": "Rules",

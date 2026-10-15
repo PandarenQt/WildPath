@@ -260,6 +260,8 @@ equipped. Equipping it (`system.active`) turns its rules on.
 - **An item's Actions come with it.** Its gear lists them (`flags.wildpath.grants`, ids in its own pack). Adding
   it to a creature from the compendium adds them too, marked `flags.wildpath.grantedBy`, and deleting it deletes
   them (`WildPathItem`).
+- **Armor kind (G8).** Armor and Shields keep their kind in the gear's `armor` field (light, medium, heavy, shield),
+  which armor training reads; magic armor "of any kind" has none.
 - **Weapon kind (G8).** A weapon's attack carries `attack.weapon`: its base weapon (`longsword`, `light-crossbow`),
   `simple` or `martial`, and its 2024 mastery (`sap`), which weapon training and Weapon Mastery read. 93 SRD weapon
   Actions have one.

@@ -339,7 +339,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     items.unshift({_id: gearId, _key: `!items!${gearId}`, name: document.name, type: "gear", img,
       system: {active: false, description, quantity: Math.max(0, Math.round(number(system.quantity) ?? 1)),
         weight: number(system.weight?.value ?? system.weight) ?? 0, slot: "", ruleElements: [...armorRules(document, allNotes), ...passive],
-        attunement: (system.attunement === "required") ? "required" : ""},
+        attunement: (system.attunement === "required") ? "required" : "", armor: (document.type === "equipment" ? armorKind(system) : null) ?? ""},
       // Its Actions come with it when it is added to a creature (WildPathItem).
       flags: {wildpath: {source, conversion: {notes: [...new Set(allNotes)]}, ...(items.length ? {grants: items.map(item => item._id)} : {})}}});
   }
@@ -504,13 +504,21 @@ const GEAR_TYPES = new Set(["equipment", "consumable", "tool", "loot", "containe
  * heavy, plus any magic bonus; a Shield adds its AC. Heavy armor whose Strength the wearer lacks costs 10 feet of
  * Speed, and some armor gives Disadvantage on Stealth. Armor of any kind ("Armor, +1") is left to the GM.
  */
+/** An armor's kind (`light`, `medium`, `heavy`, `shield`), which armor training must name (G8); null for anything else. */
+export function armorKind(system) {
+  const base = number(system?.armor?.value);
+  // Specific magic armor (Dwarven Plate) may name only its base armor, or only its Agility cap.
+  const cap = number(system?.armor?.dex);
+  const kind = system?.type?.value || ((base == null) ? null : (ARMOR_KINDS[system?.type?.baseItem] ?? {0: "heavy", 2: "medium"}[cap] ?? "light"));
+  return ["light", "medium", "heavy", "shield"].includes(kind) ? kind : null;
+}
+
 function armorRules(document, notes) {
   const system = document.system ?? {};
   const base = number(system.armor?.value);
-  // Specific magic armor (Dwarven Plate) may name only its base armor, or only its Agility cap.
   const cap = number(system.armor?.dex);
-  const kind = system.type?.value || ((base == null) ? null : (ARMOR_KINDS[system.type?.baseItem] ?? {0: "heavy", 2: "medium"}[cap] ?? "light"));
-  if ( !["light", "medium", "heavy", "shield"].includes(kind) ) return [];
+  const kind = armorKind(system);
+  if ( !kind ) return [];
   if ( base == null ) {
     notes.push("armor: of any kind; give it its armor's AC by hand");
     return [];

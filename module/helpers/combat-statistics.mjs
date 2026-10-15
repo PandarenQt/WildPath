@@ -148,13 +148,14 @@ function onceKey(entry) {
 }
 
 /**
- * 2024 advantage and disadvantage on an attack roll: the attacker's own (`attack`, `attack.<type>`, the Action's
- * `item` included) and the target's on attacks against it (`attacked`, `attacked.<type>`), combined so any of each
- * cancel. `context` is what their predicates see: `{attack: {type, adjacent, fromTarget}}`.
+ * 2024 advantage and disadvantage on an attack roll: the attacker's own (`attack`, `attack.<type>`, `attack.<ability>`
+ * for the ability it uses, the Action's `item` included) and the target's on attacks against it (`attacked`,
+ * `attacked.<type>`), combined so any of each cancel. `context` is what their predicates see:
+ * `{attack: {type, adjacent, fromTarget}}`.
  */
-export function attackRollMode(attacker, target, {type=null, item=null, context={}}={}) {
+export function attackRollMode(attacker, target, {type=null, item=null, ability=null, context={}}={}) {
   return combineRollModes([
-    ...(attacker?.getRollModes?.(["attack", `attack.${type}`], {item, context}) ?? []),
+    ...(attacker?.getRollModes?.(["attack", `attack.${type}`, ...(ability ? [`attack.${ability}`] : [])], {item, context}) ?? []),
     ...(target?.getRollModes?.(["attacked", `attacked.${type}`], {context}) ?? [])
   ]);
 }

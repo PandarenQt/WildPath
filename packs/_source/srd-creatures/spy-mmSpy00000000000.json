@@ -288,7 +288,8 @@
         "weight": 1,
         "slot": "",
         "ruleElements": [],
-        "attunement": ""
+        "attunement": "",
+        "armor": ""
       },
       "flags": {
         "wildpath": {

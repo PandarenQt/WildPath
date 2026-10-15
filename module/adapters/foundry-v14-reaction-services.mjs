@@ -1,7 +1,7 @@
 import { createFoundryV14TacticalGridAdapter } from "./foundry-v14-tactical-grid-adapter.mjs";
 import { foundryActorSystemSnapshot } from "./foundry-v14-actor-system-adapter.mjs";
 import { createActionResolutionState, createActionReactionChildState } from "../resolvers/action-pipeline-resolver.mjs";
-import { actionCombatStatistics, attackForcesCritical, attackRollMode, resolveActorDefense } from "../helpers/combat-statistics.mjs";
+import { actionCombatStatistics, attackAbility, attackForcesCritical, attackRollMode, resolveActorDefense } from "../helpers/combat-statistics.mjs";
 import { conditionsFrom } from "../helpers/effect-sources.mjs";
 import { footprintDistance } from "../helpers/grid-footprints.mjs";
 import { turnKey } from "./foundry-v14-persistent-areas.mjs";
@@ -67,7 +67,8 @@ function reactionChildState({ args, reactor, target, targetFootprint, sourceFoot
             fromTarget: conditionsFrom(reactor.actor, actor),
             allyNearTarget: allyNearTarget(reactor, target, targetFootprint.footprint ?? null) },
         ...sunlightContext(reactor) };
-    const rollMode = definition.attack ? attackRollMode(reactor.actor, actor, { type, item: reactionItem, context }) : null;
+    const rollMode = definition.attack ? attackRollMode(reactor.actor, actor, { type, item: reactionItem, ability: attackAbility(reactor.actor, definition.attack),
+        context }) : null;
     const critical = !!definition.attack && attackForcesCritical(actor, { type, context });
     // The same attack and damage statistics as any Action: an opportunity attack adds the ability modifier and bonuses,
     // and extra damage sees this attack (Sneak Attack on an Opportunity Attack).

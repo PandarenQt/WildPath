@@ -54,7 +54,8 @@
         }
       }
     ],
-    "attunement": ""
+    "attunement": "",
+    "armor": "medium"
   },
   "flags": {
     "wildpath": {
