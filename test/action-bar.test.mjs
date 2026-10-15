@@ -74,3 +74,18 @@ test("odds show as a badge, a range over several targets, and one tooltip line p
   assert.deepEqual(saves.lines.map(line => [line.key, line.ability, line.data.modifier ?? null]), [
     ["WILDPATH.ODDS.Fails", "WILDPATH.ABILITIES.Wits", "-1"], ["WILDPATH.ODDS.AlwaysFails", "WILDPATH.ABILITIES.Wits", null]]);
 });
+
+test("a magic item's Action is unavailable while its item is unequipped or not attuned", () => {
+  const wand = {id: "wand", type: "gear", name: "Wand", system: {active: false, attunement: "required"}};
+  const fireball = {id: "fireball", type: "action", name: "Wand: Fireball", flags: {wildpath: {grantedBy: "wand"}},
+    system: {active: true, definition: {schemaVersion: 1, id: "action:fireball", label: "Wand: Fireball",
+      costs: {allOf: [{capability: "action", amount: 1}]}}}};
+  const actor = {name: "Hero", items: [wand, fireball], effects: [], system: {resources: {action: {value: 1, max: 1},
+    bonus: {value: 1, max: 1}, reaction: {value: 1, max: 1}, movement: {value: 30, max: 30}}, pools: []}};
+  const entry = () => actionBarContext({actor}).groups.flatMap(group => group.actions).find(action => action.id === "fireball");
+  assert.deepEqual([entry().enabled, entry().disabledCode], [false, "ITEM_NOT_READY"]);
+  wand.system.active = true;
+  assert.equal(entry().enabled, false, "equipped but not attuned");
+  wand.system.attunement = "attuned";
+  assert.equal(entry().enabled, true);
+});
