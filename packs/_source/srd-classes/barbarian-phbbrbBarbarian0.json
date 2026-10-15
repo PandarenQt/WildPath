@@ -351,6 +351,12 @@
     "levels": 1,
     "hitDie": 12,
     "original": false,
+    "primaryAbility": {
+      "abilities": [
+        "might"
+      ],
+      "all": true
+    },
     "spellcasting": {
       "progression": "none",
       "ability": ""

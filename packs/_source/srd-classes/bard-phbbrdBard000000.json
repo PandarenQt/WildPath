@@ -295,6 +295,12 @@
     "levels": 1,
     "hitDie": 8,
     "original": false,
+    "primaryAbility": {
+      "abilities": [
+        "presence"
+      ],
+      "all": true
+    },
     "spellcasting": {
       "progression": "full",
       "ability": "presence"

@@ -358,6 +358,13 @@
     "levels": 1,
     "hitDie": 10,
     "original": false,
+    "primaryAbility": {
+      "abilities": [
+        "might",
+        "agility"
+      ],
+      "all": false
+    },
     "spellcasting": {
       "progression": "none",
       "ability": ""

@@ -453,7 +453,14 @@
 }
 
 /* Sheet completion: header commands, editable bases, stacking levels, death saves. */
-.wildpath.actor .actor-commands { display: flex; gap: 0.25rem; margin-top: 0.25rem; }
+.wildpath.actor .actor-commands { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.25rem; }
+.wildpath.level-up { max-height: 70vh; overflow-y: auto; }
+.wildpath.level-up fieldset { display: flex; flex-wrap: wrap; gap: 0.25rem 0.75rem; }
+.wildpath.level-up fieldset > legend, .wildpath.level-up fieldset > .hint, .wildpath.level-up fieldset > div[data-count] { flex-basis: 100%; }
+.wildpath.level-up .level-up-option { display: inline-flex; align-items: center; gap: 0.25rem; }
+.wildpath.level-up .level-up-abilities { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.25rem; flex-basis: 100%; }
+.wildpath.level-up .level-up-ability input { width: 3rem; }
+.wildpath.level-up .level-up-hp { font-weight: bold; }
 .wildpath.actor .resource-values input.base { width: 3rem; opacity: 0.7; }
 .wildpath.actor .condition { position: relative; }
 .wildpath.actor .condition-level {

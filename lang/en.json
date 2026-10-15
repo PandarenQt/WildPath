@@ -24,6 +24,10 @@
         "Name": "High ground (Baldur's Gate 3)",
         "Hint": "An optional rule from Baldur's Gate 3. On: an attack from 8 feet or more above its target gets +2 to its attack roll, and one from 8 feet or more below gets -2. Off: height gives no bonus, as in the 2024 rules."
       },
+      "RollHitPoints": {
+        "Name": "Roll hit points on level up",
+        "Hint": "On: each level after the first rolls its Hit Die for hit points (at least 1, with the Fortitude modifier). Off: the Hit Die's average rounded up, as the 2024 rules suggest."
+      },
       "PlayersSeeOdds": {
         "Name": "Players see the odds",
         "Hint": "House rule. On: before acting, players see the chance to hit and the chance a target fails its save, which reveals targets' AC and save bonuses. Off: only the GM sees them, except against a creature whose defenses an effect has revealed to the player's creature."
@@ -213,6 +217,30 @@
       "Prompt": "{name} failed its save. Use Legendary Resistance to succeed instead? ({value} of {max} left)",
       "Use": "Succeed instead",
       "Decline": "Fail the save"
+    },
+    "LEVELUP": {
+      "Button": "Level up {name}",
+      "Title": "{name}: level {level}",
+      "Origin": "{name}",
+      "Confirm": "Confirm",
+      "Nothing": "Nothing to choose at this level.",
+      "Choose": "Choose {count}.",
+      "Increase": "Spend {points} points, at most {cap} on one ability (20 at most), or take a feat.",
+      "Feat": "Feat",
+      "NoFeat": "No feat: increase abilities",
+      "Save": "{ability} saving throws",
+      "HitPoints": "Hit points: +{value}",
+      "HitPointsRolled": "Hit points: {die} + {fortitude} (rolled on confirm)",
+      "HitPointsRoll": "{name}: hit points for {class} level {level}",
+      "Multiclass": "Multiclassing usually needs 13 in each class's primary abilities; short for {classes}.",
+      "Step": {
+        "grant": "Features",
+        "choice": "Choose",
+        "trait": "Proficiencies",
+        "improvement": "Ability Score Improvement",
+        "subclass": "Subclass",
+        "size": "Size"
+      }
     },
     "SIZES": {
       "tiny": "Tiny",

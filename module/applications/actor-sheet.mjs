@@ -1,5 +1,9 @@
 import {createActorSheetViewModel} from "../helpers/character-sheet-view-models.mjs";
 import {actorProficiencyBonus, resolveActorCheckStatistic, resolveActorDefense} from "../helpers/combat-statistics.mjs";
+import {levelUp} from "./level-up.mjs";
+
+/** Item types whose drop opens the level-up dialog (G8): a class's first level, a species or background. */
+const LEVELLED = new Set(["class", "species", "background"]);
 
 /** What the sheet's training fields list (comma-separated names). */
 const TRAINING = ["armor", "weapons", "tools", "masteries"];
@@ -30,6 +34,7 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
       toggleEffect: WildPathActorSheet.#onToggleEffect,
       toggleEquipped: WildPathActorSheet.#onToggleEquipped,
       toggleAttuned: WildPathActorSheet.#onToggleAttuned,
+      levelUp: WildPathActorSheet.#onLevelUp,
       deleteEffect: WildPathActorSheet.#onDeleteEffect
     }
   };
@@ -65,6 +70,11 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
     context.training = TRAINING.map(key => ({key, label: `WILDPATH.SHEET.Training.${key}`, hint: `WILDPATH.SHEET.Training.Hint.${key}`,
       value: (this.actor.system.training?.[key] ?? []).join(", ")}));
     context.typeLabel = CONFIG.Actor.typeLabels?.[this.actor.type] ?? this.actor.type;
+    // A "Level up" button per class while the character is below level 20 (G8).
+    const classes = this.actor.items.filter(item => item.type === "class");
+    const total = classes.reduce((sum, item) => sum + (Number(item.system.levels) || 0), 0);
+    context.levelUps = this.isEditable && (total < 20) ? classes.map(item => ({id: item.id,
+      label: game.i18n.format("WILDPATH.LEVELUP.Button", {name: item.name})})) : [];
     context.dyingModes = {auto: "WILDPATH.SHEET.DyingMode.auto", deathSaves: "WILDPATH.SHEET.DyingMode.deathSaves",
       dies: "WILDPATH.SHEET.DyingMode.dies"};
     return context;
@@ -90,6 +100,16 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
         void this.actor.toggleCondition(element.dataset.conditionId, {levels: -1});
       });
     }
+  }
+
+  /** A class, species or background dropped from elsewhere asks its level's choices (G8). */
+  async _onDropItem(event, item) {
+    const moved = item.parent?.uuid === this.actor.uuid;
+    const created = await super._onDropItem(event, item);
+    if ( created && !moved && LEVELLED.has(created.type) ) {
+      await levelUp(this.actor, created, {level: created.type === "class" ? (Number(created.system.levels) || 1) : 0});
+    }
+    return created;
   }
 
   /**
@@ -140,6 +160,12 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
   /** @this {WildPathActorSheet} */
   static async #onRest(event, target) {
     await this.actor.rest(target.dataset.recovery);
+  }
+
+  /** @this {WildPathActorSheet} The next level of a class. */
+  static async #onLevelUp(event, target) {
+    const item = this.actor.items.get(target.dataset.itemId);
+    if ( item ) await levelUp(this.actor, item, {level: (Number(item.system.levels) || 1) + 1});
   }
 
   /** @this {WildPathActorSheet} */

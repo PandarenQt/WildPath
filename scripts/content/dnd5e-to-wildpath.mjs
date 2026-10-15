@@ -268,7 +268,9 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   const pool = usesPool({document, scales});
   const description = describe(document, {names, creature});
   const source = {system: "dnd5e", pack, id: document._id, type: document.type, book,
-    license: document.system?.source?.license || null, rules: document.system?.source?.rules || "2024"};
+    license: document.system?.source?.license || null, rules: document.system?.source?.rules || "2024",
+    // A feat's category (origin, general, fightingStyle, epicBoon), which the level-up dialog offers (G8).
+    ...((system.type?.value === "feat") ? {feat: system.type.subtype || "general"} : {})};
   const img = kept(document.img, images) ?? "icons/svg/item-bag.svg";
   const items = [];
   const allNotes = [];
@@ -478,6 +480,7 @@ export function convertProgression(document, {uuidOf=() => [], licensed=isSrd202
     const mapped = {full: "full", half: "half", artificer: "half"}[progression] ?? "none";
     if ( !["none", "full", "half"].includes(progression) ) notes.push(`spellcasting: ${progression} is treated as ${mapped}`);
     Object.assign(fields, {levels: 1, hitDie: Number(String(system.hd?.denomination ?? "d8").slice(1)) || 8, original: false,
+      primaryAbility: {abilities: (system.primaryAbility?.value ?? []).map(key => ABILITY_MAP[key] ?? key), all: system.primaryAbility?.all !== false},
       spellcasting: {progression: mapped, ability: ABILITY_MAP[system.spellcasting?.ability] ?? ""}});
   }
   if ( type === "subclass" ) fields.classIdentifier = system.classIdentifier ?? "";

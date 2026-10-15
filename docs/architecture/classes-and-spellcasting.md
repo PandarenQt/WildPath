@@ -46,6 +46,36 @@ Live (GM browser, after relaunching the world, which is how Foundry learns new I
 added at level 3 gave level 3 and Hit Dice d10 3/3; level 4 raised both; adding the Champion listed it as its
 subclass; deleting the Fighter cleared the records.
 
+**Level up (G8, 2026-10-15).** A BG3-style dialog (`applications/level-up.mts`, rules in `helpers/level-up.mts`) asks
+only what one level asks, and adds what it grants:
+- **When.** Dropping a class, species or background on a character's sheet opens it (a class at its first level); a
+  "Level up <class>" button per class (below level 20) opens the next level. Closing it changes nothing.
+- **What it shows.** That level's entries from the class and its subclass, or the species' or background's: features
+  granted (listed), choices of features, skills, training and Weapon Mastery (checkboxes; what the creature already
+  has is not offered), an Ability Score Improvement (points to spend, or a feat from the compendiums' origin and
+  general feats, Epic Boons from level 19), the subclass (from every Item compendium, by class identifier) and a
+  species' size. Confirm stays disabled until every count and every point is met.
+- **What it does.** The class's `levels` goes up; hit points rise by the Hit Die's maximum at a character's first
+  level, else its average rounded up, plus the Fortitude modifier (the `rollHitPoints` world setting rolls the die
+  instead, with the roll in chat); one more Hit Die is available. Skills, saves and training are added, ability
+  scores raised (20 at most), the features created from their compendium as given by the class (so they go when it
+  goes), and a chosen subclass is added with its own features for that level.
+- **Multiclassing** (a class beside another) uses the class's multiclass proficiencies and the average hit points,
+  and warns, without blocking, when either class's primary abilities are below 13.
+- Shortcuts: a later Fortitude increase does not raise earlier levels' hit points; removing a class does not take
+  back its hit points or ability increases; a subclass dropped directly gets no dialog; spells a feature chooses
+  (Magic Initiate, a spellbook) are not asked.
+
+Live (two browsers, SRD 5.2): the Fighter dropped on a new character gave 12 hit points (d10 + 2), Might and
+Fortitude saves, the two chosen skills, armor and weapon training, three chosen masteries, Fighting Style (Defense
+chosen), Second Wind with its pool, and Weapon Mastery. Levels 2 to 4 from the button gave +8 each, Hit Dice 4/4,
+Action Surge, the Champion with Improved Critical and Remarkable Athlete without a second dialog, Might and Fortitude
++1, and a fourth mastery (Longsword, already taken, not offered). The Human (Medium; Stealth; Alert) and the Acolyte
+(Wits +2, Presence +1; Insight, Religion, calligrapher's tools; Magic Initiate) followed. A Wizard beside it warned
+"short for Wizard", gave +6 and a d6 Hit Die and two 1st-level slots, and took its features with it when deleted.
+Player1 leveled to 5 from their own browser (Extra Attack, Hit Dice 5/5); with `rollHitPoints` on, level 6 rolled
+6 + 2 in chat and took Grappler instead of an increase.
+
 Live (two browsers): a Fighter 3 had "Hit Dice (d10) 3/3". Player1 set its Stealth to Expertise on the sheet (+2 to
 +6), typed its armor training, and ticked Heroic Inspiration.
 

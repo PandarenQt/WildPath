@@ -242,6 +242,12 @@
     "levels": 1,
     "hitDie": 8,
     "original": false,
+    "primaryAbility": {
+      "abilities": [
+        "wits"
+      ],
+      "all": true
+    },
     "spellcasting": {
       "progression": "full",
       "ability": "wits"
