@@ -135,6 +135,16 @@ Hooks.once("init", () => {
     default: "digital"
   });
 
+  // Baldur's Gate 3 rule (B3, off by default): +2 to attack rolls from 8 feet or more above the target, -2 from below.
+  game.settings.register("wildpath", "highGround", {
+    name: "WILDPATH.SETTINGS.HighGround.Name",
+    hint: "WILDPATH.SETTINGS.HighGround.Hint",
+    scope: "world",
+    config: true,
+    type: Boolean,
+    default: false
+  });
+
   // House rule: whether players see the odds before acting (the GM always does).
   game.settings.register("wildpath", "playersSeeOdds", {
     name: "WILDPATH.SETTINGS.PlayersSeeOdds.Name",

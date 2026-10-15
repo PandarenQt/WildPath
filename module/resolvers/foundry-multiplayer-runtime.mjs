@@ -713,6 +713,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const spatial = buildFoundryActionSpatialContext({sourceToken, targetEntries, game, defenseKey});
   const attackRollMode = definition?.attack ? foundryAttackRollMode({actor, action, definition, targetEntries, spatial, game, sourceToken}) : null;
   const attackOutcomes = definition?.attack ? foundryAttackOutcomes({definition, targets, targetEntries, spatial, game, sourceToken}) : null;
+  const attackBonuses = definition?.attack ? foundryAttackBonuses({targets, targetEntries, game, sourceToken}) : null;
   // Extra damage that depends on this attack (Sneak Attack: Advantage, or an ally beside the target) sees it.
   const statistics = definition?.attack ? actionCombatStatistics(actor, definition, {item: action,
     turn: game.combat?.started ? turnKey(game.combat) : null, context: {attack: {...attackContext(definition.attack.type ?? null, spatial,
@@ -753,7 +754,8 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       ...(statistics.damage ? {damage: statistics.damage} : {}),
       ...((statistics.attack || attackRollMode) ? {attack: {...(statistics.attack ?? {}),
         ...(attackRollMode ? {rollMode: attackRollMode} : {}),
-        ...(attackOutcomes ? {outcomesByTarget: attackOutcomes} : {})}} : {}),
+        ...(attackOutcomes ? {outcomesByTarget: attackOutcomes} : {}),
+        ...(attackBonuses ? {bonusByTarget: attackBonuses} : {})}} : {}),
       ...(Object.keys(saveRollModes).length ? {save: {rollModesByTarget: saveRollModes, modifiersByTarget: saveModifiers,
         ...(Object.keys(saveDice).length ? {diceByTarget: saveDice} : {}),
         ...(Object.keys(legendaryByTarget).length ? {legendaryByTarget} : {}),
@@ -840,6 +842,31 @@ function foundryAttackRollMode({actor, action, definition, targetEntries, spatia
   return attackRollMode(actor, target?.actor, {type, item: action, context: attackContext(type, spatial, target, game, sourceToken, actor)});
 }
 
+/**
+ * High ground (Baldur's Gate 3, the `highGround` world setting, off by default): +2 to an attack roll from 8 feet or more
+ * above its target, -2 from 8 feet or more below. Measured between the Tokens' elevations.
+ */
+export function highGroundBonus(attackerElevation, targetElevation) {
+  const difference = (Number(attackerElevation) || 0) - (Number(targetElevation) || 0);
+  return difference >= 8 ? 2 : (difference <= -8 ? -2 : 0);
+}
+
+function highGroundOn(game) {
+  try { return game?.settings?.get("wildpath", "highGround") === true; } catch (_error) { return false; }
+}
+
+/** Each target's high-ground bonus, keyed by Token like the targets; null when the setting is off or none applies. */
+function foundryAttackBonuses({targets, targetEntries, game, sourceToken}) {
+  if ( !sourceToken || !highGroundOn(game) ) return null;
+  const bonuses = {};
+  targetEntries.forEach((entry, index) => {
+    const token = resolveFoundryTargetToken({actor: entry.actor, hint: entry.hint, game, preferredSceneId: sourceToken.parent?.id ?? null});
+    const bonus = token ? highGroundBonus(sourceToken.elevation, token.elevation) : 0;
+    if ( bonus ) bonuses[targets[index].tokenId ?? targets[index].id] = bonus;
+  });
+  return Object.keys(bonuses).length ? bonuses : null;
+}
+
 /** Outcomes forced on hits against each target (`critical-on-hit`), keyed by Token like the targets. */
 function foundryAttackOutcomes({definition, targets, targetEntries, spatial, game, sourceToken}) {
   const type = definition.attack.type ?? null;
@@ -918,8 +945,9 @@ export function foundryActionOdds({actor, action, sourceToken=null, targetTokens
       const defense = resolveActorDefense(entry.actor, defenseKey)?.value;
       if ( !Number.isFinite(defense) ) return [];
       const rollMode = foundryAttackRollMode({actor, action, definition, targetEntries: [entry], spatial, game, sourceToken});
-      return [{tokenId: entry.token.id, name: entry.token.name, kind: "attack", modifier, defense, rollMode,
-        chance: d20Chance({modifier, target: defense, rollMode, natural: true, dice: statistics.attack?.dice})}];
+      const total = modifier + ((sourceToken && highGroundOn(game)) ? highGroundBonus(sourceToken.elevation, entry.token.elevation) : 0);
+      return [{tokenId: entry.token.id, name: entry.token.name, kind: "attack", modifier: total, defense, rollMode,
+        chance: d20Chance({modifier: total, target: defense, rollMode, natural: true, dice: statistics.attack?.dice})}];
     });
   }
   const dc = actionDefinitionToResolverInput(definition, {actorSystem: foundryActorSystemSnapshot(actor)}).save?.dc?.value;

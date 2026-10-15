@@ -1013,8 +1013,8 @@ function createAttackOutcomeStage() {
 
       const attackResolution = resolveAttackTargets({
         roll: attack.roll,
-        targetContexts: withOutcomeOverrides(attack.targetContexts ?? state.results?.targetResolution?.targetContexts ?? [],
-          attack.outcomesByTarget),
+        targetContexts: withAttackBonuses(withOutcomeOverrides(attack.targetContexts ?? state.results?.targetResolution?.targetContexts ?? [],
+          attack.outcomesByTarget), attack.bonusByTarget),
         targets: attack.targets ?? (state.results?.targetResolution ? [] : actionContext.targets),
         defense: attack.defense ?? null,
         defenseKey: attack.defenseKey ?? "ac",
@@ -1261,6 +1261,15 @@ function withOutcomeOverrides(entries, outcomesByTarget) {
   return normalizeArray(entries).map(entry => {
     const outcome = outcomesByTarget[rollModeTargetKey(entry?.target ?? entry)];
     return outcome ? {...entry, overrides: [...(entry?.overrides ?? []), {type: outcome}]} : entry;
+  });
+}
+
+/** Target contexts with the runtime's bonus against each of them (keyed by Token: high ground) added as an override. */
+function withAttackBonuses(entries, bonusByTarget) {
+  if ( !bonusByTarget ) return entries;
+  return normalizeArray(entries).map(entry => {
+    const value = Number(bonusByTarget[rollModeTargetKey(entry?.target ?? entry)]) || 0;
+    return value ? {...entry, overrides: [...(entry?.overrides ?? []), {type: "attack-bonus", value}]} : entry;
   });
 }
 

@@ -16,6 +16,10 @@
         "Digital": "Digital dice",
         "Physical": "Physical dice"
       },
+      "HighGround": {
+        "Name": "High ground (Baldur's Gate 3)",
+        "Hint": "An optional rule from Baldur's Gate 3. On: an attack from 8 feet or more above its target gets +2 to its attack roll, and one from 8 feet or more below gets -2. Off: height gives no bonus, as in the 2024 rules."
+      },
       "PlayersSeeOdds": {
         "Name": "Players see the odds",
         "Hint": "House rule. On: before acting, players see the chance to hit and the chance a target fails its save, which reveals targets' AC and save bonuses. Off: only the GM sees them, except against a creature whose defenses an effect has revealed to the player's creature."

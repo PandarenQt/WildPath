@@ -130,7 +130,8 @@ Each is small, and each changes every turn at the table.
 
 Each changes the rules, so each is a world setting. Maintainer decision (2026-10-14): offer all of them, off by
 default:
-- **High ground:** +2 to attack rolls from 2.5 m (8 ft) above the target, and −2 from as far below.
+- **High ground:** +2 to attack rolls from 2.5 m (8 ft) above the target, and −2 from as far below. Done
+  (2026-10-15): the `highGround` world setting, off by default.
 - **Bonus-action moves:** Shove and Jump as Bonus Actions, and Dip a weapon in fire for extra fire damage.
 - **Surfaces** with BG3's reactions, and its Wet condition: resistance to fire, vulnerability to cold and
   lightning, and immunity to Burning.
