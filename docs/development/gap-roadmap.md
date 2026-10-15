@@ -314,7 +314,7 @@ Forced movement and elevation join G6, which becomes "space": areas, elevation a
   - Lasting areas on the path: "Enters Burning Ground" (2026-10-15). Difficult terrain is in Foundry's own cost.
 - **B1.4a, common actions (2026-10-14).** Done:
   - Dash, Disengage, Dodge, Hide, Grapple, Shove and Unarmed Strike for every creature, built by the authority
-    from their id;
+    from their id; Shove: Push and Help (2026-10-15);
   - verified in Node, Quench (91/91) and two browsers
     ([action-definitions.md](../architecture/action-definitions.md#common-actions-2026-10-14-after-baldurs-gate-3)).
 - **B1.4b, Opportunity Attacks for every creature (2026-10-14).** Done:
