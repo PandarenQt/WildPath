@@ -39,8 +39,11 @@ const COMMON = {
             check: { ability: "agility", skill: "stealth", dc: { value: 15 } },
             effects: [{ id: "hidden", type: "condition", conditionId: "invisible", checkOutcomePolicy: "success" }] } },
     grapple: { name: "WILDPATH.COMMON.Grapple", img: "icons/svg/anchor.svg", definition: { costs: ACTION, ...strikeSave({ conditionId: "grappled" }) } },
-    // Push is not here yet: it needs forced movement (roadmap G6).
+    // 2024 Shove: on a failed save, the target is pushed 5 feet away or has the Prone condition; one action for each.
+    // shortcut: any size can be shoved; 2024 allows one size larger than you at most. Upgrade with creature sizes.
     shove: { name: "WILDPATH.COMMON.Shove", img: "icons/svg/falling.svg", definition: { costs: ACTION, ...strikeSave({ conditionId: "prone" }) } },
+    push: { name: "WILDPATH.COMMON.Push", img: "icons/svg/thrust.svg", definition: { costs: ACTION, ...TOUCH,
+            save: { ability: "might", dc: STRIKE_DC }, push: { distance: 5 } } },
     unarmed: { name: "WILDPATH.COMMON.UnarmedStrike", img: "icons/svg/combat.svg", definition: { costs: ACTION, ...TOUCH,
             attack: { type: "melee", statistic: "weapon", defenseKey: "ac", proficient: true },
             damage: [{ id: "unarmed", expression: { type: "constant", value: 1 }, damageType: "bludgeoning", provenance: "weapon-base" }] } }

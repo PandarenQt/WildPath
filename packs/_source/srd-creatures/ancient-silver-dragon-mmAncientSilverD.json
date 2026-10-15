@@ -1275,6 +1275,9 @@
               }
             }
           ],
+          "push": {
+            "distance": 30
+          },
           "label": "Cold Gale"
         },
         "ruleElements": []

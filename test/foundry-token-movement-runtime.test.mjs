@@ -3523,3 +3523,20 @@ for ( const handoff of [false, true] ) {
     assert.equal(fixture.persistence.operations.length, 0);
   });
 }
+
+test("a move by a V14 action that teleports (Displace, Blink) is a teleport, not a walk; a push is forced", () => {
+  const {token, scene} = footprintTranslationFixture();
+  const movement = movementOperation(token, {offsets: [scene.grid.cubeToOffset({q: 6, r: 2})]});
+  const previous = globalThis.CONFIG;
+  globalThis.CONFIG = {Token: {movement: {actions: {displace: {teleport: true}, walk: {teleport: false}}}}};
+  try {
+    const kind = action => buildFoundryMovementIntent({tokenDocument: token, user: PLAYER,
+      movement: {...movement, destination: {...movement.destination, action}}}).intent.movementKind;
+    assert.equal(kind("displace"), "teleport");
+    assert.equal(kind("walk"), "voluntary");
+    assert.equal(buildFoundryMovementIntent({tokenDocument: token, movement, user: PLAYER,
+      operation: {wildpath: {movementKind: "forced"}}}).intent.movementKind, "forced");
+  } finally {
+    globalThis.CONFIG = previous;
+  }
+});

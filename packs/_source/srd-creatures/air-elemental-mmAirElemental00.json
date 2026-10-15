@@ -293,6 +293,9 @@
               "saveOutcomePolicy": "failure"
             }
           ],
+          "push": {
+            "distance": 20
+          },
           "label": "Whirlwind"
         },
         "ruleElements": [

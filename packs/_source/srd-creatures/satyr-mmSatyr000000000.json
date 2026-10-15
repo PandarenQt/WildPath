@@ -149,6 +149,10 @@
               "provenance": "weapon-base"
             }
           ],
+          "push": {
+            "distance": 10,
+            "maxSize": "medium"
+          },
           "label": "Hooves"
         },
         "ruleElements": []

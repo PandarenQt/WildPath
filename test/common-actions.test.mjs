@@ -5,7 +5,7 @@ import {validateActionDefinition} from "../module/helpers/action-definitions.mjs
 import {actionBarContext} from "../module/helpers/action-bar-context.mjs";
 
 test("every creature's common actions are valid Actions, built fresh from their id", () => {
-  assert.deepEqual([...COMMON_ACTION_IDS], ["dash", "disengage", "dodge", "hide", "grapple", "shove", "unarmed", "opportunity"]);
+  assert.deepEqual([...COMMON_ACTION_IDS], ["dash", "disengage", "dodge", "hide", "grapple", "shove", "push", "unarmed", "opportunity"]);
   const actor = {uuid: "Actor.hero"};
   for ( const id of COMMON_ACTION_IDS ) {
     const action = commonAction(actor, id, {localize: key => key.split(".").pop()});
@@ -15,6 +15,8 @@ test("every creature's common actions are valid Actions, built fresh from their 
   assert.equal(commonAction(actor, "dash").system.definition.label, "WILDPATH.COMMON.Dash", "named by its lang key");
   const shove = commonAction(actor, "shove").system.definition;
   assert.deepEqual([shove.save.ability, shove.effects[0].conditionId, shove.effects[0].saveOutcomePolicy], ["might", "prone", "failure"]);
+  const push = commonAction(actor, "push").system.definition;
+  assert.deepEqual([push.save.ability, push.push, push.effects], ["might", {distance: 5}, undefined], "or pushed 5 feet on a failed save");
   assert.notEqual(commonAction(actor, "dash").system.definition, commonAction(actor, "dash").system.definition, "never shared");
   assert.deepEqual(["common:dash", "common:fly", "Item.dash", "common:Dash", null].map(commonActionId), ["dash", null, null, null, null]);
 

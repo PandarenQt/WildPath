@@ -1515,12 +1515,15 @@ function resolveTokenDocument(token) {
 }
 
 function movementKindFromFoundryOperation({movement=null, operation={}}={}) {
+  const action = movement?.passed?.waypoints?.at(-1)?.action ?? movement?.destination?.action;
   return normalizeMovementKind(
     operation?.wildpath?.movementKind
     ?? movement?.wildpath?.movementKind
     ?? movement?.metadata?.wildpath?.movementKind
     ?? operation?.movementKind
     ?? movement?.movementKind
+    // V14 actions that teleport (Displace, Blink) jump to their destination rather than walk there.
+    ?? (globalThis.CONFIG?.Token?.movement?.actions?.[action]?.teleport ? MOVEMENT_KINDS.TELEPORT : null)
   );
 }
 

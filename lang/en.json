@@ -188,7 +188,8 @@
       "Dodge": "Dodge",
       "Hide": "Hide",
       "Grapple": "Grapple",
-      "Shove": "Shove",
+      "Shove": "Shove: Prone",
+      "Push": "Shove: Push",
       "UnarmedStrike": "Unarmed Strike",
       "OpportunityAttack": "Opportunity Attack"
     },

@@ -258,6 +258,34 @@ Live (two browsers, 14.369): Player1 cast the SRD Daylight beside a Kobold Warri
 appeared at the chosen point. The Kobold's Dagger showed 56% with Disadvantage. When the Region was deleted, the light
 went with it, and the Dagger was back to 75%.
 
+## Forced Movement (2026-10-15)
+
+An Action with `push: {distance, toward?, maxSize?, on?}` moves creatures when it completes
+(`module/adapters/foundry-v14-forced-movement.mts`). Thunderwave is `{distance: 10}`, and the Merrow's Harpoon is
+`{distance: 15, toward: true, maxSize: "large"}`.
+
+- **Who moves.** The creatures that fail its save, or with `on: "success"` those that succeed (the Bulette's Deadly
+  Leap). An Action with no save moves the creatures its attack hits.
+  - `maxSize` skips bigger creatures. The size is read from the Token: 1 field is Medium or smaller, 2 Large, 3 Huge.
+  - A Legendary Resistance that turns a failure into a success stops the push.
+- **Where.** The active GM moves each creature a field at a time along the line from the source's center through
+  the creature's: away from it, or toward it for a pull. On a square grid each step is one field on the longer axis,
+  so a diagonal push crosses diagonals.
+  - The creature stops before a wall, another creature's field, or the Scene's edge.
+  - When several are pushed, the farthest moves first; when pulled, the nearest.
+- **As forced movement.** The Token update carries `movementKind: "forced"`. It spends no Speed and provokes no
+  Opportunity Attack (2024). A lasting area the creature is pushed into still sees it enter.
+- Shortcuts:
+  - "up to N feet" always pushes the whole distance;
+  - walls are tested through the Token's placeable, so only when the GM is viewing that Scene;
+  - "Small or smaller" cannot be told from Medium by Token size;
+  - a creature inside its source's own space (an Air Elemental's Whirlwind) has no direction and stays.
+
+Live (two browsers, 14.369): Player1 cast the SRD Thunderwave (a Cube against QA Caster's east side) over QA Failer,
+QA Ally and the Bandit Captain. QA Failer failed and went 10 feet diagonally away. The Bandit Captain failed and
+stopped after 5 feet at a wall. QA Ally saved and stayed. Neither push offered QA Caster an Opportunity Attack.
+Player1's "Shove: Push" on QA Failer moved it 5 feet on a failed save; on a success it stayed.
+
 ## Auras and Emanations
 
 Future auras and emanations should derive from token footprints and grid-native radial expansion.

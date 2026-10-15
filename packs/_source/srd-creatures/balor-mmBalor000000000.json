@@ -390,6 +390,11 @@
               "conditionId": "prone"
             }
           ],
+          "push": {
+            "distance": 25,
+            "toward": true,
+            "maxSize": "huge"
+          },
           "label": "Flame Whip"
         },
         "ruleElements": []

@@ -310,6 +310,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, names=
       notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated") && !note.startsWith("concentration: nothing")),
         ...shedding.notes);
     }
+    const push = forcedMovement(document, definition);
+    if ( push ) definition = {...definition, push};
     const suffix = usable.length > 1 ? ` (${label})` : "";
     const id = index ? stableId(`${document._id}:${index}`) : document._id;
     items.push({
@@ -432,6 +434,25 @@ function sheddingArea({document, activity, system, definition}) {
 
 /** A feature's description as plain text, one space between words. */
 const plainText = document => String(document.system?.description?.value ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
+
+/**
+ * The push or pull (G6) its text gives an Action that hits or forces a save: "pushed up to 10 feet (straight) away
+ * from you", "pulls the target up to 30 feet straight toward itself", with any limit ("If the target is a Large or
+ * smaller creature"). A push in its "Success:" text is on a success (the Bulette's Deadly Leap). Text that pushes or
+ * pulls by more than one distance or way, or toward something else (a whirlpool), is left to the GM.
+ */
+function forcedMovement(document, definition) {
+  if ( !definition.attack && !definition.save ) return null;
+  const text = plainText(document);
+  const found = [...text.matchAll(/\b(?:push|pull)(?:s|es|ed)?(?: the target| it| the creature)? (?:up to )?(\d+) feet (?:straight )?(away from|toward (?:itself|you)\b)/gi)];
+  if ( new Set(found.map(([, feet, way]) => `${feet}:${way.toLowerCase()}`)).size !== 1 ) return null;
+  const [, feet, way] = found[0];
+  const size = text.match(/\bif the target is an? (tiny|small|medium|large|huge|gargantuan) or smaller creature/i)?.[1].toLowerCase();
+  const outcome = [...text.slice(0, found[0].index).matchAll(/\b(Failure or Success|Failure|Success|On a failed save|On a successful save)\b/gi)]
+    .at(-1)?.[1].toLowerCase();
+  return {distance: Number(feet), ...(way.toLowerCase().startsWith("toward") ? {toward: true} : {}), ...(size ? {maxSize: size} : {}),
+    ...((definition.save && ["success", "on a successful save"].includes(outcome)) ? {on: "success"} : {})};
+}
 
 /** The creature stands in sunlight: its Scene is tagged sunlit, or a light tagged as sunlight reaches it. */
 const IN_SUNLIGHT = Object.freeze({equals: {path: "inSunlight", value: true}});
