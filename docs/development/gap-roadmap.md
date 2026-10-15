@@ -229,7 +229,8 @@ Forced movement and elevation join G6, which becomes "space": areas, elevation a
     area reaches by its shape (a Sphere both ways, a Cylinder its height up); creatures at another elevation are no
     longer left out of every area. Cylinders and walls convert with their height: the cylinder census row (83) is
     gone.
-  - Not yet: falling.
+  - Falling: a creature in the air that gets Prone, or loses its Speed, falls unless it can hover (21 SRD creatures
+    hover): 1d6 per 10 feet, and Prone. G6 is done.
 - **G5, common traits, first part (2026-10-14).** Done:
   - Magic Resistance, Pack Tactics, Regeneration, Legendary Resistance and Flyby, matched by dnd5e identifier. By the
     trait survey these are 142, 52, 21, 82 and 25 stat-block features across the SRD and the four books.

@@ -414,7 +414,8 @@ export function resourceCapsFromRuleElements(owners=[], context={}) {
 /** The Speeds a creature's grants give (`GrantMovement`): `{mode, distance}`, one per grant. */
 export function grantedMovementFromRuleElements(owners=[], context={}) {
   return owners.flatMap(({ruleElements=[], source=null}) =>
-    collectRuleElementContributions({ruleElements, context, source}).contributions.movement.map(entry => entry.capability));
+    collectRuleElementContributions({ruleElements, context, source}).contributions.movement
+      .map(entry => (entry.hover ? {...entry.capability, hover: true} : entry.capability)));
 }
 
 /* -------------------------------------------- */
@@ -589,6 +590,8 @@ function grantMovementRuleElement(ruleElement, context) {
         distance: distance.value,
         unit: data.unit ?? "ft"
       }),
+      // A flying creature that can hover does not fall when it is knocked Prone (2024).
+      ...(data.hover === true ? {hover: true} : {}),
       source: ruleElementSource(ruleElement),
       metadata: contributionMetadata(ruleElement, data.metadata)
     }]

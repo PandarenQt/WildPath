@@ -22,6 +22,7 @@ import {COMPANION_QUERY, createFoundryCompanions} from "../adapters/foundry-v14-
 import {createFoundryDying} from "../adapters/foundry-v14-dying.mjs";
 import {createFoundrySummons} from "../adapters/foundry-v14-summons.mjs";
 import {createFoundryForcedMovement} from "../adapters/foundry-v14-forced-movement.mjs";
+import {createFoundryFalling} from "../adapters/foundry-v14-falling.mjs";
 import {
   buildFoundryMovementCompletion,
   buildFoundryMovementProgressObservation,
@@ -160,6 +161,11 @@ export function registerFoundryV14MultiplayerResolution({
   const dying = createFoundryDying({game, coordinator, logger,
     resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});
   globalThis.Hooks?.on?.("createActiveEffect", effect => void dying.onEffectChanged(effect));
+  // A creature in the air that gets Prone, or loses its Speed, falls (2024).
+  const falling = createFoundryFalling({game, coordinator, logger,
+    resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});
+  globalThis.Hooks?.on?.("createActiveEffect", effect => void falling.onEffectCreated(effect)
+    .catch(error => logger?.warn?.("Wild Path | A fall could not resolve", error)));
   // 2024: a stable creature regains 1 health after 1d4 hours; world time moving on (or a rest, Actor#rest) counts.
   globalThis.Hooks?.on?.("updateWorldTime", worldTime => void dying.onWorldTime(worldTime)
     .catch(error => logger?.warn?.("Wild Path | Stable recovery failed", error)));
