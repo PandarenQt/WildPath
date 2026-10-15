@@ -587,3 +587,6 @@
 .wildpath-configuration-preview dl { display: grid; grid-template-columns: max-content 1fr; gap: 0 8px; margin: 6px 0 0; }
 .wildpath-configuration-preview dt { font-weight: bold; }
 .wildpath-configuration-preview dd { margin: 0; }
+/* A spell's slot buttons, by level: cast with that slot, no dialog. */
+#wildpath-action-bar .bar-slots { display: inline-flex; gap: 1px; margin-left: -2px; }
+#wildpath-action-bar .bar-slot { width: auto; min-width: 18px; padding: 0 3px; line-height: 1.2; font-size: var(--font-size-11, 11px); }

@@ -7,7 +7,8 @@ import {REACTION_POLICIES, reactionPolicyOf} from "../helpers/automation-events.
 type Data = Record<string, unknown>;
 interface BarActor {
   uuid: string; name?: string; img?: string; isOwner?: boolean; system?: Data;
-  items: {get(id: string): {use(): Promise<unknown>; setFlag(scope: string, key: string, value: unknown): Promise<unknown>} | undefined}
+  items: {get(id: string): {use(options?: {configuration?: unknown}): Promise<unknown>;
+    setFlag(scope: string, key: string, value: unknown): Promise<unknown>} | undefined}
     & Iterable<{id?: string | null; flags?: Data}>;
   effects: Iterable<{system?: {type?: string; level?: number}; disabled?: boolean}>;
 }
@@ -39,7 +40,7 @@ export class WildPathActionBar extends HandlebarsApplicationMixin(ApplicationV2)
     classes: ["wildpath", "action-bar"],
     tag: "aside",
     window: {frame: false, positioned: false},
-    actions: {use: WildPathActionBar.#onUse, reactionPolicy: WildPathActionBar.#onReactionPolicy}
+    actions: {use: WildPathActionBar.#onUse, useSlot: WildPathActionBar.#onUseSlot, reactionPolicy: WildPathActionBar.#onReactionPolicy}
   };
 
   static PARTS = {bar: {template: "systems/wildpath/templates/hud/action-bar.hbs"}};
@@ -95,6 +96,13 @@ export class WildPathActionBar extends HandlebarsApplicationMixin(ApplicationV2)
     const common = id.startsWith("common-") ? this.#common(actor).find(action => action.id === id) : null;
     if ( common ) await globals.CONFIG.Item.documentClass.prototype.use.call(common);
     else await actor.items.get(id)?.use();
+  }
+
+  /** Cast a spell with the slot its button names: no dialog, the authority checks the slot like any choice. */
+  static async #onUseSlot(this: WildPathActionBar, event: Event, target: HTMLElement) {
+    const {itemId, choiceId, optionId} = target.dataset;
+    if ( !itemId || !choiceId || !optionId ) return;
+    await this.shownActor?.items.get(itemId)?.use({configuration: {choices: {[choiceId]: {paymentOptionId: optionId}}}});
   }
 
   /** Cycle a reaction between Ask, Always and Never (Baldur's Gate 3's reaction settings). */

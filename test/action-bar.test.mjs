@@ -84,8 +84,41 @@ test("a magic item's Action is unavailable while its item is unequipped or not a
     bonus: {value: 1, max: 1}, reaction: {value: 1, max: 1}, movement: {value: 30, max: 30}}, pools: []}};
   const entry = () => actionBarContext({actor}).groups.flatMap(group => group.actions).find(action => action.id === "fireball");
   assert.deepEqual([entry().enabled, entry().disabledCode], [false, "ITEM_NOT_READY"]);
+  assert.deepEqual(entry().reason, {key: "WILDPATH.ACTIONBAR.Reason.ItemNotReady", name: "Wand"});
   wand.system.active = true;
   assert.equal(entry().enabled, false, "equipped but not attuned");
   wand.system.attunement = "attuned";
   assert.equal(entry().enabled, true);
+});
+
+test("an unavailable Action says what has run out", () => {
+  const fireball = {id: "fb", type: "action", name: "Fireball", activationCost: {allOf: [{capability: "action", amount: 1},
+    {capability: "spell-slot.3", amount: 1}]}};
+  const actor = {name: "Hero", items: [fireball], effects: [], system: {resources: {action: {value: 1, max: 1}, bonus: {value: 1, max: 1},
+    reaction: {value: 1, max: 1}, movement: {value: 30, max: 30}}, pools: [{id: "spell-slot.3", label: "3rd-level slot", value: 0, max: 1}]}};
+  const entry = () => actionBarContext({actor}).groups.flatMap(group => group.actions).find(action => action.id === "fb");
+  assert.deepEqual(entry().reason, {key: "WILDPATH.ACTIONBAR.Reason.Spent", name: "3rd-level slot"});
+  actor.system.pools[0].value = 1;
+  assert.equal(entry().reason, undefined, "available: no reason");
+});
+
+test("spells go by level with a button per slot they can use; magic items' Actions go together", async () => {
+  const {readdirSync, readFileSync} = await import("node:fs");
+  const read = prefix => JSON.parse(readFileSync(`packs/_source/srd-items/${readdirSync("packs/_source/srd-items")
+    .find(file => file.startsWith(prefix))}`, "utf8"));
+  const fireball = {...read("fireball-phb"), id: "fireball"};
+  const bolt = {...read("fire-bolt-"), id: "bolt"};
+  const wand = {id: "wand", type: "gear", name: "Wand", system: {active: true, attunement: "attuned"}};
+  const wandFireball = {...fireball, id: "wand-fireball", flags: {wildpath: {grantedBy: "wand"}}};
+  const actor = {name: "Mage", items: [fireball, bolt, wand, wandFireball], effects: [], system: {resources: {action: {value: 1, max: 1},
+    bonus: {value: 1, max: 1}, reaction: {value: 1, max: 1}, movement: {value: 30, max: 30}},
+    pools: [{id: "spell-slot.3", label: "3rd-level slot", value: 1, max: 2}, {id: "spell-slot.4", label: "4th-level slot", value: 0, max: 1},
+      {id: "spell-slot.5", label: "5th-level slot", value: 1, max: 1}]}};
+  const groups = actionBarContext({actor}).groups;
+  assert.deepEqual(groups.map(group => [group.id, group.actions.map(action => action.id)]),
+    [["spell-0", ["bolt"]], ["spell-3", ["fireball"]], ["items", ["wand-fireball"]]]);
+  assert.equal(groups[0].label, "WILDPATH.ACTIONBAR.Group.SpellsCantrips");
+  assert.deepEqual(groups[1].actions[0].slots.map(slot => [slot.level, slot.choiceId]), [[3, "spell-slot"], [5, "spell-slot"]],
+    "a spent 4th-level slot has no button");
+  assert.equal(groups[0].actions[0].slots, undefined, "a cantrip spends no slot");
 });

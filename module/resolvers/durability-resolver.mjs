@@ -142,10 +142,14 @@ export async function commitActorDurabilityMutationPlan(actor, mutationPlan, {pe
   if ( !mutationPlan?.ok ) return false;
   if ( !Object.keys(mutationPlan.updates ?? {}).length ) return true;
   const persistence = persistencePort ?? createFoundryV14ActorPersistenceAdapter();
+  // Its damage types, most first, for the floating text over the creature (floating-text.mts).
+  const byType = mutationPlan.metadata?.damageResult?.byDamageType ?? {};
+  const damageTypes = Object.keys(byType).filter(type => Number(byType[type]) > 0).sort((a, b) => byType[b] - byType[a]);
   const result = await persistence.updateActor({
     actor,
     actorRef: actor?.uuid ?? (actor?.id ? `actor:${actor.id}` : null),
     updates: mutationPlan.updates,
+    ...(damageTypes.length ? {operation: {wildpath: {damageTypes}}} : {}),
     metadata: {
       resolver: "DurabilityResolver",
       mutationPlan
