@@ -36,6 +36,10 @@
         "size": {
           "value": 10,
           "unit": "ft"
+        },
+        "height": {
+          "value": 40,
+          "unit": "ft"
         }
       },
       "save": {
@@ -179,9 +183,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "area: a cylinder's height is not modeled"
-        ]
+        "notes": []
       }
     }
   }

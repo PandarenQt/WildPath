@@ -1023,6 +1023,10 @@
             "size": {
               "value": 60,
               "unit": "ft"
+            },
+            "height": {
+              "value": 20,
+              "unit": "ft"
             }
           },
           "save": {
@@ -1082,7 +1086,6 @@
             "notes": [
               "cast: Wall of Fire at level 7 is cast at its own level",
               "concentration: nothing it sustains was converted",
-              "area: a cylinder's height is not modeled",
               "\"damage\" is passive or triggered: not automated"
             ]
           }
@@ -1156,7 +1159,6 @@
           "Spellcasting: effect: \"Universal Communication\" change system.traits.languages.custom (add) not converted",
           "Spellcasting: effect: \"Universal Communication\" (its own changes) not converted",
           "Spellcasting: cast: Wall of Fire at level 7 is cast at its own level",
-          "Spellcasting: area: a cylinder's height is not modeled",
           "Spellcasting: \"damage\" is passive or triggered: not automated"
         ]
       }

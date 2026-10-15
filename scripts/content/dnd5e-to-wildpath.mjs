@@ -163,11 +163,13 @@ function targetingOf({activity, system, notes, level=0, scales={}}) {
     const shape = {sphere: "radial", cylinder: "radial", circle: "radial", radius: rangeUnits === "self" ? "emanation" : "radial", cone: "cone",
       line: "line", cube: "cube", square: "cube", wall: "wall"}[template.type];
     if ( shape && size ) {
-      if ( template.type === "cylinder" ) notes.push("area: a cylinder's height is not modeled");
       // A panel wall (Wall of Stone: ten 10-foot panels) is its panels end to end; shortcut: in a straight line.
       const length = (shape === "wall") ? size * (number(template.count) || 1) : size;
+      // How high it reaches: a Cylinder's or a wall's height; a circle lies on the ground.
+      const height = (template.type === "circle") ? 0 : (["cylinder", "wall"].includes(template.type) ? number(template.height) : null);
       return {targeting: {type: "area"}, area: {shape, size: {value: length, unit: "ft"},
-        ...(shape === "line" ? {width: {value: number(template.width) ?? 5, unit: "ft"}} : {})}};
+        ...(shape === "line" ? {width: {value: number(template.width) ?? 5, unit: "ft"}} : {}),
+        ...(height != null ? {height: {value: height, unit: "ft"}} : {})}};
     }
     notes.push(`area: ${template.size}-ft ${template.type} is not supported; the user picks the targets`);
     return {targeting: {type: "multiple", required: true, count: 20, ...UP_TO}};

@@ -1112,6 +1112,10 @@
             "size": {
               "value": 20,
               "unit": "ft"
+            },
+            "height": {
+              "value": 60,
+              "unit": "ft"
             }
           },
           "save": {
@@ -1144,9 +1148,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "area: a cylinder's height is not modeled"
-            ]
+            "notes": []
           }
         }
       }
@@ -1456,8 +1458,7 @@
           "Spellcasting: area: 5 * @item.level - 20-ft cube is not supported; the user picks the targets",
           "Spellcasting: effect: \"Gaseous Form\" change system.attributes.movement.hover (override) not converted",
           "Spellcasting: effect: \"Gaseous Form\" change img (override) not converted",
-          "Spellcasting: not automated (teleport): using it spends its cost; its description says the rest",
-          "Create Whirlwind: area: a cylinder's height is not modeled"
+          "Spellcasting: not automated (teleport): using it spends its cost; its description says the rest"
         ]
       }
     }

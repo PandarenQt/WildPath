@@ -33,6 +33,10 @@
         "size": {
           "value": 300,
           "unit": "ft"
+        },
+        "height": {
+          "value": 300,
+          "unit": "ft"
         }
       },
       "save": {

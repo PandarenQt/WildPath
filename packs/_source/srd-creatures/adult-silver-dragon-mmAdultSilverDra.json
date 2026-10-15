@@ -819,8 +819,7 @@
           },
           "conversion": {
             "notes": [
-              "cast: Ice Storm at level 5 is cast at its own level",
-              "area: a cylinder's height is not modeled"
+              "cast: Ice Storm at level 5 is cast at its own level"
             ]
           }
         }
@@ -1152,7 +1151,6 @@
           "Spellcasting: concentration: nothing it sustains was converted",
           "Spellcasting: \"Shard Explosion\" is passive or triggered: not automated",
           "Spellcasting: cast: Ice Storm at level 5 is cast at its own level",
-          "Spellcasting: area: a cylinder's height is not modeled",
           "Spellcasting: not automated (save): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Cannot Lie\" (its own changes) not converted",
           "Pounce: not automated (utility): using it spends its cost; its description says the rest",

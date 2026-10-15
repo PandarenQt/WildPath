@@ -99,7 +99,6 @@
         "notes": [
           "not automated (save): using it spends its cost; its description says the rest",
           "activation: 1 minute is not an action-economy cost",
-          "area: a cylinder's height is not modeled",
           "activation: 1 minute is not an action-economy cost"
         ]
       }

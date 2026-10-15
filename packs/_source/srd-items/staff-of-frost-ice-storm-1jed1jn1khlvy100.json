@@ -140,9 +140,7 @@
         "castBy": "Staff of Frost"
       },
       "conversion": {
-        "notes": [
-          "area: a cylinder's height is not modeled"
-        ]
+        "notes": []
       }
     }
   }

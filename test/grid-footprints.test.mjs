@@ -208,3 +208,33 @@ test("footprint debug output exposes size, topology, fields, and tactical bounda
   assert.equal(debug.boundaryFields.length, 6);
   assert.equal(debug.boundaryVertices.length, footprint.boundaryVertices.length);
 });
+
+test("3D distance (2024): with heights, the larger of the fields across and the cubes between", async () => {
+  const {footprintLevels} = await import("../module/helpers/grid-footprints.mjs");
+  const at = (x, levels) => ({topology: "square", fields: [{x, y: 0}], ...(levels ? {levels} : {})});
+  assert.deepEqual(footprintLevels(0, 5, 5), {bottom: 0, top: 0}, "a Medium creature on the ground fills one cube");
+  assert.deepEqual(footprintLevels(10, 5, 5), {bottom: 2, top: 2});
+  assert.deepEqual(footprintLevels(7, 10, 5), {bottom: 1, top: 3}, "a Large creature 7 feet up spans cubes 1 to 3");
+  assert.equal(footprintDistance(at(0, footprintLevels(0, 5, 5)), at(1, footprintLevels(10, 5, 5))), 2, "beside you, 10 feet up: 10 feet");
+  assert.equal(footprintDistance(at(0, footprintLevels(0, 5, 5)), at(1, footprintLevels(5, 5, 5))), 1, "5 feet up: within reach");
+  assert.equal(footprintDistance(at(0, footprintLevels(0, 5, 5)), at(6, footprintLevels(10, 5, 5))), 6, "farther across than up");
+  assert.equal(footprintDistance(at(0, footprintLevels(0, 5, 5)), at(1)), 1, "without a height, flat as before");
+});
+
+test("an area's heights: a Sphere both ways from its point, a Cylinder up, cones and lines level with the caster", async () => {
+  const {areaHeights} = await import("../module/adapters/foundry-v14-area-placement.mjs");
+  const caster = {id: "caster", parent: null, elevation: 30, depth: 1};
+  const area = (shape, size, extra={}) => ({area: {shape, size: {value: size}, ...extra}});
+  assert.deepEqual(areaHeights({definition: area("radial", 20), sourceToken: caster}), {bottom: -20, top: 20}, "Fireball on the ground");
+  assert.deepEqual(areaHeights({definition: area("radial", 20), sourceToken: caster, pointHeight: 40}), {bottom: 20, top: 60},
+    "aimed at a creature flying 40 feet up");
+  assert.deepEqual(areaHeights({definition: area("radial", 10, {height: {value: 40}}), sourceToken: caster}), {bottom: 0, top: 40},
+    "a 40-foot-high Cylinder");
+  assert.deepEqual(areaHeights({definition: area("radial", 20, {height: {value: 0}}), sourceToken: caster}), {bottom: 0, top: 0},
+    "a circle on the ground");
+  assert.deepEqual(areaHeights({definition: area("cone", 30), sourceToken: caster}), {bottom: 15, top: 50});
+  assert.deepEqual(areaHeights({definition: area("line", 100), sourceToken: caster}), {bottom: 30, top: 35});
+  assert.deepEqual(areaHeights({definition: {...area("cube", 15), range: {type: "self"}}, sourceToken: caster}), {bottom: 30, top: 45},
+    "Thunderwave from a flying caster");
+  assert.deepEqual(areaHeights({definition: area("wall", 60), sourceToken: caster}), {bottom: 0, top: Infinity});
+});

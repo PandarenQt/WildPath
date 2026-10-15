@@ -186,9 +186,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "area: a cylinder's height is not modeled"
-        ]
+        "notes": []
       }
     }
   }

@@ -110,7 +110,9 @@ function cubeFootprint({ definition, adapter, source, point, topology, size, gri
         const footprint = best ? cube(best) : null;
         return footprint ? { ok: true, footprint } : { ok: false, code: "UnsupportedShape", reason: "Cubes need a square grid.", needs: "origin" };
     }
-    const footprint = cube({ x: clicked.x - Math.floor((side - 1) / 2), y: clicked.y - Math.floor((side - 1) / 2) });
+    const corner = cube({ x: clicked.x - Math.floor((side - 1) / 2), y: clicked.y - Math.floor((side - 1) / 2) });
+    // Its point (the clicked field) decides its height (areaHeights).
+    const footprint = corner ? { ...corner, point: clicked } : null;
     if (!footprint)
         return { ok: false, code: "UnsupportedShape", reason: "Cubes need a square grid.", needs: "origin" };
     const range = Number(definition.range?.normal?.value ?? definition.range?.distance?.value);
@@ -140,10 +142,53 @@ function wallFootprint({ definition, adapter, source, points, topology, size, gr
     const footprint = createWall({ topology, start, end, length: Math.max(1, Math.round(size / gridDistance)) });
     return footprint ? { ok: true, footprint } : { ok: false, code: "UnsupportedShape", reason: "Walls need a square grid.", needs: "origin" };
 }
-/** Every Token on the caster's Scene and Level that any covered field touches, the caster included. */
-export function foundryAreaTargetTokens({ sourceToken, footprint }) {
+/**
+ * Every Token on the caster's Scene and Level that any covered field touches, the caster included, and (given its
+ * `definition`) within the heights the area reaches (areaHeights).
+ */
+export function foundryAreaTargetTokens({ sourceToken, footprint, definition = null }) {
     const scene = sourceToken.parent;
-    const adapter = createFoundryV14TacticalGridAdapter({ scene });
-    const candidates = adapter.resolveAreaTargetCandidates({ footprint, sourceToken });
-    return candidates.candidates.map(candidate => scene.tokens.get(String(candidate.metadata?.foundry?.tokenId))).filter(Boolean);
+    const tokensOn = (covered) => {
+        const candidates = createFoundryV14TacticalGridAdapter({ scene }).resolveAreaTargetCandidates({ footprint: covered, sourceToken });
+        return candidates.candidates.map(candidate => scene.tokens.get(String(candidate.metadata?.foundry?.tokenId))).filter(Boolean);
+    };
+    const tokens = tokensOn(footprint);
+    if (!definition)
+        return tokens;
+    const gridDistance = Number(scene.grid?.distance) || 5;
+    const point = (footprint.point ?? footprint.origin);
+    const pointHeight = point ? Math.max(0, ...tokensOn({ topology: footprint.topology, fields: [point] }).map(token => Number(token.elevation) || 0)) : 0;
+    const { bottom, top } = areaHeights({ definition, sourceToken, pointHeight, gridDistance });
+    return tokens.filter(token => {
+        const elevation = Number(token.elevation) || 0;
+        return (elevation <= top) && ((elevation + ((Number(token.depth) || 1) * gridDistance)) >= bottom);
+    });
+}
+/**
+ * How high an area reaches, in feet. On a grid, 2024's 3D areas count cubes as distance does: a Sphere reaches its
+ * radius above and below its point, a Cylinder its `area.height` up from it (a circle, height 0, stays on it), a Cube
+ * its side up from it. From its caster (a cone, a line, an emanation, a Cube "originating from you") it is level with
+ * the caster. A point is as high as the creature standing on it (`pointHeight`), else the ground.
+ * shortcut: cones and lines are aimed level; upgrade with a vertical aim.
+ */
+export function areaHeights({ definition, sourceToken, pointHeight = 0, gridDistance = 5 }) {
+    const shape = definition.area?.shape;
+    const size = Number(definition.area?.size?.value) || 0;
+    const height = definition.area?.height?.value;
+    const caster = Number(sourceToken.elevation) || 0;
+    const casterTop = caster + ((Number(sourceToken.depth) || 1) * gridDistance);
+    if (shape === AREA_SHAPES.LINE)
+        return { bottom: caster, top: casterTop };
+    if ((shape === AREA_SHAPES.CONE))
+        return { bottom: caster - (size / 2), top: casterTop + (size / 2) };
+    if (shape === AREA_SHAPES.EMANATION)
+        return { bottom: caster - size, top: casterTop + size };
+    if (shape === AREA_SHAPES.CUBE) {
+        const base = (definition.range?.type === "self") ? caster : pointHeight;
+        return { bottom: base, top: base + size };
+    }
+    if (height != null)
+        return { bottom: pointHeight, top: pointHeight + Number(height) };
+    // A wall without a height reaches up without end; a Sphere both ways.
+    return (shape === AREA_SHAPES.WALL) ? { bottom: pointHeight, top: Infinity } : { bottom: pointHeight - size, top: pointHeight + size };
 }

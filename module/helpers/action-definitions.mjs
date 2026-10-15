@@ -668,6 +668,8 @@ function validateArea(area, errors) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_AREA, "area.shape", "AreaDefinition requires a semantic shape."));
   }
   if ( area.size ) validateDistanceDefinition(area.size, "area.size", errors);
+  // How high it reaches (a Cylinder's height, a wall's; a circle on the ground is 0), areas.md.
+  if ( area.height ) validateDistanceDefinition(area.height, "area.height", errors);
   if ( area.persistence ) validateAreaPersistence(area.persistence, errors);
 }
 

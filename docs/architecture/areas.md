@@ -286,6 +286,28 @@ QA Ally and the Bandit Captain. QA Failer failed and went 10 feet diagonally awa
 stopped after 5 feet at a wall. QA Ally saved and stayed. Neither push offered QA Caster an Opportunity Attack.
 Player1's "Shove: Push" on QA Failer moved it 5 feet on a failed save; on a success it stayed.
 
+## Elevation (2026-10-15)
+
+On a grid, distance is 3D (2024): a creature fills grid-sized cubes, from its Token's elevation up its `depth` (in
+grid units). Each Token footprint carries them (`levels: {bottom, top}`, `footprintLevels`), and `footprintDistance`
+is the larger of the fields across and the cubes between. A creature flying 10 feet up beside you is 10 feet away.
+- **What counts it.** Range, reach, "within 5 feet" (Prone, Pack Tactics, Sneak Attack's ally), and auras. A
+  footprint without levels (a movement path's) measures flat, as before.
+- **Areas** (`areaHeights`, foundry-v14-area-placement.mts) reach a band of heights, and cover the creatures in it:
+  - a Sphere its radius above and below its point; a Cylinder its `area.height` up from it; a circle (height 0)
+    the creatures on it; a Cube its side up from its base;
+  - from the caster, level with it: a cone half its length above and below, a line the caster's own height, an
+    emanation its size around the caster, a Cube "originating from you" up from the caster's feet;
+  - a point is as high as the creature standing on it, else the ground. Aiming a Fireball at a flying creature's
+    field centers it on that creature.
+  - Creatures at other elevations are no longer left out of every area (`strictElevation: false`).
+- Shortcuts: cones and lines are aimed level; Opportunity Attacks measure flat; lasting areas keep their own
+  elevation band (open by default).
+
+Live (two browsers, 14.369): the Bandit Captain 10 feet up beside QA Caster was out of Player1's Unarmed Strike reach
+("out of range (15 ft away)" at 15 feet up), and in reach at 5 feet up. Player1's Fireball at the ground hit QA Saver
+and not QA Failer flying 30 feet up; aimed at QA Failer's field, it covered only QA Failer.
+
 ## Auras and Emanations
 
 Future auras and emanations should derive from token footprints and grid-native radial expansion.

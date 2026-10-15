@@ -623,6 +623,10 @@
             "size": {
               "value": 10,
               "unit": "ft"
+            },
+            "height": {
+              "value": 40,
+              "unit": "ft"
             }
           },
           "save": {
@@ -693,9 +697,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "area: a cylinder's height is not modeled"
-            ]
+            "notes": []
           }
         }
       }
@@ -1191,7 +1193,6 @@
           "Spellcasting: concentration: nothing it sustains was converted",
           "Spellcasting: cast: Guiding Bolt at level 2 is cast at its own level",
           "Spellcasting: effect: marked is not a WildPath condition yet",
-          "Spellcasting: area: a cylinder's height is not modeled",
           "Spellcasting: not automated (save): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Cannot Lie\" (its own changes) not converted",
           "Guiding Light: cast: Guiding Bolt at level 2 is cast at its own level",

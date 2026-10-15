@@ -10,6 +10,7 @@ import {
   createTokenGridFootprint,
   distanceAdjacentFields,
   fieldKey,
+  footprintLevels,
   normalizeGridField,
   sortGridFields
 } from "../helpers/grid-footprints.mjs";
@@ -736,6 +737,12 @@ export function foundryTokenToTokenGridFootprint(token, {
     return failure(FOUNDRY_TACTICAL_GRID_CODES.UNSUPPORTED_FOOTPRINT, error?.message ?? String(error));
   }
 
+  // Its height: the cubes it fills from its elevation, its Token's depth in grid units tall (3D distance, areas).
+  if ( Number.isFinite(Number(tokenDocument.elevation)) ) {
+    const gridDistance = Number((grid ?? scene?.grid)?.distance) || 5;
+    const elevation = Number.isFinite(Number(position?.elevation)) ? Number(position.elevation) : Number(tokenDocument.elevation);
+    footprint = {...footprint, levels: footprintLevels(elevation, (Number(tokenDocument.depth) || 1) * gridDistance, gridDistance)};
+  }
   const occupancy = compareFieldSets(footprint.fields, represented.fields, gridInfo.topology);
   const diagnostics = [];
   if ( !represented.available ) diagnostics.push({
@@ -868,8 +875,9 @@ export function collectFoundryTokenTargetFootprints({
   const failures = [];
 
   for ( const tokenDocument of tokenDocuments ) {
+    // A different elevation is not excluded: an area's own height decides (foundryAreaTargetTokens).
     const levelRelation = sourceDocument
-      ? validateFoundryTokenLevelRelation(sourceDocument, tokenDocument)
+      ? validateFoundryTokenLevelRelation(sourceDocument, tokenDocument, {strictElevation: false})
       : {ok: true, code: FOUNDRY_TACTICAL_GRID_CODES.OK};
     if ( !levelRelation.ok && excludeUnsupportedLevels ) {
       skipped.push({

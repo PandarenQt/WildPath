@@ -791,7 +791,10 @@ function createRangeStage() {
           input,
           stage: ACTION_RESOLUTION_STAGES.TARGETING,
           code: ACTION_PIPELINE_CODES.TARGET_OUT_OF_RANGE,
-          reason: failures[0].code,
+          // What the user is told: who is out of range, and how far (3D, with elevation).
+          reason: Number.isFinite(failures[0].distance)
+            ? `${failures[0].target?.name ?? "A target"} is out of range (${failures[0].distance} ft away).`
+            : failures[0].code,
           data: {
             range,
             checks,
