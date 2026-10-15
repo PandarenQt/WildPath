@@ -8,6 +8,9 @@ import { actionDefinitionActivationCost, actionDefinitionFromAction } from "./ac
 const definitionOf = actionDefinitionFromAction;
 const costOf = actionDefinitionActivationCost;
 const ACTION = { allOf: [{ capability: "action", amount: 1 }] };
+const BONUS_ACTION = { allOf: [{ capability: "bonus-action", amount: 1 }] };
+/** The shoves, a Bonus Action under Baldur's Gate 3's rule (`bonusShove`, the `bonusActionShove` world setting). */
+const SHOVES = new Set(["shove", "push"]);
 const SELF = { range: { type: "self" }, targeting: { type: "self" } };
 const TOUCH = { range: { type: "reach", distance: { value: 5, unit: "ft" } }, targeting: { type: "single", required: true, count: 1 } };
 const UNTIL_TURN_END = { value: 0, units: "turns", expiry: "turnEnd" };
@@ -73,9 +76,10 @@ export function commonActionId(ref) {
 /**
  * The common action `id` as an Action Item of `actor`, built fresh: `{id, uuid: "common:<id>", type: "action",
  * name, img, system: {definition}, actor}`. `localize` turns its lang key into its name. Its reaction setting
- * (Always, Ask, Never) is the creature's own, `flags.wildpath.commonPolicies.<id>`.
+ * (Always, Ask, Never) is the creature's own, `flags.wildpath.commonPolicies.<id>`. With `bonusShove`, Shove costs a
+ * Bonus Action.
  */
-export function commonAction(actor, id, { localize = (key) => key } = {}) {
+export function commonAction(actor, id, { localize = (key) => key, bonusShove = false } = {}) {
     const creature = (actor ?? {});
     const flags = { wildpath: { reactionPolicy: creature.flags?.wildpath?.commonPolicies?.[id] } };
     if (id === "opportunity") {
@@ -88,7 +92,8 @@ export function commonAction(actor, id, { localize = (key) => key } = {}) {
     if (!entry)
         return null;
     const name = localize(entry.name);
-    const definition = { schemaVersion: 1, id: `common:${id}`, label: name, ...structuredClone(entry.definition) };
+    const definition = { schemaVersion: 1, id: `common:${id}`, label: name, ...structuredClone(entry.definition),
+        ...((bonusShove && SHOVES.has(id)) ? { costs: structuredClone(BONUS_ACTION) } : {}) };
     const action = { id: `common-${id}`, uuid: `common:${id}`, type: "action", name, img: entry.img, flags, activationCost: {},
         system: { active: true, definition }, actor };
     // What it costs, as the action bar reads it (an Item's data model would give `getActivationCost()`): as its creature

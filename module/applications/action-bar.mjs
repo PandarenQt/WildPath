@@ -44,7 +44,12 @@ export class WildPathActionBar extends HandlebarsApplicationMixin(ApplicationV2)
     /** The common actions as this creature's Actions (Dash, Shove...). */
     #common(actor) {
         const localize = (key) => globals.game.i18n.localize(key);
-        return COMMON_ACTION_IDS.map(id => commonAction(actor, id, { localize }));
+        let bonusShove = false;
+        try {
+            bonusShove = globals.game.settings?.get("wildpath", "bonusActionShove") === true;
+        }
+        catch (_error) { }
+        return COMMON_ACTION_IDS.map(id => commonAction(actor, id, { localize, bonusShove }));
     }
     /** The odds of each attack and save Action against the user's targets, as far as this user may see them. */
     #odds(actor, common) {
