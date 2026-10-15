@@ -303,6 +303,13 @@ is the larger of the fields across and the cubes between. A creature flying 10 f
   - Creatures at other elevations are no longer left out of every area (`strictElevation: false`).
 - Shortcuts: cones and lines are aimed level; Opportunity Attacks measure flat; lasting areas keep their own
   elevation band (open by default).
+- **High ground (Baldur's Gate 3, 2026-10-15).** With the `highGround` world setting on (off by default), an attack
+  from 8 feet or more above its target gets +2, and from 8 feet or more below −2 (`highGroundBonus`). The runtime
+  sends it per target (`attack.bonusByTarget`, by Token); the attack stage makes it an `attack-bonus` override, added
+  to that target's total only, never to the natural die. The bar's odds include it. Shortcut: reaction attacks
+  (Opportunity Attacks) do not get it, and the card shows the roll without it.
+  Live (GM browser): Fire Bolt's odds against the Bandit Captain were +4 level, +6 from 10 feet above and +2 from 20
+  feet below.
 
 **Falling (2024).** A creature above the floor of its Level that gets Prone, Grappled, Restrained, Paralyzed,
 Petrified, Stunned or Unconscious falls, unless it can hover (`GrantMovement` `hover: true`; converted from dnd5e's

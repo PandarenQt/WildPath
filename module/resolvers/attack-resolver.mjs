@@ -175,8 +175,12 @@ function resolveAttackTarget({roll, targetContext, defense, defenseKey, policy, 
   }
 
   const targetDefense = resolveTargetDefense(normalizedContext, defenseKey, defense);
+  // A bonus against this target only (high ground, Baldur's Gate 3); the natural die stays as rolled.
+  const bonus = normalizedContext.overrides.filter(override => override?.type === "attack-bonus")
+    .reduce((sum, override) => sum + (Number(override.value) || 0), 0);
+  const total = Number(normalizeAttackRoll(roll).total);
   const result = resolveAttackAgainstDefense({
-    roll,
+    roll: (bonus && Number.isFinite(total)) ? {...roll, total: total + bonus} : roll,
     defense: targetDefense,
     target: normalizedContext.target,
     policy,

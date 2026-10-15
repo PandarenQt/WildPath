@@ -152,3 +152,14 @@ test("AttackResolver preserves target failures while resolving other targets", (
   assert.deepEqual(result.misses.map(miss => miss.target.id), ["armored"]);
   assert.deepEqual(result.failures.map(failure => failure.target.id), ["unknown"]);
 });
+
+test("a bonus against one target only (high ground) changes that target's total, not the natural die", async () => {
+  const target = (id, ac, overrides=[]) => ({target: {id, defenses: {ac: {value: ac}}}, selected: true, overrides});
+  const result = resolveAttackTargets({roll: {total: 13, die: 10}, targetContexts: [
+    target("below", 15, [{type: "attack-bonus", value: 2}]), target("above", 13, [{type: "attack-bonus", value: -2}]), target("level", 13)]});
+  assert.deepEqual(result.results.map(entry => [entry.target.id, entry.hit]), [["below", true], ["above", false], ["level", true]]);
+  const natural = resolveAttackTargets({roll: {total: 21, die: 20}, targetContexts: [target("above", 30, [{type: "attack-bonus", value: -2}])]});
+  assert.equal(natural.results[0].outcome, ATTACK_OUTCOMES.CRITICAL_HIT, "a natural 20 still hits");
+  const {highGroundBonus} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  assert.deepEqual([[10, 0], [8, 0], [5, 0], [0, 10], [0, 7]].map(([from, to]) => highGroundBonus(from, to)), [2, 2, 0, -2, 0]);
+});
