@@ -447,7 +447,8 @@ function resolverRequestFromEffectsDefinition(definition, runtimeEffects) {
       // A custom effect is a one-off condition: it carries its own definition, and V14 runs its native duration.
       ...((effect.type === "effect") ? {conditionDefinitions: {[customEffectId(definition.id, effect)]: {
         id: customEffectId(definition.id, effect), name: effect.name, img: effect.img ?? null, custom: true, stacking: false,
-        ruleElements: clonePlain(effect.ruleElements ?? []), duration: clonePlain(effect.duration ?? null)}}} : {}),
+        ruleElements: clonePlain(effect.ruleElements ?? []), duration: clonePlain(effect.duration ?? null),
+        ...(effect.endsWhen ? {endsWhen: effect.endsWhen} : {})}}} : {}),
       levels: (effect.type === "effect") ? 1 : effect.levels,
       saveOutcomePolicy: effect.application?.saveOutcomePolicy ?? effect.saveOutcomePolicy ?? null,
       duration: (effect.type === "effect") ? null : (effect.duration ?? definition.duration),
@@ -806,6 +807,9 @@ function validateCustomEffect(effect, path, errors) {
         `Unknown RuleElement type: ${ruleElement.type}`));
     }
   });
+  if ( (effect.endsWhen != null) && (effect.endsWhen !== "attacked") ) {
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_EFFECT, `${path}.endsWhen`, "A custom effect ends early only when its creature is attacked."));
+  }
   const duration = effect.duration;
   if ( duration && duration.units && !CUSTOM_EFFECT_DURATION_UNITS.includes(duration.units) ) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_EFFECT, `${path}.duration.units`, `Unknown duration unit: ${duration.units}`));
@@ -1088,7 +1092,9 @@ function normalizeEffectApplicationDefinition(effect={}, index=0) {
     saveOutcomePolicy: clonePlain(effect.saveOutcomePolicy ?? effect.savePolicy ?? null),
     checkOutcomePolicy: stringOrNull(effect.checkOutcomePolicy),
     ...(type === "effect" ? {name: stringOrNull(effect.name), img: stringOrNull(effect.img), slug: stringOrNull(effect.slug),
-      ruleElements: normalizeArray(effect.ruleElements).map(clonePlain)} : {}),
+      ruleElements: normalizeArray(effect.ruleElements).map(clonePlain),
+      // It ends after the next attack against its creature (Help, Guiding Bolt), else with its duration.
+      ...(effect.endsWhen ? {endsWhen: String(effect.endsWhen)} : {})} : {}),
     predicate: clonePlain(effect.predicate ?? null),
     source: clonePlain(effect.source ?? null),
     origin: clonePlain(effect.origin ?? null),

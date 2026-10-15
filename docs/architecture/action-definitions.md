@@ -116,6 +116,9 @@ debuff with its own rules.
   - The active GM also registers unlinked Tokens' effects for expiry after a reload. V14 itself misses them until
     a Token's delta materializes.
   - Concentration still ends it. WildPath's own turn-based expiry leaves it alone.
+- **Ending when attacked (2026-10-15).** `endsWhen: "attacked"` ends it once an attack against its creature has
+  resolved, hit or miss, so it counts for that one attack ("the next attack roll against it has Advantage": Help,
+  Guiding Bolt). The authority deletes it after the Action completes (`endEffectsWhenAttacked`).
 - **Validation.** A custom effect needs a name, rules the engine knows, a slug that isn't a built-in condition,
   and V14 duration units. **Effects by reference (`type: "ref"`) are refused**: they used to validate and then be
   dropped when the Action ran.
@@ -152,6 +155,7 @@ Every creature has the 2024 actions anyone can take, with no Items (`module/help
 | Dash | Dashing until the end of the turn: + the creature's Speed to its movement |
 | Disengage | Disengaged until the end of the turn |
 | Dodge | Dodging until the start of its next turn: attacks against it have disadvantage, its Agility saves advantage |
+| Help | An enemy within 5 ft is Distracted until the start of your next turn: the next attack against it has advantage |
 | Hide | A DC 15 Agility (Stealth) check; on a success, Invisible |
 | Grapple | The target makes a Might save, DC 8 + Might modifier + Proficiency Bonus; on a failure, Grappled |
 | Shove: Prone | The same save; on a failure, Prone |
@@ -172,7 +176,11 @@ Shortcuts:
 - Disengage stops the common Opportunity Attack, but not a movement reaction a creature's own content defines.
   Being pushed or teleported out of reach provokes none (2024).
 
-Not yet: Help, Influence, Magic, Ready, Search, Study and Utilize.
+Help covers the 2024 attack assist; any creature's next attack uses it, not only an ally's, and helping a check is by
+hand. Live (two browsers): Player1's Help on the Bandit Captain, then an Unarmed Strike while Prone, rolled `1d20 + 1`
+(the advantage cancelled Prone's disadvantage) and Distracted ended.
+
+Not yet: Influence, Magic, Ready, Search, Study and Utilize (each is the GM's call or a check with the GM's DC).
 
 Live (two browsers):
 - Player1's caster used Dash from the bar: Dashing, and movement from 25 to 55.

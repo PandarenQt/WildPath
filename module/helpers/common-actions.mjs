@@ -35,6 +35,12 @@ const COMMON = {
                         { schemaVersion: 1, id: "dodge-attacked", type: "RollMode", data: { domains: ["attacked"], mode: "disadvantage" } },
                         { schemaVersion: 1, id: "dodge-agility", type: "RollMode", data: { domains: ["save.agility"], mode: "advantage" } }
                     ] }] } },
+    // 2024 Help, assisting an attack: the first attack roll against an enemy beside you has Advantage, until the start
+    // of your next turn. shortcut: any creature's attack uses it, not only an ally's; helping a check is by hand.
+    help: { name: "WILDPATH.COMMON.Help", img: "icons/svg/upgrade.svg", definition: { costs: ACTION, ...TOUCH,
+            effects: [{ id: "helped", type: "effect", name: "Distracted", slug: "distracted", img: "icons/svg/upgrade.svg",
+                    duration: UNTIL_NEXT_TURN, endsWhen: "attacked",
+                    ruleElements: [{ schemaVersion: 1, id: "help-attacked", type: "RollMode", data: { domains: ["attacked"], mode: "advantage" } }] }] } },
     hide: { name: "WILDPATH.COMMON.Hide", img: "icons/svg/cowled.svg", definition: { costs: ACTION, ...SELF,
             check: { ability: "agility", skill: "stealth", dc: { value: 15 } },
             effects: [{ id: "hidden", type: "condition", conditionId: "invisible", checkOutcomePolicy: "success" }] } },

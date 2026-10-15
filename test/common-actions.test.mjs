@@ -5,7 +5,7 @@ import {validateActionDefinition} from "../module/helpers/action-definitions.mjs
 import {actionBarContext} from "../module/helpers/action-bar-context.mjs";
 
 test("every creature's common actions are valid Actions, built fresh from their id", () => {
-  assert.deepEqual([...COMMON_ACTION_IDS], ["dash", "disengage", "dodge", "hide", "grapple", "shove", "push", "unarmed", "opportunity"]);
+  assert.deepEqual([...COMMON_ACTION_IDS], ["dash", "disengage", "dodge", "help", "hide", "grapple", "shove", "push", "unarmed", "opportunity"]);
   const actor = {uuid: "Actor.hero"};
   for ( const id of COMMON_ACTION_IDS ) {
     const action = commonAction(actor, id, {localize: key => key.split(".").pop()});
@@ -55,4 +55,22 @@ test("the action bar lists the common actions last, in their own group", () => {
   const spent = actionBarContext({actor, common}).groups.at(-1).actions;
   assert.deepEqual(spent.slice(0, 2).map(action => action.enabled), [false, false], "a spent Action greys them out");
   assert.equal(spent.at(-1).enabled, true, "the Reaction is still there");
+});
+
+test("Help: the next attack on an enemy beside you has Advantage, and its effect ends once it is attacked", async () => {
+  const help = commonAction({}, "help").system.definition;
+  assert.equal(validateActionDefinition(help).ok, true);
+  assert.deepEqual([help.range.distance.value, help.effects[0].endsWhen, help.effects[0].ruleElements[0].data],
+    [5, "attacked", {domains: ["attacked"], mode: "advantage"}]);
+  assert.equal(validateActionDefinition({...help, effects: [{...help.effects[0], endsWhen: "moved"}]}).ok, false);
+
+  const {endEffectsWhenAttacked} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const deleted = [];
+  const effect = (id, endsWhen) => ({id, flags: {wildpath: {conditionEffect: {definition: endsWhen ? {endsWhen} : {}}}}});
+  const enemy = {effects: [effect("distracted", "attacked"), effect("blessed")], deleteEmbeddedDocuments: async (type, ids) => deleted.push(...ids)};
+  const scene = {tokens: {get: id => (id === "enemy" ? {actor: enemy} : null)}};
+  const state = {source: {tokenRef: "Scene.s.Token.hero"}, results: {attackResolution: {results: [{ok: true, hit: false, target: {tokenId: "enemy"}}]}}};
+  await endEffectsWhenAttacked({state}, {fromUuid: async () => ({parent: scene})});
+  assert.deepEqual(deleted, ["distracted"], "after the attack, hit or miss; other effects stay");
+  assert.deepEqual(await endEffectsWhenAttacked({state: {results: {}}}, {fromUuid: async () => null}), [], "no attack, nothing ends");
 });

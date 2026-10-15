@@ -122,6 +122,7 @@ export function registerFoundryV14MultiplayerResolution({
       await applyActionTransformation(event, {logger});
       await summons.afterResolution(event);
       await pushes.afterResolution(event);
+      await endEffectsWhenAttacked(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
     },
     logger
   });
@@ -952,6 +953,25 @@ async function foundryActionController({action, actor, intent, sender, game}) {
   }
   return {ok: false, code: MULTIPLAYER_AUTHORITY_CODES.WRONG_USER,
     reason: "This Action costs the companion's controller, and the sender controls none of its controllers."};
+}
+
+/**
+ * After an attack Action: each creature it attacked loses its effects that end when it is attacked (`endsWhen:
+ * "attacked"`, Help's Distracted), now that the attack has had them.
+ */
+export async function endEffectsWhenAttacked({state}, {fromUuid}) {
+  const attacked = (state?.results?.attackResolution?.results ?? []).filter(result => result?.ok !== false)
+    .map(result => result.target?.tokenId).filter(Boolean);
+  if ( !attacked.length ) return [];
+  const scene = (await fromUuid(String(state?.source?.tokenRef ?? "")))?.parent ?? null;
+  const ended = [];
+  for ( const tokenId of new Set(attacked) ) {
+    const actor = scene?.tokens?.get(tokenId)?.actor;
+    const effects = [...(actor?.effects ?? [])].filter(effect => effect.flags?.wildpath?.conditionEffect?.definition?.endsWhen === "attacked");
+    if ( effects.length ) await actor.deleteEmbeddedDocuments("ActiveEffect", effects.map(effect => effect.id));
+    ended.push(...effects.map(effect => effect.id));
+  }
+  return ended;
 }
 
 /**
