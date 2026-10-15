@@ -26,6 +26,9 @@
       <div class="actor-commands">
         <button type="button" data-action="rest" data-recovery="shortRest">{{localize "WILDPATH.SHEET.ShortRest"}}</button>
         <button type="button" data-action="rest" data-recovery="longRest">{{localize "WILDPATH.SHEET.LongRest"}}</button>
+        {{#if canChooseAbilityScores}}
+          <button type="button" data-action="abilityScores">{{localize "WILDPATH.ABILITYSCORES.Button"}}</button>
+        {{/if}}
         {{#each levelUps as |entry|}}
           <button type="button" data-action="levelUp" data-item-id="{{entry.id}}">{{entry.label}}</button>
         {{/each}}

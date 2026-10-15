@@ -58,6 +58,14 @@ Live (GM browser, after relaunching the world, which is how Foundry learns new I
 added at level 3 gave level 3 and Hit Dice d10 3/3; level 4 raised both; adding the Champion listed it as its
 subclass; deleting the Fighter cleared the records.
 
+**Ability scores at creation (G8, 2026-10-15).** A character below level 2 without a background has an "Ability
+Scores" button (`applications/ability-scores.mts`): the standard array (15, 14, 13, 12, 10, 8, each placed once), point
+buy (27 points, each score 8 to 15, costs from 2024), or six rolls of 4d6 keeping the highest three, rolled in chat
+and each placed once. Confirm waits for a legal set. Typing scores on the sheet still works. The background's +2/+1
+(or +1/+1/+1) comes after, when it is dropped. Live (Player1's browser): point buy refused 29 points and a 16 and
+took 27; the rolls 14, 15, 10, 6, 10, 16 were placed; the array was valid as dealt, refused a duplicate, and took a
+swap; the Acolyte then added Intellect +2 and Wits +1, and the button went away.
+
 **Weapon Mastery (G8, 2026-10-15).** A weapon attack by a creature whose `training.masteries` lists that weapon uses
 its mastery (`helpers/weapon-mastery.mts`), applied automatically:
 - **Push:** a hit Large or smaller creature is pushed 10 feet away (forced movement).

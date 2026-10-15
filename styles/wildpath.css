@@ -455,6 +455,10 @@
 /* Sheet completion: header commands, editable bases, stacking levels, death saves. */
 .wildpath.actor .actor-commands { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.25rem; }
 .wildpath.level-up { max-height: 70vh; overflow-y: auto; }
+.wildpath.ability-scores [hidden] { display: none !important; }
+.wildpath.ability-scores .ability-score-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.25rem 0.75rem; }
+.wildpath.ability-scores .ability-score-row { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.wildpath.ability-scores .ability-score-row select, .wildpath.ability-scores .ability-score-row input { width: 4.5rem; }
 .wildpath.level-up fieldset { display: flex; flex-wrap: wrap; gap: 0.25rem 0.75rem; }
 .wildpath.level-up fieldset > legend, .wildpath.level-up fieldset > .hint, .wildpath.level-up fieldset > div[data-count] { flex-basis: 100%; }
 .wildpath.level-up .level-up-option { display: inline-flex; align-items: center; gap: 0.25rem; }

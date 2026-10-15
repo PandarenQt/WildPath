@@ -218,6 +218,22 @@
       "Use": "Succeed instead",
       "Decline": "Fail the save"
     },
+    "ABILITYSCORES": {
+      "Button": "Ability Scores",
+      "Title": "{name}: Ability Scores",
+      "Confirm": "Confirm",
+      "Method": "Method",
+      "Array": "Standard array",
+      "PointBuy": "Point buy",
+      "Roll": "Roll 4d6, drop the lowest",
+      "RollButton": "Roll six scores",
+      "RollFirst": "Roll six scores, then place each one.",
+      "Rolled": "Rolled {values}: place each once.",
+      "RollFlavor": "{name}: an ability score",
+      "ArrayHint": "Place 15, 14, 13, 12, 10 and 8, each once.",
+      "Points": "{spent} of {budget} points spent (each score 8 to 15).",
+      "OutOfRange": "Each score is 8 to 15."
+    },
     "MASTERY": {
       "topple": "Topple",
       "graze": "Graze"

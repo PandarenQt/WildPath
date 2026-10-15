@@ -1,6 +1,6 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import {hitPointsForLevel, improvementUpdates, levelSteps, multiclassShortfalls, poolOptions, traitUpdates} from "../module/helpers/level-up.mjs";
+import {hitPointsForLevel, improvementUpdates, levelSteps, multiclassShortfalls, pointBuySpent, poolOptions, traitUpdates, usesPool} from "../module/helpers/level-up.mjs";
 
 test("a level's steps: its entries, the original class's or a multiclass's", () => {
   const advancement = [{level: 1, type: "grant", title: "Class Features"}, {level: 1, type: "trait", title: "Saves", classRestriction: "primary"},
@@ -37,4 +37,12 @@ test("multiclassing wants 13 in a class's primary abilities: all of them, or one
   assert.deepEqual(multiclassShortfalls(classes, {might: 13, presence: 12}), ["Paladin"]);
   assert.deepEqual(multiclassShortfalls(classes, {agility: 14, might: 15, presence: 13}), []);
   assert.deepEqual(multiclassShortfalls(classes, {}), ["Fighter", "Paladin"], "a missing score is 10");
+});
+
+test("ability score generation: point buy costs 27 for 15/15/15/8/8/8, and an array is used once each", () => {
+  assert.equal(pointBuySpent([15, 15, 15, 8, 8, 8]), 27);
+  assert.equal(pointBuySpent([15, 14, 13, 12, 10, 8]), 27);
+  assert.equal(pointBuySpent([16, 8, 8, 8, 8, 8]), null, "16 cannot be bought");
+  assert.equal(usesPool([8, 10, 12, 13, 14, 15], [15, 14, 13, 12, 10, 8]), true);
+  assert.equal(usesPool([15, 15, 13, 12, 10, 8], [15, 14, 13, 12, 10, 8]), false);
 });
