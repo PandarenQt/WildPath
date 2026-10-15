@@ -29,12 +29,20 @@
           <span class="bar-group-label">{{localize group.label}}</span>
           {{#each group.actions as |action|}}
             <button type="button" class="bar-action" data-action="use" data-item-id="{{action.id}}"
-                    {{#unless action.enabled}}disabled title="{{action.label}}: {{localize "WILDPATH.ACTIONBAR.Unavailable"}} ({{action.disabledCode}})"{{else}}{{#if action.odds}}data-tooltip="{{action.label}}<br>{{action.odds.tooltip}}"{{else}}data-tooltip="{{action.label}}"{{/if}}{{/unless}}
+                    {{#unless action.enabled}}disabled title="{{action.label}}: {{localize action.reason.key name=action.reason.name}}"{{else}}{{#if action.odds}}data-tooltip="{{action.label}}<br>{{action.odds.tooltip}}"{{else}}data-tooltip="{{action.label}}"{{/if}}{{/unless}}
                     aria-label="{{action.label}}">
               <img src="{{action.img}}" alt="" width="28" height="28">
               <span class="bar-action-label">{{action.label}}</span>
               {{#if action.odds}}<span class="bar-odds">{{action.odds.badge}}</span>{{/if}}
             </button>
+            {{#if action.slots}}
+              <span class="bar-slots">
+                {{#each action.slots as |slot|}}
+                  <button type="button" class="bar-slot" data-action="useSlot" data-item-id="{{action.id}}" data-choice-id="{{slot.choiceId}}"
+                          data-option-id="{{slot.optionId}}" data-tooltip="{{slot.label}}" aria-label="{{action.label}}: {{slot.label}}">{{slot.level}}</button>
+                {{/each}}
+              </span>
+            {{/if}}
             {{#if action.policy}}
               <button type="button" class="bar-policy policy-{{action.policy.id}}" data-action="reactionPolicy" data-item-id="{{action.id}}"
                       data-tooltip="{{action.policy.label}}" aria-label="{{localize action.policy.label}}">

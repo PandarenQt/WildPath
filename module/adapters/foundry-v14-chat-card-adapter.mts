@@ -71,8 +71,12 @@ export function createFoundryV14ChatCardAdapter({
       rolls: rolls.map(roll => roll.toJSON()),
       whisper: [...visibility.whisper],
       blind: visibility.blind,
-      // Each named target's Miss, Critical hit or Saved floats over its Tokens (floating-text.mts).
-      flags: {wildpath: {resolutionId, floating: floatingOutcomes(view)}}
+      // Each named target's Miss, Critical hit, Saved or Immune floats over its Tokens (floating-text.mts).
+      flags: {wildpath: {resolutionId, floating: [...floatingOutcomes(view), ...immuneOutcomes(view, action, uuid => {
+        // A card names its targets by Token; the Token's Actor holds the immunities.
+        const document = (globalThis as {fromUuidSync?(uuid: string): unknown}).fromUuidSync?.(uuid) as {actor?: ImmuneActor} | null;
+        return (document?.actor ?? document) as ImmuneActor | null;
+      })]}}
     });
     return {ok: true, posted: true, message};
   };
@@ -85,6 +89,28 @@ const FLOATED = new Set<string>([CHAT_OUTCOME_KEYS.miss, CHAT_OUTCOME_KEYS.criti
 export function floatingOutcomes(view: ReturnType<typeof createResolutionCardViewModel>) {
   return view.targets.flatMap(target => (target.uuid ? [target.attack, target.save] : [])
     .flatMap(outcome => (outcome && FLOATED.has(outcome.label) ? [{uuid: target.uuid!, label: outcome.label}] : [])));
+}
+
+interface ImmuneActor {getConditionImmunities?(): readonly string[]}
+interface ConditionEffect {type?: string; conditionId?: string; levels?: number; saveOutcomePolicy?: unknown;
+  application?: {saveOutcomePolicy?: unknown}}
+
+/**
+ * "Immune" over each named target the Action gives a condition it is immune to (`ConditionImmunity`): a condition that
+ * reaches it, so not after a miss, and a "only on a failed save" one not after a success.
+ */
+export function immuneOutcomes(view: ReturnType<typeof createResolutionCardViewModel>, action: unknown,
+  resolve: (uuid: string) => ImmuneActor | null | undefined) {
+  const effects = (((action as {system?: {definition?: {effects?: ConditionEffect[]}}} | null)?.system?.definition?.effects) ?? [])
+    .filter(effect => (effect.type === "condition") && effect.conditionId && ((effect.levels ?? 1) > 0));
+  if ( !effects.length ) return [];
+  return view.targets.flatMap(target => {
+    if ( !target.uuid || (target.attack?.label === CHAT_OUTCOME_KEYS.miss) ) return [];
+    const saved = target.save?.label === CHAT_OUTCOME_KEYS.saveSuccess;
+    const reaching = effects.filter(effect => !(saved && ((effect.saveOutcomePolicy ?? effect.application?.saveOutcomePolicy) === "failure")));
+    const immunities = resolve(target.uuid)?.getConditionImmunities?.() ?? [];
+    return reaching.some(effect => immunities.includes(effect.conditionId!)) ? [{uuid: target.uuid, label: CHAT_OUTCOME_KEYS.immune}] : [];
+  });
 }
 
 // Foundry globals are untyped here; this is the only place they are read.

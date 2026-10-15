@@ -47,6 +47,7 @@ export const CHAT_OUTCOME_KEYS = Object.freeze({
   saveSuccess: "WILDPATH.CHAT.Outcome.SaveSuccess",
   saveFailure: "WILDPATH.CHAT.Outcome.SaveFailure",
   legendaryResistance: "WILDPATH.CHAT.Outcome.LegendaryResistance",
+  immune: "WILDPATH.CHAT.Outcome.Immune",
   checkSuccess: "WILDPATH.CHAT.Outcome.CheckSuccess",
   checkFailure: "WILDPATH.CHAT.Outcome.CheckFailure"
 });

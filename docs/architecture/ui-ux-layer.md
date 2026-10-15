@@ -28,8 +28,8 @@ model through `actionBarContext` (`helpers/action-bar-context.mts`).
   an owner, and hides when there is none.
 - **Contents:**
   - the Action, Bonus Action, Reaction and movement counters, then pools;
-  - the creature's Actions grouped by their cost; an unaffordable one is greyed, with the payment code
-    shown on hover;
+  - the creature's Actions grouped by their cost; an unaffordable one is greyed, and its tooltip says why
+    ("Fireball: no 3rd-level slot left", or that its magic item must be equipped and attuned);
   - its active conditions, with stack levels.
 - **Use:** a click calls the real `Item.use()`, so the authority decides everything.
 - **Updates:** it re-renders when that creature, its Items or its effects change.
@@ -58,6 +58,18 @@ was not outlined, since the authority does not target it either. Escape cancelle
 
 Live: Player1's bar showed Prone's summary on hover, and the common actions as a row of icons.
 
+**Spells by level, items, and slots on the button (2026-10-15, after Baldur's Gate 3).**
+- **Groups.** Spells leave their cost group for one per level: Cantrips (a spell that spends no slot), then 1st to
+  9th level by the lowest slot they use. A magic item's Actions (`flags.wildpath.grantedBy`) go in Items.
+  Reactions stay together, with their Always, Ask or Never settings.
+- **Slot buttons.** A spell whose only choice is its slot shows a small button for each slot level it can use now
+  (a spent level has none). Clicking one casts it with that slot, with no dialog: `Item.use({configuration})`, which
+  the authority checks like any choice. The spell's own button still opens the dialog.
+
+Live (two browsers): Player1's bar showed Cantrips, 1st level and 3rd level groups, Fireball with a "3" button.
+Clicking it went straight to placing the area; the 3rd-level slot was spent. With the Action spent, the buttons read
+"Fireball: no Action left".
+
 **Movement that warns (2026-10-14, after Baldur's Gate 3).** `WildPathTokenRuler` (`module/applications/token-ruler.mts`,
 `CONFIG.Token.rulerClass`) adds two things to a dragged Token's destination label:
 - **Movement left.** The creature's remaining movement less the path's cost, shown as "Not enough movement" in red
@@ -76,18 +88,24 @@ with no warning. Releasing on the start square moved nothing.
 **Floating combat text (2026-10-14, after Baldur's Gate 3).** What happens to a creature rises over its visible
 Tokens on every client (`module/applications/floating-text.mts`), with Foundry's scrolling text:
 - **Health:**
-  - Damage shows as "−8" in red, healing as "+3" in green.
+  - Damage shows as "−8 Fire", coloured by its first type (fire orange, cold blue; weapon damage red), and healing
+    as "+3" in green. The damage commit passes its types, most first, in the update's options
+    (`wildpath.damageTypes`).
   - The client making the change records it in the update's options in `WildPathActor#_preUpdate`, and every
     client floats it in `_onUpdate`. That covers unlinked Tokens, whose update reaches each client through
     their delta, and a GM's edit on the sheet.
 - **Outcomes:**
   - A named target's Miss, Critical hit or Saved floats on each client that can see the card. The card carries
     them as `flags.wildpath.floating`.
+  - "Immune" floats over a target the Action gives a condition it is immune to, when the condition reached it (no
+    miss, and no success against an "on a failed save" one). The card adapter checks the target Token's Actor.
   - A blind card floats only for the GM.
   - Foundry already floats a condition's name when it is added or removed.
 
 Live (two browsers): Player1's client floated "−8" over QA Caster when the Bandit Captain hit. It floated "−13"
-over the Captain, an unlinked Token, when Fire Bolt hit, and "Miss" when Fire Bolt missed.
+over the Captain, an unlinked Token, when Fire Bolt hit, and "Miss" when Fire Bolt missed. Later (2026-10-15)
+Player1's Fireball floated "−18 Fire" and "−36 Fire" in orange, and "Shove: Prone" against a creature immune to Prone
+floated "Immune" on a failed save.
 
 **Odds before acting (2026-10-14, after Baldur's Gate 3).** With targets chosen, each attack and save Action on
 the bar shows the odds as a badge, and one line per target in its tooltip:

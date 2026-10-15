@@ -68,7 +68,7 @@ export default class WildPathActor extends Actor {
   /** Every client raises the change in health over the creature's visible Tokens. */
   _onUpdate(changed, options, userId) {
     super._onUpdate(changed, options, userId);
-    if ( options.wildpath?.healthChange ) floatHealthChange(this, options.wildpath.healthChange);
+    if ( options.wildpath?.healthChange ) floatHealthChange(this, options.wildpath.healthChange, options.wildpath.damageTypes);
   }
 
   /* -------------------------------------------- */

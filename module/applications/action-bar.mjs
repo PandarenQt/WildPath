@@ -14,7 +14,7 @@ export class WildPathActionBar extends HandlebarsApplicationMixin(ApplicationV2)
         classes: ["wildpath", "action-bar"],
         tag: "aside",
         window: { frame: false, positioned: false },
-        actions: { use: WildPathActionBar.#onUse, reactionPolicy: WildPathActionBar.#onReactionPolicy }
+        actions: { use: WildPathActionBar.#onUse, useSlot: WildPathActionBar.#onUseSlot, reactionPolicy: WildPathActionBar.#onReactionPolicy }
     };
     static PARTS = { bar: { template: "systems/wildpath/templates/hud/action-bar.hbs" } };
     /** The creature shown, when a test or caller sets it; otherwise it follows the controlled Token. */
@@ -69,6 +69,13 @@ export class WildPathActionBar extends HandlebarsApplicationMixin(ApplicationV2)
             await globals.CONFIG.Item.documentClass.prototype.use.call(common);
         else
             await actor.items.get(id)?.use();
+    }
+    /** Cast a spell with the slot its button names: no dialog, the authority checks the slot like any choice. */
+    static async #onUseSlot(event, target) {
+        const { itemId, choiceId, optionId } = target.dataset;
+        if (!itemId || !choiceId || !optionId)
+            return;
+        await this.shownActor?.items.get(itemId)?.use({ configuration: { choices: { [choiceId]: { paymentOptionId: optionId } } } });
     }
     /** Cycle a reaction between Ask, Always and Never (Baldur's Gate 3's reaction settings). */
     static async #onReactionPolicy(event, target) {

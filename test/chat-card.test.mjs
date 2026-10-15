@@ -158,3 +158,36 @@ test("the card shows the acting creature's own check outcome, and nothing for an
   assert.deepEqual(card({success: false}), {label: CHAT_OUTCOME_KEYS.checkFailure, tone: "failure"});
   assert.equal(card(null), null);
 });
+
+test("Immune floats over a target given a condition it is immune to, unless the condition never reached it", async () => {
+  const {immuneOutcomes} = await import("../module/adapters/foundry-v14-chat-card-adapter.mjs");
+  const view = {targets: [
+    {name: "Golem", uuid: "Actor.golem", attack: null, save: {label: CHAT_OUTCOME_KEYS.saveFailure}},
+    {name: "Saver", uuid: "Actor.saver", attack: null, save: {label: CHAT_OUTCOME_KEYS.saveSuccess}},
+    {name: "Goblin", uuid: "Actor.goblin", attack: null, save: {label: CHAT_OUTCOME_KEYS.saveFailure}},
+    {name: null, uuid: null, attack: null, save: null}]};
+  const hold = {system: {definition: {effects: [{type: "condition", conditionId: "paralyzed", saveOutcomePolicy: "failure"}]}}};
+  const actors = {"Actor.golem": ["paralyzed"], "Actor.saver": ["paralyzed"], "Actor.goblin": []};
+  const resolve = uuid => ({getConditionImmunities: () => actors[uuid] ?? []});
+  assert.deepEqual(immuneOutcomes(view, hold, resolve), [{uuid: "Actor.golem", label: CHAT_OUTCOME_KEYS.immune}],
+    "the saver resisted it anyway; the goblin is not immune; a hidden target is not named");
+  assert.deepEqual(immuneOutcomes({targets: [{...view.targets[0], attack: {label: CHAT_OUTCOME_KEYS.miss}}]}, hold, resolve), [], "a miss");
+  assert.deepEqual(immuneOutcomes(view, {system: {definition: {effects: []}}}, resolve), []);
+});
+
+test("damage floats with its types, in the colour of the first", async () => {
+  const floats = [];
+  globalThis.canvas = {ready: true, interface: {createScrollingText: async (origin, text, options) => { floats.push({text, fill: options.fill}); }}};
+  globalThis.CONST = {TEXT_ANCHOR_POINTS: {CENTER: 0, TOP: 1, BOTTOM: 2}};
+  globalThis.game = {i18n: {localize: key => key.split(".").pop()}, user: {isGM: true}};
+  try {
+    const {floatHealthChange} = await import("../module/applications/floating-text.mjs");
+    const actor = {getActiveTokens: () => [{center: {x: 0, y: 0}, h: 100, visible: true, document: {}}]};
+    floatHealthChange(actor, -8, ["fire"]);
+    floatHealthChange(actor, -12, ["slashing", "fire"]);
+    floatHealthChange(actor, 3);
+    assert.deepEqual(floats, [{text: "−8 Fire", fill: 0xff7722}, {text: "−12 Slashing, Fire", fill: 0xdd3333}, {text: "+3", fill: 0x33cc66}]);
+  } finally {
+    delete globalThis.canvas; delete globalThis.CONST; delete globalThis.game;
+  }
+});

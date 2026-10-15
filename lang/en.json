@@ -60,6 +60,7 @@
         "SaveSuccess": "Saved",
         "SaveFailure": "Failed save",
         "LegendaryResistance": "Legendary Resistance",
+        "Immune": "Immune",
         "CheckSuccess": "Check succeeded",
         "CheckFailure": "Check failed"
       }
@@ -204,6 +205,22 @@
       "Use": "Succeed instead",
       "Decline": "Fail the save"
     },
+    "DAMAGE": {
+      "Acid": "Acid",
+      "Bludgeoning": "Bludgeoning",
+      "Cold": "Cold",
+      "Fire": "Fire",
+      "Force": "Force",
+      "Lightning": "Lightning",
+      "Necrotic": "Necrotic",
+      "Piercing": "Piercing",
+      "Poison": "Poison",
+      "Psychic": "Psychic",
+      "Radiant": "Radiant",
+      "Slashing": "Slashing",
+      "Thunder": "Thunder",
+      "Untyped": "Untyped"
+    },
     "FALLING": {
       "Fall": "Falling"
     },
@@ -228,11 +245,26 @@
     "ACTIONBAR": {
       "NoActions": "No actions",
       "Unavailable": "Not available now",
+      "Reason": {
+        "Spent": "no {name} left",
+        "ItemNotReady": "{name} must be equipped, and attuned if it needs it"
+      },
       "Group": {
         "action": "Actions",
         "bonus": "Bonus Actions",
         "reaction": "Reactions",
-        "common": "Common"
+        "common": "Common",
+        "items": "Items",
+        "SpellsCantrips": "Cantrips",
+        "SpellsFirst": "1st level",
+        "SpellsSecond": "2nd level",
+        "SpellsThird": "3rd level",
+        "SpellsFourth": "4th level",
+        "SpellsFifth": "5th level",
+        "SpellsSixth": "6th level",
+        "SpellsSeventh": "7th level",
+        "SpellsEighth": "8th level",
+        "SpellsNinth": "9th level"
       },
       "Policy": {
         "Ask": "Ask before using this reaction (click to use it automatically)",

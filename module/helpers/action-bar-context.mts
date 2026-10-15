@@ -1,6 +1,8 @@
 import {createActionBarViewModel} from "./ui-view-models.mjs";
 import {reactionPolicyOf} from "./automation-events.mjs";
 import {activeEffectViews} from "./effect-views.mjs";
+import {discoverActionConfigurationChoices} from "./action-configuration.mjs";
+import {actionDefinitionFromAction} from "./action-definitions.mjs";
 
 /**
  * What the in-play action bar shows for one creature (M6): its action-economy counters and pools, its Actions
@@ -11,7 +13,7 @@ import {activeEffectViews} from "./effect-views.mjs";
 type Data = Record<string, unknown>;
 interface ResourceView {id: string; category: string; label: string; current: number; maximum: number; depleted: boolean}
 interface ActionView {id: string | null; ref: string; label: string; img: string | null; enabled: boolean; group: string;
-  disabledCode: string | null}
+  disabledCode: string | null; payment?: {failures?: Array<{resourceId?: string | null; code?: string | null}>}}
 interface GroupView {id: string; label: string; actions: string[]}
 interface BarView {actorName: string | null; resources: ResourceView[]; actions: ActionView[]; groups: GroupView[]}
 interface ConditionDefinition {id: string; name: string; img: string; stacking?: boolean}
@@ -19,7 +21,7 @@ interface ConditionDefinition {id: string; name: string; img: string; stacking?:
 export interface OddsEntry {name: string; kind: "attack" | "save"; chance: number; modifier: number; rollMode: string;
   defense?: number; dc?: number; ability?: string | null; automatic?: boolean}
 interface BarActor {
-  name?: string; img?: string; items?: Iterable<{id?: string | null; flags?: Data; system?: {active?: boolean; attunement?: string}}>;
+  name?: string; img?: string; items?: Iterable<{id?: string | null; name?: string; flags?: Data; system?: {active?: boolean; attunement?: string}}>;
   effects?: Iterable<{system?: {type?: string; level?: number}; disabled?: boolean}>;
   system?: Data;
   flags?: Data;
@@ -38,8 +40,40 @@ const ECONOMY_ORDER = ["economy.action", "economy.bonus-action", "economy.reacti
 const GROUP_LABELS: Record<string, string> = {
   "action": "WILDPATH.ACTIONBAR.Group.action",
   "bonus-action": "WILDPATH.ACTIONBAR.Group.bonus",
-  "reaction": "WILDPATH.ACTIONBAR.Group.reaction"
+  "reaction": "WILDPATH.ACTIONBAR.Group.reaction",
+  "items": "WILDPATH.ACTIONBAR.Group.items",
+  "spell-0": "WILDPATH.ACTIONBAR.Group.SpellsCantrips", "spell-1": "WILDPATH.ACTIONBAR.Group.SpellsFirst",
+  "spell-2": "WILDPATH.ACTIONBAR.Group.SpellsSecond", "spell-3": "WILDPATH.ACTIONBAR.Group.SpellsThird",
+  "spell-4": "WILDPATH.ACTIONBAR.Group.SpellsFourth", "spell-5": "WILDPATH.ACTIONBAR.Group.SpellsFifth",
+  "spell-6": "WILDPATH.ACTIONBAR.Group.SpellsSixth", "spell-7": "WILDPATH.ACTIONBAR.Group.SpellsSeventh",
+  "spell-8": "WILDPATH.ACTIONBAR.Group.SpellsEighth", "spell-9": "WILDPATH.ACTIONBAR.Group.SpellsNinth"
 };
+/** After the Actions by cost: spells by level, then magic items' Actions (Baldur's Gate 3's bar). */
+const EXTRA_GROUPS = [...Array.from({length: 10}, (_, level) => `spell-${level}`), "items"];
+const definitionOf = actionDefinitionFromAction as (item: unknown, options: Data) => {ok: boolean; definition?: Data | null};
+const discover = discoverActionConfigurationChoices as (options: Data) => {ok: boolean; requests?: Array<{id: string; type: string;
+  options?: Array<{id: string; label?: string; paymentOptionId?: string; metadata?: {castingLevel?: number}}>}>};
+
+/** A spell's level on the bar: 0 for a cantrip, else the lowest slot it can use; null for anything else. */
+function spellLevel(definition: Data | null | undefined): number | null {
+  if ( !(definition?.tags as string[] | undefined)?.includes("spell") ) return null;
+  // Foundry stores `{"spell-slot.3": 3}` as `{"spell-slot": {"3": 3}}`; both shapes count.
+  const levels = ((definition?.configuration as Array<{levelByResourceId?: Data}> | undefined) ?? []).flatMap(choice =>
+    Object.values(choice.levelByResourceId ?? {}).flatMap(value => (value && (typeof value === "object") ? Object.values(value) : [value])))
+    .map(Number).filter(Number.isFinite);
+  return levels.length ? Math.min(...levels) : 0;
+}
+
+/** The slots a spell can be cast with now, when the slot is its only choice: a button for each, by level. */
+function slotButtons(item: unknown, actorSystem: unknown) {
+  const definition = definitionOf(item, {actorSystem}).definition;
+  if ( !definition ) return null;
+  const discovery = discover({definition, actorSystem});
+  const [request, ...others] = discovery.ok ? discovery.requests ?? [] : [];
+  if ( !request || others.length || (request.type !== "resource") || !request.options?.length ) return null;
+  return request.options.map(option => ({choiceId: request.id, optionId: option.paymentOptionId ?? option.id,
+    level: option.metadata?.castingLevel ?? null, label: option.label ?? option.id}));
+}
 
 const signed = (value: number) => (value < 0 ? `${value}` : `+${value}`);
 const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
@@ -85,14 +119,34 @@ export function actionBarContext({actor, conditions=[], odds={}, common=[]}: {ac
   const items = new Map([...(actor.items ?? [])].map(item => [item.id, item]));
   const commonById = new Map(common.map(action => [action.id, action]));
   // A magic item's Action needs its item equipped and, when it needs attunement, attuned (as the authority checks).
+  const sourceItem = (action: ActionView) => items.get(String((items.get(action.id ?? "")?.flags?.wildpath as Data | undefined)?.grantedBy ?? ""));
   const itemReady = (action: ActionView) => {
-    const source = items.get(String((items.get(action.id ?? "")?.flags?.wildpath as Data | undefined)?.grantedBy ?? ""));
+    const source = sourceItem(action);
     return !source || ((source.system?.active !== false) && (source.system?.attunement !== "required"));
+  };
+  const resourceLabels = new Map(bar.resources.map(resource => [resource.id, resource.label]));
+  // Why it is not available, in words: its item is not ready, or what has run out ("no 3rd-level slot left").
+  const reason = (action: ActionView) => {
+    if ( !itemReady(action) ) return {key: "WILDPATH.ACTIONBAR.Reason.ItemNotReady", name: sourceItem(action)?.name ?? ""};
+    const spent = [...new Set((action.payment?.failures ?? []).filter(failure => failure.code === "INSUFFICIENT_RESOURCE")
+      .map(failure => resourceLabels.get(String(failure.resourceId)) ?? String(failure.resourceId)))];
+    return spent.length ? {key: "WILDPATH.ACTIONBAR.Reason.Spent", name: spent.join(", ")} : {key: "WILDPATH.ACTIONBAR.Unavailable", name: ""};
+  };
+  const rawDefinition = (action: ActionView) => (items.get(action.id ?? "") as {system?: {definition?: Data}} | undefined)?.system?.definition;
+  // Spells go by level and magic items' Actions together (Baldur's Gate 3); reactions stay with reactions.
+  const placeOf = (groupId: string, action: ActionView) => {
+    if ( groupId === "reaction" ) return groupId;
+    if ( sourceItem(action) ) return "items";
+    const level = spellLevel(rawDefinition(action));
+    return level === null ? groupId : `spell-${level}`;
   };
   const view = (groupId: string) => (action: ActionView) => ({id: action.id, label: action.label,
     img: action.img ?? "icons/svg/sword.svg", enabled: action.enabled && itemReady(action),
     disabledCode: itemReady(action) ? action.disabledCode : "ITEM_NOT_READY",
+    ...((action.enabled && itemReady(action)) ? {} : {reason: reason(action)}),
     odds: oddsView(odds[action.id ?? ""] ?? []),
+    // A spell whose only choice is its slot: one button per slot level it can use now.
+    ...(((spellLevel(rawDefinition(action)) ?? 0) > 0) && action.enabled ? {slots: slotButtons(items.get(action.id ?? ""), actor.system)} : {}),
     // A reaction's Always / Ask / Never setting (a common reaction's is on its own Action).
     ...(action.group === "reaction" ? {policy: {id: policyOf(items.get(action.id) ?? commonById.get(action.id ?? "")),
       ...POLICY_VIEWS[policyOf(items.get(action.id) ?? commonById.get(action.id ?? ""))]}} : {})});
@@ -105,8 +159,12 @@ export function actionBarContext({actor, conditions=[], odds={}, common=[]}: {ac
       current: resource.current, maximum: resource.maximum, depleted: resource.depleted,
       // Legendary Resistance has a setting like a reaction's: the creature's own, as a common reaction's is.
       ...(resource.id === "legendary-resistance" ? {policy: legendaryPolicy(actor)} : {})})),
-    groups: [...bar.groups.map(group => ({id: group.id, label: GROUP_LABELS[group.id] ?? group.label,
-      actions: group.actions.flatMap(ref => byRef.get(ref) ?? []).map(view(group.id))})),
+    groups: [...[...bar.groups.map(group => group.id), ...EXTRA_GROUPS].flatMap(groupId => {
+      const actions = bar.groups.flatMap(group => group.actions.flatMap(ref => byRef.get(ref) ?? [])
+        .filter(action => placeOf(group.id, action) === groupId));
+      const label = GROUP_LABELS[groupId] ?? bar.groups.find(group => group.id === groupId)?.label ?? groupId;
+      return actions.length ? [{id: groupId, label, actions: actions.map(view(groupId))}] : [];
+    }),
     ...(commonActions.length ? [{id: "common", label: "WILDPATH.ACTIONBAR.Group.common", actions: commonActions.map(view("common"))}] : [])],
     conditions: activeEffectViews(actor.effects ?? [], conditions)
   };

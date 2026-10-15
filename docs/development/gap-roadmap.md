@@ -305,7 +305,9 @@ Forced movement and elevation join G6, which becomes "space": areas, elevation a
 - **B1.6 and B1.8, tooltips and a tidier bar (2026-10-14).** Done:
   - condition and effect icons explain their rules and time left;
   - common actions show as icons, and buttons no longer overlap.
-  - Not yet: a roll's breakdown in place on the card, spells grouped by level, and picking a slot on the button.
+  - Spells grouped by level, magic items' Actions in Items, and a slot button per level (2026-10-15); a greyed
+    button says why ("no 3rd-level slot left").
+  - Not yet: a roll's breakdown in place on the card.
 - **B1.3, movement that warns (2026-10-14).** Done:
   - the dragged Token's label shows the movement left and each Opportunity Attack the path would provoke;
   - verified in Node, Quench (91/91) and two browsers ([ui-ux-layer.md](../architecture/ui-ux-layer.md)).
@@ -323,7 +325,7 @@ Forced movement and elevation join G6, which becomes "space": areas, elevation a
 - **B1.5, floating combat text (2026-10-14).** Done:
   - damage, healing, Miss, Critical hit and Saved float over Tokens on every client that may see them;
   - verified in Node, Quench (91/91) and two browsers ([ui-ux-layer.md](../architecture/ui-ux-layer.md)).
-  - Not yet: "Immune" when a condition is ignored, and damage coloured by type.
+  - "Immune" when a condition is ignored, and damage coloured and named by type ("−8 Fire") (2026-10-15).
 - **B1.1, odds before acting (2026-10-14).** Done:
   - attack and save odds on the action bar;
   - the `playersSeeOdds` house rule, off by default;
