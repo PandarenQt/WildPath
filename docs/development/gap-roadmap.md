@@ -311,7 +311,7 @@ Forced movement and elevation join G6, which becomes "space": areas, elevation a
 - **B1.3, movement that warns (2026-10-14).** Done:
   - the dragged Token's label shows the movement left and each Opportunity Attack the path would provoke;
   - verified in Node, Quench (91/91) and two browsers ([ui-ux-layer.md](../architecture/ui-ux-layer.md)).
-  - Not yet: warnings for lasting areas and difficult terrain on the path.
+  - Lasting areas on the path: "Enters Burning Ground" (2026-10-15). Difficult terrain is in Foundry's own cost.
 - **B1.4a, common actions (2026-10-14).** Done:
   - Dash, Disengage, Dodge, Hide, Grapple, Shove and Unarmed Strike for every creature, built by the authority
     from their id;

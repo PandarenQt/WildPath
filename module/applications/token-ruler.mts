@@ -1,5 +1,6 @@
 import {createFoundryV14TacticalGridAdapter} from "../adapters/foundry-v14-tactical-grid-adapter.mjs";
 import {observersLeftBehind} from "../helpers/movement-transition.mjs";
+import {areaCovers, sceneAreas} from "../adapters/foundry-v14-persistent-areas.mjs";
 import type {MovementObserver} from "../helpers/movement-transition.mjs";
 import type {TokenGridFootprint} from "../types/contracts.js";
 
@@ -7,7 +8,8 @@ import type {TokenGridFootprint} from "../types/contracts.js";
  * Movement that warns (after Baldur's Gate 3): a dragged Token's destination label also shows the movement it would
  * have left, and each hostile creature whose reach the path leaves while it still has its Reaction (an Opportunity
  * Attack). The reactors are the production reaction provider's own observers, and the reach relations are the
- * authority's (`movementTransitionRelations`), sampled at each grid step of the path.
+ * authority's (`movementTransitionRelations`), sampled at each grid step of the path. It also names each lasting area
+ * the path walks into (a Wall of Fire, Spike Growth). Difficult terrain is in Foundry's own cost on the label.
  */
 
 type Data = Record<string, unknown>;
@@ -21,14 +23,44 @@ interface Globals {
     _getWaypointLabelContext(waypoint: Waypoint, state: object): Data | void}}}}};
   CONFIG: {Token: {rulerClass: unknown}};
   canvas: {grid: {size: number; units: string}};
+  CONST: {REGION_VISIBILITY: {ALWAYS: number}};
   game: {user?: {isGM?: boolean}; i18n: {format(key: string, data: Data): string; localize(key: string): string};
     wildpath?: {reactionServices?(context: Data): {movement?: {observers?: Observer[]}}}};
 };
 const globals = globalThis as unknown as Globals;
 const leftBehind = observersLeftBehind as unknown as (path: TokenGridFootprint[], observers: MovementObserver[]) => string[];
 
-/** The hostile creatures, still with their Reaction, whose reach the path to `last` leaves. Hidden ones only for the GM. */
-function opportunityThreats(token: TokenLike, last: Waypoint): string[] {
+/** The Token's positions along the path to `last`: its waypoints, and each grid step between them, from the start. */
+function pathPositions(token: TokenLike, last: Waypoint): Data[] {
+  const source = token.document.toObject(true);
+  const waypoints: Waypoint[] = [];
+  for ( let waypoint: Waypoint | null | undefined = last; waypoint; waypoint = waypoint.previous ) waypoints.unshift(waypoint);
+  const size = globals.canvas.grid.size;
+  return waypoints.flatMap((waypoint, index) => {
+    const from = waypoints[index - 1] ?? waypoint;
+    const steps = Math.max(1, Math.ceil(Math.max(Math.abs(waypoint.x - from.x), Math.abs(waypoint.y - from.y)) / size));
+    return Array.from({length: steps + (index ? 0 : 1)}, (_, offset) => offset + (index ? 1 : 0)).map(step => ({...source,
+      ...token.getSnappedPosition({x: from.x + ((waypoint.x - from.x) * step / steps), y: from.y + ((waypoint.y - from.y) * step / steps)})}));
+  });
+}
+
+/**
+ * The lasting areas that act on a creature (with triggers: Burning Ground, not a Daylight) that the path walks into,
+ * not covering its start. Areas hidden from Players are named to the GM only.
+ */
+function areasEntered(token: TokenLike, positions: Data[]): string[] {
+  const document = token.document as never;
+  const [start, ...rest] = positions;
+  const visible = (region: {visibility?: number}) => globals.game.user?.isGM || (region.visibility === globals.CONST.REGION_VISIBILITY.ALWAYS);
+  const cover = areaCovers as unknown as (flag: unknown, token: unknown, options: {position: Data}) => boolean;
+  return (sceneAreas((token.document.parent ?? {regions: []}) as never) as unknown as Array<{region: {name?: string; visibility?: number};
+    flag: {persistence?: {triggers?: unknown[]}}}>).filter(({region, flag}) => visible(region) && (flag.persistence?.triggers?.length ?? 0)
+      && (!start || !cover(flag, document, {position: start}))
+      && rest.some(position => cover(flag, document, {position}))).map(({region}) => region.name ?? "?");
+}
+
+/** The hostile creatures, still with their Reaction, whose reach the path leaves. Hidden ones only for the GM. */
+function opportunityThreats(token: TokenLike, positions: Data[]): string[] {
   const document = token.document;
   const observers = (globals.game.wildpath?.reactionServices?.({scene: document.parent, token: document})?.movement?.observers ?? [])
     .filter(observer => observer.context?.hostile
@@ -36,24 +68,9 @@ function opportunityThreats(token: TokenLike, last: Waypoint): string[] {
       && (globals.game.user?.isGM || (!observer.token.hidden && (observer.token.object?.visible !== false))));
   if ( !observers.length ) return [];
   const adapter = createFoundryV14TacticalGridAdapter({scene: document.parent as never});
-  const source = document.toObject(true);
-  const footprintAt = (position: {x: number; y: number}) => {
-    const result = adapter.tokenToFootprint(document as never, {position: {...source, ...token.getSnappedPosition(position)}}) as
-      {ok: boolean; footprint?: TokenGridFootprint};
-    return result.ok ? result.footprint ?? null : null;
-  };
-  // The path's waypoints, then each grid step between them.
-  const waypoints: Waypoint[] = [];
-  for ( let waypoint: Waypoint | null | undefined = last; waypoint; waypoint = waypoint.previous ) waypoints.unshift(waypoint);
-  const size = globals.canvas.grid.size;
-  const path: TokenGridFootprint[] = [];
-  waypoints.forEach((waypoint, index) => {
-    const from = waypoints[index - 1] ?? waypoint;
-    const steps = Math.max(1, Math.ceil(Math.max(Math.abs(waypoint.x - from.x), Math.abs(waypoint.y - from.y)) / size));
-    for ( let step = index ? 1 : 0; step <= steps; step++ ) {
-      const footprint = footprintAt({x: from.x + ((waypoint.x - from.x) * step / steps), y: from.y + ((waypoint.y - from.y) * step / steps)});
-      if ( footprint ) path.push(footprint);
-    }
+  const path = positions.flatMap(position => {
+    const result = adapter.tokenToFootprint(document as never, {position}) as {ok: boolean; footprint?: TokenGridFootprint};
+    return result.ok && result.footprint ? [result.footprint] : [];
   });
   const footprints: MovementObserver[] = observers.flatMap(observer => {
     const result = adapter.tokenToFootprint(observer.token as never, {position: observer.token.toObject(true)}) as
@@ -76,11 +93,14 @@ export function registerTokenRuler() {
       const {i18n} = globals.game;
       const value = this.token.actor?.system?.resources?.movement?.value;
       const left = Number.isFinite(value) && Number.isFinite(waypoint.measurement.cost) ? value! - waypoint.measurement.cost : null;
-      const threats = opportunityThreats(this.token, waypoint);
+      const positions = pathPositions(this.token, waypoint);
+      const threats = opportunityThreats(this.token, positions);
+      const areas = areasEntered(this.token, positions);
       return {...context, wildpath: {
         ...(left === null ? {} : {left: left < 0 ? i18n.localize("WILDPATH.RULER.Over")
           : i18n.format("WILDPATH.RULER.Left", {distance: Math.round(left * 100) / 100, units: globals.canvas.grid.units}), over: left < 0}),
-        threats: threats.map(name => i18n.format("WILDPATH.RULER.Threat", {name}))}};
+        threats: [...threats.map(name => i18n.format("WILDPATH.RULER.Threat", {name})),
+          ...areas.map(name => i18n.format("WILDPATH.RULER.Area", {name}))]}};
     }
   }
   globals.CONFIG.Token.rulerClass = WildPathTokenRuler;

@@ -79,11 +79,17 @@ Clicking it went straight to placing the area; the 3rd-level slot was spent. Wit
   (`movementTransitionRelations`), sampled at each grid step (`observersLeftBehind`). Hidden creatures show only
   to the GM.
 
+- **Lasting areas (2026-10-15).** "Enters Burning Ground" for each lasting area that acts on a creature (it has
+  triggers; a Daylight does not) that the path walks into without starting in it. One hidden from Players names
+  itself to the GM only. Difficult terrain is already in Foundry's own cost on the label.
+
 The label template is WildPath's own (`templates/hud/waypoint-label.hbs`), laid out like Foundry's.
 
 Live (two browsers): Player1 dragged the Prone caster four squares from the Bandit Captain. The label read
 "20 ft · 5 ft left · Opportunity Attack: Bandit Captain". A step that stayed in reach read "5 ft · 20 ft left",
-with no warning. Releasing on the start square moved nothing.
+with no warning. Releasing on the start square moved nothing. Later (2026-10-15) the GM's drag of QA Caster into
+Player1's Burning Ground read "20 ft · Not enough movement · Opportunity Attack: Bandit Captain · Enters Burning
+Ground"; cancelling moved nothing.
 
 **Floating combat text (2026-10-14, after Baldur's Gate 3).** What happens to a creature rises over its visible
 Tokens on every client (`module/applications/floating-text.mts`), with Foundry's scrolling text:
