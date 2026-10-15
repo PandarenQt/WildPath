@@ -266,7 +266,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   const spell = document.type === "spell";
   const level = number(system.level) ?? 0;
   const pool = usesPool({document, scales});
-  const description = describe(document, {names, creature});
+  const description = houseText(document, describe(document, {names, creature}));
   const source = {system: "dnd5e", pack, id: document._id, type: document.type, book,
     license: document.system?.source?.license || null, rules: document.system?.source?.rules || "2024",
     // A feat's category (origin, general, fightingStyle, epicBoon), which the level-up dialog offers (G8).
@@ -1495,6 +1495,16 @@ function templateText(template={}) {
  * The source's own description with dnd5e's enrichers resolved: links become their labels, and inline rolls,
  * stat-block attacks, damage, saves and checks become the words dnd5e shows. A creature's numbers come from it.
  */
+/**
+ * A feature's text where WildPath's rules differ from the book's (maintainer decisions): the Defense Fighting Style's
+ * +1 AC needs no armor (2026-10-15), so its armor clause and dnd5e's note about turning the effect off go.
+ */
+export function houseText(document, html) {
+  if ( (document.type !== "feat") || (document.system?.type?.subtype !== "fightingStyle") || (document.name !== "Defense") ) return html;
+  return html.replace(/While you(?:'re|’re| are) wearing [^<.]*?armor, you gain/u, "You gain")
+    .replace(/<section[^>]*class="secret"[^>]*>[\s\S]*?<\/section>/gu, "");
+}
+
 export function describe(document, {names={}, creature=null}={}) {
   const html = String(document.system?.description?.value ?? "");
   if ( !html.trim() ) return "";

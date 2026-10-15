@@ -245,6 +245,9 @@ equipped. Equipping it (`system.active`) turns its rules on.
 - **Worn magic items** carry their passive effects' rules (a Cloak of Protection's +1 AC and saves). Disabled
   effects, which dnd5e uses for variants, are left out. Features get their passive effects' rules the same way
   (Unarmored Defense, the Defense fighting style).
+- **House text** (`houseText`): where WildPath's rule differs from the book, the text says what WildPath does. The
+  Defense Fighting Style's +1 AC needs no armor (maintainer, 2026-10-15: too weak to need it), so its armor clause
+  and dnd5e's note about turning the effect off are dropped.
 - **AC calculations** in effects become `ArmorClass` rules: Mage Armor, Draconic Resilience, and the Barbarian's,
   Monk's and College of Dance's Unarmored Defense.
 - **Hover (G6).** A creature's fly Speed keeps dnd5e's hover (`GrantMovement` `hover: true`), so it does not fall
