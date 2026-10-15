@@ -1,4 +1,5 @@
 import {combineRollModes} from "./rolls.mjs";
+import {WILDPATH} from "../config.mjs";
 
 /**
  * Snapshot actor combat statistics into plain data for staged action resolution.
@@ -244,10 +245,19 @@ export function resolveActorSaveStatistic(actor, ability=null) {
   return {...save, totalModifier: save.totalModifier + proficiency, proficiency};
 }
 
-/** A creature's check bonus: its ability modifier, plus every Modifier on `check.<skill>`, `check.<ability>` and `check`. */
+/**
+ * A creature's check bonus: its ability modifier (the skill's own ability when the check names none), every Modifier
+ * on `check.<skill>`, `check.<ability>` and `check`, and its proficiency bonus once for a proficient skill or twice
+ * for expertise (`skills.<skill>.proficiency`).
+ */
 export function resolveActorCheckStatistic(actor, {ability=null, skill=null}={}) {
-  return withAbilityModifier(resolveActorStatisticModifier(actor, [skill ? `check.${skill}` : null,
-    ability ? `check.${ability}` : null, "check"].filter(Boolean), {tags: [ability, skill].filter(Boolean)}), actor, ability);
+  const used = ability ?? WILDPATH.SKILLS?.[skill]?.ability ?? null;
+  const check = withAbilityModifier(resolveActorStatisticModifier(actor, [skill ? `check.${skill}` : null,
+    used ? `check.${used}` : null, "check"].filter(Boolean), {tags: [used, skill].filter(Boolean)}), actor, used);
+  const level = Math.min(Number(actor?.system?.skills?.[skill]?.proficiency) || 0, 2);
+  if ( !check || !level ) return check;
+  const proficiency = actorProficiencyBonus(actor) * level;
+  return {...check, totalModifier: check.totalModifier + proficiency, proficiency};
 }
 
 function withAbilityModifier(statistic, actor, ability) {

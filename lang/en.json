@@ -214,6 +214,29 @@
       "Use": "Succeed instead",
       "Decline": "Fail the save"
     },
+    "SKILLS": {
+      "Acrobatics": "Acrobatics",
+      "AnimalHandling": "Animal Handling",
+      "Arcana": "Arcana",
+      "Athletics": "Athletics",
+      "Deception": "Deception",
+      "History": "History",
+      "Insight": "Insight",
+      "Intimidation": "Intimidation",
+      "Investigation": "Investigation",
+      "Medicine": "Medicine",
+      "Nature": "Nature",
+      "Perception": "Perception",
+      "Performance": "Performance",
+      "Persuasion": "Persuasion",
+      "Religion": "Religion",
+      "SleightOfHand": "Sleight of Hand",
+      "Stealth": "Stealth",
+      "Survival": "Survival"
+    },
+    "HITDICE": {
+      "Pool": "Hit Dice ({die})"
+    },
     "DAMAGE": {
       "Acid": "Acid",
       "Bludgeoning": "Bludgeoning",
@@ -604,6 +627,27 @@
       "AcCalculated": "Auto",
       "Equipped": "Equipped",
       "Unequipped": "Not equipped",
+      "Skills": "Skills",
+      "SkillProficiency": {
+        "Label": "Proficiency",
+        "None": "—",
+        "Proficient": "Proficient",
+        "Expertise": "Expertise"
+      },
+      "HeroicInspiration": "Heroic Inspiration",
+      "Training": {
+        "Label": "Training",
+        "armor": "Armor",
+        "weapons": "Weapons",
+        "tools": "Tools",
+        "masteries": "Weapon Mastery",
+        "Hint": {
+          "armor": "light, medium, heavy, shield",
+          "weapons": "simple, martial, or a weapon",
+          "tools": "thieves' tools, a musical instrument",
+          "masteries": "the weapons whose mastery you use"
+        }
+      },
       "Attuned": "Attuned",
       "NotAttuned": "Not attuned",
       "AttunementHint": "This magic item gives its benefits only while you are attuned to it (and, for gear, while it is equipped).",

@@ -26,6 +26,36 @@ WILDPATH.ABILITIES = {
 };
 
 /* -------------------------------------------- */
+/*  Skills                                       */
+/* -------------------------------------------- */
+
+/**
+ * The 2024 skills, each with the ability its checks use unless a check names another. Their ids are the check
+ * domains' (`check.stealth`, `check.sleight-of-hand`).
+ * @type {Record<string, {label: string, ability: string}>}
+ */
+WILDPATH.SKILLS = {
+  acrobatics: {label: "WILDPATH.SKILLS.Acrobatics", ability: "agility"},
+  "animal-handling": {label: "WILDPATH.SKILLS.AnimalHandling", ability: "wits"},
+  arcana: {label: "WILDPATH.SKILLS.Arcana", ability: "intellect"},
+  athletics: {label: "WILDPATH.SKILLS.Athletics", ability: "might"},
+  deception: {label: "WILDPATH.SKILLS.Deception", ability: "presence"},
+  history: {label: "WILDPATH.SKILLS.History", ability: "intellect"},
+  insight: {label: "WILDPATH.SKILLS.Insight", ability: "wits"},
+  intimidation: {label: "WILDPATH.SKILLS.Intimidation", ability: "presence"},
+  investigation: {label: "WILDPATH.SKILLS.Investigation", ability: "intellect"},
+  medicine: {label: "WILDPATH.SKILLS.Medicine", ability: "wits"},
+  nature: {label: "WILDPATH.SKILLS.Nature", ability: "intellect"},
+  perception: {label: "WILDPATH.SKILLS.Perception", ability: "wits"},
+  performance: {label: "WILDPATH.SKILLS.Performance", ability: "presence"},
+  persuasion: {label: "WILDPATH.SKILLS.Persuasion", ability: "presence"},
+  religion: {label: "WILDPATH.SKILLS.Religion", ability: "intellect"},
+  "sleight-of-hand": {label: "WILDPATH.SKILLS.SleightOfHand", ability: "agility"},
+  stealth: {label: "WILDPATH.SKILLS.Stealth", ability: "agility"},
+  survival: {label: "WILDPATH.SKILLS.Survival", ability: "wits"}
+};
+
+/* -------------------------------------------- */
 /*  Resource Pools                               */
 /* -------------------------------------------- */
 

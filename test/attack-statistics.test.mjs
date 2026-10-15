@@ -177,3 +177,20 @@ test("a magic item that needs attunement gives its rules only while attuned (202
   cloak.system.attunement = "attuned";
   assert.equal(resolveActorDefense(actor, "ac").value, 15);
 });
+
+test("skill checks (G8): the skill's own ability, and the proficiency bonus once for proficiency and twice for expertise", async () => {
+  const {resolveActorCheckStatistic} = await import("../module/helpers/combat-statistics.mjs");
+  const rogue = proficiency => Object.assign(Object.create(WildPathActor.prototype), {id: "rogue", uuid: "Actor.rogue", type: "character",
+    effects: [], items: [], allApplicableEffects: () => [], system: {details: {level: 5}, abilities: {agility: {value: 16}, wits: {value: 12}},
+      skills: {stealth: {proficiency}}}});
+  assert.equal(resolveActorCheckStatistic(rogue(0), {skill: "stealth"}).totalModifier, 3, "Stealth uses Agility (+3)");
+  assert.equal(resolveActorCheckStatistic(rogue(1), {skill: "stealth"}).totalModifier, 6, "+3 proficiency at level 5");
+  assert.equal(resolveActorCheckStatistic(rogue(2), {skill: "stealth"}).totalModifier, 9, "expertise: twice");
+  assert.equal(resolveActorCheckStatistic(rogue(2), {ability: "wits", skill: "stealth"}).totalModifier, 7, "a check that names another ability");
+});
+
+test("Hit Dice (G8): one per class level, by each class's die size", async () => {
+  const {deriveClassData} = await import("../module/helpers/spellcasting.mjs");
+  assert.deepEqual(deriveClassData([{id: "fighter", level: 3, hitDie: 10}, {id: "wizard", level: 2, hitDie: 6},
+    {id: "paladin", level: 1, hitDie: 10}, {id: "old", level: 4}]).hitDice, {"hit-die.d10": 4, "hit-die.d6": 2});
+});

@@ -94,6 +94,32 @@
             {{/each}}
           </div>
         </div>
+
+        <div class="field-block skills-block">
+          <h4>{{localize "WILDPATH.SHEET.Skills"}}</h4>
+          <ol class="skill-list">
+            {{#each skills as |skill|}}
+              <li class="skill-row">
+                <select name="system.skills.{{skill.key}}.proficiency" aria-label="{{localize skill.label}}: {{localize "WILDPATH.SHEET.SkillProficiency.Label"}}">
+                  {{selectOptions @root.proficiencyLevels selected=skill.proficiency localize=true}}
+                </select>
+                <span class="skill-name">{{localize skill.label}} <span class="skill-ability">({{localize skill.abilityLabel}})</span></span>
+                <span class="skill-modifier">{{skill.modifierText}}</span>
+              </li>
+            {{/each}}
+          </ol>
+          <label class="inspiration">
+            <input type="checkbox" name="system.heroicInspiration" {{checked system.heroicInspiration}}>
+            {{localize "WILDPATH.SHEET.HeroicInspiration"}}
+          </label>
+          <h4>{{localize "WILDPATH.SHEET.Training.Label"}}</h4>
+          {{#each training as |entry|}}
+            <label class="training">
+              <span>{{localize entry.label}}</span>
+              <input type="text" name="system.training.{{entry.key}}" value="{{entry.value}}" placeholder="{{localize entry.hint}}">
+            </label>
+          {{/each}}
+        </div>
       </div>
 
       <div class="field-block conditions-block">

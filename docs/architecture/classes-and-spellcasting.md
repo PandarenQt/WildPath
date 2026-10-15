@@ -22,6 +22,23 @@ Derived on preparation (`helpers/spellcasting.mts`, `WildPathBaseActor#deriveCla
   else the first casting class's. A `spellcasting-modifier` ValueExpression may name a class
   (`{type: "spellcasting-modifier", class: "paladin"}`) to use that class's own ability.
 
+## Character foundation (G8, 2026-10-15)
+
+The maintainer approved the G8 design on 2026-10-15 (gap-roadmap.md, "G8"). The first step adds what a character
+is made of, beside its class records:
+- **Skills.** `system.skills.<skill>.proficiency`: 0 none, 1 proficient, 2 expertise. The 18 skills and the
+  ability each uses are `CONFIG.WILDPATH.SKILLS` (ids are the check domains': `stealth`, `sleight-of-hand`). A
+  skill check adds the proficiency bonus once or twice, and uses the skill's own ability unless the check names
+  another (`resolveActorCheckStatistic`).
+- **Training.** `system.training`: `armor`, `weapons`, `tools` and `masteries` (the weapons whose mastery it uses),
+  lists of names typed on the sheet. Nothing reads them yet; armor training and Weapon Mastery will.
+- **Heroic Inspiration.** `system.heroicInspiration`, a checkbox for now.
+- **Hit Dice.** A class record's `hitDie` (its faces) gives one Hit Die per level, held in a pool per size
+  (`hit-die.d10`), created full and recovered on a long rest, like slot pools. A multiclass creature holds several.
+
+Live (two browsers): a Fighter 3 had "Hit Dice (d10) 3/3". Player1 set its Stealth to Expertise on the sheet (+2 to
++6), typed its armor training, and ticked Heroic Inspiration.
+
 ## Spellcasting progression (2024)
 
 - **Caster level.** Every level in a full-caster class, plus half the levels in each half-caster class,
