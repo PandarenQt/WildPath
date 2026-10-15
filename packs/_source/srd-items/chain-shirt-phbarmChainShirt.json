@@ -42,7 +42,8 @@
           }
         }
       }
-    ]
+    ],
+    "attunement": ""
   },
   "flags": {
     "wildpath": {

@@ -10,7 +10,8 @@
     "quantity": 1,
     "weight": 7,
     "slot": "",
-    "ruleElements": []
+    "ruleElements": [],
+    "attunement": ""
   },
   "flags": {
     "wildpath": {

@@ -20,7 +20,8 @@
           "distance": 60
         }
       }
-    ]
+    ],
+    "attunement": "required"
   },
   "flags": {
     "wildpath": {

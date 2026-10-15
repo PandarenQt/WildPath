@@ -179,7 +179,10 @@ function normalizeItemEntry(item) {
     cost: clonePlain(item?.cost ?? item?.system?.cost ?? null),
     active: item?.system?.active !== false,
     quantity: Number.isFinite(Number(item?.system?.quantity)) ? Number(item.system.quantity) : null,
-    weight: Number.isFinite(Number(item?.system?.weight)) ? Number(item.system.weight) : null
+    weight: Number.isFinite(Number(item?.system?.weight)) ? Number(item.system.weight) : null,
+    // A magic item that needs attunement: "required" (not attuned) or "attuned".
+    attunement: item?.system?.attunement || null,
+    attuned: item?.system?.attunement === "attuned"
   };
 }
 

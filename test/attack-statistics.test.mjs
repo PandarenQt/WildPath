@@ -167,3 +167,13 @@ test("2024 Armor Class: a typed AC wins; else worn armor, else the best unarmore
   assert.equal(resolveActorDefense(hero([chain], 1), "ac").value, 1, "a typed AC wins, even below the armor's");
   assert.equal(resolveActorDefense(hero([chain, shield], 15, "npc"), "ac").value, 17, "a stat block's AC, and bonuses still add");
 });
+
+test("a magic item that needs attunement gives its rules only while attuned (2024)", () => {
+  const {actor} = fighter();
+  const cloak = {id: "cloak", uuid: "Actor.fighter.Item.cloak", type: "gear", system: {active: true, attunement: "required", modifiers: [],
+    ruleElements: [{schemaVersion: 1, id: "cloak", type: "Modifier", data: {domains: ["defense.ac"], value: 1}}]}};
+  actor.items.push(cloak);
+  assert.equal(resolveActorDefense(actor, "ac").value, 14, "equipped, not attuned");
+  cloak.system.attunement = "attuned";
+  assert.equal(resolveActorDefense(actor, "ac").value, 15);
+});

@@ -35,7 +35,8 @@
           "value": 1
         }
       }
-    ]
+    ],
+    "attunement": "required"
   },
   "flags": {
     "wildpath": {

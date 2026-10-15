@@ -13,7 +13,9 @@ export default class WildPathGear extends WildPathBaseItem {
       ...super.defineSchema(),
       quantity: new NumberField({required: true, integer: true, initial: 1, min: 0}),
       weight: new NumberField({required: true, initial: 0, min: 0}),
-      slot: new StringField({required: true, blank: true})
+      slot: new StringField({required: true, blank: true}),
+      // A magic item that needs attunement gives nothing until attuned: "" (none needed), "required", "attuned".
+      attunement: new StringField({required: true, blank: true, initial: "", choices: ["", "required", "attuned"]})
     };
   }
 
