@@ -73,7 +73,7 @@
             "type": "constant",
             "value": 12
           },
-          "recovery": "shortRest"
+          "recovery": "none"
         }
       }
     ]

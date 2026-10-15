@@ -260,7 +260,8 @@
       }
     },
     "REST": {
-      "NoBenefit": "{name} has 0 Hit Points, so the long rest gives no benefit (its hours still count toward a stable creature's recovery)."
+      "NoBenefit": "{name} has 0 Hit Points, so the long rest gives no benefit (its hours still count toward a stable creature's recovery).",
+      "Regained": "{name} regains {amount}"
     },
     "TEST": {
       "IntroOwner": "Try the Action as {owner} would use it now, against a sample target; costs are checked against what {owner} has left. Nothing is changed or spent.",

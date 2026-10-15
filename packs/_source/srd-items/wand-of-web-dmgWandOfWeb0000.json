@@ -25,7 +25,6 @@
       },
       "conversion": {
         "notes": [
-          "uses: a partial recovery refills the whole pool",
           "concentration: nothing it sustains was converted"
         ]
       },

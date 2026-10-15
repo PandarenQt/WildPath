@@ -39,7 +39,14 @@
             "type": "constant",
             "value": 6
           },
-          "recovery": "longRest"
+          "recovery": "none",
+          "regain": {
+            "longRest": {
+              "type": "dice",
+              "number": 1,
+              "faces": 6
+            }
+          }
         }
       }
     ]
@@ -58,7 +65,6 @@
       },
       "conversion": {
         "notes": [
-          "uses: a partial recovery refills the whole pool",
           "not automated (utility): using it spends its cost; its description says the rest",
           "activation: 8 hour is not an action-economy cost"
         ]

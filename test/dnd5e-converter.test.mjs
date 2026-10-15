@@ -107,8 +107,12 @@ test("an attack cantrip, a healing spell and a class feature with uses", () => {
   assert.deepEqual(wind.items[0].system.definition.targeting, {type: "self"});
   assert.deepEqual(wind.items[0].system.ruleElements, [{schemaVersion: 1, id: "test-wind-uses", type: "GrantResource",
     data: {resourceId: "test-wind", label: "Test Wind", maximum: {type: "table", key: {type: "class-level", class: "fighter"},
-      rows: {1: 2, 4: 3, 10: 4}}, recovery: "shortRest"}}]);
-  assert.deepEqual(wind.notes, ["uses: a partial recovery refills the whole pool"]);
+      rows: {1: 2, 4: 3, 10: 4}}, recovery: "longRest", regain: {shortRest: 1}}}], "all on a long rest, one on a short rest");
+  assert.deepEqual(wind.notes, []);
+  const wand = {...secondWind, system: {...secondWind.system, uses: {max: "7", recovery: [{period: "dawn", type: "formula", formula: "1d6 + 1"}]}}};
+  assert.deepEqual(convertItem(wand, {scales}).items[0].system.ruleElements[0].data, {resourceId: "test-wind", label: "Test Wind",
+    maximum: {type: "constant", value: 7}, recovery: "none", regain: {longRest: {type: "add", terms: [{type: "dice", number: 1, faces: 6},
+      {type: "constant", value: 1}]}}}, "a wand's 1d6 + 1 charges at dawn");
 });
 
 test("what WildPath cannot automate is a manual Action that spends its cost, named, never approximated", () => {

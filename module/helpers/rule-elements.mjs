@@ -480,6 +480,10 @@ function grantResourceRuleElement(ruleElement, context) {
       // Recharge (a breath weapon): at the start of the creature's turn a d6 of this or more refills the pool.
       ...(Number.isInteger(Number(data.recharge)) && (Number(data.recharge) >= 2) && (Number(data.recharge) <= 6)
         ? {recharge: Number(data.recharge)} : {}),
+      // A partial refill on a rest, a number or ValueExpression: `{shortRest: 1}` ("regain one use on a Short Rest"),
+      // `{longRest: 1d6 + 1}` (a wand's charges at dawn). A full refill is `recovery`.
+      ...(data.regain ? {regain: Object.fromEntries(["shortRest", "longRest"].filter(rest => data.regain[rest] != null)
+        .map(rest => [rest, clonePlain(data.regain[rest])]))} : {}),
       source: ruleElementSource(ruleElement),
       metadata: contributionMetadata(ruleElement, data.metadata)
     }]

@@ -50,7 +50,10 @@
             "type": "constant",
             "value": 2
           },
-          "recovery": "longRest"
+          "recovery": "none",
+          "regain": {
+            "longRest": 1
+          }
         }
       }
     ]
@@ -67,9 +70,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "uses: a partial recovery refills the whole pool"
-        ]
+        "notes": []
       }
     }
   }

@@ -193,3 +193,32 @@ test("2024 long rest: all health back, but only for a creature with at least 1 h
   await down.actor.rest("longRest");
   assert.deepEqual(down.calls, [], "at 0 health a long rest gives no benefit");
 });
+
+test("a partial refill on a rest: one use back on a short rest, a wand's rolled charges on a long one", async () => {
+  const messages = [];
+  globalThis.Roll = class { constructor(formula) { this.formula = formula; }
+    async evaluate() { this.total = 4; return this; }
+    async toMessage(data, options) { messages.push({formula: this.formula, flavor: data.flavor, options}); } };
+  globalThis.ChatMessage = {getSpeaker: () => ({})};
+  globalThis.game = {i18n: {format: (key, data) => `${key}:${data.name}:${data.amount}`}};
+  const grant = (resourceId, regain, recovery="none") => ({id: resourceId, type: "gear", system: {active: true, ruleElements: [{schemaVersion: 1,
+    id: `${resourceId}-uses`, type: "GrantResource", data: {resourceId, label: resourceId, maximum: 6, recovery, regain}}]}});
+  try {
+    const wand = fixture({recovery: "none"});
+    wand.actor.items = [grant("first", {longRest: {type: "add", terms: [{type: "dice", number: 1, faces: 6}, {type: "constant", value: 1}]}})];
+    wand.source.system.pools[0].value = 0;
+    wand.actor.system = {...wand.actor.system, pools: wand.actor.system.pools.map((pool, index) => (index ? pool : {...pool, value: 0}))};
+    await wand.actor.rest("shortRest");
+    assert.deepEqual(wand.calls, [], "a wand's charges come back at dawn, not on a short rest");
+    await wand.actor.rest("longRest");
+    assert.equal(wand.source.system.pools[0].value, 4, "1d6 + 1 rolled 3 + 1, within its maximum of 4");
+    assert.deepEqual(messages, [{formula: "1d6", flavor: "WILDPATH.REST.Regained:first:4", options: {messageMode: "gm"}}]);
+
+    const wind = fixture({recovery: "none"});
+    wind.actor.items = [grant("second", {shortRest: 1}, "longRest")];
+    await wind.actor.rest("shortRest");
+    assert.equal(wind.source.system.pools[2].value, 4, "Second Wind: one use back on a short rest");
+  } finally {
+    delete globalThis.Roll; delete globalThis.ChatMessage; delete globalThis.game;
+  }
+});

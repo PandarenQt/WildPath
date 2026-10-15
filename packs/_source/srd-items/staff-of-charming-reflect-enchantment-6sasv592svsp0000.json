@@ -39,7 +39,23 @@
             "type": "constant",
             "value": 10
           },
-          "recovery": "longRest"
+          "recovery": "none",
+          "regain": {
+            "longRest": {
+              "type": "add",
+              "terms": [
+                {
+                  "type": "dice",
+                  "number": 1,
+                  "faces": 8
+                },
+                {
+                  "type": "constant",
+                  "value": 2
+                }
+              ]
+            }
+          }
         }
       }
     ]
@@ -57,8 +73,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "uses: a partial recovery refills the whole pool"
+          "not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

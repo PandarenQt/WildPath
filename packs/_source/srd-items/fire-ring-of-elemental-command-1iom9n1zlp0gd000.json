@@ -36,7 +36,6 @@
       },
       "conversion": {
         "notes": [
-          "uses: a partial recovery refills the whole pool",
           "concentration: nothing it sustains was converted",
           "area: a cylinder's height is not modeled",
           "\"damage\" is passive or triggered: not automated",

@@ -39,7 +39,14 @@
             "type": "constant",
             "value": 3
           },
-          "recovery": "longRest"
+          "recovery": "none",
+          "regain": {
+            "longRest": {
+              "type": "dice",
+              "number": 1,
+              "faces": 3
+            }
+          }
         }
       }
     ]
@@ -58,7 +65,6 @@
       "conversion": {
         "notes": [
           "not automated (summon): using it spends its cost; its description says the rest",
-          "uses: a partial recovery refills the whole pool",
           "summon: a count of \"@scaling\" is not converted"
         ]
       }

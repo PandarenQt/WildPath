@@ -44,7 +44,10 @@
               "18": 4
             }
           },
-          "recovery": "shortRest"
+          "recovery": "longRest",
+          "regain": {
+            "shortRest": 1
+          }
         }
       }
     ]
@@ -63,7 +66,6 @@
       "conversion": {
         "notes": [
           "not automated (save): using it spends its cost; its description says the rest",
-          "uses: a partial recovery refills the whole pool",
           "damage 1: custom formula \"(@scale.channel-divinity-cleric.spark)d8 + @abilities.wis.mod\" not converted"
         ]
       }

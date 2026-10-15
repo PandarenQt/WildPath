@@ -71,7 +71,7 @@
             "type": "constant",
             "value": 10
           },
-          "recovery": "shortRest"
+          "recovery": "none"
         }
       }
     ]

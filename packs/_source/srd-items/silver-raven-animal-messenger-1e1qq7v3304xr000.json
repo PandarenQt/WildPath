@@ -35,7 +35,10 @@
             "type": "constant",
             "value": 2
           },
-          "recovery": "longRest"
+          "recovery": "none",
+          "regain": {
+            "longRest": 1
+          }
         }
       }
     ]
@@ -54,7 +57,6 @@
       },
       "conversion": {
         "notes": [
-          "uses: a partial recovery refills the whole pool",
           "not automated (save): using it spends its cost; its description says the rest",
           "effect: \"Carrying Message\" (its own changes) not converted"
         ]

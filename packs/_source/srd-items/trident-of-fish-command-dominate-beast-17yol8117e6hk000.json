@@ -66,7 +66,14 @@
             "type": "constant",
             "value": 3
           },
-          "recovery": "longRest"
+          "recovery": "none",
+          "regain": {
+            "longRest": {
+              "type": "dice",
+              "number": 1,
+              "faces": 3
+            }
+          }
         }
       }
     ]
@@ -84,9 +91,7 @@
         "castBy": "Trident of Fish Command"
       },
       "conversion": {
-        "notes": [
-          "uses: a partial recovery refills the whole pool"
-        ]
+        "notes": []
       }
     }
   }
