@@ -35,6 +35,9 @@ is made of, beside its class records:
 - **Heroic Inspiration.** `system.heroicInspiration`, a checkbox for now.
 - **Hit Dice.** A class record's `hitDie` (its faces) gives one Hit Die per level, held in a pool per size
   (`hit-die.d10`), created full and recovered on a long rest, like slot pools. A multiclass creature holds several.
+  The sheet's Short Rest first asks how many of each to spend (`Actor#spendHitDice`): each heals its roll plus the
+  Fortitude modifier, at least 1 (0 under the 2014 rules), rolled in chat; closing the dialog cancels the rest. Live
+  (two browsers): the GM spent 2d10 (10, 8) for 22 at Fortitude +2, and Player1 1d10 for 7 on their own character.
 
 **Class, subclass, species and background Items (G8, 2026-10-15).** Four new Item types (`progression.mjs`), each with
 an `identifier` and `advancement`, its by-level entries for the level-up dialog. A class also has its `levels`,

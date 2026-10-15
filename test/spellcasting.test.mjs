@@ -1,6 +1,12 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import {casterLevel, deriveClassData, spellSlots} from "../module/helpers/spellcasting.mjs";
+import {casterLevel, deriveClassData, hitDiceHealing, spellSlots} from "../module/helpers/spellcasting.mjs";
+
+test("spent Hit Dice heal each roll plus Fortitude, at least 1 a die (2024) or 0 (2014)", () => {
+  assert.equal(hitDiceHealing([7, 2], 2), 13);
+  assert.equal(hitDiceHealing([1, 4], -3), 2, "1 + 1");
+  assert.equal(hitDiceHealing([1, 4], -3, {minimum: 0}), 1, "0 + 1");
+});
 import {evaluateValueExpression} from "../module/helpers/value-expressions.mjs";
 
 const wizard = level => ({id: "wizard", level, spellcasting: {progression: "full", ability: "int"}});

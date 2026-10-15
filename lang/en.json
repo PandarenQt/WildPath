@@ -378,7 +378,11 @@
     },
     "REST": {
       "NoBenefit": "{name} has 0 Hit Points, so the long rest gives no benefit (its hours still count toward a stable creature's recovery).",
-      "Regained": "{name} regains {amount}"
+      "Regained": "{name} regains {amount}",
+      "ShortRestTitle": "{name}: Short Rest",
+      "HitDiceHint": "Hit points {value} / {max}. Spend Hit Dice to heal: each heals its roll plus your Fortitude modifier.",
+      "HitDiceSpend": "{die} ({value} of {max} left)",
+      "HitDice": "{name} spends {count}{die}: regains {amount}"
     },
     "TEST": {
       "IntroOwner": "Try the Action as {owner} would use it now, against a sample target; costs are checked against what {owner} has left. Nothing is changed or spent.",

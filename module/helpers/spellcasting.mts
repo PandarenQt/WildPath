@@ -22,6 +22,10 @@ export interface ClassRecord {
 /** The pool that holds a creature's Hit Dice of one size (`hit-die.d10`). */
 export const hitDiePoolId = (faces: number) => `hit-die.d${faces}`;
 
+/** What spent Hit Dice heal: each die's roll plus the Fortitude modifier, at least `minimum` (2024: 1; 2014: 0). */
+export const hitDiceHealing = (results: readonly number[], modifier: number, {minimum=1}: {minimum?: number}={}) =>
+  results.reduce((sum, result) => sum + Math.max(minimum, result + modifier), 0);
+
 // Slots per spell level (1st-9th) at each caster level 1-20: the 2024 multiclass spellcaster table.
 const SLOTS_BY_CASTER_LEVEL: readonly (readonly number[])[] = [
   [], [2], [3], [4, 2], [4, 3], [4, 3, 2], [4, 3, 3], [4, 3, 3, 1], [4, 3, 3, 2], [4, 3, 3, 3, 1],

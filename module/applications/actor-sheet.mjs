@@ -159,7 +159,31 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
 
   /** @this {WildPathActorSheet} */
   static async #onRest(event, target) {
-    await this.actor.rest(target.dataset.recovery);
+    const recovery = target.dataset.recovery;
+    // A short rest first asks which Hit Dice to spend (2024); closing that dialog cancels the rest.
+    if ( recovery === "shortRest" ) {
+      const dice = await WildPathActorSheet.#askHitDice(this.actor);
+      if ( dice === null ) return;
+      await this.actor.spendHitDice(dice);
+    }
+    await this.actor.rest(recovery);
+  }
+
+  /** How many of each size of Hit Die to spend: `{faces: count}`, `{}` with none to spend, null when cancelled. */
+  static async #askHitDice(actor) {
+    const pools = actor.system.pools.filter(pool => pool.id.startsWith("hit-die.d") && (pool.value > 0));
+    if ( !pools.length ) return {};
+    const health = actor.system.resources.health;
+    const rows = pools.map(pool => `<label>${game.i18n.format("WILDPATH.REST.HitDiceSpend", {die: pool.id.slice("hit-die.".length),
+      value: pool.value, max: pool.max})} <input type="number" name="${pool.id.slice("hit-die.d".length)}" value="0" min="0"
+      max="${pool.value}" step="1"></label>`).join("");
+    const answer = await foundry.applications.api.DialogV2.input({
+      window: {title: game.i18n.format("WILDPATH.REST.ShortRestTitle", {name: actor.name})},
+      content: `<p>${game.i18n.format("WILDPATH.REST.HitDiceHint", {value: health.value, max: health.max})}</p>${rows}`,
+      ok: {label: game.i18n.localize("WILDPATH.SHEET.ShortRest")},
+      rejectClose: false
+    });
+    return answer ? Object.fromEntries(Object.entries(answer).map(([faces, count]) => [faces, Number(count) || 0])) : null;
   }
 
   /** @this {WildPathActorSheet} The next level of a class. */
