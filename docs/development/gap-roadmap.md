@@ -207,7 +207,11 @@ Forced movement and elevation join G6, which becomes "space": areas, elevation a
   - Areas with a `self` range (cones, Cubes, emanations from the caster) no longer refuse the creatures they cover.
   - Walls run from a point in range toward a second click for their length: "area shape: wall" fell from 47 to 0.
     What a wall does afterwards stays manual.
-  - Not yet: cylinder heights (63), elevation in combat, forced movement and falling.
+  - Forced movement: an Action's push or pull moves each creature it hits, or that fails its save, as forced
+    movement that stops at walls and creatures and provokes no Opportunity Attack. 15 SRD Actions convert with it.
+    The common Shove can now push as well as knock Prone.
+  - Moving a Token with V14's Displace or Blink action is a teleport, no longer refused as a walk.
+  - Not yet: cylinder heights (63), elevation in combat, and falling.
 - **G5, common traits, first part (2026-10-14).** Done:
   - Magic Resistance, Pack Tactics, Regeneration, Legendary Resistance and Flyby, matched by dnd5e identifier. By the
     trait survey these are 142, 52, 21, 82 and 25 stat-block features across the SRD and the four books.

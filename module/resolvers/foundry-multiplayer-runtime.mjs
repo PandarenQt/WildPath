@@ -21,6 +21,7 @@ import {AUTOMATION_QUERY, createFoundryAutomationDispatcher} from "../adapters/f
 import {COMPANION_QUERY, createFoundryCompanions} from "../adapters/foundry-v14-companions.mjs";
 import {createFoundryDying} from "../adapters/foundry-v14-dying.mjs";
 import {createFoundrySummons} from "../adapters/foundry-v14-summons.mjs";
+import {createFoundryForcedMovement} from "../adapters/foundry-v14-forced-movement.mjs";
 import {
   buildFoundryMovementCompletion,
   buildFoundryMovementProgressObservation,
@@ -119,6 +120,7 @@ export function registerFoundryV14MultiplayerResolution({
       await dying.afterResolution(event);
       await applyActionTransformation(event, {logger});
       await summons.afterResolution(event);
+      await pushes.afterResolution(event);
     },
     logger
   });
@@ -172,6 +174,8 @@ export function registerFoundryV14MultiplayerResolution({
   // Summoned creatures: placed by the GM, controlled by their caster, gone with its concentration or rounds.
   const summons = createFoundrySummons({game, companions, logger, fromUuid: globalThis.fromUuid ?? (() => null)});
   globalThis.Hooks?.on?.("deleteActiveEffect", effect => void summons.onEffectDeleted(effect));
+  // Pushes and pulls: the GM moves each creature an Action forces, as forced movement.
+  const pushes = createFoundryForcedMovement({game, logger, fromUuid: globalThis.fromUuid ?? (() => null)});
   // Whoever rolls, every client sees the Combatant update; the active GM dispatches it.
   globalThis.Hooks?.on?.("updateCombatant", (combatant, changed) => {
     if ( !Number.isFinite(changed?.initiative) ) return;

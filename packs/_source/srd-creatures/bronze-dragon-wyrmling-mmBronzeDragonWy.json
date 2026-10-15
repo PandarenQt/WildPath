@@ -373,6 +373,9 @@
               "saveOutcomePolicy": "failure"
             }
           ],
+          "push": {
+            "distance": 30
+          },
           "label": "Repulsion Breath"
         },
         "ruleElements": []

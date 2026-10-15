@@ -104,3 +104,15 @@ test("Flyby: a creature that avoids Opportunity Attacks while flying provokes no
   avoidance.always = true;
   assert.equal(createFoundryReactionProvider({resolve: () => null})({scene, token: mover}).reactions, undefined, "like Disengage");
 });
+
+test("2024: being pushed or teleported out of reach provokes no Opportunity Attack", async () => {
+  const {evaluatePredicate} = await import("../module/helpers/predicates.mjs");
+  const mover = {...token("mover", 1), actor: {id: "actor-mover", uuid: "Actor.mover", items: [], statuses: new Set()}};
+  const scene = {grid: {distance: 5}, tokens: [mover, token("ogre", -1, [])]};
+  const [trigger] = createFoundryReactionProvider({resolve: () => null})({scene, token: mover}).reactions.triggers;
+  const leaving = movementKind => ({event: {data: {movementKind, movementMode: "walk",
+    relations: {ogre: {leavesReach: true, context: {hostile: true}}}}}});
+  assert.equal(evaluatePredicate(trigger.predicate, leaving("voluntary")).ok, true, "walking out provokes");
+  assert.equal(evaluatePredicate(trigger.predicate, leaving("forced")).ok, false, "pushed out");
+  assert.equal(evaluatePredicate(trigger.predicate, leaving("teleport")).ok, false, "teleported out");
+});

@@ -285,6 +285,9 @@
               "provenance": "additional"
             }
           ],
+          "push": {
+            "distance": 15
+          },
           "label": "Hammer Throw"
         },
         "ruleElements": []

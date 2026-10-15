@@ -142,6 +142,9 @@ movement.
 - `teleport`: permits non-adjacent destination anchors, does not spend ordinary movement budget, and
   still reconstructs/validates destination footprints.
 
+A Foundry move is `voluntary` unless its operation says otherwise (`wildpath.movementKind`). A V14 movement action
+that teleports (Displace, Blink: `CONFIG.Token.movement.actions.<action>.teleport`) is a `teleport`.
+
 `movementMode` remains an identity such as `walk`, `fly`, `swim`, `climb`, `burrow`, or `teleport`.
 The generic path helper does not hardcode terrain or medium-specific rules for those modes.
 

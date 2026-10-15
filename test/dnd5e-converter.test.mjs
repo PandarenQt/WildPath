@@ -495,3 +495,26 @@ test("Multiattack's named attacks: one pool each, an Action per alternative, and
     "instead of the Claw attack, still spending its own use");
   for ( const item of ["Multiattack", "Constrict", "Fire Breath"] ) valid(named(item));
 });
+
+test("forced movement (G6): a failed save pushes, a hit pulls, with any size limit; text with two distances is left", () => {
+  const withText = (document, text) => ({...document, system: {...document.system, description: {value: `<p>${text}</p>`}}});
+  const wave = convertItem(withText(burst, "On a failed save, a creature takes damage and is pushed 10 feet away from you. "
+    + "Unsecured objects are pushed 10 feet away from you.")).items[0];
+  valid(wave);
+  assert.deepEqual(wave.system.definition.push, {distance: 10});
+  const harpoon = convertItem(withText(bolt, "If the target is a Large or smaller creature, the merrow pulls the target up to "
+    + "20 feet straight toward itself.")).items[0];
+  valid(harpoon);
+  assert.deepEqual(harpoon.system.definition.push, {distance: 20, toward: true, maxSize: "large"});
+  assert.equal(convertItem(withText(bolt, "It is pushed 10 feet away from you, or pushed 20 feet away from you.")).items[0]
+    .system.definition.push, undefined, "two distances");
+  assert.equal(convertItem(withText(mend, "It is pushed 10 feet away from you.")).items[0].system.definition.push, undefined,
+    "nothing decides it");
+  assert.equal(convertItem(withText(burst, "A creature within 25 feet of the whirlpool is pulled 10 feet toward it.")).items[0]
+    .system.definition.push, undefined, "toward something else");
+  assert.deepEqual(convertItem(withText(burst, "Failure: 19 Bludgeoning damage, and the target has the Prone condition. "
+    + "Success: Half damage, and the target is pushed 5 feet straight away from the bulette.")).items[0].system.definition.push,
+  {distance: 5, on: "success"}, "pushed on a success");
+  assert.equal(validateActionDefinition({...wave.system.definition, push: {distance: 0}}).ok, false);
+  assert.equal(validateActionDefinition({...wave.system.definition, push: {distance: 5, maxSize: "big"}}).ok, false);
+});

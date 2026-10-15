@@ -161,6 +161,9 @@
           ]
         }
       ],
+      "push": {
+        "distance": 10
+      },
       "label": "Thunderwave"
     },
     "ruleElements": []

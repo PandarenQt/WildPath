@@ -83,7 +83,7 @@ ActionDefinition
 |- effects[]
 |- duration?
 |- configuration[]
-|- transform? / summon? / stabilize   (applied when the Action completes)
+|- transform? / summon? / push? / stabilize   (applied when the Action completes; push: areas.md)
 |- ruleElements[]
 |- policies
 |- metadata
@@ -154,7 +154,8 @@ Every creature has the 2024 actions anyone can take, with no Items (`module/help
 | Dodge | Dodging until the start of its next turn: attacks against it have disadvantage, its Agility saves advantage |
 | Hide | A DC 15 Agility (Stealth) check; on a success, Invisible |
 | Grapple | The target makes a Might save, DC 8 + Might modifier + Proficiency Bonus; on a failure, Grappled |
-| Shove | The same save; on a failure, Prone |
+| Shove: Prone | The same save; on a failure, Prone |
+| Shove: Push | The same save; on a failure, pushed 5 feet away (forced movement, areas.md) |
 | Unarmed Strike | A melee attack for 1 + Might modifier bludgeoning damage |
 | Opportunity Attack | A reaction: the creature's first melee attack Action (else its Unarmed Strike), for its Reaction |
 
@@ -167,8 +168,9 @@ Every creature has the 2024 actions anyone can take, with no Items (`module/help
 Shortcuts:
 - the Dash Speed is the creature's own, before Modifiers;
 - Grapple and Shove use a Might save, where 2024 lets the target choose Might or Agility;
-- Shove's push waits for forced movement (G6);
+- Grapple and Shove work on a creature of any size; 2024 allows one size larger than you at most;
 - Disengage stops the common Opportunity Attack, but not a movement reaction a creature's own content defines.
+  Being pushed or teleported out of reach provokes none (2024).
 
 Not yet: Help, Influence, Magic, Ready, Search, Study and Utilize.
 

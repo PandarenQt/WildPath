@@ -116,6 +116,10 @@ export function normalizeActionDefinition(rawDefinition={}, {
     // Creatures the Action summons when it completes (companions.md): a fixed `actorRef` or a `choiceId`
     // configuration choice of creatures, `count`, and optionally `rounds` and `concentration`.
     summon: normalizePlainComponent(raw.summon),
+    // Forced movement (areas.md): each creature it hits, or that fails its save, is pushed `distance` feet away from
+    // its source, or pulled toward it (`toward`); only one no bigger than `maxSize` when it has one. `on: "success"`
+    // pushes the creatures that succeed on its save instead.
+    push: normalizePlainComponent(raw.push),
     ...(raw.stabilize === true ? {stabilize: true} : {}),
     // Pools of the acting creature the Action refills when it is used (Multiattack's attacks, a use given back).
     ...(Array.isArray(raw.restores) && raw.restores.length ? {restores: raw.restores.map(entry => ({
@@ -158,6 +162,7 @@ export function validateActionDefinition(rawDefinition={}, options={}) {
   });
   validateTransform(definition.transform, errors);
   validateSummon(definition.summon, errors);
+  validatePush(definition.push, errors);
   validatePredicateCandidates(definition, errors);
   validateTargeting(definition, errors);
   validateArea(definition.area, errors);
@@ -596,6 +601,18 @@ function validateSummon(summon, errors) {
   const count = summon.count ?? 1;
   if ( !Number.isInteger(count) || (count < 1) || (count > 20) ) errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION,
     "summon.count", "A summon's count is a whole number from 1 to 20."));
+}
+
+function validatePush(push, errors) {
+  if ( !push ) return;
+  if ( !(Number(push.distance) > 0) ) errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "push.distance",
+    "A push moves its creature a positive number of feet."));
+  if ( (push.maxSize != null) && !["tiny", "small", "medium", "large", "huge", "gargantuan"].includes(push.maxSize) ) {
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "push.maxSize", `Unknown creature size: ${push.maxSize}`));
+  }
+  if ( (push.on != null) && !["failure", "success"].includes(push.on) ) {
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "push.on", "A push is on a failed or a successful save."));
+  }
 }
 
 function validateCosts(costs, errors, prefix="costs") {

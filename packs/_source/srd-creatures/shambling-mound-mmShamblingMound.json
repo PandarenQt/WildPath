@@ -230,6 +230,11 @@
               "provenance": "additional"
             }
           ],
+          "push": {
+            "distance": 5,
+            "toward": true,
+            "maxSize": "medium"
+          },
           "label": "Charged Tendril"
         },
         "ruleElements": []

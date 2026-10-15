@@ -263,6 +263,10 @@
               "saveOutcomePolicy": "failure"
             }
           ],
+          "push": {
+            "distance": 5,
+            "on": "success"
+          },
           "label": "Deadly Leap"
         },
         "ruleElements": []

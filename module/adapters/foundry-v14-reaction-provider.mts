@@ -45,9 +45,11 @@ const reactionTrigger = createReactionTrigger as (options: Data) => Data;
 const policyOf = reactionPolicyOf as (item: ItemLike) => string;
 const common = commonAction as unknown as (actor: unknown, id: string, options?: {localize?: (key: string) => string}) => ItemLike | null;
 /** An Opportunity Attack's trigger: a hostile creature leaves this reactor's reach. */
+// 2024: only a creature's own movement provokes; being pushed or teleported does not.
 const OPPORTUNITY_PREDICATE = {all: [
   {equals: {path: "event.data.relations.{self}.leavesReach", value: true}},
-  {equals: {path: "event.data.relations.{self}.context.hostile", value: true}}
+  {equals: {path: "event.data.relations.{self}.context.hostile", value: true}},
+  {not: {oneOf: {path: "event.data.movementKind", values: ["forced", "teleport"]}}}
 ]};
 const definitionFor = actionDefinitionFromAction as (item: ItemLike) => {ok: boolean; definition?: Data | null};
 
