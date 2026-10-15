@@ -30,10 +30,20 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
     });
     const abilities = {};
     for ( const key of Object.keys(WILDPATH.ABILITIES) ) abilities[key] = abilitySchema();
+    // Skill proficiency (2024): 0 none, 1 proficient, 2 expertise (twice the proficiency bonus).
+    const skills = Object.fromEntries(Object.keys(WILDPATH.SKILLS).map(key => [key, new SchemaField({
+      proficiency: new NumberField({required: true, integer: true, initial: 0, min: 0, max: 2})})]));
+    const names = () => new ArrayField(new StringField({required: true, blank: false}));
 
     return {
       biography: new HTMLField({required: true, blank: true}),
       abilities: new SchemaField(abilities),
+      skills: new SchemaField(skills),
+      // What it is trained with: armor (light, medium, heavy, shield), weapons (simple, martial, or a weapon), tools,
+      // and the weapons whose mastery it uses (2024).
+      training: new SchemaField({armor: names(), weapons: names(), tools: names(), masteries: names()}),
+      // Heroic Inspiration (2024): one use, to reroll a die it just rolled.
+      heroicInspiration: new BooleanField({required: true, initial: false}),
       defenses: new SchemaField({
         ac: defenseField({initial: null})
       }),
@@ -51,6 +61,8 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
         id: new StringField({required: true, blank: false}),
         name: new StringField({required: true, blank: true}),
         level: new NumberField({required: true, integer: true, initial: 1, min: 1}),
+        // Its Hit Die's faces (d10: 10): one Hit Die of that size per level.
+        hitDie: new NumberField({required: false, nullable: true, integer: true, initial: null}),
         original: new BooleanField(),
         subclasses: new ArrayField(new StringField({required: true, blank: false})),
         spellcasting: new SchemaField({
@@ -105,7 +117,7 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
     if ( (await super._preUpdate(changes, options, user)) === false ) return false;
     const classes = foundry.utils.getProperty(changes, "system.classes");
     if ( Array.isArray(classes) ) {
-      const pools = this.#withSlotPools(classes, foundry.utils.getProperty(changes, "system.pools") ?? this.parent.toObject(true).system.pools);
+      const pools = this.#withClassPools(classes, foundry.utils.getProperty(changes, "system.pools") ?? this.parent.toObject(true).system.pools);
       if ( pools ) foundry.utils.setProperty(changes, "system.pools", pools);
     }
     // A counted resource keeps its stored remaining value and spent count in step: a write of one sets the
@@ -126,7 +138,7 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
   /** @inheritDoc */
   async _preCreate(data, options, user) {
     if ( (await super._preCreate(data, options, user)) === false ) return false;
-    const stored = this.#withSlotPools(data.system?.classes ?? [], data.system?.pools ?? []) ?? data.system?.pools ?? [];
+    const stored = this.#withClassPools(data.system?.classes ?? [], data.system?.pools ?? []) ?? data.system?.pools ?? [];
     // An Actor created with granting Items (an import) gets their pools at once.
     const granted = this.parent.grantedPoolsMissing?.(stored) ?? [];
     if ( (stored !== data.system?.pools) || granted.length ) this.parent.updateSource({"system.pools": [...stored, ...granted]});
@@ -135,18 +147,20 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
   /* -------------------------------------------- */
 
   /**
-   * A caster gets a pool for every spell level its classes reach, so slots can be spent and recovered;
-   * the maximum is derived from the progression. Returns the pools to store, or null when none is missing.
+   * A caster gets a pool for every spell level its classes reach, so slots can be spent and recovered, and a
+   * creature with classes a pool of Hit Dice per die size; the maxima are derived from the classes. Returns the
+   * pools to store, or null when none is missing.
    */
-  #withSlotPools(classes, pools) {
-    const slots = deriveClassData(classes).spellcasting.slots;
+  #withClassPools(classes, pools) {
+    const derived = deriveClassData(classes);
     const existing = new Set(pools.map(pool => pool.id));
-    const missing = slots.flatMap((count, index) => {
-      const id = spellSlotPoolId(index + 1);
-      if ( !count || existing.has(id) ) return [];
-      const label = globalThis.game?.i18n?.format?.("WILDPATH.SPELLCASTING.SlotPool", {level: index + 1}) ?? id;
-      return [{id, label, base: 0, bonus: 0, max: count, value: count, recovery: "longRest"}];
-    });
+    const format = (key, data, fallback) => globalThis.game?.i18n?.format?.(key, data) ?? fallback;
+    const missing = [
+      ...derived.spellcasting.slots.map((count, index) => [spellSlotPoolId(index + 1), count,
+        format("WILDPATH.SPELLCASTING.SlotPool", {level: index + 1}, spellSlotPoolId(index + 1))]),
+      ...Object.entries(derived.hitDice).map(([id, count]) => [id, count, format("WILDPATH.HITDICE.Pool", {die: id.split(".").pop()}, id)])
+    ].flatMap(([id, count, label]) => ((!count || existing.has(id)) ? []
+      : [{id, label, base: 0, bonus: 0, max: count, value: count, recovery: "longRest"}]));
     return missing.length ? [...pools, ...missing] : null;
   }
 
@@ -204,6 +218,7 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
     if ( this.classes.length && this.details && ("level" in this.details) ) this.details.level = derived.level;
     this.originalClass = derived.original;
     this.spellcasting = derived.spellcasting;
+    this.hitDice = derived.hitDice;
   }
 
   /* -------------------------------------------- */
@@ -221,7 +236,8 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
     }
     // Spell slot pools also hold what the class progression gives at the current caster level, and every
     // pool what its grants give (`GrantResource`).
-    const granted = new Map(this.spellcasting.slots.map((count, index) => [spellSlotPoolId(index + 1), count]));
+    const granted = new Map([...this.spellcasting.slots.map((count, index) => [spellSlotPoolId(index + 1), count]),
+      ...Object.entries(this.hitDice ?? {})]);
     for ( const {id, maximum} of this.parent.getGrantedResources?.() ?? [] ) granted.set(id, (granted.get(id) ?? 0) + maximum);
     for ( const pool of this.pools ) {
       pool.modifierBonus = (this.parent.getStatistic?.(`pools.${pool.id}.max`)?.totalModifier ?? 0)

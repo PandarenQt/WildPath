@@ -6,6 +6,8 @@
 export const SPELLCASTING_PROGRESSIONS = Object.freeze({ NONE: "none", FULL: "full", HALF: "half" });
 /** The pool that holds slots of one spell level; slot payments name it as their capability. */
 export const spellSlotPoolId = (spellLevel) => `spell-slot.${spellLevel}`;
+/** The pool that holds a creature's Hit Dice of one size (`hit-die.d10`). */
+export const hitDiePoolId = (faces) => `hit-die.d${faces}`;
 // Slots per spell level (1st-9th) at each caster level 1-20: the 2024 multiclass spellcaster table.
 const SLOTS_BY_CASTER_LEVEL = [
     [], [2], [3], [4, 2], [4, 3], [4, 3, 2], [4, 3, 3], [4, 3, 3, 1], [4, 3, 3, 2], [4, 3, 3, 3, 1],
@@ -45,9 +47,18 @@ export function deriveClassData(classes) {
         && (entry.spellcasting.progression !== SPELLCASTING_PROGRESSIONS.NONE);
     const caster = casts(original) ? original : classes.find(casts) ?? null;
     const levelForSlots = casterLevel(classes);
+    // One Hit Die per class level, of that class's size; a multiclass creature holds several sizes.
+    const hitDice = {};
+    for (const entry of classes) {
+        if (!Number(entry.hitDie))
+            continue;
+        const id = hitDiePoolId(Number(entry.hitDie));
+        hitDice[id] = (hitDice[id] ?? 0) + Math.max(Number(entry.level) || 0, 0);
+    }
     return {
         level,
         original,
-        spellcasting: { casterLevel: levelForSlots, ability: caster?.spellcasting?.ability || null, slots: spellSlots(levelForSlots) }
+        spellcasting: { casterLevel: levelForSlots, ability: caster?.spellcasting?.ability || null, slots: spellSlots(levelForSlots) },
+        hitDice
     };
 }

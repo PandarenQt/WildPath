@@ -590,3 +590,9 @@
 /* A spell's slot buttons, by level: cast with that slot, no dialog. */
 #wildpath-action-bar .bar-slots { display: inline-flex; gap: 1px; margin-left: -2px; }
 #wildpath-action-bar .bar-slot { width: auto; min-width: 18px; padding: 0 3px; line-height: 1.2; font-size: var(--font-size-11, 11px); }
+/* Skills (G8): a proficiency select, the skill and its ability, and the check bonus. */
+.wildpath.sheet .skills-block .skill-list { list-style: none; margin: 0; padding: 0; }
+.wildpath.sheet .skills-block .skill-row { display: grid; grid-template-columns: 7.5em 1fr auto; gap: 4px; align-items: center; }
+.wildpath.sheet .skills-block .skill-ability { opacity: 0.6; font-size: var(--font-size-11, 11px); }
+.wildpath.sheet .skills-block .skill-modifier { font-weight: bold; }
+.wildpath.sheet .skills-block .training { display: grid; grid-template-columns: 7.5em 1fr; gap: 4px; align-items: center; }

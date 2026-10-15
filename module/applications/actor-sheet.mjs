@@ -1,5 +1,8 @@
 import {createActorSheetViewModel} from "../helpers/character-sheet-view-models.mjs";
-import {actorProficiencyBonus, resolveActorDefense} from "../helpers/combat-statistics.mjs";
+import {actorProficiencyBonus, resolveActorCheckStatistic, resolveActorDefense} from "../helpers/combat-statistics.mjs";
+
+/** What the sheet's training fields list (comma-separated names). */
+const TRAINING = ["armor", "weapons", "tools", "masteries"];
 
 const {HandlebarsApplicationMixin} = foundry.applications.api;
 const {ActorSheetV2} = foundry.applications.sheets;
@@ -51,6 +54,16 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
     });
     context.sheet = sheet;
     Object.assign(context, sheet);
+    // Each skill with its check bonus (ability, proficiency or expertise, Modifiers), and its proficiency to set.
+    const signed = value => (value < 0 ? `${value}` : `+${value}`);
+    context.skills = Object.entries(CONFIG.WILDPATH.SKILLS ?? {}).map(([key, skill]) => ({key, label: skill.label,
+      abilityLabel: CONFIG.WILDPATH.ABILITIES[skill.ability]?.label ?? skill.ability,
+      proficiency: this.actor.system.skills?.[key]?.proficiency ?? 0,
+      modifierText: signed(resolveActorCheckStatistic(this.actor, {skill: key})?.totalModifier ?? 0)}));
+    context.proficiencyLevels = {0: "WILDPATH.SHEET.SkillProficiency.None", 1: "WILDPATH.SHEET.SkillProficiency.Proficient",
+      2: "WILDPATH.SHEET.SkillProficiency.Expertise"};
+    context.training = TRAINING.map(key => ({key, label: `WILDPATH.SHEET.Training.${key}`, hint: `WILDPATH.SHEET.Training.Hint.${key}`,
+      value: (this.actor.system.training?.[key] ?? []).join(", ")}));
     context.typeLabel = CONFIG.Actor.typeLabels?.[this.actor.type] ?? this.actor.type;
     context.dyingModes = {auto: "WILDPATH.SHEET.DyingMode.auto", deathSaves: "WILDPATH.SHEET.DyingMode.deathSaves",
       dies: "WILDPATH.SHEET.DyingMode.dies"};
@@ -86,6 +99,11 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
    */
   _processFormData(event, form, formData) {
     const data = super._processFormData(event, form, formData);
+    // Training is typed as a comma-separated list.
+    for ( const key of TRAINING ) {
+      const value = data.system?.training?.[key];
+      if ( typeof value === "string" ) data.system.training[key] = value.split(",").map(entry => entry.trim()).filter(Boolean);
+    }
     const pools = data.system?.pools;
     if ( pools && !Array.isArray(pools) ) {
       const stored = this.actor.toObject(true).system.pools;

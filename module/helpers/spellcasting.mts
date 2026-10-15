@@ -16,7 +16,11 @@ export interface ClassRecord {
   readonly original?: boolean;
   readonly subclasses?: readonly string[];
   readonly spellcasting?: {readonly progression?: string; readonly ability?: string};
+  readonly hitDie?: number | null;
 }
+
+/** The pool that holds a creature's Hit Dice of one size (`hit-die.d10`). */
+export const hitDiePoolId = (faces: number) => `hit-die.d${faces}`;
 
 // Slots per spell level (1st-9th) at each caster level 1-20: the 2024 multiclass spellcaster table.
 const SLOTS_BY_CASTER_LEVEL: readonly (readonly number[])[] = [
@@ -58,9 +62,17 @@ export function deriveClassData(classes: readonly ClassRecord[]) {
     && (entry.spellcasting.progression !== SPELLCASTING_PROGRESSIONS.NONE);
   const caster = casts(original) ? original : classes.find(casts) ?? null;
   const levelForSlots = casterLevel(classes);
+  // One Hit Die per class level, of that class's size; a multiclass creature holds several sizes.
+  const hitDice: Record<string, number> = {};
+  for ( const entry of classes ) {
+    if ( !Number(entry.hitDie) ) continue;
+    const id = hitDiePoolId(Number(entry.hitDie));
+    hitDice[id] = (hitDice[id] ?? 0) + Math.max(Number(entry.level) || 0, 0);
+  }
   return {
     level,
     original,
-    spellcasting: {casterLevel: levelForSlots, ability: caster?.spellcasting?.ability || null, slots: spellSlots(levelForSlots)}
+    spellcasting: {casterLevel: levelForSlots, ability: caster?.spellcasting?.ability || null, slots: spellSlots(levelForSlots)},
+    hitDice
   };
 }
