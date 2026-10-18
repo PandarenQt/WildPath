@@ -25,6 +25,16 @@ export function ruleDomains(kind, abilities = []) {
         return [...DAMAGE_DOMAINS];
     return [...d20, "defense.ac", "resources.health.max", "resources.movement.max", ...DAMAGE_DOMAINS];
 }
+/** Conditions a row's "while" offers besides a condition on its creature, by key ("@magical": against magic). */
+export const WHILE_PREDICATES = Object.freeze({
+    "@magical": { tagsAny: ["magical"] },
+    "@melee": { tagsAny: ["melee"] },
+    "@ranged": { tagsAny: ["ranged"] },
+    "@allyNearTarget": { equals: { path: "attack.allyNearTarget", value: true } },
+    "@inSunlight": { equals: { path: "inSunlight", value: true } }
+});
+const whileOf = (predicate) => (predicate ? (Object.entries(WHILE_PREDICATES)
+    .find(([, known]) => JSON.stringify(known) === JSON.stringify(predicate))?.[0] ?? null) : null);
 /** Keys a RuleElement keeps at its root; every other key is rule data. */
 const ROOT_KEYS = new Set(["schemaVersion", "id", "slug", "type", "key", "rule", "label", "name", "predicate", "priority", "order",
     "enabled", "suppressed", "source", "metadata", "data"]);
@@ -74,6 +84,7 @@ function ruleToRow(rule, abilities) {
     const known = (domains.length === 1) && ruleDomains(kind, abilities).includes(domains[0]);
     const predicate = rule.predicate ?? null;
     const onlyCondition = predicate && (Object.keys(predicate).length === 1) && (typeof predicate.hasCondition === "string");
+    const named = whileOf(predicate);
     const amount = amountText(data.valueExpression ?? data.expression ?? data.value);
     const maximum = amountText(data.maximum ?? data.max);
     return {
@@ -93,19 +104,79 @@ function ruleToRow(rule, abilities) {
         maximum: maximum ?? "",
         maximumReadOnly: maximum === null,
         recovery: data.recovery ?? "none",
+        current: number(data.current),
+        emptiesAtTurnStart: data.emptiesAtTurnStart === true,
+        recharge: number(data.recharge) ?? "",
+        regainShort: amountText(data.regain?.shortRest) ?? "",
+        regainLong: amountText(data.regain?.longRest) ?? "",
+        regainReadOnly: (amountText(data.regain?.shortRest) === null) || (amountText(data.regain?.longRest) === null),
         formula: formatFormula(data.expression ?? data.valueExpression) ?? "",
         damageType: typeof data.damageType === "string" ? data.damageType : "",
         oncePerTurn: data.once === "turn",
         radius: number(data.radius),
         affects: data.affects ?? "allies",
         rules: kind === "aura" ? (Array.isArray(data.ruleElements) ? data.ruleElements : []).map((nested) => ruleToRow(nested, abilities)) : [],
-        while: onlyCondition ? predicate.hasCondition : "",
-        whileReadOnly: Boolean(predicate) && !onlyCondition
+        while: onlyCondition ? predicate.hasCondition : (named ?? ""),
+        whileReadOnly: Boolean(predicate) && !onlyCondition && !named
     };
 }
 /** The rows for a stored list of RuleElements. */
 export function rulesToRows(ruleElements, { abilities = [] } = {}) {
     return (Array.isArray(ruleElements) ? ruleElements : []).map(rule => ruleToRow(rule, abilities ?? []));
+}
+/** The rule data each row kind shows (aliases included); `label` and `details` change nothing a row could. */
+const ROW_DATA = {
+    bonus: ["domains", "domain", "selector", "value", "valueExpression", "expression", "modifierType", "type"],
+    rollMode: ["domains", "domain", "selector", "mode"],
+    resistance: ["damageTypes", "types", "damageType"],
+    immunity: ["damageTypes", "types", "damageType"],
+    vulnerability: ["damageTypes", "types", "damageType"],
+    conditionImmunity: ["conditions"],
+    reveal: ["details"],
+    speed: ["mode", "movementMode", "distance", "value"],
+    resource: ["resourceId", "resource", "label", "maximum", "max", "recovery", "current", "emptiesAtTurnStart", "recharge", "regain"],
+    extraDamage: ["domains", "domain", "selector", "expression", "valueExpression", "damageType", "once"],
+    aura: ["radius", "affects", "ruleElements"]
+};
+/**
+ * What of a list of RuleElements the rule rows cannot show or edit, as `<Type>` (a type with no row) or
+ * `<Type>.<part>` (its domains, amount, maximum, a condition other than "while", or a data key no row field writes).
+ * Empty when the rows can rebuild every rule (the homebrew census, homebrew-content-builder.md).
+ */
+export function ruleGaps(ruleElements, { abilities = [] } = {}) {
+    const gaps = new Set();
+    const visit = (rules) => {
+        for (const rule of (Array.isArray(rules) ? rules : [])) {
+            const row = ruleToRow(rule, abilities ?? []);
+            const name = String(row.type || rule?.type || "rule");
+            if (row.kind === "other") {
+                gaps.add(name);
+                continue;
+            }
+            if (row.appliesToText)
+                gaps.add(`${name}.domains`);
+            if (row.amountReadOnly && ["bonus", "extraDamage"].includes(row.kind))
+                gaps.add(`${name}.amount`);
+            if (row.kind === "resource") {
+                if (row.maximumReadOnly)
+                    gaps.add(`${name}.maximum`);
+                if (row.regainReadOnly)
+                    gaps.add(`${name}.regain`);
+                if ((rule.data?.current != null) && (row.current === null))
+                    gaps.add(`${name}.current`);
+            }
+            if (row.whileReadOnly)
+                gaps.add(`${name}.predicate`);
+            const data = { ...Object.fromEntries(Object.entries(rule).filter(([key]) => !ROOT_KEYS.has(key))), ...(rule.data ?? {}) };
+            for (const key of Object.keys(data))
+                if (!ROW_DATA[row.kind].includes(key) && (key !== "label"))
+                    gaps.add(`${name}.${key}`);
+            if (row.kind === "aura")
+                visit(rule.data?.ruleElements);
+        }
+    };
+    visit(ruleElements);
+    return [...gaps].sort();
 }
 /** A valid RuleElement of `kind`, with `id`. */
 export function defaultRule(kind, id) {
@@ -163,7 +234,9 @@ function writeRule(stored, row, model, field, errors, options, index, siblings) 
         return result.expression;
     };
     if (changed("while") && !model.whileReadOnly) {
-        if (row.while)
+        if (WHILE_PREDICATES[row.while])
+            rule.predicate = clone(WHILE_PREDICATES[row.while]);
+        else if (row.while)
             rule.predicate = { hasCondition: String(row.while) };
         else
             delete rule.predicate;
@@ -237,6 +310,29 @@ function writeRule(stored, row, model, field, errors, options, index, siblings) 
             }
             if (changed("recovery"))
                 set("recovery", row.recovery || "none");
+            // Starts at (Extra Attack's pool starts empty), emptied each turn (Multiattack's), Recharge 5-6, a partial regain.
+            if (changed("current"))
+                set("current", number(row.current) ?? undefined);
+            if (changed("emptiesAtTurnStart"))
+                set("emptiesAtTurnStart", row.emptiesAtTurnStart ? true : undefined);
+            if (changed("recharge")) {
+                const recharge = Math.trunc(number(row.recharge) ?? 0);
+                set("recharge", (recharge >= 2) && (recharge <= 6) ? recharge : undefined);
+            }
+            for (const [key, rest] of [["regainShort", "shortRest"], ["regainLong", "longRest"]]) {
+                if (!changed(key) || model.regainReadOnly)
+                    continue;
+                const regain = { ...(rule.data.regain ?? {}) };
+                if (!String(row[key] ?? "").trim())
+                    delete regain[rest];
+                else {
+                    const expression = formula(key, true);
+                    if (!expression)
+                        continue;
+                    regain[rest] = expression.type === "constant" ? expression.value : expression;
+                }
+                set("regain", Object.keys(regain).length ? regain : undefined);
+            }
             break;
         case "extraDamage":
             if (changed("formula")) {
@@ -265,9 +361,19 @@ function writeRule(stored, row, model, field, errors, options, index, siblings) 
     return rule;
 }
 function foldRows(submitted, stored, model, field, errors, options) {
-    const rows = rowsOf(submitted);
+    // Rows by their posted index. A stored rule the form posted nothing for (one only Advanced can edit) is kept:
+    // rules are removed with removeRule, never by a shorter form.
+    const posted = (index) => (Array.isArray(submitted) ? submitted[index] : submitted?.[index]);
+    const count = Math.max(stored.length, ...Object.keys(submitted ?? {}).filter(key => /^\d+$/.test(key)).map(key => Number(key) + 1));
     const written = [];
-    rows.forEach((row, index) => written.push(writeRule(stored[index], row, model[index], field, errors, options, index, [...stored, ...written])));
+    for (let index = 0; index < count; index++) {
+        const row = posted(index);
+        const kept = stored[index];
+        if (row)
+            written.push(writeRule(kept, row, model[index], field, errors, options, index, [...stored, ...written]));
+        else if (kept)
+            written.push(kept);
+    }
     return written;
 }
 /**

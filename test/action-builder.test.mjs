@@ -1,7 +1,7 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync, readdirSync} from "node:fs";
-import {ACTION_TEMPLATES, addBuilderRow, applyActionTemplate, builderIssues, builderToDefinition, definitionToBuilder,
+import {ACTION_TEMPLATES, addBuilderRow, applyActionTemplate, builderGaps, builderIssues, builderToDefinition, definitionToBuilder,
   nextRowId, removeBuilderRow} from "../module/helpers/action-builder.mjs";
 import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
 
@@ -215,4 +215,24 @@ test("what the sheet's selects post for a skill-only check and a Cube changes no
     targeting: {type: "area"}, area: {shape: "cube", size: {value: 20, unit: "ft"}}};
   const renamed = submit(web, {basics: {label: "Webbing"}, area: {shape: "cube"}});
   assert.equal(renamed.definition.area.shape, "cube", "renaming a Cube keeps its shape");
+});
+
+test("the Builder edits Magical, a weapon's kind and mastery, and an effect's concentration; builderGaps names the rest", () => {
+  const sword = {schemaVersion: 1, id: "action:longsword", label: "Longsword", tags: ["magical"], costs: {allOf: [{capability: "action", amount: 1}]},
+    range: {type: "reach", distance: {value: 5, unit: "ft"}}, targeting: {type: "single", required: true, count: 1},
+    attack: {type: "melee", statistic: "weapon", defenseKey: "ac", proficient: true, weapon: {category: "martial", base: "longsword", mastery: "sap"}},
+    damage: [{id: "weapon", expression: {type: "dice", number: 1, faces: 8}, damageType: "slashing", provenance: "weapon-base"}],
+    effects: [{id: "bane", type: "condition", conditionId: "frightened", concentration: true}]};
+  assert.deepEqual(builderGaps(sword), [], "the whole Action can be rebuilt in the Builder");
+  assert.deepEqual(builderGaps({...sword, slug: "", category: "action", source: null, controllerCosts: {}, ruleElements: [], stabilize: false}), [],
+    "the data model's defaults are nothing to rebuild");
+  const changed = submit(sword, {basics: {magical: false}, roll: {mastery: "vex", weaponBase: "Longsword"}, effects: {0: {concentration: false}}});
+  assert.deepEqual(changed.definition.tags, []);
+  assert.deepEqual(changed.definition.attack.weapon, {category: "martial", base: "longsword", mastery: "vex"});
+  assert.equal(changed.definition.effects[0].concentration, undefined);
+  assert.deepEqual(submit(sword, {roll: {weaponCategory: "", weaponBase: "", mastery: ""}}).definition.attack.weapon, undefined);
+  const advanced = {...sword, costs: {anyOf: [[{capability: "action", amount: 1}], [{capability: "bonus-action", amount: 1}]]},
+    summon: {actorRef: "Actor.x", count: 1}, effects: [{id: "e", type: "effect", name: "Hex", endsWhen: "attacked",
+      ruleElements: [{id: "r", type: "ArmorClass", data: {}}]}]};
+  assert.deepEqual(builderGaps(advanced), ["costs.anyOf", "effects.endsWhen", "effects.ruleElements.ArmorClass", "summon"]);
 });

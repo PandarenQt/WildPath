@@ -1,7 +1,8 @@
 import {CUSTOM_EFFECT_DURATION_UNITS, CUSTOM_EFFECT_EXPIRY_EVENTS, validateActionDefinition} from "../helpers/action-definitions.mjs";
 import {summarizeActionDefinition} from "../helpers/action-definition-summary.mjs";
-import {ACTION_TEMPLATES, addBuilderRow, applyActionTemplate, builderIssues, builderToDefinition, definitionToBuilder,
-  removeBuilderRow, spellSlotChoice} from "../helpers/action-builder.mjs";
+import {ACTION_TEMPLATES, AREA_SHAPES, addBuilderRow, applyActionTemplate, builderGaps, builderIssues, builderToDefinition,
+  definitionToBuilder, removeBuilderRow} from "../helpers/action-builder.mjs";
+import {WEAPONS} from "../helpers/level-up.mjs";
 import {DEFAULT_RULE_ELEMENT_REGISTRY, validateRuleElementDefinition} from "../helpers/rule-elements.mjs";
 import {addRule, removeRule, ruleIssues, rowsToRules} from "../helpers/rule-builder.mjs";
 import {RULE_ROWS_TEMPLATE, ruleButtonPath, ruleRowsContext} from "./rule-rows.mjs";
@@ -409,11 +410,11 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
     // A stored value the choices do not list is still shown, as itself.
     const keep = (map, value) => ((value && !(value in map)) ? {...map, [value]: value} : map);
     const abilities = Object.fromEntries(Object.entries(CONFIG.WILDPATH.ABILITIES).map(([key, ability]) => [key, ability.label]));
-    const choiceCount = (definition.configuration?.length ?? 0) - (spellSlotChoice(definition.configuration) ? 1 : 0);
-    const advancedOnly = [["configuration", choiceCount], ["transform", definition.transform],
-      ["summon", definition.summon], ["controllerCosts", definition.controllerCosts?.allOf?.length || definition.controllerCosts?.anyOf],
-      ["stabilize", definition.stabilize], ["ruleElements", definition.ruleElements?.length], ["duration", definition.duration]]
-      .filter(([, present]) => present).map(([key]) => game.i18n.localize(`WILDPATH.BUILDER.Part.${key}`));
+    // What only the Advanced tab can change, in plain words where there are some.
+    const advancedOnly = [...new Set(builderGaps(definition, {abilities: Object.keys(CONFIG.WILDPATH.ABILITIES)}).map(gap => {
+      const key = `WILDPATH.BUILDER.Gap.${gap.replaceAll(".", "_")}`;
+      return game.i18n.has(key) ? game.i18n.localize(key) : gap;
+    }))];
     return {
       editable: this.isEditable,
       listId: this.id,
@@ -423,6 +424,7 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
       templates: Object.fromEntries(Object.keys(ACTION_TEMPLATES).map(key => [key, `WILDPATH.BUILDER.Template.${key}`])),
       capabilities: [...Object.values(CONFIG.WILDPATH.ECONOMY_CAPABILITIES), ...Array.from({length: 9}, (_, i) => `spell-slot.${i + 1}`)],
       damageTypes: DAMAGE_TYPES,
+      weapons: [...WEAPONS.simple, ...WEAPONS.martial],
       rangeHasDistance: ["touch", "reach", "ranged"].includes(range.type),
       rangeIsRanged: range.type === "ranged",
       targetsMultiple: targets.type === "multiple",
@@ -450,7 +452,10 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
         rangeTypes: choices(["", "self", "touch", "reach", "ranged", "sight", "special"], "WILDPATH.BUILDER.Range."),
         targetTypes: choices(["", "self", "single", "multiple", "area", "none"], "WILDPATH.BUILDER.Targets."),
         // Every shape the engine knows, and any other stored one: a select without its value would post its first option.
-        areaShapes: keep(choices(["radial", "emanation", "cone", "line", "cube", "wall"], "WILDPATH.BUILDER.Area."), values.area?.shape),
+        areaShapes: keep(choices([...AREA_SHAPES], "WILDPATH.BUILDER.Area."), values.area?.shape),
+        weaponCategories: keep(choices(["", "simple", "martial"], "WILDPATH.BUILDER.Roll.Weapon."), roll.weaponCategory),
+        masteries: keep({"": "WILDPATH.BUILDER.Roll.NoMastery", ...Object.fromEntries(["cleave", "graze", "nick", "push", "sap",
+          "slow", "topple", "vex"].map(mastery => [mastery, `WILDPATH.MASTERY.${mastery}`]))}, roll.mastery),
         rollKinds: choices(["none", "attack", "save", "check"], "WILDPATH.BUILDER.Roll."),
         attackTypes: choices(["melee", "ranged"], "WILDPATH.BUILDER.Roll."),
         statistics: choices(["weapon", "spell"], "WILDPATH.BUILDER.Roll."),

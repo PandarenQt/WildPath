@@ -174,6 +174,56 @@ the others.
     longer writes an ability into it.
 - **The round trip.** An unchanged form gives back every converted SRD Action exactly (`test/action-builder.test.mjs`).
   Live: renaming the SRD Web and Chain check kept their definitions.
+- **A rule only Advanced can edit survives (2026-10-18).** Such a rule's row showed no inputs, so any save of the
+  sheet dropped it (renaming the SRD Extra Attack lost its `ExtraAttack` rule). Fixed: the row posts its kind, and
+  rows match stored rules by their posted index, so a rule the form says nothing about is kept. Rules are removed
+  only with the row's remove button. Live: after renaming Extra Attack, both of its rules were still there.
+
+## The homebrew census (2026-10-18)
+
+Every converted effect should be one a GM could build again in the item sheet's Builder and rule rows, without the
+Advanced JSON. Two reporters name what they cannot show or edit:
+- `builderGaps(definition)` (action-builder.mts), as dotted parts: `costs.anyOf`, `attack.weapon`,
+  `effects.ruleElements.ArmorClass`.
+- `ruleGaps(ruleElements)` (rule-builder.mts): a rule type with no row (`Trigger`), or a part of one (`RollMode.domains`).
+- The data model's defaults (an empty `slug`, `category: "action"`) are not gaps.
+
+The item sheet's "Also set, edited on the Advanced tab" line lists `builderGaps`, in plain words where the language
+file has them (`WILDPATH.BUILDER.Gap.*`).
+
+`node scripts/content/homebrew-census.mjs` counts both over the SRD packs and the local book packages. It reads copies
+of the books' LevelDB packs and prints only counts. Run it whenever content is converted, and close the largest gaps
+until it reaches zero.
+
+Closed first, by count:
+- **Magical** (a Basics checkbox; tag `magical`).
+- **A weapon's kind, base weapon and mastery**, on an attack.
+- **Concentration** on an effect row.
+- **Resource rows:**
+  - "Starts at" (Extra Attack's empty pool);
+  - "Empties at the start of each turn" (Multiattack's);
+  - Recharge 2-6 to 6;
+  - "Regains on a short/long rest" formulas (a wand's 1d6 + 1).
+- **"While" on a rule row** also offers: against magic, with melee or ranged attacks, an ally within 5 feet of the
+  target (Pack Tactics), and in sunlight.
+
+| Fully editable | First run | After these fields |
+| --- | --- | --- |
+| SRD Actions | 1,254 / 2,529 | 1,693 / 2,529 |
+| SRD rule lists | 793 / 1,373 | 1,283 / 1,373 |
+| Book Actions (four packages) | 3,055 / 5,689 | 3,996 / 5,689 |
+
+The largest gaps left, all sources:
+- monster Multiattack's plumbing: `costs.anyOf` (1,128) and `restores` (596);
+- `summon` (323);
+- resource maximums that are formulas it cannot show (106);
+- area height (94), Hover (90), choosing among targets (80), lasting-area triggers (72), push (62).
+
+Live (two browsers, 14.369), on world copies of SRD Items:
+- Battleaxe's Builder showed martial / battleaxe / Topple and no "Advanced" line. Choosing Vex changed only
+  `attack.weapon.mastery`.
+- Bane's effect lost and regained its concentration, ending with an identical definition.
+- Extra Attack's pool row showed "Starts at 0" and "Empties at the start of each turn".
 
 ## Product Goal
 
