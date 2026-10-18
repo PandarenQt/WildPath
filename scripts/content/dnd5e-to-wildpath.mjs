@@ -303,7 +303,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     }
     let definition = ACTIVITIES.has(activity.type)
       ? convertActivity({document, activity, system, spell, level, scales, notes, pool, saveDC, spellDC, creature})
-      : ((activity.type === "summon") ? summonDefinition({document, activity, system, spell, level, notes, pool, creatures, names}) : null);
+      : ((activity.type === "summon") ? summonDefinition({document, activity, system, spell, level, notes, pool, creatures, names})
+        : ((activity.type === "teleport") ? teleportDefinition({document, activity, system, spell, level, notes, pool}) : null));
     if ( !definition ) {
       // Used but not automated: using it spends its cost (and a spell's slot); its description says the rest.
       notes.unshift(`not automated${activity.type === "manual" ? "" : ` (${activity.type})`}: using it spends its cost; its description says the rest`);
@@ -879,6 +880,18 @@ function summonDefinition({document, activity, system, spell, level, notes, pool
     options: profiles.map(({profile, ref}) => ({id: ref, label: profile.name || names[String(profile.uuid).split(".").pop()] || ref}))};
   return {...definition, ...(range ? {range} : {}), configuration: [...(definition.configuration ?? []), choice],
     summon: {choiceId: choice.id, ...timing}};
+}
+
+/**
+ * A teleport of its own creature to a space within a distance (Misty Step's 30 feet, Dimension Door's 500): its cost
+ * and `teleport: {distance}`. Null for one with no distance in feet (Teleport, Plane Shift), which stays by hand.
+ */
+export function teleportDefinition({document, activity, system, spell, level, notes, pool}) {
+  const distance = number(activity.teleport?.value);
+  if ( !(distance > 0) || ((activity.teleport?.units ?? "ft") !== "ft") ) return null;
+  // shortcut: only its creature goes; a willing creature it brings (Dimension Door) is moved by hand.
+  if ( /\bwilling creature\b/i.test(plainText(document)) ) notes.push("teleport: a creature it brings along is moved by hand");
+  return {...manualDefinition({document, activity, system, spell, level, notes: [], pool}), targeting: {type: "self"}, teleport: {distance}};
 }
 
 /** A summon bonus as a ValueExpression of the spell's cast level (`castLevel`): "10 * (@item.level - 4)", "(@item.level - 3)d10". */

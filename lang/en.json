@@ -273,6 +273,13 @@
       "ChoosePayer": "Whose point pays for the reroll?",
       "NoPoints": "{name} has no Heroic Inspiration left."
     },
+    "TELEPORT": {
+      "Place": "Click where you appear. Press Esc to cancel.",
+      "OutOfRange": "That space is too far to teleport to.",
+      "Occupied": "Another creature is in that space.",
+      "OffScene": "That space is off the scene.",
+      "NoToken": "Place your Token on this scene to teleport."
+    },
     "MASTERY": {
       "cleave": "Cleave",
       "graze": "Graze",
@@ -688,6 +695,10 @@
         "Rounds": "Rounds",
         "UntilDismissed": "until dismissed",
         "Hint": "Paste the creature's UUID: its sheet's header copies it. Leave it empty for no summon."
+      },
+      "Teleport": {
+        "Legend": "Does it teleport its user?",
+        "Distance": "Up to (ft)"
       },
       "Push": {
         "Legend": "Does it push or pull?",

@@ -920,6 +920,12 @@
               }
             ]
           },
+          "targeting": {
+            "type": "self"
+          },
+          "teleport": {
+            "distance": 30
+          },
           "label": "Misty Step"
         },
         "ruleElements": [
@@ -952,9 +958,7 @@
             "castBy": "Misty Step"
           },
           "conversion": {
-            "notes": [
-              "not automated (teleport): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -1155,7 +1159,6 @@
           "Spellcasting: concentration: nothing it sustains was converted",
           "Spellcasting: cast: Fireball at level 4 is cast at its own level",
           "Spellcasting: effect: \"Flight\" change system.attributes.movement.hover (override) not converted",
-          "Misty Step: not automated (teleport): using it spends its cost; its description says the rest",
           "Protective Magic: rolled (save); what it does is by hand"
         ]
       }

@@ -126,6 +126,8 @@ export function normalizeActionDefinition(rawDefinition={}, {
     push: normalizePlainComponent(raw.push),
     // Moves its creature's lasting area left by the Action `of` (its definition id) up to `distance` feet (areas.md).
     ...(raw.moveArea ? {moveArea: normalizePlainComponent(raw.moveArea)} : {}),
+    // Teleports its own creature up to `distance` feet to a space it chooses (Misty Step, Dimension Door).
+    ...(raw.teleport ? {teleport: normalizePlainComponent(raw.teleport)} : {}),
     ...(raw.stabilize === true ? {stabilize: true} : {}),
     // Pools of the acting creature the Action refills when it is used (Multiattack's attacks, a use given back).
     ...(Array.isArray(raw.restores) && raw.restores.length ? {restores: raw.restores.map(entry => ({
@@ -169,6 +171,9 @@ export function validateActionDefinition(rawDefinition={}, options={}) {
   validateTransform(definition.transform, errors);
   validateSummon(definition.summon, errors);
   validatePush(definition.push, errors);
+  if ( definition.teleport && !(Number(definition.teleport.distance) > 0) ) {
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "teleport.distance", "A teleport goes a positive number of feet."));
+  }
   if ( definition.moveArea && (!definition.moveArea.of || !(Number(definition.moveArea.distance) > 0)) ) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "moveArea",
       "Moving an area names the Action that left it (of) and a positive number of feet."));

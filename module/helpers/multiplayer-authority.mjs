@@ -198,6 +198,10 @@ export function sanitizeActionIntentPayload(payload={}) {
   if ( Array.isArray(intent.area?.points) ) projected.area = {points: intent.area.points.slice(0, 2)
     .map(point => ({x: Number(point?.x), y: Number(point?.y)}))
     .filter(point => Number.isFinite(point.x) && Number.isFinite(point.y))};
+  // Where a teleport lands: one canvas point, which the authority checks again.
+  if ( Number.isFinite(Number(intent.teleport?.point?.x)) && Number.isFinite(Number(intent.teleport?.point?.y)) ) {
+    projected.teleport = {point: {x: Number(intent.teleport.point.x), y: Number(intent.teleport.point.y)}};
+  }
   // Where a summon's creatures appear: one canvas point each, which the authority checks again.
   if ( Array.isArray(intent.summon?.points) ) projected.summon = {points: intent.summon.points.slice(0, 20)
     .map(point => ({x: Number(point?.x), y: Number(point?.y)}))

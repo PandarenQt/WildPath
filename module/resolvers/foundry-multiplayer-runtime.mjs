@@ -15,6 +15,7 @@ import {createFoundryReactionProvider} from "../adapters/foundry-v14-reaction-pr
 import {foundryActionReactionServices} from "../adapters/foundry-v14-reaction-services.mjs";
 import {foundryAreaFootprint, foundryAreaTargetTokens} from "../adapters/foundry-v14-area-placement.mjs";
 import {areaFieldsCenter, createFoundryPersistentAreas, ownArea, turnKey} from "../adapters/foundry-v14-persistent-areas.mjs";
+import {createFoundryTeleports, teleportDestination} from "../adapters/foundry-v14-teleport.mjs";
 import {allyNearTarget, createFoundryAuras} from "../adapters/foundry-v14-auras.mjs";
 import {sunlightContext} from "../adapters/foundry-v14-sunlight.mjs";
 import {AUTOMATION_QUERY, createFoundryAutomationDispatcher} from "../adapters/foundry-v14-automation-dispatcher.mjs";
@@ -129,6 +130,7 @@ export function registerFoundryV14MultiplayerResolution({
       await summons.afterResolution(event);
       await pushes.afterResolution(event);
       await areas.move(event);
+      await teleports.afterResolution(event);
       await masteries.afterResolution(event);
       await endEffectsWhenAttacked(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
     },
@@ -197,6 +199,7 @@ export function registerFoundryV14MultiplayerResolution({
   globalThis.Hooks?.on?.("deleteActiveEffect", effect => void summons.onEffectDeleted(effect));
   // Pushes and pulls: the GM moves each creature an Action forces, as forced movement.
   const pushes = createFoundryForcedMovement({game, logger, fromUuid: globalThis.fromUuid ?? (() => null)});
+  const teleports = createFoundryTeleports({game});
   // Whoever rolls, every client sees the Combatant update; the active GM dispatches it.
   globalThis.Hooks?.on?.("updateCombatant", (combatant, changed) => {
     if ( !Number.isFinite(changed?.initiative) ) return;
@@ -650,6 +653,11 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   if ( !area.ok ) return {ok: false, code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED, reason: area.reason};
   const areaMove = definition?.moveArea ? foundryAreaMove({definition, actor, intent, sourceToken}) : null;
   if ( areaMove && !areaMove.ok ) return {ok: false, code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED, reason: areaMove.reason};
+  // A teleport lands where its player clicked, checked again here: within its distance, on the Scene, on a free space.
+  const landing = definition?.teleport ? teleportDestination({token: sourceToken ?? null, point: intent.teleport?.point ?? {x: NaN, y: NaN},
+    distance: Number(definition.teleport.distance) || 0}) : null;
+  if ( landing && !landing.ok ) return {ok: false, code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
+    reason: game.i18n?.localize?.(`WILDPATH.TELEPORT.${landing.code}`) ?? landing.code};
   const targetActors = {};
   const targetSystems = {};
   // Each target's own grants (GrantResistance / GrantImmunity) shape the damage it takes.
@@ -825,6 +833,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       ...(concentration ? {concentration: concentration.input} : {}),
       ...(area.persistentArea ? {persistentArea: area.persistentArea} : {}),
       ...(areaMove ? {areaMove: areaMove.move} : {}),
+      ...(landing?.ok ? {teleport: {sceneId: sourceToken.parent.id, tokenId: sourceToken.id, ...landing.position}} : {}),
       // A new concentration ends the caster's earlier one once it completes: what it sustains now, by uuid.
       ...(startsConcentration(definition) ? {endsConcentration: sustainedEffects(actor, game).map(({effect}) => effect.uuid)} : {}),
       ...(controller.actor ? {controller: {actorRef: controller.actor.uuid, actorSystem: controllerSystem}} : {}),

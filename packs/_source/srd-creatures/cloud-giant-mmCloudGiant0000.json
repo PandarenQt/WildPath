@@ -908,6 +908,12 @@
               ]
             ]
           },
+          "targeting": {
+            "type": "self"
+          },
+          "teleport": {
+            "distance": 30
+          },
           "label": "Misty Step"
         },
         "ruleElements": []
@@ -926,8 +932,7 @@
           },
           "conversion": {
             "notes": [
-              "consumption: itemUses 1 not converted",
-              "not automated (teleport): using it spends its cost; its description says the rest"
+              "consumption: itemUses 1 not converted"
             ]
           }
         }
@@ -987,8 +992,7 @@
           "Spellcasting: effect: \"Gaseous Form\" change system.attributes.movement.hover (override) not converted",
           "Spellcasting: effect: \"Gaseous Form\" change img (override) not converted",
           "Spellcasting: rolled (save); what it does is by hand",
-          "Misty Step: consumption: itemUses 1 not converted",
-          "Misty Step: not automated (teleport): using it spends its cost; its description says the rest"
+          "Misty Step: consumption: itemUses 1 not converted"
         ]
       }
     }
