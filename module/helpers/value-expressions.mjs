@@ -102,6 +102,11 @@ export function selectTableRows(expression, context={}) {
     return selectTableRows(typeof chosen === "number" ? {type: "constant", value: chosen} : chosen, context);
   }
   const next = {...expression};
+  // Dice whose count is worked out (a scale by class level): that many, once it can be.
+  if ( (next.type === "dice") && next.number && (typeof next.number === "object") ) {
+    const count = evaluateValueExpression(selectTableRows(next.number, context), context);
+    if ( count.ok ) next.number = Math.max(0, Math.trunc(count.value));
+  }
   if ( Array.isArray(next.terms) ) next.terms = next.terms.map(term => selectTableRows(term, context));
   for ( const key of ["value", "numerator", "denominator", "bonus"] ) {
     if ( next[key] && (typeof next[key] === "object") ) next[key] = selectTableRows(next[key], context);
@@ -284,7 +289,10 @@ function evaluateDiceExpression(expression, context) {
   const explicitTotal = firstNumeric([expression.total, expression.rolled, expression.roll]);
   if ( explicitTotal != null ) return ok(explicitTotal);
 
-  const number = finiteNumber(expression.number ?? expression.count ?? 1);
+  const counted = expression.number ?? expression.count ?? 1;
+  const count = (counted && (typeof counted === "object")) ? evaluateValueExpression(counted, context) : null;
+  if ( count && !count.ok ) return count;
+  const number = count ? Math.trunc(count.value) : finiteNumber(counted);
   const faces = finiteNumber(expression.faces ?? expression.sides);
   if ( number == null || faces == null || number < 0 || faces <= 0 ) {
     return fail(VALUE_EXPRESSION_CODES.INVALID_EXPRESSION, "Dice ValueExpression requires non-negative dice count and positive faces.");

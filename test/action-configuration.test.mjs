@@ -395,3 +395,20 @@ test("a keepEffect option keeps its whole group (one dnd5e effect may be several
   assert.equal(resolved.ok, true, JSON.stringify(resolved.errors));
   assert.deepEqual(resolved.configuration.effectiveDefinition.effects.map(entry => entry.id), ["effect-1", "effect-2"]);
 });
+
+test("a chosen damage type reaches a lasting area's repeat too (Spirit Guardians' necrotic)", async () => {
+  const {resolveActionConfiguration} = await import("../module/helpers/action-configuration.mjs");
+  const burst = {id: "damage-1", expression: {type: "dice", number: 3, faces: 8}, damageType: "radiant"};
+  const definition = {schemaVersion: 1, id: "action:guardians", label: "Guardians", costs: {allOf: [{capability: "action", amount: 1}]},
+    targeting: {type: "area"}, area: {shape: "emanation", size: {value: 15, unit: "ft"}, persistence: {duration: {unit: "round", value: 100},
+      triggers: [{on: "turn.started", action: {schemaVersion: 1, id: "action:guardians:turn", save: {ability: "wits", dc: {value: 13}},
+        damage: [structuredClone(burst)]}}]}},
+    save: {ability: "wits", dc: {value: 13}}, damage: [burst],
+    configuration: [{id: "damage-type-1", type: "damage-type", label: "Damage type", required: true, allowedDamageTypes: ["radiant", "necrotic"],
+      effects: [{type: "replaceDamageType", componentIds: ["damage-1"], damageTypeChoiceId: "damage-type-1"}]}]};
+  const resolved = resolveActionConfiguration({definition, actorSystem: {resources: {action: {value: 1, max: 1}}, pools: []},
+    choices: {"damage-type-1": "necrotic"}});
+  assert.equal(resolved.ok, true, JSON.stringify(resolved.errors));
+  const effective = resolved.configuration.effectiveDefinition;
+  assert.deepEqual([effective.damage[0].damageType, effective.area.persistence.triggers[0].action.damage[0].damageType], ["necrotic", "necrotic"]);
+});

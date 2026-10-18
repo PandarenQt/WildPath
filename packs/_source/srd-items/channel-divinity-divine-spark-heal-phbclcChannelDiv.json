@@ -22,6 +22,50 @@
           }
         ]
       },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 30,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "healing": [
+        {
+          "id": "healing-1",
+          "expression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "dice",
+                "number": {
+                  "type": "table",
+                  "key": {
+                    "type": "class-level",
+                    "class": "cleric"
+                  },
+                  "rows": {
+                    "2": 1,
+                    "7": 2,
+                    "13": 3,
+                    "18": 4
+                  }
+                },
+                "faces": 8
+              },
+              {
+                "type": "ability-modifier",
+                "ability": "wits"
+              }
+            ]
+          },
+          "healingType": "healing"
+        }
+      ],
       "label": "Channel Divinity (Divine Spark: Heal)"
     },
     "ruleElements": [
@@ -64,10 +108,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (heal): using it spends its cost; its description says the rest",
-          "healing: custom formula \"(@scale.channel-divinity-cleric.spark)d8 + @abilities.wis.mod\" not converted"
-        ]
+        "notes": []
       }
     }
   }

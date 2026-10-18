@@ -1,5 +1,7 @@
 import {ACTION_CHOICE_TYPES, createResolvedActionPreview, discoverActionConfigurationChoices} from "../helpers/action-configuration.mjs";
 import {RESOLUTION_REQUEST_TYPES} from "../helpers/resolution-state.mjs";
+import {formatFormula} from "../helpers/formula.mjs";
+import {selectTableRows} from "../helpers/value-expressions.mjs";
 import {reactionChoiceValueFromForm} from "./foundry-v14-reaction-choice-adapter.mjs";
 import {
   PROMPT_CONTROL_TYPES,
@@ -194,7 +196,9 @@ export function renderConfigurationPreview({definition, actorSystem, choices}) {
   if ( !result.ok ) return `<p class="notes">${escapeHtml(localize("WILDPATH.PROMPT.Configure.Invalid"))}</p>`;
   const preview = result.preview ?? {};
   const pools = new Map((actorSystem?.pools ?? []).map(pool => [pool.id, pool.label ?? pool.id]));
-  const typeOf = new Map((definition.damage ?? []).map(component => [component.id, component.damageType ?? ""]));
+  // The configured types (a Breath Weapon's chosen fire), and each formula at the creature's own levels ("2d10", not a table).
+  const typeOf = new Map((preview.damageTypes ?? []).map(entry => [entry.componentId, entry.damageType ?? ""]));
+  const shown = entry => formatFormula(selectTableRows(entry.expression, {actorSystem})) ?? entry.formula;
   const lines = [];
   // A built-in resource ("economy.action") reads as its own label ("Action"); a pool as its name.
   const labelOf = id => pools.get(id) ?? localize(globalThis.CONFIG?.WILDPATH?.RESOURCES?.[String(id).replace(/^economy\./, "")
@@ -202,9 +206,9 @@ export function renderConfigurationPreview({definition, actorSystem, choices}) {
   const spends = (preview.costs?.payment?.selectedPaymentPlan?.resources ?? [])
     .map(resource => `${labelOf(resource.resourceId)}${resource.amount > 1 ? ` ×${resource.amount}` : ""}`);
   if ( spends.length ) lines.push([localize("WILDPATH.PROMPT.Configure.Spends"), spends.join(", ")]);
-  const damage = (preview.damageExpressions ?? []).map(entry => `${entry.formula} ${typeOf.get(entry.componentId) ?? ""}`.trim());
+  const damage = (preview.damageExpressions ?? []).map(entry => `${shown(entry)} ${typeOf.get(entry.componentId) ?? ""}`.trim());
   if ( damage.length ) lines.push([localize("WILDPATH.PROMPT.Configure.Damage"), damage.join(" + ")]);
-  const healing = (preview.healing?.components ?? []).map(entry => entry.formula).filter(Boolean);
+  const healing = (preview.healing?.components ?? []).map(entry => (entry.expression ? shown(entry) : entry.formula)).filter(Boolean);
   if ( healing.length ) lines.push([localize("WILDPATH.PROMPT.Configure.Healing"), healing.join(" + ")]);
   const dc = definition.save?.dc?.value;
   if ( definition.save ) lines.push([localize("WILDPATH.PROMPT.Configure.Save"), `${definition.save.ability ?? ""}${dc != null ? ` DC ${dc}` : ""}`]);

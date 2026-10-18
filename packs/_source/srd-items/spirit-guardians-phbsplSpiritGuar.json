@@ -311,6 +311,25 @@
               }
             }
           ]
+        },
+        {
+          "id": "damage-type-1",
+          "type": "damage-type",
+          "label": "Damage type",
+          "required": true,
+          "allowedDamageTypes": [
+            "necrotic",
+            "radiant"
+          ],
+          "effects": [
+            {
+              "type": "replaceDamageType",
+              "componentIds": [
+                "damage-1"
+              ],
+              "damageTypeChoiceId": "damage-type-1"
+            }
+          ]
         }
       ],
       "label": "Spirit Guardians"
@@ -329,9 +348,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "damage 1: a choice of necrotic/radiant uses necrotic"
-        ]
+        "notes": []
       }
     }
   }

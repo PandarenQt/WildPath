@@ -331,6 +331,30 @@
               }
             }
           ],
+          "configuration": [
+            {
+              "id": "damage-type-1",
+              "type": "damage-type",
+              "label": "Damage type",
+              "required": true,
+              "allowedDamageTypes": [
+                "acid",
+                "cold",
+                "fire",
+                "lightning",
+                "poison"
+              ],
+              "effects": [
+                {
+                  "type": "replaceDamageType",
+                  "componentIds": [
+                    "damage-1"
+                  ],
+                  "damageTypeChoiceId": "damage-type-1"
+                }
+              ]
+            }
+          ],
           "label": "Breath Weapon"
         },
         "ruleElements": []
@@ -347,9 +371,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "damage 1: a choice of acid/cold/fire/lightning/poison uses acid"
-            ]
+            "notes": []
           }
         }
       }
@@ -438,7 +460,6 @@
           "Shared Resistances: \"Share Fire Resistance\" is passive or triggered: not automated",
           "Shared Resistances: \"Share Lightning Resistance\" is passive or triggered: not automated",
           "Shared Resistances: \"Share Poison Resistance\" is passive or triggered: not automated",
-          "Breath Weapon: damage 1: a choice of acid/cold/fire/lightning/poison uses acid",
           "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
         ]
       }

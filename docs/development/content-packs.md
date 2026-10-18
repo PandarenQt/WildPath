@@ -310,6 +310,16 @@ equipped. Equipping it (`system.active`) turns its rules on.
   - Hex asks which ability: its six "Hexed" effects become an "Ability" choice that keeps the chosen one
     (a `keepEffect` configuration effect).
   - Live: Player1's QA Caster chose "Hexed Dexterity", and QA Saver got only that effect.
+- **Scale values of species, subclasses and features (2026-10-19).** dnd5e scale values now follow the level their
+  owner uses: a class's own, a subclass's class (Land's Aid by Druid level), a feature naming its class (Divine Spark by
+  Cleric level), or the character's (Dragonborn's Breath Weapon, 1d10 to 4d10). "(@scale…)d8" is dice whose count is
+  the scale. Before, all three were left by hand.
+- **A choice of damage types (2026-10-19).** A damage part of several types asks which when used ("Damage type": a
+  Breath Weapon's acid, cold, fire, lightning or poison; Chromatic Orb; Spirit Guardians' radiant or necrotic). The
+  choice reaches a lasting area's repeat too. Before, the first type was always used. 17 SRD documents changed.
+  - The use dialog's preview shows the chosen type and a table's dice at the creature's own level ("2d10 fire").
+  - Live: Player1's QA Fighter (level 6) used the SRD Breath Weapon (Cone) and chose Fire. The preview read "2d10
+    fire"; the Bandit Captain failed its save and took 6 fire.
 - **Ability scores (2026-10-19).** dnd5e changes to `abilities.<x>.value` (`add`, `upgrade`, `downgrade`, `override`)
   become `AbilityScore` rules. An `add` with a `downgrade` (an Ioun Stone's "+2, to at most 20") or a raised `max` (a
   Tome's 30) is one capped add.

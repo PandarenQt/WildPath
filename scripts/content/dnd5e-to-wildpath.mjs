@@ -69,18 +69,28 @@ export function formulaExpression(formula, {spell=false, ability=null, scales={}
     variables[name] = expression;
     return ` ${name} `;
   };
+  // A scale value as a table on its level (rows.key), or null when there is none.
+  const table = (owner, id, part, count) => {
+    const rows = scales[`${owner}.${id}`];
+    if ( !rows ) return null;
+    const row = value => {
+      if ( typeof value !== "object" ) return value;
+      if ( part === "number" ) return value.number ?? 1;
+      if ( part === "faces" ) return value.faces;
+      return dice(Number(count) || (part === "die" ? 1 : (value.number ?? 1)), value.faces);
+    };
+    return {type: "table", key: rows.key ?? {type: "class-level", class: owner}, rows: Object.fromEntries(Object.entries(rows)
+      .map(([level, value]) => [level, row(value)]))};
+  };
   text = text
+    // "(@scale.channel-divinity-cleric.spark)d8": dice whose count is the scale (Divine Spark's 1d8 to 4d8).
+    .replace(/\(@scale\.([a-z0-9-]+)\.([a-z0-9-]+)\)\s*d\s*(\d+)/gi, (match, owner, id, faces) => {
+      const count = table(owner, id, "value", "");
+      return count ? variable({type: "dice", number: count, faces: Number(faces)}) : match;
+    })
     .replace(/(\d*)@scale\.([a-z0-9-]+)\.([a-z0-9-]+)(?:\.(value|die|faces|number|formula))?/gi, (match, count, owner, id, part) => {
-      const rows = scales[`${owner}.${id}`];
-      if ( !rows ) return match;
-      const row = value => {
-        if ( typeof value !== "object" ) return value;
-        if ( part === "number" ) return value.number ?? 1;
-        if ( part === "faces" ) return value.faces;
-        return dice(Number(count) || (part === "die" ? 1 : (value.number ?? 1)), value.faces);
-      };
-      return variable({type: "table", key: {type: "class-level", class: owner}, rows: Object.fromEntries(Object.entries(rows)
-        .map(([level, value]) => [level, row(value)]))});
+      const expression = table(owner, id, part, count);
+      return expression ? variable(expression) : match;
     })
     // A creature's spell save DC is its number; a character's is 8 + proficiency + spellcasting modifier.
     .replace(/@attributes\.spell\.dc/g, spellDC == null ? "(8 + prof + spellmod)" : String(spellDC))
@@ -1072,10 +1082,16 @@ function convertActivity({document, activity, system, spell, level, scales, note
   } else if ( activity.damage?.includeBase && baseExpression ) {
     notes.push("damage: the item's base damage not converted");
   }
+  // A part of several types is the user's choice when used (Dragonborn's Breath Weapon, Chromatic Orb).
+  const typeChoices = [];
   for ( const [index, part] of (activity.damage?.parts ?? []).entries() ) {
     const expression = partExpression(part, {spell, ability: null, scales, notes, label: `damage ${index + 1}`});
     if ( !expression ) continue;
-    if ( (part.types ?? []).length > 1 ) notes.push(`damage ${index + 1}: a choice of ${part.types.join("/")} uses ${part.types[0]}`);
+    const types = (part.types ?? []).filter(type => DAMAGE_TYPES.includes(type));
+    if ( types.length > 1 ) typeChoices.push({id: `damage-type-${index + 1}`, type: "damage-type", label: "Damage type", required: true,
+      allowedDamageTypes: types, effects: [{type: "replaceDamageType", componentIds: [`damage-${index + 1}`],
+        damageTypeChoiceId: `damage-type-${index + 1}`}]});
+    else if ( (part.types ?? []).length > 1 ) notes.push(`damage ${index + 1}: a choice of ${part.types.join("/")} uses ${part.types[0]}`);
     const scale = scaledDice(part, {spell, level});
     const cantrip = spell && !level && (part.scaling?.mode === "whole");
     damage.push({id: `damage-${index + 1}`, expression: cantrip ? cantripTable(expression) : expression, damageType: part.types?.[0] ?? "untyped",
@@ -1142,6 +1158,7 @@ function convertActivity({document, activity, system, spell, level, scales, note
   }
   // Such a follow-up continues its spell's concentration rather than starting one (startsConcentration).
   if ( spell && level && (activity.consumption?.spellSlot === false) ) definition.metadata = {...(definition.metadata ?? {}), followUp: true};
+  if ( typeChoices.length ) definition.configuration = [...(definition.configuration ?? []), ...typeChoices];
   // dnd5e lists an activity's effects as options its user applies (Blindness or Deafness, one of Hex's abilities, a
   // Shadow's -1 to -4): a choice keeps one, with every condition it brings.
   if ( groups.length > 1 ) {
@@ -1191,19 +1208,27 @@ function scaledDice(part, {spell, level}) {
 }
 
 /** `<class>.<scale>` → `{level: value}` rows from dnd5e class documents' ScaleValue advancements. */
-export function scaleTables(classDocuments=[]) {
+export function scaleTables(documents=[]) {
   const tables = {};
-  for ( const document of classDocuments ) {
+  for ( const document of documents ) {
     const owner = document.system?.identifier ?? slugify(document.name);
+    // The level its rows follow: a class's own; a subclass's class; a feature naming its class (Channel Divinity,
+    // "Cleric") that class's; a species' (Dragonborn's Breath Weapon) the character's.
+    const named = slugify(String(document.system?.requirements ?? "").split(/\s+/)[0] ?? "");
+    const key = (!document.type || (document.type === "class")) ? {type: "class-level", class: owner}
+      : (document.type === "subclass") && document.system?.classIdentifier ? {type: "class-level", class: document.system.classIdentifier}
+        : (document.type === "feat") && named ? {type: "class-level", class: named} : {type: "character-level"};
     // Stored sources keep advancements by id; prepared documents as a list.
     for ( const advancement of Object.values(document.system?.advancement ?? {}) ) {
       const kind = advancement.configuration?.type;
       if ( (advancement.type !== "ScaleValue") || !["number", "dice"].includes(kind) ) continue;
       const id = advancement.configuration.identifier || slugify(advancement.title);
       // A number scale is its numbers; a dice scale is {number, faces} (Sneak Attack 1d6 ... 10d6; Martial Arts d6 ... d12).
-      tables[`${owner}.${id}`] = Object.fromEntries(Object.entries(advancement.configuration.scale ?? {})
+      const rows = Object.fromEntries(Object.entries(advancement.configuration.scale ?? {})
         .map(([level, entry]) => [level, kind === "dice" ? {number: number(entry.number) ?? 1, faces: number(entry.faces)} : Number(entry.value)])
         .filter(([, value]) => (typeof value === "object") ? Number.isFinite(value.faces) : Number.isFinite(value)));
+      // Not a row: the level the rows follow.
+      tables[`${owner}.${id}`] = Object.defineProperty(rows, "key", {value: key, enumerable: false});
     }
   }
   return tables;

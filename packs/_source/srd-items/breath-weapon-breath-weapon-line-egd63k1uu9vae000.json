@@ -63,6 +63,69 @@
           }
         }
       },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "table",
+            "key": {
+              "type": "character-level"
+            },
+            "rows": {
+              "0": {
+                "type": "dice",
+                "number": 1,
+                "faces": 10
+              },
+              "5": {
+                "type": "dice",
+                "number": 2,
+                "faces": 10
+              },
+              "11": {
+                "type": "dice",
+                "number": 3,
+                "faces": 10
+              },
+              "17": {
+                "type": "dice",
+                "number": 4,
+                "faces": 10
+              }
+            }
+          },
+          "damageType": "acid",
+          "provenance": "additional",
+          "saveOutcomePolicy": {
+            "success": "half",
+            "failure": "full"
+          }
+        }
+      ],
+      "configuration": [
+        {
+          "id": "damage-type-1",
+          "type": "damage-type",
+          "label": "Damage type",
+          "required": true,
+          "allowedDamageTypes": [
+            "acid",
+            "cold",
+            "fire",
+            "poison",
+            "lightning"
+          ],
+          "effects": [
+            {
+              "type": "replaceDamageType",
+              "componentIds": [
+                "damage-1"
+              ],
+              "damageTypeChoiceId": "damage-type-1"
+            }
+          ]
+        }
+      ],
       "label": "Breath Weapon (Breath Weapon (Line))"
     },
     "ruleElements": [
@@ -93,10 +156,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "damage 1: custom formula \"@scale.dragonborn.breath\" not converted",
-          "rolled (save); what it does is by hand"
-        ]
+        "notes": []
       }
     }
   }

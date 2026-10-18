@@ -39,7 +39,7 @@ const documents = pack => readPack(extracted, pack.name);
 const srd = option("--srd");
 const all = (manifest.packs ?? []).flatMap(documents);
 const srdDocuments = srd ? ["classes24", "spells24", "equipment24", "feats24", "origins24", "actors24", "content24"].flatMap(pack => readPack(srd, pack)) : [];
-const scales = scaleTables([...srdDocuments, ...all].filter(document => document.type === "class"));
+const scales = scaleTables([...srdDocuments, ...all]);
 const names = nameIndex([...srdDocuments, ...all]);
 // The spells a creature's Spellcasting casts, by id (the book's own and the SRD's).
 const spells = Object.fromEntries([...srdDocuments, ...all].filter(document => document.type === "spell").map(document => [document._id, document]));

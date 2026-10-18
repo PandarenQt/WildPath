@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 712 automated, 407 manual, 245 features. Creatures: 375.
+Items: 713 automated, 406 manual, 245 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -219,7 +219,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Brave | origins24 | Brave (feature) | — |
 | Brazier of Commanding Fire Elementals | equipment24 | Brazier of Commanding Fire Elementals (gear), Brazier of Commanding Fire Elementals (automated) | — |
 | Breastplate | equipment24 | Breastplate (gear) | — |
-| Breath Weapon | origins24 | Breath Weapon (Breath Weapon (Cone)) (automated), Breath Weapon (Breath Weapon (Line)) (automated) | damage 1: custom formula "@scale.dragonborn.breath" not converted; rolled (save); what it does is by hand |
+| Breath Weapon | origins24 | Breath Weapon (Breath Weapon (Cone)) (automated), Breath Weapon (Breath Weapon (Line)) (automated) | — |
 | Brewer's Supplies | equipment24 | Brewer's Supplies (gear), Brewer's Supplies (Detect Poisoned Drink) (automated), Brewer's Supplies (Identify Alcohol) (automated) | — |
 | Bronze Dragon Wyrmling | actors24 | Bronze Dragon Wyrmling (6 items) | — |
 | Bronze Griffon | equipment24 | Bronze Griffon (gear), Bronze Griffon (manual) | not automated (summon): using it spends its cost; its description says the rest; summon: its creature is not among the converted creatures |
@@ -267,7 +267,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Chain Mail | equipment24 | Chain Mail (gear) | — |
 | Chain Shirt | equipment24 | Chain Shirt (gear) | — |
 | Champion | classes24 | Champion (subclass) | grant: phbfstBlindFight was not converted; grant: phbfstDueling000 was not converted; grant: phbfstIntercepti was not converted; grant: phbfstProtection was not converted; grant: phbfstThrownWeap was not converted; grant: phbfstUnarmedFig was not converted |
-| Channel Divinity | classes24 | Channel Divinity (Divine Spark: Heal) (manual), Channel Divinity (Divine Spark: Save) (automated), Channel Divinity (Turn Undead) (automated) | not automated (heal): using it spends its cost; its description says the rest; healing: custom formula "(@scale.channel-divinity-cleric.spark)d8 + @abilities.wis.mod" not converted; damage 1: custom formula "(@scale.channel-divinity-cleric.spark)d8 + @abilities.wis.mod" not converted; rolled (save); what it does is by hand |
+| Channel Divinity | classes24 | Channel Divinity (Divine Spark: Heal) (automated), Channel Divinity (Divine Spark: Save) (automated), Channel Divinity (Turn Undead) (automated) | — |
 | Channel Divinity | classes24 | Channel Divinity (manual) | not automated (utility): using it spends its cost; its description says the rest; effect: "Divine Sense" (its own changes) not converted |
 | Charm Monster | spells24 | Charm Monster (automated) | — |
 | Charm Person | spells24 | Charm Person (automated) | — |
@@ -275,7 +275,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Chill Touch | spells24 | Chill Touch (automated) | effect: "Blocked Healing" (its own changes) not converted |
 | Chime of Opening | equipment24 | Chime of Opening (gear), Chime of Opening: Knock (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Chimera | actors24 | Chimera (7 items) | — |
-| Chromatic Orb | spells24 | Chromatic Orb (automated) | damage 1: a choice of acid/cold/fire/lightning/poison/thunder uses acid |
+| Chromatic Orb | spells24 | Chromatic Orb (automated) | — |
 | Chuul | actors24 | Chuul (6 items) | Pincer: "Escape Check" is passive or triggered: not automated |
 | Circle of Death | spells24 | Circle of Death (automated) | — |
 | Circle of the Land | classes24 | Circle of the Land (subclass) | — |
@@ -436,7 +436,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Draconic Resilience | classes24 | Draconic Resilience (feature) | effect: "Draconic Resilience: HP" change system.attributes.hp.bonuses.overall (add) not converted |
 | Draconic Sorcery | classes24 | Draconic Sorcery (subclass) | — |
 | Draconic Spells | classes24 | Draconic Spells (feature) | — |
-| Draconic Spirit | actors24 | Draconic Spirit (5 items) | Shared Resistances: "Share Acid Resistance" is passive or triggered: not automated; Shared Resistances: "Share Cold Resistance" is passive or triggered: not automated; Shared Resistances: "Share Fire Resistance" is passive or triggered: not automated; Shared Resistances: "Share Lightning Resistance" is passive or triggered: not automated; Shared Resistances: "Share Poison Resistance" is passive or triggered: not automated; Breath Weapon: damage 1: a choice of acid/cold/fire/lightning/poison uses acid; Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand |
+| Draconic Spirit | actors24 | Draconic Spirit (5 items) | Shared Resistances: "Share Acid Resistance" is passive or triggered: not automated; Shared Resistances: "Share Cold Resistance" is passive or triggered: not automated; Shared Resistances: "Share Fire Resistance" is passive or triggered: not automated; Shared Resistances: "Share Lightning Resistance" is passive or triggered: not automated; Shared Resistances: "Share Poison Resistance" is passive or triggered: not automated; Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand |
 | Draft Horse | actors24 | Draft Horse (1 items) | — |
 | Dragon Companion | classes24 | Dragon Companion (feature) | "Expend Use" is passive or triggered: not automated |
 | Dragon Orb | equipment24 | Dragon Orb (gear), Dragon Orb (Call Dragons) (manual), Dragon Orb: Suggestion (automated), Dragon Orb: Cure Wounds (automated), Dragon Orb: Daylight (automated), Dragon Orb: Death Ward (manual), Dragon Orb: Detect Magic (manual), Dragon Orb: Scrying (automated) | "Attunement Save" is passive or triggered: not automated; not automated (utility): using it spends its cost; its description says the rest; consumption: itemUses 4 not converted; cast: Cure Wounds at level 9 is cast at its own level; consumption: itemUses 1 not converted; consumption: itemUses 2 not converted; effect: "Protection from Death" (its own changes) not converted; effect: "Detect Magic" (its own changes) not converted; concentration: nothing it sustains was converted; consumption: itemUses 3 not converted; activation: 10 minute is not an action-economy cost; rolled (save); what it does is by hand; "Create Sensor" is passive or triggered: not automated |
@@ -444,7 +444,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Dragon Slayer | equipment24 | Dragon Slayer (manual) | not automated (enchant): using it spends its cost; its description says the rest |
 | Dragon Turtle | actors24 | Dragon Turtle (6 items) | — |
 | Dragon Wings | classes24 | Dragon Wings (Dragon Wings) (automated) | "Restore Use" is passive or triggered: not automated |
-| Dragon's Breath | spells24 | Dragon's Breath (Cast) (manual), Dragon's Breath (Exhale) (automated) | not automated (utility): using it spends its cost; its description says the rest; concentration: nothing it sustains was converted; damage 1: a choice of acid/cold/fire/lightning/poison uses acid |
+| Dragon's Breath | spells24 | Dragon's Breath (Cast) (manual), Dragon's Breath (Exhale) (automated) | not automated (utility): using it spends its cost; its description says the rest; concentration: nothing it sustains was converted |
 | Dragonborn | origins24 | Dragonborn (species) | — |
 | Dragonchess | equipment24 | Dragonchess (gear), Dragonchess (Catch Cheating) (automated), Dragonchess (Play to Win) (automated) | — |
 | Dream | spells24 | Dream (automated) | activation: 1 minute is not an action-economy cost |
@@ -508,7 +508,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Emblem | equipment24 | Emblem (gear) | — |
 | Empowered Evocation | classes24 | Empowered Evocation (feature) | "damage" is passive or triggered: not automated |
 | Empowered Spell | classes24 | Empowered Spell (feature) | "Empowered Spell" is passive or triggered: not automated |
-| Empowered Strikes | classes24 | Empowered Strikes (automated) | damage 1: a choice of bludgeoning/force uses bludgeoning |
+| Empowered Strikes | classes24 | Empowered Strikes (automated) | — |
 | Energy Bow | equipment24 | Energy Bow (attack) (automated), Energy Bow (Arrow of Transport) (manual), Energy Bow (Energy Ladder) (manual), Energy Bow (Energy Bow) (manual) | rolled (attack); what it does is by hand; not automated (utility): using it spends its cost; its description says the rest; "Arrow of Restraint" is passive or triggered: not automated; not automated (enchant): using it spends its cost; its description says the rest |
 | Enhance Ability | spells24 | Enhance Ability (automated) | — |
 | Enlarge/Reduce | spells24 | Enlarge/Reduce (automated) | effect: "Enlarged" change system.traits.size (add) not converted; effect: "Reduced" change system.rolls.damage.mwak.bonus (subtract) not converted; effect: "Reduced" change system.rolls.damage.rwak.bonus (subtract) not converted; effect: "Reduced" change system.traits.size (subtract) not converted |
@@ -677,7 +677,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Giant Scorpion | actors24 | Giant Scorpion (3 items) | Claw: "Escape Check" is passive or triggered: not automated |
 | Giant Seahorse | actors24 | Giant Seahorse (5 items) | Bubble Dash: not automated (utility): using it spends its cost; its description says the rest |
 | Giant Shark | actors24 | Giant Shark (4 items) | — |
-| Giant Slayer | equipment24 | Giant Slayer (Attack vs Giant) (automated) | damage 1: a choice of bludgeoning/piercing/slashing uses bludgeoning; "Giant Slayer" is passive or triggered: not automated |
+| Giant Slayer | equipment24 | Giant Slayer (Attack vs Giant) (automated) | "Giant Slayer" is passive or triggered: not automated |
 | Giant Spider | actors24 | Giant Spider (5 items) | — |
 | Giant Toad | actors24 | Giant Toad (6 items) | Swallow: not automated (utility): using it spends its cost; its description says the rest; Swallow: "Escape Corpse" is passive or triggered: not automated |
 | Giant Venomous Snake | actors24 | Giant Venomous Snake (2 items) | — |
@@ -697,7 +697,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Gloves of Missile Snaring | equipment24 | Gloves of Missile Snaring (gear), Gloves of Missile Snaring (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Gloves of Swimming and Climbing | equipment24 | Gloves of Swimming and Climbing (gear) | — |
 | Gloves of Thievery | equipment24 | Gloves of Thievery (gear) | — |
-| Glyph of Warding | spells24 | Glyph of Warding (Spell Glyph) (manual), Glyph of Warding (Explosive Rune) (automated) | not automated (utility): using it spends its cost; its description says the rest; activation: 1 hour is not an action-economy cost; damage 1: a choice of acid/cold/fire/lightning/thunder uses acid |
+| Glyph of Warding | spells24 | Glyph of Warding (Spell Glyph) (manual), Glyph of Warding (Explosive Rune) (automated) | not automated (utility): using it spends its cost; its description says the rest; activation: 1 hour is not an action-economy cost |
 | Gnoll Warrior | actors24 | Gnoll Warrior (2 items) | — |
 | Gnome, Forest | origins24 | Gnome, Forest (species) | — |
 | Gnome, Rock | origins24 | Gnome, Rock (species) | — |
@@ -743,7 +743,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Gust of Wind | spells24 | Gust of Wind (automated) | concentration: nothing it sustains was converted; rolled (save); what it does is by hand |
 | Halberd | equipment24 | Halberd (automated) | — |
 | Half Plate Armor | equipment24 | Half Plate Armor (gear) | — |
-| Half-Dragon | actors24 | Half-Dragon (5 items) | Claw: damage 1: a choice of acid/cold/fire/lightning/poison uses acid; Dragon's Breath: damage 1: a choice of acid/cold/fire/lightning/poison uses acid; Leap: not automated (utility): using it spends its cost; its description says the rest |
+| Half-Dragon | actors24 | Half-Dragon (5 items) | Leap: not automated (utility): using it spends its cost; its description says the rest |
 | Halfling | origins24 | Halfling (species) | — |
 | Halfling Nimbleness | origins24 | Halfling Nimbleness (feature) | effect: "Halfling Nimbleness" change flags.dnd5e.halflingNimbleness (override) not converted |
 | Hallow | spells24 | Hallow (manual) | not automated (utility): using it spends its cost; its description says the rest; activation: 24 hour is not an action-economy cost |
@@ -768,7 +768,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Heightened Spell | classes24 | Heightened Spell (feature) | "Heightened Spell" is passive or triggered: not automated |
 | Hell Hound | actors24 | Hell Hound (5 items) | — |
 | Hellish Rebuke | spells24 | Hellish Rebuke (automated) | — |
-| Helm of Brilliance | equipment24 | Helm of Brilliance (gear), Helm of Brilliance (Fire Opal Flames) (manual), Helm of Brilliance: Daylight (automated), Helm of Brilliance: Fireball (automated), Helm of Brilliance: Prismatic Spray (automated), Helm of Brilliance: Wall of Fire (automated) | "Diamond Light" is passive or triggered: not automated; not automated (enchant): using it spends its cost; its description says the rest; damage 1: a choice of acid/cold/fire/lightning/poison uses acid; rolled (save); what it does is by hand; "damage" is passive or triggered: not automated; "Explosive Emanation" is passive or triggered: not automated; armor: of any kind; give it its armor's AC by hand |
+| Helm of Brilliance | equipment24 | Helm of Brilliance (gear), Helm of Brilliance (Fire Opal Flames) (manual), Helm of Brilliance: Daylight (automated), Helm of Brilliance: Fireball (automated), Helm of Brilliance: Prismatic Spray (automated), Helm of Brilliance: Wall of Fire (automated) | "Diamond Light" is passive or triggered: not automated; not automated (enchant): using it spends its cost; its description says the rest; rolled (save); what it does is by hand; "damage" is passive or triggered: not automated; "Explosive Emanation" is passive or triggered: not automated; armor: of any kind; give it its armor's AC by hand |
 | Helm of Comprehending Languages | equipment24 | Helm of Comprehending Languages (gear), Helm of Comprehending Languages: Comprehend Languages (manual) | not automated (utility): using it spends its cost; its description says the rest; effect: "Comprehension" change system.traits.languages.value (add) not converted; effect: "Comprehension" (its own changes) not converted |
 | Helm of Telepathy | equipment24 | Helm of Telepathy (gear), Helm of Telepathy: Detect Thoughts (manual), Helm of Telepathy: Suggestion (automated) | not automated (utility): using it spends its cost; its description says the rest; concentration: nothing it sustains was converted; rolled (save); what it does is by hand; effect: "Telepathy" change system.traits.languages.custom (add) not converted |
 | Helm of Teleportation | equipment24 | Helm of Teleportation (gear), Helm of Teleportation: Teleport (manual) | not automated (teleport): using it spends its cost; its description says the rest |
@@ -897,7 +897,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Lamp | equipment24 | Lamp (gear), Lamp (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Lamp | equipment24 | Lamp (gear), Lamp (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Lance | equipment24 | Lance (automated) | — |
-| Land's Aid | classes24 | Land's Aid (save) (automated) | consumption: itemUses 1 not converted; damage 1: custom formula "@scale.land.lands-aid" not converted; rolled (save); what it does is by hand; "heal" is passive or triggered: not automated |
+| Land's Aid | classes24 | Land's Aid (save) (automated) | consumption: itemUses 1 not converted; "heal" is passive or triggered: not automated |
 | Lantern of Revealing | equipment24 | Lantern of Revealing (gear), Lantern of Revealing (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Lantern, Bullseye | equipment24 | Lantern, Bullseye (gear), Lantern, Bullseye (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Lantern, Hooded | equipment24 | Lantern, Hooded (gear), Lantern, Hooded (manual) | not automated (utility): using it spends its cost; its description says the rest |
@@ -1065,7 +1065,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Orc | origins24 | Orc (species) | — |
 | Otherworldly Leap | classes24 | Otherworldly Leap (manual) | not automated (utility): using it spends its cost; its description says the rest; effect: "Jump" (its own changes) not converted |
 | Otherworldly Presence | origins24 | Otherworldly Presence (feature) | — |
-| Otherworldly Steed | actors24 | Otherworldly Steed (3 items) | Otherworldly Slam: damage 1: a choice of psychic/radiant/necrotic uses psychic; Fey Step: not SRD 5.2 (CC-BY-4.0); Healing Touch: not SRD 5.2 (CC-BY-4.0) |
+| Otherworldly Steed | actors24 | Otherworldly Steed (3 items) | Fey Step: not SRD 5.2 (CC-BY-4.0); Healing Touch: not SRD 5.2 (CC-BY-4.0) |
 | Otyugh | actors24 | Otyugh (4 items) | Bite: "save" is passive or triggered: not automated; Tentacle: "Escape Check" is passive or triggered: not automated |
 | Overchannel | classes24 | Overchannel (feature) | "First Use" is passive or triggered: not automated; "Second+ Use" is passive or triggered: not automated |
 | Owl | actors24 | Owl (3 items) | — |
@@ -1181,7 +1181,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Primal Order | classes24 | Primal Order (feature) | — |
 | Primal Order: Magician | classes24 | Primal Order: Magician (feature) | effect: "Magician" change system.scale.druid.cantrips-known.value (add) not converted |
 | Primal Order: Warden | classes24 | Primal Order: Warden (feature) | effect: "Primal Order: Warden" change system.traits.armorProf.value (add) not converted; effect: "Primal Order: Warden" change system.traits.weaponProf.value (add) not converted |
-| Prismatic Spray | spells24 | Prismatic Spray (Cast) (automated), Prismatic Spray (Indigo Save (Con)) (automated), Prismatic Spray (Violet Save (Wis)) (automated) | damage 1: a choice of acid/cold/fire/lightning/poison uses acid; rolled (save); what it does is by hand |
+| Prismatic Spray | spells24 | Prismatic Spray (Cast) (automated), Prismatic Spray (Indigo Save (Con)) (automated), Prismatic Spray (Violet Save (Wis)) (automated) | rolled (save); what it does is by hand |
 | Prismatic Wall | spells24 | Prismatic Wall (Create Wall) (manual), Prismatic Wall (Create Globe) (manual) | not automated (utility): using it spends its cost; its description says the rest; "Blinding Save" is passive or triggered: not automated; "Traversal Save" is passive or triggered: not automated |
 | Private Sanctum | spells24 | Private Sanctum (manual) | not automated (utility): using it spends its cost; its description says the rest; activation: 10 minute is not an action-economy cost; area: 100 * @item.level - 300-ft cube is not supported; the user picks the targets |
 | Produce Flame | spells24 | Produce Flame (Cast) (manual), Produce Flame (Hurl Fire) (automated) | not automated (utility): using it spends its cost; its description says the rest |
@@ -1427,7 +1427,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Spike Growth | spells24 | Spike Growth (automated) | concentration: nothing it sustains was converted |
 | Spiked Pit | equipment24 | Spiked Pit (gear) | "Trigger (1-4)" is passive or triggered: not automated; "Trigger (5-10)" is passive or triggered: not automated; "Trigger (11-16)" is passive or triggered: not automated; "Trigger (17-20)" is passive or triggered: not automated |
 | Spikes, Iron | equipment24 | Spikes, Iron (gear) | — |
-| Spirit Guardians | spells24 | Spirit Guardians (automated) | damage 1: a choice of necrotic/radiant uses necrotic |
+| Spirit Guardians | spells24 | Spirit Guardians (automated) | — |
 | Spirit Naga | actors24 | Spirit Naga (13 items) | Spellcasting: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: effect: "Detect Magic" (its own changes) not converted; Spellcasting: concentration: nothing it sustains was converted; Spellcasting: effect: "Water Breathing" (its own changes) not converted; Spellcasting: rolled (save); what it does is by hand; Spellcasting: teleport: a creature it brings along is moved by hand; Spellcasting: cast: Hold Person at level 3 is cast at its own level; Spellcasting: cast: Lightning Bolt at level 4 is cast at its own level |
 | Spiritual Weapon | spells24 | Spiritual Weapon (automated) | — |
 | Spiritual Weapon | actors24 | Spiritual Weapon (1 items) | Move and Attack: damage 1: custom formula "(@flags.dnd5e.summon.level - 1)d8 + @flags.dnd5e.summon.mod" not converted; Move and Attack: rolled (attack); what it does is by hand |

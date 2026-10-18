@@ -139,6 +139,28 @@
               }
             }
           ]
+        },
+        {
+          "id": "damage-type-1",
+          "type": "damage-type",
+          "label": "Damage type",
+          "required": true,
+          "allowedDamageTypes": [
+            "acid",
+            "cold",
+            "fire",
+            "lightning",
+            "thunder"
+          ],
+          "effects": [
+            {
+              "type": "replaceDamageType",
+              "componentIds": [
+                "damage-1"
+              ],
+              "damageTypeChoiceId": "damage-type-1"
+            }
+          ]
         }
       ],
       "label": "Glyph of Warding (Explosive Rune)"
@@ -158,8 +180,7 @@
       },
       "conversion": {
         "notes": [
-          "activation: 1 hour is not an action-economy cost",
-          "damage 1: a choice of acid/cold/fire/lightning/thunder uses acid"
+          "activation: 1 hour is not an action-economy cost"
         ]
       }
     }

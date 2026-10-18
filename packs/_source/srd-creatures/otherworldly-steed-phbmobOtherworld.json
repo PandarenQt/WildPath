@@ -131,6 +131,28 @@
               "provenance": "additional"
             }
           ],
+          "configuration": [
+            {
+              "id": "damage-type-1",
+              "type": "damage-type",
+              "label": "Damage type",
+              "required": true,
+              "allowedDamageTypes": [
+                "psychic",
+                "radiant",
+                "necrotic"
+              ],
+              "effects": [
+                {
+                  "type": "replaceDamageType",
+                  "componentIds": [
+                    "damage-1"
+                  ],
+                  "damageTypeChoiceId": "damage-type-1"
+                }
+              ]
+            }
+          ],
           "label": "Otherworldly Slam"
         },
         "ruleElements": []
@@ -147,9 +169,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "damage 1: a choice of psychic/radiant/necrotic uses psychic"
-            ]
+            "notes": []
           }
         }
       }
@@ -255,7 +275,6 @@
       },
       "conversion": {
         "notes": [
-          "Otherworldly Slam: damage 1: a choice of psychic/radiant/necrotic uses psychic",
           "Fey Step: not SRD 5.2 (CC-BY-4.0)",
           "Healing Touch: not SRD 5.2 (CC-BY-4.0)"
         ]

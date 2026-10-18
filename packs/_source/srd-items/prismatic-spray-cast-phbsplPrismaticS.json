@@ -119,6 +119,28 @@
           "effects": []
         },
         {
+          "id": "damage-type-1",
+          "type": "damage-type",
+          "label": "Damage type",
+          "required": true,
+          "allowedDamageTypes": [
+            "acid",
+            "cold",
+            "fire",
+            "lightning",
+            "poison"
+          ],
+          "effects": [
+            {
+              "type": "replaceDamageType",
+              "componentIds": [
+                "damage-1"
+              ],
+              "damageTypeChoiceId": "damage-type-1"
+            }
+          ]
+        },
+        {
           "id": "effect-choice",
           "type": "option",
           "label": "Effect",
@@ -170,9 +192,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "damage 1: a choice of acid/cold/fire/lightning/poison uses acid"
-        ]
+        "notes": []
       }
     }
   }
