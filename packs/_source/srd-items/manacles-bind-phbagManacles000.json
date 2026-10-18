@@ -22,6 +22,15 @@
           }
         ]
       },
+      "targeting": {
+        "type": "self"
+      },
+      "check": {
+        "skill": "sleight-of-hand",
+        "dc": {
+          "value": 13
+        }
+      },
       "label": "Manacles (Bind)"
     },
     "ruleElements": [
@@ -54,7 +63,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (check): using it spends its cost; its description says the rest"
+          "effect: \"Manacled\" (its own changes) not converted"
         ]
       }
     }

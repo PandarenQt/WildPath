@@ -18,6 +18,15 @@
           }
         ]
       },
+      "targeting": {
+        "type": "self"
+      },
+      "check": {
+        "skill": "athletics",
+        "dc": {
+          "value": 20
+        }
+      },
       "label": "Rope (Burst Rope)"
     },
     "ruleElements": [
@@ -49,9 +58,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (check): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

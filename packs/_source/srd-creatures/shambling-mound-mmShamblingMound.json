@@ -396,7 +396,9 @@
           },
           "conversion": {
             "notes": [
-              "not automated (check): using it spends its cost; its description says the rest"
+              "not automated (check): using it spends its cost; its description says the rest",
+              "check: a choice of acr/ath uses acr",
+              "check: acr/ath DC (@skills.ath.passive) not converted"
             ]
           }
         }
@@ -479,7 +481,9 @@
       "conversion": {
         "notes": [
           "Engulf: \"Engulfed: Damage\" is passive or triggered: not automated",
-          "Engulf: not automated (check): using it spends its cost; its description says the rest"
+          "Engulf: not automated (check): using it spends its cost; its description says the rest",
+          "Engulf: check: a choice of acr/ath uses acr",
+          "Engulf: check: acr/ath DC (@skills.ath.passive) not converted"
         ]
       }
     }

@@ -1,6 +1,6 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import {convertActor, convertItem, describe, formulaExpression, houseText, isSrd2024, scaleTables} from "../scripts/content/dnd5e-to-wildpath.mjs";
+import {checkOf, convertActor, convertItem, describe, formulaExpression, houseText, isSrd2024, scaleTables} from "../scripts/content/dnd5e-to-wildpath.mjs";
 import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
 
 // Synthetic documents in dnd5e 6.x's shape (mechanics only), not copies of its compendium.
@@ -649,4 +649,14 @@ test("a class's prepared spells by level, carried forward between its scale's en
   assert.deepEqual(table.slice(0, 6), [2, 3, 3, 3, 6, 6]);
   assert.deepEqual([table.length, table[18], table[19]], [20, 15, 15]);
   assert.deepEqual(preparedTable({advancement: {}}), []);
+});
+
+test("a check activity is its user's own check: its ability or skill, and its DC", () => {
+  assert.deepEqual(checkOf({ability: "dex", associated: [], dc: {formula: "15"}}), {ability: "agility", dc: {value: 15}}, "Thieves' Tools");
+  assert.deepEqual(checkOf({ability: "", associated: "slt", dc: {formula: "20"}}), {skill: "sleight-of-hand", dc: {value: 20}},
+    "Manacles, with one associated skill as a string");
+  const notes = [];
+  assert.deepEqual(checkOf({associated: ["ath", "acr"], dc: {formula: "13"}}, {notes}), {skill: "athletics", dc: {value: 13}});
+  assert.match(notes[0], /a choice of ath\/acr uses ath/u);
+  assert.equal(checkOf({ability: "str", dc: {}}, {notes}), null, "no DC");
 });

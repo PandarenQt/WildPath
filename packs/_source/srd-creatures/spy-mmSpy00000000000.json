@@ -303,9 +303,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (check): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           },
           "grants": [
             "NHMv5kWuMNacIv5i"
@@ -333,6 +331,15 @@
               }
             ]
           },
+          "targeting": {
+            "type": "self"
+          },
+          "check": {
+            "ability": "agility",
+            "dc": {
+              "value": 15
+            }
+          },
           "label": "Thieves' Tools"
         },
         "ruleElements": []
@@ -349,9 +356,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (check): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -400,8 +405,7 @@
       },
       "conversion": {
         "notes": [
-          "Cunning Action: not automated (utility): using it spends its cost; its description says the rest",
-          "Thieves' Tools: not automated (check): using it spends its cost; its description says the rest"
+          "Cunning Action: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

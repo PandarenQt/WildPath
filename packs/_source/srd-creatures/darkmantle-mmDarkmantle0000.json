@@ -173,6 +173,15 @@
               }
             ]
           },
+          "targeting": {
+            "type": "self"
+          },
+          "check": {
+            "skill": "athletics",
+            "dc": {
+              "value": 13
+            }
+          },
           "label": "Crush (check)"
         },
         "ruleElements": []
@@ -189,9 +198,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (check): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -304,7 +311,6 @@
         "notes": [
           "Crush: effect: suffocation is not a WildPath condition yet",
           "Crush: effect: \"Self: Attack Adv./0 Speed\" change system.attributes.movement.fly (override) not converted",
-          "Crush: not automated (check): using it spends its cost; its description says the rest",
           "Darkness Aura: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }

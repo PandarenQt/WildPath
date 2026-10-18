@@ -21,6 +21,15 @@
           }
         ]
       },
+      "targeting": {
+        "type": "self"
+      },
+      "check": {
+        "skill": "athletics",
+        "dc": {
+          "value": 30
+        }
+      },
       "label": "Dimensional Shackles (Attempt Escape)"
     },
     "ruleElements": []
@@ -37,9 +46,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (check): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

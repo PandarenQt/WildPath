@@ -31,7 +31,6 @@
           "\"Trigger (5-10)\" is passive or triggered: not automated",
           "\"Trigger (11-16)\" is passive or triggered: not automated",
           "\"Trigger (17-20)\" is passive or triggered: not automated",
-          "not automated (check): using it spends its cost; its description says the rest",
           "activation: 10 minute is not an action-economy cost"
         ]
       },

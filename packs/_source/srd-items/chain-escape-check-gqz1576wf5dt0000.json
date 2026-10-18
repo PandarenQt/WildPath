@@ -18,6 +18,15 @@
           }
         ]
       },
+      "targeting": {
+        "type": "self"
+      },
+      "check": {
+        "skill": "acrobatics",
+        "dc": {
+          "value": 18
+        }
+      },
       "label": "Chain (Escape Check)"
     },
     "ruleElements": []
@@ -34,9 +43,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (check): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

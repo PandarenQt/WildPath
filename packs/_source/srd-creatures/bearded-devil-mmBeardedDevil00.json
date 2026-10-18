@@ -372,6 +372,15 @@
               }
             ]
           },
+          "targeting": {
+            "type": "self"
+          },
+          "check": {
+            "skill": "medicine",
+            "dc": {
+              "value": 12
+            }
+          },
           "label": "Infernal Glaive (Check: Stanch Wound)"
         },
         "ruleElements": []
@@ -388,9 +397,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (check): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -463,8 +470,7 @@
       "conversion": {
         "notes": [
           "Infernal Glaive: \"save\" is passive or triggered: not automated",
-          "Infernal Glaive: \"Damage: Infernal Wound\" is passive or triggered: not automated",
-          "Infernal Glaive: not automated (check): using it spends its cost; its description says the rest"
+          "Infernal Glaive: \"Damage: Infernal Wound\" is passive or triggered: not automated"
         ]
       }
     }

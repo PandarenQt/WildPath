@@ -24,7 +24,7 @@ const ACTIVATION_COST = Object.freeze({action: "action", bonus: "bonus-action", 
   lair: "lair-action"});
 const RECOVERY = Object.freeze({lr: "longRest", sr: "shortRest", day: "longRest", dawn: "longRest", dusk: "longRest", turn: "turn", turnStart: "turn",
   round: "turn"});
-const ACTIVITIES = new Set(["attack", "save", "damage", "heal", "utility"]);
+const ACTIVITIES = new Set(["attack", "save", "check", "damage", "heal", "utility"]);
 const SPELL_DC = {type: "add", terms: [{type: "constant", value: 8}, {type: "proficiency-bonus"}, {type: "spellcasting-modifier"}]};
 const SLOT_MODES = new Set(["prepared", "always", "spell", "pact", "ritual"]);
 
@@ -954,6 +954,18 @@ function convertActivity({document, activity, system, spell, level, scales, note
     definition.save = {ability, dc: value};
   }
 
+  // An ability check its user makes against a DC (picking a lock, slipping manacles): the creature's own check.
+  if ( activity.type === "check" ) {
+    // A spell's check is its target's (Maze's escape), not the caster's: by hand.
+    if ( spell ) return null;
+    const check = checkOf(activity.check ?? {}, {spell, scales, notes});
+    if ( !check ) return null;
+    definition.check = check;
+    // The user checks; nobody else is targeted.
+    definition.targeting = {type: "self"};
+    delete definition.range;
+  }
+
   // Damage: a weapon's own damage first (the ability modifier joins it), then the activity's parts.
   const damage = [];
   const label = document.name;
@@ -1016,8 +1028,27 @@ function convertActivity({document, activity, system, spell, level, scales, note
     definition.configuration = slotConfiguration(level, damage, {healing, perLevel});
   }
   if ( concentration && !effects.length ) notes.push("concentration: nothing it sustains was converted");
-  // An attack or save with nothing converted on it would roll for nothing: such an Action is left out and noted.
-  return (damage.length || healing.length || effects.length) ? definition : null;
+  // An attack or save with nothing converted on it would roll for nothing: such an Action is left out and noted. A
+  // check stands on its own: its success is the point.
+  return (damage.length || healing.length || effects.length || definition.check) ? definition : null;
+}
+
+/**
+ * A dnd5e check activity as a WildPath check (G8): its ability, its skill (the first of `associated` that is a skill),
+ * and its DC. Null, with a note, when either is missing.
+ * shortcut: a tool's proficiency bonus is not added; add it when tool training feeds checks.
+ */
+export function checkOf(check, {spell=false, scales={}, notes=[]}={}) {
+  const skills = [].concat(check.associated ?? []).filter(key => DND_SKILLS[key]);
+  if ( skills.length > 1 ) notes.push(`check: a choice of ${skills.join("/")} uses ${skills[0]}`);
+  const skill = skills[0] ? slugify(DND_SKILLS[skills[0]]) : null;
+  const ability = ABILITY_MAP[check.ability] ?? null;
+  const dc = check.dc?.formula ? formulaExpression(check.dc.formula, {spell, scales}) : null;
+  if ( (!ability && !skill) || !dc ) {
+    notes.push(`check: ${check.ability || skills.join("/") || "?"} DC (${check.dc?.formula || check.dc?.calculation || "?"}) not converted`);
+    return null;
+  }
+  return {...(ability ? {ability} : {}), ...(skill ? {skill} : {}), dc: dc.type === "constant" ? {value: dc.value} : {valueExpression: dc}};
 }
 
 /** A damage or healing part's dice per spell level above its own, or null (a cantrip grows by character level instead). */

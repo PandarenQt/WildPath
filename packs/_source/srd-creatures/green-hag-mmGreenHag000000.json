@@ -516,6 +516,15 @@
               }
             ]
           },
+          "targeting": {
+            "type": "self"
+          },
+          "check": {
+            "skill": "insight",
+            "dc": {
+              "value": 14
+            }
+          },
           "label": "Mimicry"
         },
         "ruleElements": []
@@ -532,9 +541,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (check): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -1050,7 +1057,6 @@
           "Coven Magic: not automated (save): using it spends its cost; its description says the rest",
           "Coven Magic: activation: 10 minute is not an action-economy cost",
           "Coven Magic: \"Create Sensor\" is passive or triggered: not automated",
-          "Mimicry: not automated (check): using it spends its cost; its description says the rest",
           "Spellcasting: not automated (summon): using it spends its cost; its description says the rest",
           "Spellcasting: summon: a count of \"4, 1\" is not converted",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
