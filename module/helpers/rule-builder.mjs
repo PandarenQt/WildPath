@@ -99,6 +99,7 @@ function ruleToRow(rule, abilities) {
         damageTypes: listText(data.damageTypes ?? data.types ?? data.damageType),
         conditions: listText(data.conditions),
         distance: number(data.distance ?? data.value),
+        hover: data.hover === true,
         resourceId: data.resourceId ?? data.resource ?? "",
         resourceLabel: data.label ?? "",
         maximum: maximum ?? "",
@@ -133,7 +134,7 @@ const ROW_DATA = {
     vulnerability: ["damageTypes", "types", "damageType"],
     conditionImmunity: ["conditions"],
     reveal: ["details"],
-    speed: ["mode", "movementMode", "distance", "value"],
+    speed: ["mode", "movementMode", "distance", "value", "hover"],
     resource: ["resourceId", "resource", "label", "maximum", "max", "recovery", "current", "emptiesAtTurnStart", "recharge", "regain"],
     extraDamage: ["domains", "domain", "selector", "expression", "valueExpression", "damageType", "once"],
     aura: ["radius", "affects", "ruleElements"]
@@ -293,6 +294,8 @@ function writeRule(stored, row, model, field, errors, options, index, siblings) 
                 set("value", undefined);
                 set("distance", Math.max(0, number(row.distance) ?? 0));
             }
+            if (changed("hover"))
+                set("hover", row.hover ? true : undefined);
             break;
         case "resource":
             if (changed("resourceId")) {

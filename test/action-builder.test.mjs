@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {readFileSync, readdirSync} from "node:fs";
 import {ACTION_TEMPLATES, addBuilderRow, applyActionTemplate, builderGaps, builderIssues, builderToDefinition, definitionToBuilder,
   nextRowId, removeBuilderRow} from "../module/helpers/action-builder.mjs";
-import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
+import {normalizeActionDefinition, validateActionDefinition} from "../module/helpers/action-definitions.mjs";
 
 const folder = new URL("../packs/_source/actions/", import.meta.url);
 const packDefinitions = readdirSync(folder).filter(name => name.endsWith(".json"))
@@ -13,7 +13,8 @@ const packDefinitions = readdirSync(folder).filter(name => name.endsWith(".json"
 function asForm(builder) {
   const rows = list => Object.fromEntries(list.map((row, index) => [index, row]));
   return {basics: builder.basics, costs: rows(builder.costs), range: builder.range, targets: builder.targets, area: builder.area,
-    roll: builder.roll, slot: builder.slot, damage: rows(builder.damage), healing: rows(builder.healing), effects: rows(builder.effects)};
+    roll: builder.roll, slot: builder.slot, damage: rows(builder.damage), healing: rows(builder.healing), effects: rows(builder.effects),
+    restores: rows(builder.restores), push: builder.push};
 }
 
 /** Submit `changes` (section → fields, or rows by index) over the definition's current builder values. */
@@ -120,7 +121,7 @@ test("an effect row can be a condition or a custom effect with a duration", () =
 
 test("parts only Advanced can edit stay read-only, and their data is kept", () => {
   const stored = packDefinitions.find(([file]) => file === "scaling-bolt.json")[1];
-  const alternatives = {...stored, costs: {anyOf: [[{capability: "action", amount: 1}], [{capability: "bonus-action", amount: 1}]]},
+  const alternatives = {...stored, costs: {allOf: [{capability: "action", amount: 1, scaling: {per: "level"}}]},
     damage: [{...stored.damage[0], expression: {type: "table", key: {type: "character-level"}, rows: {1: 1, 5: 2}}}]};
   const builder = definitionToBuilder(alternatives);
   assert.equal(builder.costsReadOnly, true);
@@ -234,5 +235,52 @@ test("the Builder edits Magical, a weapon's kind and mastery, and an effect's co
   const advanced = {...sword, costs: {anyOf: [[{capability: "action", amount: 1}], [{capability: "bonus-action", amount: 1}]]},
     summon: {actorRef: "Actor.x", count: 1}, effects: [{id: "e", type: "effect", name: "Hex", endsWhen: "attacked",
       ruleElements: [{id: "r", type: "ArmorClass", data: {}}]}]};
-  assert.deepEqual(builderGaps(advanced), ["costs.anyOf", "effects.endsWhen", "effects.ruleElements.ArmorClass", "summon"]);
+  assert.deepEqual(builderGaps(advanced), ["effects.endsWhen", "effects.ruleElements.ArmorClass", "summon"]);
+});
+
+test("a monster's Multiattack is built in the Builder: ways to pay by option, and the pools it refills", () => {
+  const tentacle = {schemaVersion: 1, id: "action:tentacle", label: "Tentacle",
+    costs: {anyOf: [[{capability: "multiattack-tentacle", amount: 1}], [{capability: "action", amount: 1}]]}};
+  const view = definitionToBuilder(tentacle);
+  assert.equal(view.costOptions, true);
+  assert.deepEqual(view.costs.map(row => [row.capability, row.option]), [["multiattack-tentacle", 1], ["action", 2]]);
+  assert.equal(submit(tentacle, {}).changed, false);
+  assert.deepEqual(builderGaps(tentacle), []);
+  // Paying with the Action also spends a use of Dominate Mind: a second row of option 2.
+  const paired = submit(tentacle, {costs: {2: {capability: "dominate-mind", amount: 1, option: 2}}});
+  assert.deepEqual(paired.definition.costs, {anyOf: [[{capability: "multiattack-tentacle", amount: 1}],
+    [{capability: "action", amount: 1}, {capability: "dominate-mind", amount: 1}]]});
+  assert.deepEqual(submit(tentacle, {costs: {1: {option: 1}}}).definition.costs,
+    {allOf: [{capability: "multiattack-tentacle", amount: 1}, {capability: "action", amount: 1}]}, "one option is paid whole");
+  const plain = {schemaVersion: 1, id: "action:bite", label: "Bite", costs: {allOf: [{capability: "action", amount: 1}]}};
+  const alternative = addBuilderRow(plain, "costs", {alternative: true});
+  assert.deepEqual(alternative.costs, {anyOf: [[{capability: "action", amount: 1}], [{capability: "action", amount: 1}]]});
+  assert.deepEqual(removeBuilderRow(tentacle, "costs", 1).costs, {allOf: [{capability: "multiattack-tentacle", amount: 1}]});
+
+  const multiattack = {schemaVersion: 1, id: "action:multiattack", label: "Multiattack", costs: {allOf: [{capability: "action", amount: 1}]},
+    restores: [{resourceId: "multiattack-tentacle", amount: 2}]};
+  assert.deepEqual(definitionToBuilder(multiattack).restores, [{resourceId: "multiattack-tentacle", amount: 2}]);
+  assert.deepEqual(builderGaps(multiattack), []);
+  const more = submit(multiattack, {restores: {0: {amount: "3"}}});
+  assert.deepEqual(more.definition.restores, [{resourceId: "multiattack-tentacle", amount: 3}]);
+  const added = addBuilderRow(multiattack, "restores");
+  assert.equal(validateActionDefinition(added).ok, true, "a new refill row is valid");
+  assert.deepEqual(removeBuilderRow(added, "restores", 0).restores, [{resourceId: "uses", amount: 1}]);
+  assert.deepEqual(normalizeActionDefinition(paired.definition).costs.anyOf.length, 2);
+});
+
+test("push or pull, a cylinder's height and \"up to N targets\" are Builder fields", () => {
+  const harpoon = {schemaVersion: 1, id: "action:harpoon", label: "Harpoon", costs: {allOf: [{capability: "action", amount: 1}]},
+    targeting: {type: "multiple", required: true, count: 3, refinementPolicy: {minSelections: 1}},
+    area: {shape: "radial", size: {value: 10, unit: "ft"}, height: {value: 40, unit: "ft"}},
+    push: {distance: 25, toward: true, maxSize: "huge"}};
+  assert.deepEqual(builderGaps(harpoon), []);
+  const view = definitionToBuilder(harpoon);
+  assert.deepEqual([view.targets.atLeast, view.area.height, view.push], [1, 40, {distance: 25, toward: true, maxSize: "huge", onSuccess: false}]);
+  assert.equal(submit(harpoon, {}).changed, false);
+  const changed = submit(harpoon, {push: {toward: false, maxSize: "", onSuccess: true}, area: {height: ""}, targets: {atLeast: ""}});
+  assert.deepEqual(changed.definition.push, {distance: 25, on: "success"});
+  assert.equal(changed.definition.area.height, undefined);
+  assert.equal(changed.definition.targeting.refinementPolicy, undefined);
+  assert.equal(submit(harpoon, {push: {distance: ""}}).definition.push, null, "no distance: no push");
 });

@@ -10,7 +10,7 @@
 import { formatFormula, parseFormula } from "./formula.mjs";
 import { validateActionDefinition } from "./action-definitions.mjs";
 import { ruleGaps, rowsToRules, rulesToRows } from "./rule-builder.mjs";
-const ROW_SECTIONS = ["costs", "damage", "healing", "effects"];
+const ROW_SECTIONS = ["costs", "restores", "damage", "healing", "effects"];
 /** `{0: {...}, 1: {...}}` (a form's rows) or an array, as an array in index order. */
 function rowsOf(value) {
     if (Array.isArray(value))
@@ -61,6 +61,18 @@ function saveSuccessDamage(damage) {
     }));
     return values.size > 1 ? "mixed" : ([...values][0] ?? "half");
 }
+/** A definition's costs as its ways to pay: each `anyOf` option, or `allOf` as the one way. */
+function costGroups(costs) {
+    if (Array.isArray(costs?.anyOf))
+        return costs.anyOf.map((option) => [...(Array.isArray(option) ? option : [])]);
+    return [[...(Array.isArray(costs?.allOf) ? costs.allOf : [])]];
+}
+/** Costs paying one of `groups`: `allOf` for a single way, `anyOf` for more; other stored keys are kept. */
+function withCostGroups(costs, groups) {
+    const { allOf: _allOf, anyOf: _anyOf, ...rest } = costs ?? {};
+    const kept = groups.filter(group => group.length);
+    return kept.length > 1 ? { ...rest, anyOf: kept } : { ...rest, allOf: kept[0] ?? [] };
+}
 /** Spell slot levels a resource choice offers, by `spell-slot.<level>` (Foundry may store the map nested). */
 function slotLevels(map) {
     if (!map || (typeof map !== "object"))
@@ -84,9 +96,9 @@ const isFailureOnly = (policy) => ["failure", "failed", "fail"].includes(String(
 /** The builder's form values for a stored definition, plus what the form needs to show (`readOnly`, counts). */
 export function definitionToBuilder(definition, { abilities = null } = {}) {
     const d = definition ?? {};
-    const costs = d.costs ?? {};
-    const allOf = Array.isArray(costs.allOf) ? costs.allOf : [];
-    const simpleCosts = !costs.anyOf && allOf.every(requirement => (typeof requirement?.capability === "string")
+    // Each way to pay is an option; rows of one option are paid together (Multiattack's attacks: its pool, or the Action).
+    const groups = costGroups(d.costs);
+    const simpleCosts = groups.flat().every(requirement => (typeof requirement?.capability === "string")
         && Object.keys(requirement).every(key => ["capability", "amount", "unit"].includes(key)));
     const range = d.range ?? null;
     const targeting = d.targeting ?? null;
@@ -99,19 +111,27 @@ export function definitionToBuilder(definition, { abilities = null } = {}) {
     const upcast = slot?.scale ? formatFormula({ type: "dice", number: slot.scale.dice?.number ?? 1, faces: slot.scale.dice?.faces }) : "";
     return {
         basics: { spell: (d.tags ?? []).includes("spell"), magical: (d.tags ?? []).includes("magical") },
-        costs: simpleCosts ? allOf.map(requirement => ({ capability: requirement.capability, amount: requirement.amount ?? 1 })) : [],
+        costs: simpleCosts ? groups.flatMap((group, option) => group.map(requirement => ({ capability: requirement.capability,
+            amount: requirement.amount ?? 1, option: option + 1 }))) : [],
         costsReadOnly: !simpleCosts,
+        costOptions: groups.length > 1,
+        // Pools the Action refills when used (Multiattack refills its attacks' pools).
+        restores: (Array.isArray(d.restores) ? d.restores : []).map((entry) => ({ resourceId: entry.resourceId ?? entry.resource ?? "",
+            amount: entry.amount ?? 1 })),
         range: {
             type: range?.type ?? "",
             distance: (range?.type === "ranged" ? range?.normal?.value : range?.distance?.value) ?? null,
             long: range?.long?.value ?? null
         },
-        targets: { type: targeting?.type ?? "", count: typeof targeting?.count === "number" ? targeting.count : null },
+        targets: { type: targeting?.type ?? "", count: typeof targeting?.count === "number" ? targeting.count : null,
+            // "Up to N": the user may choose fewer, down to this many.
+            atLeast: targeting?.refinementPolicy?.minSelections ?? null },
         targetCountReadOnly: (targeting?.count != null) && (typeof targeting.count !== "number"),
         area: {
             shape: area?.shape ?? "",
             size: area?.size?.value ?? null,
             width: area?.width?.value ?? null,
+            height: area?.height?.value ?? null,
             lasting: Boolean(persistence),
             rounds: persistence?.duration?.value ?? null,
             concentration: Boolean(persistence?.concentration)
@@ -135,6 +155,9 @@ export function definitionToBuilder(definition, { abilities = null } = {}) {
             onSuccess: saveSuccessDamage(damage)
         },
         dcReadOnly: dc === null,
+        // Forced movement on a hit or a failed save (or, `onSuccess`, on a successful one); `toward` pulls.
+        push: { distance: d.push?.distance ?? null, toward: d.push?.toward === true, maxSize: d.push?.maxSize ?? "",
+            onSuccess: d.push?.on === "success" },
         slot: { level: slot ? Math.min(...slot.levels) : "", upcast: upcast ?? "" },
         upcastReadOnly: Boolean(slot?.scale) && ((upcast === null) || !slot.scale.dice),
         damage: damage.map(component => {
@@ -211,13 +234,42 @@ const WRITERS = {
     costs({ next, submitted, view }) {
         if (view.costsReadOnly)
             return;
-        const stored = next.costs?.allOf ?? [];
-        next.costs = { ...(next.costs ?? {}), allOf: rowsOf(submitted).map((row, index) => {
-                const base = { ...(stored[index] ?? {}) };
-                base.capability = String(row.capability ?? base.capability ?? "action").trim() || "action";
-                base.amount = number(row.amount) ?? base.amount ?? 1;
-                return base;
-            }) };
+        const stored = costGroups(next.costs).flat();
+        const rows = rowsOf(submitted).map((row, index) => {
+            const base = { ...(stored[index] ?? {}) };
+            base.capability = String(row.capability ?? base.capability ?? "action").trim() || "action";
+            base.amount = number(row.amount) ?? base.amount ?? 1;
+            return { option: Math.max(1, Math.trunc(number(row.option) ?? 1)), base };
+        });
+        const options = [...new Set(rows.map(row => row.option))].sort((a, b) => a - b);
+        next.costs = withCostGroups(next.costs, options.map(option => rows.filter(row => row.option === option).map(row => row.base)));
+    },
+    push({ next, submitted, model }) {
+        const { value } = fields(submitted, model);
+        const distance = number(value("distance"));
+        if (!distance) {
+            next.push = null;
+            return;
+        }
+        const push = { ...(next.push ?? {}), distance };
+        if (value("toward"))
+            push.toward = true;
+        else
+            delete push.toward;
+        if (value("maxSize"))
+            push.maxSize = String(value("maxSize"));
+        else
+            delete push.maxSize;
+        if (value("onSuccess"))
+            push.on = "success";
+        else
+            delete push.on;
+        next.push = push;
+    },
+    restores({ next, submitted }) {
+        const stored = next.restores ?? [];
+        next.restores = rowsOf(submitted).map((row, index) => ({ ...(stored[index] ?? {}),
+            resourceId: String(row.resourceId ?? stored[index]?.resourceId ?? "").trim(), amount: Math.max(1, Math.trunc(number(row.amount) ?? 1)) }));
     },
     range({ next, submitted, model }) {
         const { value } = fields(submitted, model);
@@ -255,6 +307,13 @@ const WRITERS = {
             targeting.required = true;
             if (changed("count") || (targeting.count == null))
                 targeting.count = number(value("count")) ?? 2;
+            if (changed("atLeast")) {
+                const least = Math.trunc(number(value("atLeast")) ?? 0);
+                if (least >= 1)
+                    targeting.refinementPolicy = { ...(targeting.refinementPolicy ?? {}), minSelections: least };
+                else
+                    delete targeting.refinementPolicy;
+            }
         }
         else {
             delete targeting.required;
@@ -274,6 +333,12 @@ const WRITERS = {
             area.width = { ...(area.width ?? {}), value: number(value("width")) ?? 5, unit: area.width?.unit ?? "ft" };
         else
             delete area.width;
+        // A cylinder's or a wall's height (negative: it reaches down).
+        const height = number(value("height"));
+        if (height === null)
+            delete area.height;
+        else
+            area.height = { ...(area.height ?? {}), value: height, unit: area.height?.unit ?? "ft" };
         if (value("lasting")) {
             area.persistence = { oncePerTurn: true, triggers: [], ...(area.persistence ?? {}),
                 duration: { ...(area.persistence?.duration ?? {}), unit: "round", value: Math.max(1, Math.trunc(number(value("rounds")) ?? 10)) },
@@ -535,13 +600,20 @@ export function nextRowId(rows, prefix) {
     return `${prefix}-${index}`;
 }
 /** The definition with one more row in `section`, filled with a valid default. */
-export function addBuilderRow(definition, section, { conditions = null } = {}) {
+export function addBuilderRow(definition, section, { conditions = null, alternative = false } = {}) {
     const next = clone(definition);
     const spell = (next.tags ?? []).includes("spell");
     if (section === "costs") {
-        if (next.costs?.anyOf)
-            return next;
-        next.costs = { ...(next.costs ?? {}), allOf: [...(next.costs?.allOf ?? []), { capability: "action", amount: 1 }] };
+        // A row of the last way to pay, or (`alternative`) a new way to pay.
+        const groups = costGroups(next.costs);
+        if (alternative && groups.at(-1)?.length)
+            groups.push([]);
+        groups.at(-1).push({ capability: "action", amount: 1 });
+        next.costs = withCostGroups(next.costs, groups);
+        return next;
+    }
+    if (section === "restores") {
+        next.restores = [...(next.restores ?? []), { resourceId: "uses", amount: 1 }];
         return next;
     }
     const rows = next[section] ?? [];
@@ -563,14 +635,23 @@ export function addBuilderRow(definition, section, { conditions = null } = {}) {
 export function removeBuilderRow(definition, section, index) {
     const next = clone(definition);
     if (section === "costs") {
-        if (next.costs?.allOf)
-            next.costs.allOf.splice(index, 1);
+        // `index` counts rows across every way to pay, as the form lists them.
+        const groups = costGroups(next.costs);
+        let at = index;
+        for (const group of groups) {
+            if (at < group.length) {
+                group.splice(at, 1);
+                break;
+            }
+            at -= group.length;
+        }
+        next.costs = withCostGroups(next.costs, groups);
     }
     else if (Array.isArray(next[section]))
         next[section].splice(index, 1);
     return next;
 }
-const SECTION_OF_PATH = { costs: "costs", range: "range", targeting: "targets", area: "area", attack: "roll",
+const SECTION_OF_PATH = { costs: "costs", restores: "restores", range: "range", targeting: "targets", area: "area", attack: "roll",
     save: "roll", check: "roll", damage: "damage", healing: "healing", effects: "effects" };
 /**
  * What is wrong with a definition, by builder section: the engine validator's errors, and warnings for things that
@@ -602,10 +683,12 @@ const GAP_SPEC = {
     category: (category) => gapIf(category !== "action"),
     // Only "spell" and "magical" have a checkbox.
     tags: (tags) => (Array.isArray(tags) ? tags : []).filter(tag => !["spell", "magical"].includes(String(tag))).map(tag => `.${tag}`),
-    costs: { allOf: [{ capability: true, amount: true, unit: true }] },
+    costs: { allOf: [{ capability: true, amount: true, unit: true }], anyOf: [[{ capability: true, amount: true, unit: true }]] },
+    restores: [{ resourceId: true, resource: true, amount: true }],
     range: { type: true, distance, normal: distance, long: distance },
-    targeting: { type: true, required: true, count: (count) => gapIf(typeof count !== "number") },
-    area: { shape: (shape) => gapIf(!AREA_SHAPES.includes(shape)), size: distance, width: distance,
+    targeting: { type: true, required: true, count: (count) => gapIf(typeof count !== "number"), refinementPolicy: { minSelections: true } },
+    push: { distance: true, toward: true, maxSize: true, on: (on) => gapIf(on !== "success") },
+    area: { shape: (shape) => gapIf(!AREA_SHAPES.includes(shape)), size: distance, width: distance, height: distance,
         persistence: { oncePerTurn: true, duration: { value: true, unit: true }, concentration: true,
             triggers: (triggers) => gapIf(Array.isArray(triggers) && (triggers.length > 0)) } },
     attack: { type: true, statistic: true, defenseKey: true, proficient: true, ability: true, weapon: { category: true, base: true, mastery: true },

@@ -319,7 +319,8 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
   }
 
   static async #onBuilderAdd(event, target) {
-    await this.#editDefinition(definition => addBuilderRow(definition, target.dataset.section, this.#builderOptions));
+    await this.#editDefinition(definition => addBuilderRow(definition, target.dataset.section,
+      {...this.#builderOptions, alternative: target.dataset.alternative === "true"}));
   }
 
   static async #onBuilderRemove(event, target) {
@@ -454,6 +455,8 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
         // Every shape the engine knows, and any other stored one: a select without its value would post its first option.
         areaShapes: keep(choices([...AREA_SHAPES], "WILDPATH.BUILDER.Area."), values.area?.shape),
         weaponCategories: keep(choices(["", "simple", "martial"], "WILDPATH.BUILDER.Roll.Weapon."), roll.weaponCategory),
+        sizes: keep({"": "WILDPATH.BUILDER.Push.AnySize", ...Object.fromEntries(["tiny", "small", "medium", "large", "huge", "gargantuan"]
+          .map(size => [size, `WILDPATH.SIZES.${size}`]))}, values.push.maxSize),
         masteries: keep({"": "WILDPATH.BUILDER.Roll.NoMastery", ...Object.fromEntries(["cleave", "graze", "nick", "push", "sap",
           "slow", "topple", "vex"].map(mastery => [mastery, `WILDPATH.MASTERY.${mastery}`]))}, roll.mastery),
         rollKinds: choices(["none", "attack", "save", "check"], "WILDPATH.BUILDER.Roll."),
