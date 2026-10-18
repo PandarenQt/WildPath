@@ -489,6 +489,7 @@
       "Maximum": "Maximum",
       "RecoveryLabel": "Recovers",
       "OncePerTurn": "Once per turn",
+      "Hover": "Can hover",
       "StartsAt": "Starts at",
       "Full": "full",
       "EmptiesAtTurnStart": "Empties at the start of each turn",
@@ -663,7 +664,24 @@
         "Capability": "What it spends",
         "Amount": "How much",
         "Free": "Free",
-        "Add": "Add a cost"
+        "Add": "Add a cost",
+        "Option": "Option",
+        "OptionsHint": "Rows with the same option are paid together. The user pays one option.",
+        "Alternative": "Add another way to pay"
+      },
+      "Push": {
+        "Legend": "Does it push or pull?",
+        "Distance": "Distance (ft)",
+        "Toward": "Pulls toward the user instead",
+        "MaxSize": "Up to size",
+        "AnySize": "Any size",
+        "OnSuccess": "On a successful save instead"
+      },
+      "Restores": {
+        "Legend": "What does it refill when used?",
+        "Pool": "Pool",
+        "None": "Nothing",
+        "Add": "Add a pool to refill"
       },
       "Range": {
         "Legend": "How far does it reach?",
@@ -685,7 +703,9 @@
         "multiple": "Several creatures",
         "area": "Everyone in an area",
         "none": "No one",
-        "Count": "How many"
+        "Count": "How many",
+        "AtLeast": "At least",
+        "AllOfThem": "all of them"
       },
       "Area": {
         "Legend": "What area does it cover?",
@@ -698,6 +718,7 @@
         "wall": "Wall",
         "Size": "Size (ft)",
         "Width": "Width (ft)",
+        "Height": "Height (ft), for a cylinder or wall",
         "Lasting": "It lasts on the battlefield",
         "Rounds": "Rounds",
         "Triggers": "{count} trigger(s) when creatures enter or start their turn there."

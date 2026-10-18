@@ -55,6 +55,8 @@
                  aria-label="{{localize "WILDPATH.BUILDER.Costs.Capability"}}">
           <input type="number" name="wildpath.builder.costs.{{@index}}.amount" value="{{row.amount}}" min="0" step="1"
                  aria-label="{{localize "WILDPATH.BUILDER.Costs.Amount"}}">
+          {{#if ../b.values.costOptions}}<label>{{localize "WILDPATH.BUILDER.Costs.Option"}}
+            <input type="number" name="wildpath.builder.costs.{{@index}}.option" value="{{row.option}}" min="1" step="1"></label>{{/if}}
           {{#if ../b.editable}}<button type="button" class="icon" data-action="builderRemove" data-section="costs" data-index="{{@index}}"
             data-tooltip="WILDPATH.BUILDER.Remove" aria-label="{{localize "WILDPATH.BUILDER.Remove"}}"><i class="fa-solid fa-trash" inert></i></button>{{/if}}
         </li>
@@ -62,9 +64,30 @@
         <li class="hint">{{localize "WILDPATH.BUILDER.Costs.Free"}}</li>
         {{/each}}
       </ol>
-      {{#if b.editable}}<button type="button" data-action="builderAdd" data-section="costs">{{localize "WILDPATH.BUILDER.Costs.Add"}}</button>{{/if}}
+      {{#if b.values.costOptions}}<p class="hint">{{localize "WILDPATH.BUILDER.Costs.OptionsHint"}}</p>{{/if}}
+      {{#if b.editable}}<button type="button" data-action="builderAdd" data-section="costs">{{localize "WILDPATH.BUILDER.Costs.Add"}}</button>
+      <button type="button" data-action="builderAdd" data-section="costs" data-alternative="true">{{localize "WILDPATH.BUILDER.Costs.Alternative"}}</button>{{/if}}
     {{/if}}
     <datalist id="{{b.listId}}-capabilities">{{#each b.capabilities as |value|}}<option value="{{value}}"></option>{{/each}}</datalist>
+  </fieldset>
+
+  <fieldset>
+    <legend>{{localize "WILDPATH.BUILDER.Restores.Legend"}}</legend>
+    <ol class="builder-rows">
+      {{#each b.values.restores as |row|}}
+      <li>
+        <input type="text" name="wildpath.builder.restores.{{@index}}.resourceId" value="{{row.resourceId}}" list="{{../b.listId}}-capabilities"
+               aria-label="{{localize "WILDPATH.BUILDER.Restores.Pool"}}">
+        <input type="number" name="wildpath.builder.restores.{{@index}}.amount" value="{{row.amount}}" min="1" step="1"
+               aria-label="{{localize "WILDPATH.BUILDER.Costs.Amount"}}">
+        {{#if ../b.editable}}<button type="button" class="icon" data-action="builderRemove" data-section="restores" data-index="{{@index}}"
+          data-tooltip="WILDPATH.BUILDER.Remove" aria-label="{{localize "WILDPATH.BUILDER.Remove"}}"><i class="fa-solid fa-trash" inert></i></button>{{/if}}
+      </li>
+      {{else}}
+      <li class="hint">{{localize "WILDPATH.BUILDER.Restores.None"}}</li>
+      {{/each}}
+    </ol>
+    {{#if b.editable}}<button type="button" data-action="builderAdd" data-section="restores">{{localize "WILDPATH.BUILDER.Restores.Add"}}</button>{{/if}}
   </fieldset>
 
   <fieldset>
@@ -89,6 +112,9 @@
       {{#if b.values.targetCountReadOnly}}<span class="hint">{{localize "WILDPATH.BUILDER.EditInAdvanced"}}</span>{{else}}
       <label>{{localize "WILDPATH.BUILDER.Targets.Count"}}
         <input type="number" name="wildpath.builder.targets.count" value="{{b.values.targets.count}}" min="1" step="1"></label>
+      <label>{{localize "WILDPATH.BUILDER.Targets.AtLeast"}}
+        <input type="number" name="wildpath.builder.targets.atLeast" value="{{b.values.targets.atLeast}}" min="1" step="1"
+               placeholder="{{localize "WILDPATH.BUILDER.Targets.AllOfThem"}}"></label>
       {{/if}}
     {{/if}}
   </fieldset>
@@ -104,6 +130,8 @@
     <label>{{localize "WILDPATH.BUILDER.Area.Width"}}
       <input type="number" name="wildpath.builder.area.width" value="{{b.values.area.width}}" min="5" step="5"></label>
     {{/if}}
+    <label>{{localize "WILDPATH.BUILDER.Area.Height"}}
+      <input type="number" name="wildpath.builder.area.height" value="{{b.values.area.height}}" step="5"></label>
     <label class="checkbox"><input type="checkbox" name="wildpath.builder.area.lasting" {{checked b.values.area.lasting}}>
       {{localize "WILDPATH.BUILDER.Area.Lasting"}}</label>
     {{#if b.values.area.lasting}}
@@ -252,6 +280,20 @@
       {{/each}}
     </ol>
     {{#if b.editable}}<button type="button" data-action="builderAdd" data-section="effects">{{localize "WILDPATH.BUILDER.Effects.Add"}}</button>{{/if}}
+  </fieldset>
+
+  <fieldset>
+    <legend>{{localize "WILDPATH.BUILDER.Push.Legend"}}</legend>
+    <label>{{localize "WILDPATH.BUILDER.Push.Distance"}}
+      <input type="number" name="wildpath.builder.push.distance" value="{{b.values.push.distance}}" min="0" step="5"></label>
+    {{#if b.values.push.distance}}
+    <label class="checkbox"><input type="checkbox" name="wildpath.builder.push.toward" {{checked b.values.push.toward}}>
+      {{localize "WILDPATH.BUILDER.Push.Toward"}}</label>
+    <label>{{localize "WILDPATH.BUILDER.Push.MaxSize"}}
+      <select name="wildpath.builder.push.maxSize">{{selectOptions b.choices.sizes selected=b.values.push.maxSize localize=true}}</select></label>
+    {{#if b.rollIsSave}}<label class="checkbox"><input type="checkbox" name="wildpath.builder.push.onSuccess" {{checked b.values.push.onSuccess}}>
+      {{localize "WILDPATH.BUILDER.Push.OnSuccess"}}</label>{{/if}}
+    {{/if}}
   </fieldset>
 
   {{#if b.advancedOnly.length}}

@@ -207,23 +207,39 @@ Closed first, by count:
 - **"While" on a rule row** also offers: against magic, with melee or ranged attacks, an ally within 5 feet of the
   target (Pack Tactics), and in sunlight.
 
-| Fully editable | First run | After these fields |
-| --- | --- | --- |
-| SRD Actions | 1,254 / 2,529 | 1,693 / 2,529 |
-| SRD rule lists | 793 / 1,373 | 1,283 / 1,373 |
-| Book Actions (four packages) | 3,055 / 5,689 | 3,996 / 5,689 |
+Then (the second round):
+- **Ways to pay.** Each cost row has an "Option" once there is more than one way to pay. Rows of one option are paid
+  together, and the user pays one option (`costs.anyOf`). "Add another way to pay" starts a new option.
+  - A monster's Tentacle is "its Multiattack pool, or the Action" (options 1 and 2).
+- **What it refills when used** (`restores`): pool and amount rows (Multiattack refills its attacks' pools).
+- **Push or pull:**
+  - a distance, "pulls toward the user instead", and "up to size";
+  - on a save Action, "on a successful save instead".
+- **An area's height** (a cylinder's or a wall's; negative reaches down).
+- **At least N targets** of a multiple-target Action ("up to three creatures").
+- **Can hover**, on a speed row.
+
+| Fully editable | First run | First fields | Second round |
+| --- | --- | --- | --- |
+| SRD Actions | 1,254 / 2,529 | 1,693 / 2,529 | 2,283 / 2,529 |
+| SRD rule lists | 793 / 1,373 | 1,283 / 1,373 | 1,304 / 1,373 |
+| Book Actions (four packages) | 3,055 / 5,689 | 3,996 / 5,689 | 5,262 / 5,689 |
 
 The largest gaps left, all sources:
-- monster Multiattack's plumbing: `costs.anyOf` (1,128) and `restores` (596);
 - `summon` (323);
-- resource maximums that are formulas it cannot show (106);
-- area height (94), Hover (90), choosing among targets (80), lasting-area triggers (72), push (62).
+- resource maximums that are formulas the row cannot show (106);
+- lasting-area triggers (72), a `ResourceCap` effect rule (55), skill-check domains in rule rows (50);
+- non-slot choices (47), bonus amounts it cannot show (46), damage formulas such as cantrip tables (45);
+- more targets with a higher slot (42), `ArmorClass` rules (41).
 
 Live (two browsers, 14.369), on world copies of SRD Items:
 - Battleaxe's Builder showed martial / battleaxe / Topple and no "Advanced" line. Choosing Vex changed only
   `attack.weapon.mastery`.
 - Bane's effect lost and regained its concentration, ending with an identical definition.
 - Extra Attack's pool row showed "Starts at 0" and "Empties at the start of each turn".
+- An imported Aboleth's Tentacle showed options 1 (its Multiattack pool) and 2 (the Action), with no "Advanced" line.
+  Setting the second row's option to 1 made one way to pay (`allOf`), and nothing else changed.
+- Thunderwave's push showed 10 feet. Setting 15 changed only `push`.
 
 ## Product Goal
 

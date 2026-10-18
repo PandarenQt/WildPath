@@ -37,6 +37,8 @@
           {{selectOptions ../ctx.movementModes selected=row.mode localize=true}}</select>
         <label>{{localize "WILDPATH.RULES.Distance"}}
           <input type="number" name="{{row.name}}.distance" value="{{row.distance}}" min="0" step="5"></label>
+        <label class="checkbox"><input type="checkbox" name="{{row.name}}.hover" {{checked row.hover}}>
+          {{localize "WILDPATH.RULES.Hover"}}</label>
       {{/if}}
       {{#if row.isResource}}
         <input type="text" name="{{row.name}}.resourceLabel" value="{{row.resourceLabel}}" placeholder="Spirit Points"
