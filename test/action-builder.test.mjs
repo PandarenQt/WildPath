@@ -14,7 +14,7 @@ function asForm(builder) {
   const rows = list => Object.fromEntries(list.map((row, index) => [index, row]));
   return {basics: builder.basics, costs: rows(builder.costs), range: builder.range, targets: builder.targets, area: builder.area,
     roll: builder.roll, slot: builder.slot, damage: rows(builder.damage), healing: rows(builder.healing), effects: rows(builder.effects),
-    restores: rows(builder.restores), push: builder.push, summon: builder.summon, teleport: builder.teleport};
+    restores: rows(builder.restores), push: builder.push, summon: builder.summon, teleport: builder.teleport, choices: builder.choices};
 }
 
 /** Submit `changes` (section → fields, or rows by index) over the definition's current builder values. */
@@ -297,4 +297,41 @@ test("a summon's creature, count, rounds and concentration are Builder fields; o
   assert.equal(definitionToBuilder(chosen).summonReadOnly, true);
   assert.deepEqual(submit(chosen, {summon: {creature: "x"}}).definition.summon, chosen.summon, "a read-only summon is never written");
   assert.deepEqual(builderGaps(chosen), ["configuration", "summon.choiceId"]);
+});
+
+test("the Builder edits a damage row's type chosen when used, and \"apply one of these effects\"; grouped options stay Advanced", () => {
+  const breath = {schemaVersion: 1, id: "action:breath", label: "Breath", costs: {allOf: [{capability: "action", amount: 1}]},
+    targeting: {type: "area"}, area: {shape: "cone", size: {value: 15, unit: "ft"}}, save: {ability: "agility", dc: {value: 13}},
+    damage: [{id: "damage-1", expression: {type: "dice", number: 2, faces: 10}, damageType: "acid", provenance: "additional",
+      saveOutcomePolicy: {success: "half", failure: "full"}}],
+    configuration: [{id: "damage-type-1", type: "damage-type", label: "Damage type", required: true, allowedDamageTypes: ["acid", "cold", "fire"],
+      effects: [{type: "replaceDamageType", componentIds: ["damage-1"], damageTypeChoiceId: "damage-type-1"}]}]};
+  assert.deepEqual(builderGaps(breath), []);
+  assert.equal(definitionToBuilder(breath).damage[0].chooseFrom, "acid, cold, fire");
+  assert.equal(submit(breath, {}).changed, false);
+  assert.deepEqual(submit(breath, {damage: {0: {chooseFrom: "fire, cold"}}}).definition.configuration[0].allowedDamageTypes, ["fire", "cold"]);
+  assert.deepEqual(submit(breath, {damage: {0: {chooseFrom: ""}}}).definition.configuration, [], "one fixed type: no choice");
+
+  const blindness = {schemaVersion: 1, id: "action:bd", label: "Blindness/Deafness", costs: {allOf: [{capability: "action", amount: 1}]},
+    targeting: {type: "single", required: true, count: 1}, save: {ability: "fortitude", dc: {value: 13}},
+    effects: [{id: "effect-1", type: "condition", conditionId: "blinded", saveOutcomePolicy: "failure"},
+      {id: "effect-2", type: "condition", conditionId: "deafened", saveOutcomePolicy: "failure"}],
+    configuration: [{id: "effect-choice", type: "option", label: "Effect", required: true,
+      options: [{id: "effect-option-1", label: "Blindness", value: "effect-option-1"}, {id: "effect-option-2", label: "Deafness", value: "effect-option-2"}],
+      effects: [{type: "keepEffect", effectIds: ["effect-1", "effect-2"], keep: {"effect-option-1": ["effect-1"], "effect-option-2": ["effect-2"]}}]}]};
+  assert.deepEqual(builderGaps(blindness), []);
+  assert.equal(definitionToBuilder(blindness).choices.effectOne, true);
+  assert.deepEqual(submit(blindness, {choices: {effectOne: false}}).definition.configuration, []);
+  const added = addBuilderRow(blindness, "effects", {conditions: ["prone"]});
+  assert.deepEqual(added.configuration[0].options.map(option => option.label), ["Blindness", "Deafness", "prone"],
+    "a new effect joins the choice; the others keep their labels");
+  const plain = {...blindness, configuration: []};
+  assert.deepEqual(submit(plain, {choices: {effectOne: true}}).definition.configuration[0].options.map(option => option.label),
+    ["blinded", "deafened"]);
+
+  const word = {...blindness, configuration: [{...blindness.configuration[0],
+    effects: [{type: "keepEffect", effectIds: ["effect-1", "effect-2"], keep: {"effect-option-1": ["effect-1", "effect-2"], "effect-option-2": []}}]}]};
+  assert.equal(definitionToBuilder(word).effectChoiceReadOnly, true);
+  assert.deepEqual(builderGaps(word), ["configuration"]);
+  assert.deepEqual(submit(word, {choices: {effectOne: false}}).definition.configuration, word.configuration, "read-only: kept");
 });

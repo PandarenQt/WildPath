@@ -81,6 +81,45 @@ function withCostGroups(costs: Data | null | undefined, groups: Data[][]) {
   return kept.length > 1 ? {...rest, anyOf: kept} : {...rest, allOf: kept[0] ?? []};
 }
 
+/** A damage row's type chosen when used (a Breath Weapon's): the damage-type choice that sets only that row. */
+function damageTypeChoiceOf(configuration: unknown, componentId: string) {
+  return ((Array.isArray(configuration) ? configuration : []) as Data[]).find(entry => (entry?.type === "damage-type")
+    && (entry.effects?.length === 1) && ["replaceDamageType", "replace-damage-type"].includes(entry.effects[0]?.type)
+    && (entry.effects[0].componentIds?.length === 1) && (entry.effects[0].componentIds[0] === componentId)
+    && ((entry.effects[0].damageTypeChoiceId ?? entry.id) === entry.id)) ?? null;
+}
+
+/** "Apply one of these effects" (Blindness or Deafness): the keepEffect choice, `simple` when each option keeps one effect. */
+function effectChoiceOf(configuration: unknown) {
+  const entry = ((Array.isArray(configuration) ? configuration : []) as Data[]).find(choice => (choice?.type === "option")
+    && (choice.effects?.length === 1) && ["keepEffect", "keep-effect"].includes(choice.effects[0]?.type));
+  if ( !entry ) return null;
+  const keep = entry.effects[0].keep;
+  return {entry, simple: !keep || Object.values(keep as Record<string, unknown>).every(ids => Array.isArray(ids) && (ids.length === 1))};
+}
+
+/** The "apply one of these" choice rebuilt over the effects `next` has now, keeping each remaining option's label. */
+function syncEffectChoice(next: Data, {create=false}: {create?: boolean}={}) {
+  const found = effectChoiceOf(next.configuration);
+  if ( (found && !found.simple) || (!found && !create) ) return;
+  const effects: Data[] = Array.isArray(next.effects) ? next.effects : [];
+  const configuration: Data[] = [...(next.configuration ?? [])].filter(entry => entry !== found?.entry);
+  if ( effects.length < 2 ) {
+    next.configuration = configuration;
+    return;
+  }
+  const keep = found?.entry.effects[0].keep as Record<string, string[]> | undefined;
+  const labels = new Map<string, string>((found?.entry.options ?? []).map((option: Data) =>
+    [String(keep?.[option.value]?.[0] ?? option.value), option.label]));
+  const option = (index: number) => `effect-option-${index + 1}`;
+  configuration.push({...(found?.entry ?? {id: "effect-choice", type: "option", label: "Effect", required: true}),
+    options: effects.map((effect, index) => ({id: option(index), value: option(index),
+      label: labels.get(effect.id) ?? effect.name ?? effect.conditionId ?? `Effect ${index + 1}`})),
+    effects: [{type: "keepEffect", effectIds: effects.map(effect => effect.id),
+      keep: Object.fromEntries(effects.map((effect, index) => [option(index), [effect.id]]))}]});
+  next.configuration = configuration;
+}
+
 /** Spell slot levels a resource choice offers, by `spell-slot.<level>` (Foundry may store the map nested). */
 function slotLevels(map: unknown): number[] {
   if ( !map || (typeof map !== "object") ) return [];
@@ -169,6 +208,9 @@ export function definitionToBuilder(definition: Data | null | undefined, {abilit
     summon: {creature: d.summon?.actorRef ?? "", count: d.summon?.count ?? 1, rounds: d.summon?.rounds ?? null,
       concentration: d.summon?.concentration === true},
     summonReadOnly: Boolean(d.summon?.choiceId),
+    // The user applies one of the effects, chosen when used; read-only when an option brings several.
+    choices: {effectOne: Boolean(effectChoiceOf(d.configuration))},
+    effectChoiceReadOnly: effectChoiceOf(d.configuration)?.simple === false,
     // Teleports its user up to this many feet (Misty Step).
     teleport: {distance: d.teleport?.distance ?? null},
     // Forced movement on a hit or a failed save (or, `onSuccess`, on a successful one); `toward` pulls.
@@ -179,7 +221,9 @@ export function definitionToBuilder(definition: Data | null | undefined, {abilit
     damage: damage.map(component => {
       const formula = formatFormula(component.expression);
       return {id: component.id ?? "", formula: formula ?? "", formulaReadOnly: formula === null,
-        damageType: component.damageType ?? "", provenance: component.provenance ?? ""};
+        damageType: component.damageType ?? "", provenance: component.provenance ?? "",
+        // The types its user chooses from when it is used ("acid, cold, fire"); empty for one fixed type.
+        chooseFrom: (damageTypeChoiceOf(d.configuration, component.id)?.allowedDamageTypes ?? []).join(", ")};
     }),
     healing: (Array.isArray(d.healing) ? d.healing : []).map((component: Data) => {
       const formula = formatFormula(component.expression);
@@ -505,6 +549,15 @@ const WRITERS = {
       }
       if ( changed("damageType") ) component.damageType = String(row.damageType || "untyped").trim().toLowerCase();
       if ( changed("provenance") ) component.provenance = row.provenance || "additional";
+      if ( changed("chooseFrom") ) {
+        const types = String(row.chooseFrom ?? "").split(",").map(type => type.trim().toLowerCase()).filter(Boolean);
+        const existing = damageTypeChoiceOf(next.configuration, component.id);
+        const others = (next.configuration ?? []).filter((entry: Data) => entry !== existing);
+        const id = existing?.id ?? `damage-type-${component.id}`;
+        next.configuration = types.length > 1 ? [...others, {...(existing ?? {}), id, type: "damage-type", label: existing?.label ?? "Damage type",
+          required: true, allowedDamageTypes: types, effects: [{type: "replaceDamageType", componentIds: [component.id], damageTypeChoiceId: id}]}]
+          : others;
+      }
       return component;
     });
   },
@@ -571,6 +624,17 @@ const WRITERS = {
       }
       return effect;
     });
+    syncEffectChoice(next);
+  },
+
+  choices({next, submitted, model, view}: WriteContext) {
+    if ( view.effectChoiceReadOnly ) return;
+    const {value} = fields(submitted, model);
+    if ( value("effectOne") ) syncEffectChoice(next, {create: true});
+    else {
+      const found = effectChoiceOf(next.configuration);
+      if ( found ) next.configuration = (next.configuration ?? []).filter((entry: Data) => entry !== found.entry);
+    }
   }
 };
 
@@ -608,6 +672,7 @@ export function addBuilderRow(definition: Data, section: RowSection, {conditions
   } else if ( section === "healing" ) rows.push({id, expression: {type: "dice", number: 1, faces: 8}, healingType: "healing"});
   else rows.push({id, type: "condition", conditionId: conditions?.[0] ?? "prone", ...(next.save ? {saveOutcomePolicy: "failure"} : {})});
   next[section] = rows;
+  if ( section === "effects" ) syncEffectChoice(next);
   return next;
 }
 
@@ -627,6 +692,13 @@ export function removeBuilderRow(definition: Data, section: RowSection, index: n
     }
     next.costs = withCostGroups(next.costs, groups);
   } else if ( Array.isArray(next[section]) ) next[section].splice(index, 1);
+  if ( section === "effects" ) syncEffectChoice(next);
+  // A removed damage row takes its chosen type with it.
+  if ( (section === "damage") && Array.isArray(next.configuration) ) {
+    const ids = new Set((next.damage ?? []).map((component: Data) => component.id));
+    next.configuration = next.configuration.filter((entry: Data) => !((entry?.type === "damage-type")
+      && (entry.effects?.[0]?.componentIds ?? []).some((componentId: string) => !ids.has(componentId))));
+  }
   return next;
 }
 
@@ -730,7 +802,11 @@ export function builderGaps(definition: Data | null | undefined, options: Builde
   const damage: Data[] = Array.isArray(d.damage) ? d.damage : [];
   if ( d.save && (saveSuccessDamage(damage) === "mixed") ) gaps.add("damage.saveOutcomePolicy");
   const slot = spellSlotChoice(d.configuration);
-  if ( (d.configuration?.length ?? 0) > (slot ? 1 : 0) ) gaps.add("configuration");
+  // The Builder edits a spell slot, a damage row's chosen type and "apply one of these effects"; any other choice is Advanced.
+  const effectChoice = effectChoiceOf(d.configuration);
+  const editable = (entry: Data) => (entry === slot?.entry) || ((entry === effectChoice?.entry) && effectChoice.simple)
+    || damage.some(component => damageTypeChoiceOf(d.configuration, component.id) === entry);
+  if ( (d.configuration ?? []).some((entry: Data) => !editable(entry)) ) gaps.add("configuration");
   if ( slot ) {
     for ( const effect of (slot.entry.effects ?? []) as Data[] ) if ( effect !== slot.scale ) gaps.add(`configuration.${effect?.type}`);
     const scale = slot.scale;

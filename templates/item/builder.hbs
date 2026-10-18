@@ -209,6 +209,9 @@
                aria-label="{{localize "WILDPATH.BUILDER.Damage.Type"}}">
         <select name="wildpath.builder.damage.{{@index}}.provenance" aria-label="{{localize "WILDPATH.BUILDER.Damage.Provenance"}}">
           {{selectOptions ../b.choices.provenances selected=row.provenance localize=true}}</select>
+        <input type="text" name="wildpath.builder.damage.{{@index}}.chooseFrom" value="{{row.chooseFrom}}"
+               placeholder="{{localize "WILDPATH.BUILDER.Damage.ChooseFromHint"}}" aria-label="{{localize "WILDPATH.BUILDER.Damage.ChooseFrom"}}"
+               data-tooltip="WILDPATH.BUILDER.Damage.ChooseFrom">
         {{#if ../b.editable}}<button type="button" class="icon" data-action="builderRemove" data-section="damage" data-index="{{@index}}"
           data-tooltip="WILDPATH.BUILDER.Remove" aria-label="{{localize "WILDPATH.BUILDER.Remove"}}"><i class="fa-solid fa-trash" inert></i></button>{{/if}}
         {{#if row.error}}<span class="field-error" id="{{row.errorId}}">{{row.error}}</span>{{/if}}
@@ -279,6 +282,9 @@
       </li>
       {{/each}}
     </ol>
+    {{#if b.values.effectChoiceReadOnly}}<p class="hint">{{localize "WILDPATH.BUILDER.Effects.ChooseOne"}}: {{localize "WILDPATH.BUILDER.EditInAdvanced"}}</p>
+    {{else}}<label class="checkbox"><input type="checkbox" name="wildpath.builder.choices.effectOne" {{checked b.values.choices.effectOne}}>
+      {{localize "WILDPATH.BUILDER.Effects.ChooseOne"}}</label>{{/if}}
     {{#if b.editable}}<button type="button" data-action="builderAdd" data-section="effects">{{localize "WILDPATH.BUILDER.Effects.Add"}}</button>{{/if}}
   </fieldset>
 

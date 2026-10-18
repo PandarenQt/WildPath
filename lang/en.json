@@ -796,6 +796,8 @@
         "Legend": "What damage does it deal?",
         "Type": "Damage type",
         "Provenance": "Kind",
+        "ChooseFrom": "Or a type chosen when used, from",
+        "ChooseFromHint": "chosen from: acid, fire",
         "weapon-base": "Weapon",
         "spell-base": "Spell",
         "additional": "Extra",
@@ -818,6 +820,7 @@
         "Expiry": "Ends at",
         "Rules": "While it lasts:",
         "OnFailedSave": "Only on a failed save",
+        "ChooseOne": "The user applies one of these, chosen when used",
         "Add": "Add an effect"
       },
       "Units": {
