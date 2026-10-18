@@ -455,6 +455,7 @@
 /* Sheet completion: header commands, editable bases, stacking levels, death saves. */
 .wildpath.actor .actor-commands { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.25rem; }
 .wildpath.level-up { max-height: 70vh; overflow-y: auto; }
+.wildpath-inspiration-reroll { margin-top: 0.25rem; width: 100%; }
 .wildpath.actor-sheet .ability > span:first-child { grid-column: 1 / -1; }
 .wildpath.actor-sheet .ability input[type="checkbox"] { width: auto; min-width: 0; }
 .wildpath.actor-sheet .ability .ability-rolls { display: inline-flex; align-items: center; gap: 0.125rem; overflow: visible; justify-self: end; }

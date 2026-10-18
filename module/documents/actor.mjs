@@ -594,9 +594,10 @@ export default class WildPathActor extends Actor {
    * A d20 test outside an Action, from the sheet (G8): a saving throw (`save`), a skill check (`skill`, with its
    * ability unless `ability` names another) or an ability check (`ability`). Its bonus, bonus dice (Guidance) and
    * Advantage or Disadvantage are the creature's own; the roll goes to chat. With physical dice (the `dicePolicy`
-   * setting) the roller types the total. Returns the total, or null when cancelled.
+   * setting) the roller types the total. Its card may be rerolled with Heroic Inspiration (`rerolled`: this is that
+   * reroll; applications/inspiration-reroll.mts). Returns the total, or null when cancelled.
    */
-  async rollTest({ability=null, skill=null, save=null}={}) {
+  async rollTest({ability=null, skill=null, save=null, rerolled=false}={}) {
     const {ABILITIES, SKILLS} = CONFIG.WILDPATH;
     const used = save ?? ability ?? SKILLS[skill]?.ability ?? null;
     if ( !used ) return null;
@@ -619,7 +620,9 @@ export default class WildPathActor extends Actor {
       if ( (answer?.total == null) || (answer.total === "") || !Number.isFinite(total) ) return null;
       roll = await new Roll(String(total)).evaluate();
     } else roll = await new Roll(formula).evaluate();
-    await roll.toMessage({speaker: ChatMessage.getSpeaker({actor: this}), flavor: `${label} (${formula})`});
+    const note = rerolled ? `, ${game.i18n.localize("WILDPATH.INSPIRATION.Rerolled")}` : "";
+    await roll.toMessage({speaker: ChatMessage.getSpeaker({actor: this}), flavor: `${label} (${formula}${note})`,
+      flags: {wildpath: {rollTest: {actorUuid: this.uuid, ability, skill, save, rerolled}}}});
     return roll.total;
   }
 

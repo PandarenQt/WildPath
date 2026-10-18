@@ -41,7 +41,22 @@ is made of, beside its class records:
   Shield went from AC 19 to 17 with only light armor training, had Disadvantage on Agility saves and Athletics, rolled
   its Longsword with `2d20kl` (a plain `1d20` once trained again), and its Fire Bolt was refused "while wearing Chain
   Mail without training in it".
-- **Heroic Inspiration.** `system.heroicInspiration`, a checkbox for now.
+- **Heroic Inspiration, as Baldur's Gate 3 keeps it (maintainer, 2026-10-18).** A player character keeps up to 4
+  points in its `heroic-inspiration` pool. The sheet and action bar show it, and the GM awards points by editing it.
+  It replaced a checkbox, which `WildPathCharacter.migrateData` turns into 1 point; NPCs have none. Human
+  Resourceful gives +1 on each Long Rest (a regain-only `GrantResource`). A point rerolls a d20:
+  - **A player's character, its own failure:** a missed attack, a failed save or a failed check. Its controller is
+    asked, and it pays.
+  - **A monster's roll, any outcome:** the GM is asked, and spends any player character's point. The world setting
+    `inspirationMonsterRerolls` (on by default) turns this off.
+  - **How it runs:** in an Action the reroll comes right after the roll, before anything is committed
+    (`inspirationReroll` in the pipeline's attack, check and save outcome stages). The question is a choice
+    request, and the new d20 has its own roll request. The point is paid in the Action's own transaction, so a
+    cancelled Action spends nothing. A rerolled failed save can still use Legendary Resistance. The card shows both
+    d20s; the second is the one used.
+  - **Sheet rolls:** a check or save rolled from the sheet commits nothing, so its chat card has a "Reroll (Heroic
+    Inspiration)" button instead (`applications/inspiration-reroll.mts`). For a monster's roll, the GM picks the
+    paying character.
 - **Hit Dice.** A class record's `hitDie` (its faces) gives one Hit Die per level, held in a pool per size
   (`hit-die.d10`), created full and recovered on a long rest, like slot pools. A multiclass creature holds several.
   The sheet's Short Rest first asks how many of each to spend (`Actor#spendHitDice`): each heals its roll plus the
@@ -127,7 +142,7 @@ Player1 leveled to 5 from their own browser (Extra Attack, Hit Dice 5/5); with `
 6 + 2 in chat and took Grappler instead of an increase.
 
 Live (two browsers): a Fighter 3 had "Hit Dice (d10) 3/3". Player1 set its Stealth to Expertise on the sheet (+2 to
-+6), typed its armor training, and ticked Heroic Inspiration.
++6) and typed its armor training.
 
 ## Spellcasting progression (2024)
 

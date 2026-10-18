@@ -34,6 +34,12 @@ WILDPATH.ABILITIES = {
  * domains' (`check.stealth`, `check.sleight-of-hand`).
  * @type {Record<string, {label: string, ability: string}>}
  */
+/**
+ * Heroic Inspiration as Baldur's Gate 3 keeps it (maintainer, 2026-10-18): a player character's pool of up to 4 points,
+ * each spent to reroll a d20, its own failed one or, by the GM, a monster's.
+ */
+WILDPATH.HEROIC_INSPIRATION = Object.freeze({pool: "heroic-inspiration", max: 4});
+
 WILDPATH.SKILLS = {
   acrobatics: {label: "WILDPATH.SKILLS.Acrobatics", ability: "agility"},
   "animal-handling": {label: "WILDPATH.SKILLS.AnimalHandling", ability: "wits"},

@@ -37,7 +37,7 @@ import {
 import {actionDefinitionActivationCost, actionDefinitionFromAction, actionDefinitionToResolverInput} from "../helpers/action-definitions.mjs";
 import {tokenRef} from "../helpers/entity-refs.mjs";
 import {footprintDistance} from "../helpers/grid-footprints.mjs";
-import {combineRollModes, d20Chance} from "../helpers/rolls.mjs";
+import {ROLL_AUTHORITY, combineRollModes, d20Chance} from "../helpers/rolls.mjs";
 import {conditionsFrom, creatureRefs, effectsFrom, revealedTo} from "../helpers/effect-sources.mjs";
 import {customEffectId} from "../helpers/action-definitions.mjs";
 import {isUnprepared} from "../helpers/spellcasting.mjs";
@@ -651,6 +651,10 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const saveOutcomes = {};
   const evasionByTarget = {};
   const legendaryByTarget = {};
+  const inspirationByTarget = {};
+  // Player characters who may pay for a monster's reroll (Heroic Inspiration), found once when first asked.
+  let inspirationPayers = null;
+  const payers = () => (inspirationPayers ??= monsterRerollPayers(game));
   const ambiguousKeys = new Set();
   // The authority, not the client's selection, decides who a "self" or "no target" Action targets.
   const targetingType = definition?.targeting?.type;
@@ -697,6 +701,9 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       if ( forced.some(entry => entry.outcome === "evasion") ) evasionByTarget[key] = "evasion";
       const legendary = legendaryResistanceFor(targetActor, systemSnapshots.get(targetActor), game);
       if ( legendary ) legendaryByTarget[key] = legendary;
+      const inspiration = inspirationOffer(targetActor, systemSnapshots.get(targetActor), game,
+        {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER, payers});
+      if ( inspiration ) inspirationByTarget[key] = inspiration;
     }
     targets.push(target);
     const keys = uniqueStrings([targetActor.uuid, targetActor.id, `actor:${targetActor.id}`, targetRef,
@@ -751,6 +758,10 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     }
   }
   if ( controller.actor ) targetActors[controller.actor.uuid] = controller.actor;
+  const ownInspiration = (definition?.attack || definition?.check)
+    ? inspirationOffer(actor, actorSystem, game, {chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, payers}) : null;
+  // A character paying for a monster's reroll is committed on like a target; its uuid is its key.
+  for ( const payer of inspirationPayers ?? [] ) targetActors[payer.uuid] ??= payer;
   // Reactors on the Scene (Trigger RuleElements on Action events) and the acting creature they may answer.
   const scene = sourceToken?.parent ?? null;
   const reactions = scene ? foundryActionReactionServices({game, scene, token: sourceToken,
@@ -777,14 +788,17 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       ...(statistics.damage ? {damage: statistics.damage} : {}),
       ...((statistics.attack || attackRollMode) ? {attack: {...(statistics.attack ?? {}),
         ...(attackRollMode ? {rollMode: attackRollMode} : {}),
+        ...(ownInspiration ? {inspiration: ownInspiration} : {}),
         ...(attackOutcomes ? {outcomesByTarget: attackOutcomes} : {}),
         ...(attackBonuses ? {bonusByTarget: attackBonuses} : {})}} : {}),
       ...(Object.keys(saveRollModes).length ? {save: {rollModesByTarget: saveRollModes, modifiersByTarget: saveModifiers,
         ...(Object.keys(saveDice).length ? {diceByTarget: saveDice} : {}),
         ...(Object.keys(legendaryByTarget).length ? {legendaryByTarget} : {}),
+        ...(Object.keys(inspirationByTarget).length ? {inspirationByTarget} : {}),
         ...(Object.keys(evasionByTarget).length ? {evasionByTarget} : {}),
         outcomesByTarget: saveOutcomes}} : {}),
-      ...(definition?.check ? {check: actionCheckInput(actor, definition.check, sourceToken)} : {}),
+      ...(definition?.check ? {check: {...actionCheckInput(actor, definition.check, sourceToken),
+        ...(ownInspiration ? {inspiration: ownInspiration} : {})}} : {}),
       ...(definition?.summon && Array.isArray(intent.summon?.points) ? {summonPoints: intent.summon.points.slice(0, 20)
         .map(point => ({x: Number(point?.x), y: Number(point?.y)}))
         .filter(point => Number.isFinite(point.x) && Number.isFinite(point.y))} : {}),
@@ -935,6 +949,45 @@ function legendaryResistanceFor(actor, actorSystem, game) {
   const pool = (actorSystem?.pools ?? []).find(entry => entry.id === "legendary-resistance") ?? {};
   const label = game?.i18n?.format?.("WILDPATH.LEGENDARY.Prompt", {name: actor.name ?? "", value: pool.value ?? 0, max: pool.max ?? 0}) ?? null;
   return {policy, payerRef: actor.uuid, plan: payment.mutationPlan, ...(label ? {label} : {})};
+}
+
+/**
+ * Heroic Inspiration for a d20 that `roller` rolls (BG3, G8):
+ * - a player's character may spend its own point after a failure (`own`); its controller (`chooser`) is asked;
+ * - for a monster's roll, the GM may spend any player character's point, while the `inspirationMonsterRerolls` world
+ *   setting is on.
+ * Each option carries its payer's payment plan. Null when nobody can pay.
+ */
+export function inspirationOffer(roller, rollerSystem, game, {chooser, payers=() => []}={}) {
+  const {pool, max} = WILDPATH.HEROIC_INSPIRATION;
+  const format = (key, data) => game?.i18n?.format?.(key, data) ?? key;
+  const option = (payer, system) => {
+    const payment = resolveActorResourcePayment({actorSystem: system, cost: {allOf: [{capability: pool, amount: 1}]}});
+    if ( !payment.ok ) return null;
+    const value = (system?.pools ?? []).find(entry => entry.id === pool)?.value ?? 0;
+    return {value: `spend:${payer.uuid}`, payerRef: payer.uuid, plan: payment.mutationPlan,
+      label: format("WILDPATH.INSPIRATION.Spend", {name: payer.name ?? "", value, max})};
+  };
+  if ( roller?.hasPlayerOwner ) {
+    const own = option(roller, rollerSystem);
+    return own ? {own: true, chooser, label: format("WILDPATH.INSPIRATION.Own", {name: roller.name ?? ""}), options: [own]} : null;
+  }
+  const options = payers().flatMap(payer => {
+    try { return [option(payer, foundryActorSystemSnapshot(payer))].filter(Boolean); }
+    catch { return []; }
+  });
+  return options.length ? {own: false, chooser: ROLL_AUTHORITY.GM, label: format("WILDPATH.INSPIRATION.Monster", {name: roller?.name ?? ""}),
+    options} : null;
+}
+
+/** The player characters who may pay for a monster's reroll; none while the GM has turned monster rerolls off. */
+function monsterRerollPayers(game) {
+  let allowed = true;
+  try { allowed = game?.settings?.get?.("wildpath", "inspirationMonsterRerolls") !== false; }
+  catch { allowed = true; } // unregistered (a test game)
+  if ( !allowed ) return [];
+  const actors = typeof game?.actors?.values === "function" ? [...game.actors.values()] : [];
+  return actors.filter(actor => (actor.type === "character") && actor.hasPlayerOwner);
 }
 
 /**

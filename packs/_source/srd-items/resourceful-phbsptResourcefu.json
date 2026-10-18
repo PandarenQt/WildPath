@@ -7,7 +7,20 @@
   "system": {
     "active": true,
     "description": "<p>You gain Heroic Inspiration whenever you finish a Long Rest.</p>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "resourceful",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "heroic-inspiration",
+          "maximum": 0,
+          "regain": {
+            "longRest": 1
+          }
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
