@@ -666,8 +666,8 @@ function sheddingArea({document, activity, system, definition}) {
  * An area that keeps acting while it lasts, by its 2024 wording ("A creature also makes this save when it enters the
  * spell's area or ends its turn there": Moonbeam, Web, Cloudkill, Wall of Fire): a lasting area whose trigger repeats
  * the save, damage and effects on a creature that enters it, or starts or ends its turn there. The engine affects a
- * creature once per turn. Null for an area without that wording, or with nothing to repeat.
- * shortcut: a trigger deals the base level's damage; an upcast's extra dice apply only when it is cast.
+ * creature once per turn. Null for an area without that wording, or with nothing to repeat. Its damage keeps the ids of
+ * the Action's own, so a higher slot's dice reach the repeat too (action-configuration.mjs `applyScaleDamageEffect`).
  */
 export function lastingArea({document, system, definition}) {
   if ( (definition.targeting?.type !== "area") || !definition.area || definition.area.persistence ) return null;

@@ -1382,6 +1382,19 @@ test("a lasting area becomes a Region and burns a creature that starts its turn 
   assert.equal(areaCovers(flag, targetToken), false);
 });
 
+test("a lasting area keeps the slot it was cast with: its stored repeat is the configured one (3d10)", async t => {
+  const {scene, areas, sourceToken} = lastingAreaFixture(t);
+  const fields = [{i: 2, j: 0}];
+  const repeat = dice => ({schemaVersion: 1, id: "action:moonbeam:lasting", costs: {allOf: []}, save: {ability: "fortitude", dc: {value: 15}},
+    damage: [{id: "damage-1", expression: {type: "dice", number: dice, faces: 10}, damageType: "radiant"}]});
+  const moonbeam = dice => ({id: "action:moonbeam", label: "Moonbeam", area: {shape: "radial", size: {value: 5, unit: "ft"},
+    persistence: {duration: {unit: "round", value: 10}, triggers: [{on: ["area.entered", "turn.ended"], action: repeat(dice)}]}}});
+  const region = await areas.create({options: {persistentArea: {footprint: {topology: "square", fields}, definition: moonbeam(2),
+    sourceTokenId: sourceToken.id, sceneId: scene.id}}, state: {configuration: {castingLevel: 3, effectiveDefinition: moonbeam(3)}}});
+  const [trigger] = region.flags.wildpath.area.persistence.triggers;
+  assert.deepEqual([trigger.action.damage[0].expression.number, region.flags.wildpath.area.castLevel], [3, 3]);
+});
+
 test("a lasting area for enemies only (Spirit Guardians) spares its caster's side", async t => {
   const {targetActor, targetToken, sourceToken, player, areas, intent, game} = lastingAreaFixture(t, {affects: "enemies"});
   const declared = await player.declareActionIntent({...intent, area: {points: [{x: 125, y: 25}]}});
