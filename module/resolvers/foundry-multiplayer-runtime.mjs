@@ -433,6 +433,10 @@ export function dicePolicyRollContext(game=globalThis.game) {
     get providerId() {
       return DICE_POLICY_PROVIDERS[setting("wildpath", "dicePolicy")] ?? null;
     },
+    /** When several saves are rolled at once on this client: "physical", "always" or "never" (answerSaveBatchLocally). */
+    get batchSaves() {
+      return setting("wildpath", "batchSaves");
+    },
     /** The roller's own message mode, for rolls whose request leaves visibility to the roller (saves). */
     get messageMode() {
       return setting("core", "messageMode");

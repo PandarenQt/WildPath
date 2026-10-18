@@ -93,8 +93,61 @@ export function createFoundryV14PromptAdapter({
           adapterId: id
         }
       };
+    },
+    /**
+     * Several saves this client rolls for one Action (the GM's monsters), in one window: a row per creature with its
+     * formula. Each row's value is what was typed, or null when left empty (rolled for them). Null when closed.
+     */
+    async requestBatch(requests, context={}) {
+      const Dialog = resolveDialogV2({DialogV2, context});
+      if ( !Dialog?.input ) return null;
+      const rows = requests.map(request => {
+        const viewModel = createPromptViewModel(request, context);
+        return {request, viewModel, control: localizeViewModel(viewModel).controls[0] ?? {}};
+      });
+      const response = await Dialog.input({
+        window: {title: localize("WILDPATH.PROMPT.Batch.Title")},
+        content: renderBatchContent(rows),
+        ok: {label: localize("WILDPATH.PROMPT.Batch.RollRest")},
+        rejectClose: false,
+        modal: true,
+        ...dialogOptions,
+        ...(context.dialogOptions ?? {})
+      });
+      if ( response == null ) return null;
+      return rows.map(({viewModel}, index) => {
+        const typed = Object.fromEntries(["natural", "total"].map(name => [name, formValue(response, `${name}-${index}`)])
+          .filter(([, value]) => (value != null) && (value !== "")));
+        return Object.keys(typed).length ? rollValueFromForm(viewModel, typed) : null;
+      });
     }
   };
+}
+
+/** The batch window: a hint, then one row per save, its creature and formula, with the die (and total) to type. */
+function renderBatchContent(rows) {
+  const bounds = (min, max) => `${min == null ? "" : ` min="${escapeHtml(min)}"`}${max == null ? "" : ` max="${escapeHtml(max)}"`}`;
+  const row = ({request, control}, index) => {
+    const target = request.payload?.targets?.[0] ?? {};
+    const who = target.name ?? target.target?.name ?? localize("WILDPATH.PROMPT.TargetNumber", {number: index + 1});
+    const name = control.type === PROMPT_CONTROL_TYPES.ROLL_NATURAL ? "natural" : "total";
+    const total = control.total ? `<input name="total-${index}" type="number" step="1"${bounds(control.total.min, control.total.max)}
+      aria-label="${escapeHtml(control.total.label)}" placeholder="${escapeHtml(control.total.label)}">` : "";
+    return `
+      <div class="form-group">
+        <label for="wildpath-batch-${index}">${escapeHtml(who)}</label>
+        <div class="form-fields">
+          <input id="wildpath-batch-${index}" name="${name}-${index}" type="number" step="1"${bounds(control.min, control.max)}>${total}
+        </div>
+        <p class="hint">${escapeHtml(control.label)}</p>
+      </div>`;
+  };
+  return `
+    <section class="wildpath-prompt wildpath-batch-saves">
+      <p class="hint">${escapeHtml(localize("WILDPATH.PROMPT.Batch.Hint"))}</p>
+      ${rows.map(row).join("")}
+    </section>
+  `;
 }
 
 /* -------------------------------------------- */
@@ -168,7 +221,7 @@ function localizeViewModel(viewModel) {
   const text = entry => ({...entry, label: localize(entry.label, entry.labelData)});
   return {
     ...viewModel,
-    title: localize(viewModel.title),
+    title: localize(viewModel.title, viewModel.titleData),
     controls: viewModel.controls.map(control => ({...text(control), options: (control.options ?? []).map(text)}))
   };
 }

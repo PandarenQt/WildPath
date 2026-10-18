@@ -25,7 +25,7 @@ import {
   validateResolutionSocketEnvelope
 } from "../helpers/multiplayer-authority.mjs";
 import {DISCLOSURE_CLASSIFICATIONS, isPrivateDisclosure} from "../helpers/multiplayer-disclosure.mjs";
-import {ROLL_CODES, ROLL_PROVIDER_OUTCOMES, ROLL_VISIBILITY, normalizeRollVisibility} from "../helpers/rolls.mjs";
+import {ROLL_CODES, ROLL_PROVENANCE_TYPES, ROLL_PROVIDER_OUTCOMES, ROLL_VISIBILITY, normalizeRollVisibility} from "../helpers/rolls.mjs";
 
 const MAX_PROMPT_ATTEMPTS = 3;
 const REPROMPT_CODES = new Set([ROLL_CODES.INVALID_MANUAL_RESULT, ROLL_CODES.INVALID_ROLL_RESULT]);
@@ -462,6 +462,8 @@ export function createMultiplayerActionCoordinator({
   async function routePendingRequests(record, execution=activeResolutionExecution(record.state)) {
     const state = execution.state;
     const requests = state.pendingRequests ?? [];
+    // This client's own requests are answered after every other user's has gone out, so they roll side by side.
+    const local = [];
     for ( const request of requests ) {
       const key = requestKey(request, state);
       if ( record.routedRequestIds.has(key) ) continue;
@@ -500,22 +502,8 @@ export function createMultiplayerActionCoordinator({
       record.knownResolutionIds.add(state.id);
 
       if ( chooser.userId === localUserId ) {
-        const answered = await answerPendingRequestLocally({
-          request,
-          promptPorts,
-          rollProviders,
-          context: localRequestContext(record, request, state)
-        });
-        if ( !answered.ok ) return sendAuthorityError(record, answered, {requestId: request.id, resolutionId: state.id});
-        const localEnvelope = createResolutionSocketEnvelope({
-          messageType: MULTIPLAYER_MESSAGE_TYPES.REQUEST_RESPONSE,
-          senderUserId: localUserId,
-          recipientUserId: localUserId,
-          resolutionId: state.id,
-          requestId: request.id,
-          payload: {response: answered.response}
-        });
-        return applyRequestResponse(record, localEnvelope);
+        local.push(request);
+        continue;
       }
 
       const envelope = createResolutionSocketEnvelope({
@@ -542,12 +530,39 @@ export function createMultiplayerActionCoordinator({
       const sent = await sendEnvelope(envelope);
       if ( !sent.ok ) return sendAuthorityError(record, sent, {requestId: request.id, resolutionId: state.id});
     }
+    if ( local.length ) return answerLocalRequests(record, state, local);
     return {
       ok: true,
       code: MULTIPLAYER_AUTHORITY_CODES.REQUEST_ROUTED,
       state,
       pendingRequests: requests.length
     };
+  }
+
+  /** Answer this client's own pending requests in turn; two or more of its saves are asked for together. */
+  async function answerLocalRequests(record, state, requests) {
+    const saves = requests.filter(request => (request.type === RESOLUTION_REQUEST_TYPES.ROLL) && (request.payload?.rollKind === "save"));
+    const batch = (saves.length > 1) ? await answerSaveBatchLocally({requests: saves, promptPorts, rollProviders,
+      context: localRequestContext(record, saves[0], state)}) : null;
+    if ( batch && !batch.ok ) return sendAuthorityError(record, batch, {requestId: batch.requestId ?? null, resolutionId: state.id});
+    let result = null;
+    for ( const request of requests ) {
+      // An earlier answer may have ended the resolution or moved it on.
+      const pending = activeResolutionExecution(record.state, state.id)?.state?.pendingRequests ?? [];
+      if ( !pending.some(entry => entry.id === request.id) ) continue;
+      const answered = batch?.responses.has(request.id) ? {ok: true, response: batch.responses.get(request.id)}
+        : await answerPendingRequestLocally({request, promptPorts, rollProviders, context: localRequestContext(record, request, state)});
+      if ( !answered.ok ) return sendAuthorityError(record, answered, {requestId: request.id, resolutionId: state.id});
+      result = await applyRequestResponse(record, createResolutionSocketEnvelope({
+        messageType: MULTIPLAYER_MESSAGE_TYPES.REQUEST_RESPONSE,
+        senderUserId: localUserId,
+        recipientUserId: localUserId,
+        resolutionId: state.id,
+        requestId: request.id,
+        payload: {response: answered.response}
+      }));
+    }
+    return result ?? {ok: true, code: MULTIPLAYER_AUTHORITY_CODES.REQUEST_ROUTED, state, pendingRequests: requests.length};
   }
 
   async function receivePendingRequest(envelope) {
@@ -1113,6 +1128,45 @@ export async function answerPendingRequestLocally({
       ? {...coordinated.response, value: withRollerVisibility(coordinated.response?.value, context)}
       : coordinated.response
   };
+}
+
+/**
+ * Two or more saves one client rolls for an Action (the GM's monsters in a Fireball). The roller's `batchSaves` setting
+ * (in the roll context) decides:
+ * - "never": each is rolled digitally;
+ * - "always", or "physical" (the default) under physical dice: one window lists them all (a prompt port's
+ *   `requestBatch`). A typed row is taken as rolled, an empty one is rolled digitally, and a row the rules reject is
+ *   asked again on its own row.
+ * Otherwise null: each is answered on its own, as before. `{ok, responses: Map<requestId, response>}`.
+ */
+export async function answerSaveBatchLocally({requests=[], promptPorts=[], rollProviders=[], context={}}={}) {
+  const physical = context.providerId === "physical-dice";
+  const mode = context.batchSaves ?? "physical";
+  const port = ((mode === "always") || ((mode === "physical") && physical))
+    ? promptPorts.find(entry => typeof entry?.requestBatch === "function") ?? null : null;
+  if ( (mode !== "never") && !port ) return null;
+  const digital = {rollProviders: rollProviders.filter(provider => provider?.type !== ROLL_PROVENANCE_TYPES.PHYSICAL),
+    context: {...context, providerId: null}};
+  const typedPort = value => ({id: "batch-saves", type: physical ? ROLL_PROVENANCE_TYPES.PHYSICAL : ROLL_PROVENANCE_TYPES.MANUAL,
+    label: "Batch saves", canHandle: () => true, request: async () => ({ok: true, status: "response", value})});
+  const responses = new Map();
+  let asking = requests;
+  for ( let attempt = 1; asking.length; attempt++ ) {
+    const typed = port ? await port.requestBatch(asking, context) : asking.map(() => null);
+    if ( !typed ) return {ok: false, code: MULTIPLAYER_AUTHORITY_CODES.PROMPT_FAILED, reason: "The saves were not rolled.",
+      requestId: asking[0].id};
+    const again = [];
+    for ( const [index, request] of asking.entries() ) {
+      const answered = typed[index]
+        ? await answerPendingRequestLocally({request, promptPorts: [typedPort(typed[index])], context})
+        : await answerPendingRequestLocally({request, ...digital});
+      if ( answered.ok ) responses.set(request.id, answered.response);
+      else if ( typed[index] && REPROMPT_CODES.has(answered.code) && (attempt < MAX_PROMPT_ATTEMPTS) ) again.push(request);
+      else return {...answered, requestId: request.id};
+    }
+    asking = again;
+  }
+  return {ok: true, responses};
 }
 
 /**

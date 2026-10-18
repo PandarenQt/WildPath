@@ -141,6 +141,21 @@ Hooks.once("init", () => {
     default: "digital"
   });
 
+  // Several saves one client rolls at once (the GM's monsters): one window, or all rolled (answerSaveBatchLocally).
+  game.settings.register("wildpath", "batchSaves", {
+    name: "WILDPATH.SETTINGS.BatchSaves.Name",
+    hint: "WILDPATH.SETTINGS.BatchSaves.Hint",
+    scope: "client",
+    config: true,
+    type: String,
+    choices: {
+      physical: "WILDPATH.SETTINGS.BatchSaves.Physical",
+      always: "WILDPATH.SETTINGS.BatchSaves.Always",
+      never: "WILDPATH.SETTINGS.BatchSaves.Never"
+    },
+    default: "physical"
+  });
+
   // Heroic Inspiration (BG3, G8): the GM may spend a player character's point to reroll a monster's d20.
   game.settings.register("wildpath", "inspirationMonsterRerolls", {
     name: "WILDPATH.SETTINGS.InspirationMonsterRerolls.Name",

@@ -268,8 +268,12 @@ function projectTargetCandidateForChooser(candidate) {
 export function projectPendingRequestPayloadForChooser(type, payload) {
   const data = payload ?? {};
   switch ( type ) {
-    case RESOLUTION_REQUEST_TYPES.ROLL:
-      return {rollRequest: projectRollRequestForChooser(data.rollRequest ?? null)};
+    case RESOLUTION_REQUEST_TYPES.ROLL: {
+      // A save's roller controls the saver, so its name travels: the prompt says whose save it is.
+      const target = normalizeArray(data.targets)[0];
+      const saver = (data.rollKind === "save") ? stringOrNull(target?.name ?? target?.target?.name) : null;
+      return {rollRequest: projectRollRequestForChooser(data.rollRequest ?? null), ...(saver ? {saver} : {})};
+    }
     case RESOLUTION_REQUEST_TYPES.TARGET_SELECTION:
     case RESOLUTION_REQUEST_TYPES.TARGET_REFINEMENT: {
       const targeting = data.targeting ?? {};

@@ -578,7 +578,7 @@ test("ActionPipeline executes target save, damage, and transactional commit thro
   assert.equal(result.state.stageStatuses[ACTION_PIPELINE_STAGE_IDS.COMMIT], "completed");
 });
 
-test("each target rolls its own save, routed one after another, and gets its own outcome", () => {
+test("each target rolls its own save, all asked for at once, and gets its own outcome", () => {
   const plan = planStagedActionResolution({
     id: "resolution:fan-out",
     actorSystem: actorSystem(1),
@@ -594,13 +594,14 @@ test("each target rolls its own save, routed one after another, and gets its own
       type: RESOLUTION_REQUEST_TYPES.ROLL, value: {requestId: request.payload.rollRequest.id, resolutionId: state.id,
         type: request.payload.rollRequest.type, natural, total: natural}}});
   };
-  const first = plan.state.pendingRequests[0];
+  const [first, second] = plan.state.pendingRequests;
+  assert.equal(plan.state.pendingRequests.length, 2, "both saves wait together, so their rollers roll side by side");
   assert.equal(first.id, "request:resolution:fan-out:save-roll", "the first save keeps the single-target id");
   assert.equal(first.payload.rollRequest.source.id, "orc", "the orc's controller rolls the orc's save");
-  const afterOrc = answer(plan.state, 15);
-  const second = afterOrc.state.pendingRequests[0];
   assert.equal(second.id, "request:resolution:fan-out:save-roll:2");
   assert.equal(second.payload.rollRequest.source.id, "goblin");
+  const afterOrc = answer(plan.state, 15);
+  assert.deepEqual(afterOrc.state.pendingRequests.map(request => request.id), [second.id], "the goblin's is still pending");
   const done = answer(afterOrc.state, 3);
   assert.equal(done.ok, true, JSON.stringify(done.state.errors));
   const outcomes = Object.fromEntries(done.state.results.saveResolution.results.map(entry => [entry.target.id, entry.success]));

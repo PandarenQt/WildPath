@@ -101,3 +101,36 @@ test("a roller's own message mode decides the visibility of rolls the rules leav
   assert.deepEqual(resultWith(gmAttack, {...answered.response.value, requestId: "request:attack"}), [],
     "a request's own visibility wins over the roller's");
 });
+
+test("several saves at once: the batchSaves setting picks one window, all rolled, or each on its own", async () => {
+  const {answerSaveBatchLocally} = await import("../module/resolvers/multiplayer-action-coordinator.mjs");
+  const save = id => ({id, resolutionId: "resolution:batch", type: "roll", payload: {rollKind: "save",
+    rollRequest: createD20RollRequest({id, resolutionId: "resolution:batch", type: "saving-throw", modifier: 2})}});
+  const requests = [save("request:a"), save("request:b")];
+  const digital = createTestRollProvider({id: "foundry-digital", result: {natural: 11, total: 13}});
+  const providers = [digital, createPhysicalDiceProvider()];
+  const asked = [];
+  const window = answers => ({id: "window", type: "test", canHandle: () => true, request: async () => null,
+    requestBatch: async rows => { asked.push(rows.map(row => row.id)); return answers.shift(); }});
+
+  const never = await answerSaveBatchLocally({requests, promptPorts: [window([])], rollProviders: providers,
+    context: {providerId: "physical-dice", batchSaves: "never"}});
+  assert.deepEqual([...never.responses.values()].map(response => response.value.natural), [11, 11], "never: all rolled");
+  assert.deepEqual(asked, [], "never: no window");
+
+  assert.equal(await answerSaveBatchLocally({requests, promptPorts: [window([])], rollProviders: providers,
+    context: {providerId: "foundry-digital"}}), null, "the default asks only with physical dice");
+
+  // A die of 25 is refused; that row alone is asked again.
+  const typed = await answerSaveBatchLocally({requests, promptPorts: [window([[{natural: 25}, null], [{natural: 6}]])],
+    rollProviders: providers, context: {providerId: "physical-dice"}});
+  assert.equal(typed.ok, true, JSON.stringify(typed));
+  assert.deepEqual(asked, [["request:a", "request:b"], ["request:a"]]);
+  assert.equal(typed.responses.get("request:a").value.natural, 6);
+  assert.equal(typed.responses.get("request:a").value.provenance.type, "physical");
+  assert.equal(typed.responses.get("request:b").value.natural, 11, "the empty row was rolled");
+
+  const closed = await answerSaveBatchLocally({requests, promptPorts: [window([null])], rollProviders: providers,
+    context: {providerId: "foundry-digital", batchSaves: "always"}});
+  assert.equal(closed.ok, false, "closing the window cancels");
+});
