@@ -733,3 +733,36 @@ test("a lasting area its caster may move gets a Move Action: that action's cost 
   assert.equal(moveAreaDefinition(moonbeam, {id: "action:x", area: {shape: "radial"}}), null, "not a lasting area");
   assert.equal(validateActionDefinition({...move, moveArea: {of: "", distance: 60}}).ok, false);
 });
+
+test("Hunter's Mark and Hex mark their target: extra damage on the caster's hits, Hex's one chosen ability, no slot to move it", () => {
+  const spell = (id, name, effects, activities) => ({_id: id, name, type: "spell", img: "systems/dnd5e/icons/spell.webp", effects,
+    system: {source: SRD, identifier: name === "Hex" ? "hex" : "hunters-mark", level: 1, preparation: {mode: "prepared"},
+      properties: ["vocal", "concentration"], activation: {type: "bonus"}, range: {units: "ft", value: 90},
+      target: {affects: {type: "creature", count: 1}, template: {}}, activities}});
+  const markEffect = {_id: "mark", name: "Hunter's Mark", transfer: false, statuses: ["marked"], system: {changes: []},
+    duration: {value: 3600, units: "seconds"}};
+  const markTarget = {affects: {type: "creature", count: 1}, template: {}};
+  const hunters = convertItem(spell("testHuntersMark1", "Hunter's Mark", [markEffect], {
+    a: activity("utility", {name: "Mark Creature", target: markTarget, effects: [{_id: "mark"}], consumption: {spellSlot: true}}),
+    b: activity("utility", {name: "Move Mark", target: markTarget, effects: [{_id: "mark"}], consumption: {spellSlot: false}})})).items;
+  const [mark, move] = hunters;
+  const [effect] = mark.system.definition.effects;
+  assert.deepEqual([effect.slug, effect.concentration, effect.ruleElements[0].type, effect.ruleElements[0].data.damageType,
+    effect.ruleElements[0].predicate], ["hunters-mark", true, "ExtraDamage", "force", {equals: {path: "attack.fromAttacker.hunters-mark", value: true}}]);
+  assert.equal(mark.system.definition.configuration?.length, 1, "marking spends a slot");
+  assert.equal(move.system.definition.configuration, undefined, "moving the mark spends none");
+  assert.deepEqual(mark.flags.wildpath.conversion.notes, []);
+  assert.equal(validateActionDefinition(mark.system.definition).ok, true);
+
+  const hexed = (id, name, key) => ({_id: id, name, transfer: false, statuses: ["cursed"], duration: {value: 3600, units: "seconds"},
+    system: {changes: [{key: `system.abilities.${key}.check.roll.mode`, value: -1, type: "add"}]}});
+  const [hex] = convertItem(spell("testHex000000001", "Hex", [hexed("s", "Hexed Strength", "str"), hexed("d", "Hexed Dexterity", "dex")], {
+    a: activity("utility", {name: "Place Curse", target: markTarget, effects: [{_id: "s"}, {_id: "d"}]})})).items;
+  const {effects, configuration} = hex.system.definition;
+  assert.deepEqual(effects.map(entry => [entry.slug, entry.ruleElements.map(rule => rule.type)]),
+    [["hex", ["RollMode", "ExtraDamage"]], ["hex", ["RollMode", "ExtraDamage"]]]);
+  const choice = configuration.find(entry => entry.id === "effect-choice");
+  assert.deepEqual([choice.type, choice.options.map(option => option.label), choice.effects[0]],
+    ["option", ["Hexed Strength", "Hexed Dexterity"], {type: "keepEffect", effectIds: ["effect-1", "effect-2"]}]);
+  assert.equal(validateActionDefinition(hex.system.definition).ok, true);
+});

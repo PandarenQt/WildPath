@@ -233,3 +233,27 @@ test("armor worn without training (2024): Disadvantage on Might and Agility test
   assert.deepEqual(untrainedArmor(wizard([], [shield, plate])), [], "no armor training at all: a stat block wears what it wears");
   assert.deepEqual(modes(wizard(["light"], [shield]), ["save.agility"]), [], "an untrained Shield alone only loses its AC");
 });
+
+test("Hunter's Mark: the target's mark adds its caster's extra damage on that caster's attacks only", async () => {
+  const {actionCombatStatistics} = await import("../module/helpers/combat-statistics.mjs");
+  const mark = {schemaVersion: 1, id: "hunters-mark-damage", type: "ExtraDamage",
+    data: {domains: ["attacked"], expression: {type: "dice", number: 1, faces: 6}, damageType: "force"},
+    predicate: {equals: {path: "attack.fromAttacker.hunters-mark", value: true}}};
+  const creature = (id, rules=[]) => Object.assign(Object.create(WildPathActor.prototype), {id, uuid: `Actor.${id}`, effects: [],
+    statuses: new Set(), flags: {}, system: {}, items: [{id: "marked", uuid: `Actor.${id}.Item.marked`, type: "feature",
+      system: {active: true, modifiers: [], ruleElements: rules}}], allApplicableEffects: () => []});
+  const ranger = creature("ranger");
+  const wolf = creature("wolf", [mark]);
+  const bow = {attack: {type: "ranged", statistic: "weapon"},
+    damage: [{id: "arrow", expression: {type: "dice", number: 1, faces: 8}, damageType: "piercing", provenance: "weapon-base"}]};
+  const extra = (target, fromAttacker) => actionCombatStatistics(ranger, bow, {target, context: {attack: {type: "ranged", fromAttacker}}})
+    .damage?.extraComponents ?? [];
+  assert.deepEqual(extra(wolf, {"hunters-mark": true}).map(entry => [entry.damageType, entry.expression.faces]), [["force", 6]],
+    "the caster's own mark");
+  assert.equal(extra(wolf, {}).length, 0, "someone else's attack: the mark is not theirs");
+  assert.equal(extra(null, {"hunters-mark": true}).length, 0, "no single target named");
+  const fireBolt = {damage: [{id: "fire", expression: {type: "dice", number: 1, faces: 10}, damageType: "fire"}],
+    save: {ability: "agility"}};
+  assert.equal(actionCombatStatistics(ranger, fireBolt, {target: wolf, context: {attack: {fromAttacker: {"hunters-mark": true}}}})
+    .damage?.extraComponents?.length ?? 0, 0, "only an attack roll");
+});

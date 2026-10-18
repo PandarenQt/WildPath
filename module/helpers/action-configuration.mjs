@@ -919,6 +919,9 @@ function applyConfigurationEffect({definition, effect, selection, selectionsById
       return applyScaleTargetsEffect({definition, effect, selection, selectionsById});
     case "replace-damage-type":
       return applyReplaceDamageTypeEffect({definition, effect, selection, selectionsById});
+    case "keepEffect":
+    case "keep-effect":
+      return applyKeepEffectEffect({definition, effect, selection});
     default:
       return {ok: true, trace: [appliedTrace(selection, "ignored-unknown-effect", {effectType: effect.type ?? effect.kind ?? null})], errors: []};
   }
@@ -947,6 +950,17 @@ function normalizeEffectType(type) {
     default:
       return String(type ?? "");
   }
+}
+
+/**
+ * Of the effects `effectIds` lists, only the chosen option's (its value, an effect id) is applied; the others are
+ * dropped. Hex: one ability's disadvantage out of six.
+ */
+function applyKeepEffectEffect({definition, effect, selection}) {
+  const listed = new Set(normalizeArray(effect.effectIds));
+  const kept = String(selection.value ?? "");
+  definition.effects = normalizeArray(definition.effects).filter(entry => !listed.has(entry.id) || (entry.id === kept));
+  return {ok: true, trace: [appliedTrace(selection, "keep-effect", {kept})], errors: []};
 }
 
 function applyAddCostEffect({definition, effect, selection}) {

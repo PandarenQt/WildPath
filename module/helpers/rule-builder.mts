@@ -31,7 +31,8 @@ export function ruleDomains(kind: string, abilities: readonly string[] = []) {
   const d20 = ["attack", "attack.melee", "attack.ranged", "attack.weapon", "attack.spell", "save", ...abilities.map(ability => `save.${ability}`),
     "check", ...abilities.map(ability => `check.${ability}`), ...skills.map(skill => `check.${skill}`), "initiative"];
   if ( kind === "rollMode" ) return [...d20, "attacked"];
-  if ( kind === "extraDamage" ) return [...DAMAGE_DOMAINS];
+  // `attacked`: on attacks against its bearer (a mark's extra damage).
+  if ( kind === "extraDamage" ) return [...DAMAGE_DOMAINS, "attacked"];
   return [...d20, "defense.ac", "resources.health.max", "resources.movement.max", ...DAMAGE_DOMAINS];
 }
 

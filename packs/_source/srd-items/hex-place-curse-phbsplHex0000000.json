@@ -38,6 +38,7 @@
           "id": "effect-1",
           "type": "effect",
           "name": "Hexed Strength",
+          "slug": "hex",
           "img": "systems/dnd5e/icons/svg/abilities/strength.svg",
           "ruleElements": [
             {
@@ -49,6 +50,28 @@
                   "check.might"
                 ],
                 "mode": "disadvantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "hex-damage",
+              "type": "ExtraDamage",
+              "data": {
+                "domains": [
+                  "attacked"
+                ],
+                "expression": {
+                  "type": "dice",
+                  "number": 1,
+                  "faces": 6
+                },
+                "damageType": "necrotic"
+              },
+              "predicate": {
+                "equals": {
+                  "path": "attack.fromAttacker.hex",
+                  "value": true
+                }
               }
             }
           ],
@@ -63,6 +86,7 @@
           "id": "effect-2",
           "type": "effect",
           "name": "Hexed Dexterity",
+          "slug": "hex",
           "img": "systems/dnd5e/icons/svg/abilities/dexterity.svg",
           "ruleElements": [
             {
@@ -74,6 +98,28 @@
                   "check.agility"
                 ],
                 "mode": "disadvantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "hex-damage",
+              "type": "ExtraDamage",
+              "data": {
+                "domains": [
+                  "attacked"
+                ],
+                "expression": {
+                  "type": "dice",
+                  "number": 1,
+                  "faces": 6
+                },
+                "damageType": "necrotic"
+              },
+              "predicate": {
+                "equals": {
+                  "path": "attack.fromAttacker.hex",
+                  "value": true
+                }
               }
             }
           ],
@@ -88,6 +134,7 @@
           "id": "effect-3",
           "type": "effect",
           "name": "Hexed Constitution",
+          "slug": "hex",
           "img": "systems/dnd5e/icons/svg/abilities/constitution.svg",
           "ruleElements": [
             {
@@ -99,6 +146,28 @@
                   "check.fortitude"
                 ],
                 "mode": "disadvantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "hex-damage",
+              "type": "ExtraDamage",
+              "data": {
+                "domains": [
+                  "attacked"
+                ],
+                "expression": {
+                  "type": "dice",
+                  "number": 1,
+                  "faces": 6
+                },
+                "damageType": "necrotic"
+              },
+              "predicate": {
+                "equals": {
+                  "path": "attack.fromAttacker.hex",
+                  "value": true
+                }
               }
             }
           ],
@@ -113,6 +182,7 @@
           "id": "effect-4",
           "type": "effect",
           "name": "Hexed Intelligence",
+          "slug": "hex",
           "img": "systems/dnd5e/icons/svg/abilities/intelligence.svg",
           "ruleElements": [
             {
@@ -124,6 +194,28 @@
                   "check.intellect"
                 ],
                 "mode": "disadvantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "hex-damage",
+              "type": "ExtraDamage",
+              "data": {
+                "domains": [
+                  "attacked"
+                ],
+                "expression": {
+                  "type": "dice",
+                  "number": 1,
+                  "faces": 6
+                },
+                "damageType": "necrotic"
+              },
+              "predicate": {
+                "equals": {
+                  "path": "attack.fromAttacker.hex",
+                  "value": true
+                }
               }
             }
           ],
@@ -138,6 +230,7 @@
           "id": "effect-5",
           "type": "effect",
           "name": "Hexed Wisdom",
+          "slug": "hex",
           "img": "systems/dnd5e/icons/svg/abilities/wisdom.svg",
           "ruleElements": [
             {
@@ -149,6 +242,28 @@
                   "check.wits"
                 ],
                 "mode": "disadvantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "hex-damage",
+              "type": "ExtraDamage",
+              "data": {
+                "domains": [
+                  "attacked"
+                ],
+                "expression": {
+                  "type": "dice",
+                  "number": 1,
+                  "faces": 6
+                },
+                "damageType": "necrotic"
+              },
+              "predicate": {
+                "equals": {
+                  "path": "attack.fromAttacker.hex",
+                  "value": true
+                }
               }
             }
           ],
@@ -163,6 +278,7 @@
           "id": "effect-6",
           "type": "effect",
           "name": "Hexed Charisma",
+          "slug": "hex",
           "img": "systems/dnd5e/icons/svg/abilities/charisma.svg",
           "ruleElements": [
             {
@@ -174,6 +290,28 @@
                   "check.presence"
                 ],
                 "mode": "disadvantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "hex-damage",
+              "type": "ExtraDamage",
+              "data": {
+                "domains": [
+                  "attacked"
+                ],
+                "expression": {
+                  "type": "dice",
+                  "number": 1,
+                  "faces": 6
+                },
+                "damageType": "necrotic"
+              },
+              "predicate": {
+                "equals": {
+                  "path": "attack.fromAttacker.hex",
+                  "value": true
+                }
               }
             }
           ],
@@ -261,6 +399,57 @@
             "spell-slot.9": 9
           },
           "effects": []
+        },
+        {
+          "id": "effect-choice",
+          "type": "option",
+          "label": "Ability",
+          "required": true,
+          "options": [
+            {
+              "id": "effect-1",
+              "label": "Hexed Strength",
+              "value": "effect-1"
+            },
+            {
+              "id": "effect-2",
+              "label": "Hexed Dexterity",
+              "value": "effect-2"
+            },
+            {
+              "id": "effect-3",
+              "label": "Hexed Constitution",
+              "value": "effect-3"
+            },
+            {
+              "id": "effect-4",
+              "label": "Hexed Intelligence",
+              "value": "effect-4"
+            },
+            {
+              "id": "effect-5",
+              "label": "Hexed Wisdom",
+              "value": "effect-5"
+            },
+            {
+              "id": "effect-6",
+              "label": "Hexed Charisma",
+              "value": "effect-6"
+            }
+          ],
+          "effects": [
+            {
+              "type": "keepEffect",
+              "effectIds": [
+                "effect-1",
+                "effect-2",
+                "effect-3",
+                "effect-4",
+                "effect-5",
+                "effect-6"
+              ]
+            }
+          ]
         }
       ],
       "label": "Hex (Place Curse)"
@@ -279,14 +468,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: cursed is not a WildPath condition yet",
-          "effect: cursed is not a WildPath condition yet",
-          "effect: cursed is not a WildPath condition yet",
-          "effect: cursed is not a WildPath condition yet",
-          "effect: cursed is not a WildPath condition yet",
-          "effect: cursed is not a WildPath condition yet"
-        ]
+        "notes": []
       }
     }
   }

@@ -363,3 +363,18 @@ test("a lasting area's repeat grows with the slot too: Moonbeam at 3rd level rep
   assert.deepEqual(definition.area.persistence.triggers[0].action.damage[0].expression, {type: "dice", number: 2, faces: 10},
     "the stored definition is untouched");
 });
+
+test("a keepEffect choice applies only the chosen one of its effects (Hex's ability)", async () => {
+  const {resolveActionConfiguration} = await import("../module/helpers/action-configuration.mjs");
+  const definition = {schemaVersion: 1, id: "action:hex", label: "Hex", costs: {allOf: [{capability: "bonus-action", amount: 1}]},
+    targeting: {type: "single", required: true, count: 1},
+    effects: [{id: "effect-1", type: "effect", name: "Hexed Might", ruleElements: []}, {id: "effect-2", type: "effect", name: "Hexed Agility",
+      ruleElements: []}, {id: "other", type: "condition", conditionId: "prone"}],
+    configuration: [{id: "effect-choice", type: "option", label: "Ability", required: true,
+      options: [{id: "effect-1", label: "Hexed Might", value: "effect-1"}, {id: "effect-2", label: "Hexed Agility", value: "effect-2"}],
+      effects: [{type: "keepEffect", effectIds: ["effect-1", "effect-2"]}]}]};
+  const resolved = resolveActionConfiguration({definition, actorSystem: {resources: {bonus: {value: 1, max: 1}}, pools: []},
+    choices: {"effect-choice": "effect-2"}});
+  assert.equal(resolved.ok, true, JSON.stringify(resolved.errors));
+  assert.deepEqual(resolved.configuration.effectiveDefinition.effects.map(entry => entry.id), ["effect-2", "other"]);
+});

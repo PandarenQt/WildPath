@@ -25,6 +25,57 @@
           }
         ]
       },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 90,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Hunter's Mark",
+          "slug": "hunters-mark",
+          "img": "icons/skills/targeting/crosshair-scope-sniper-green.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "hunters-mark-damage",
+              "type": "ExtraDamage",
+              "data": {
+                "domains": [
+                  "attacked"
+                ],
+                "expression": {
+                  "type": "dice",
+                  "number": 1,
+                  "faces": 6
+                },
+                "damageType": "force"
+              },
+              "predicate": {
+                "equals": {
+                  "path": "attack.fromAttacker.hunters-mark",
+                  "value": true
+                }
+              }
+            }
+          ],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        }
+      ],
       "label": "Favored Enemy: Hunter's Mark"
     },
     "ruleElements": [
@@ -67,12 +118,7 @@
         "castBy": "Favored Enemy"
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: marked is not a WildPath condition yet",
-          "concentration: nothing it sustains was converted",
-          "\"Bonus Mark Damage\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }
