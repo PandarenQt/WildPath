@@ -49,6 +49,9 @@
           }
         }
       },
+      "metadata": {
+        "followUp": true
+      },
       "label": "Prismatic Spray (Violet Save (Wis))"
     },
     "ruleElements": []

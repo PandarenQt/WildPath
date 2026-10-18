@@ -76,6 +76,9 @@
           "concentration": true
         }
       ],
+      "metadata": {
+        "followUp": true
+      },
       "label": "Eyebite (While Concentrating)"
     },
     "ruleElements": []

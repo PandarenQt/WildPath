@@ -21,6 +21,9 @@
           }
         ]
       },
+      "metadata": {
+        "followUp": true
+      },
       "label": "Conjure Woodland Beings (Disengage)"
     },
     "ruleElements": []

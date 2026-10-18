@@ -78,6 +78,9 @@
           }
         }
       ],
+      "metadata": {
+        "followUp": true
+      },
       "label": "Freezing Sphere (Throw Held Globe)"
     },
     "ruleElements": [

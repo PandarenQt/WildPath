@@ -21,6 +21,9 @@
           }
         ]
       },
+      "metadata": {
+        "followUp": true
+      },
       "label": "Faithful Hound (Move Hound)"
     },
     "ruleElements": []

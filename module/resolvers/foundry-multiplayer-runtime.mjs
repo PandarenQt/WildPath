@@ -120,6 +120,8 @@ export function registerFoundryV14MultiplayerResolution({
     notify: event => notifyMultiplayerFailure(event, {logger}),
     publishResult: createFoundryV14ChatCardAdapter({game}),
     afterCompleted: async event => {
+      // First, so the area or summon this Action leaves is not among what it ends.
+      await endEarlierConcentration(event);
       await areas.create(event);
       await areas.afterResolution(event);
       await dying.afterResolution(event);
@@ -823,6 +825,8 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       ...(concentration ? {concentration: concentration.input} : {}),
       ...(area.persistentArea ? {persistentArea: area.persistentArea} : {}),
       ...(areaMove ? {areaMove: areaMove.move} : {}),
+      // A new concentration ends the caster's earlier one once it completes: what it sustains now, by uuid.
+      ...(startsConcentration(definition) ? {endsConcentration: sustainedEffects(actor, game).map(({effect}) => effect.uuid)} : {}),
       ...(controller.actor ? {controller: {actorRef: controller.actor.uuid, actorSystem: controllerSystem}} : {}),
       persistencePort
     },
@@ -870,16 +874,49 @@ export async function endConcentrationOnIncapacitation(effect, game=globalThis.g
   if ( game?.users?.activeGM?.id !== game?.user?.id ) return [];
   const actor = effect.parent;
   if ( !actor?.uuid ) return [];
+  const sustained = sustainedEffects(actor, game);
+  for ( const holder of new Set(sustained.map(entry => entry.holder)) ) {
+    await holder.deleteEmbeddedDocuments("ActiveEffect", sustained.filter(entry => entry.holder === holder).map(entry => entry.effect.id));
+  }
+  return sustained.map(entry => entry.effect.uuid);
+}
+
+/**
+ * Every effect `actor` sustains by concentration, on any creature, with that creature (`{holder, effect}`): its
+ * spells' effects and its lasting areas' and summons' markers (whose ending removes the Region or the summons).
+ */
+export function sustainedEffects(actor, game=globalThis.game) {
+  if ( !actor?.uuid ) return [];
   const refs = creatureRefs(actor, game);
-  const holders = new Set([...collectionContents(game.actors),
-    ...collectionContents(game.scenes).flatMap(scene => collectionContents(scene.tokens).map(token => token.actor).filter(Boolean))]);
+  const holders = new Set([...collectionContents(game?.actors),
+    ...collectionContents(game?.scenes).flatMap(scene => collectionContents(scene.tokens).map(token => token.actor).filter(Boolean))]);
+  // A spell's effect names its casting Item (`uuid:Actor.<id>.Item.<id>`); a marker names the caster's Token.
+  const sustains = effect => {
+    const ref = String(effect?.flags?.wildpath?.conditionEffect?.concentration?.sourceRef ?? "").replace(/^uuid:/, "");
+    return Boolean(ref) && (refs.has(ref) || [...refs].some(owner => ref.startsWith(`${owner}.`)));
+  };
+  return [...holders].flatMap(holder => collectionContents(holder.effects).filter(sustains).map(effect => ({holder, effect})));
+}
+
+/**
+ * Whether completing an Action starts a new concentration (2024: casting another concentration spell ends the
+ * one you have): an effect, lasting area or summon it sustains. A converted follow-up of the same spell (Move Mark,
+ * `metadata.followUp`) continues its concentration instead.
+ */
+export function startsConcentration(definition) {
+  if ( !definition || definition.metadata?.followUp ) return false;
+  return (definition.effects ?? []).some(effect => effect?.concentration) || Boolean(definition.area?.persistence?.concentration)
+    || Boolean(definition.summon?.concentration);
+}
+
+/** The caster's earlier concentration, as it stood when this Action was declared (`endsConcentration`), ends now. */
+export async function endEarlierConcentration({options}={}, {fromUuid=globalThis.fromUuid}={}) {
   const ended = [];
-  for ( const holder of holders ) {
-    const sustained = collectionContents(holder.effects).filter(entry =>
-      refs.has(entry?.flags?.wildpath?.conditionEffect?.concentration?.sourceRef));
-    if ( !sustained.length ) continue;
-    await holder.deleteEmbeddedDocuments("ActiveEffect", sustained.map(entry => entry.id));
-    ended.push(...sustained.map(entry => entry.uuid));
+  for ( const uuid of options?.endsConcentration ?? [] ) {
+    const effect = await fromUuid?.(uuid);
+    if ( !effect ) continue;
+    await effect.delete();
+    ended.push(uuid);
   }
   return ended;
 }

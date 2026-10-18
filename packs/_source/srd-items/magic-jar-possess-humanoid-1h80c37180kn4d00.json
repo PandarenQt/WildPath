@@ -81,6 +81,9 @@
           "saveOutcomePolicy": "failure"
         }
       ],
+      "metadata": {
+        "followUp": true
+      },
       "label": "Magic Jar (Possess Humanoid)"
     },
     "ruleElements": []
