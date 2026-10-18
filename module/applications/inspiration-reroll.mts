@@ -18,7 +18,8 @@ interface RollActor {
 interface RollTestFlag {actorUuid?: string; ability?: string | null; skill?: string | null; save?: string | null; rerolled?: boolean}
 interface RollMessage {flags?: {wildpath?: {rollTest?: RollTestFlag}}; update(data: Data): Promise<unknown>}
 interface Globals {
-  game: {user?: {isGM?: boolean}; actors?: {values(): Iterable<RollActor>}; settings?: {get(scope: string, key: string): unknown};
+  canvas?: {scene?: {tokens: Iterable<{actor?: RollActor | null}>} | null};
+  game: {user?: {isGM?: boolean}; settings?: {get(scope: string, key: string): unknown};
     i18n: {localize(key: string): string; format(key: string, data: Data): string}};
   fromUuidSync(uuid: string): unknown;
   foundry: {applications: {api: {DialogV2: {input(config: Data): Promise<Data | null>}}}; utils: {escapeHTML(text: string): string}};
@@ -30,12 +31,17 @@ const globals = () => globalThis as unknown as Globals;
 const INSPIRATION = (WILDPATH as unknown as {HEROIC_INSPIRATION: {pool: string; max: number}}).HEROIC_INSPIRATION;
 const points = (actor: RollActor) => actor.system.pools?.find(pool => pool.id === INSPIRATION.pool)?.value ?? 0;
 
-/** Who may pay for this roll's reroll here: the character itself (its owner), or, for a monster, the GM's pick. */
+/**
+ * Who may pay for this roll's reroll here: the character itself (its owner), or, for a monster, the GM's pick of the
+ * player characters on the viewed Scene (the table's).
+ */
 function payersFor(actor: RollActor): RollActor[] {
-  const {game} = globals();
+  const {game, canvas} = globals();
   if ( actor.hasPlayerOwner ) return (actor.isOwner && (points(actor) > 0)) ? [actor] : [];
   if ( !game.user?.isGM || (game.settings?.get("wildpath", "inspirationMonsterRerolls") === false) ) return [];
-  return [...(game.actors?.values() ?? [])].filter(entry => (entry.type === "character") && entry.hasPlayerOwner && (points(entry) > 0));
+  const actors = [...(canvas?.scene?.tokens ?? [])].map(token => token.actor);
+  return [...new Set(actors.filter((entry): entry is RollActor => !!entry && (entry.type === "character") && !!entry.hasPlayerOwner
+    && (points(entry) > 0)))];
 }
 
 /** The GM picks whose point pays for a monster's reroll; null when the dialog is closed. */

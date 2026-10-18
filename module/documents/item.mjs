@@ -5,6 +5,19 @@ import {areaClickCount} from "../adapters/foundry-v14-area-placement.mjs";
 import {promptActionConfiguration} from "../adapters/foundry-v14-prompt-adapter.mjs";
 import {foundryActorSystemSnapshot} from "../adapters/foundry-v14-actor-system-adapter.mjs";
 import {isUnprepared} from "../helpers/spellcasting.mjs";
+import {resolveActorCheckStatistic} from "../helpers/combat-statistics.mjs";
+
+/** Which of `skills` the creature checks (Search, Study, Influence), each with its bonus; null when closed. */
+async function chooseTestSkill(actor, skills, name) {
+  const {SKILLS} = CONFIG.WILDPATH;
+  const options = skills.map(skill => {
+    const bonus = resolveActorCheckStatistic(actor, {skill})?.totalModifier ?? 0;
+    return `<option value="${skill}">${game.i18n.localize(SKILLS[skill]?.label ?? skill)} (${bonus < 0 ? bonus : `+${bonus}`})</option>`;
+  }).join("");
+  const answer = await foundry.applications.api.DialogV2.input({window: {title: game.i18n.format("WILDPATH.COMMON.ChooseSkill", {name})},
+    content: `<select name="skill">${options}</select>`, ok: {label: game.i18n.localize("WILDPATH.PROMPT.Confirm")}, rejectClose: false});
+  return skills.includes(answer?.skill) ? answer.skill : null;
+}
 
 /** Item types whose changes rebuild their creature's class records (G8). */
 const CLASS_TYPES = new Set(["class", "subclass"]);
@@ -83,6 +96,10 @@ export default class WildPathItem extends Item {
       return false;
     }
     const definition = actionDefinitionFromAction(this, {actorSystem: this.actor.system});
+    // Search, Study, Influence: the skill is chosen first, and checked once the Action is taken.
+    const test = definition.ok ? definition.definition?.metadata?.test : null;
+    const skill = test?.skills?.length ? await chooseTestSkill(this.actor, test.skills, this.name) : null;
+    if ( test?.skills?.length && !skill ) return false;
     if ( configuration ) built.intent.configuration = configuration;
     else if ( definition.ok && definition.definition?.configuration?.length ) {
       const choices = await promptActionConfiguration({definition: definition.definition, actorSystem: foundryActorSystemSnapshot(this.actor),
@@ -116,6 +133,7 @@ export default class WildPathItem extends Item {
     if ( !declared.ok ) {
       globalThis.ui?.notifications?.warn?.(declared.reason ?? `Unable to use ${this.name}.`);
     }
+    if ( declared.ok && skill ) await this.actor.rollTest?.({skill});
     return declared.ok === true;
   }
 }

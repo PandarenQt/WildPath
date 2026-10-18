@@ -164,6 +164,9 @@ Every creature has the 2024 actions anyone can take, with no Items (`module/help
 | Shove: Prone | The same save; on a failure, Prone |
 | Shove: Push | The same save; on a failure, pushed 5 feet away (forced movement, areas.md) |
 | Unarmed Strike | A melee attack for 1 + Might modifier bludgeoning damage |
+| Search | The Action, then a Wits check: Insight, Medicine, Perception or Survival (chosen); the GM judges the total |
+| Study | The Action, then an Intellect check: Arcana, History, Investigation, Nature or Religion |
+| Influence | The Action, then a check: Deception, Intimidation, Performance, Persuasion or Animal Handling |
 | Opportunity Attack | A reaction: the creature's first melee attack Action (else its Unarmed Strike), for its Reaction |
 
 - **Built by the authority.** An intent names one as `actionRef: "common:<id>"`. The authority builds the Action
@@ -171,6 +174,10 @@ Every creature has the 2024 actions anyone can take, with no Items (`module/help
   is refused.
 - **On the bar.** The action bar lists them last, in a Common group, with the same availability and odds as any
   Action.
+- **Search, Study, Influence (2026-10-18).** The skill is chosen first, from a list showing each one's bonus. Once
+  the authority has taken the Action, the check is rolled as a sheet roll (`Actor#rollTest`), so it can be rerolled
+  with Heroic Inspiration. 2024 sets no DC: the GM judges. Live: Player1's Search spent the QA Fighter's Action and
+  rolled Perception, 1d20 + 5. Its card comes just before the Action's own.
 
 Shortcuts:
 - the Dash Speed is the creature's own, before Modifiers;

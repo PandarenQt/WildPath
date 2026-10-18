@@ -60,7 +60,14 @@ const COMMON: Record<string, {name: string; img: string; definition: Data}> = {
     save: {ability: "might", dc: STRIKE_DC}, push: {distance: 5}}},
   unarmed: {name: "WILDPATH.COMMON.UnarmedStrike", img: "icons/svg/combat.svg", definition: {costs: ACTION, ...TOUCH,
     attack: {type: "melee", statistic: "weapon", defenseKey: "ac", proficient: true},
-    damage: [{id: "unarmed", expression: {type: "constant", value: 1}, damageType: "bludgeoning", provenance: "weapon-base"}]}}
+    damage: [{id: "unarmed", expression: {type: "constant", value: 1}, damageType: "bludgeoning", provenance: "weapon-base"}]}},
+  // 2024 Search, Study and Influence: the Action, then a check of one of its skills, which the GM judges (no DC).
+  search: {name: "WILDPATH.COMMON.Search", img: "icons/svg/eye.svg", definition: {costs: ACTION, ...SELF,
+    metadata: {test: {skills: ["insight", "medicine", "perception", "survival"]}}}},
+  study: {name: "WILDPATH.COMMON.Study", img: "icons/svg/book.svg", definition: {costs: ACTION, ...SELF,
+    metadata: {test: {skills: ["arcana", "history", "investigation", "nature", "religion"]}}}},
+  influence: {name: "WILDPATH.COMMON.Influence", img: "icons/svg/sound.svg", definition: {costs: ACTION, ...SELF,
+    metadata: {test: {skills: ["deception", "intimidation", "performance", "persuasion", "animal-handling"]}}}}
 };
 
 export const COMMON_ACTION_IDS = Object.freeze([...Object.keys(COMMON), "opportunity"]);

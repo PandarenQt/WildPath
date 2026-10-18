@@ -47,8 +47,8 @@ is made of, beside its class records:
   Resourceful gives +1 on each Long Rest (a regain-only `GrantResource`). A point rerolls a d20:
   - **A player's character, its own failure:** a missed attack, a failed save or a failed check. Its controller is
     asked, and it pays.
-  - **A monster's roll, any outcome:** the GM is asked, and spends any player character's point. The world setting
-    `inspirationMonsterRerolls` (on by default) turns this off.
+  - **A monster's roll, any outcome:** the GM is asked, and spends the point of a player character with a Token on
+    the roll's Scene (the table's). The world setting `inspirationMonsterRerolls` (on by default) turns this off.
   - **How it runs:** in an Action the reroll comes right after the roll, before anything is committed
     (`inspirationReroll` in the pipeline's attack, check and save outcome stages). The question is a choice
     request, and the new d20 has its own roll request. The point is paid in the Action's own transaction, so a
@@ -56,7 +56,18 @@ is made of, beside its class records:
     d20s; the second is the one used.
   - **Sheet rolls:** a check or save rolled from the sheet commits nothing, so its chat card has a "Reroll (Heroic
     Inspiration)" button instead (`applications/inspiration-reroll.mts`). For a monster's roll, the GM picks the
-    paying character.
+    paying character from those on the viewed Scene.
+  - **Live (two browsers, 2026-10-18):**
+    - The QA characters' pools appeared at 0/4.
+    - Player1's QA Fighter missed the Bandit Captain. Player1 was asked in their own browser and rerolled; the card
+      shows both d20s, and the points went 2 → 1.
+    - The Captain hit the QA Fighter (24). The GM spent QA Wizard's point, and the reroll (13) missed.
+    - A Might save of 7, rolled from Player1's sheet, was rerolled from its card to 15. The old card's button went
+      away.
+    - Resourceful gave +1 on each long rest, stopping at 4.
+    - In a Moonbeam, each monster save asked the GM first.
+    - Fixed on the way: the acting creature's own point could not be paid (the commit did not know it), and a
+      GM-only question was refused on the GM's own client.
 - **Hit Dice.** A class record's `hitDie` (its faces) gives one Hit Die per level, held in a pool per size
   (`hit-die.d10`), created full and recovered on a long rest, like slot pools. A multiclass creature holds several.
   The sheet's Short Rest first asks how many of each to spend (`Actor#spendHitDice`): each heals its roll plus the

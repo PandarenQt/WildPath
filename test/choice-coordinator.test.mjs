@@ -865,6 +865,16 @@ test("remote-authority requests are not shown on the wrong local client", async 
   assert.equal(result.state.pendingRequests.length, 1);
 });
 
+test("a GM-authority prompt is answered by the GM the coordinator names through its user directory", async () => {
+  const request = createResolutionRequest({id: "request:gm-local", resolutionId: "resolution:gm", stageId: "choice",
+    type: RESOLUTION_REQUEST_TYPES.CHOICE, expectedResponseType: "choice-response", authority: {kind: "gm"}, validation: {required: true}});
+  const prompt = context => coordinateResolutionPrompt({state: createResolutionState({id: "resolution:gm", pendingRequests: [request]}),
+    context, promptPorts: [createTestPromptAdapter({responses: {"request:gm-local": true}})]});
+  const users = [{id: "gm-a", isGM: true}, {id: "player-a", isGM: false}];
+  assert.equal((await prompt({currentUserId: "gm-a", users})).ok, true, "the coordinator's context: an id and the directory");
+  assert.equal((await prompt({currentUserId: "player-a", users})).ok, false, "a Player cannot answer it");
+});
+
 test("FoundryV14PromptAdapter uses DialogV2.input and returns plain action-configuration data", async () => {
   const stages = configurationStages();
   const waiting = runResolutionPipeline({

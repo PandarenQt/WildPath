@@ -36,8 +36,8 @@ export function registerCombatTests(quench) {
       this.timeout(60000);
       const fixtures = useQuenchFixtures(context);
 
-      async function encounter({name="combat", baseSystem={}}={}) {
-        const base = await fixtures.createActor({name:`${name} base`,system:baseSystem});
+      async function encounter({name="combat", baseSystem={}, type="character"}={}) {
+        const base = await fixtures.createActor({name:`${name} base`,type,system:baseSystem});
         const scene = await fixtures.createScene({name});
         const token = await fixtures.createToken(scene, base, {name});
         const combat = await fixtures.createCombat(scene, [token]);
@@ -129,7 +129,8 @@ export function registerCombatTests(quench) {
       });
 
       it("Combat#nextTurn restores a custom turn pool through the synthetic Actor's ActorDelta without disturbing its neighbor", async function () {
-        const enc = await encounter({name:"custom pools"});
+        // An NPC: a character also keeps a Heroic Inspiration pool, and this test counts every pool.
+        const enc = await encounter({name:"custom pools",type:"npc"});
         await begin(enc);
         await enc.actor.update({"system.pools":[
           {id:"quench-neighbor",label:"QA neighbor",base:2,bonus:0,value:2,recovery:"none"},
